@@ -302,7 +302,7 @@ function createMemoryString(conv: Conversation): string{
     // allMemories =allMemories.concat(conv.gameData.characters.get(conv.gameData.playerID)!.memories);
     // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
 
-    allMemories.sort((a, b) => (a.relevanceWeight - b.relevanceWeight));
+    allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
     
     allMemories.reverse();
 
