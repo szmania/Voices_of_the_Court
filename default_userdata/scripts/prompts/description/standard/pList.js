@@ -98,10 +98,10 @@ module.exports = (gameData) =>{
             output+="lowborn ";
         }
     
-        if(char.SheHe === "she"){
+        if(char.sheHe === "she"){
             output+= "woman";
         }
-        else if(char.SheHe === "he"){
+        else if(char.sheHe === "he"){
             output+= "man";
         }
 
