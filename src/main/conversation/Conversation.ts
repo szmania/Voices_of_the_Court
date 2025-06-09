@@ -196,27 +196,55 @@ export class Conversation{
             }
     }
 
-    async summarize(){
+    //修改增加多人对话中每个参与对话角色的总结存储。add the summary storage for each participant in multi-character conversation.
+    async summarize() {
         this.isOpen = false;
+        // 向游戏写入触发事件（示例：触发对话结束事件）
         this.runFileManager.write("trigger_event = talk_event.9002");
-        setTimeout(()=>{
-            this.runFileManager.clear();
+        setTimeout(() => {
+            this.runFileManager.clear();  // 延迟清理事件文件（确保游戏读取）
         }, 500);
 
-        if(this.messages.length < 6){
-            console.log("Not enough messages for summarization, no summary have been saved from this conversation!");
+        // 消息不足时不生成摘要
+        if (this.messages.length < 6) {
+            console.log("消息数量不足，不生成摘要");
             return;
         }
 
-        let summary = {
-            date: this.gameData.date,
-            content: await summarize(this)
-        }
+        // 生成新摘要（调用摘要工具函数）
+        const summary: Summary = {
+            date: this.gameData.date,  // 当前游戏内日期
+            content: await summarize(this)  // 异步生成摘要内容
+        };
 
-        this.summaries.unshift(summary)
-
-        fs.writeFileSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json"), JSON.stringify(this.summaries, null, '\t'));
-    }
+        this.gameData.characters.forEach((_value, key) => {
+            if (key !== this.gameData.playerID) {
+                this.summaries=[]
+                const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                if (!fs.existsSync(summaryDir)) {
+                    fs.mkdirSync(summaryDir, { recursive: true });
+                }
+        
+                // 加载历史摘要（若存在）
+                const summaryFile = path.join(summaryDir, `${key.toString()}.json`);
+                if (fs.existsSync(summaryFile)) {
+                    this.summaries = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+                } else {
+                    fs.writeFileSync(summaryFile, JSON.stringify(this.summaries, null, '\t'));  // 初始化空摘要文件
+                }
+                        // 添加到历史摘要列表（插入到最前面）
+                this.summaries.unshift(summary);
+        // 持久化存储摘要（按玩家ID和AI ID分类）
+                const summaryFile1 = path.join(
+                    userDataPath, 
+                    'conversation_summaries', 
+                    this.gameData.playerID.toString(), 
+                    `${key.toString()}.json`
+                    );
+                fs.writeFileSync(summaryFile1, JSON.stringify(this.summaries, null, '\t'));
+            }
+            })
+        }; 
 
     updateConfig(config: Config){
         console.log("config updated!")
