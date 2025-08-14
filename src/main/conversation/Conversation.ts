@@ -145,6 +145,35 @@ export class Conversation{
             responseMessage.content = cleanMessageContent(responseMessage.content);
         }
 
+        const player = this.gameData.getPlayer();
+        const trimmedContent = responseMessage.content.trim();
+
+        // The AI should not generate a response for the player.
+        const playerPrefixes = [`${player.fullName}:`, `${player.shortName}:`];
+        for (const prefix of playerPrefixes) {
+            if (trimmedContent.startsWith(prefix)) {
+                const errorMsg = `Error: The AI attempted to generate a response for the player character (${player.shortName}). This action has been blocked.`;
+                console.error(errorMsg + `\nOriginal AI response: "${responseMessage.content}"`);
+                this.chatWindow.window.webContents.send('error-message', { text: errorMsg });
+                return; // Stop processing this message
+            }
+        }
+
+        // Clean the AI's own name from the response content, as the message bubble already indicates the speaker.
+        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`];
+        for (const prefix of aiPrefixes) {
+            if (trimmedContent.startsWith(prefix)) {
+                responseMessage.content = trimmedContent.substring(prefix.length).trim();
+                break; // Exit after finding and stripping one prefix
+            }
+        }
+
+        // If the response is empty after cleaning, don't send it.
+        if (!responseMessage.content) {
+            console.log(`AI response for ${character.fullName} was empty after cleaning. Skipping.`);
+            return;
+        }
+
         this.pushMessage(responseMessage);
 
         if(!this.config.stream){
@@ -324,4 +353,3 @@ export class Conversation{
     }
 
 }
-

@@ -254,8 +254,19 @@ clipboardListener.on('VOTC:IN', async () =>{
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
     try{ 
+        console.log("Parsing log for new conversation...");
+        const gameData = await parseLog(config.userFolderPath+'\\logs\\debug.log');
+
+        // Prevent the user from talking to themselves
+        if (gameData.playerID === gameData.aiID) {
+            const errorMessage = "Talking to yourself is a conversation best had in your own head, not in the chat window. This feature is not supported.";
+            console.error(errorMessage);
+            chatWindow.window.webContents.send('error-message', { text: errorMessage });
+            return; // Stop the conversation from initializing
+        }
+
         console.log("New conversation started!");
-        conversation = new Conversation(await parseLog(config.userFolderPath+'\\logs\\debug.log'), config, chatWindow);
+        conversation = new Conversation(gameData, config, chatWindow);
         chatWindow.window.webContents.send('chat-start', conversation.gameData);
         
     }catch(err){
@@ -263,7 +274,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.log(err);
 
         if(chatWindow.isShown){
-            chatWindow.window.webContents.send('error-message', err);
+            chatWindow.window.webContents.send('error-message', { text: (err as Error).toString() });
         }
     }
 })
@@ -284,7 +295,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     }
     catch(err){
         console.log(err);
-        chatWindow.window.webContents.send('error-message', err);
+        chatWindow.window.webContents.send('error-message', { text: (err as Error).toString() });
     }
     
     
@@ -346,4 +357,3 @@ ipcMain.on("select-user-folder", (event) => {
 ipcMain.on("open-folder", (event, path) => {
     dialog.showSaveDialog(configWindow.window, { defaultPath: path, properties: []});
 });
-
