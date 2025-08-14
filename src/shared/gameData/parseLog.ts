@@ -60,6 +60,8 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
 
             const rootID = Number(data[0]);
 
+            console.log(`Processing data for rootID: ${rootID}`);
+
             for(let i=0;i<data.length;i++){
                 data[i] = removeTooltip(data[i])
             }
@@ -134,6 +136,10 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
                         console.log(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
             }
+        } else {
+            if (line.trim() !== "") {
+                console.log(`Skipping line (no VOTC:IN): ${line}`);
+            }
         }
     } 
 
@@ -187,8 +193,8 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
 export function removeTooltip(str: string): string{
     let newWords: string[] = []
     str.split(" ").forEach( (word) =>{
-        if(word.includes('')){
-            newWords.push(word.split('')[0])
+        if(word.includes(' ')){
+            newWords.push(word.split(' ')[0])
         }else{
             newWords.push(word)
         }

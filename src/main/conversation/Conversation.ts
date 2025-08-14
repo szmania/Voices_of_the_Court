@@ -196,25 +196,25 @@ export class Conversation{
             }
     }
 
-    //修改增加多人对话中每个参与对话角色的总结存储。add the summary storage for each participant in multi-character conversation.
+    // Store a summary for each character participating in the conversation.
     async summarize() {
         this.isOpen = false;
-        // 向游戏写入触发事件（示例：触发对话结束事件）
+        // Write a trigger event to the game (e.g., trigger conversation end event)
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
-            this.runFileManager.clear();  // 延迟清理事件文件（确保游戏读取）
+            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
         }, 500);
 
-        // 消息不足时不生成摘要
+        // Do not generate a summary if there are not enough messages
         if (this.messages.length < 6) {
-            console.log("消息数量不足，不生成摘要");
+            console.log("Not enough messages to generate a summary.");
             return;
         }
 
-        // 生成新摘要（调用摘要工具函数）
+        // Generate a new summary (by calling the summarize utility function)
         const summary: Summary = {
-            date: this.gameData.date,  // 当前游戏内日期
-            content: await summarize(this)  // 异步生成摘要内容
+            date: this.gameData.date,  // Current in-game date
+            content: await summarize(this)  // Asynchronously generate summary content
         };
 
         this.gameData.characters.forEach((_value, key) => {
@@ -225,16 +225,16 @@ export class Conversation{
                     fs.mkdirSync(summaryDir, { recursive: true });
                 }
         
-                // 加载历史摘要（若存在）
+                // Load historical summaries (if they exist)
                 const summaryFile = path.join(summaryDir, `${key.toString()}.json`);
                 if (fs.existsSync(summaryFile)) {
                     this.summaries = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
                 } else {
-                    fs.writeFileSync(summaryFile, JSON.stringify(this.summaries, null, '\t'));  // 初始化空摘要文件
+                    fs.writeFileSync(summaryFile, JSON.stringify(this.summaries, null, '\t'));  // Initialize an empty summary file
                 }
-                        // 添加到历史摘要列表（插入到最前面）
+                // Add the new summary to the beginning of the list
                 this.summaries.unshift(summary);
-        // 持久化存储摘要（按玩家ID和AI ID分类）
+                // Persist the summaries, categorized by player ID and AI ID
                 const summaryFile1 = path.join(
                     userDataPath, 
                     'conversation_summaries', 
