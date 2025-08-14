@@ -145,13 +145,43 @@ export class Conversation{
             responseMessage.content = cleanMessageContent(responseMessage.content);
         }
 
-        const player = this.gameData.getPlayer();
-        const trimmedContent = responseMessage.content.trim();
+        let content = responseMessage.content.trim();
+
+        // Some models, like deepseek, may include reasoning or a preamble before the actual response.
+        // This logic attempts to strip it by finding the last occurrence of the character's name followed by a colon,
+        // which often signals the beginning of the true roleplay response.
+        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`].sort((a, b) => b.length - a.length);
+        let lastOccurenceIndex = -1;
+
+        for (const prefix of aiPrefixes) {
+            const index = content.lastIndexOf(prefix);
+            if (index > lastOccurenceIndex) {
+                lastOccurenceIndex = index;
+            }
+        }
+
+        // We only strip the preamble if it's of a significant length (>100 chars).
+        // This acts as a safeguard against accidentally cutting a valid, short response that might mention the name.
+        if (lastOccurenceIndex > 100) {
+            content = content.substring(lastOccurenceIndex);
+        }
+
+        // Clean the AI's own name if it prefixes the response (e.g., "CharacterName: Hello").
+        // This is done because the chat bubble already indicates who is speaking.
+        for (const prefix of aiPrefixes) {
+            if (content.startsWith(prefix)) {
+                content = content.substring(prefix.length).trim();
+                break; // Exit after finding and stripping one prefix
+            }
+        }
+        
+        responseMessage.content = content;
 
         // The AI should not generate a response for the player.
+        const player = this.gameData.getPlayer();
         const playerPrefixes = [`${player.fullName}:`, `${player.shortName}:`];
         for (const prefix of playerPrefixes) {
-            if (trimmedContent.startsWith(prefix)) {
+            if (responseMessage.content.trim().startsWith(prefix)) {
                 const errorMsg = `Error: The AI attempted to generate a response for the player character (${player.shortName}). This action has been blocked.`;
                 console.error(errorMsg + `\nOriginal AI response: "${responseMessage.content}"`);
                 this.chatWindow.window.webContents.send('error-message', { text: errorMsg });
@@ -159,17 +189,8 @@ export class Conversation{
             }
         }
 
-        // Clean the AI's own name from the response content, as the message bubble already indicates the speaker.
-        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`];
-        for (const prefix of aiPrefixes) {
-            if (trimmedContent.startsWith(prefix)) {
-                responseMessage.content = trimmedContent.substring(prefix.length).trim();
-                break; // Exit after finding and stripping one prefix
-            }
-        }
-
         // If the response is empty after cleaning, don't send it.
-        if (!responseMessage.content) {
+        if (!responseMessage.content.trim()) {
             console.log(`AI response for ${character.fullName} was empty after cleaning. Skipping.`);
             return;
         }
