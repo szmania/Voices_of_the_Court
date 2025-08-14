@@ -17,9 +17,11 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
         input: fileStream,
         crlfDelay: Infinity
     });
+    console.log(`Starting to parse log file: ${debugLogPath}`);
 
     for await (const line of rl) {
         if(isWaitingForMultiLine){
+            console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
             let value = line.split('#')[0]
             switch (multiLineType){
                 case "new_relations":
@@ -39,17 +41,20 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
             }
 
             if(line.includes('#ENDMULTILINE')){         
+                console.log(`Finished parsing multi-line data of type "${multiLineType}".`);
                 isWaitingForMultiLine = false;
             }
            continue;
         }
 
         if(line.includes("VOTC:IN")){
+            console.log(`Found VOTC:IN line: ${line}`);
 
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
             let data = line.split("/;/")
 
             const dataType = data[1];
+            console.log(`Parsing data type: ${dataType}`);
 
             data.splice(0,2)
 
@@ -62,24 +67,31 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
             switch (dataType){
                 case "init":
                     gameData = new GameData(data);
+                    console.log('Initialized GameData.');
                 break;
                 case "character": 
                     let char = new Character(data);
                     gameData!.characters.set(char.id, char);
+                    console.log(`Parsed character: ID=${char.id}, Name=${char.fullName}`);
                 break;
                 case "memory": 
                     let memory = parseMemory(data)
                     gameData!.characters.get(rootID)!.memories.push(memory);
+                    console.log(`Parsed memory for character ID ${rootID}: ${memory.desc}`);
                 break;
                 case "secret": 
                     let secret = parseSecret(data)
                     gameData!.characters.get(rootID)!.secrets.push(secret);
+                    console.log(`Parsed secret for character ID ${rootID}: ${secret.name}`);
                 break;
                 case "trait":
-                    gameData!.characters.get(rootID)!.traits.push(parseTrait(data));
+                    let trait = parseTrait(data);
+                    gameData!.characters.get(rootID)!.traits.push(trait);
+                    console.log(`Parsed trait for character ID ${rootID}: ${trait.name}`);
                 break;
                 case "opinons":
                     gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinon: Number(data[2])});
+                    console.log(`Parsed opinion for character ID ${rootID}: targetID=${data[1]}, value=${data[2]}`);
                 break;
                 case "relations":
                     
@@ -91,6 +103,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
                         multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "relations";
+                        console.log(`Starting multi-line parse for "relations" for character ID ${rootID}.`);
                     }
                 break;
                 case "new_relations":
@@ -105,6 +118,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
                     multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToCharacters.find(x => x.id == tmpTargetId)!.relations
                     isWaitingForMultiLine = true;
                     multiLineType = "new_relations";
+                    console.log(`Starting multi-line parse for "new_relations" for character ID ${rootID} to target ID ${tmpTargetId}.`);
                 }
                 break;
 
@@ -117,6 +131,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
                         multiLineTempStorage = gameData!.characters.get(rootID)!.opinionBreakdownToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
+                        console.log(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
             }
         }
@@ -164,7 +179,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
         }
     }
 
-    console.log(gameData!);
+    console.log("Finished parsing log. Final GameData object:", gameData!);
     return gameData!;
 }
 
@@ -172,8 +187,8 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
 export function removeTooltip(str: string): string{
     let newWords: string[] = []
     str.split(" ").forEach( (word) =>{
-        if(word.includes('')){
-            newWords.push(word.split('')[0])
+        if(word.includes(' ')){
+            newWords.push(word.split(' ')[0])
         }else{
             newWords.push(word)
         }
