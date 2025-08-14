@@ -147,31 +147,57 @@ export class Conversation{
 
         let content = responseMessage.content.trim();
 
-        // Some models, like deepseek, may include reasoning or a preamble before the actual response.
-        // This logic attempts to strip it by finding the last occurrence of the character's name followed by a colon,
-        // which often signals the beginning of the true roleplay response.
-        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`].sort((a, b) => b.length - a.length);
-        let lastOccurenceIndex = -1;
+        // Stage 1: Look for explicit phrases that terminate a preamble.
+        const preambleTerminators = [
+            "Time to write the reply.",
+            "Here is the reply.",
+            "Here's the reply.",
+            "Now for the reply.",
+            "Now, I will write the reply."
+        ];
 
-        for (const prefix of aiPrefixes) {
-            const index = content.lastIndexOf(prefix);
-            if (index > lastOccurenceIndex) {
-                lastOccurenceIndex = index;
+        let splitIndex = -1;
+        let terminatorLength = 0;
+
+        for (const terminator of preambleTerminators) {
+            const index = content.lastIndexOf(terminator);
+            if (index > splitIndex) {
+                splitIndex = index;
+                terminatorLength = terminator.length;
             }
         }
 
-        // We only strip the preamble if it's of a significant length (>100 chars).
-        // This acts as a safeguard against accidentally cutting a valid, short response that might mention the name.
-        if (lastOccurenceIndex > 100) {
-            content = content.substring(lastOccurenceIndex);
+        const PREAMBLE_MIN_LENGTH = 100; // A safety check for all stripping operations.
+
+        // If a terminator was found and it's preceded by a long preamble, strip it.
+        if (splitIndex > PREAMBLE_MIN_LENGTH) {
+            console.log(`Preamble terminator found. Stripping preamble.`);
+            content = content.substring(splitIndex + terminatorLength).trim();
+        } 
+        // Stage 2: Fallback for cases without a clear terminator phrase.
+        // This looks for the last instance of "Character Name:"
+        else {
+            const markers = [`${character.fullName}:`, `${character.shortName}:`];
+            let fallbackSplitIndex = -1;
+            for (const marker of markers) {
+                const index = content.lastIndexOf(marker);
+                if (index > fallbackSplitIndex) {
+                    fallbackSplitIndex = index;
+                }
+            }
+
+            if (fallbackSplitIndex > PREAMBLE_MIN_LENGTH) {
+                console.log(`Preamble detected via fallback. Stripping preamble.`);
+                content = content.substring(fallbackSplitIndex);
+            }
         }
 
-        // Clean the AI's own name if it prefixes the response (e.g., "CharacterName: Hello").
-        // This is done because the chat bubble already indicates who is speaking.
+        // Final cleanup: After stripping the preamble, remove the character name prefix from the start of the actual response.
+        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`];
         for (const prefix of aiPrefixes) {
             if (content.startsWith(prefix)) {
                 content = content.substring(prefix.length).trim();
-                break; // Exit after finding and stripping one prefix
+                break;
             }
         }
         
