@@ -204,12 +204,43 @@ export class Conversation{
         setTimeout(() => {
             this.runFileManager.clear();  // 延迟清理事件文件（确保游戏读取）
         }, 500);
+      
+        // 确保conversation_history目录存在
+        const historyDir = path.join(userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+
+        if (!fs.existsSync(historyDir)) {
+            fs.mkdirSync(historyDir, { recursive: true });
+        }
+
+        // 处理对话消息，只保留name和content
+        const processedMessages = this.messages.map(msg => ({
+            name: msg.name,
+            content: msg.content
+        }));
+
+        // 构建要保存的文本内容
+        let textContent = `时间: ${this.gameData.date}\n\n`;
+
+        processedMessages.forEach((msg, index) => {
+            textContent += `${msg.name}: ${msg.content}\n\n`;
+        });
+
+        // 存储用于生成摘要的消息文本为txt格式
+        const historyFile = path.join(
+            userDataPath, 
+            'conversation_history', 
+            this.gameData.playerID.toString(),
+            `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.txt`
+        );
+        fs.writeFileSync(historyFile, textContent);
+        console.log(`对话历史已保存至: ${historyFile}`)
 
         // 消息不足时不生成摘要
         if (this.messages.length < 6) {
             console.log("消息数量不足，不生成摘要");
             return;
         }
+
 
         // 生成新摘要（调用摘要工具函数）
         const summary: Summary = {
@@ -243,7 +274,9 @@ export class Conversation{
                     );
                 fs.writeFileSync(summaryFile1, JSON.stringify(this.summaries, null, '\t'));
             }
-            })
+        });
+
+
         }; 
 
     updateConfig(config: Config){
