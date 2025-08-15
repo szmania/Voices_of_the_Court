@@ -6,7 +6,7 @@ const readline = require('readline');
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
     console.log(`Starting to parse log file at: ${debugLogPath}`);
     if (!fs.existsSync(debugLogPath)) {
-        console.log(`Error: Log file not found at ${debugLogPath}`);
+        console.error(`Error: Log file not found at ${debugLogPath}`);
         return undefined;
     }
 
@@ -100,8 +100,9 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                     console.log(`Parsed secret for character ID ${rootID}: ${secret.name}`);
                 break;
                 case "trait":
-                    if (!gameData) continue;
-                    gameData.characters.get(rootID)!.traits.push(parseTrait(data));
+                    let trait = parseTrait(data);
+                    gameData!.characters.get(rootID)!.traits.push(trait);
+                    console.log(`Parsed trait for character ID ${rootID}: ${trait.name}`);
                 break;
                 case "opinions":
                     if (!gameData) continue;

@@ -256,7 +256,9 @@ clipboardListener.on('VOTC:IN', async () =>{
     try{ 
         console.log("Parsing log for new conversation...");
         const gameData = await parseLog(config.userFolderPath+'\\logs\\debug.log');
-
+        if (!gameData || !gameData.playerID) {
+          throw new Error("Failed to parse game data from log file. Could not find player data. Make sure the user folder path is set correctly in the config and the log file exists and is not empty.");
+        }
         // Prevent the user from talking to themselves
         if (gameData.playerID === gameData.aiID) {
             const errorMessage = "Talking to yourself is a conversation best had in your own head, not in the chat window. This feature is not supported.";
