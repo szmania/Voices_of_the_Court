@@ -210,7 +210,7 @@ export class Conversation{
             if (responseMessage.content.trim().startsWith(prefix)) {
                 const errorMsg = `Error: The AI attempted to generate a response for the player character (${player.shortName}). This action has been blocked.`;
                 console.error(errorMsg + `\nOriginal AI response: "${responseMessage.content}"`);
-                this.chatWindow.window.webContents.send('error-message', { text: errorMsg });
+                this.chatWindow.window.webContents.send('error-message', errorMsg);
                 return; // Stop processing this message
             }
         }
