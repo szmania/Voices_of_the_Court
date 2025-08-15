@@ -255,9 +255,10 @@ clipboardListener.on('VOTC:IN', async () =>{
     chatWindow.window.webContents.send('chat-show');
     try{ 
         console.log("Parsing log for new conversation...");
-        const gameData = await parseLog(config.userFolderPath+'\\logs\\debug.log');
+        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
+        const gameData = await parseLog(logFilePath);
         if (!gameData || !gameData.playerID) {
-          throw new Error("Failed to parse game data from log file. Could not find player data. Make sure the user folder path is set correctly in the config and the log file exists and is not empty.");
+          throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty.`);
         }
         // Prevent the user from talking to themselves
         if (gameData.playerID === gameData.aiID) {
