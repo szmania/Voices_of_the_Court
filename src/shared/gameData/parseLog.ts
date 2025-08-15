@@ -193,8 +193,8 @@ export async function parseLog(debugLogPath: string): Promise<GameData>{
 export function removeTooltip(str: string): string{
     let newWords: string[] = []
     str.split(" ").forEach( (word) =>{
-        if(word.includes(' ')){
-            newWords.push(word.split(' ')[0])
+        if(word.includes('')){
+            newWords.push(word.split('')[0])
         }else{
             newWords.push(word)
         }

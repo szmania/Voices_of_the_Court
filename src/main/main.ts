@@ -261,7 +261,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         if (gameData.playerID === gameData.aiID) {
             const errorMessage = "Talking to yourself is a conversation best had in your own head, not in the chat window. This feature is not supported.";
             console.error(errorMessage);
-            chatWindow.window.webContents.send('error-message', { text: errorMessage });
+            chatWindow.window.webContents.send('error-message', errorMessage);
             return; // Stop the conversation from initializing
         }
 
@@ -274,7 +274,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.log(err);
 
         if(chatWindow.isShown){
-            chatWindow.window.webContents.send('error-message', { text: (err as Error).toString() });
+            chatWindow.window.webContents.send('error-message', err);
         }
     }
 })
@@ -295,7 +295,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     }
     catch(err){
         console.log(err);
-        chatWindow.window.webContents.send('error-message', { text: (err as Error).toString() });
+        chatWindow.window.webContents.send('error-message', err);
     }
     
     

@@ -45,13 +45,10 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
     let chatPrompt: Message[]  = [];
 
-    const mainPromptWithFix = parseVariables(conv.config.mainPrompt, conv.gameData) +
-      "\n\nIMPORTANT RULE: Your response must contain ONLY the character's direct speech and actions. Do NOT include any out-of-character explanations, reasoning, or summaries of your instructions. The response MUST begin immediately with the character's dialogue or actions, without any preamble or thought process.";
-
     chatPrompt.push({
         role: "system",
-        content: mainPromptWithFix
-    });
+        content: parseVariables(conv.config.mainPrompt, conv.gameData)
+    })
 
     chatPrompt.push({
         role: "system",
