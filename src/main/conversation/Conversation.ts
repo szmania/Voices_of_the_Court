@@ -281,27 +281,27 @@ export class Conversation{
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
         }, 500);
 
-        // 确保conversation_history目录存在
+        // Ensure the conversation_history directory exists
         const historyDir = path.join(userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
 
         if (!fs.existsSync(historyDir)) {
           fs.mkdirSync(historyDir, { recursive: true });
         }
 
-        // 处理对话消息，只保留name和content
+        // Process conversation messages, keeping only name and content
         const processedMessages = this.messages.map(msg => ({
           name: msg.name,
           content: msg.content
         }));
 
-        // 构建要保存的文本内容
-        let textContent = `时间: ${this.gameData.date}\n\n`;
+        // Build the text content to be saved
+        let textContent = `Date: ${this.gameData.date}\n\n`;
 
         processedMessages.forEach((msg, index) => {
           textContent += `${msg.name}: ${msg.content}\n\n`;
         });
 
-        // 存储用于生成摘要的消息文本为txt格式
+        // Store the message text for generating summaries in txt format
         const historyFile = path.join(
           userDataPath,
           'conversation_history',
@@ -309,7 +309,7 @@ export class Conversation{
           `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.txt`
         );
         fs.writeFileSync(historyFile, textContent);
-        console.log(`对话历史已保存至: ${historyFile}`)
+        console.log(`Conversation history saved to: ${historyFile}`)
 
         // Do not generate a summary if there are not enough messages
         if (this.messages.length < 6) {
