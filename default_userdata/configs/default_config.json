@@ -64,6 +64,7 @@
 	"actionsUseTextGenApi": true,
 	"actionsEnableAll": true,
 	"disabledActions": [
+		"aiGetsWounded",
 		"undressAi",
 		"intercourse"
 	],
