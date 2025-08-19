@@ -105,7 +105,10 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         conv.summaries.reverse();
 
         for(let summary of conv.summaries){
-            summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
+            // 只添加日期不晚于当前游戏日期的总结.Only add summaries with a date no later than the current game date.
+            if(new Date(summary.date) <= new Date(conv.gameData.date)){                
+                summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
+            }
         }
 
         conv.summaries.reverse();
