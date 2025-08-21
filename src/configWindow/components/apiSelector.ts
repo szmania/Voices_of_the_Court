@@ -267,6 +267,8 @@ class ApiSelector extends HTMLElement{
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
             //@ts-ignore
             config = await ipcRenderer.invoke('get-config');
+            console.log("--- API SELECTOR: Testing Connection ---");
+            console.log("Using config:", config[this.confID]);
             let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters);
 
             this.testConnectionSpan.innerText = "...";
@@ -275,6 +277,7 @@ class ApiSelector extends HTMLElement{
 
             con.testConnection().then( (result) =>{
 
+                console.log("--- API SELECTOR: Test Result ---");
                 console.log(result)
 
                 if(result.success){
