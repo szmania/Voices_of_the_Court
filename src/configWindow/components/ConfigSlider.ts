@@ -65,9 +65,14 @@ class ConfigSlider extends HTMLElement{
         let config = await ipcRenderer.invoke('get-config');
 
         //@ts-ignore
-        this.slider.value = config[confID];
-        //@ts-ignore
-        this.number.value = config[confID];
+        const value = config[confID];
+
+        if(value !== undefined){
+            this.changeValue(value);
+        }
+        else{
+            this.changeValue(this.default);
+        }
 
         this.slider.addEventListener("input", (e: any) => {
             this.number.value = this.slider.value;
