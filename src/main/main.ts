@@ -154,7 +154,21 @@ app.on('ready',  async () => {
     const logToFile = (prefix: string, message: string) => {
         const time = new Date();
         const currentDate = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
-        log_file.write(currentDate + prefix + message + '\n');
+        
+        let sanitizedMessage = message;
+        try {
+            // Sanitize API keys from log messages to avoid leaking sensitive data.
+            // This regex finds keys like `key: 'some-value'` and replaces `some-value` with '********'.
+            // It specifically targets non-empty keys to avoid redacting empty key fields.
+            const keyPattern = /(key\s*:\s*['"])([^"']+)(['"])/gi;
+            sanitizedMessage = sanitizedMessage.replace(keyPattern, `$1********$3`);
+        } catch (e) {
+            // In case of a regex error, log the original message.
+            // This is a safeguard.
+            originalConsole.error("Error sanitizing log message:", e);
+        }
+
+        log_file.write(currentDate + prefix + sanitizedMessage + '\n');
     };
 
     console.log = (...args: any[]) => {
