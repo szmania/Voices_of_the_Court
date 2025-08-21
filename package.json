@@ -8,7 +8,6 @@
     "createTypeDefs": "node ./build/createGameDataTypeDefs.js",
     "build": "tsc",
     "start": "npm run build && electron .",
-    "debug": "npm run build && electron --inspect-brk .",
     "package": "npm run build && electron-forge package",
     "make": "npm run createTypeDefs && npm run build && electron-forge make",
     "publish": "npm run build && electron-forge publish"
