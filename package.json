@@ -14,6 +14,7 @@
     "createTypeDefs": "node ./build/createGameDataTypeDefs.js",
     "build": "tsc",
     "start": "npm run build && electron . --prod",
+    "debug": "npm run build && electron --inspect-brk . --prod",
     "package": "npm run build && electron-forge package",
     "make": "npm run createTypeDefs && npm run build && electron-forge make",
     "publish": "npm run build && electron-forge publish"
