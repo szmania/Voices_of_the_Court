@@ -1,4 +1,5 @@
 import {  app, BrowserWindow } from "electron";
+import path from 'path';
 
 export class ConfigWindow{
     window: BrowserWindow;
@@ -12,6 +13,7 @@ export class ConfigWindow{
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
+            preload: path.join(__dirname, '..', 'preload.js')
             }       
         })
 

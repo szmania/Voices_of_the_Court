@@ -151,31 +151,30 @@ app.on('ready',  async () => {
         debug: console.debug
     };
 
-    const logToFile = (prefix: string, ...args: any[]) => {
+    const logToFile = (prefix: string, message: string) => {
         const time = new Date();
         const currentDate = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
-        const message = util.format(...args);
         log_file.write(currentDate + prefix + message + '\n');
     };
 
     console.log = (...args: any[]) => {
         originalConsole.log.apply(console, args);
-        logToFile('', ...args);
+        logToFile('', util.format(...args));
     };
 
     console.error = (...args: any[]) => {
         originalConsole.error.apply(console, args);
-        logToFile('[ERROR] ', ...args);
+        logToFile('[ERROR] ', util.format(...args));
     };
 
     console.warn = (...args: any[]) => {
         originalConsole.warn.apply(console, args);
-        logToFile('[WARN] ', ...args);
+        logToFile('[WARN] ', util.format(...args));
     };
 
     console.info = (...args: any[]) => {
         originalConsole.info.apply(console, args);
-        logToFile('[INFO] ', ...args);
+        logToFile('[INFO] ', util.format(...args));
     };
 
     console.debug = (...args: any[]) => {
@@ -185,7 +184,7 @@ app.on('ready',  async () => {
         else{
             originalConsole.log.apply(console, args);
         }
-        logToFile('[DEBUG] ', ...args);
+        logToFile('[DEBUG] ', util.format(...args));
     };
 
     console.log(`app version: ${packagejson.version}`)
@@ -346,6 +345,27 @@ ipcMain.on('message-send', async (e, message: Message) =>{
 ipcMain.handle('get-config', () => {return config});
 
 ipcMain.handle('get-userdata-path', () => {return path.join(app.getPath("userData"), 'votc_data')});
+
+ipcMain.on('log-message', (event, { level, message }) => {
+    const rendererMessage = `[Renderer] ${message}`;
+    switch (level) {
+        case 'error':
+            logToFile('[ERROR] ', rendererMessage);
+            break;
+        case 'warn':
+            logToFile('[WARN] ', rendererMessage);
+            break;
+        case 'info':
+            logToFile('[INFO] ', rendererMessage);
+            break;
+        case 'debug':
+            logToFile('[DEBUG] ', rendererMessage);
+            break;
+        default:
+            logToFile('', rendererMessage); // for console.log
+            break;
+    }
+});
 
 
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{

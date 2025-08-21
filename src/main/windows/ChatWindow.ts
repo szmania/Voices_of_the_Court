@@ -1,6 +1,7 @@
 import {  app, BrowserWindow, ipcMain} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
 import ActiveWindow from '@paymoapp/active-window';
+import path from 'path';
 
 ActiveWindow.initialize();
 
@@ -18,8 +19,7 @@ export class ChatWindow{
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-           
-
+            preload: path.join(__dirname, '..', 'preload.js')
             }       
         })
 
@@ -94,5 +94,3 @@ export class ChatWindow{
         clearInterval(this.interval);
     }
 }
-
-
