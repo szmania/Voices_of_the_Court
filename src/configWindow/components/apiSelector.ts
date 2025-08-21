@@ -227,7 +227,7 @@ class ApiSelector extends HTMLElement{
         
 
         this.typeSelector.addEventListener("change", (e: any) => {
-            console.log(confID)
+            console.debug(confID)
 
             this.displaySelectedApiBox();
 
@@ -267,8 +267,8 @@ class ApiSelector extends HTMLElement{
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
             //@ts-ignore
             config = await ipcRenderer.invoke('get-config');
-            console.log("--- API SELECTOR: Testing Connection ---");
-            console.log("Using config:", config[this.confID]);
+            console.debug("--- API SELECTOR: Testing Connection ---");
+            console.debug("Using config:", config[this.confID]);
             let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters);
 
             this.testConnectionSpan.innerText = "...";
@@ -277,8 +277,8 @@ class ApiSelector extends HTMLElement{
 
             con.testConnection().then( (result) =>{
 
-                console.log("--- API SELECTOR: Test Result ---");
-                console.log(result)
+                console.debug("--- API SELECTOR: Test Result ---");
+                console.debug(result)
 
                 if(result.success){
                     this.testConnectionSpan.style.color = "green";

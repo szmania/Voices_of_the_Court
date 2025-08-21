@@ -85,7 +85,7 @@ class ConfigSlider extends HTMLElement{
         });
 
         this.number.addEventListener("change", (e: any) => {
-            console.log(confID)
+            console.debug(confID)
 
             this.slider.value = this.number.value;
 

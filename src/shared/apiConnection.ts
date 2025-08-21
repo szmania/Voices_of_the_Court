@@ -40,9 +40,9 @@ export class ApiConnection{
     
 
     constructor(connection: Connection, parameters: Parameters){
-        console.log("--- API CONNECTION: Constructor ---");
-        console.log("Received connection:", connection);
-        console.log("Received parameters:", parameters);
+        console.debug("--- API CONNECTION: Constructor ---");
+        console.debug("Received connection:", connection);
+        console.debug("Received parameters:", parameters);
         this.type = connection.type;
         this.client = new OpenAI({
             baseURL: connection.baseUrl,
@@ -64,7 +64,7 @@ export class ApiConnection{
         }
 
         if(connection.overwriteContext){
-            console.log("Overwriting context size!");
+            console.debug("Overwriting context size!");
             this.context = connection.customContext;
             this.overwriteWarning = false;
         }
@@ -73,21 +73,21 @@ export class ApiConnection{
             this.overwriteWarning = false;
         }
         else{
-            console.log(`Warning: couldn't find ${this.model}'s context limit. context overwrite value will be used!`);
+            console.debug(`Warning: couldn't find ${this.model}'s context limit. context overwrite value will be used!`);
             this.context = connection.customContext;
             this.overwriteWarning = true;
         }
-        console.log("Constructed ApiConnection object:", this);
+        console.debug("Constructed ApiConnection object:", this);
     }
 
     isChat(): boolean {
-        console.log(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
+        console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
         if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom"){
-            console.log("isChat() is returning true");
+            console.debug("isChat() is returning true");
             return true;
         }
         else{
-            console.log("isChat() is returning false");
+            console.debug("isChat() is returning false");
             return false;
         }
     
@@ -99,9 +99,9 @@ export class ApiConnection{
         otherArgs: object,
         streamRelay?: (arg1: MessageChunk) => void
     ): Promise<string> {
-        console.log("--- API CONNECTION: complete() ---");
-        console.log("Prompt:", prompt);
-        console.log(`Stream: ${stream}, otherArgs:`, otherArgs);
+        console.debug("--- API CONNECTION: complete() ---");
+        console.debug("Prompt:", prompt);
+        console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
         
@@ -111,7 +111,7 @@ export class ApiConnection{
         let retries = 0;
     
         while (retries < MAX_RETRIES) {
-            console.log(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
+            console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
             try {
                 //OPENAI DOESN'T ALLOW spaces inside message.name so we have to put them inside the Message content.
                 if (this.type === "openai") {
@@ -126,7 +126,7 @@ export class ApiConnection{
                         }
                     }
                 }
-                console.log("Prompt before sending to API:", prompt);
+                console.debug("Prompt before sending to API:", prompt);
     
                 if (this.isChat()) {
                     const requestBody = {
@@ -136,10 +136,10 @@ export class ApiConnection{
                         ...this.parameters,
                         ...otherArgs
                     };
-                    console.log("Making chat completion request with body:", requestBody);
+                    console.debug("Making chat completion request with body:", requestBody);
                     let completion = await this.client.chat.completions.create(requestBody as any);
     
-                    console.log("Received API response (completion object):", completion);
+                    console.debug("Received API response (completion object):", completion);
                     let response: string = "";
     
                     //@ts-ignore
@@ -162,7 +162,7 @@ export class ApiConnection{
                         response = completion.choices[0].message.content;
                     }
     
-                    console.log("Parsed response:", response);
+                    console.debug("Parsed response:", response);
                     return response;
                 } else {
                     let completion;
@@ -175,7 +175,7 @@ export class ApiConnection{
                             ...this.parameters,
                             ...otherArgs
                         };
-                        console.log("Making legacy completion request (via chat endpoint for openrouter instruct) with body:", requestBody);
+                        console.debug("Making legacy completion request (via chat endpoint for openrouter instruct) with body:", requestBody);
                         completion = await this.client.chat.completions.create(requestBody as any);
                     } else {
                         const requestBody = {
@@ -185,11 +185,11 @@ export class ApiConnection{
                             ...this.parameters,
                             ...otherArgs
                         };
-                        console.log("Making legacy completion request with body:", requestBody);
+                        console.debug("Making legacy completion request with body:", requestBody);
                         completion = await this.client.completions.create(requestBody as any);
                     }
     
-                    console.log("Received API response (completion object):", completion);
+                    console.debug("Received API response (completion object):", completion);
                     let response: string = "";
     
                     //@ts-ignore
@@ -214,15 +214,15 @@ export class ApiConnection{
                         response = completion.choices[0].text;
                     }
     
-                    console.log("Parsed response:", response);
+                    console.debug("Parsed response:", response);
                     if (response === "" || response === undefined || response === null || response === " ") {
                         throw new Error("{code: 599, error: {message: 'No response'}}");
                     }
                     return response;
                 }
             } catch (error) {
-                console.error(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
-                console.error(error);
+                console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
+                console.debug(error);
                 // Narrow down the error type
                 if (typeof error === "object" && error !== null && "code" in error && "error" in error) {
                     const typedError = error as {
@@ -235,7 +235,7 @@ export class ApiConnection{
                         typedError.error?.message.includes("Provider returned error")
                     ) {
                         retries++;
-                        console.warn(
+                        console.debug(
                             `Retry ${retries}/${MAX_RETRIES} after error: ${typedError.error?.message}, delaying for ${
                                 RETRY_DELAY * retries
                             }ms`
@@ -246,31 +246,31 @@ export class ApiConnection{
                         typedError.error?.message.includes("No response")
                     ) {
                         retries++;
-                        console.warn(
+                        console.debug(
                             `Retry ${retries}/${MAX_RETRIES} after error: ${typedError.error?.message}, delaying for ${
                                 RETRY_DELAY * retries
                             }ms`
                         );
                         await delay(RETRY_DELAY * retries); // Exponential backoff
                     } else {
-                        console.error("Unrecoverable error:", error);
+                        console.debug("Unrecoverable error:", error);
                         throw error; // Propagate unrecoverable errors
                     }
                 } else {
-                    console.error("Unknown error type:", error);
+                    console.debug("Unknown error type:", error);
                     throw error; // If it's not an object or doesn't have the expected properties
                 }
             }
             
         }
     
-        console.error(`Failed after ${MAX_RETRIES} retries.`);
+        console.debug(`Failed after ${MAX_RETRIES} retries.`);
         //throw new Error(`Unable to complete request after ${MAX_RETRIES} retries.`);
         return ""
     }
     
     async testConnection(): Promise<apiConnectionTestResult>{
-        console.log("--- API CONNECTION: testConnection() ---");
+        console.debug("--- API CONNECTION: testConnection() ---");
         let prompt: string | Message[];
         if(this.isChat()){
             prompt = [
@@ -282,10 +282,10 @@ export class ApiConnection{
         }else{
             prompt = "ping";
         }
-        console.log("Test prompt:", prompt);
+        console.debug("Test prompt:", prompt);
 
         return this.complete(prompt, false, {max_tokens: 1}).then( (resp) =>{
-            console.log("testConnection received response from complete():", resp);
+            console.debug("testConnection received response from complete():", resp);
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
@@ -293,7 +293,7 @@ export class ApiConnection{
                 return {success: false, overwriteWarning: false, errorMessage: "no response, something went wrong..."};
             }
         }).catch( (err) =>{
-            console.error("testConnection caught an error from complete():", err);
+            console.debug("testConnection caught an error from complete():", err);
             return {success: false, overwriteWarning: false, errorMessage: err}
         });
     }
