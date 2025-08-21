@@ -14,6 +14,18 @@ const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
 
+let checkForUpdates = () => {
+    // This will be replaced by the real implementation in app.on('ready')
+    if (!app.isPackaged) {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Updates',
+            message: 'Updates are disabled in development mode.'
+        });
+    }
+};
+
+
 const isFirstInstance = app.requestSingleInstanceLock();
 if (!isFirstInstance) {
     app.quit();
@@ -57,11 +69,42 @@ const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
 //updating
 if(app.isPackaged){
-    const feed = `${packagejson.updater.server}/${packagejson.updater.repo}/${process.platform}-${process.arch}/${app.getVersion()}`
-    //@ts-ignore
-    autoUpdater.setFeedURL(feed);
+    const server = packagejson.updater.server;
+    const repos = Array.isArray(packagejson.updater.repo) 
+        ? packagejson.updater.repo 
+        : [packagejson.updater.repo];
     
-      autoUpdater.on('update-available', () => {
+    let repoIndex = 0;
+
+    const checkNextRepo = () => {
+        if (repoIndex >= repos.length) {
+            repoIndex = 0; // Reset for next manual check
+            const dialogOpts = {
+              type: 'info' as const,
+              buttons: [],
+              title: 'App is up to date!',
+              message: "App is up to date!",
+              detail: 'no new version was found!'
+            }  
+            dialog.showMessageBox(dialogOpts);
+            return;
+        }
+        
+        const repo = repos[repoIndex];
+        console.log(`Checking for updates from ${repo}...`);
+        const feed = `${server}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
+        //@ts-ignore
+        autoUpdater.setFeedURL(feed);
+        autoUpdater.checkForUpdates();
+    };
+
+    checkForUpdates = () => {
+        repoIndex = 0;
+        checkNextRepo();
+    };
+
+    autoUpdater.on('update-available', () => {
+        repoIndex = 0; // Reset for next manual check
         const dialogOpts = {
           type: "info" as const,
           buttons: [],
@@ -71,10 +114,9 @@ if(app.isPackaged){
         }
       
         dialog.showMessageBox(dialogOpts);
-    })
+    });
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-
         const dialogOpts = {
           type: 'info' as const,
           buttons: ['Restart', 'Later'],
@@ -87,31 +129,30 @@ if(app.isPackaged){
         dialog.showMessageBox(dialogOpts).then((returnValue) => {
           if (returnValue.response === 0) autoUpdater.quitAndInstall()
         })
-    })
-
-    
+    });
 
     autoUpdater.on('update-not-available', () => {
-        const dialogOpts = {
-          type: 'info' as const,
-          buttons: [],
-          title: 'App is up to date!',
-          message: "App is up to date!",
-          detail: 'no new version was found!'
-        }  
-        dialog.showMessageBox(dialogOpts);
-    })
+        repoIndex++;
+        checkNextRepo();
+    });
 
     autoUpdater.on('error', (error) => {
-        const dialogOpts = {
-          type: 'info' as const,
-          buttons: [],
-          title: 'Update error!',
-          message: "Something went wrong during updating!",
-          detail: 'error message: '+error
-        }  
-        dialog.showMessageBox(dialogOpts);
-    })
+        console.error(`Update check failed for repo ${repos[repoIndex]}:`, error);
+        repoIndex++;
+        if (repoIndex < repos.length) {
+            checkNextRepo();
+        } else {
+            repoIndex = 0; // Reset for next manual check
+            const dialogOpts = {
+              type: 'info' as const,
+              buttons: [],
+              title: 'Update error!',
+              message: "Something went wrong during updating!",
+              detail: 'error message: '+error
+            }  
+            dialog.showMessageBox(dialogOpts);
+        }
+    });
 }
 
 
@@ -238,9 +279,7 @@ app.on('ready',  async () => {
     },
     { label: 'Check for updates..',
         click: () => { 
-            if(app.isPackaged){
-                autoUpdater.checkForUpdates();
-            }
+            checkForUpdates();
           }
     },
     { label: 'Exit', 
@@ -290,7 +329,7 @@ app.on('ready',  async () => {
 });
 
 ipcMain.on('update-app', ()=>{
-    autoUpdater.checkForUpdates();
+    checkForUpdates();
 });
 
 ipcMain.on('clear-summaries', ()=>{
