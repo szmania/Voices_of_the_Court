@@ -235,7 +235,7 @@ export class ApiConnection{
                 }
             } catch (error) {
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
-                console.debug(error);
+                console.error(error);
                 // Narrow down the error type
                 if (typeof error === "object" && error !== null && "code" in error && "error" in error) {
                     const typedError = error as {
