@@ -41,7 +41,8 @@ export class ApiConnection{
 
     constructor(connection: Connection, parameters: Parameters){
         console.debug("--- API CONNECTION: Constructor ---");
-        console.debug("Received connection:", connection);
+        const redactedConnection = { ...connection, key: '[REDACTED]' };
+        console.debug("Received connection:", redactedConnection);
         console.debug("Received parameters:", parameters);
         this.type = connection.type;
         this.client = new OpenAI({
@@ -77,7 +78,19 @@ export class ApiConnection{
             this.context = connection.customContext;
             this.overwriteWarning = true;
         }
-        console.debug("Constructed ApiConnection object:", this);
+        const loggableThis = {
+            type: this.type,
+            client: {
+                baseURL: this.client.baseURL,
+                apiKey: '[REDACTED]'
+            },
+            model: this.model,
+            forceInstruct: this.forceInstruct,
+            parameters: this.parameters,
+            context: this.context,
+            overwriteWarning: this.overwriteWarning,
+        };
+        console.debug("Constructed ApiConnection object:", loggableThis);
     }
 
     isChat(): boolean {
