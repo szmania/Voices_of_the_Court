@@ -268,7 +268,15 @@ class ApiSelector extends HTMLElement{
             //@ts-ignore
             config = await ipcRenderer.invoke('get-config');
             console.debug("--- API SELECTOR: Testing Connection ---");
-            console.debug("Using config:", config[this.confID]);
+
+            // Create a deep copy to avoid modifying the actual config object
+            const configToLog = JSON.parse(JSON.stringify(config[this.confID]));
+            // Redact sensitive information
+            if (configToLog.connection && configToLog.connection.key) {
+                configToLog.connection.key = "[REDACTED]";
+            }
+            console.debug("Using config:", configToLog);
+            
             let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters);
 
             this.testConnectionSpan.innerText = "...";
