@@ -131,14 +131,13 @@ export class ApiConnection{
                 if (this.isChat()) {
                     const requestBody = {
                         model: this.model,
-                        //@ts-ignore
-                        messages: prompt,
+                        messages: prompt as Message[],
                         stream: stream,
                         ...this.parameters,
                         ...otherArgs
                     };
                     console.log("Making chat completion request with body:", requestBody);
-                    let completion = await this.client.chat.completions.create(requestBody);
+                    let completion = await this.client.chat.completions.create(requestBody as any);
     
                     console.log("Received API response (completion object):", completion);
                     let response: string = "";
@@ -171,26 +170,23 @@ export class ApiConnection{
                     if (this.type === "openrouter") {
                         const requestBody = {
                             model: this.model,
-                            //@ts-ignore
-                            prompt: prompt,
+                            messages: [{role: 'user', content: prompt as string}],
                             stream: stream,
                             ...this.parameters,
                             ...otherArgs
                         };
                         console.log("Making legacy completion request (via chat endpoint for openrouter instruct) with body:", requestBody);
-                        //@ts-ignore
-                        completion = await this.client.chat.completions.create(requestBody);
+                        completion = await this.client.chat.completions.create(requestBody as any);
                     } else {
                         const requestBody = {
                             model: this.model,
-                            //@ts-ignore
-                            prompt: prompt,
+                            prompt: prompt as string,
                             stream: stream,
                             ...this.parameters,
                             ...otherArgs
                         };
                         console.log("Making legacy completion request with body:", requestBody);
-                        completion = await this.client.completions.create(requestBody);
+                        completion = await this.client.completions.create(requestBody as any);
                     }
     
                     console.log("Received API response (completion object):", completion);
