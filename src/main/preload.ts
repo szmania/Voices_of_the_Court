@@ -11,7 +11,7 @@ const originalConsole = {
 };
 
 // Function to send log messages to the main process
-const sendLog = (level, ...args) => {
+const sendLog = (level: string, ...args: any[]) => {
     // We use util.format to handle multiple arguments and complex objects
     const message = util.format(...args);
     ipcRenderer.send('log-message', { level, message });

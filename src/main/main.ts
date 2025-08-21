@@ -187,6 +187,27 @@ app.on('ready',  async () => {
         logToFile('[DEBUG] ', util.format(...args));
     };
 
+    ipcMain.on('log-message', (event, { level, message }) => {
+        const rendererMessage = `[Renderer] ${message}`;
+        switch (level) {
+            case 'error':
+                logToFile('[ERROR] ', rendererMessage);
+                break;
+            case 'warn':
+                logToFile('[WARN] ', rendererMessage);
+                break;
+            case 'info':
+                logToFile('[INFO] ', rendererMessage);
+                break;
+            case 'debug':
+                logToFile('[DEBUG] ', rendererMessage);
+                break;
+            default:
+                logToFile('', rendererMessage); // for console.log
+                break;
+        }
+    });
+
     console.log(`app version: ${packagejson.version}`)
 
    let tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
@@ -345,27 +366,6 @@ ipcMain.on('message-send', async (e, message: Message) =>{
 ipcMain.handle('get-config', () => {return config});
 
 ipcMain.handle('get-userdata-path', () => {return path.join(app.getPath("userData"), 'votc_data')});
-
-ipcMain.on('log-message', (event, { level, message }) => {
-    const rendererMessage = `[Renderer] ${message}`;
-    switch (level) {
-        case 'error':
-            logToFile('[ERROR] ', rendererMessage);
-            break;
-        case 'warn':
-            logToFile('[WARN] ', rendererMessage);
-            break;
-        case 'info':
-            logToFile('[INFO] ', rendererMessage);
-            break;
-        case 'debug':
-            logToFile('[DEBUG] ', rendererMessage);
-            break;
-        default:
-            logToFile('', rendererMessage); // for console.log
-            break;
-    }
-});
 
 
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
