@@ -143,13 +143,49 @@ app.on('ready',  async () => {
 
     var log_file = fs.createWriteStream(path.join(userDataPath, 'logs', 'debug.log'), {flags : 'w'});
 
-    console.log = function(d) { //
-        
-        process.stdout.write(util.format(d) + '\n');
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info,
+        debug: console.debug
+    };
 
-        let time = new Date();
-        var currentDate = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
-        log_file.write(currentDate + util.format(util.inspect(d, {depth: Infinity})) + '\n');
+    const logToFile = (prefix: string, ...args: any[]) => {
+        const time = new Date();
+        const currentDate = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
+        const message = util.format(...args);
+        log_file.write(currentDate + prefix + message + '\n');
+    };
+
+    console.log = (...args: any[]) => {
+        originalConsole.log.apply(console, args);
+        logToFile('', ...args);
+    };
+
+    console.error = (...args: any[]) => {
+        originalConsole.error.apply(console, args);
+        logToFile('[ERROR] ', ...args);
+    };
+
+    console.warn = (...args: any[]) => {
+        originalConsole.warn.apply(console, args);
+        logToFile('[WARN] ', ...args);
+    };
+
+    console.info = (...args: any[]) => {
+        originalConsole.info.apply(console, args);
+        logToFile('[INFO] ', ...args);
+    };
+
+    console.debug = (...args: any[]) => {
+        if(originalConsole.debug){
+            originalConsole.debug.apply(console, args);
+        }
+        else{
+            originalConsole.log.apply(console, args);
+        }
+        logToFile('[DEBUG] ', ...args);
     };
 
     console.log(`app version: ${packagejson.version}`)
