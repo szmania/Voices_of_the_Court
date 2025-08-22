@@ -179,18 +179,21 @@ export class ApiConnection{
                     return response;
                 } else {
                     let completion;
-    
+        
                     if (this.type === "openrouter") {
+                        // Backcompat: use legacy 'prompt' key for OpenRouter sentiment engines
                         const requestBody = {
                             model: this.model,
-                            messages: [{role: 'user', content: prompt as string}],
+                            prompt: prompt as string,  // legacy OpenRouter format
                             stream: stream,
                             ...this.parameters,
                             ...otherArgs
                         };
-                        console.debug("Making legacy completion request (via chat endpoint for openrouter instruct) with body:", requestBody);
+                        console.debug("Making OpenRouter legacy completion request with body:", requestBody);
+                        //@ts-ignore
                         completion = await this.client.chat.completions.create(requestBody as any);
                     } else {
+                        // Standard non-chat API
                         const requestBody = {
                             model: this.model,
                             prompt: prompt as string,
@@ -198,19 +201,19 @@ export class ApiConnection{
                             ...this.parameters,
                             ...otherArgs
                         };
-                        console.debug("Making legacy completion request with body:", requestBody);
+                        console.debug("Making standard completion request with body:", requestBody);
                         completion = await this.client.completions.create(requestBody as any);
                     }
-    
+
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
-    
+
                     //@ts-ignore
                     if (completion["error"]) {
                         //@ts-ignore
                         throw new Error(completion.error.message);
                     }
-    
+
                     if (stream) {
                         // @ts-ignore
                         for await (const chunk of completion) {
@@ -219,14 +222,20 @@ export class ApiConnection{
                                 content: chunk.choices[0].text
                             };
                             streamRelay!(msgChunk);
-    
+
                             response += msgChunk.content;
                         }
                     } else {
-                        // @ts-ignore
-                        response = completion.choices[0].text;
+                        // Notice: OpenRouter returns response in completion.choices[0].text trough chat endpoint with legacy format
+                        if (this.type === "openrouter") {
+                            // @ts-ignore
+                            response = completion.choices[0].text;
+                        } else {
+                            // @ts-ignore
+                            response = completion.choices[0].text;
+                        }
                     }
-    
+
                     console.debug("Parsed response:", response);
                     if (response === "" || response === undefined || response === null || response === " ") {
                         throw new Error("{code: 599, error: {message: 'No response'}}");
