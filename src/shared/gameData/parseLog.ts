@@ -39,12 +39,17 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                     //     value = value.replace("your", gameData.playerName+"'s");
                     // }
                     multiLineTempStorage.push(value)
+                    console.log(`Parsed multi-line new_relation: "${value}"`);
                 break;
                 case "relations":
-                    multiLineTempStorage.push(removeTooltip(value))
+                    const relation = removeTooltip(value);
+                    multiLineTempStorage.push(relation);
+                    console.log(`Parsed multi-line relation: "${relation}"`);
                 break;
                 case "opinionBreakdown":
-                        multiLineTempStorage.push(parseOpinionModifier(value));
+                        const opinionModifier = parseOpinionModifier(value);
+                        multiLineTempStorage.push(opinionModifier);
+                        console.log(`Parsed multi-line opinion breakdown: ${opinionModifier.reason}: ${opinionModifier.value}`);
                 break;
             }
 
@@ -112,112 +117,9 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                 case "relations":
                     if (!gameData) continue;
                     if(line.split('#')[1] !== ''){
-                        gameData!.characters.get(rootID)!.relationsToPlayer = [removeTooltip(line.split('#')[1])]
+                        const relation = removeTooltip(line.split('#')[1]);
+                        gameData!.characters.get(rootID)!.relationsToPlayer = [relation];
+                        console.log(`Parsed relation for character ID ${rootID} to player: "${relation}"`);
                     }
                     
                     if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
-                        isWaitingForMultiLine = true;
-                        multiLineType = "relations";
-                        console.log(`Starting multi-line parse for "relations" for character ID ${rootID}.`);
-                    }
-                break;
-                case "new_relations":
-                    if (!gameData) continue;
-                    var tmpTargetId = Number(data[1])
-                    if(line.split('#')[1] !== ''){
-
-                        gameData!.characters.get(rootID)!.relationsToCharacters.push({id: tmpTargetId, relations: [removeTooltip(line.split('#')[1])]})
-                        //gameData!.characters.get(rootID)!.relationsToPlayer = [removeTooltip(line.split('#')[1])]
-                    }
-
-                    if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToCharacters.find(x => x.id == tmpTargetId)!.relations
-                        isWaitingForMultiLine = true;
-                        multiLineType = "new_relations";
-                        console.log(`Starting multi-line parse for "new_relations" for character ID ${rootID} to target ID ${tmpTargetId}.`);
-                    }
-                    break;
-
-                case "opinionBreakdown":
-                    if(line.split('#')[1] !== ''){
-                        gameData!.characters.get(rootID)!.opinionBreakdownToPlayer = [parseOpinionModifier(line.split('#')[1])]
-                    }
-                    
-                    if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.opinionBreakdownToPlayer
-                        isWaitingForMultiLine = true;
-                        multiLineType = "opinionBreakdown";
-                        console.log(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
-                    }
-            }
-        } else {
-            if (line.trim() !== "") {
-                console.log(`Skipping line (no VOTC:IN): ${line}`);
-            }
-        }
-    }
-    if (!foundVotcIn) {
-        console.log("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
-    } else {
-        console.log("Finished parsing log file. Game data loaded.");
-    }
-    
-    function parseMemory(data: string[]): Memory{
-        return {
-            type: data[1],
-            creationDate: data[2],
-            desc: data[3],
-            relevanceWeight: Number(data[4])
-        }
-    }
-
-    function parseSecret(data: string[]): Secret{
-        return {
-            name: data[1],
-            desc: data[2],
-            category: data[3],
-        }
-    }
-
-    
-    function parseTrait(data: string[]): Trait{
-        return {
-            category: data[1],
-            name: data[2],
-            desc: data[3],
-        }
-    }
-
-    function parseOpinionModifier(line: string): OpinionModifier{
-        line = line.replace(/ *\([^)]*\) */g, "");
-
-        let splits = line.split(": ");
-
-        for(let i=0;i<splits.length;i++){
-            splits[i] = removeTooltip(splits[i])
-        }
-  
-        return {
-            reason: splits[0],
-            value: Number(splits[1])
-        }
-    }
-
-    console.log("Finished parsing log. Final GameData object:", gameData!);
-    return gameData!;
-}
-
-
-export function removeTooltip(str: string): string{
-    let newWords: string[] = []
-    str.split(" ").forEach( (word) =>{
-        if(word.includes('')){
-            newWords.push(word.split('')[0])
-        }else{
-            newWords.push(word)
-        }
-    })
-
-    return newWords.join(' ').replace(/ +(?= )/g,'').trim();
-}
