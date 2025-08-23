@@ -10,17 +10,17 @@ module.exports = {
 
     check: (gameData) => {
         let ai = gameData.getAi();
-		let player = gameData.getPlayer();
+		    let player = gameData.getPlayer();
 		
         let cultural_op = ai.getOpinionModifierValue("Cultural Acceptance");
         let religion_op = getReligionOpinionValue(ai, player.faith);
-		let convo_op = ai.getOpinionModifierValue("From conversations");
+		    let convo_op = ai.getOpinionModifierValue("From conversations");
         let personal_diplo = ai.getOpinionModifierValue("Personal Diplomacy");
-		let opinion = ai.opinionOfPlayer;
+		    let opinion = ai.opinionOfPlayer;
         
         let new_score = (75 + (opinion / 2) + (convo_op * 2)) * (cultural_op+religion_op+personal_diplo+100)/100;
         console.log(`TEST_DIPLO`)
-		console.log(`cultural_op: ` + cultural_op);
+		    console.log(`cultural_op: ` + cultural_op);
         console.log(`religion_op: ` + religion_op);
         console.log(`convo_op: ` + convo_op);
         console.log(`personal_diplo: ` + personal_diplo);
