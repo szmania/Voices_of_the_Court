@@ -17,7 +17,7 @@ module.exports = {
      */
     check: (gameData) => {
         let ai = gameData.getAi();
-		return !(ai.relationsToPlayer.includes("Soulmate")) && ai.opinionOfPlayer > 40 && ai.getOpinionModifierValue("From conversation") > 35
+		return !(ai.relationsToPlayer.includes("Soulmate")) && ai.opinionOfPlayer > 40 && ai.getOpinionModifierValue("From conversations") > 35
 				
     },
 

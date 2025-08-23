@@ -18,7 +18,7 @@ module.exports = {
     check: (gameData) => {
         let ai = gameData.getAi();
         
-        return (ai.getOpinionModifierValue("From conversation") > 35 &&
+        return (ai.getOpinionModifierValue("From conversations") > 35 &&
                 ai.opinionOfPlayer > 0 &&
                 !ai.relationsToPlayer.includes("Friend"))
     },

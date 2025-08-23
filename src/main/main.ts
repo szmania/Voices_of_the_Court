@@ -367,7 +367,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
         const gameData = await parseLog(logFilePath);
         if (!gameData || !gameData.playerID) {
-          throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty.`);
+          throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
         }
         // Prevent the user from talking to themselves
         if (gameData.playerID === gameData.aiID) {
