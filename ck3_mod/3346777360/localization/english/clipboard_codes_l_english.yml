@@ -1,0 +1,11 @@
+﻿l_english:
+
+talk_event.9001.desc:0 "VOTC:IN"
+
+talk_event.9002.desc:0 "VOTC:CLOSE"
+
+talk_event.9003.desc:0 "VOTC:EFFECT_ACCEPTED"
+
+##testing
+
+#talk_event.9001.desc:0 "[THIS.Char.GetPrimaryTitle]"

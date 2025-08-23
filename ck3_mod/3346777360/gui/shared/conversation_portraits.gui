@@ -1,0 +1,28 @@
+﻿types PortraitTypes_conversation
+{
+
+    type conversation_partner = widget {
+        size = { 690 870 }
+        tooltip_enabled = no
+		tooltip_visible = no
+        portrait_button = {
+            tooltip_enabled = no
+			tooltip_visible = no
+            parentanchor = bottom|hcenter
+            size = { 690 870 }
+			using = portrait_base
+			alwaystransparent = yes
+            block "portrait_texture" {
+                portrait_texture = "[Character.GetAnimatedPortrait(GetIllustration('talk_background').GetEnvironment(GetGlobalVariable('talk_second_scope').GetCharacter), 'conversation_camera2', 'conversation_animation', PdxGetWidgetScreenSize(PdxGuiWidget.Self))]"
+            }
+            block "mask" {
+                mask = "gfx/interface/tavern_gfx/mask_off.dds"
+            
+            }
+            effectname = "NoHighlight"
+
+		}
+    }
+
+
+}
