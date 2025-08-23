@@ -119,14 +119,14 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                     if(line.split('#')[1] !== ''){
                         const relation = removeTooltip(line.split('#')[1]);
                         gameData!.characters.get(rootID)!.relationsToPlayer = [relation];
-                        console.log(`Parsed relation for character ID ${rootID} to player: "${relation}"`);
+                        console.debug(`Parsed relation for character ID ${rootID} to player: "${relation}"`);
                     }
                     
                     if(!line.includes("#ENDMULTILINE")){
                         multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "relations";
-                        console.log(`Starting multi-line parse for "relations" for character ID ${rootID}.`);
+                        console.debug(`Starting multi-line parse for "relations" for character ID ${rootID}.`);
                     }
                 break;
                 case "new_relations":
@@ -142,7 +142,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                         multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToCharacters.find(x => x.id == tmpTargetId)!.relations
                         isWaitingForMultiLine = true;
                         multiLineType = "new_relations";
-                        console.log(`Starting multi-line parse for "new_relations" for character ID ${rootID} to target ID ${tmpTargetId}.`);
+                        console.debug(`Starting multi-line parse for "new_relations" for character ID ${rootID} to target ID ${tmpTargetId}.`);
                     }
                     break;
 
@@ -155,19 +155,19 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                         multiLineTempStorage = gameData!.characters.get(rootID)!.opinionBreakdownToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
-                        console.log(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
+                        console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
             }
         } else {
             if (line.trim() !== "") {
-                console.log(`Skipping line (no VOTC:IN): ${line}`);
+                console.debug(`Skipping line (no VOTC:IN): ${line}`);
             }
         }
     }
     if (!foundVotcIn) {
-        console.log("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
+        console.debug("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
     } else {
-        console.log("Finished parsing log file. Game data loaded.");
+        console.debug("Finished parsing log file. Game data loaded.");
     }
 
     function parseMemory(data: string[]): Memory{
@@ -211,7 +211,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
         }
     }
 
-    console.log("Finished parsing log. Final GameData object:", gameData!);
+    console.debug("Finished parsing log. Final GameData object:", gameData!);
     return gameData!;
 }
 
