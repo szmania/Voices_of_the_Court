@@ -9,18 +9,18 @@ module.exports = {
 	
     check: (gameData) => {
         let ai = gameData.getAi();
-		let player = gameData.getPlayer();
-		
-		let conv = (ai.getOpinionModifierValue("From conversations")) * 2;
-		let opinion = ai.opinionOfPlayer;
-		let culture_faith = (ai.faith == player.faith && ai.culture == player.culture) ? 40 : ((ai.faith == player.faith || ai.culture == player.culture) ? 20 : 0);
+        let player = gameData.getPlayer();
 
-		let score = conv + opinion + culture_faith;
-		
-		console.log(`culture & faith score: ` + culture_faith);
-		console.log(`Diplomatic Alliance Score: ` + score);
+        let conv = (ai.getOpinionModifierValue("From conversations")) * 2;
+        let opinion = ai.opinionOfPlayer;
+        let culture_faith = (ai.faith == player.faith && ai.culture == player.culture) ? 40 : ((ai.faith == player.faith || ai.culture == player.culture) ? 20 : 0);
 
-		console.log((score >= 60));
+        let score = conv + opinion + culture_faith;
+
+        console.log(`culture & faith score: ` + culture_faith);
+        console.log(`Diplomatic Alliance Score: ` + score);
+
+        console.log((score >= 60));
         return (score >= 60);
     },
 	
