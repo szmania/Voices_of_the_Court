@@ -214,20 +214,14 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 
 
 export function removeTooltip(str: string): string{
-    // Step 1: Remove Control Characters
-    str = str.replace(/[\x00-\x1F\x7F]/g, '');
+    let newWords: string[] = []
+    str.split(" ").forEach( (word) =>{
+        if(word.includes('')){
+            newWords.push(word.split('')[0])
+        }else{
+            newWords.push(word)
+        }
+    })
 
-    // Step 2: Simplify Complex Quoted Tooltips
-    str = str.replace(/'\s*TOOLTIP:.*?\s+[LE];\s*(.*?)\s*! !'/g, "'$1'");
-
-    // Step 3: Remove Standalone UI Tags
-    str = str.replace(/(ONCLICK:|TOOLTIP:).*?\s+/g, '');
-
-    // Step 4: Clean Up Formatting Markers
-    str = str.replace(/(\s)[LE];\s*/g, '$1'); // In middle of string, after a space
-
-    // Step 5: Normalize Whitespace
-    str = str.replace(/\s+/g, ' ').trim();
-
-    return str;
+    return newWords.join(' ').replace(/ +(?= )/g,'').trim();
 }
