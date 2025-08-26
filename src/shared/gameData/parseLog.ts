@@ -208,22 +208,22 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
         }
     }
 
-    function removeTooltip(str: string): string {
-        if (!str) {
-            return "";
-        }
-    
-        let cleanedStr = str.replace(/(ONCLICK|TOOLTIP):\S+\s*/g, '');
-        cleanedStr = cleanedStr.replace(/^[\s!]+|[\s!]+$/g, '');
-    
-        const prefixRegex = /^[A-Z][;\s]\s*/;
-        while (prefixRegex.test(cleanedStr)) {
-            cleanedStr = cleanedStr.replace(prefixRegex, '');
-        }
-    
-        return cleanedStr.trim();
-    }
-
     console.debug("Finished parsing log. Final GameData object:", gameData!);
     return gameData!;
+}
+
+export function removeTooltip(str: string): string {
+    if (!str) {
+        return "";
+    }
+
+    let cleanedStr = str.replace(/(ONCLICK|TOOLTIP):\S+\s*/g, '');
+    cleanedStr = cleanedStr.replace(/^[\s!]+|[\s!]+$/g, '');
+
+    const prefixRegex = /^[A-Z][;\s]\s*/;
+    while (prefixRegex.test(cleanedStr)) {
+        cleanedStr = cleanedStr.replace(prefixRegex, '');
+    }
+
+    return cleanedStr.trim();
 }
