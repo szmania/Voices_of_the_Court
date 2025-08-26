@@ -369,7 +369,6 @@ clipboardListener.on('VOTC:IN', async () =>{
         if (!gameData || !gameData.playerID) {
           throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
         }
-        
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
