@@ -214,10 +214,11 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 
 
 export function removeTooltip(str: string): string{
+    str = str.replace(/[\x00-\x1F\x7F]/g, '');
     let newWords: string[] = []
     str.split(" ").forEach( (word) =>{
-        if(word.includes(' ')){
-            newWords.push(word.split(' ')[0])
+        if(word.includes('#')){
+            newWords.push(word.split('#')[0])
         }else{
             newWords.push(word)
         }
