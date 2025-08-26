@@ -16,6 +16,7 @@ function defineTemplate(label: string){
             <option value="openrouter">OpenRouter</option>
             <option value="ooba">Text Gen WebUI (ooba)</option>
             <option value="openai">OpenAI</option>
+            <option value="gemini">Google Gemini</option>
             <option value="custom">Custom (OpenAI-compatible)</option>
         </select> 
     </div>
@@ -35,6 +36,24 @@ function defineTemplate(label: string){
             <select id="openai-model-select">
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Recommended)</option>
                 <option value="gpt-4o">GPT-4-o</option>
+            </select>
+            </div>
+        </div>
+
+        <div id="gemini-menu">
+            <h2>Google Gemini</h2>
+
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="gemini-key">
+            </div>
+        
+            <div class="input-group">
+            <label for="gemini-model-select">Model</label>
+            <select id="gemini-model-select">
+                <option value="gemini-pro">Gemini Pro</option>
+                <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
             </select>
             </div>
         </div>
@@ -115,9 +134,13 @@ class ApiSelector extends HTMLElement{
     oobaDiv: HTMLDivElement
     openrouterDiv: HTMLDivElement 
     customDiv: HTMLDivElement 
+    geminiDiv: HTMLDivElement
 
     openaiKeyInput: HTMLInputElement 
     openaiModelSelect: HTMLSelectElement 
+
+    geminiKeyInput: HTMLInputElement 
+    geminiModelSelect: HTMLSelectElement 
 
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
@@ -155,9 +178,13 @@ class ApiSelector extends HTMLElement{
         this.oobaDiv = this.shadow.querySelector("#ooba-menu")!;
         this.openrouterDiv = this.shadow.querySelector("#openrouter-menu")!;
         this.customDiv = this.shadow.querySelector("#custom-menu")!;
+        this.geminiDiv = this.shadow.querySelector("#gemini-menu")!;
 
         this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
         this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
+
+        this.geminiKeyInput = this.shadow.querySelector("#gemini-key")!;
+        this.geminiModelSelect = this.shadow.querySelector("#gemini-model-select")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
@@ -218,6 +245,10 @@ class ApiSelector extends HTMLElement{
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
         }
+        else if(apiConfig.type == "gemini"){
+            this.geminiKeyInput.value = apiConfig.key;
+            this.geminiModelSelect.value = apiConfig.model;
+        }
         
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
@@ -241,6 +272,9 @@ class ApiSelector extends HTMLElement{
                 case 'openrouter': 
                     this.saveOpenrouterConfig();
                 break;
+                case 'gemini': 
+                    this.saveGeminiConfig();
+                break;
                 case 'custom': 
                     this.saveCustomConfig();
                 break;
@@ -262,6 +296,10 @@ class ApiSelector extends HTMLElement{
 
         this.customDiv.addEventListener("change", (e:any) =>{
             this.saveCustomConfig();
+        })
+
+        this.geminiDiv.addEventListener("change", (e:any) =>{
+            this.saveGeminiConfig();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -361,6 +399,13 @@ class ApiSelector extends HTMLElement{
                 this.openrouterDiv.style.display = "none";
                 this.customDiv.style.display = "block";
                 break;
+            case 'gemini':
+                this.openaiDiv.style.display = "none";
+                this.oobaDiv.style.display = "none";
+                this.openrouterDiv.style.display = "none";
+                this.customDiv.style.display = "none";
+                this.geminiDiv.style.display = "block";
+                break;
         }
     }
 
@@ -429,6 +474,19 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
         //@ts-ignore
     }  
+
+    saveGeminiConfig(){
+        const newConf = {
+            type: "gemini",
+            baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+            key: this.geminiKeyInput.value,
+            model: this.geminiModelSelect.value,
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        }
+        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
+    }
     
 }
 
