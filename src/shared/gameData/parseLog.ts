@@ -217,9 +217,17 @@ export function removeTooltip(str: string): string {
         return "";
     }
 
+    // Stage 1: Directive Removal
     let cleanedStr = str.replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '');
-    cleanedStr = cleanedStr.replace(/^[\s!]+|[\s!]+$/g, '');
-    cleanedStr = cleanedStr.replace(/^([A-Z][;\s]\s*)+/, '');
 
-    return cleanedStr.trim();
+    // Stage 2: Prefix Removal
+    cleanedStr = cleanedStr.replace(/^\s*([A-Z][;\s]\s*)+/, '');
+
+    // Stage 3: Suffix Cleanup
+    cleanedStr = cleanedStr.replace(/[\s:!]+$/, '');
+
+    // Stage 4: Final Trim
+    cleanedStr = cleanedStr.trim();
+
+    return cleanedStr;
 }
