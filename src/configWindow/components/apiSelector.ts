@@ -22,6 +22,39 @@ function defineTemplate(label: string){
     </div>
     
     <div class="border">
+        <div id="openrouter-menu">
+            <h2>OpenRouter</h2>
+
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="openrouter-key">
+            </div>
+        
+            <div class="input-group">
+            <label for="openrouter-model">Model</label>
+            <input type="text" id="openrouter-model">
+            <a href="https://openrouter.ai/models" target="_blank">Browse models..</a>
+            </div>
+
+            <div class="input-group">
+            <input type="checkbox" id="openrouter-instruct-mode">
+            <label for="openrouter-instruct-mode">Force Instruct mode</label>
+            </div>
+        </div>
+
+        <div id="ooba-menu">
+            <h2>Text-Gen-WebUI (Ooba)</h2>
+
+            <div class="input-group">
+                <label for="ooba-url">Server URL</label>
+                <br>
+                <input type="text" id="ooba-url">
+                <br>
+            </div>
+        
+        </div>
+
         <div id="openai-menu">
             <h2>OpenAI</h2>
 
@@ -55,39 +88,6 @@ function defineTemplate(label: string){
                 <option value="gemini-pro">Gemini Pro</option>
                 <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
             </select>
-            </div>
-        </div>
-
-        <div id="ooba-menu">
-            <h2>Text-Gen-WebUI (Ooba)</h2>
-
-            <div class="input-group">
-                <label for="ooba-url">Server URL</label>
-                <br>
-                <input type="text" id="ooba-url">
-                <br>
-            </div>
-        
-        </div>
-
-        <div id="openrouter-menu">
-            <h2>OpenRouter</h2>
-
-            <div class="input-group">
-            <label for="api-key">API Key</label>
-            <br>
-            <input type="password" id="openrouter-key">
-            </div>
-        
-            <div class="input-group">
-            <label for="openrouter-model">Model</label>
-            <input type="text" id="openrouter-model">
-            <a href="https://openrouter.ai/models" target="_blank">Browse models..</a>
-            </div>
-
-            <div class="input-group">
-            <input type="checkbox" id="openrouter-instruct-mode">
-            <label for="openrouter-instruct-mode">Force Instruct mode</label>
             </div>
         </div>
 
