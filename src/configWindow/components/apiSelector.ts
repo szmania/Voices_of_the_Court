@@ -83,11 +83,8 @@ function defineTemplate(label: string){
             </div>
         
             <div class="input-group">
-            <label for="gemini-model-select">Model</label>
-            <select id="gemini-model-select">
-                <option value="gemini-pro">Gemini Pro</option>
-                <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro</option>
-            </select>
+            <label for="gemini-model">Model</label>
+            <input type="text" id="gemini-model" placeholder="e.g. gemini-1.5-pro-latest">
             </div>
         </div>
 
@@ -140,7 +137,7 @@ class ApiSelector extends HTMLElement{
     openaiModelSelect: HTMLSelectElement 
 
     geminiKeyInput: HTMLInputElement 
-    geminiModelSelect: HTMLSelectElement 
+    geminiModelInput: HTMLInputElement 
 
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
@@ -184,7 +181,7 @@ class ApiSelector extends HTMLElement{
         this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
 
         this.geminiKeyInput = this.shadow.querySelector("#gemini-key")!;
-        this.geminiModelSelect = this.shadow.querySelector("#gemini-model-select")!;
+        this.geminiModelInput = this.shadow.querySelector("#gemini-model")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
@@ -247,7 +244,7 @@ class ApiSelector extends HTMLElement{
         }
         else if(apiConfig.type == "gemini"){
             this.geminiKeyInput.value = apiConfig.key;
-            this.geminiModelSelect.value = apiConfig.model;
+            this.geminiModelInput.value = apiConfig.model;
         }
         
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
@@ -471,7 +468,7 @@ class ApiSelector extends HTMLElement{
             type: "gemini",
             baseUrl: "https://generativelanguage.googleapis.com/v1beta",
             key: this.geminiKeyInput.value,
-            model: this.geminiModelSelect.value,
+            model: this.geminiModelInput.value,
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
