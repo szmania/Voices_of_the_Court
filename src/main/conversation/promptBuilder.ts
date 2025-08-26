@@ -55,7 +55,12 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         content: "[example messages]"
     })
     
-    chatPrompt = chatPrompt.concat(conv.exampleMessages);
+    // chatPrompt = chatPrompt.concat(conv.exampleMessages);
+
+    const userDataPath = path.join(app.getPath('userData'), 'votc_data');
+    const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", "mccAliChat.js");
+    let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
+    chatPrompt = chatPrompt.concat(exampleMessages);
     
 
     chatPrompt.push({
@@ -265,4 +270,66 @@ function createSecretString(conv: Conversation): string{
     let playerSecrets: Secret[] = [];
     
     aiSecrets = aiSecrets.concat(conv.gameData.characters.get(conv.gameData.aiID)!.secrets);
-    playerSecrets = playerSecrets.concat(conv.gameData.characters.get
+    playerSecrets = playerSecrets.concat(conv.gameData.characters.get(conv.gameData.playerID)!.secrets);
+
+    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASY, IF CHARACTER REVEALS IT, IT MAY BE USED AGAINST HIM AND LEAD HIM TO DEATH OR PRISON\n";
+    if(aiSecrets.length>0){
+        output += `${conv.gameData.aiName}'s secrets:`;
+    }
+    while(aiSecrets.length>0){
+        const secret: Secret = aiSecrets.pop()!;
+        output+=`\n${conv.gameData.aiName}: ${secret.desc}`;
+    }
+
+    if(playerSecrets.length>0){
+        output += `\n\n${conv.gameData.playerName}'s secrets:`;
+    }
+    while(playerSecrets.length>0){
+        const secret: Secret = playerSecrets.pop()!;
+        output+=`\n${conv.gameData.playerName}: ${secret.desc}`;
+    }
+
+    return output+"\n\n";
+}
+
+function createMemoryString(conv: Conversation): string{
+
+    let allMemories: Memory[] = [];
+
+    conv.gameData.characters.forEach((value, key) => {
+        allMemories = allMemories.concat(value!.memories);
+    })
+    // allMemories =allMemories.concat(conv.gameData.characters.get(conv.gameData.playerID)!.memories);
+    // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
+
+    allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
+
+    allMemories.reverse();
+
+
+
+    let output ="";
+    if(allMemories.length>0){
+        output = conv.config.memoriesPrompt;
+    }
+
+    let tokenCount = 0;
+    while(allMemories.length>0){
+        const memory: Memory = allMemories.pop()!;
+
+        let memoryLine = `${memory.creationDate}: ${memory.desc}`;
+
+        let memoryLineTokenCount = conv.textGenApiConnection.calculateTokensFromText(memoryLine);
+
+        if(tokenCount + memoryLineTokenCount > conv.config.maxMemoryTokens){
+            break;
+        }
+        else{
+            output+="\n"+memoryLine;
+            tokenCount+=memoryLineTokenCount;
+        }
+
+    }
+
+    return output;
+}
