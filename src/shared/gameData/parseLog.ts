@@ -17,15 +17,15 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     let multiLineType: string = ""; //relation or opinionModifier
 
     const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
-    const lastVotcInIndex = fileContent.lastIndexOf('VOTC:IN');
+    const lastInitIndex = fileContent.lastIndexOf('VOTC:IN/;/init');
 
-    if (lastVotcInIndex === -1) {
-        console.debug("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
+    if (lastInitIndex === -1) {
+        console.debug("Finished parsing log file, but 'VOTC:IN/;/init' was not found. No game data will be loaded.");
         return undefined;
     }
 
     // Find the start of the line containing the last VOTC:IN to get the whole block
-    const lastBlockStartIndex = fileContent.lastIndexOf('\n', lastVotcInIndex) + 1;
+    const lastBlockStartIndex = fileContent.lastIndexOf('\n', lastInitIndex) + 1;
     const relevantLogBlock = fileContent.substring(lastBlockStartIndex);
     const lines = relevantLogBlock.split(/\r?\n/);
 
