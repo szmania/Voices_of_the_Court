@@ -369,13 +369,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         if (!gameData || !gameData.playerID) {
           throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
         }
-        // Prevent the user from talking to themselves
-        if (gameData.playerID === gameData.aiID) {
-            const errorMessage = "Talking to yourself is a conversation best had in your own head, not in the chat window. This feature is not supported.";
-            console.error(errorMessage);
-            chatWindow.window.webContents.send('error-message', errorMessage);
-            return; // Stop the conversation from initializing
-        }
+        
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
