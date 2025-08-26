@@ -214,15 +214,16 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 
 
 export function removeTooltip(str: string): string{
+    let cleanedStr = str;
     // Step 1: Remove UI Directives
-    str = str.replace(/(ONCLICK|TOOLTIP):\S+\s*/g, '');
+    cleanedStr = cleanedStr.replace(/(ONCLICK|TOOLTIP):\S+\s*/g, '');
 
     // Step 2: Remove Prefixes
-    str = str.replace(/^\s*[A-Z](?:\s|;)\s*/, '');
+    cleanedStr = cleanedStr.replace(/^\s*([A-Z][\s;]\s*)+/, '');
 
     // Step 3: Remove Suffixes
-    str = str.replace(/[\s!]+$/, '');
+    cleanedStr = cleanedStr.replace(/[\s!]+$/, '');
 
     // Step 4: Final Trim
-    return str.trim();
+    return cleanedStr.replace(/^\s+|\s+$/g, '');
 }
