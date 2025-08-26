@@ -218,15 +218,13 @@ export function removeTooltip(str: string): string{
     str = str.replace(/[\x00-\x1F\x7F]/g, '');
 
     // Step 2: Simplify Complex Quoted Tooltips
-    str = str.replace(/' TOOLTIP:.*? L; (.*?) ! !'/g, "'$1'");
+    str = str.replace(/'\s*TOOLTIP:.*?\s+[LE];\s*(.*?)\s*! !'/g, "'$1'");
 
     // Step 3: Remove Standalone UI Tags
     str = str.replace(/(ONCLICK:|TOOLTIP:).*?\s+/g, '');
 
     // Step 4: Clean Up Formatting Markers
-    str = str.replace(/^\s*[LE];\s*/, '');
-    str = str.replace(/ L; | E; /g, ' ');
-    str = str.replace(/!/g, '');
+    str = str.replace(/(\s)[LE];\s*/g, '$1'); // In middle of string, after a space
 
     // Step 5: Normalize Whitespace
     str = str.replace(/\s+/g, ' ').trim();
