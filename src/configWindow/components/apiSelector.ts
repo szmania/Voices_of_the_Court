@@ -84,7 +84,7 @@ function defineTemplate(label: string){
         
             <div class="input-group">
             <label for="gemini-model">Model</label>
-            <input type="text" id="gemini-model" placeholder="e.g. gemini-1.5-pro-latest">
+            <input type="text" id="gemini-model" placeholder="e.g. gemini-2.5-pro">
             </div>
         </div>
 
