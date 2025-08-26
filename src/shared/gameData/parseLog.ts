@@ -1,7 +1,6 @@
 import { GameData, Memory, Trait, OpinionModifier, Secret} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
-const readline = require('readline');
 
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
     console.log(`Starting to parse log file at: ${debugLogPath}`);
@@ -11,22 +10,28 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     }
 
     let gameData: GameData | undefined = undefined;
-    let foundVotcIn = false;
 
     //some data are passed through multiple lines
     let multiLineTempStorage: any[] = [];
     let isWaitingForMultiLine: boolean = false;
     let multiLineType: string = ""; //relation or opinionModifier
 
-    const fileStream = fs.createReadStream(debugLogPath);
+    const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
+    const lastVotcInIndex = fileContent.lastIndexOf('VOTC:IN');
 
-    const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    });
-    console.log(`Starting to parse log file: ${debugLogPath}`);
+    if (lastVotcInIndex === -1) {
+        console.debug("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
+        return undefined;
+    }
 
-    for await (const line of rl) {
+    // Find the start of the line containing the last VOTC:IN to get the whole block
+    const lastBlockStartIndex = fileContent.lastIndexOf('\n', lastVotcInIndex) + 1;
+    const relevantLogBlock = fileContent.substring(lastBlockStartIndex);
+    const lines = relevantLogBlock.split(/\r?\n/);
+
+    console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);
+
+    for (const line of lines) {
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
@@ -61,10 +66,6 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
         }
 
         if(line.includes("VOTC:IN")){
-            if (!foundVotcIn) {
-                console.log(`Found VOTC:IN line: ${line}`);
-                foundVotcIn = true;
-            }
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
             let data = line.split("/;/")
 
@@ -164,11 +165,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
             }
         }
     }
-    if (!foundVotcIn) {
-        console.debug("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
-    } else {
-        console.debug("Finished parsing log file. Game data loaded.");
-    }
+    console.debug("Finished parsing log file. Game data loaded from last block.");
 
     function parseMemory(data: string[]): Memory{
         return {
@@ -219,8 +216,8 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 export function removeTooltip(str: string): string{
     let newWords: string[] = []
     str.split(" ").forEach( (word) =>{
-        if(word.includes('')){
-            newWords.push(word.split('')[0])
+        if(word.includes(' ')){
+            newWords.push(word.split(' ')[0])
         }else{
             newWords.push(word)
         }
