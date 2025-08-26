@@ -224,6 +224,7 @@ export function removeTooltip(str: string): string{
     str = str.replace(/(ONCLICK:|TOOLTIP:).*?\s+/g, '');
 
     // Step 4: Clean Up Formatting Markers
+    str = str.replace(/^[LE];\s*/, '');
     str = str.replace(/ L; | E; /g, ' ');
     str = str.replace(/!/g, '');
 
