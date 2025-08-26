@@ -374,36 +374,27 @@ class ApiSelector extends HTMLElement{
     }    
 
     displaySelectedApiBox(){
+        // Hide all divs first for simplicity and to prevent bugs
+        this.openaiDiv.style.display = "none";
+        this.oobaDiv.style.display = "none";
+        this.openrouterDiv.style.display = "none";
+        this.customDiv.style.display = "none";
+        this.geminiDiv.style.display = "none";
+
         switch (this.typeSelector.value) {
             case 'openai':  
                 this.openaiDiv.style.display = "block";
-                this.oobaDiv.style.display = "none";
-                this.openrouterDiv.style.display = "none";
-                this.customDiv.style.display = "none";
                 break;
             case 'ooba':
-                this.openaiDiv.style.display = "none";
                 this.oobaDiv.style.display = "block";
-                this.openrouterDiv.style.display = "none";
-                this.customDiv.style.display = "none";
                 break;
             case 'openrouter':
-                this.openaiDiv.style.display = "none";
-                this.oobaDiv.style.display = "none";
                 this.openrouterDiv.style.display = "block";
-                this.customDiv.style.display = "none";
                 break;
             case 'custom':
-                this.openaiDiv.style.display = "none";
-                this.oobaDiv.style.display = "none";
-                this.openrouterDiv.style.display = "none";
                 this.customDiv.style.display = "block";
                 break;
             case 'gemini':
-                this.openaiDiv.style.display = "none";
-                this.oobaDiv.style.display = "none";
-                this.openrouterDiv.style.display = "none";
-                this.customDiv.style.display = "none";
                 this.geminiDiv.style.display = "block";
                 break;
         }
