@@ -215,14 +215,13 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 export function removeTooltip(str: string): string {
     if (!str) return "";
 
-    // New: Remove ^U prefixes and associated tooltip data
-    let cleanedStr = str.replace(/\^U[^\n]*/g, '');
-
-    // Keep existing stages:
-    cleanedStr = cleanedStr.replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '');
-    cleanedStr = cleanedStr.replace(/^\s*([A-Z][;\s]\s*)+/, '');
-    cleanedStr = cleanedStr.replace(/[\s:!]+$/, '');
-    cleanedStr = cleanedStr.trim();
+    // Remove unwanted ASCII control characters (including ^U sequences and character 0x15)
+    let cleanedStr = str.replace(/[\x15]/g, '')                // Remove ASCII 21 (NAK)
+                      .replace(/\^U[^\n]*/g, '')              // Remove ^U prefixes and tooltip data
+                      .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '') // Existing patterns
+                      .replace(/^\s*([A-Z][;\s]\s*)+/, '')
+                      .replace(/[\s:!]+$/, '')
+                      .trim();
 
     return cleanedStr;
 }
