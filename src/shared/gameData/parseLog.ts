@@ -225,5 +225,6 @@ export function removeTooltip(str: string): string{
     cleanedStr = cleanedStr.replace(/[\s!]+$/, '');
 
     // Step 4: Final Trim
-    return cleanedStr.replace(/^\s+|\s+$/g, '');
+    cleanedStr = cleanedStr.replace(/^\s+|\s+$/g, '');
+    return cleanedStr
 }
