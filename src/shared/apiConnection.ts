@@ -419,7 +419,10 @@ export class ApiConnection{
                     return { success: false, overwriteWarning: false, errorMessage: data.error?.message || "Invalid response from Gemini" };
                 }
             } catch (err) {
-                return { success: false, overwriteWarning: false, errorMessage: err.message };
+                if (err instanceof Error) {
+                    return { success: false, overwriteWarning: false, errorMessage: err.message };
+                }
+                return { success: false, overwriteWarning: false, errorMessage: String(err) };
             }
         }
         let prompt: string | Message[];
@@ -445,7 +448,10 @@ export class ApiConnection{
             }
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
-            return {success: false, overwriteWarning: false, errorMessage: err}
+            if (err instanceof Error) {
+                return {success: false, overwriteWarning: false, errorMessage: err.message};
+            }
+            return {success: false, overwriteWarning: false, errorMessage: String(err)};
         });
     }
 
