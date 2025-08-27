@@ -106,8 +106,14 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                     console.log(`Parsed secret for character ID ${rootID}: ${secret.name}`);
                 break;
                 case "trait":
+                    if (!gameData) continue;
+                    const characterWithTrait = gameData.characters.get(rootID);
+                    if (!characterWithTrait) {
+                        console.warn(`Character with ID ${rootID} not found when trying to add trait. Skipping.`);
+                        continue;
+                    }
                     let trait = parseTrait(data);
-                    gameData!.characters.get(rootID)!.traits.push(trait);
+                    characterWithTrait.traits.push(trait);
                     console.log(`Parsed trait for character ID ${rootID}: ${trait.name}`);
                 break;
                 case "opinions":
