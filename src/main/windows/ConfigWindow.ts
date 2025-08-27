@@ -13,7 +13,8 @@ export class ConfigWindow{
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            preload: path.join(__dirname, '..', 'preload.js')
+            preload: path.join(__dirname, '..', 'preload.js'),
+            autofill: false
             }       
         })
 
