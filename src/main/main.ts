@@ -323,6 +323,13 @@ app.on('ready',  async () => {
     configWindow = new ConfigWindow();
     chatWindow = new ChatWindow();
 
+    if (!app.isPackaged) {
+        // Open DevTools for config window
+        configWindow.window.webContents.openDevTools({ mode: 'detach' });
+
+        // Open DevTools for chat window
+        chatWindow.window.webContents.openDevTools({ mode: 'detach' });
+    }
     
     chatWindow.window.on('closed', () =>{app.quit()});
 
