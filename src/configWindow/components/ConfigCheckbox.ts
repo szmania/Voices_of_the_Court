@@ -45,7 +45,7 @@ class ConfigCheckbox extends HTMLElement{
         let config = await ipcRenderer.invoke('get-config');
 
         //@ts-ignore
-        this.checkbox.checked = config[confID];
+        this.checkbox.checked = config[confID] !== undefined ? config[confID] : true; // Default to true
 
         this.checkbox.addEventListener("change", (e: any) => {
             console.log(confID)

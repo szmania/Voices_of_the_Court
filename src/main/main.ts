@@ -473,12 +473,6 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     }
 })
 
-// Add IPC handler for the new setting
-ipcMain.on('config-change-checkForUpdatesOnStartup', (e, newValue: boolean) => {
-    //@ts-ignore
-    config.checkForUpdatesOnStartup = newValue;
-    config.export();
-})
 
 ipcMain.on('chat-stop', () =>{
     chatWindow.hide();
