@@ -290,7 +290,6 @@ app.on('ready',  async () => {
           }
     },
     { label: 'Check for updates on startup',
-        type: 'checkbox',
         checked: config?.checkForUpdatesOnStartup !== false, // default to true
         click: (menuItem) => {
             if (config) {
