@@ -39,6 +39,7 @@ export class Config{
 
     cleanMessages: boolean;
     debugMode: boolean;
+    checkForUpdatesOnStartup: boolean;
 
     summariesInsertDepth: number;
     memoriesInsertDepth: number;
@@ -80,6 +81,7 @@ export class Config{
         this.cleanMessages = obj.cleanMessages;
         
         this.debugMode = obj.debugMode;
+        this.checkForUpdatesOnStartup = obj.checkForUpdatesOnStartup !== undefined ? obj.checkForUpdatesOnStartup : true;
 
         this.summariesInsertDepth = obj.summariesInsertDepth;
         this.memoriesInsertDepth = obj.memoriesInsertDepth;
