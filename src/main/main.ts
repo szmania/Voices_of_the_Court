@@ -25,6 +25,13 @@ let checkForUpdates = () => {
     }
 };
 
+let checkForUpdatesOnStartup = () => {
+    // Check if the setting is enabled and then check for updates
+    if (config && config.checkForUpdatesOnStartup) {
+        checkForUpdates();
+    }
+};
+
 
 const isFirstInstance = app.requestSingleInstanceLock();
 if (!isFirstInstance) {
@@ -325,6 +332,13 @@ app.on('ready',  async () => {
         shell.openExternal(url);
         return { action: 'deny' };
     }) 
+
+    // Check for updates on startup if enabled
+    if (app.isPackaged) {
+        setTimeout(() => {
+            checkForUpdatesOnStartup();
+        }, 3000); // Delay to allow config to be loaded
+    }
    
 });
 
@@ -448,6 +462,13 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
+})
+
+// Add IPC handler for the new setting
+ipcMain.on('config-change-checkForUpdatesOnStartup', (e, newValue: boolean) => {
+    //@ts-ignore
+    config.checkForUpdatesOnStartup = newValue;
+    config.export();
 })
 
 ipcMain.on('chat-stop', () =>{
