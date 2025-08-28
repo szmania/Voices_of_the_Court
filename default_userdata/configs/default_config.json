@@ -70,6 +70,7 @@
 	],
 	"cleanMessages": true,
 	"debugMode": false,
+	"checkForUpdatesOnStartup": true,
 	"summariesInsertDepth": 6,
 	"memoriesInsertDepth": 5,
 	"descInsertDepth": 4,
