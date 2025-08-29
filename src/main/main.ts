@@ -115,7 +115,7 @@ if(app.isPackaged){
         let latestVersion = app.getVersion();
         let latestRepo = null;
 
-        const promises = repos.map(repo => 
+        const promises = repos.map((repo: string) => 
             new Promise<void>((resolve) => {
                 const options = {
                     hostname: 'api.github.com',
