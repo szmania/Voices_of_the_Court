@@ -100,7 +100,8 @@ if(app.isPackaged){
         const repo = repos[repoIndex];
         console.log(`Checking for updates from ${repo}...`);
         const feed = `${server}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
-        //@ts-ignore
+        console.log(`Checking for updates from feed: ${feed}`);
+      //@ts-ignore
         autoUpdater.setFeedURL(feed);
         autoUpdater.checkForUpdates();
     };
@@ -322,7 +323,8 @@ app.on('ready',  async () => {
 
     configWindow = new ConfigWindow();
     chatWindow = new ChatWindow();
-    
+
+
     chatWindow.window.on('closed', () =>{app.quit()});
 
     clipboardListener.start();
