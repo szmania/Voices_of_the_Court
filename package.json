@@ -38,6 +38,9 @@
   },
   "updater": {
     "server": "https://update.electronjs.org",
-    "repo": "szmania/Voices_of_the_Court"
+    "repo": [
+      "Demeter29/Voices_of_the_Court",
+      "szmania/Voices_of_the_Court"
+    ]
   }
 }
