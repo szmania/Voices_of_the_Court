@@ -17,13 +17,13 @@ const packagejson = require('../../package.json');
 
 let checkForUpdates = () => {
     // This will be replaced by the real implementation in app.on('ready')
-    if (!app.isPackaged) {
-        dialog.showMessageBox({
-            type: 'info',
-            title: 'Updates',
-            message: 'Updates are disabled in development mode.'
-        });
-    }
+    // if (!app.isPackaged) {
+    //     dialog.showMessageBox({
+    //         type: 'info',
+    //         title: 'Updates',
+    //         message: 'Updates are disabled in development mode.'
+    //     });
+    // }
 };
 
 let checkForUpdatesOnStartup = () => {
