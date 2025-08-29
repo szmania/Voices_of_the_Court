@@ -119,7 +119,7 @@ if(app.isPackaged){
             new Promise<void>((resolve) => {
                 const options = {
                     hostname: 'api.github.com',
-                    path: `/repos/${repo}/releases/latest`,
+                    path: `/repos/${repo}/releases`,
                     method: 'GET',
                     headers: { 'User-Agent': 'VOTC-Updater' }
                 };
