@@ -17,13 +17,13 @@ const packagejson = require('../../package.json');
 
 let checkForUpdates = () => {
     // This will be replaced by the real implementation in app.on('ready')
-    // if (!app.isPackaged) {
-    //     dialog.showMessageBox({
-    //         type: 'info',
-    //         title: 'Updates',
-    //         message: 'Updates are disabled in development mode.'
-    //     });
-    // }
+    if (!app.isPackaged) {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Updates',
+            message: 'Updates are disabled in development mode.'
+        });
+    }
 };
 
 let checkForUpdatesOnStartup = () => {
@@ -75,171 +75,6 @@ const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
 
 
-//updating
-if(app.isPackaged){
-    const server = packagejson.updater.server;
-    const repos = Array.isArray(packagejson.updater.repo) 
-        ? packagejson.updater.repo 
-        : [packagejson.updater.repo];
-
-    const isVersionNewer = (remoteVersion: string, localVersion: string) => {
-        // A simple semver compare. Assumes versions like '1.2.3' or 'v1.2.3' and handles simple pre-releases.
-        const cleanRemote = remoteVersion.startsWith('v') ? remoteVersion.substring(1) : remoteVersion;
-        const cleanLocal = localVersion.startsWith('v') ? localVersion.substring(1) : localVersion;
-
-        const [remoteMain, remotePre] = cleanRemote.split('-');
-        const [localMain, localPre] = cleanLocal.split('-');
-
-        const remoteParts = remoteMain.split('.').map(Number);
-        const localParts = localMain.split('.').map(Number);
-
-        for (let i = 0; i < Math.max(remoteParts.length, localParts.length); i++) {
-            const p1 = remoteParts[i] || 0;
-            const p2 = localParts[i] || 0;
-            if (p1 > p2) return true;
-            if (p1 < p2) return false;
-        }
-
-        // If main versions are the same, compare pre-releases
-        // A version with a pre-release is older than one without.
-        if (localPre && !remotePre) return true;
-        if (!localPre && remotePre) return false;
-        if (localPre && remotePre) {
-            return remotePre > localPre;
-        }
-
-        return false;
-    };
-
-    const findLatestUpdate = async () => {
-        let latestVersion = app.getVersion();
-        let latestRepo = null;
-
-        const promises = repos.map((repo: string) => 
-            new Promise<void>((resolve) => {
-                const options = {
-                    hostname: 'api.github.com',
-                    path: `/repos/${repo}/releases`,
-                    method: 'GET',
-                    headers: { 'User-Agent': 'VOTC-Updater' }
-                };
-
-                https.get(options, (res) => {
-                    let data = '';
-                    res.on('data', (chunk) => { data += chunk; });
-                    res.on('end', () => {
-                        try {
-                            if (res.statusCode === 200) {
-                                const release = JSON.parse(data);
-                                const remoteVersion = release.tag_name;
-                                if (isVersionNewer(remoteVersion, latestVersion)) {
-                                    latestVersion = remoteVersion;
-                                    latestRepo = repo;
-                                }
-                            }
-                        } catch (e) {
-                            console.error(`Error parsing release info for ${repo}:`, e);
-                        }
-                        resolve();
-                    });
-                }).on('error', (err) => {
-                    console.error(`Error fetching release info for ${repo}:`, err);
-                    resolve(); // Resolve even on error to not block other checks
-                });
-            })
-        );
-
-        await Promise.all(promises);
-
-        return { latestVersion, latestRepo };
-    };
-
-    checkForUpdates = async () => {
-        try {
-            const { latestVersion, latestRepo } = await findLatestUpdate();
-
-            if (latestRepo && isVersionNewer(latestVersion, app.getVersion())) {
-                console.log(`New version ${latestVersion} found in ${latestRepo}. Starting update.`);
-                const feed = `${server}/${latestRepo}/${process.platform}/${app.getVersion()}`;
-                //@ts-ignore
-                autoUpdater.setFeedURL(feed);
-                autoUpdater.checkForUpdates(); // This will trigger 'update-available'
-            } else {
-                console.log('No new update found.');
-                const dialogOpts = {
-                  type: 'info' as const,
-                  buttons: [],
-                  title: 'App is up to date!',
-                  message: "App is up to date!",
-                  detail: 'no new version was found!'
-                }  
-                dialog.showMessageBox(dialogOpts);
-            }
-        } catch (error) {
-            console.error('Error during update check:', error);
-            const dialogOpts = {
-              type: 'info' as const,
-              buttons: [],
-              title: 'Update error!',
-              message: "Something went wrong during updating!",
-              detail: 'error message: '+error
-            }  
-            dialog.showMessageBox(dialogOpts);
-        }
-    };
-
-    autoUpdater.on('update-available', () => {
-        const dialogOpts = {
-          type: "info" as const,
-          buttons: [],
-          title: 'Update found!',
-          message: "new version found!",
-          detail: 'A new version is available. updating application now...'
-        }
-      
-        dialog.showMessageBox(dialogOpts);
-    });
-
-    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-        const dialogOpts = {
-          type: 'info' as const,
-          buttons: ['Restart', 'Later'],
-          title: 'Application Update',
-          message: process.platform === 'win32' ? releaseNotes : releaseName,
-          detail:
-            'A new version has been downloaded. Restart the application to apply the updates.'
-        }
-      
-        dialog.showMessageBox(dialogOpts).then((returnValue) => {
-          if (returnValue.response === 0) autoUpdater.quitAndInstall()
-        })
-    });
-
-    autoUpdater.on('update-not-available', () => {
-        // This should ideally not be hit if findLatestUpdate is correct, but as a fallback:
-        console.log('Update not available from the selected repository.');
-        const dialogOpts = {
-            type: 'info' as const,
-            buttons: [],
-            title: 'App is up to date!',
-            message: "App is up to date!",
-            detail: 'no new version was found!'
-          }  
-          dialog.showMessageBox(dialogOpts);
-    });
-
-    autoUpdater.on('error', (error) => {
-        console.error(`Update error:`, error);
-        const dialogOpts = {
-            type: 'info' as const,
-            buttons: [],
-            title: 'Update error!',
-            message: "Something went wrong during updating!",
-            detail: 'error message: '+error
-        }  
-        dialog.showMessageBox(dialogOpts);
-    });
-}
 
 
 
@@ -262,6 +97,175 @@ let config: Config;
 
 
 app.on('ready',  async () => {
+
+    //updating
+    if(app.isPackaged){
+        const server = packagejson.updater.server;
+        const repos = Array.isArray(packagejson.updater.repo) 
+            ? packagejson.updater.repo 
+            : [packagejson.updater.repo];
+
+        const isVersionNewer = (remoteVersion: string, localVersion: string) => {
+            // A simple semver compare. Assumes versions like '1.2.3' or 'v1.2.3' and handles simple pre-releases.
+            const cleanRemote = remoteVersion.startsWith('v') ? remoteVersion.substring(1) : remoteVersion;
+            const cleanLocal = localVersion.startsWith('v') ? localVersion.substring(1) : localVersion;
+
+            const [remoteMain, remotePre] = cleanRemote.split('-');
+            const [localMain, localPre] = cleanLocal.split('-');
+
+            const remoteParts = remoteMain.split('.').map(Number);
+            const localParts = localMain.split('.').map(Number);
+
+            for (let i = 0; i < Math.max(remoteParts.length, localParts.length); i++) {
+                const p1 = remoteParts[i] || 0;
+                const p2 = localParts[i] || 0;
+                if (p1 > p2) return true;
+                if (p1 < p2) return false;
+            }
+
+            // If main versions are the same, compare pre-releases
+            // A version with a pre-release is older than one without.
+            if (localPre && !remotePre) return true;
+            if (!localPre && remotePre) return false;
+            if (localPre && remotePre) {
+                return remotePre > localPre;
+            }
+
+            return false;
+        };
+
+        const findLatestUpdate = async () => {
+            let latestVersion = app.getVersion();
+            let latestRepo = null;
+
+            const promises = repos.map((repo: string) => 
+                new Promise<void>((resolve) => {
+                    const options = {
+                        hostname: 'api.github.com',
+                        path: `/repos/${repo}/releases`,
+                        method: 'GET',
+                        headers: { 'User-Agent': 'VOTC-Updater' }
+                    };
+
+                    https.get(options, (res) => {
+                        let data = '';
+                        res.on('data', (chunk) => { data += chunk; });
+                        res.on('end', () => {
+                            try {
+                                if (res.statusCode === 200) {
+                                    const releases = JSON.parse(data);
+                                    if (Array.isArray(releases)) {
+                                        for (const release of releases) {
+                                            if (release.tag_name && isVersionNewer(release.tag_name, latestVersion)) {
+                                                latestVersion = release.tag_name;
+                                                latestRepo = repo;
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error(`Error parsing release info for ${repo}:`, e);
+                            }
+                            resolve();
+                        });
+                    }).on('error', (err) => {
+                        console.error(`Error fetching release info for ${repo}:`, err);
+                        resolve(); // Resolve even on error to not block other checks
+                    });
+                })
+            );
+
+            await Promise.all(promises);
+
+            return { latestVersion, latestRepo };
+        };
+
+        checkForUpdates = async () => {
+            try {
+                const { latestVersion, latestRepo } = await findLatestUpdate();
+
+                if (latestRepo && isVersionNewer(latestVersion, app.getVersion())) {
+                    console.log(`New version ${latestVersion} found in ${latestRepo}. Starting update.`);
+                    const feed = `${server}/${latestRepo}/${process.platform}/${app.getVersion()}`;
+                    //@ts-ignore
+                    autoUpdater.setFeedURL(feed);
+                    autoUpdater.checkForUpdates(); // This will trigger 'update-available'
+                } else {
+                    console.log('No new update found.');
+                    const dialogOpts = {
+                      type: 'info' as const,
+                      buttons: [],
+                      title: 'App is up to date!',
+                      message: "App is up to date!",
+                      detail: 'no new version was found!'
+                    }  
+                    dialog.showMessageBox(dialogOpts);
+                }
+            } catch (error) {
+                console.error('Error during update check:', error);
+                const dialogOpts = {
+                  type: 'info' as const,
+                  buttons: [],
+                  title: 'Update error!',
+                  message: "Something went wrong during updating!",
+                  detail: 'error message: '+error
+                }  
+                dialog.showMessageBox(dialogOpts);
+            }
+        };
+
+        autoUpdater.on('update-available', () => {
+            const dialogOpts = {
+              type: "info" as const,
+              buttons: [],
+              title: 'Update found!',
+              message: "new version found!",
+              detail: 'A new version is available. updating application now...'
+            }
+          
+            dialog.showMessageBox(dialogOpts);
+        });
+
+        autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+            const dialogOpts = {
+              type: 'info' as const,
+              buttons: ['Restart', 'Later'],
+              title: 'Application Update',
+              message: process.platform === 'win32' ? releaseNotes : releaseName,
+              detail:
+                'A new version has been downloaded. Restart the application to apply the updates.'
+            }
+          
+            dialog.showMessageBox(dialogOpts).then((returnValue) => {
+              if (returnValue.response === 0) autoUpdater.quitAndInstall()
+            })
+        });
+
+        autoUpdater.on('update-not-available', () => {
+            // This should ideally not be hit if findLatestUpdate is correct, but as a fallback:
+            console.log('Update not available from the selected repository.');
+            const dialogOpts = {
+                type: 'info' as const,
+                buttons: [],
+                title: 'App is up to date!',
+                message: "App is up to date!",
+                detail: 'no new version was found!'
+              }  
+              dialog.showMessageBox(dialogOpts);
+        });
+
+        autoUpdater.on('error', (error) => {
+            console.error(`Update error:`, error);
+            const dialogOpts = {
+                type: 'info' as const,
+                buttons: [],
+                title: 'Update error!',
+                message: "Something went wrong during updating!",
+                detail: 'error message: '+error
+            }  
+            dialog.showMessageBox(dialogOpts);
+        });
+    }
 
    await checkUserData();
 
