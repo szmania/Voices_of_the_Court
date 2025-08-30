@@ -78,6 +78,7 @@ if(app.isPackaged){
 
     const checkNextRepo = () => {
         if (repoIndex >= repos.length) {
+            console.log('All repositories checked. No new updates found.'); // Added log
             repoIndex = 0; // Reset for next manual check
             const currentVersion = app.getVersion();
             const dialogOpts = {
@@ -105,6 +106,7 @@ if(app.isPackaged){
     };
 
     autoUpdater.on('update-available', () => {
+        console.log(`Update available from ${repos[repoIndex]}. Downloading...`); // Added log
         repoIndex = 0; // Reset for next manual check
         const dialogOpts = {
           type: "info" as const,
@@ -118,6 +120,7 @@ if(app.isPackaged){
     });
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+        console.log(`Update ${releaseName} downloaded from ${repos[repoIndex]}. Ready to install.`); // Added log
         const newVersion = releaseName ? releaseName.replace(/^v/, '') : 'a new version';
         const currentVersion = app.getVersion();
 
@@ -140,6 +143,7 @@ if(app.isPackaged){
     });
 
     autoUpdater.on('update-not-available', () => {
+        console.log(`No update available from ${repos[repoIndex]}. Current version: ${app.getVersion()}`); // Added log
         repoIndex++;
         checkNextRepo();
     });
