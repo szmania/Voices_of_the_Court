@@ -56,15 +56,12 @@ const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
 
 
-//updating
-if (app.isPackaged) {
-    updateElectronApp();
-}
-
 const checkForUpdates = () => {
     if (app.isPackaged) {
+        console.log('Manual update check triggered.');
         autoUpdater.checkForUpdates();
     } else {
+        console.log('Update check skipped in development mode.');
         dialog.showMessageBox({
             type: 'info',
             title: 'Updates',
@@ -182,6 +179,18 @@ app.on('ready',  async () => {
     });
 
     console.log(`app version: ${packagejson.version}`)
+
+    if (app.isPackaged) {
+        console.log('Initializing automatic update check...');
+        updateElectronApp({
+            logger: {
+                info: (message) => console.info(`[Updater] ${message}`),
+                warn: (message) => console.warn(`[Updater] ${message}`),
+                error: (message) => console.error(`[Updater] ${message}`),
+                debug: (message) => console.debug(`[Updater] ${message}`),
+            }
+        });
+    }
 
    let tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
    const contextMenu = Menu.buildFromTemplate([
