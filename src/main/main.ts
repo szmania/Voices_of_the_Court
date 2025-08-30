@@ -79,12 +79,13 @@ if(app.isPackaged){
     const checkNextRepo = () => {
         if (repoIndex >= repos.length) {
             repoIndex = 0; // Reset for next manual check
+            const currentVersion = app.getVersion();
             const dialogOpts = {
               type: 'info' as const,
               buttons: [],
-              title: 'App is up to date!',
-              message: "App is up to date!",
-              detail: 'no new version was found!'
+              title: 'App is up to date',
+              message: 'You are running the latest version.',
+              detail: `Your version: ${currentVersion}\nLatest version: ${currentVersion}`
             }  
             dialog.showMessageBox(dialogOpts);
             return;
@@ -117,18 +118,25 @@ if(app.isPackaged){
     });
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+        const newVersion = releaseName ? releaseName.replace(/^v/, '') : 'a new version';
+        const currentVersion = app.getVersion();
+
         const dialogOpts = {
           type: 'info' as const,
           buttons: ['Restart', 'Later'],
           title: 'Application Update',
-          message: process.platform === 'win32' ? releaseNotes : releaseName,
-          detail:
-            'A new version has been downloaded. Restart the application to apply the updates.'
+          message: `A new version is ready to install: ${newVersion}`,
+          detail: `A new version has been downloaded. Restart to update from version ${currentVersion} to ${newVersion}.`
+        };
+
+        if (releaseNotes) {
+            //@ts-ignore
+            dialogOpts.detail += `\n\nRelease notes:\n${releaseNotes}`;
         }
       
         dialog.showMessageBox(dialogOpts).then((returnValue) => {
-          if (returnValue.response === 0) autoUpdater.quitAndInstall()
-        })
+          if (returnValue.response === 0) autoUpdater.quitAndInstall();
+        });
     });
 
     autoUpdater.on('update-not-available', () => {
