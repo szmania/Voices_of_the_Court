@@ -94,6 +94,15 @@ app.on('ready',  async () => {
 
    await checkUserData();
 
+    // Relocated config loading to happen earlier
+    if (!fs.existsSync(path.join(userDataPath, 'configs', 'config.json'))){
+        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
+        await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
+    }
+    
+    config = new Config(path.join(userDataPath, 'configs', 'config.json'));
+
+
     //logging
     var util = require('util');
 
@@ -180,8 +189,9 @@ app.on('ready',  async () => {
 
     console.log(`app version: ${packagejson.version}`)
 
-    if (app.isPackaged) {
-        console.log('Initializing automatic update check...');
+    // Conditional automatic update check based on config
+    if (app.isPackaged && config.checkForUpdatesOnStartup) {
+        console.log('Initializing automatic update check on startup...');
         updateElectronApp({
             logger: {
                 info: (message) => console.info(`[Updater] ${message}`),
@@ -190,6 +200,8 @@ app.on('ready',  async () => {
                 debug: (message) => console.debug(`[Updater] ${message}`),
             }
         });
+    } else if (app.isPackaged) {
+        console.log('Automatic update check on startup is disabled in config.');
     }
 
    let tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
@@ -238,14 +250,6 @@ app.on('ready',  async () => {
     chatWindow.window.on('closed', () =>{app.quit()});
 
     clipboardListener.start();
-
-
-    if (!fs.existsSync(path.join(userDataPath, 'configs', 'config.json'))){
-        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
-        await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
-    }
-    
-    config = new Config(path.join(userDataPath, 'configs', 'config.json'));
 
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
