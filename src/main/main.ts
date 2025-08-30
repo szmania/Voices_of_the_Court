@@ -10,20 +10,9 @@ import { Message} from "./ts/conversation_interfaces.js";
 import path from 'path';
 import fs from 'fs';
 import { checkUserData } from "./userDataCheck.js";
+import { updateElectronApp } from 'update-electron-app';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
-
-
-let checkForUpdates = () => {
-    // This will be replaced by the real implementation in app.on('ready')
-    if (!app.isPackaged) {
-        dialog.showMessageBox({
-            type: 'info',
-            title: 'Updates',
-            message: 'Updates are disabled in development mode.'
-        });
-    }
-};
 
 
 const isFirstInstance = app.requestSingleInstanceLock();
@@ -68,105 +57,21 @@ const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
 
 //updating
-if(app.isPackaged){
-    const server = packagejson.updater.server;
-    const repos = Array.isArray(packagejson.updater.repo) 
-        ? packagejson.updater.repo 
-        : [packagejson.updater.repo];
-    
-    let repoIndex = 0;
-
-    const checkNextRepo = () => {
-        if (repoIndex >= repos.length) {
-            console.log('All repositories checked. No new updates found.'); // Added log
-            repoIndex = 0; // Reset for next manual check
-            const currentVersion = app.getVersion();
-            const dialogOpts = {
-              type: 'info' as const,
-              buttons: [],
-              title: 'App is up to date',
-              message: 'You are running the latest version.',
-              detail: `Your version: ${currentVersion}\nLatest version: ${currentVersion}`
-            }  
-            dialog.showMessageBox(dialogOpts);
-            return;
-        }
-        
-        const repo = repos[repoIndex];
-        console.log(`Checking for updates from ${repo}...`);
-        const feed = `${server}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
-        console.log(`Update feed URL: ${feed}`);
-        //@ts-ignore
-        autoUpdater.setFeedURL(feed);
-        autoUpdater.checkForUpdates();
-    };
-
-    checkForUpdates = () => {
-        repoIndex = 0;
-        checkNextRepo();
-    };
-
-    autoUpdater.on('update-available', () => {
-        console.log(`Update available from ${repos[repoIndex]}. Downloading...`); // Added log
-        repoIndex = 0; // Reset for next manual check
-        const dialogOpts = {
-          type: "info" as const,
-          buttons: [],
-          title: 'Update found!',
-          message: "new version found!",
-          detail: 'A new version is available. updating application now...'
-        }
-      
-        dialog.showMessageBox(dialogOpts);
-    });
-
-    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-        console.log(`Update ${releaseName} downloaded from ${repos[repoIndex]}. Ready to install.`); // Added log
-        const newVersion = releaseName ? releaseName.replace(/^v/, '') : 'a new version';
-        const currentVersion = app.getVersion();
-
-        const dialogOpts = {
-          type: 'info' as const,
-          buttons: ['Restart', 'Later'],
-          title: 'Application Update',
-          message: `A new version is ready to install: ${newVersion}`,
-          detail: `A new version has been downloaded. Restart to update from version ${currentVersion} to ${newVersion}.`
-        };
-
-        if (releaseNotes) {
-            //@ts-ignore
-            dialogOpts.detail += `\n\nRelease notes:\n${releaseNotes}`;
-        }
-      
-        dialog.showMessageBox(dialogOpts).then((returnValue) => {
-          if (returnValue.response === 0) autoUpdater.quitAndInstall();
-        });
-    });
-
-    autoUpdater.on('update-not-available', () => {
-        console.log(`No update available from ${repos[repoIndex]}. Current version: ${app.getVersion()}`); // Added log
-        repoIndex++;
-        checkNextRepo();
-    });
-
-    autoUpdater.on('error', (error) => {
-        console.error(`Update check failed for repo ${repos[repoIndex]}:`, error);
-        repoIndex++;
-        if (repoIndex < repos.length) {
-            checkNextRepo();
-        } else {
-            repoIndex = 0; // Reset for next manual check
-            const dialogOpts = {
-              type: 'info' as const,
-              buttons: [],
-              title: 'Update error!',
-              message: "Something went wrong during updating!",
-              detail: 'error message: '+error
-            }  
-            dialog.showMessageBox(dialogOpts);
-        }
-    });
+if (app.isPackaged) {
+    updateElectronApp();
 }
+
+const checkForUpdates = () => {
+    if (app.isPackaged) {
+        autoUpdater.checkForUpdates();
+    } else {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Updates',
+            message: 'Updates are disabled in development mode.'
+        });
+    }
+};
 
 
 
