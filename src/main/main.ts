@@ -95,6 +95,7 @@ if(app.isPackaged){
         const repo = repos[repoIndex];
         console.log(`Checking for updates from ${repo}...`);
         const feed = `${server}/${repo}/${process.platform}-${process.arch}/${app.getVersion()}`;
+        console.log(`Update feed URL: ${feed}`);
         //@ts-ignore
         autoUpdater.setFeedURL(feed);
         autoUpdater.checkForUpdates();
