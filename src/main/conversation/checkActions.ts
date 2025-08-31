@@ -5,10 +5,8 @@ import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 
 export async function checkActions(conv: Conversation): Promise<ActionResponse[]>{
-
+    console.log('Starting action check.');
     let availableActions: Action[] = [];
-
-    availableActions = [];
 
     for(let action of conv.actions){
         try{
@@ -17,11 +15,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             }
         }catch(e){
             let errMsg =`Action error: failure in check function. action: ${action.signature}; details: `+e;
-            console.log(errMsg)
+            console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
         
     }
+    console.log(`Available actions for current context: ${availableActions.map(a => a.signature).join(', ')}`);
 
     let triggeredActions: ActionResponse[] = [];
     
@@ -35,18 +34,22 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         response = await conv.actionsApiConnection.complete(prompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
     }
 
+    console.log(`Raw LLM response for actions: ${response}`);
     response = response.replace(/(\r\n|\n|\r)/gm, "");
 
     if(!response.match(/<rationale>(.*?)<\/?rationale>/) || !response.match(/<actions>(.*?)<\/?actions>/)){
-        console.log("Action warning: rationale or action couldn't be extracted. llm response: "+ response);
+        console.warn("Action warning: rationale or action couldn't be extracted from LLM response. Response: "+ response);
         return [];
     }
 
     const rationale = response.match(/<rationale>(.*?)<\/rationale>/)![1];
     const actionsString = response.match(/<actions>(.*?)<\/actions>/)![1];
+    console.log(`Extracted rationale: ${rationale}`);
+    console.log(`Extracted actions string: ${actionsString}`);
 
 
     if(actionsString === "noop()"){
+        console.log('LLM returned "noop()", no actions triggered.');
         return [];
     }
 
@@ -58,6 +61,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
 
         if(!foundActionName){
+            console.warn(`Action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
             continue;
         }
 
@@ -67,7 +71,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
 
         if(matchedActions.length == 0){
-            console.log("Action warning: the returned action from llm matched none of the listed actions.");
+            console.warn(`Action warning: The returned action "${foundActionName[0]}" from LLM matched none of the listed available actions. Skipping.`);
             continue;
         }
 
@@ -77,11 +81,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         const argsString = /\(([^)]+)\)/.exec(actionInResponse);
         if(argsString == null){
             if(matchedAction.args.length === 0){
+                console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
                 try{
                     matchedAction.run(conv.gameData, (text: string)=>{conv.runFileManager.append(text)}, []);
                 }catch(e){
-                    let errMsg =`Action error: failure in check function. action: ${matchedAction.signature}; details: `+e;
-                    console.log(errMsg)
+                    let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
+                    console.error(errMsg)
                     conv.chatWindow.window.webContents.send('error-message', errMsg);
                 }
 
@@ -93,18 +98,18 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                     })
                 }
                 
-
+                console.log(`Action "${matchedAction.signature}" successfully triggered.`);
                 continue;
             }
 
-            console.log("Action warning: response action had no arguments, but matched action has");
+            console.warn(`Action warning: Response action "${actionInResponse}" had no arguments, but matched action "${matchedAction.signature}" requires arguments. Skipping.`);
             continue;
         }
 
         const args = argsString![1].split(",");
 
         if(args.length !== matchedAction.args.length){
-            console.log("Action warning: the matched action has different number of args than the one from the llm response.");
+            console.warn(`Action warning: The matched action "${matchedAction.signature}" has a different number of arguments (${matchedAction.args.length}) than the one from the LLM response (${args.length}). Skipping.`);
             continue;
         }
 
@@ -113,7 +118,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
             if(matchedAction.args[0].type === "number"){
                 if(isNaN(Number(args[0]))){
-                    console.log("Action warning: argument was not the valid type");
+                    console.warn(`Action warning: Argument "${args[0]}" for action "${matchedAction.signature}" was not a valid number. Expected type: ${matchedAction.args[0].type}. Skipping.`);
                     isValidAction = false;
                     break;
                 }
@@ -127,11 +132,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             continue;
         }
 
+        console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
         try{
             matchedAction.run(conv.gameData, (text: string)=>{conv.runFileManager.append(text)}, args);
         }catch(e){
-            let errMsg =`Action error: failure in check function. action: ${matchedAction.signature}; details: `+e;
-            console.log(errMsg)
+            let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
+            console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
         
@@ -143,7 +149,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                 chatMessageClass: matchedAction.chatMessageClass
             })
         }
-        
+        console.log(`Action "${matchedAction.signature}" successfully triggered.`);
         
     }
 
@@ -153,6 +159,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         }`
     );
     
+    console.log(`Final triggered actions: ${triggeredActions.map(a => a.actionName).join(', ')}`);
     return triggeredActions;
 }
 

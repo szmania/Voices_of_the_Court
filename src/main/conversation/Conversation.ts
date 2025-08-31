@@ -33,6 +33,7 @@ export class Conversation{
     currentSummary: string;
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
+        console.log('Conversation initialized.');
         this.chatWindow = chatWindow;
         this.isOpen = true;
         this.gameData = gameData;
@@ -42,18 +43,23 @@ export class Conversation{
         this.summaries = [];
         if (!fs.existsSync(path.join(userDataPath, 'conversation_summaries'))){
             fs.mkdirSync(path.join(userDataPath, 'conversation_summaries'));
+            console.log('Created conversation_summaries directory.');
         }
 
         if (!fs.existsSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString()))){
             fs.mkdirSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString()));
+            console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
         }
         
-        if(fs.existsSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json"))){
-            this.summaries = JSON.parse(fs.readFileSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json"), 'utf8'));
+        const summaryFilePath = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json");
+        if(fs.existsSync(summaryFilePath)){
+            this.summaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
+            console.log(`Loaded prior summaries for AI ID ${this.gameData.aiID} from ${summaryFilePath}. Total summaries: ${this.summaries.length}`);
         }
         else{
             this.summaries = [];
-            fs.writeFileSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json"), JSON.stringify(this.summaries, null, '\t'));
+            fs.writeFileSync(summaryFilePath, JSON.stringify(this.summaries, null, '\t'));
+            console.log(`No prior summaries found for AI ID ${this.gameData.aiID}. Initialized empty summaries array and file at ${summaryFilePath}.`);
         }
 
         this.config = config;
@@ -71,9 +77,11 @@ export class Conversation{
 
     pushMessage(message: Message): void{           
         this.messages.push(message);
+        console.log(`Message pushed to conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
     }
 
     async generateAIsMessages() {
+        console.log('Starting generation of AI messages for all characters.');
         const shuffled_characters = Array.from(this.gameData.characters.values()).sort(() => Math.random() - 0.5);
         for (const character of shuffled_characters) {
             if (character.id !== this.gameData.playerID) {
@@ -81,23 +89,25 @@ export class Conversation{
             }
         }
         this.chatWindow.window.webContents.send('actions-receive', []);
+        console.log('Finished generating AI messages for all characters.');
     }
     
     async generateNewAIMessage(character: Character){
-
+        console.log(`Generating AI message for character: ${character.fullName}`);
         
         let responseMessage: Message;
 
         if(this.config.stream){
             this.chatWindow.window.webContents.send('stream-start');
+            console.log('Stream started for AI message generation.');
         }
 
         let currentTokens = this.textGenApiConnection.calculateTokensFromChat(buildChatPrompt(this, character));
         //let currentTokens = 500;
-        console.log(`current tokens: ${currentTokens}`);
+        console.log(`Current prompt token count: ${currentTokens}`);
 
         if(currentTokens > this.textGenApiConnection.context){
-            console.log(`Context limit hit, resummarizing conversation! limit:${this.textGenApiConnection.context}`);
+            console.log(`Context limit hit (${currentTokens}/${this.textGenApiConnection.context} tokens), resummarizing conversation!`);
             await this.resummarize();
         }
 
@@ -114,7 +124,7 @@ export class Conversation{
 
 
         if(this.textGenApiConnection.isChat()){
-            
+            console.log('Using chat API for AI message completion.');
             responseMessage = {
                 role: "assistant",
                 name: character.fullName,//this.gameData.aiName,
@@ -128,7 +138,7 @@ export class Conversation{
         }
         //instruct
         else{
-
+            console.log('Using completion API for AI message completion.');
             responseMessage = {
                 role: "assistant",
                 name: character.fullName,
@@ -142,6 +152,7 @@ export class Conversation{
         }
 
         if(this.config.cleanMessages){
+            console.log('Cleaning AI message content.');
             responseMessage.content = cleanMessageContent(responseMessage.content);
         }
 
@@ -171,7 +182,7 @@ export class Conversation{
 
         // If a terminator was found and it's preceded by a long preamble, strip it.
         if (splitIndex > PREAMBLE_MIN_LENGTH) {
-            console.log(`Preamble terminator found. Stripping preamble.`);
+            console.log(`Preamble terminator found. Stripping preamble from AI response.`);
             content = content.substring(splitIndex + terminatorLength).trim();
         }
         // Stage 2: Fallback for cases without a clear terminator phrase.
@@ -187,7 +198,7 @@ export class Conversation{
             }
 
             if (fallbackSplitIndex > PREAMBLE_MIN_LENGTH) {
-                console.log(`Preamble detected via fallback. Stripping preamble.`);
+                console.log(`Preamble detected via fallback. Stripping preamble from AI response.`);
                 content = content.substring(fallbackSplitIndex);
             }
         }
@@ -197,6 +208,7 @@ export class Conversation{
         for (const prefix of aiPrefixes) {
             if (content.startsWith(prefix)) {
                 content = content.substring(prefix.length).trim();
+                console.log(`Removed AI prefix "${prefix}" from response.`);
                 break;
             }
         }
@@ -225,60 +237,72 @@ export class Conversation{
 
         if(!this.config.stream){
             this.chatWindow.window.webContents.send('message-receive', responseMessage, this.config.actionsEnableAll);
+            console.log('Sent AI message to chat window (non-streaming).');
         }
         
         if (character.id === this.gameData.aiID){
             let collectedActions: ActionResponse[];
             if(this.config.actionsEnableAll){
                 try{
+                    console.log('Actions are enabled. Checking for actions...');
                     collectedActions = await checkActions(this);
                 }
                 catch(e){
+                    console.error(`Error during action check: ${e}`);
                     collectedActions = [];
                 }
             }
             else{
+                console.log('Actions are disabled in config.');
                 collectedActions = [];
             }
     
             this.chatWindow.window.webContents.send('actions-receive', collectedActions);    
+            console.log(`Sent ${collectedActions.length} actions to chat window.`);
         }
     }
 
     async resummarize(){
+        console.log('Starting conversation resummarization due to context limit.');
         let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)
-        console.log(`context: ${this.textGenApiConnection.context} percent to summarize: ${this.config.percentOfContextToSummarize} tokens to summarize: ${tokensToSummarize}`)
+        console.log(`Context: ${this.textGenApiConnection.context}, Percent to summarize: ${this.config.percentOfContextToSummarize}%, Tokens to summarize: ${tokensToSummarize}`);
             let tokenSum = 0;
             let messagesToSummarize: Message[] = [];
 
             while(tokenSum < tokensToSummarize && this.messages.length > 0){
                 let msg = this.messages.shift()!;
                 tokenSum += this.textGenApiConnection.calculateTokensFromMessage(msg);
-                console.log("to remove:")
+                console.log("Message removed for summarization:")
                 console.log(msg)
                 messagesToSummarize.push(msg);
             }
 
             if(messagesToSummarize.length > 0){ //prevent infinite loops
-                console.log("current summary: "+this.currentSummary)
+                console.log("Current summary before resummarization: "+this.currentSummary);
                 if(this.summarizationApiConnection.isChat()){
+                    console.log('Using chat API for resummarization.');
                     this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {});
                 }
                 else{
+                    console.log('Using completion API for resummarization.');
                     this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {});
                 }
                
-                console.log("after current summary: "+this.currentSummary)
+                console.log("New current summary after resummarization: "+this.currentSummary);
+            } else {
+                console.log('No messages to summarize during resummarization.');
             }
     }
 
     // Store a summary for each character participating in the conversation.
     async summarize() {
+        console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
         // Write a trigger event to the game (e.g., trigger conversation end event)
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            console.log('Run file cleared after conversation end event.');
         }, 500);
 
         // Ensure the conversation_history directory exists
@@ -286,6 +310,7 @@ export class Conversation{
 
         if (!fs.existsSync(historyDir)) {
           fs.mkdirSync(historyDir, { recursive: true });
+          console.log(`Created conversation history directory: ${historyDir}`);
         }
 
         // Process conversation messages, keeping only name and content
@@ -313,7 +338,7 @@ export class Conversation{
 
         // Do not generate a summary if there are not enough messages
         if (this.messages.length < 6) {
-            console.log("Not enough messages to generate a summary.");
+            console.log("Not enough messages to generate a summary (less than 6). Skipping summary generation.");
             return;
         }
 
@@ -322,6 +347,8 @@ export class Conversation{
             date: this.gameData.date,  // Current in-game date
             content: await summarize(this)  // Asynchronously generate summary content
         };
+        console.log(`Generated new summary for conversation: ${summary.content.substring(0, 100)}...`);
+
 
         this.gameData.characters.forEach((_value, key) => {
             if (key !== this.gameData.playerID) {
@@ -329,14 +356,17 @@ export class Conversation{
                 const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 if (!fs.existsSync(summaryDir)) {
                     fs.mkdirSync(summaryDir, { recursive: true });
+                    console.log(`Created summary directory for player ID ${this.gameData.playerID}.`);
                 }
         
                 // Load historical summaries (if they exist)
                 const summaryFile = path.join(summaryDir, `${key.toString()}.json`);
                 if (fs.existsSync(summaryFile)) {
                     this.summaries = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+                    console.log(`Loaded existing summaries for AI ID ${key} from ${summaryFile}.`);
                 } else {
                     fs.writeFileSync(summaryFile, JSON.stringify(this.summaries, null, '\t'));  // Initialize an empty summary file
+                    console.log(`Initialized empty summary file for AI ID ${key} at ${summaryFile}.`);
                 }
                 // Add the new summary to the beginning of the list
                 this.summaries.unshift(summary);
@@ -348,6 +378,7 @@ export class Conversation{
                     `${key.toString()}.json`
                     );
                 fs.writeFileSync(summaryFile1, JSON.stringify(this.summaries, null, '\t'));
+                console.log(`Saved updated summaries for AI ID ${key} to ${summaryFile1}. Total summaries: ${this.summaries.length}`);
             }
         });
 
@@ -355,13 +386,14 @@ export class Conversation{
         }; 
 
     updateConfig(config: Config){
-        console.log("config updated!")
+        console.log("Config updated! Reloading conversation configuration.");
+        this.config = config; // Ensure the config object itself is updated
         this.loadConfig();
     }
 
     loadConfig(){
-
-        console.log(this.config.toSafeConfig());
+        console.log('Loading conversation configuration.');
+        console.log('Current config (safe version):', this.config.toSafeConfig());
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.runFileManager.clear();
@@ -369,18 +401,24 @@ export class Conversation{
         this.description = "";
         this.exampleMessages = [];
 
-        const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', this.config.selectedDescScript)
+        const descriptionScriptFileName = this.config.selectedDescScript;
+        const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
         try{
-            delete require.cache[require.resolve(path.join(descriptionPath))];
-            this.description = require(path.join(descriptionPath))(this.gameData); 
+            delete require.cache[require.resolve(descriptionPath)];
+            this.description = require(descriptionPath)(this.gameData); 
+            console.log(`Description script '${descriptionScriptFileName}' loaded successfully.`);
         }catch(err){
+            console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
             throw new Error("description script error, your used description script file is not valid! error message:\n"+err);
         }
-        const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', this.config.selectedExMsgScript);
+        const exampleMessagesScriptFileName = this.config.selectedExMsgScript;
+        const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
         try{
-            delete require.cache[require.resolve(path.join(exampleMessagesPath))];
-            this.exampleMessages= require(path.join(exampleMessagesPath))(this.gameData);
+            delete require.cache[require.resolve(exampleMessagesPath)];
+            this.exampleMessages= require(exampleMessagesPath)(this.gameData);
+            console.log(`Example messages script '${exampleMessagesScriptFileName}' loaded successfully.`);
         }catch(err){
+            console.error(`Example messages script error for '${exampleMessagesScriptFileName}': ${err}`);
             throw new Error("example messages script error, your used example messages file is not valid! error message:\n"+err);
         }
     
@@ -388,20 +426,31 @@ export class Conversation{
     }
 
     getApiConnections(){
-        let textGenApiConnection, summarizationApiConnection, actionsApiConnection
-        summarizationApiConnection = textGenApiConnection = actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
+        let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
+        
+        textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
+        console.log('Text generation API connection configured.');
 
         if(this.config.summarizationUseTextGenApi){
-            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);;
+            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+            console.log('Summarization API connection configured (using text generation API).');
+        } else {
+            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+            console.log('Summarization API connection configured (using dedicated summarization API).');
         }
 
-        if(this.config.actionsUseTextGenApi){;
-            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);;
+        if(this.config.actionsUseTextGenApi){
+            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+            console.log('Actions API connection configured (using text generation API).');
+        } else {
+            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+            console.log('Actions API connection configured (using dedicated actions API).');
         }
-        return [textGenApiConnection, summarizationApiConnection, actionsApiConnection];
+        return [textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection];
     }
 
     async loadActions(){
+        console.log('Loading actions from scripts.');
         this.actions = [];
 
         const actionsPath = path.join(userDataPath, 'scripts', 'actions');
@@ -409,26 +458,31 @@ export class Conversation{
         let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 
         for(const file of standardActionFiles) {
-
-            if(this.config.disabledActions.includes(path.basename(file).split(".")[0])){
+            const actionName = path.basename(file).split(".")[0];
+            if(this.config.disabledActions.includes(actionName)){
+                console.log(`Skipping disabled standard action: ${actionName}`);
                 continue;
             }
             
-            delete require.cache[require(path.join(actionsPath, 'standard', file))];
-            this.actions.push(require(path.join(actionsPath, 'standard', file)));
-            console.log(`loaded standard action: `+file)
+            const filePath = path.join(actionsPath, 'standard', file);
+            delete require.cache[require.resolve(filePath)];
+            this.actions.push(require(filePath));
+            console.log(`Loaded standard action: ${file}`);
         }
 
         for(const file of customActionFiles) {
-
-            if(this.config.disabledActions.includes(path.basename(file).split(".")[0])){
+            const actionName = path.basename(file).split(".")[0];
+            if(this.config.disabledActions.includes(actionName)){
+                console.log(`Skipping disabled custom action: ${actionName}`);
                 continue;
             }
     
-            delete require.cache[require(path.join(actionsPath, 'custom', file))];
-            this.actions.push(require(path.join(actionsPath, 'custom', file)));
-            console.log(`loaded custom action: `+file)
+            const filePath = path.join(actionsPath, 'custom', file);
+            delete require.cache[require.resolve(filePath)];
+            this.actions.push(require(filePath));
+            console.log(`Loaded custom action: ${file}`);
         }
+        console.log(`Finished loading actions. Total actions loaded: ${this.actions.length}`);
     }
 
 }

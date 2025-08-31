@@ -24,7 +24,17 @@ module.exports = {
   hooks: {
     
 
-  }
-
-
+  },
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'szmania',
+          name: 'Voices_of_the_Court'
+        },
+        prerelease: true
+      }
+    }
+  ]
 };

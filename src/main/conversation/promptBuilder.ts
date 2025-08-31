@@ -43,12 +43,14 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
+    console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
     chatPrompt.push({
         role: "system",
         content: parseVariables(conv.config.mainPrompt, conv.gameData)
     })
+    console.log('Added main prompt.');
 
     chatPrompt.push({
         role: "system",
@@ -58,9 +60,11 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     // chatPrompt = chatPrompt.concat(conv.exampleMessages);
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", "mccAliChat.js");
+    const exampleMessagesScriptFileName = "mccAliChat.js"; // Assuming this is the standard example messages script
+    const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
     let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
     chatPrompt = chatPrompt.concat(exampleMessages);
+    console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
     
 
     chatPrompt.push({
@@ -76,6 +80,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     };
 
     insertMessageAtDepth(messages, descMessage, conv.config.descInsertDepth);
+    console.log(`Inserted description at depth: ${conv.config.descInsertDepth}.`);
 
 
     const memoryMessage: Message = {
@@ -86,6 +91,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
+        console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
     // too early right now
@@ -96,6 +102,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     // if(secretMessage.content){
     //     insertMessageAtDepth(messages, secretMessage, conv.config.memoriesInsertDepth);
+    //     console.log(`Inserted secrets at depth: ${conv.config.memoriesInsertDepth}.`);
     // }
 
 
@@ -117,6 +124,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
         
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
+        console.log(`Added previous conversation summaries at depth: ${conv.config.summariesInsertDepth}.`);
     }
     
 
@@ -129,6 +137,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         }
 
         messages.unshift(currentSummaryMessage);
+        console.log('Added current conversation summary.');
     }
 
     chatPrompt = chatPrompt.concat(messages);
@@ -138,10 +147,10 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
             role: "system",
             content: conv.config.suffixPrompt
         })
+        console.log('Added suffix prompt.');
     }
 
-    
-
+    console.log(`Final chat prompt message count: ${chatPrompt.length}`);
     return chatPrompt;
 }
 

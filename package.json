@@ -36,6 +36,7 @@
     "source-map-support": "^0.5.21",
     "ts-to-jsdoc": "^2.4.0"
   },
+  "repository": "https://github.com/szmania/Voices_of_the_Court.git",
   "updater": {
     "server": "https://update.electronjs.org",
     "repo": "szmania/Voices_of_the_Court"
