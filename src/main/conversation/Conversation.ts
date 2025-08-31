@@ -28,7 +28,6 @@ export class Conversation{
     actionsApiConnection: ApiConnection;
     description: string;
     actions: Action[];
-    exampleMessages: Message[];
     summaries: Summary[];
     currentSummary: string;
     
@@ -68,7 +67,6 @@ export class Conversation{
         this.runFileManager = new RunFileManager(config.userFolderPath);
         this.description = "";
         this.actions = [];
-        this.exampleMessages = [],
 
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
@@ -399,7 +397,6 @@ export class Conversation{
         this.runFileManager.clear();
 
         this.description = "";
-        this.exampleMessages = [];
 
         const descriptionScriptFileName = this.config.selectedDescScript;
         const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
@@ -410,16 +407,6 @@ export class Conversation{
         }catch(err){
             console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
             throw new Error("description script error, your used description script file is not valid! error message:\n"+err);
-        }
-        const exampleMessagesScriptFileName = this.config.selectedExMsgScript;
-        const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
-        try{
-            delete require.cache[require.resolve(exampleMessagesPath)];
-            this.exampleMessages= require(exampleMessagesPath)(this.gameData);
-            console.log(`Example messages script '${exampleMessagesScriptFileName}' loaded successfully.`);
-        }catch(err){
-            console.error(`Example messages script error for '${exampleMessagesScriptFileName}': ${err}`);
-            throw new Error("example messages script error, your used example messages file is not valid! error message:\n"+err);
         }
     
         this.loadActions();

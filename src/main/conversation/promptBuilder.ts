@@ -6,6 +6,7 @@ import { Character } from "../../shared/gameData/Character";
 import { Config } from "../../shared/Config";
 import path from 'path';
 import { app } from 'electron';
+import fs from 'fs';
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
     let output: string = "";
@@ -57,14 +58,32 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         content: "[example messages]"
     })
     
-    // chatPrompt = chatPrompt.concat(conv.exampleMessages);
-
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const exampleMessagesScriptFileName = "mccAliChat.js"; // Assuming this is the standard example messages script
-    const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
-    let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
-    chatPrompt = chatPrompt.concat(exampleMessages);
-    console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
+    const exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
+    const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
+    const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "custom", exampleMessagesScriptFileName);
+
+    let exampleMessagesPath;
+    if (fs.existsSync(standardPath)) {
+        exampleMessagesPath = standardPath;
+    } else if (fs.existsSync(customPath)) {
+        exampleMessagesPath = customPath;
+    } else {
+        console.error(`Example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
+        exampleMessagesPath = null;
+    }
+
+    if (exampleMessagesPath) {
+        try {
+            delete require.cache[require.resolve(exampleMessagesPath)];
+            let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
+            chatPrompt = chatPrompt.concat(exampleMessages);
+            console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
+        } catch (err) {
+            console.error(`Error loading example message script '${exampleMessagesScriptFileName}': ${err}`);
+            conv.chatWindow.window.webContents.send('error-message', `Error in example message script '${exampleMessagesScriptFileName}'.`);
+        }
+    }
     
 
     chatPrompt.push({

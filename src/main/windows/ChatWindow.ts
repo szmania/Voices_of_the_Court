@@ -69,15 +69,19 @@ export class ChatWindow{
         })*/
 
         this.interval = setInterval(()=>{
-            let win = ActiveWindow.getActiveWindow();
-           // console.log(win.title)
+            try {
+                let win = ActiveWindow.getActiveWindow();
+               // console.log(win.title)
 
-            if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Chat"){
-                OverlayController.activateOverlay();
-                //this.window.webContents.send('chat-show');
-            }else{
-                this.window.minimize();
-                //this.window.webContents.send('chat-hide');
+                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Chat"){
+                    OverlayController.activateOverlay();
+                    //this.window.webContents.send('chat-show');
+                }else{
+                    this.window.minimize();
+                    //this.window.webContents.send('chat-hide');
+                }
+            } catch (err) {
+                console.error("Failed to get active window:", err);
             }
         }, 500)
 
