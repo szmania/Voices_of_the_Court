@@ -229,5 +229,10 @@ export function removeTooltip(str: string): string {
                       .replace(/[\s:!]+$/, '')
                       .trim();
 
+    const lSemicolonIndex = cleanedStr.indexOf(' L; ');
+    if (lSemicolonIndex !== -1) {
+        cleanedStr = cleanedStr.substring(lSemicolonIndex + 4).trim();
+    }
+
     return cleanedStr;
 }
