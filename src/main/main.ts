@@ -45,12 +45,12 @@ process.on("rejectionHandled", function(err){
 
 process.on('uncaughtException', function(err) {
     console.log('=== UNCAUGHT EXCEPTION ===');
-    console.log(err);
+    console.error(err); // Changed from console.log(err)
   });
 
 process.on('unhandledRejection', (error, p) => {
     console.log('=== UNHANDLED REJECTION ===');
-    console.log(error);
+    console.error(error); // Changed from console.log(error)
 });
 
 //check config files
@@ -338,7 +338,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");
-        console.log(err);
+        console.error(err); // Changed from console.log(err)
 
         if(chatWindow.isShown){
             chatWindow.window.webContents.send('error-message', err);
@@ -366,7 +366,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
         conversation.generateAIsMessages();
     }
     catch(err){
-        console.log(err);
+        console.error(err); // Changed from console.log(err)
         chatWindow.window.webContents.send('error-message', err);
     }
     
