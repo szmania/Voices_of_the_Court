@@ -197,7 +197,7 @@ app.on('ready',  async () => {
                 info: (message) => console.info(`[Updater] ${message}`),
                 warn: (message) => console.warn(`[Updater] ${message}`),
                 error: (message) => console.error(`[Updater] ${message}`),
-                debug: (message) => console.debug(`[Updater] ${message}`),
+                log: (message) => console.debug(`[Updater] ${message}`),
             }
         });
     } else if (app.isPackaged) {
