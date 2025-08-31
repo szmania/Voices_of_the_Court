@@ -33,7 +33,7 @@ module.exports = {
           owner: 'szmania',
           name: 'Voices_of_the_Court'
         },
-        prerelease: true
+        prerelease: false
       }
     }
   ]
