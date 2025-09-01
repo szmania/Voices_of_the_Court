@@ -226,7 +226,7 @@ export function removeTooltip(str: string): string {
                       .replace(/\^U[^\n]*/g, '')              // Remove ^U prefixes and tooltip data
                       .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '') // Existing patterns
                       .replace(/^\s*([A-Z][;\s]\s*)+/, '')
-                      .replace(/[\s:!']+/$/, '') // Modified to include single quote
+                      .replace(/[\s:!']+$/, '')      // Modified to include single quote
                       .trim();
 
     const lSemicolonIndex = cleanedStr.indexOf(' L; ');
