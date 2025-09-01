@@ -258,7 +258,9 @@ export class Conversation{
         }
 
         if (isSelfTalk) {
-            responseMessage.content = `*${responseMessage.content}*`;
+            // First, remove any leading or trailing asterisks from the raw response to prevent doubling them up.
+            let cleanedContent = responseMessage.content.replace(/^\*+|\*+$/g, '').trim();
+            responseMessage.content = `*${cleanedContent}*`;
         }
         this.pushMessage(responseMessage);
 
