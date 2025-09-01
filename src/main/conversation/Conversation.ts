@@ -106,6 +106,7 @@ export class Conversation{
         console.log(`Generating AI message for character: ${character.fullName}`);
         
         const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
+        const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
         let responseMessage: Message;
 
@@ -125,7 +126,7 @@ export class Conversation{
 
         let streamMessage = {
             role: "assistant",
-            name: character.fullName,//this.gameData.aiName,
+            name: characterNameForResponse,//this.gameData.aiName,
             content: ""
         }
         let cw = this.chatWindow;
@@ -144,7 +145,7 @@ export class Conversation{
             console.log('Using chat API for AI message completion.');
             responseMessage = {
                 role: "assistant",
-                name: character.fullName,//this.gameData.aiName,
+                name: characterNameForResponse,//this.gameData.aiName,
                 content: await this.textGenApiConnection.complete(buildChatPrompt(this, character), this.config.stream, {
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
@@ -158,7 +159,7 @@ export class Conversation{
             console.log('Using completion API for AI message completion.');
             responseMessage = {
                 role: "assistant",
-                name: character.fullName,
+                name: characterNameForResponse,
                 content: await this.textGenApiConnection.complete(convertChatToText(buildChatPrompt(this, character), this.config, character.fullName), this.config.stream, {
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
