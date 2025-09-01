@@ -50,6 +50,8 @@ export class Config{
     memoriesPrompt: string;
     suffixPrompt: string;
     enableSuffixPrompt: boolean;
+    selfTalkPrompt: string;
+    selectedSelfTalkExMsgScript: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
@@ -92,6 +94,8 @@ export class Config{
         this.memoriesPrompt = obj.memoriesPrompt;
         this.suffixPrompt =  obj.suffixPrompt;
         this.enableSuffixPrompt =  obj.enableSuffixPrompt;
+        this.selfTalkPrompt = obj.selfTalkPrompt !== undefined ? obj.selfTalkPrompt : 'default.js';
+        this.selectedSelfTalkExMsgScript = obj.selectedSelfTalkExMsgScript !== undefined ? obj.selectedSelfTalkExMsgScript : 'default.js';
         
     }
 
@@ -113,5 +117,4 @@ export class Config{
     }
 
 }
-
 
