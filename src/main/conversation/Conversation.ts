@@ -80,9 +80,21 @@ export class Conversation{
 
     async generateAIsMessages() {
         console.log('Starting generation of AI messages for all characters.');
+
+        // Special case for self-talk (player character is the AI character)
+        if (this.gameData.playerID === this.gameData.aiID) {
+            console.log('Self-talk session detected. Generating internal monologue for player character.');
+            const playerCharacter = this.gameData.getPlayer();
+            await this.generateNewAIMessage(playerCharacter);
+            this.chatWindow.window.webContents.send('actions-receive', []); // No actions in self-talk
+            console.log('Finished generating self-talk message.');
+            return; // Exit after self-talk message
+        }
+
+        // Standard multi-character conversation logic
         const shuffled_characters = Array.from(this.gameData.characters.values()).sort(() => Math.random() - 0.5);
         for (const character of shuffled_characters) {
-            if (character.id !== this.gameData.playerID) {
+            if (character.id !== this.gameData.playerID) { // Only generate for non-player characters
                 await this.generateNewAIMessage(character);
             }
         }
@@ -238,25 +250,28 @@ export class Conversation{
             console.log('Sent AI message to chat window (non-streaming).');
         }
         
-        if (character.id === this.gameData.aiID){
-            let collectedActions: ActionResponse[];
-            if(this.config.actionsEnableAll){
-                try{
-                    console.log('Actions are enabled. Checking for actions...');
-                    collectedActions = await checkActions(this);
+        // Only check for actions if it's a conversation between two different characters
+        if (this.gameData.playerID !== this.gameData.aiID) {
+            if (character.id === this.gameData.aiID){
+                let collectedActions: ActionResponse[];
+                if(this.config.actionsEnableAll){
+                    try{
+                        console.log('Actions are enabled. Checking for actions...');
+                        collectedActions = await checkActions(this);
+                    }
+                    catch(e){
+                        console.error(`Error during action check: ${e}`);
+                        collectedActions = [];
+                    }
                 }
-                catch(e){
-                    console.error(`Error during action check: ${e}`);
+                else{
+                    console.log('Actions are disabled in config.');
                     collectedActions = [];
                 }
-            }
-            else{
-                console.log('Actions are disabled in config.');
-                collectedActions = [];
-            }
     
-            this.chatWindow.window.webContents.send('actions-receive', collectedActions);    
-            console.log(`Sent ${collectedActions.length} actions to chat window.`);
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions);    
+                console.log(`Sent ${collectedActions.length} actions to chat window.`);
+            }
         }
     }
 
