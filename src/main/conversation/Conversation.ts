@@ -221,12 +221,19 @@ export class Conversation{
         }
 
         // Final cleanup: After stripping the preamble, remove the character name prefix from the start of the actual response.
-        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`];
-        for (const prefix of aiPrefixes) {
-            if (content.startsWith(prefix)) {
-                content = content.substring(prefix.length).trim();
-                console.log(`Removed AI prefix "${prefix}" from response.`);
-                break;
+        const characterNames = [character.fullName, character.shortName].filter(Boolean);
+        if (characterNames.length > 0) {
+            // Escape names for regex and join with |
+            const namePattern = characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+            
+            // Regex to find name at the start, followed by any characters up to a comma or colon.
+            // This is to strip prefixes like "Name:", "Name,", or "Name, doing something:".
+            const prefixRegex = new RegExp(`^\\s*\\b(${namePattern})\\b.*?[,:]`, 'i');
+            
+            const match = content.match(prefixRegex);
+            if (match) {
+                console.log(`Found and stripping prefix: "${match[0]}"`);
+                content = content.substring(match[0].length).trim();
             }
         }
 
