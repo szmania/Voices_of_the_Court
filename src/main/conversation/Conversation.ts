@@ -105,6 +105,8 @@ export class Conversation{
     async generateNewAIMessage(character: Character){
         console.log(`Generating AI message for character: ${character.fullName}`);
         
+        const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
+
         let responseMessage: Message;
 
         if(this.config.stream){
@@ -129,7 +131,12 @@ export class Conversation{
         let cw = this.chatWindow;
         function streamRelay(msgChunk: MessageChunk): void{
             streamMessage.content += msgChunk.content;
-            cw.window.webContents.send('stream-message', streamMessage)
+            const messageToSend = JSON.parse(JSON.stringify(streamMessage));
+            
+            if (isSelfTalk) {
+                messageToSend.content = `*${messageToSend.content}`;
+            }
+            cw.window.webContents.send('stream-message', messageToSend);
         }
 
 
@@ -243,9 +250,18 @@ export class Conversation{
             return;
         }
 
+        if (isSelfTalk) {
+            responseMessage.content = `*${responseMessage.content}*`;
+        }
         this.pushMessage(responseMessage);
 
-        if(!this.config.stream){
+        if (this.config.stream) {
+            // The stream is over, send the final, cleaned, and formatted message
+            // to replace the streaming content in the UI.
+            streamMessage.content = responseMessage.content;
+            this.chatWindow.window.webContents.send('stream-message', streamMessage);
+            console.log('Sent final stream message to chat window.');
+        } else {
             this.chatWindow.window.webContents.send('message-receive', responseMessage, this.config.actionsEnableAll);
             console.log('Sent AI message to chat window (non-streaming).');
         }
