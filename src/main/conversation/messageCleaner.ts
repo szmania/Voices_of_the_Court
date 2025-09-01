@@ -1,4 +1,5 @@
 export function cleanMessageContent(messageText: string){
+    console.log(`Cleaning message. Before: "${messageText}"`);
     // remove bracketed text like [laughs] or [action]
     messageText = messageText.replace(/\[.*?\]/g, '');
 
@@ -7,5 +8,7 @@ export function cleanMessageContent(messageText: string){
 
     //TODO: remove 'as an XY,'
 
-    return messageText.trim();
+    const cleanedText = messageText.trim();
+    console.log(`Cleaning message. After: "${cleanedText}"`);
+    return cleanedText;
 }

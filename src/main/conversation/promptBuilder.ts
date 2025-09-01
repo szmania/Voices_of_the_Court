@@ -6,6 +6,7 @@ import { Character } from "../../shared/gameData/Character";
 import { Config } from "../../shared/Config";
 import path from 'path';
 import { app } from 'electron';
+import fs from 'fs';
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
     let output: string = "";
@@ -43,24 +44,46 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
+    console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
     chatPrompt.push({
         role: "system",
         content: parseVariables(conv.config.mainPrompt, conv.gameData)
     })
+    console.log('Added main prompt.');
 
     chatPrompt.push({
         role: "system",
         content: "[example messages]"
     })
-    
-    // chatPrompt = chatPrompt.concat(conv.exampleMessages);
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", "mccAliChat.js");
-    let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
-    chatPrompt = chatPrompt.concat(exampleMessages);
+    const exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
+    const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
+    const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "custom", exampleMessagesScriptFileName);
+
+    let exampleMessagesPath;
+    if (fs.existsSync(standardPath)) {
+        exampleMessagesPath = standardPath;
+    } else if (fs.existsSync(customPath)) {
+        exampleMessagesPath = customPath;
+    } else {
+        console.error(`Example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
+        exampleMessagesPath = null;
+    }
+
+    if (exampleMessagesPath) {
+        try {
+            delete require.cache[require.resolve(exampleMessagesPath)];
+            let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
+            chatPrompt = chatPrompt.concat(exampleMessages);
+            console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
+        } catch (err) {
+            console.error(`Error loading example message script '${exampleMessagesScriptFileName}': ${err}`);
+            conv.chatWindow.window.webContents.send('error-message', `Error in example message script '${exampleMessagesScriptFileName}'.`);
+        }
+    }
     
 
     chatPrompt.push({
@@ -76,6 +99,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     };
 
     insertMessageAtDepth(messages, descMessage, conv.config.descInsertDepth);
+    console.log(`Inserted description at depth: ${conv.config.descInsertDepth}.`);
 
 
     const memoryMessage: Message = {
@@ -86,6 +110,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
+        console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
     // too early right now
@@ -96,6 +121,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     // if(secretMessage.content){
     //     insertMessageAtDepth(messages, secretMessage, conv.config.memoriesInsertDepth);
+    //     console.log(`Inserted secrets at depth: ${conv.config.memoriesInsertDepth}.`);
     // }
 
 
@@ -105,7 +131,10 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         conv.summaries.reverse();
 
         for(let summary of conv.summaries){
-            summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
+            // 只添加日期不晚于当前游戏日期的总结.Only add summaries with a date no later than the current game date.
+            if(new Date(summary.date) <= new Date(conv.gameData.date)){
+                summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
+            }
         }
 
         conv.summaries.reverse();
@@ -117,6 +146,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
         
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
+        console.log(`Added previous conversation summaries at depth: ${conv.config.summariesInsertDepth}.`);
     }
     
 
@@ -129,6 +159,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         }
 
         messages.unshift(currentSummaryMessage);
+        console.log('Added current conversation summary.');
     }
 
     chatPrompt = chatPrompt.concat(messages);
@@ -138,10 +169,10 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
             role: "system",
             content: conv.config.suffixPrompt
         })
+        console.log('Added suffix prompt.');
     }
 
-    
-
+    console.log(`Final chat prompt message count: ${chatPrompt.length}`);
     return chatPrompt;
 }
 
@@ -303,10 +334,10 @@ function createMemoryString(conv: Conversation): string{
     // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
 
     allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
-    
+
     allMemories.reverse();
 
-    
+
 
     let output ="";
     if(allMemories.length>0){

@@ -1,10 +1,12 @@
 import fs from 'fs';
+import path from 'path';
 
 export class RunFileManager{
     path: string;
 
     constructor(userFolderPath: string){
-        this.path = userFolderPath+"\\run\\votc.txt";
+        this.path = path.join(userFolderPath, "run", "votc.txt");
+        console.log(`RunFileManager initialized. File path: ${this.path}`);
 
         this.createRunFolder(userFolderPath);
     }
@@ -12,11 +14,12 @@ export class RunFileManager{
     write(text: string): void{
         fs.writeFileSync(this.path, text);
     
-        console.log("wrote to run file: "+text)
+        console.log("Wrote to run file: "+text)
     }
 
     append(text: string): void{
         fs.appendFileSync(this.path, text)
+        console.log("Appended to run file: "+text)
     }
     
     clear(): void{
@@ -25,13 +28,14 @@ export class RunFileManager{
     }
     
     async createRunFolder(userFolderPath: string){
-
-        if(userFolderPath && !fs.existsSync(userFolderPath+'\\run')){
+        const runFolderPath = path.join(userFolderPath, "run");
+        if(userFolderPath && !fs.existsSync(runFolderPath)){
             try{
-                fs.mkdirSync(userFolderPath+"\\run");
+                fs.mkdirSync(runFolderPath);
+                console.log(`Created run folder at: ${runFolderPath}`);
             }
             catch(err){
-                console.log("RunFileManager error: "+err)
+                console.error("RunFileManager error creating run folder: "+err)
             }
             
         }

@@ -18,6 +18,7 @@ export class ClipboardListener extends EventEmitter{
         }
 
         this.isListening = false;
+        console.log('ClipboardListener initialized.');
     }
 
     start(){
@@ -26,6 +27,7 @@ export class ClipboardListener extends EventEmitter{
         }
         this.interval = setInterval(this.readClipboard.bind(this), 100);
         this.isListening = true;
+        console.log('ClipboardListener started.');
     }
 
     stop(){
@@ -35,6 +37,7 @@ export class ClipboardListener extends EventEmitter{
 
         clearInterval(this.interval);
         this.isListening = false;
+        console.log('ClipboardListener stopped.');
     }
 
     readClipboard(){
@@ -43,6 +46,7 @@ export class ClipboardListener extends EventEmitter{
 
         if(currentClipboard.startsWith('VOTC:')){
             let command = currentClipboard.split(':')[1];
+            console.log(`VOTC command detected: ${command}`);
             switch (command){
                 case "IN":
                     this.emit('VOTC:IN');

@@ -1,7 +1,6 @@
 import { GameData, Memory, Trait, OpinionModifier, Secret} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
-const readline = require('readline');
 
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
     console.log(`Starting to parse log file at: ${debugLogPath}`);
@@ -11,22 +10,28 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     }
 
     let gameData: GameData | undefined = undefined;
-    let foundVotcIn = false;
 
     //some data are passed through multiple lines
     let multiLineTempStorage: any[] = [];
     let isWaitingForMultiLine: boolean = false;
     let multiLineType: string = ""; //relation or opinionModifier
 
-    const fileStream = fs.createReadStream(debugLogPath);
+    const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
+    const lastInitIndex = fileContent.lastIndexOf('VOTC:IN/;/init');
 
-    const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    });
-    console.log(`Starting to parse log file: ${debugLogPath}`);
+    if (lastInitIndex === -1) {
+        console.debug("Finished parsing log file, but 'VOTC:IN/;/init' was not found. No game data will be loaded.");
+        return undefined;
+    }
 
-    for await (const line of rl) {
+    // Find the start of the line containing the last VOTC:IN to get the whole block
+    const lastBlockStartIndex = fileContent.lastIndexOf('\n', lastInitIndex) + 1;
+    const relevantLogBlock = fileContent.substring(lastBlockStartIndex);
+    const lines = relevantLogBlock.split(/\r?\n/);
+
+    console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);
+
+    for (const line of lines) {
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
@@ -61,10 +66,6 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
         }
 
         if(line.includes("VOTC:IN")){
-            if (!foundVotcIn) {
-                console.log(`Found VOTC:IN line: ${line}`);
-                foundVotcIn = true;
-            }
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
             let data = line.split("/;/")
 
@@ -105,8 +106,14 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
                     console.log(`Parsed secret for character ID ${rootID}: ${secret.name}`);
                 break;
                 case "trait":
+                    if (!gameData) continue;
+                    const characterWithTrait = gameData.characters.get(rootID);
+                    if (!characterWithTrait) {
+                        console.warn(`Character with ID ${rootID} not found when trying to add trait. Skipping.`);
+                        continue;
+                    }
                     let trait = parseTrait(data);
-                    gameData!.characters.get(rootID)!.traits.push(trait);
+                    characterWithTrait.traits.push(trait);
                     console.log(`Parsed trait for character ID ${rootID}: ${trait.name}`);
                 break;
                 case "opinions":
@@ -164,11 +171,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
             }
         }
     }
-    if (!foundVotcIn) {
-        console.debug("Finished parsing log file, but 'VOTC:IN' was not found. No game data will be loaded.");
-    } else {
-        console.debug("Finished parsing log file. Game data loaded.");
-    }
+    console.debug("Finished parsing log file. Game data loaded from last block.");
 
     function parseMemory(data: string[]): Memory{
         return {
@@ -215,16 +218,21 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     return gameData!;
 }
 
+export function removeTooltip(str: string): string {
+    if (!str) return "";
 
-export function removeTooltip(str: string): string{
-    let newWords: string[] = []
-    str.split(" ").forEach( (word) =>{
-        if(word.includes('')){
-            newWords.push(word.split('')[0])
-        }else{
-            newWords.push(word)
-        }
-    })
+    // Remove unwanted ASCII control characters (including ^U sequences and character 0x15)
+    let cleanedStr = str.replace(/[\x15]/g, '')                // Remove ASCII 21 (NAK)
+                      .replace(/\^U[^\n]*/g, '')              // Remove ^U prefixes and tooltip data
+                      .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '') // Existing patterns
+                      .replace(/^\s*([A-Z][;\s]\s*)+/, '')
+                      .replace(/[\s:!]+$/, '')
+                      .trim();
 
-    return newWords.join(' ').replace(/ +(?= )/g,'').trim();
+    const lSemicolonIndex = cleanedStr.indexOf(' L; ');
+    if (lSemicolonIndex !== -1) {
+        cleanedStr = cleanedStr.substring(lSemicolonIndex + 4).trim();
+    }
+
+    return cleanedStr;
 }

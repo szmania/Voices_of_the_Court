@@ -26,6 +26,8 @@
             <h3>Update</h3>
             <span id="app-version">Current app version: </span><br>
             <button id="update-button" type="button">Check for updates..</button>
+            <br><br>
+            <config-checkbox confID="checkForUpdatesOnStartup" label="Check for updates on startup"></config-checkbox>
 
             <hr>
 
@@ -71,6 +73,7 @@
     
    
     <script>require("../../dist/configWindow/components/openFolderButton.js")</script>
+    <script>require("../../dist/configWindow/components/ConfigCheckbox.js")</script>
     <script>require("../../dist/configWindow/systemRenderer.js")</script>
     
   </body>
