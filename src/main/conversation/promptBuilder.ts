@@ -158,7 +158,12 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
 
     if(conv.summaries.length > 0){
-        let summaryString = "Here are the date and summary of previous conversations between " + conv.gameData.aiName + " and " + conv.gameData.playerName + ":\n"
+        let summaryString: string;
+        if (isSelfTalk) {
+            summaryString = "Here are the date and summary of previous internal monologues for " + conv.gameData.playerName + ":\n";
+        } else {
+            summaryString = "Here are the date and summary of previous conversations between " + conv.gameData.aiName + " and " + conv.gameData.playerName + ":\n";
+        }
 
         conv.summaries.reverse();
 
@@ -211,17 +216,19 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation): Message[]{
-    
     let output: Message[] = [];
 
     output.push({
         role: "system",
         content: convertMessagesToString(conv.messages, "", "")
-    })
+    });
 
-    output = output.concat({
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+    const prompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
+
+    output.push({
         role: "system",
-        content: parseVariables(conv.config.summarizePrompt, conv.gameData)
+        content: parseVariables(prompt, conv.gameData)
     });
 
     return output;
@@ -229,24 +236,30 @@ export function buildSummarizeChatPrompt(conv: Conversation): Message[]{
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
     let prompt: Message[] = [];
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if(conv.currentSummary){
+        const summaryIntro = isSelfTalk 
+            ? "Summary of this internal monologue that happened before the messages:" 
+            : "Summary of this conversation that happened before the messages:";
+        
         prompt.push({
             role: "system",
-            content: "Summary of this conversation that happened before the messages:"+conv.currentSummary
-        })
+            content: summaryIntro + conv.currentSummary
+        });
     }
     
-
     prompt.push({
         role: "system",
         content: convertMessagesToString(messagesToSummarize, "", "")
-    })
+    });
+
+    const summarizePrompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
 
     prompt.push({
         role: "system",
-        content: parseVariables(conv.config.summarizePrompt, conv.gameData)
-    })
+        content: parseVariables(summarizePrompt, conv.gameData)
+    });
 
     return prompt;
 }

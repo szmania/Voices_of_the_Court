@@ -52,6 +52,7 @@ export class Config{
     enableSuffixPrompt: boolean;
     selfTalkPrompt: string;
     selectedSelfTalkExMsgScript: string;
+    selfTalkSummarizePrompt: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
@@ -96,6 +97,7 @@ export class Config{
         this.enableSuffixPrompt =  obj.enableSuffixPrompt;
         this.selfTalkPrompt = obj.selfTalkPrompt !== undefined ? obj.selfTalkPrompt : 'default.js';
         this.selectedSelfTalkExMsgScript = obj.selectedSelfTalkExMsgScript !== undefined ? obj.selectedSelfTalkExMsgScript : 'default.js';
+        this.selfTalkSummarizePrompt = obj.selfTalkSummarizePrompt !== undefined ? obj.selfTalkSummarizePrompt : 'Summarize the following internal monologue from {playerName}\'s perspective, focusing on key thoughts, feelings, and plans.';
         
     }
 
