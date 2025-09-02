@@ -221,18 +221,22 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
 export function removeTooltip(str: string): string {
     if (!str) return "";
 
-    // Remove unwanted ASCII control characters (including ^U sequences and character 0x15)
-    let cleanedStr = str.replace(/[\x15]/g, '')                // Remove ASCII 21 (NAK)
-                      .replace(/\^U[^\n]*/g, '')              // Remove ^U prefixes and tooltip data
-                      .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '') // Existing patterns
-                      .replace(/^\s*([A-Z][;\s]\s*)+/, '')
-                      .replace(/[\s:!]+$/, '')
-                      .trim();
+    // Remove unwanted ASCII control characters and tooltip/onclick prefixes
+    let cleanedStr = str.replace(/[\x15]/g, '')
+                      .replace(/\^U[^\n]*/g, '')
+                      .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '')
+                      .replace(/^\s*([A-Z][;\s]\s*)+/, '');
 
+    // If a tooltip description marker ' L; ' exists, take the text after it
     const lSemicolonIndex = cleanedStr.indexOf(' L; ');
     if (lSemicolonIndex !== -1) {
-        cleanedStr = cleanedStr.substring(lSemicolonIndex + 4).trim();
+        cleanedStr = cleanedStr.substring(lSemicolonIndex + 4);
     }
+
+    // Final cleanup on the resulting string
+    cleanedStr = cleanedStr.replace(/( !)+/g, '')      // Remove sequences of " !" e.g. from "Roman ! ! !"
+                         .replace(/[\s:!']+$/, '')   // Clean any remaining trailing punctuation
+                         .trim();
 
     return cleanedStr;
 }

@@ -68,4 +68,8 @@ export class GameData {
     getAi(): Character{
         return this.characters.get(this.aiID)!;
     }
+
+    getCharacter(characterID: number): Character | undefined {
+        return this.characters.get(characterID);
+    }
 }

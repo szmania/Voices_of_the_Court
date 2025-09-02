@@ -80,9 +80,21 @@ export class Conversation{
 
     async generateAIsMessages() {
         console.log('Starting generation of AI messages for all characters.');
+
+        // Special case for self-talk (player character is the AI character)
+        if (this.gameData.playerID === this.gameData.aiID) {
+            console.log('Self-talk session detected. Generating internal monologue for player character.');
+            const playerCharacter = this.gameData.getPlayer();
+            await this.generateNewAIMessage(playerCharacter);
+            this.chatWindow.window.webContents.send('actions-receive', []); // No actions in self-talk
+            console.log('Finished generating self-talk message.');
+            return; // Exit after self-talk message
+        }
+
+        // Standard multi-character conversation logic
         const shuffled_characters = Array.from(this.gameData.characters.values()).sort(() => Math.random() - 0.5);
         for (const character of shuffled_characters) {
-            if (character.id !== this.gameData.playerID) {
+            if (character.id !== this.gameData.playerID) { // Only generate for non-player characters
                 await this.generateNewAIMessage(character);
             }
         }
@@ -93,6 +105,9 @@ export class Conversation{
     async generateNewAIMessage(character: Character){
         console.log(`Generating AI message for character: ${character.fullName}`);
         
+        const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
+        const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
+
         let responseMessage: Message;
 
         if(this.config.stream){
@@ -111,13 +126,18 @@ export class Conversation{
 
         let streamMessage = {
             role: "assistant",
-            name: character.fullName,//this.gameData.aiName,
+            name: characterNameForResponse,//this.gameData.aiName,
             content: ""
         }
         let cw = this.chatWindow;
         function streamRelay(msgChunk: MessageChunk): void{
             streamMessage.content += msgChunk.content;
-            cw.window.webContents.send('stream-message', streamMessage)
+            const messageToSend = JSON.parse(JSON.stringify(streamMessage));
+            
+            if (isSelfTalk) {
+                messageToSend.content = `*${messageToSend.content}`;
+            }
+            cw.window.webContents.send('stream-message', messageToSend);
         }
 
 
@@ -125,7 +145,7 @@ export class Conversation{
             console.log('Using chat API for AI message completion.');
             responseMessage = {
                 role: "assistant",
-                name: character.fullName,//this.gameData.aiName,
+                name: characterNameForResponse,//this.gameData.aiName,
                 content: await this.textGenApiConnection.complete(buildChatPrompt(this, character), this.config.stream, {
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
@@ -139,7 +159,7 @@ export class Conversation{
             console.log('Using completion API for AI message completion.');
             responseMessage = {
                 role: "assistant",
-                name: character.fullName,
+                name: characterNameForResponse,
                 content: await this.textGenApiConnection.complete(convertChatToText(buildChatPrompt(this, character), this.config, character.fullName), this.config.stream, {
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
@@ -202,12 +222,19 @@ export class Conversation{
         }
 
         // Final cleanup: After stripping the preamble, remove the character name prefix from the start of the actual response.
-        const aiPrefixes = [`${character.fullName}:`, `${character.shortName}:`];
-        for (const prefix of aiPrefixes) {
-            if (content.startsWith(prefix)) {
-                content = content.substring(prefix.length).trim();
-                console.log(`Removed AI prefix "${prefix}" from response.`);
-                break;
+        const characterNames = [character.fullName, character.shortName].filter(Boolean);
+        if (characterNames.length > 0) {
+            // Escape names for regex and join with |
+            const namePattern = characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+            
+            // Regex to find name at the start, followed by any characters up to a comma or colon.
+            // This is to strip prefixes like "Name:", "Name,", or "Name, doing something:".
+            const prefixRegex = new RegExp(`^\\s*\\b(${namePattern})\\b.*?[,:]`, 'i');
+            
+            const match = content.match(prefixRegex);
+            if (match) {
+                console.log(`Found and stripping prefix: "${match[0]}"`);
+                content = content.substring(match[0].length).trim();
             }
         }
 
@@ -231,32 +258,46 @@ export class Conversation{
             return;
         }
 
+        if (isSelfTalk) {
+            // First, remove any leading or trailing asterisks from the raw response to prevent doubling them up.
+            let cleanedContent = responseMessage.content.replace(/^\*+|\*+$/g, '').trim();
+            responseMessage.content = `*${cleanedContent}*`;
+        }
         this.pushMessage(responseMessage);
 
-        if(!this.config.stream){
+        if (this.config.stream) {
+            // The stream is over, send the final, cleaned, and formatted message
+            // to replace the streaming content in the UI.
+            streamMessage.content = responseMessage.content;
+            this.chatWindow.window.webContents.send('stream-message', streamMessage);
+            console.log('Sent final stream message to chat window.');
+        } else {
             this.chatWindow.window.webContents.send('message-receive', responseMessage, this.config.actionsEnableAll);
             console.log('Sent AI message to chat window (non-streaming).');
         }
         
-        if (character.id === this.gameData.aiID){
-            let collectedActions: ActionResponse[];
-            if(this.config.actionsEnableAll){
-                try{
-                    console.log('Actions are enabled. Checking for actions...');
-                    collectedActions = await checkActions(this);
+        // Only check for actions if it's a conversation between two different characters
+        if (this.gameData.playerID !== this.gameData.aiID) {
+            if (character.id === this.gameData.aiID){
+                let collectedActions: ActionResponse[];
+                if(this.config.actionsEnableAll){
+                    try{
+                        console.log('Actions are enabled. Checking for actions...');
+                        collectedActions = await checkActions(this);
+                    }
+                    catch(e){
+                        console.error(`Error during action check: ${e}`);
+                        collectedActions = [];
+                    }
                 }
-                catch(e){
-                    console.error(`Error during action check: ${e}`);
+                else{
+                    console.log('Actions are disabled in config.');
                     collectedActions = [];
                 }
-            }
-            else{
-                console.log('Actions are disabled in config.');
-                collectedActions = [];
-            }
     
-            this.chatWindow.window.webContents.send('actions-receive', collectedActions);    
-            console.log(`Sent ${collectedActions.length} actions to chat window.`);
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions);    
+                console.log(`Sent ${collectedActions.length} actions to chat window.`);
+            }
         }
     }
 

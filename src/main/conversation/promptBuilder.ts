@@ -47,33 +47,63 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
-    chatPrompt.push({
-        role: "system",
-        content: parseVariables(conv.config.mainPrompt, conv.gameData)
-    })
-    console.log('Added main prompt.');
+    const userDataPath = path.join(app.getPath('userData'), 'votc_data');
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+
+    if (isSelfTalk) {
+        const selfTalkPromptFileName = conv.config.selfTalkPrompt;
+        const selfTalkPromptPath = path.join(userDataPath, 'scripts', 'prompts', 'self-talk', selfTalkPromptFileName);
+        try {
+            delete require.cache[require.resolve(selfTalkPromptPath)];
+            const getSelfTalkPrompt = require(selfTalkPromptPath);
+            chatPrompt.push({
+                role: "system",
+                content: parseVariables(getSelfTalkPrompt(conv.gameData), conv.gameData)
+            });
+            console.log(`Added self-talk main prompt from script: ${selfTalkPromptFileName}.`);
+        } catch (err) {
+            console.error(`Error loading self-talk main prompt script '${selfTalkPromptFileName}': ${err}. Falling back to standard main prompt.`);
+            conv.chatWindow.window.webContents.send('error-message', `Error in self-talk main prompt script '${selfTalkPromptFileName}'. Falling back.`);
+            chatPrompt.push({
+                role: "system",
+                content: parseVariables(conv.config.mainPrompt, conv.gameData)
+            });
+        }
+    } else {
+        chatPrompt.push({
+            role: "system",
+            content: parseVariables(conv.config.mainPrompt, conv.gameData)
+        });
+        console.log('Added standard main prompt.');
+    }
 
     chatPrompt.push({
         role: "system",
         content: "[example messages]"
     })
 
-    const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
-    const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
-    const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "custom", exampleMessagesScriptFileName);
+    let exampleMessagesScriptFileName: string;
+    let exampleMessagesPath: string | null;
 
-    let exampleMessagesPath;
-    if (fs.existsSync(standardPath)) {
-        exampleMessagesPath = standardPath;
-    } else if (fs.existsSync(customPath)) {
-        exampleMessagesPath = customPath;
+    if (isSelfTalk) {
+        exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
+        exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
     } else {
-        console.error(`Example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
-        exampleMessagesPath = null;
+        exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
+        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "standard", exampleMessagesScriptFileName);
+        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', "custom", exampleMessagesScriptFileName);
+
+        if (fs.existsSync(standardPath)) {
+            exampleMessagesPath = standardPath;
+        } else if (fs.existsSync(customPath)) {
+            exampleMessagesPath = customPath;
+        } else {
+            console.error(`Example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
+            exampleMessagesPath = null;
+        }
     }
 
-    if (exampleMessagesPath) {
+    if (exampleMessagesPath && fs.existsSync(exampleMessagesPath)) {
         try {
             delete require.cache[require.resolve(exampleMessagesPath)];
             let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
@@ -83,6 +113,8 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
             console.error(`Error loading example message script '${exampleMessagesScriptFileName}': ${err}`);
             conv.chatWindow.window.webContents.send('error-message', `Error in example message script '${exampleMessagesScriptFileName}'.`);
         }
+    } else if (exampleMessagesPath) { // If path was set but file doesn't exist
+        console.error(`Example message script file not found at expected path: ${exampleMessagesPath}. Continuing without example messages.`);
     }
     
 
@@ -126,7 +158,12 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
 
     if(conv.summaries.length > 0){
-        let summaryString = "Here are the date and summary of previous conversations between " + conv.gameData.aiName + " and " + conv.gameData.playerName + ":\n"
+        let summaryString: string;
+        if (isSelfTalk) {
+            summaryString = "Here are the date and summary of previous internal monologues for " + conv.gameData.playerName + ":\n";
+        } else {
+            summaryString = "Here are the date and summary of previous conversations between " + conv.gameData.aiName + " and " + conv.gameData.playerName + ":\n";
+        }
 
         conv.summaries.reverse();
 
@@ -179,17 +216,19 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation): Message[]{
-    
     let output: Message[] = [];
 
     output.push({
         role: "system",
         content: convertMessagesToString(conv.messages, "", "")
-    })
+    });
 
-    output = output.concat({
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+    const prompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
+
+    output.push({
         role: "system",
-        content: parseVariables(conv.config.summarizePrompt, conv.gameData)
+        content: parseVariables(prompt, conv.gameData)
     });
 
     return output;
@@ -197,24 +236,30 @@ export function buildSummarizeChatPrompt(conv: Conversation): Message[]{
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
     let prompt: Message[] = [];
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if(conv.currentSummary){
+        const summaryIntro = isSelfTalk 
+            ? "Summary of this internal monologue that happened before the messages:" 
+            : "Summary of this conversation that happened before the messages:";
+        
         prompt.push({
             role: "system",
-            content: "Summary of this conversation that happened before the messages:"+conv.currentSummary
-        })
+            content: summaryIntro + conv.currentSummary
+        });
     }
     
-
     prompt.push({
         role: "system",
         content: convertMessagesToString(messagesToSummarize, "", "")
-    })
+    });
+
+    const summarizePrompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
 
     prompt.push({
         role: "system",
-        content: parseVariables(conv.config.summarizePrompt, conv.gameData)
-    })
+        content: parseVariables(summarizePrompt, conv.gameData)
+    });
 
     return prompt;
 }
