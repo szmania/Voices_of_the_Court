@@ -156,25 +156,25 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     //     console.log(`Inserted secrets at depth: ${conv.config.memoriesInsertDepth}.`);
     // }
 
+    const characterSummaries = conv.summaries.get(character.id) || [];
 
-    if(conv.summaries.length > 0){
+    if(characterSummaries.length > 0){
         let summaryString: string;
         if (isSelfTalk) {
             summaryString = "Here are the date and summary of previous internal monologues for " + conv.gameData.playerName + ":\n";
         } else {
-            summaryString = "Here are the date and summary of previous conversations between " + conv.gameData.aiName + " and " + conv.gameData.playerName + ":\n";
+            summaryString = "Here are the date and summary of previous conversations between " + character.fullName + " and " + conv.gameData.playerName + ":\n";
         }
 
-        conv.summaries.reverse();
+        const summariesToProcess = [...characterSummaries];
+        summariesToProcess.reverse();
 
-        for(let summary of conv.summaries){
+        for(let summary of summariesToProcess){
             // 只添加日期不晚于当前游戏日期的总结.Only add summaries with a date no later than the current game date.
             if(new Date(summary.date) <= new Date(conv.gameData.date)){
                 summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
             }
         }
-
-        conv.summaries.reverse();
 
         let summariesMessage: Message = {
             role: "system",
@@ -183,7 +183,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
         
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
-        console.log(`Added previous conversation summaries at depth: ${conv.config.summariesInsertDepth}.`);
+        console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
     
 

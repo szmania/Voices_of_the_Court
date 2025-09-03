@@ -28,7 +28,7 @@ export class Conversation{
     actionsApiConnection: ApiConnection;
     description: string;
     actions: Action[];
-    summaries: Summary[];
+    summaries: Map<number, Summary[]>;
     currentSummary: string;
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
@@ -39,27 +39,38 @@ export class Conversation{
         this.messages = [];
         this.currentSummary = "";
 
-        this.summaries = [];
-        if (!fs.existsSync(path.join(userDataPath, 'conversation_summaries'))){
-            fs.mkdirSync(path.join(userDataPath, 'conversation_summaries'));
+        this.summaries = new Map<number, Summary[]>();
+        const summariesBasePath = path.join(userDataPath, 'conversation_summaries');
+        if (!fs.existsSync(summariesBasePath)){
+            fs.mkdirSync(summariesBasePath);
             console.log('Created conversation_summaries directory.');
         }
 
-        if (!fs.existsSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString()))){
-            fs.mkdirSync(path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString()));
+        const playerSummaryPath = path.join(summariesBasePath, this.gameData.playerID.toString());
+        if (!fs.existsSync(playerSummaryPath)){
+            fs.mkdirSync(playerSummaryPath);
             console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
         }
         
-        const summaryFilePath = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), this.gameData.aiID.toString()+".json");
-        if(fs.existsSync(summaryFilePath)){
-            this.summaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
-            console.log(`Loaded prior summaries for AI ID ${this.gameData.aiID} from ${summaryFilePath}. Total summaries: ${this.summaries.length}`);
-        }
-        else{
-            this.summaries = [];
-            fs.writeFileSync(summaryFilePath, JSON.stringify(this.summaries, null, '\t'));
-            console.log(`No prior summaries found for AI ID ${this.gameData.aiID}. Initialized empty summaries array and file at ${summaryFilePath}.`);
-        }
+        // Load summaries for all non-player characters
+        this.gameData.characters.forEach((character) => {
+            if (character.id !== this.gameData.playerID) {
+                const summaryFilePath = path.join(playerSummaryPath, `${character.id.toString()}.json`);
+                let characterSummaries: Summary[] = [];
+                if (fs.existsSync(summaryFilePath)) {
+                    try {
+                        characterSummaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
+                        console.log(`Loaded ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
+                    } catch (e) {
+                        console.error(`Error parsing summary file for AI ID ${character.id}: ${e}`);
+                    }
+                } else {
+                    fs.writeFileSync(summaryFilePath, JSON.stringify([], null, '\t'));
+                    console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
+                }
+                this.summaries.set(character.id, characterSummaries);
+            }
+        });
 
         this.config = config;
 
@@ -382,42 +393,27 @@ export class Conversation{
         }
 
         // Generate a new summary (by calling the summarize utility function)
-        const summary: Summary = {
+        const newSummary: Summary = {
             date: this.gameData.date,  // Current in-game date
             content: await summarize(this)  // Asynchronously generate summary content
         };
-        console.log(`Generated new summary for conversation: ${summary.content.substring(0, 100)}...`);
+        console.log(`Generated new summary for conversation: ${newSummary.content.substring(0, 100)}...`);
 
 
-        this.gameData.characters.forEach((_value, key) => {
-            if (key !== this.gameData.playerID) {
-                this.summaries=[]
+        this.gameData.characters.forEach((character) => {
+            if (character.id !== this.gameData.playerID) {
                 const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-                if (!fs.existsSync(summaryDir)) {
-                    fs.mkdirSync(summaryDir, { recursive: true });
-                    console.log(`Created summary directory for player ID ${this.gameData.playerID}.`);
-                }
-        
-                // Load historical summaries (if they exist)
-                const summaryFile = path.join(summaryDir, `${key.toString()}.json`);
-                if (fs.existsSync(summaryFile)) {
-                    this.summaries = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
-                    console.log(`Loaded existing summaries for AI ID ${key} from ${summaryFile}.`);
-                } else {
-                    fs.writeFileSync(summaryFile, JSON.stringify(this.summaries, null, '\t'));  // Initialize an empty summary file
-                    console.log(`Initialized empty summary file for AI ID ${key} at ${summaryFile}.`);
-                }
+                const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
+
+                // Get existing summaries from the map, or start with an empty array
+                const existingSummaries = this.summaries.get(character.id) || [];
+                
                 // Add the new summary to the beginning of the list
-                this.summaries.unshift(summary);
-                // Persist the summaries, categorized by player ID and AI ID
-                const summaryFile1 = path.join(
-                    userDataPath, 
-                    'conversation_summaries', 
-                    this.gameData.playerID.toString(), 
-                    `${key.toString()}.json`
-                    );
-                fs.writeFileSync(summaryFile1, JSON.stringify(this.summaries, null, '\t'));
-                console.log(`Saved updated summaries for AI ID ${key} to ${summaryFile1}. Total summaries: ${this.summaries.length}`);
+                existingSummaries.unshift(newSummary);
+                
+                // Persist the updated summaries for the specific character
+                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
             }
         });
 
