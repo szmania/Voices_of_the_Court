@@ -42,6 +42,16 @@
                     </div>
 
                     <div class="input-group">
+                        Self-Talk Prompt
+                        <config-textarea confID="selfTalkPrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        Self-Talk Summarize prompt
+                        <config-textarea confID="selfTalkSummarizePrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
                         <config-checkbox id="suffix-prompt-checkbox" confID="enableSuffixPrompt" label="Suffix prompt"></config-checkbox> <tooltip-text side="top">If enabled, suffix prompt is inserted as the last (system) message before sending the API request, it's useful for jailbreaking, or instructing the model on how to format the response message.</tooltip-text>
                         <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea> 
                     </div>
