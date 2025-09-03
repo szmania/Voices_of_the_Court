@@ -5,7 +5,6 @@ import {app} from 'electron';
 
        
 
-
 export interface ApiConnectionConfig{
     connection: Connection;
     parameters: Parameters;
@@ -56,49 +55,7 @@ export class Config{
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
-
-       
-        this.userFolderPath = obj.userFolderPath;
-        this.stream = obj.stream;
-        this.maxTokens = obj.maxTokens;
-        this.maxMemoryTokens = obj.maxMemoryTokens;
-        this.percentOfContextToSummarize = obj.percentOfContextToSummarize;
-
-
-        this.selectedDescScript = obj.selectedDescScript;
-        this.selectedExMsgScript = obj.selectedExMsgScript;
-
-        this.inputSequence = obj.inputSequence;
-        this.outputSequence = obj.outputSequence;
-
-        this.textGenerationApiConnectionConfig = obj.textGenerationApiConnectionConfig;
-        this.summarizationApiConnectionConfig = obj.summarizationApiConnectionConfig;
-        this.actionsApiConnectionConfig = obj.actionsApiConnectionConfig;
-
-        this.summarizationUseTextGenApi = obj.summarizationUseTextGenApi;
-        this.actionsUseTextGenApi = obj.actionsUseTextGenApi;
-
-        this.actionsEnableAll = obj.actionsEnableAll;
-        this.disabledActions = obj.disabledActions;
-
-        this.cleanMessages = obj.cleanMessages;
-        
-        this.debugMode = obj.debugMode;
-        this.checkForUpdatesOnStartup = obj.checkForUpdatesOnStartup !== undefined ? obj.checkForUpdatesOnStartup : true;
-
-        this.summariesInsertDepth = obj.summariesInsertDepth;
-        this.memoriesInsertDepth = obj.memoriesInsertDepth;
-        this.descInsertDepth = obj.descInsertDepth;
-
-        this.mainPrompt =  obj.mainPrompt;
-        this.summarizePrompt =  obj.summarizePrompt;
-        this.memoriesPrompt = obj.memoriesPrompt;
-        this.suffixPrompt =  obj.suffixPrompt;
-        this.enableSuffixPrompt =  obj.enableSuffixPrompt;
-        this.selfTalkPrompt = obj.selfTalkPrompt !== undefined ? obj.selfTalkPrompt : 'default.js';
-        this.selectedSelfTalkExMsgScript = obj.selectedSelfTalkExMsgScript !== undefined ? obj.selectedSelfTalkExMsgScript : 'default.js';
-        this.selfTalkSummarizePrompt = obj.selfTalkSummarizePrompt !== undefined ? obj.selfTalkSummarizePrompt : 'Summarize the following internal monologue from {playerName}\'s perspective, focusing on key thoughts, feelings, and plans.';
-        
+        Object.assign(this, obj);
     }
 
     export(){
