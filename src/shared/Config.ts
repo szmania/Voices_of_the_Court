@@ -11,47 +11,47 @@ export interface ApiConnectionConfig{
 }
 
 export class Config{
-    userFolderPath: string;
+    userFolderPath!: string;
 
-    stream: boolean;
-    maxTokens: number;
-    maxMemoryTokens: number;
-    percentOfContextToSummarize: number;
+    stream!: boolean;
+    maxTokens!: number;
+    maxMemoryTokens!: number;
+    percentOfContextToSummarize!: number;
 
     
 
-    selectedDescScript: string;
-    selectedExMsgScript: string;
+    selectedDescScript!: string;
+    selectedExMsgScript!: string;
 
-    inputSequence: string;
-    outputSequence: string;
+    inputSequence!: string;
+    outputSequence!: string;
 
-    textGenerationApiConnectionConfig: ApiConnectionConfig;
-    summarizationApiConnectionConfig: ApiConnectionConfig;
-    actionsApiConnectionConfig: ApiConnectionConfig;
+    textGenerationApiConnectionConfig!: ApiConnectionConfig;
+    summarizationApiConnectionConfig!: ApiConnectionConfig;
+    actionsApiConnectionConfig!: ApiConnectionConfig;
 
-    summarizationUseTextGenApi: boolean;
-    actionsUseTextGenApi: boolean;
+    summarizationUseTextGenApi!: boolean;
+    actionsUseTextGenApi!: boolean;
 
-    actionsEnableAll: boolean;
-    disabledActions: string[];
+    actionsEnableAll!: boolean;
+    disabledActions!: string[];
 
-    cleanMessages: boolean;
-    debugMode: boolean;
-    checkForUpdatesOnStartup: boolean;
+    cleanMessages!: boolean;
+    debugMode!: boolean;
+    checkForUpdatesOnStartup!: boolean;
 
-    summariesInsertDepth: number;
-    memoriesInsertDepth: number;
-    descInsertDepth: number;
+    summariesInsertDepth!: number;
+    memoriesInsertDepth!: number;
+    descInsertDepth!: number;
 
-    mainPrompt: string;
-    summarizePrompt: string;
-    memoriesPrompt: string;
-    suffixPrompt: string;
-    enableSuffixPrompt: boolean;
-    selfTalkPrompt: string;
-    selectedSelfTalkExMsgScript: string;
-    selfTalkSummarizePrompt: string;
+    mainPrompt!: string;
+    summarizePrompt!: string;
+    memoriesPrompt!: string;
+    suffixPrompt!: string;
+    enableSuffixPrompt!: boolean;
+    selfTalkPrompt!: string;
+    selectedSelfTalkExMsgScript!: string;
+    selfTalkSummarizePrompt!: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
