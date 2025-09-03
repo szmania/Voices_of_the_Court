@@ -51,24 +51,11 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if (isSelfTalk) {
-        const selfTalkPromptFileName = conv.config.selfTalkPrompt;
-        const selfTalkPromptPath = path.join(userDataPath, 'scripts', 'prompts', 'self-talk', selfTalkPromptFileName);
-        try {
-            delete require.cache[require.resolve(selfTalkPromptPath)];
-            const getSelfTalkPrompt = require(selfTalkPromptPath);
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(getSelfTalkPrompt(conv.gameData), conv.gameData)
-            });
-            console.log(`Added self-talk main prompt from script: ${selfTalkPromptFileName}.`);
-        } catch (err) {
-            console.error(`Error loading self-talk main prompt script '${selfTalkPromptFileName}': ${err}. Falling back to standard main prompt.`);
-            conv.chatWindow.window.webContents.send('error-message', `Error in self-talk main prompt script '${selfTalkPromptFileName}'. Falling back.`);
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(conv.config.mainPrompt, conv.gameData)
-            });
-        }
+        chatPrompt.push({
+            role: "system",
+            content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
+        });
+        console.log('Added self-talk main prompt from config.');
     } else {
         chatPrompt.push({
             role: "system",

@@ -69,6 +69,12 @@ export async function checkUserData(){
         const userConfig = JSON.parse(userConfigRaw);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
 
+        // Migration for selfTalkPrompt
+        if (userConfig.selfTalkPrompt === "default.js") {
+            userConfig.selfTalkPrompt = defaultConfig.selfTalkPrompt;
+            console.log("Migrated selfTalkPrompt from 'default.js' to default prompt string.");
+        }
+
         // Step 3.2: Perform a Deep Merge
         // This merges userConfig into defaultConfig, prioritizing user values
         // while ensuring the final structure matches defaultConfig.
