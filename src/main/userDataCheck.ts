@@ -5,6 +5,37 @@ import path from 'path';
 import { existsSync } from "original-fs";
 import fs from 'fs';
 
+// Helper function for deep merging configurations, prioritizing user settings
+// and strictly adhering to the default configuration's structure.
+function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
+    const merged: any = {};
+
+    for (const key in defaultConfig) {
+        if (defaultConfig.hasOwnProperty(key)) {
+            if (userConfig.hasOwnProperty(key)) {
+                // Key exists in both default and user config
+                if (
+                    typeof defaultConfig[key] === 'object' && defaultConfig[key] !== null && !Array.isArray(defaultConfig[key]) &&
+                    typeof userConfig[key] === 'object' && userConfig[key] !== null && !Array.isArray(userConfig[key])
+                ) {
+                    // Both are objects, perform a deep merge for this nested object
+                    merged[key] = mergeConfigsStrict(defaultConfig[key], userConfig[key]);
+                } else {
+                    // Otherwise, the user's value takes precedence
+                    merged[key] = userConfig[key];
+                }
+            } else {
+                // Key only exists in default config, use the default value
+                merged[key] = defaultConfig[key];
+            }
+        }
+    }
+    // Note: Keys present in userConfig but not in defaultConfig will be ignored,
+    // ensuring the output structure matches defaultConfig.
+    return merged;
+}
+
+
 export async function checkUserData(){
     console.log('Starting user data check...');
     const userPath = path.join(app.getPath('userData'), "votc_data");
@@ -33,17 +64,23 @@ export async function checkUserData(){
     console.log(`Validating config file at: ${configPath}`);
     
     if(existsSync(configPath)){
-        const config = JSON.parse(fs.readFileSync(configPath).toString());
+        // Step 3.1: Read Configurations
+        const userConfigRaw = fs.readFileSync(configPath).toString();
+        const userConfig = JSON.parse(userConfigRaw);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
-        const configKeys = Object.keys(config);
-        const defaultConfigKeys = Object.keys(defaultConfig);
 
-        if(JSON.stringify(configKeys) !== JSON.stringify(defaultConfigKeys)){
-            console.log("User data config file didn't match default config file. Deleting config file.");
-            fs.unlinkSync(configPath);
-            console.log(`Deleted invalid config file: ${configPath}`);
+        // Step 3.2: Perform a Deep Merge
+        // This merges userConfig into defaultConfig, prioritizing user values
+        // while ensuring the final structure matches defaultConfig.
+        const mergedConfig = mergeConfigsStrict(defaultConfig, userConfig);
+
+        // Step 3.3: Write Back Changes Conditionally
+        const mergedConfigString = JSON.stringify(mergedConfig, null, '\t');
+        if (userConfigRaw !== mergedConfigString) {
+            fs.writeFileSync(configPath, mergedConfigString);
+            console.log("User data config file updated to match default structure, preserving user settings.");
         } else {
-            console.log("User data config file is valid.");
+            console.log("User data config file is valid and up-to-date.");
         }
     } else {
         console.log(`Config file not found at ${configPath}. It will be created from default_config.json later.`);
