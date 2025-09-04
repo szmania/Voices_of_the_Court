@@ -408,12 +408,16 @@ export class Conversation{
                 // Get existing summaries from the map, or start with an empty array
                 const existingSummaries = this.summaries.get(character.id) || [];
                 
-                // Add the new summary to the beginning of the list
-                existingSummaries.unshift(newSummary);
-                
-                // Persist the updated summaries for the specific character
-                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-                console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+                // Add the new summary to the beginning of the list ONLY if its content is not empty
+                if (newSummary.content.trim()) {
+                    existingSummaries.unshift(newSummary);
+                    
+                    // Persist the updated summaries for the specific character
+                    fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                    console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+                } else {
+                    console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
+                }
             }
         });
 
