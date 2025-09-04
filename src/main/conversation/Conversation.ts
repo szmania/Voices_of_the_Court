@@ -408,9 +408,9 @@ export class Conversation{
                 // Get existing summaries from the map, or start with an empty array
                 const existingSummaries = this.summaries.get(character.id) || [];
                 
-                // Add the new summary to the beginning of the list ONLY if its content is not empty
+                // Add the new summary to the end of the list ONLY if its content is not empty
                 if (newSummary.content.trim()) {
-                    existingSummaries.unshift(newSummary);
+                    existingSummaries.push(newSummary);
                     
                     // Persist the updated summaries for the specific character
                     fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
