@@ -60,7 +60,8 @@ export class Conversation{
                 if (fs.existsSync(summaryFilePath)) {
                     try {
                         characterSummaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
-                        console.log(`Loaded ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
+                        characterSummaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                        console.log(`Loaded and sorted ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
                     } catch (e) {
                         console.error(`Error parsing summary file for AI ID ${character.id}: ${e}`);
                     }
