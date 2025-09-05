@@ -14,6 +14,7 @@ import { updateElectronApp } from 'update-electron-app';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const isFirstInstance = app.requestSingleInstanceLock();
 if (!isFirstInstance) {
@@ -317,6 +318,9 @@ clipboardListener.on('VOTC:IN', async () =>{
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
     try{ 
+        console.log("Waiting briefly for log file to update...");
+        await sleep(250);
+
         console.log("Parsing log for new conversation...");
         const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
         console.log(`Game log file path: ${logFilePath}`);
