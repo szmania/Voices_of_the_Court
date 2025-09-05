@@ -410,7 +410,7 @@ export class Conversation{
                 
                 // Add the new summary to the end of the list ONLY if its content is not empty
                 if (newSummary.content.trim()) {
-                    existingSummaries.push(newSummary);
+                    existingSummaries.unshift(newSummary); // Changed from .push to .unshift
                     
                     // Persist the updated summaries for the specific character
                     fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
