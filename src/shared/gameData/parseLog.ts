@@ -234,7 +234,7 @@ export function removeTooltip(str: string): string {
     }
 
     // Final cleanup on the resulting string
-    cleanedStr = cleanedStr.replace(/(\s!|!![']?)+/g, '')      // Remove sequences of " !" e.g. from "Roman ! ! !"
+    cleanedStr = cleanedStr.replace(/(\s!)+|!![']?.*$/g, '')      // Remove sequences of " !" and truncate at "!!'"
       .replace(/[\s:!']+$/, '')   // Clean any remaining trailing punctuation
       .trim();
 
