@@ -156,9 +156,13 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         const summariesToProcess = [...characterSummaries];
         summariesToProcess.reverse();
 
+        const currentGameDate = parseGameDate(conv.gameData.date);
+
         for(let summary of summariesToProcess){
-            // 只添加日期不晚于当前游戏日期的总结.Only add summaries with a date no later than the current game date.
-            if(new Date(summary.date) <= new Date(conv.gameData.date)){
+            const summaryDate = parseGameDate(summary.date);
+
+            // Include summary if its date is unknown OR if it's in the past/present.
+            if(!summaryDate || (currentGameDate && summaryDate <= currentGameDate)){
                 summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
             }
         }
@@ -279,6 +283,29 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
     else{
         messages.splice(messages.length - insertDepth + 1, 0, messageToInsert);
     }
+}
+
+function parseGameDate(dateStr: string): Date | null {
+    if (!dateStr || !(dateStr.trim())) return null;
+
+    const str = dateStr.trim();
+
+    // Handle purely numeric strings, assuming they are a year.
+    if (/^\d+$/.test(str)) {
+        // Creates a date for Jan 1st of that year.
+        return new Date(parseInt(str), 0, 1);
+    }
+
+    // Attempt to parse with the native constructor for standard/English formats.
+    const date = new Date(str);
+
+    // Return the date object if it's valid, otherwise return null.
+    if (!isNaN(date.getTime())) {
+        return date;
+    }
+
+    console.warn(`Could not parse date string: "${str}". It will be included in the prompt by default.`);
+    return null;
 }
 
 function getDateDifference(pastDate: string, todayDate: string): string{
