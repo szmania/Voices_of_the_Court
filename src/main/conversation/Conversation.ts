@@ -388,8 +388,8 @@ export class Conversation{
         console.log(`Conversation history saved to: ${historyFile}`)
 
         // Do not generate a summary if there are not enough messages
-        if (this.messages.length < 6) {
-            console.log("Not enough messages to generate a summary (less than 6). Skipping summary generation.");
+        if (this.messages.length < 2) {
+            console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
             return;
         }
 
