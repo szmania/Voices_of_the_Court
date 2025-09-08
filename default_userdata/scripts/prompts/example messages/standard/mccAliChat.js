@@ -11,9 +11,23 @@ module.exports = (gameData, id) => {
 
     let msgs = [];
 
-    let personalityTraits = ai.traits.filter( (trait) => trait.category == "Personality Trait");
+    // Normalize and filter personality traits
+    const normalizedTraits = (ai.traits || []).map(trait => {
+        if (typeof trait === 'string') {
+            return { name: trait, category: 'Personality Trait' };
+        }
+        // Ensure trait has a name and category, default if missing
+        return {
+            name: trait.name || '',
+            category: trait.category || ''
+        };
+    });
 
-    if(personalityTraits.length == 0){
+    let personalityTraits = normalizedTraits.filter(trait =>
+        trait.category && trait.category.toLowerCase().includes("personality")
+    );
+
+    if (personalityTraits.length === 0) {
         return msgs;
     }
 
