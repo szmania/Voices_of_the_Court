@@ -215,7 +215,10 @@ app.on('ready',  async () => {
         console.log('Update checks are skipped in development mode.');
     }
 
-   let tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
+   const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'build', 'icons', 'icon.ico')
+    : path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico');
+   let tray = new Tray(iconPath);
    const contextMenu = Menu.buildFromTemplate([
     { label: 'Open config window',
         click: () => { 
