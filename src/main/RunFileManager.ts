@@ -27,7 +27,7 @@ export class RunFileManager{
         console.log("Run File cleared")
     }
     
-    async createRunFolder(userFolderPath: string){
+    createRunFolder(userFolderPath: string){
         const runFolderPath = path.join(userFolderPath, "run");
         if(userFolderPath && !fs.existsSync(runFolderPath)){
             try{
