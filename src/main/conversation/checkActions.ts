@@ -204,21 +204,19 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
 
     output.push({
         role: "system",
-        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, seperate them with commas. If a function takes a value, then put it inside the brackets after the function, a function can take either 0 or 1 values. 'Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>'`
+        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, separate them with commas. If a function takes a value, then put it inside the brackets after the function, a function can take either 0 or 1 values.`
     })
 
     output.push({
         role: "user",
-        content: `Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
-"Prior dialogue:\n"+ ${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
+        content:
+`Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
+Prior dialogue:
+${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
 ${conv.description}
-"Given these replies:\n${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
+Given these replies:
+${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
-})
-
-output.push({
-    role: "user",
-    content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>"
 })
 
     return output;
