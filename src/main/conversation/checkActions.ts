@@ -31,7 +31,14 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     }
     else{
         let prompt = convertChatToTextPrompt(buildActionChatPrompt(conv, availableActions), conv.config );
-        response = await conv.actionsApiConnection.complete(prompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
+        response = await conv.actionsApiConnection.complete(
+            prompt,
+            false,
+            {
+                stop: [conv.config.inputSequence, conv.config.outputSequence],
+                max_tokens: conv.config.maxTokens,
+            },
+        );
     }
 
     console.log(`Raw LLM response for actions: ${response}`);

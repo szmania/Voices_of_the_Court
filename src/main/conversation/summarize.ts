@@ -8,12 +8,18 @@ export async function summarize(conv: Conversation): Promise<string>{
     if(conv.summarizationApiConnection.isChat()){
         console.log('Using chat API for summarization.');
         summarization = await conv.summarizationApiConnection.complete(buildSummarizeChatPrompt(conv), false, {
-        })
+        });
     }
     else{
         console.log('Using completion API for summarization.');
-        summarization = await conv.summarizationApiConnection.complete(convertChatToTextNoNames(buildSummarizeChatPrompt(conv), conv.config), false, {
-        })
+        summarization = await conv.summarizationApiConnection.complete(
+            convertChatToTextNoNames(buildSummarizeChatPrompt(conv), conv.config),
+            false,
+            {
+                stop: [conv.config.inputSequence, conv.config.outputSequence],
+                max_tokens: conv.config.maxTokens,
+            },
+        );
     }
     console.log(`Summarization complete. Length: ${summarization.length}`);
     return summarization;

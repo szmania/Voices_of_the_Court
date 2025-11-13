@@ -332,11 +332,22 @@ export class Conversation{
                 console.log("Current summary before resummarization: "+this.currentSummary);
                 if(this.summarizationApiConnection.isChat()){
                     console.log('Using chat API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {});
+                    this.currentSummary = await this.summarizationApiConnection.complete(
+                        buildResummarizeChatPrompt(this, messagesToSummarize),
+                        false,
+                        {},
+                    );
                 }
                 else{
                     console.log('Using completion API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {});
+                    this.currentSummary = await this.summarizationApiConnection.complete(
+                        convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config),
+                        false,
+                        {
+                            stop: [this.config.inputSequence, this.config.outputSequence],
+                            max_tokens: this.config.maxTokens,
+                        },
+                    );
                 }
                
                 console.log("New current summary after resummarization: "+this.currentSummary);
