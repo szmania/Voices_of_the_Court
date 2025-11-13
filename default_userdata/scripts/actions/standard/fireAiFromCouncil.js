@@ -46,7 +46,7 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `You fired {{aiName}} from council`
+        return `You fired {{aiName}} from the council.`
     },
     chatMessageClass: "negative-action-message"
 }

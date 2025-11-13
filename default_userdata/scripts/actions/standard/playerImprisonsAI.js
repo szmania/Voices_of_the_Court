@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "prisonType",
             type: "string",
-            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon`,
+            desc: "type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon",
         }
     ],
-    description: `execute when {{aiName}} gets explicitly imprisoned by {{playerName}}`,
+    description: `Execute when {{aiName}} gets explicitly imprisoned by {{playerName}}.`,
     
     check: (gameData) => {
         let ai = gameData.getAi();

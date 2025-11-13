@@ -14,7 +14,7 @@ module.exports = {
         {
             name: "court_position",
             type: "string",
-            desc: "The court position to which the {{playerName}} decided to assign {{aiName}}. BE CAREFULL! You must choose ONLY from these variants: physician, keeper_of_swans, travel_leader, master_of_horse, court_jester, master_of_hunt, high_almoner, cupbearer, seneschal, antiquarian, tutor, royal_architect, court_poet, bodyguard, court_champion, musician, food_taster, lady_in_waiting, garuda, chief_eunuch, court_gardener, chief_qadi, wet_nurse, akolouthos"
+            desc: "the court position to which the {{playerName}} decided to assign {{aiName}}. BE CAREFUL! You must choose ONLY from these variants: physician, keeper_of_swans, travel_leader, master_of_horse, court_jester, master_of_hunt, high_almoner, cupbearer, seneschal, antiquarian, tutor, royal_architect, court_poet, bodyguard, court_champion, musician, food_taster, lady_in_waiting, garuda, chief_eunuch, court_gardener, chief_qadi, wet_nurse, akolouthos"
         } 
     ],
     description: `Execute if {{playerName}} decides to assign {{aiName}} to court position of {{playerName}}'s council.`,
@@ -337,7 +337,7 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `You assign {{aiName}} to ${args[0]} position`
+        return `You assigned {{aiName}} to the ${args[0]} position.`
     },
     chatMessageClass: "neutral-action-message"
 }

@@ -199,12 +199,12 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
-    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
+    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). If you think multiple actions should be triggered, then separate them with commas (,) inside the <actions> tags.`
     listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>`
 
     output.push({
         role: "system",
-        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, separate them with commas. If a function takes a value, then put it inside the brackets after the function, a function can take either 0 or 1 values.`
+        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, separate them with commas. If a function takes an argument, then put it inside the parentheses after the function. A function can take either 0 or 1 arguments.`
     })
 
     output.push({

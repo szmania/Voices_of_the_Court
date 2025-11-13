@@ -14,10 +14,10 @@ module.exports = {
         {
             name: "council_position",
             type: "string",
-            desc: "The position to which the {{playerName}} decided to assing {{aiName}} to the council. BE CAREFULL! You must choose ONLY from this variants: marshal, steward, spymaster, chancellor"
+            desc: "the position to which the {{playerName}} decided to assign {{aiName}} to the council. BE CAREFUL! You must choose ONLY from these variants: marshal, steward, spymaster, chancellor"
         } 
     ],
-    description: `Run only if the {{playerName}} announces that the {{aiName}} is now appointed to their council! WARNING! Execute ONLY if {{playerName}} diseide to assign {{aiName}} as marshal, steward, spymaster, chancellor`,
+    description: `Run only if the {{playerName}} announces that the {{aiName}} is now appointed to their council! WARNING! Execute ONLY if {{playerName}} decides to assign {{aiName}} as marshal, steward, spymaster, chancellor`,
 
     /**
      * @param {GameData} gameData 
@@ -118,7 +118,7 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `You assign {{aiName}} to council as ${args[0]}`
+        return `You assigned {{aiName}} to the council as ${args[0]}.`
     },
     chatMessageClass: "positive-action-message"
 }

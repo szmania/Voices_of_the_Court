@@ -362,7 +362,7 @@ function createSecretString(conv: Conversation): string{
     aiSecrets = aiSecrets.concat(conv.gameData.characters.get(conv.gameData.aiID)!.secrets);
     playerSecrets = playerSecrets.concat(conv.gameData.characters.get(conv.gameData.playerID)!.secrets);
 
-    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASY, IF CHARACTER REVEALS IT, IT MAY BE USED AGAINST HIM AND LEAD HIM TO DEATH OR PRISON\n";
+    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASILY. IF A CHARACTER REVEALS IT, IT MAY BE USED AGAINST THEM AND LEAD THEM TO DEATH OR PRISON.\n";
     if(aiSecrets.length>0){
         output += `${conv.gameData.aiName}'s secrets:`;
     }

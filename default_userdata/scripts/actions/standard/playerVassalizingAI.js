@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "changePoliticalScore",
             type: "number",
-            desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}."
+            desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}"
         }
     ],
-    description: `Execute when {{aiName}} and {{playerName}} are talking about {{playerName}}'s vassalization of {{aiName}} or it's terms.`,
+    description: `Execute when {{aiName}} and {{playerName}} are talking about {{playerName}}'s vassalization of {{aiName}} or its terms.`,
     
     /**
      * @param {GameData} gameData 
