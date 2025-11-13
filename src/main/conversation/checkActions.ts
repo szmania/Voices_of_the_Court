@@ -1,6 +1,6 @@
 import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
-import { convertMessagesToString } from "./promptBuilder";
+import {convertChatToTextNoNames, convertMessagesToString} from "./promptBuilder";
 import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 
@@ -30,7 +30,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         response = await conv.actionsApiConnection.complete(prompt, false, {} );
     }
     else{
-        let prompt = convertChatToTextPrompt(buildActionChatPrompt(conv, availableActions), conv.config );
+        let prompt = convertChatToTextNoNames(buildActionChatPrompt(conv, availableActions), conv.config );
         response = await conv.actionsApiConnection.complete(
             prompt,
             false,
@@ -219,18 +219,5 @@ ${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
 })
 
-    return output;
-}
-
-function convertChatToTextPrompt(messages: Message[], config: Config): string{
-    let output: string = "";
-    for(let msg of messages){
-        if(msg.role === "user"){
-            output+=config.inputSequence+"\n";
-        }
-        output += msg.content+"\n";
-    }
-
-    output+=config.outputSequence+"\n";
     return output;
 }
