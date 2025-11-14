@@ -277,7 +277,7 @@ module.exports = (gameData) =>{
     
         
     function listRelationsToPlayer(char){
-        if(char.relationsToPlayer === 0){
+        if(char.relationsToPlayer.length === 0){
             return `has no relation to ${player.shortName}`;
         }
         else{
