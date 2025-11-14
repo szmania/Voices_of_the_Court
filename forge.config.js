@@ -3,8 +3,9 @@ const path = require('path');
 
 module.exports = {
   packagerConfig: {
-     icon: './build/icons/icon.ico',
+    icon: './build/icons/icon.ico',
     //"asar":true
+    ignore: /^\/\./,
   },
   rebuildConfig: {},
   makers: [
