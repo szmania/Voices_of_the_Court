@@ -170,12 +170,10 @@ export async function checkUserData(){
     try {
         await fs.promises.cp(typedefsSourcePath, typedefsDestPath, {})
     } catch (err) {
-        if (err) {
-            console.error(`Error copying gamedata_typedefs.js: ${err}`);
-            throw err;
-        }
-        console.log(`Copied gamedata_typedefs.js from ${typedefsSourcePath} to ${typedefsDestPath}`);
+        console.error(`Error copying gamedata_typedefs.js: ${err}`);
+        throw err;
     }
+    console.log(`Copied gamedata_typedefs.js from ${typedefsSourcePath} to ${typedefsDestPath}`);
 
     console.log('User data check completed successfully.');
     return true;
