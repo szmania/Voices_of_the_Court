@@ -4,6 +4,7 @@ const path = require('path');
 module.exports = {
   packagerConfig: {
      icon: './build/icons/icon.ico',
+     ignore: /^\/\./,
     //"asar":true
   },
   rebuildConfig: {},
@@ -37,5 +38,4 @@ module.exports = {
       }
     }
   ],
-  ignore: "/^\\/\\./"
 };
