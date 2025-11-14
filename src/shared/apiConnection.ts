@@ -15,7 +15,7 @@ export interface Connection{
     baseUrl: string;
     key: string;
     model: string;
-    forceInstruct: boolean ;//only used by openrouter
+    forceInstruct: boolean; // Weird: when true, forces text completions API; when false, uses chat completions API
     overwriteContext: boolean;
     customContext: number;
 }
@@ -33,7 +33,7 @@ export class ApiConnection{
     type: string; //openrouter, openai, ooba, custom
     client: any;
     model: string;
-    forceInstruct: boolean ;//only used by openrouter
+    forceInstruct: boolean; // Weird: when true, forces text completions API; when false, uses chat completions API
     parameters: Parameters;
     context: number;
     overwriteWarning: boolean;
@@ -102,15 +102,16 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini'){
+        if(this.type === "openai" || this.type === "gemini"){
             console.debug("isChat() is returning true");
             return true;
         }
-        else{
-            console.debug("isChat() is returning false");
-            return false;
+        if((this.type === "openrouter" || this.type === "custom") && !this.forceInstruct){
+            console.debug("isChat() is returning true (forceInstruct is false)");
+            return true;
         }
-    
+        console.debug("isChat() is returning false");
+        return false;
     }
 
     async complete(

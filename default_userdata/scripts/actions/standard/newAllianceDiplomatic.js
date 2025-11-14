@@ -5,7 +5,7 @@ module.exports = {
     signature: "newAllianceDiplomatic",
     args: [],
 	
-    description: `execute when {{aiName}} and {{playerName}} agree on an alliance.`,
+    description: `Execute when {{aiName}} and {{playerName}} agree on an alliance.`,
 	
 
     check: (gameData) => {

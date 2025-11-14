@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "opinion",
             type: "number",
-            desc: "the number of opinion values the relation decreases with. Can be between 1 and 5."
+            desc: "the number of opinion values the relation decreases with. Can be between 1 and 5"
         }
     ],
     description: `Execute when {{playerName}}'s last single dialogue or action drastically lowered {{aiName}}'s opinion of {{playerName}}.`,

@@ -15,14 +15,14 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
         
         switch(msg.role){
             case "system":
-                    output += msg.content+"\n";
+                output += msg.content+"\n";
                 break;
             case "user":
                 output += `${config.inputSequence}\n${msg.name}: ${msg.content}\n`;
                 break;
-                case "assistant":
-                    output += `${config.outputSequence}\n${msg.name}: ${msg.content}\n`;
-                    break;
+            case "assistant":
+                output += `${config.outputSequence}\n${msg.name}: ${msg.content}\n`;
+                break;
         }
     }
 
@@ -31,16 +31,17 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
 }
 
 export function convertChatToTextNoNames(messages: Message[], config: Config): string{
-    let output: string = "";
-    for(let msg of messages){
-        if(msg.role === "user"){
-            output+=config.inputSequence+"\n";
+    let output: string[] = [];
+    for (let msg of messages) {
+        if (msg.role === "user") {
+            output.push(config.inputSequence);
+        } else if (msg.role === "assistant") {
+            output.push(config.outputSequence);
         }
-        output += msg.content+"\n";
+        output.push(msg.content);
     }
-
-    output+=config.outputSequence+"\n";
-    return output;
+    output.push(config.outputSequence, "")
+    return output.join("\n");
 }
 
 export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
@@ -361,7 +362,7 @@ function createSecretString(conv: Conversation): string{
     aiSecrets = aiSecrets.concat(conv.gameData.characters.get(conv.gameData.aiID)!.secrets);
     playerSecrets = playerSecrets.concat(conv.gameData.characters.get(conv.gameData.playerID)!.secrets);
 
-    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASY, IF CHARACTER REVEALS IT, IT MAY BE USED AGAINST HIM AND LEAD HIM TO DEATH OR PRISON\n";
+    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASILY. IF A CHARACTER REVEALS IT, IT MAY BE USED AGAINST THEM AND LEAD THEM TO DEATH OR PRISON.\n";
     if(aiSecrets.length>0){
         output += `${conv.gameData.aiName}'s secrets:`;
     }

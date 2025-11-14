@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "injuryType",
             type: "string",
-            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injure, remove_eye, blind if it last eye, cut_leg, cut_balls, disfigured"
+            desc: "type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injury, remove_eye, blind if it's the last eye, cut_leg, cut_balls, disfigured"
         }
     ],
-    description: `execute when the {{playerName}} injures the {{aiName}} in various ways, based on the injuryType argument`,
+    description: `Execute when {{playerName}} injures {{aiName}} in various ways, based on the injuryType argument`,
     
     check: (gameData) => {
         // Always return true for now

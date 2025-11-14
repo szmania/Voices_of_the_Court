@@ -7,8 +7,8 @@
 	"selectedDescScript": "standard\\pListMcc.js",
 	"selectedExMsgScript": "standard\\mccAliChat.js",
 	"selectedSelfTalkExMsgScript": "standard\\default.js",
-	"inputSequence": "[INST]",
-    "outputSequence": "[/INST]",
+	"inputSequence": "<|user|>",
+	"outputSequence": "<|assistant|>",
 	"textGenerationApiConnectionConfig": {
 		"connection": {
 			"type": "openrouter",

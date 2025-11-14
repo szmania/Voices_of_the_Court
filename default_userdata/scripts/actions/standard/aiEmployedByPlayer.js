@@ -4,7 +4,7 @@
 module.exports = {
     signature: "aiEmployedByPlayer",
     args: [],
-    description: `execute when {{aiName}} is not ruler or knight and decided to join {{playerName}}'s court`,
+    description: `Execute when {{aiName}} is not a ruler or knight and decides to join {{playerName}}'s court`,
 
     /**
      * @param {GameData} gameData 
@@ -30,7 +30,7 @@ module.exports = {
         
     },
     chatMessage: (args) =>{
-        return `{{aiName}} joined to your court`
+        return `{{aiName}} joined your court.`
     },
     chatMessageClass: "neutral-action-message"
 }

@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become lovers of each other. (write it in past tense)."
+            desc: "the reason (the event) that made them become lovers of each other. (write it in past tense)"
         }
     ],
-    description: "Execute when {{playerName}} and {{aiName}} became have good, great or amazing sex with each other and become lovers.",
+    description: "Execute when {{playerName}} and {{aiName}} have good, great, or amazing sex with each other and become lovers.",
 
     /**
      * @param {GameData} gameData 

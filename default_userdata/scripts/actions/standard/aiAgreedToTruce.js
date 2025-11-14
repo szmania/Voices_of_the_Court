@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "years",
             type: "number",
-            desc: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided."
+            desc: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided"
         }
     ],
     description: `Execute when {{aiName}} and {{playerName}} agree to a mutual truce for a certain number of years.`,

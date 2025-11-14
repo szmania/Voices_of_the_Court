@@ -40,7 +40,7 @@ module.exports = {
         gameData.getPlayer().gold += args[0];
     },
     chatMessage: (args) =>{
-        return `You paid ${args[0]} gold to {{aiName}}`
+        return `You paid ${args[0]} gold to {{aiName}}.`
     },
     chatMessageClass: "neutral-action-message"
 }

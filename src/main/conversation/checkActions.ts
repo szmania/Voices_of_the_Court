@@ -1,6 +1,6 @@
 import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
-import { convertMessagesToString } from "./promptBuilder";
+import {convertChatToTextNoNames, convertMessagesToString} from "./promptBuilder";
 import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 
@@ -30,8 +30,15 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         response = await conv.actionsApiConnection.complete(prompt, false, {} );
     }
     else{
-        let prompt = convertChatToTextPrompt(buildActionChatPrompt(conv, availableActions), conv.config );
-        response = await conv.actionsApiConnection.complete(prompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
+        let prompt = convertChatToTextNoNames(buildActionChatPrompt(conv, availableActions), conv.config );
+        response = await conv.actionsApiConnection.complete(
+            prompt,
+            false,
+            {
+                stop: [conv.config.inputSequence, conv.config.outputSequence],
+                max_tokens: conv.config.maxTokens,
+            },
+        );
     }
 
     console.log(`Raw LLM response for actions: ${response}`);
@@ -192,40 +199,25 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
-    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
+    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). If you think multiple actions should be triggered, then separate them with commas (,) inside the <actions> tags.`
     listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>`
 
     output.push({
         role: "system",
-        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, seperate them with commas. If a function takes a value, then put it inside the brackets after the function, a function can take either 0 or 1 values. 'Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>'`
+        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, separate them with commas. If a function takes an argument, then put it inside the parentheses after the function. A function can take either 0 or 1 arguments.`
     })
 
     output.push({
         role: "user",
-        content: `Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
-"Prior dialogue:\n"+ ${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
+        content:
+`Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
+Prior dialogue:
+${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
 ${conv.description}
-"Given these replies:\n${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
+Given these replies:
+${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
 })
 
-output.push({
-    role: "user",
-    content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>"
-})
-
-    return output;
-}
-
-function convertChatToTextPrompt(messages: Message[], config: Config): string{
-    let output: string = "";
-    for(let msg of messages){
-        if(msg.role === "user"){
-            output+=config.inputSequence+"\n";
-        }
-        output += msg.content+"\n";
-    }
-
-    output+=config.outputSequence+"\n";
     return output;
 }

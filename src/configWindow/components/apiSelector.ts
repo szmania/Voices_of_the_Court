@@ -38,8 +38,8 @@ function defineTemplate(label: string){
             </div>
 
             <div class="input-group">
-            <input type="checkbox" id="openrouter-instruct-mode">
-            <label for="openrouter-instruct-mode">Force Instruct mode</label>
+            <input type="checkbox" id="openrouter-use-chat">
+            <label for="openrouter-use-chat">Use Chat Completions API</label>
             </div>
         </div>
 
@@ -106,7 +106,12 @@ function defineTemplate(label: string){
                 <br>
                 <input type="text" id="custom-model">
             </div>
-    
+
+            <div class="input-group">
+                <input type="checkbox" id="custom-use-chat">
+                <label for="custom-use-chat">Use Chat Completions API</label>
+            </div>
+
         </div>
 
         <hr>
@@ -142,13 +147,14 @@ class ApiSelector extends HTMLElement{
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
 
-    openrouterKeyInput: HTMLSelectElement 
-    openrouterModelInput: HTMLInputElement 
-    openrouterInstructModeCheckbox: HTMLInputElement 
+    openrouterKeyInput: HTMLSelectElement
+    openrouterModelInput: HTMLInputElement
+    openrouterUseChatCheckbox: HTMLInputElement
 
-    customUrlInput: HTMLSelectElement 
-    customKeyInput: HTMLInputElement 
-    customModelInput: HTMLSelectElement 
+    customUrlInput: HTMLSelectElement
+    customKeyInput: HTMLInputElement
+    customModelInput: HTMLSelectElement
+    customUseChatCheckbox: HTMLInputElement 
 
     testConnectionButton: HTMLButtonElement 
     testConnectionSpan: HTMLButtonElement 
@@ -188,11 +194,12 @@ class ApiSelector extends HTMLElement{
 
         this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")!;
         this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")!;
-        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")!;
+        this.openrouterUseChatCheckbox = this.shadow.querySelector("#openrouter-use-chat")!;
 
         this.customUrlInput = this.shadow.querySelector("#custom-url")!;
         this.customKeyInput = this.shadow.querySelector("#custom-key")!;
         this.customModelInput = this.shadow.querySelector("#custom-model")!;
+        this.customUseChatCheckbox = this.shadow.querySelector("#custom-use-chat")!;
 
         this.testConnectionButton = this.shadow.querySelector("#connection-test-button")!;
         this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")!;
@@ -218,36 +225,30 @@ class ApiSelector extends HTMLElement{
         this.displaySelectedApiBox();
 
         
-        if(apiConfig.type == "openai"){
-            
+        if(apiConfig.type === "openai"){
             this.openaiKeyInput.value = apiConfig.key;
-            
             this.openaiModelSelect.value =  apiConfig.model;
         }
-        
-        else if(apiConfig.type == "ooba"){
-            
+        else if(apiConfig.type === "ooba"){
             this.oobaUrlInput.value = apiConfig.key;
         }
-        
-        else if(apiConfig.type == "openrouter"){
-            
+        else if(apiConfig.type === "openrouter"){
             this.openrouterKeyInput.value = apiConfig.key;
-            
             this.openrouterModelInput.value = apiConfig.model;
-            
         }
-        else if(apiConfig.type == "custom"){
+        else if(apiConfig.type === "custom"){
             this.customUrlInput.value = apiConfig.baseUrl;
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
         }
-        else if(apiConfig.type == "gemini"){
+        else if(apiConfig.type === "gemini"){
             this.geminiKeyInput.value = apiConfig.key;
             this.geminiModelInput.value = apiConfig.model;
         }
-        
-        this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
+
+        // Default to checked; only uncheck if forceInstruct is true for the current apiConfig type
+        this.customUseChatCheckbox.checked = apiConfig.type !== "custom" || !(apiConfig.forceInstruct ?? false);
+        this.openrouterUseChatCheckbox.checked = apiConfig.type !== "openrouter" || !(apiConfig.forceInstruct ?? false);
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
         this.customContextNumber.value = apiConfig.customContext;
@@ -403,7 +404,7 @@ class ApiSelector extends HTMLElement{
             baseUrl: "https://api.openai.com/v1",
             key: this.openaiKeyInput.value,
             model: this.openaiModelSelect.value,
-            forceInstruct: this.openrouterInstructModeCheckbox.checked,
+            forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         }
@@ -421,7 +422,7 @@ class ApiSelector extends HTMLElement{
             baseUrl: this.oobaUrlInput.value,
             key: "11111111111111111111",
             model: "string",
-            forceInstruct: this.openrouterInstructModeCheckbox.checked,
+            forceInstruct: true,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         }
@@ -439,7 +440,7 @@ class ApiSelector extends HTMLElement{
             baseUrl: "https://openrouter.ai/api/v1",
             key: this.openrouterKeyInput.value,
             model: this.openrouterModelInput.value,
-            forceInstruct: this.openrouterInstructModeCheckbox.checked,
+            forceInstruct: !this.openrouterUseChatCheckbox.checked,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         }
@@ -454,7 +455,7 @@ class ApiSelector extends HTMLElement{
             baseUrl: this.customUrlInput.value,
             key: this.customKeyInput.value,
             model: this.customModelInput.value,
-            forceInstruct: false,
+            forceInstruct: !this.customUseChatCheckbox.checked,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         }
