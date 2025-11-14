@@ -1,0 +1,9 @@
+@media screen and (min-aspect-ratio: 21/9) {
+    .message {
+        font-size: 220%;
+    }
+
+    .chat-input, .leave-button {
+        font-size: 2rem;
+    }
+}
