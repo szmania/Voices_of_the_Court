@@ -332,6 +332,20 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
         chatWindow.window.webContents.send('chat-start', conversation.gameData);
+
+        if (Math.random() < 0.5) {
+            console.log("AI is initiating the conversation.");
+            try {
+                await conversation.generateAIsMessages();
+            } catch (err) {
+                console.error("Error when AI is initiating conversation:", err);
+                if(chatWindow.isShown){
+                    chatWindow.window.webContents.send('error-message', err);
+                }
+            }
+        } else {
+            console.log("AI will wait for user to initiate.");
+        }
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");
@@ -360,7 +374,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     console.log('IPC: Received message-send event with message:', message.content);
     conversation.pushMessage(message);
     try{
-        conversation.generateAIsMessages();
+        await conversation.generateAIsMessages();
     }
     catch(err){
         console.error(err); // Changed from console.log(err)
