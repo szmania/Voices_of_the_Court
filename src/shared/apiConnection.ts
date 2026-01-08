@@ -64,9 +64,9 @@ export class ApiConnection{
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
         // Remove unsupported parameters for Gemini models
-        if (model && model.toLowerCase().includes('gemini')) {
+        if (this.model && this.model.toLowerCase().includes('gemini')) {
           const { presence_penalty, frequency_penalty, ...supportedParameters } = parameters;
-          this.parameters = supportedParameters as T;
+          this.parameters = supportedParameters as Parameters;
         } else {
           this.parameters = parameters;
         }
