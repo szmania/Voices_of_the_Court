@@ -192,6 +192,18 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     chatPrompt = chatPrompt.concat(messages);
 
+    const isNewConversation = conv.messages.length === 0;
+    const isAiInitiating = isNewConversation; 
+    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+
+    if (isAiInitiating && !isSelfTalk) {
+        chatPrompt.push({
+            role: "system",
+            content: "You are starting a new conversation. Greet the other character and begin a new topic. You can draw inspiration from the provided summaries of past conversations, but do not simply continue the last one."
+        });
+        console.log('Added AI initiation prompt.');
+    }
+
     if(conv.config.enableSuffixPrompt){
         chatPrompt.push({
             role: "system",
