@@ -194,7 +194,6 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     const isNewConversation = conv.messages.length === 0;
     const isAiInitiating = isNewConversation; 
-    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if (isAiInitiating && !isSelfTalk) {
         chatPrompt.push({
