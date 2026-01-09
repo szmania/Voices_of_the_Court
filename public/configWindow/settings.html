@@ -6,7 +6,7 @@
   <title>Voices of the Court</title>
   <link rel="stylesheet" href="config.css" />
 
-  
+
 
 </head>
 
@@ -39,12 +39,12 @@
                 <config-number confID="maxMemoryTokens" label="max memory tokens" min="0" max="4084"></config-number>
               </div>
             </div>
-            
+
             <hr>
 
             <div class="row">
               <div class="column">
-                <config-number confID="aiFirstSpeakerChance" label="AI first speaker chance (%)" min="0" max="100"></config-number> <tooltip-text side="top">The chance (from 0 to 100) that the AI will start the conversation first.</tooltip-text>
+                <config-number confID="aiFirstSpeakerChance" label="AI first speaker chance (%)" min="0" max="100"></config-number> <tooltip-text side="top">The chance (from 0 to 100) that the AI will speak first during an initiated conversation.</tooltip-text>
               </div>
               <div class="column">
               </div>
@@ -75,14 +75,14 @@
                 <config-number confID="descInsertDepth" label="Char desc insert depth" min="0" max="20"></config-number>
               </div>
             </div>
-          </div>  
+          </div>
         </div>
         <br>
 
         <h2>Instruct settings</h2>
 
         <div class="border">
-          
+
           <div class="row">
             <div class="column">
               <config-text confID="inputSequence" label="Input sequence"></config-text>
@@ -99,11 +99,11 @@
 
         <h2>Text-generation parameters</h2>
 
-        
+
 
         <parameters-box confID="textGenerationApiConnectionConfig" tempDefault="0.8" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
-       
+
 
 
       </div>
@@ -122,8 +122,8 @@
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
   <script>require("../../dist/configWindow/components/tooltip.js")</script>
   <script>require("../../dist/configWindow/modelSettingsRenderer.js")</script>
-  
-  
+
+
 </body>
 
 </html>
