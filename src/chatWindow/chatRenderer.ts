@@ -15,6 +15,8 @@ hideChat();
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
 let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
+
+let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let loadingDots: any;
 
 let playerName: string;
@@ -193,5 +195,4 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[])=>{
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
 })
-
 
