@@ -109,6 +109,28 @@ app.on('ready',  async () => {
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     console.log('Configuration loaded successfully.');
 
+    // Check if this is the first run after an update
+    const currentVersion = packagejson.version;
+    if (config.lastRunVersion !== currentVersion) {
+        // Show the Discord server update dialog
+        const result = await dialog.showMessageBox({
+            type: 'info',
+            title: 'Discord Server Moved',
+            message: 'Our Discord server has moved! Please join our new server for updates and support.',
+            buttons: ['Open Link', 'OK'],
+            defaultId: 0,
+            cancelId: 1
+        });
+
+        if (result.response === 0) {
+            shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+        }
+
+        // Update the last run version to prevent showing the dialog again
+        config.lastRunVersion = currentVersion;
+        config.export();
+    }
+
 
     //logging
     var util = require('util');

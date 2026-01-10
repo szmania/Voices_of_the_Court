@@ -53,6 +53,8 @@ export class Config{
     selfTalkPrompt!: string;
     selectedSelfTalkExMsgScript!: string;
     selfTalkSummarizePrompt!: string;
+    
+    lastRunVersion!: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
