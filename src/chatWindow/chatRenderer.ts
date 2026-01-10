@@ -119,11 +119,13 @@ function showLoadingDots(){  //and disable chat
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
+    regenerateButton.disabled = true;
 }
 
 function removeLoadingDots(){
     loadingDots?.remove();
     chatInput.disabled = false;
+    regenerateButton.disabled = false;
 }
 
 function hideChat(){
@@ -135,6 +137,26 @@ leaveButton.addEventListener("click", ()=>{
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
     ipcRenderer.send('chat-stop');
+});
+
+regenerateButton.addEventListener('click', () => {
+    const messages = Array.from(chatMessages.querySelectorAll('.message'));
+    let lastAiMessageIndex = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].classList.contains('ai-message')) {
+            lastAiMessageIndex = i;
+            break;
+        }
+    }
+
+    if (lastAiMessageIndex !== -1) {
+        // Remove the AI message and all subsequent messages from the DOM
+        const messagesToRemove = messages.slice(lastAiMessageIndex);
+        messagesToRemove.forEach(msg => msg.remove());
+    }
+
+    showLoadingDots();
+    ipcRenderer.send('regenerate-response');
 });
 
 //IPC Events

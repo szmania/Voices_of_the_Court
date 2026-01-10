@@ -113,6 +113,16 @@ export class Conversation{
         this.chatWindow.window.webContents.send('actions-receive', []);
         console.log('Finished generating AI messages for all characters.');
     }
+
+    async regenerateLastMessage(){
+        console.log('Regenerating last AI message(s).');
+        // Remove all trailing assistant messages
+        while(this.messages.length > 0 && this.messages[this.messages.length - 1].role === 'assistant'){
+            this.messages.pop();
+            console.log('Popped last AI message for regeneration.');
+        }
+        await this.generateAIsMessages();
+    }
     
     async generateNewAIMessage(character: Character){
         console.log(`Generating AI message for character: ${character.fullName}`);

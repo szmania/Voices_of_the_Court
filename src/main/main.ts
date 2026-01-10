@@ -407,6 +407,18 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     
 });
 
+ipcMain.on('regenerate-response', async () => {
+    console.log('IPC: Received regenerate-response event.');
+    if (conversation) {
+        try {
+            await conversation.regenerateLastMessage();
+        } catch (err) {
+            console.error(err);
+            chatWindow.window.webContents.send('error-message', String(err));
+        }
+    }
+});
+
 
 
 ipcMain.handle('get-config', () => {
