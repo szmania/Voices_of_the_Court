@@ -8,7 +8,7 @@ Documentation: https://docs.voicesofthecourt.app
 
 Join our Discord:
 
-[![Discord Server](https://discord.com/api/guilds/1066522056243564585/widget.png?style=banner2)](https://discord.gg/5nuE54GFgr)
+[![Discord Server](https://discord.com/api/guilds/1066522056243564585/widget.png?style=banner2)](https://discord.gg/UQpE4mJSqZ)
 
 # Trailer video 
 [![link to](https://img.youtube.com/vi/E2GmlNsK-J8/0.jpg)](https://www.youtube.com/watch?v=E2GmlNsK-J8)
