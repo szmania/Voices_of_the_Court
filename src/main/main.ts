@@ -362,7 +362,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             } catch (err) {
                 console.error("Error when AI is initiating conversation:", err);
                 if(chatWindow.isShown){
-                    chatWindow.window.webContents.send('error-message', err);
+                    const errorMessage = err instanceof Error ? err.message : String(err);
+                    chatWindow.window.webContents.send('error-message', errorMessage);
                 }
             }
         } else {
@@ -374,7 +375,8 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.error(err); // Changed from console.log(err)
 
         if(chatWindow.isShown){
-            chatWindow.window.webContents.send('error-message', err);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            chatWindow.window.webContents.send('error-message', errorMessage);
         }
     }
 })
@@ -400,7 +402,8 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     }
     catch(err){
         console.error(err); // Changed from console.log(err)
-        chatWindow.window.webContents.send('error-message', err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        chatWindow.window.webContents.send('error-message', errorMessage);
     }
     
     
@@ -414,7 +417,8 @@ ipcMain.on('regenerate-response', async () => {
             await conversation.regenerateLastMessage();
         } catch (err) {
             console.error(err);
-            chatWindow.window.webContents.send('error-message', String(err));
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            chatWindow.window.webContents.send('error-message', errorMessage);
         }
     }
 });
