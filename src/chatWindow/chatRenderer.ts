@@ -28,6 +28,7 @@ async function initChat(){
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
     chatInput.disabled = false;    
+    regenerateButton.disabled = true;
 }
 
 async function displayMessage(message: Message): Promise<HTMLDivElement>{
