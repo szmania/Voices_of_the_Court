@@ -150,18 +150,16 @@ leaveButton.addEventListener("click", ()=>{
 
 regenerateButton.addEventListener('click', () => {
     const messages = Array.from(chatMessages.querySelectorAll('.message'));
-    let lastAiMessageIndex = -1;
+
+    // Iterate backwards from the end of the messages
     for (let i = messages.length - 1; i >= 0; i--) {
-        if (messages[i].classList.contains('ai-message')) {
-            lastAiMessageIndex = i;
+        const messageElement = messages[i];
+        // If it's a player message, we've gone back far enough. Stop.
+        if (messageElement.classList.contains('player-message')) {
             break;
         }
-    }
-
-    if (lastAiMessageIndex !== -1) {
-        // Remove the AI message and all subsequent messages from the DOM
-        const messagesToRemove = messages.slice(lastAiMessageIndex);
-        messagesToRemove.forEach(msg => msg.remove());
+        // Otherwise, it's an AI message, an action message, or an error. Remove it.
+        messageElement.remove();
     }
 
     showLoadingDots();
