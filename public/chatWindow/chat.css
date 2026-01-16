@@ -108,6 +108,11 @@ html{
     color: white;
 }
 
+.regenerate-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 
 em{
     color:#91918f;
