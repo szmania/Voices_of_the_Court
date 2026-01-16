@@ -76,6 +76,9 @@ function displayActions(actions: ActionResponse[]){
 }
 
 function displayErrorMessage(error: string){
+    // Check if any AI messages exist before removing loading dots
+    const hasAiMessage = document.querySelector('.ai-message') !== null;
+    
     removeLoadingDots();
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -84,6 +87,11 @@ function displayErrorMessage(error: string){
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Only enable the regenerate button if there's at least one AI message
+    if (!hasAiMessage) {
+        regenerateButton.disabled = true;
+    }
 }
 
 
