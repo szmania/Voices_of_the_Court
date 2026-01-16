@@ -79,23 +79,34 @@ html{
 }
 
 
-.leave-button {
-    background: gray;
-    color:white;
-    border: solid 2px rgb(39, 33, 0);
-    width: 100%;
+.button-container {
+    display: flex;
+    gap: 10px; /* Adds space between the buttons */
     height: 8%;
+}
+
+.leave-button,
+.regenerate-button {
+    flex: 1; /* Each button will take up equal space */
+    background: gray;
+    color: white;
+    border: solid 2px rgb(39, 33, 0);
     font-size: 1rem;
     background-image: url(../assets/button.png);
     background-size: cover;
-    font-family:  Gitan;
-    cursor: url('../assets/cursor.png'), auto;	
+    font-family: Gitan;
+    cursor: url('../assets/cursor.png'), auto;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.leave-button:hover {
-    background-color: rgb(84, 84, 84); 
+.leave-button:hover,
+.regenerate-button:hover {
+    background-color: rgb(84, 84, 84);
     color: white;
-  }
+}
 
 
 em{
