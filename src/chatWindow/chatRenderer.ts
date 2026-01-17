@@ -138,7 +138,6 @@ function showLoadingDots(){  //and disable chat
 function removeLoadingDots(){
     loadingDots?.remove();
     chatInput.disabled = false;
-    regenerateButton.disabled = false;
 }
 
 function hideChat(){
@@ -193,6 +192,7 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
 
     if(!waitForActions){
         removeLoadingDots();
+        regenerateButton.disabled = false;
     }else{
         showLoadingDots();
     }
