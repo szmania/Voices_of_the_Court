@@ -55,6 +55,8 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
+    updateRegenerateButtonState();
+
     return messageDiv;
 }
 
