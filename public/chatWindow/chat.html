@@ -17,7 +17,9 @@
       <textarea class="chat-input" placeholder="Write a message..." rows="4" cols="20"></textarea>
     </div>
     <div class="button-container">
-      <button class="regenerate-button" disabled>Regenerate</button>
+      <div class="button-wrapper" data-tooltip="You can only regenerate a response if the AI was the last one to speak.">
+        <button class="regenerate-button" disabled>Regenerate</button>
+      </div>
       <button class="leave-button">End conversation</button>
     </div>
   </div>

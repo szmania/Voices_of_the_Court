@@ -94,7 +94,6 @@ padding-bottom: 0;
 
 .leave-button,
 .regenerate-button {
-    flex: 1; /* Each button will take up equal space */
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
@@ -109,6 +108,11 @@ padding-bottom: 0;
     align-items: center;
 }
 
+.leave-button,
+.button-wrapper {
+    flex: 1; /* Each will take up equal space */
+}
+
 .leave-button:hover,
 .regenerate-button:hover {
     background-color: rgb(84, 84, 84);
@@ -118,6 +122,62 @@ padding-bottom: 0;
 .regenerate-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.button-wrapper {
+    position: relative;
+}
+
+.button-wrapper .regenerate-button {
+    width: 100%;
+    height: 100%;
+}
+
+/* Show tooltip on hover only when button is disabled */
+.button-wrapper:has(.regenerate-button:disabled):hover::after,
+.button-wrapper:has(.regenerate-button:disabled):hover::before {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.5s; /* Add a small delay before showing */
+}
+
+/* Tooltip bubble */
+.button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+}
+
+/* Tooltip arrow */
+.button-wrapper::before {
+    content: '';
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+
+    border: 8px solid transparent;
+    border-top-color: #111;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
 }
 
 
