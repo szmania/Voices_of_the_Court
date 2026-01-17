@@ -17,6 +17,7 @@ let chatInput: HTMLTextAreaElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
+let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
 let loadingDots: any;
 let lastResponseHadAction = true;
 
