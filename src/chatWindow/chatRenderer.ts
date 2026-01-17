@@ -18,6 +18,7 @@ let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let loadingDots: any;
+let lastResponseHadAction = true;
 
 let playerName: string;
 let aiName: string;
@@ -49,6 +50,7 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
             messageDiv.classList.add('ai-message');
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
 
+lastResponseHadAction = false;
             break;
     };   
     chatMessages.append(messageDiv);
@@ -58,6 +60,7 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
 }
 
 function displayActions(actions: ActionResponse[]){
+lastResponseHadAction = true;
     
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -224,4 +227,3 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[])=>{
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
 })
-
