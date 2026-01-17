@@ -61,6 +61,9 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
 }
 
 function displayActions(actions: ActionResponse[]){
+    if (!actions || actions.length === 0) {
+        return;
+    }
     
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'action-message');
