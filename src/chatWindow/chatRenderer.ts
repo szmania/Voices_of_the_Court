@@ -13,7 +13,7 @@ hideChat();
 
 
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
-let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
+let chatInput: HTMLTextAreaElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
@@ -60,7 +60,8 @@ lastResponseHadAction = false;
 }
 
 function displayActions(actions: ActionResponse[]){
-lastResponseHadAction = true;
+    lastResponseHadAction = true;
+    regenerateButton.disabled = true;
     
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
