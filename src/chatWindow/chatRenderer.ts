@@ -94,6 +94,52 @@ function displayErrorMessage(error: string){
     updateRegenerateButtonState();
 }
 
+function updateRegenerateButtonState() {
+    const lastMessageElement = chatMessages.lastElementChild as HTMLElement;
+    const defaultTooltip = "You can only regenerate a response if the AI was the last one to speak.";
+    const actionTooltip = "Cannot regenerate a response that includes actions.";
+    const waitingTooltip = "Waiting for a response...";
+
+    // Case 1: Loading dots are visible
+    if (document.querySelector('.loading')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', waitingTooltip);
+        return;
+    }
+
+    // Case 2: No messages or last message is not a valid message element
+    if (!lastMessageElement || !lastMessageElement.classList.contains('message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Case 3: Last message is an action message
+    if (lastMessageElement.classList.contains('action-message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', actionTooltip);
+        return;
+    }
+
+    // Case 4: Last message is a player message or error message
+    if (lastMessageElement.classList.contains('player-message') || lastMessageElement.classList.contains('error-message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Case 5: Last message is a plain AI message (enabling the button)
+    if (lastMessageElement.classList.contains('ai-message')) {
+        regenerateButton.disabled = false;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Default case: Disable the button
+    regenerateButton.disabled = true;
+    regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+}
+
 
 
 chatInput.addEventListener('keydown', async function(e) {    
