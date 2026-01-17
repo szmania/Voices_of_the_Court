@@ -19,7 +19,6 @@ let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
 let loadingDots: any;
-let lastResponseHadAction = true;
 
 let playerName: string;
 let aiName: string;
@@ -30,8 +29,7 @@ async function initChat(){
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
     chatInput.disabled = false;    
-    regenerateButton.disabled = true;
-    regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
+    updateRegenerateButtonState();
 }
 
 async function displayMessage(message: Message): Promise<HTMLDivElement>{
@@ -52,7 +50,6 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
             messageDiv.classList.add('ai-message');
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
 
-lastResponseHadAction = false;
             break;
     };   
     chatMessages.append(messageDiv);
@@ -62,12 +59,9 @@ lastResponseHadAction = false;
 }
 
 function displayActions(actions: ActionResponse[]){
-    lastResponseHadAction = true;
-    regenerateButton.disabled = true;
-    regenerateButtonWrapper.dataset.tooltip = 'Cannot regenerate a response that includes actions.';
     
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
+    messageDiv.classList.add('message', 'action-message');
     for(const action of actions){
         
         const ActionSpan = document.createElement('span');
@@ -80,11 +74,11 @@ function displayActions(actions: ActionResponse[]){
     
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight; 
+    
+    updateRegenerateButtonState();
 }
 
 function displayErrorMessage(error: string){
-    // Check if any AI messages exist before removing loading dots
-    const hasAiMessage = document.querySelector('.ai-message') !== null;
     
     removeLoadingDots();
     const messageDiv = document.createElement('div');
@@ -95,11 +89,7 @@ function displayErrorMessage(error: string){
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Only enable the regenerate button if there's at least one AI message
-    if (!hasAiMessage) {
-        regenerateButton.disabled = true;
-        regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
-    }
+    updateRegenerateButtonState();
 }
 
 
@@ -136,13 +126,15 @@ function showLoadingDots(){  //and disable chat
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
-    regenerateButton.disabled = true;
-    regenerateButtonWrapper.dataset.tooltip = 'Waiting for a response...';
+    
+    updateRegenerateButtonState();
 }
 
 function removeLoadingDots(){
     loadingDots?.remove();
     chatInput.disabled = false;
+    
+    updateRegenerateButtonState();
 }
 
 function hideChat(){
@@ -170,6 +162,7 @@ regenerateButton.addEventListener('click', () => {
         messageElement.remove();
     }
 
+    updateRegenerateButtonState();
     showLoadingDots();
     ipcRenderer.send('regenerate-response');
 });
@@ -195,12 +188,10 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     await displayMessage(message);
     console.log("wait: "+waitForActions)
 
-    if(!waitForActions){
-        removeLoadingDots();
-        regenerateButton.disabled = false;
-        regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
-    }else{
+    if(waitForActions){
         showLoadingDots();
+    } else{
+        removeLoadingDots();
     }
 
     
