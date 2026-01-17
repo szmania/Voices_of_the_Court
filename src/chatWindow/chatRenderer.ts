@@ -31,6 +31,7 @@ async function initChat(){
     chatInput.innerHTML = '';
     chatInput.disabled = false;    
     regenerateButton.disabled = true;
+    regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
 }
 
 async function displayMessage(message: Message): Promise<HTMLDivElement>{
@@ -63,6 +64,7 @@ lastResponseHadAction = false;
 function displayActions(actions: ActionResponse[]){
     lastResponseHadAction = true;
     regenerateButton.disabled = true;
+    regenerateButtonWrapper.dataset.tooltip = 'Cannot regenerate a response that includes actions.';
     
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -96,6 +98,7 @@ function displayErrorMessage(error: string){
     // Only enable the regenerate button if there's at least one AI message
     if (!hasAiMessage) {
         regenerateButton.disabled = true;
+        regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
     }
 }
 
@@ -134,6 +137,7 @@ function showLoadingDots(){  //and disable chat
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
     regenerateButton.disabled = true;
+    regenerateButtonWrapper.dataset.tooltip = 'Waiting for a response...';
 }
 
 function removeLoadingDots(){
@@ -194,6 +198,7 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     if(!waitForActions){
         removeLoadingDots();
         regenerateButton.disabled = false;
+        regenerateButtonWrapper.dataset.tooltip = 'You can only regenerate a response if the AI was the last one to speak.';
     }else{
         showLoadingDots();
     }
