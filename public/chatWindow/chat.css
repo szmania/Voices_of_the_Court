@@ -180,6 +180,58 @@ padding-bottom: 0;
     z-index: 10;
 }
 
+/* Make input container relative for tooltip positioning */
+.input-container {
+    position: relative;
+}
+
+/* Show tooltip on hover only when textarea is disabled */
+#input-wrapper:has(#chat-input:disabled):hover::after,
+#input-wrapper:has(#chat-input:disabled):hover::before {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.5s; /* Add a small delay before showing */
+}
+
+/* Tooltip bubble for input */
+#input-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+}
+
+/* Tooltip arrow for input */
+#input-wrapper::before {
+    content: '';
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+
+    border: 8px solid transparent;
+    border-top-color: #111;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+}
+
 
 em{
     color:#91918f;
