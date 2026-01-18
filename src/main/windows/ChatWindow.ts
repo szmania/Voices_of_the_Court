@@ -14,7 +14,7 @@ export class ChatWindow{
 
 
     constructor(){
-        this.title = "Voices of the Court - Chat";
+        this.title = "Voices of the Court - Community Edition - Chat";
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
             resizable: false,
