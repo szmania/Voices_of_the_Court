@@ -233,6 +233,7 @@ ipcRenderer.on('chat-start', (e, gameData: GameData) =>{
     aiName = gameData.aiName;
     initChat();
     document.body.style.display = '';
+    showLoadingDots();
 })
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
