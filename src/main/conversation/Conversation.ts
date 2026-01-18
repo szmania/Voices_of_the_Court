@@ -36,6 +36,7 @@ export class Conversation{
         this.chatWindow = chatWindow;
         this.isOpen = true;
         this.gameData = gameData;
+        this.chatWindow.setTitle(`Voices of the Court - ${this.gameData.playerName} & ${this.gameData.aiName}`);
         this.messages = [];
         this.currentSummary = "";
 

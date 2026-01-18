@@ -10,9 +10,11 @@ export class ChatWindow{
     isShown: boolean;
     windowWatchId: number;
     interval: any;
+    title: string;
 
 
     constructor(){
+        this.title = "Voices of the Court - Chat";
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
             resizable: false,
@@ -51,6 +53,11 @@ export class ChatWindow{
         
     }
 
+    setTitle(title: string){
+        this.title = title;
+        this.window.setTitle(title);
+    }
+
     show(){
         console.log("Chat window showed!");
         OverlayController.activateOverlay();
@@ -73,7 +80,7 @@ export class ChatWindow{
                 let win = ActiveWindow.getActiveWindow();
                // console.log(win.title)
 
-                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Chat"){
+                if(win.title === "Crusader Kings III" || win.title === this.title){
                     OverlayController.activateOverlay();
                     //this.window.webContents.send('chat-show');
                 }else{
