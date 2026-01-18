@@ -51,8 +51,8 @@ export class ApiConnection{
                 apiKey: connection.key,
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    "HTTP-Referer": "https://github.com/Demeter29/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
-                    "X-Title": "Voices of the Court", // Optional. Shows in rankings on openrouter.ai.
+                    "HTTP-Referer": "https://github.com/szmania/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
+                    "X-Title": "Voices of the Court - Community Edition", // Optional. Shows in rankings on openrouter.ai.
                   }
             })
         }else{

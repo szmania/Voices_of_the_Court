@@ -1,6 +1,6 @@
 # Voices of the Court - Community Edition
 
-Voices of the Court is a Crusader Kings 3 mod which integrates Large Language Models into the game. It lets you hold conversations with the characters and also impact the game state to an extend.
+Voices of the Court - Community Edition is a Crusader Kings 3 mod which integrates Large Language Models into the game. It lets you hold conversations with the characters and also impact the game state to an extend.
 
 Documentation: https://docs.voicesofthecourt.app
 
