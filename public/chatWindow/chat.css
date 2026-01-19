@@ -61,6 +61,56 @@ html{
     color: white;
 }
 
+.reset-button-wrapper {
+    position: relative;
+}
+
+.reset-button-wrapper:hover::after,
+.reset-button-wrapper:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.5s;
+}
+
+/* Tooltip bubble for reset button */
+.reset-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px); /* Position below the arrow */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 100;
+}
+
+/* Tooltip arrow for reset button */
+.reset-button-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 100%; /* Position at the bottom of the wrapper */
+    left: 50%;
+    transform: translateX(-50%);
+
+    border: 8px solid transparent;
+    border-bottom-color: #111; /* Creates an upward-pointing arrow */
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 100;
+}
+
 .messages-container{
     overflow: hidden;
     position: relative;
