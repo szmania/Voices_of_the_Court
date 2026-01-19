@@ -16,10 +16,10 @@ html{
     display: flex;
     flex-direction: column;
     position: absolute;
-    width: 600px;
-    height: 700px;
-    left: 50px;
-    top: 50px;
+    width: 47%;
+    height: 90%;
+    left: 3%;
+    top: 5%;
     padding: 0.5%;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
