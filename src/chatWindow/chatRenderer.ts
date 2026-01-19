@@ -234,7 +234,10 @@ ipcRenderer.on('chat-start', (e, gameData: GameData) =>{
     aiName = gameData.aiName;
     initChat();
     document.body.style.display = '';
-    showLoadingDots();
+    // For self-talk, the AI initiates. Otherwise, the player does.
+    if (gameData.playerID === gameData.aiID) {
+        showLoadingDots();
+    }
 })
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
