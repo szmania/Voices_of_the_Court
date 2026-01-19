@@ -27,6 +27,10 @@ html{
     background-image: url('../assets/background_area_light.png');
     cursor: url('../assets/cursor.png'), auto;
     font-family: Gitan;	
+    resize: both;
+    overflow: hidden;
+    min-width: 300px;
+    min-height: 400px;
 }
 
 .messages-container{

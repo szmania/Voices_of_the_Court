@@ -17,7 +17,6 @@ export class ChatWindow{
         this.title = "Voices of the Court - Community Edition - Chat";
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
-            resizable: true,
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
