@@ -76,9 +76,9 @@ html{
 .reset-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    top: calc(100% + 8px); /* Position below the arrow */
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    right: calc(100% + 8px); /* Position to the left of the button */
+    transform: translateY(-50%);
     
     background-color: #111;
     color: #fff;
@@ -98,12 +98,12 @@ html{
 .reset-button-wrapper::before {
     content: '';
     position: absolute;
-    top: 100%; /* Position at the bottom of the wrapper */
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%; /* Vertically centered */
+    right: 100%;
+    transform: translateY(-50%);
 
     border: 8px solid transparent;
-    border-bottom-color: #111; /* Creates an upward-pointing arrow */
+    border-left-color: #111; /* Creates a right-pointing arrow */
 
     opacity: 0;
     visibility: hidden;
