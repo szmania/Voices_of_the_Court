@@ -17,15 +17,17 @@ export class ChatWindow{
         this.title = "Voices of the Court - Community Edition - Chat";
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
+            width: 650,
+            height: 800,
             resizable: true,
+            frame: true,
+            fullscreen: false,
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
             preload: path.join(__dirname, '..', 'preload.js'),
             }       
         })
-
-        //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
         
         this.windowWatchId = 0;
 
