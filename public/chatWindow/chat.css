@@ -41,6 +41,24 @@ html{
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     margin-bottom: 5px; /* Add some space below the handle */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.reset-button {
+    background: transparent;
+    border: none;
+    color: #dcdcd2;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 8px;
+    line-height: 20px;
+    z-index: 1;
+}
+
+.reset-button:hover {
+    color: white;
 }
 
 .messages-container{

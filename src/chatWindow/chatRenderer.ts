@@ -18,6 +18,7 @@ let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
+let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
 let loadingDots: any;
 
 let playerName: string;
@@ -318,3 +319,12 @@ const dragHandle = document.querySelector('.drag-handle') as HTMLElement;
 if (chatBox && dragHandle) {
     makeDraggable(chatBox, dragHandle);
 }
+
+resetButton.addEventListener('click', () => {
+    if (chatBox) {
+        chatBox.style.top = '';
+        chatBox.style.left = '';
+        chatBox.style.width = '';
+        chatBox.style.height = '';
+    }
+});
