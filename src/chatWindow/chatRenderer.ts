@@ -19,6 +19,8 @@ let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
+let searchInput: HTMLInputElement = document.querySelector('.search-bar')!;
+let searchButton: HTMLButtonElement = document.querySelector('.search-button')!;
 let loadingDots: any;
 
 let playerName: string;
@@ -96,6 +98,21 @@ function displayErrorMessage(error: string){
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     updateRegenerateButtonState();
+}
+
+function searchMessages(query: string) {
+    const messages = chatMessages.querySelectorAll('.message');
+    const lowerCaseQuery = query.toLowerCase();
+
+    messages.forEach((messageElement) => {
+        const message = messageElement as HTMLElement;
+        const text = message.innerText.toLowerCase();
+        if (text.includes(lowerCaseQuery)) {
+            message.style.display = '';
+        } else {
+            message.style.display = 'none';
+        }
+    });
 }
 
 function updateRegenerateButtonState() {
@@ -217,6 +234,14 @@ regenerateButton.addEventListener('click', () => {
     updateRegenerateButtonState();
     showLoadingDots();
     ipcRenderer.send('regenerate-response');
+});
+
+searchInput.addEventListener('input', () => {
+    searchMessages(searchInput.value);
+});
+
+searchButton.addEventListener('click', () => {
+    searchMessages(searchInput.value);
 });
 
 //IPC Events
