@@ -462,6 +462,14 @@ mark {
     opacity: 0.7;
 }
 
+.system-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
 .history-separator {
     text-align: center;
     margin: 15px 0;

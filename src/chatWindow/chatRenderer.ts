@@ -340,6 +340,12 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversatio
             await displayHistoricalConversation(conversation);
         }
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+        // Display a message when no conversation history is found
+        const noHistoryMessage = document.createElement('div');
+        noHistoryMessage.className = 'system-message';
+        noHistoryMessage.textContent = 'No previous conversation history found.';
+        chatMessages.appendChild(noHistoryMessage);
     }
     
     document.body.style.display = '';
