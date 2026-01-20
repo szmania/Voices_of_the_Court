@@ -454,11 +454,37 @@ mark {
     border-radius: 3px;
 }
 
-.loading{
-    margin-left: 5px;
+.neutral-action-message{
+    color: yellow;
 }
 
-.loading:after {
+.historical-message {
+    opacity: 0.7;
+}
+
+.history-separator {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 0.9rem;
+    color: #91918f; /* Same as em */
+    display: flex;
+    align-items: center;
+}
+
+.history-separator::before,
+.history-separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgb(96, 71, 54);
+}
+
+.history-separator:not(:empty)::before {
+    margin-right: .25em;
+}
+
+.history-separator:not(:empty)::after {
+    margin-left: .25em;
+}
     content: ' .';
     animation: dots 1s steps(5, end) infinite;
 }
