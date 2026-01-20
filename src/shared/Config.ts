@@ -53,6 +53,8 @@ export class Config{
     selfTalkPrompt!: string;
     selectedSelfTalkExMsgScript!: string;
     selfTalkSummarizePrompt!: string;
+
+    showPreviousConversations!: boolean;
     
     lastRunVersion!: string;
 
@@ -79,4 +81,3 @@ export class Config{
     }
 
 }
-
