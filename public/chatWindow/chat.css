@@ -46,6 +46,60 @@ html{
     align-items: center;
 }
 
+.search-container {
+    position: absolute;
+    top: 2px;
+    right: 35px;
+    z-index: 2;
+}
+
+.search-icon {
+    cursor: pointer;
+    font-size: 16px;
+    color: #dcdcd2;
+    padding: 2px;
+    float: right; /* Align icon to the right */
+}
+
+.search-dropdown {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s, visibility 0.2s;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background-color: rgba(17, 17, 17, 0.85);
+    padding: 8px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    display: flex;
+    gap: 5px;
+}
+
+/* Show dropdown on hover or when active */
+.search-container:hover .search-dropdown,
+.search-container.active .search-dropdown {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+.search-container .search-bar {
+    width: 200px;
+    background: rgba(0, 0, 0, 0.5);
+    color: rgb(209, 209, 209);
+    border: 1px solid rgb(96, 71, 54);
+    border-radius: 5px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    padding: 5px;
+}
+
+.search-container .search-button {
+    flex-shrink: 0;
+    padding: 0 10px;
+}
+
 .reset-button {
     background: transparent;
     border: none;
@@ -175,7 +229,8 @@ padding-bottom: 0;
 }
 
 .leave-button,
-.regenerate-button {
+.regenerate-button,
+.search-button {
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
