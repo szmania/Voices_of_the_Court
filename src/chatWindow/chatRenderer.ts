@@ -218,6 +218,7 @@ chatInput.addEventListener('keydown', async function(e) {
         e.preventDefault(); //disallow newlines   
         if(chatInput.value != ''){
             const messageText = chatInput.value;
+            console.log(`User submitted message: "${messageText}"`);
             chatInput.value = ''
 
             let message: Message = {
@@ -229,6 +230,7 @@ chatInput.addEventListener('keydown', async function(e) {
             await displayMessage(message);
             showLoadingDots();
             ipcRenderer.send('message-send', message);
+            console.log('Sent message-send event to main process.');
 
         };
     };
@@ -261,6 +263,8 @@ function hideChat(){
 }
 
 async function displayHistoricalConversation(conversation: HistoricalConversation): Promise<void> {
+    console.log(`Displaying historical conversation: ${conversation.summary} (${conversation.date}) with ${conversation.messages.length} messages.`);
+    
     const separator = document.createElement('div');
     separator.classList.add('history-separator');
     separator.textContent = `${conversation.summary} (${conversation.date})`;
@@ -269,6 +273,8 @@ async function displayHistoricalConversation(conversation: HistoricalConversatio
     for (const message of conversation.messages) {
         await displayMessage(message, true);
     }
+    
+    console.log(`Finished displaying historical conversation: ${conversation.summary}`);
 }
 
 leaveButton.addEventListener("click", ()=>{
@@ -329,18 +335,25 @@ ipcRenderer.on('chat-hide', () =>{
 })
 
 ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversations: HistoricalConversation[]) =>{   
+    console.log('Received chat-start event. GameData:', gameData);
+    console.log(`Received ${historicalConversations ? historicalConversations.length : 0} historical conversations.`);
+    
     playerName = gameData.playerName;
     aiName = gameData.aiName;
     initChat();
     
     // Display historical conversations if available
     if (historicalConversations && historicalConversations.length > 0) {
+        console.log('Displaying historical conversations...');
         historicalConversations.reverse();
         for (const conversation of historicalConversations) {
+            console.log(`Rendering historical conversation from ${conversation.date} with ${conversation.messages.length} messages.`);
             await displayHistoricalConversation(conversation);
         }
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        console.log('Finished displaying historical conversations.');
     } else {
+        console.log('No historical conversations to display.');
         // Display a message when no conversation history is found
         const noHistoryMessage = document.createElement('div');
         noHistoryMessage.className = 'system-message';
@@ -356,8 +369,9 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversatio
 })
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
+    console.log('Received new AI message:', message);
     await displayMessage(message);
-    console.log("wait: "+waitForActions)
+    console.log("wait for actions: "+waitForActions)
 
     if(waitForActions){
         showLoadingDots();

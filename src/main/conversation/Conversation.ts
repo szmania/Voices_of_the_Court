@@ -91,12 +91,16 @@ export class Conversation{
         let historicalConversations: HistoricalConversation[] = [];
 
         if (this.config.showPreviousConversations) {
+            console.log('showPreviousConversations is ENABLED. Attempting to load history.');
             const characterSummaries = this.summaries.get(this.gameData.aiID) || [];
+            console.log(`Found ${characterSummaries.length} potential summary entries for AI ID ${this.gameData.aiID}.`);
             
             for (const summary of characterSummaries) {
                 if (summary.historyFile && fs.existsSync(summary.historyFile)) {
                     try {
+                        console.log(`Attempting to load history from file: ${summary.historyFile}`);
                         const messages: Message[] = JSON.parse(fs.readFileSync(summary.historyFile, 'utf8'));
+                        console.log(`Successfully loaded ${messages.length} messages from ${summary.historyFile}.`);
                         historicalConversations.push({
                             summary: summary.content,
                             date: summary.date,
@@ -105,11 +109,17 @@ export class Conversation{
                     } catch (e) {
                         console.error(`Error parsing history file ${summary.historyFile}: ${e}`);
                     }
+                } else {
+                    console.log(`No history file found for summary dated ${summary.date} or history file path is invalid.`);
                 }
             }
+            console.log(`Total historical conversations prepared for sending to UI: ${historicalConversations.length}`);
+        } else {
+            console.log('showPreviousConversations is DISABLED. No history will be loaded.');
         }
 
         this.chatWindow.window.webContents.send('chat-start', this.gameData, historicalConversations);
+        console.log('Sent chat-start event to renderer with gameData and historical conversations.');
     }
 
     pushMessage(message: Message): void{           
@@ -154,6 +164,9 @@ export class Conversation{
     async generateNewAIMessage(character: Character){
         console.log(`Generating AI message for character: ${character.fullName}`);
         
+        // Log the current state of messages before building the prompt
+        console.log(`Current messages in conversation (before prompt build) for ${character.fullName}:`, JSON.stringify(this.messages, null, 2));
+
         const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
