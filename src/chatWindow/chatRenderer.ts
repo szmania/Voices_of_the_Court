@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
+import {ActionResponse, Message, HistoricalConversation} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
 const DOMPurify = require('dompurify');
@@ -36,7 +36,7 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message): Promise<HTMLDivElement>{
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
@@ -44,6 +44,9 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
 
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
+    if (isHistorical) {
+        messageDiv.classList.add('historical-message');
+    }
     switch (message.role){
         case 'user':
             messageDiv.classList.add('player-message');
@@ -255,6 +258,17 @@ function hideChat(){
     document.body.style.display = 'none';
 }
 
+async function displayHistoricalConversation(conversation: HistoricalConversation): Promise<void> {
+    const separator = document.createElement('div');
+    separator.classList.add('history-separator');
+    separator.textContent = conversation.summary;
+    chatMessages.appendChild(separator);
+    
+    for (const message of conversation.messages) {
+        await displayMessage(message, true);
+    }
+}
+
 leaveButton.addEventListener("click", ()=>{
     hideChat();
     chatMessages.innerHTML = '';
@@ -312,10 +326,18 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', (e, gameData: GameData) =>{   
+ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversations: HistoricalConversation[]) =>{   
     playerName = gameData.playerName;
     aiName = gameData.aiName;
     initChat();
+    
+    // Display historical conversations if available
+    if (historicalConversations && historicalConversations.length > 0) {
+        for (const conversation of historicalConversations) {
+            await displayHistoricalConversation(conversation);
+        }
+    }
+    
     document.body.style.display = '';
     // For self-talk, the AI initiates. Otherwise, the player does.
     if (gameData.playerID === gameData.aiID) {
