@@ -128,7 +128,8 @@ function performSearch() {
     const regex = new RegExp(escapeRegExp(query), 'gi');
     let firstMatchElement: HTMLElement | null = null;
 
-    messages.forEach((messageElement) => {
+    // Use a for...of loop instead of forEach
+    for (const messageElement of messages) {
         const message = messageElement as HTMLElement;
         // Use a TreeWalker to safely traverse and modify only text nodes
         const treeWalker = document.createTreeWalker(message, NodeFilter.SHOW_TEXT);
@@ -152,7 +153,7 @@ function performSearch() {
         if (foundInMessage && !firstMatchElement) {
             firstMatchElement = message;
         }
-    });
+    }
 
     if (firstMatchElement) {
         firstMatchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
