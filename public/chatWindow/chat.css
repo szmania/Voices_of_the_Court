@@ -62,6 +62,53 @@ html{
     position: relative; /* Required for tooltip positioning */
 }
 
+.search-icon:hover {
+    color: #dcdcd2; /* Make icon brighter on hover for feedback */
+}
+
+/* Show tooltip on hover */
+.search-icon:hover::after,
+.search-icon:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.5s;
+}
+
+/* Tooltip bubble for search icon */
+.search-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 8px); /* Position to the left of the icon */
+    transform: translateY(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 100;
+}
+
+/* Tooltip arrow for search icon */
+.search-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    transform: translateY(-50%);
+    border: 8px solid transparent;
+    border-left-color: #111; /* Arrow pointing right */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 100;
+}
+
 .search-dropdown {
     visibility: hidden;
     opacity: 0;
