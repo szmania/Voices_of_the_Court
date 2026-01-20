@@ -10,7 +10,7 @@ import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
-import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
+import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, HistoricalConversation} from '../ts/conversation_interfaces.js';
 import { RunFileManager } from '../RunFileManager.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 
@@ -371,81 +371,62 @@ export class Conversation{
     async summarize() {
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
-        // Write a trigger event to the game (e.g., trigger conversation end event)
+        // Write a trigger event to the game
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
-            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            this.runFileManager.clear();
             console.log('Run file cleared after conversation end event.');
         }, 500);
 
-        // Ensure the conversation_history directory exists
-        const historyDir = path.join(userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
-
-        if (!fs.existsSync(historyDir)) {
-          fs.mkdirSync(historyDir, { recursive: true });
-          console.log(`Created conversation history directory: ${historyDir}`);
-        }
-
-        // Process conversation messages, keeping only name and content
-        const processedMessages = this.messages.map(msg => ({
-          name: msg.name,
-          content: msg.content
-        }));
-
-        // Build the text content to be saved
-        let textContent = `Date: ${this.gameData.date}\n\n`;
-
-        processedMessages.forEach((msg, index) => {
-          textContent += `${msg.name}: ${msg.content}\n\n`;
-        });
-
-        // Store the message text for generating summaries in txt format
-        const historyFile = path.join(
-          userDataPath,
-          'conversation_history',
-          this.gameData.playerID.toString(),
-          `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.txt`
-        );
-        fs.writeFileSync(historyFile, textContent);
-        console.log(`Conversation history saved to: ${historyFile}`)
-
         // Do not generate a summary if there are not enough messages
         if (this.messages.length < 2) {
-            console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
+            console.log("Not enough messages to generate a summary. Skipping summary generation.");
             return;
         }
 
-        // Generate a new summary (by calling the summarize utility function)
+        // 1. Save conversation history to a JSON file
+        const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        if (!fs.existsSync(historyDir)) {
+            fs.mkdirSync(historyDir, { recursive: true });
+            console.log(`Created conversation history directory: ${historyDir}`);
+        }
+
+        const historyFile = path.join(
+            historyDir,
+            `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.json`
+        );
+        fs.writeFileSync(historyFile, JSON.stringify(this.messages, null, '\t'));
+        console.log(`Conversation history saved to: ${historyFile}`);
+
+        // 2. Generate the summary content
+        const summaryContent = await summarize(this);
+        if (!summaryContent.trim()) {
+            console.log("Generated summary was empty. Skipping saving.");
+            return;
+        }
+        console.log(`Generated new summary for conversation: ${summaryContent.substring(0, 100)}...`);
+
+        // 3. Create the new summary object
         const newSummary: Summary = {
-            date: this.gameData.date,  // Current in-game date
-            content: await summarize(this)  // Asynchronously generate summary content
+            date: this.gameData.date,
+            content: summaryContent,
+            historyFile: historyFile // Link to the history file
         };
-        console.log(`Generated new summary for conversation: ${newSummary.content.substring(0, 100)}...`);
 
+        // 4. Save the summary for the specific AI character
+        const aiCharacterId = this.gameData.aiID;
+        const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+        if (!fs.existsSync(summaryDir)) {
+            fs.mkdirSync(summaryDir, { recursive: true });
+        }
+        const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
 
-        this.gameData.characters.forEach((character) => {
-            if (character.id !== this.gameData.playerID) {
-                const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-                const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
+        const existingSummaries = this.summaries.get(aiCharacterId) || [];
+        existingSummaries.unshift(newSummary);
 
-                // Get existing summaries from the map, or start with an empty array
-                const existingSummaries = this.summaries.get(character.id) || [];
-                
-                // Add the new summary to the end of the list ONLY if its content is not empty
-                if (newSummary.content.trim()) {
-                    existingSummaries.unshift(newSummary); // Changed from .push to .unshift
-                    
-                    // Persist the updated summaries for the specific character
-                    fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-                    console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
-                } else {
-                    console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
-                }
-            }
-        });
-
-
-        }; 
+        fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+        console.log(`Saved updated summaries for AI ID ${aiCharacterId} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+    }
 
     updateConfig(config: Config){
         console.log("Config updated! Reloading conversation configuration.");
