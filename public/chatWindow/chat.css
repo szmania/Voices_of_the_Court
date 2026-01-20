@@ -56,14 +56,15 @@ html{
 .search-icon {
     cursor: pointer;
     font-size: 16px;
-    color: #91918f; /* Muted grey color */
+    color: transparent; /* Muted grey color */
+    text-shadow: 0 0 0 #604736;
     padding: 2px;
     float: right; /* Align icon to the right */
     position: relative; /* Required for tooltip positioning */
 }
 
 .search-icon:hover {
-    color: #dcdcd2; /* Make icon brighter on hover for feedback */
+    text-shadow: 0 0 0 #dcdcd2; /* Make icon brighter on hover for feedback */
 }
 
 /* Show tooltip on hover */
