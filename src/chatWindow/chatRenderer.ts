@@ -261,7 +261,7 @@ function hideChat(){
 async function displayHistoricalConversation(conversation: HistoricalConversation): Promise<void> {
     const separator = document.createElement('div');
     separator.classList.add('history-separator');
-    separator.textContent = conversation.summary;
+    separator.textContent = `${conversation.summary} (${conversation.date})`;
     chatMessages.appendChild(separator);
     
     for (const message of conversation.messages) {
