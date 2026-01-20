@@ -60,7 +60,9 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             break;
     };   
     chatMessages.append(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (!isHistorical) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
     updateRegenerateButtonState();
 
@@ -333,9 +335,11 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversatio
     
     // Display historical conversations if available
     if (historicalConversations && historicalConversations.length > 0) {
+        historicalConversations.reverse();
         for (const conversation of historicalConversations) {
             await displayHistoricalConversation(conversation);
         }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
     document.body.style.display = '';
