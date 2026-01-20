@@ -86,6 +86,31 @@ export class Conversation{
         this.loadConfig();
     }
 
+    async start() {
+        console.log('Conversation started.');
+        let historicalConversations: HistoricalConversation[] = [];
+
+        if (this.config.showPreviousConversations) {
+            const characterSummaries = this.summaries.get(this.gameData.aiID) || [];
+            
+            for (const summary of characterSummaries) {
+                if (summary.historyFile && fs.existsSync(summary.historyFile)) {
+                    try {
+                        const messages: Message[] = JSON.parse(fs.readFileSync(summary.historyFile, 'utf8'));
+                        historicalConversations.push({
+                            summary: summary.content,
+                            messages: messages
+                        });
+                    } catch (e) {
+                        console.error(`Error parsing history file ${summary.historyFile}: ${e}`);
+                    }
+                }
+            }
+        }
+
+        this.chatWindow.window.webContents.send('chat-start', this.gameData, historicalConversations);
+    }
+
     pushMessage(message: Message): void{           
         this.messages.push(message);
         console.log(`Message pushed to conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
