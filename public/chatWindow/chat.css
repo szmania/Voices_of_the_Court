@@ -56,9 +56,10 @@ html{
 .search-icon {
     cursor: pointer;
     font-size: 16px;
-    color: #dcdcd2;
+    color: #91918f; /* Muted grey color */
     padding: 2px;
     float: right; /* Align icon to the right */
+    position: relative; /* Required for tooltip positioning */
 }
 
 .search-dropdown {
