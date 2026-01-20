@@ -493,6 +493,8 @@ mark {
 .history-separator:not(:empty)::after {
     margin-left: .25em;
 }
+  
+.loading {
     content: ' .';
     animation: dots 1s steps(5, end) infinite;
 }
