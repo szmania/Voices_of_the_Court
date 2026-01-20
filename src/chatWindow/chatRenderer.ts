@@ -436,27 +436,3 @@ resetButton.addEventListener('click', () => {
         chatBox.style.height = '';
     }
 });
-// This file needs to be reviewed to diagnose the issue with rendering historical conversations.
-
-class ChatRenderer {
-    private container: HTMLElement;
-
-    constructor(containerId: string) {
-        this.container = document.getElementById(containerId)!;
-    }
-
-    renderMessage(message: string, sender: 'user' | 'bot') {
-        const messageElement = document.createElement('div');
-        messageElement.textContent = message;
-        messageElement.className = sender === 'user' ? 'user-message' : 'bot-message';
-        this.container.appendChild(messageElement);
-    }
-
-    clear() {
-        this.container.innerHTML = '';
-    }
-}
-
-// Usage
-const renderer = new ChatRenderer('chat-container');
-renderer.renderMessage('Hello, world!', 'bot');
