@@ -99,6 +99,7 @@ export class Conversation{
                         const messages: Message[] = JSON.parse(fs.readFileSync(summary.historyFile, 'utf8'));
                         historicalConversations.push({
                             summary: summary.content,
+                            date: summary.date,
                             messages: messages
                         });
                     } catch (e) {
