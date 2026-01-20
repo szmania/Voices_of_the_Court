@@ -19,6 +19,7 @@ let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
+let searchContainer: HTMLDivElement = document.querySelector('.search-container')!;
 let searchInput: HTMLInputElement = document.querySelector('.search-bar')!;
 let searchButton: HTMLButtonElement = document.querySelector('.search-button')!;
 let loadingDots: any;
@@ -100,19 +101,62 @@ function displayErrorMessage(error: string){
     updateRegenerateButtonState();
 }
 
-function searchMessages(query: string) {
-    const messages = chatMessages.querySelectorAll('.message');
-    const lowerCaseQuery = query.toLowerCase();
+function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function clearHighlights() {
+    const marks = chatMessages.querySelectorAll('mark');
+    marks.forEach(mark => {
+        const parent = mark.parentNode!;
+        // Replace the <mark> element with its text content
+        parent.replaceChild(document.createTextNode(mark.textContent!), mark);
+        // Merge adjacent text nodes to clean up the DOM for the next search
+        parent.normalize();
+    });
+}
+
+function performSearch() {
+    const query = searchInput.value;
+    clearHighlights(); // Clears previous search results
+
+    if (!query.trim()) {
+        return; // Do not search for empty or whitespace-only strings
+    }
+
+    const messages = chatMessages.querySelectorAll('.message:not(.action-message)');
+    const regex = new RegExp(escapeRegExp(query), 'gi');
+    let firstMatchElement: HTMLElement | null = null;
 
     messages.forEach((messageElement) => {
         const message = messageElement as HTMLElement;
-        const text = message.innerText.toLowerCase();
-        if (text.includes(lowerCaseQuery)) {
-            message.style.display = '';
-        } else {
-            message.style.display = 'none';
+        // Use a TreeWalker to safely traverse and modify only text nodes
+        const treeWalker = document.createTreeWalker(message, NodeFilter.SHOW_TEXT);
+        const nodes: Node[] = [];
+        while (treeWalker.nextNode()) {
+            nodes.push(treeWalker.currentNode);
+        }
+
+        let foundInMessage = false;
+        nodes.forEach(node => {
+            if (node.nodeValue && regex.test(node.nodeValue)) {
+                foundInMessage = true;
+                const span = document.createElement('span');
+                span.innerHTML = node.nodeValue.replace(regex, '<mark>$&</mark>');
+                
+                // Replace the original text node with the new nodes (including <mark>)
+                node.parentNode!.replaceChild(span, node);
+            }
+        });
+
+        if (foundInMessage && !firstMatchElement) {
+            firstMatchElement = message;
         }
     });
+
+    if (firstMatchElement) {
+        firstMatchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
 function updateRegenerateButtonState() {
@@ -237,11 +281,24 @@ regenerateButton.addEventListener('click', () => {
 });
 
 searchInput.addEventListener('input', () => {
-    searchMessages(searchInput.value);
+    // Keep search bar visible if there is text, hide otherwise
+    if (searchInput.value.trim() !== '') {
+        searchContainer.classList.add('active');
+    } else {
+        searchContainer.classList.remove('active');
+        clearHighlights(); // Clear highlights when search input is empty
+    }
 });
 
 searchButton.addEventListener('click', () => {
-    searchMessages(searchInput.value);
+    performSearch();
+});
+
+searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        performSearch();
+    }
 });
 
 //IPC Events

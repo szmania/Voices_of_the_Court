@@ -398,6 +398,13 @@ em{
     color: yellow;
 }
 
+mark {
+    background-color: #d2b73a; /* Gold color to fit the theme */
+    color: #111;
+    padding: 2px;
+    border-radius: 3px;
+}
+
 .loading{
     margin-left: 5px;
 }
