@@ -459,7 +459,8 @@ mark {
 }
 
 .historical-message {
-    opacity: 0.7;
+    opacity: 0.6;
+    filter: brightness(0.8);
 }
 
 .system-message {
@@ -483,7 +484,18 @@ mark {
 .history-separator::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid rgb(96, 71, 54);
+    border-bottom: 1px dashed rgb(96, 71, 54);
+}
+
+.history-end-separator {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.history-end-separator::before,
+.history-end-separator::after {
+    border-bottom: 2px solid rgb(96, 71, 54);
 }
 
 .history-separator:not(:empty)::before {

@@ -350,6 +350,13 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversatio
             console.log(`Rendering historical conversation from ${conversation.date} with ${conversation.messages.length} messages.`);
             await displayHistoricalConversation(conversation);
         }
+
+        // Add a solid line to mark the end of history and start of current chat
+        const endSeparator = document.createElement('div');
+        endSeparator.classList.add('history-separator', 'history-end-separator');
+        endSeparator.textContent = "Current Conversation";
+        chatMessages.appendChild(endSeparator);
+
         chatMessages.scrollTop = chatMessages.scrollHeight;
         console.log('Finished displaying historical conversations.');
     } else {
