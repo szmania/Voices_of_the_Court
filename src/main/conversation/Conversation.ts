@@ -114,11 +114,9 @@ export class Conversation{
                     }
                 } else {
                     if (!summary.historyFile) {
-                        console.warn(`History file path is missing in summary dated ${summary.date}.`);
-                    } else if (!fs.existsSync(summary.historyFile)) {
-                        console.warn(`History file does not exist at path: ${summary.historyFile} for summary dated ${summary.date}.`);
+                        console.warn(`History file path is missing in summary dated ${summary.date}. Full summary object: ${JSON.stringify(summary)}`);
                     } else {
-                        console.log(`No history file found for summary dated ${summary.date} or history file path is invalid.`);
+                        console.warn(`History file does not exist at path: ${summary.historyFile} for summary dated ${summary.date}.`);
                     }
                 }
             }
