@@ -423,7 +423,28 @@ export class Conversation{
             return;
         }
 
-        // 1. Save conversation history to a JSON file
+        // 1. Identify all participants by mapping message names back to character IDs
+        const participantIds = new Set<number>();
+        const nameToIdMap = new Map<string, number>();
+        this.gameData.characters.forEach(char => {
+            nameToIdMap.set(char.fullName, char.id);
+            if (char.shortName) {
+                nameToIdMap.set(char.shortName, char.id);
+            }
+        });
+
+        this.messages.forEach(message => {
+            if (message.name && nameToIdMap.has(message.name)) {
+                participantIds.add(nameToIdMap.get(message.name)!);
+            }
+        });
+        // Ensure the player is always included
+        participantIds.add(this.gameData.playerID);
+
+        // 2. Create a canonical, sorted filename based on all participants
+        const sortedParticipantIds = Array.from(participantIds).sort((a, b) => a - b);
+        const participantIdString = sortedParticipantIds.join('_');
+
         const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
         if (!fs.existsSync(historyDir)) {
             fs.mkdirSync(historyDir, { recursive: true });
@@ -432,12 +453,12 @@ export class Conversation{
 
         const historyFile = path.join(
             historyDir,
-            `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.json`
+            `${participantIdString}_${new Date().getTime()}.json`
         );
         fs.writeFileSync(historyFile, JSON.stringify(this.messages, null, '\t'));
         console.log(`Conversation history saved to: ${historyFile}`);
 
-        // 2. Generate the summary content
+        // 3. Generate the summary content
         const summaryContent = await summarize(this);
         if (!summaryContent.trim()) {
             console.log("Generated summary was empty. Skipping saving.");
@@ -445,26 +466,29 @@ export class Conversation{
         }
         console.log(`Generated new summary for conversation: ${summaryContent.substring(0, 100)}...`);
 
-        // 3. Create the new summary object
+        // 4. Create the new summary object
         const newSummary: Summary = {
             date: this.gameData.date,
             content: summaryContent,
             historyFile: historyFile // Link to the history file
         };
 
-        // 4. Save the summary for the specific AI character
-        const aiCharacterId = this.gameData.aiID;
+        // 5. Save the summary for ALL AI participants in the conversation
+        const aiParticipantIds = sortedParticipantIds.filter(id => id !== this.gameData.playerID);
         const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
         }
-        const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
 
-        const existingSummaries = this.summaries.get(aiCharacterId) || [];
-        existingSummaries.unshift(newSummary);
+        for (const aiCharacterId of aiParticipantIds) {
+            const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
 
-        fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-        console.log(`Saved updated summaries for AI ID ${aiCharacterId} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+            const existingSummaries = this.summaries.get(aiCharacterId) || [];
+            existingSummaries.unshift(newSummary); // Add to the beginning of the array
+
+            fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+            console.log(`Saved updated summaries for AI ID ${aiCharacterId} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+        }
     }
 
     updateConfig(config: Config){
