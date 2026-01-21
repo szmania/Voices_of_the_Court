@@ -30,6 +30,7 @@ export class Conversation{
     actions: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
+    isSummarizing: boolean = false;
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
@@ -421,7 +422,12 @@ export class Conversation{
 
     // Store a summary for each character participating in the conversation.
     async summarize() {
+        if (this.isSummarizing) {
+            console.log('Summarization already in progress. Skipping.');
+            return;
+        }
         console.log('Starting end-of-conversation summarization process.');
+        this.isSummarizing = true;
         this.isOpen = false;
         // Write a trigger event to the game
         this.runFileManager.write("trigger_event = talk_event.9002");
@@ -433,6 +439,7 @@ export class Conversation{
         // Do not generate a summary if there are not enough messages
         if (this.messages.length < 2) {
             console.log("Not enough messages to generate a summary. Skipping summary generation.");
+            this.isSummarizing = false;
             return;
         }
 
@@ -509,7 +516,13 @@ export class Conversation{
 
             fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
             console.log(`Saved updated summaries for AI ID ${aiCharacterId} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+            
+            // Notify the UI that history has been updated for this character.
+            // This allows a newly opened conversation to "catch up" with the summary from the previous one.
+            this.chatWindow.window.webContents.send('history-updated', aiCharacterId, newSummary);
         }
+        this.isSummarizing = false;
+        console.log('End-of-conversation summarization process finished.');
     }
 
     updateConfig(config: Config){
