@@ -125,7 +125,7 @@ export class Conversation{
             console.log('showPreviousConversations is DISABLED. No history will be loaded.');
         }
 
-        this.chatWindow.window.webContents.send('chat-start', this.gameData, historicalConversations);
+        this.chatWindow.window.webContents.send('chat-start', this.gameData, historicalConversations, this.config.showPreviousConversations);
         console.log('Sent chat-start event to renderer with gameData and historical conversations.');
     }
 
