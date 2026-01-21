@@ -57,6 +57,7 @@ export class Conversation{
         this.gameData.characters.forEach((character) => {
             if (character.id !== this.gameData.playerID) {
                 const summaryFilePath = path.join(playerSummaryPath, `${character.id.toString()}.json`);
+                console.log(`Checking for summary file for AI ID ${character.id} at: ${summaryFilePath}`);
                 let characterSummaries: Summary[] = [];
                 if (fs.existsSync(summaryFilePath)) {
                     try {
@@ -70,6 +71,7 @@ export class Conversation{
                     fs.writeFileSync(summaryFilePath, JSON.stringify([], null, '\t'));
                     console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
                 }
+                console.log(`Total summaries loaded for AI ID ${character.id}: ${characterSummaries.length}`);
                 this.summaries.set(character.id, characterSummaries);
             }
         });
@@ -96,6 +98,7 @@ export class Conversation{
             console.log(`Found ${characterSummaries.length} potential summary entries for AI ID ${this.gameData.aiID}.`);
             
             for (const summary of characterSummaries) {
+                console.log(`Checking history file path from summary: ${summary.historyFile}`);
                 if (summary.historyFile && fs.existsSync(summary.historyFile)) {
                     try {
                         console.log(`Attempting to load history from file: ${summary.historyFile}`);
@@ -110,7 +113,13 @@ export class Conversation{
                         console.error(`Error parsing history file ${summary.historyFile}: ${e}`);
                     }
                 } else {
-                    console.log(`No history file found for summary dated ${summary.date} or history file path is invalid.`);
+                    if (!summary.historyFile) {
+                        console.warn(`History file path is missing in summary dated ${summary.date}.`);
+                    } else if (!fs.existsSync(summary.historyFile)) {
+                        console.warn(`History file does not exist at path: ${summary.historyFile} for summary dated ${summary.date}.`);
+                    } else {
+                        console.log(`No history file found for summary dated ${summary.date} or history file path is invalid.`);
+                    }
                 }
             }
             console.log(`Total historical conversations prepared for sending to UI: ${historicalConversations.length}`);
@@ -455,6 +464,7 @@ export class Conversation{
             historyDir,
             `${participantIdString}_${new Date().getTime()}.json`
         );
+        console.log(`Writing conversation history to: ${historyFile}`);
         fs.writeFileSync(historyFile, JSON.stringify(this.messages, null, '\t'));
         console.log(`Conversation history saved to: ${historyFile}`);
 
@@ -482,6 +492,7 @@ export class Conversation{
 
         for (const aiCharacterId of aiParticipantIds) {
             const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
+            console.log(`Writing updated summaries for AI ID ${aiCharacterId} to: ${summaryFile}`);
 
             const existingSummaries = this.summaries.get(aiCharacterId) || [];
             existingSummaries.unshift(newSummary); // Add to the beginning of the array
