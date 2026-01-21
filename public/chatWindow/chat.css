@@ -488,7 +488,7 @@ mark {
     color: #666;
     font-style: italic;
     padding: 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px dashed rgb(96, 71, 54);
 }
 
 .history-separator {
@@ -504,7 +504,7 @@ mark {
 .history-separator::after {
     content: '';
     flex: 1;
-    border-bottom: 1px dashed rgb(96, 71, 54);
+    border-bottom: 1px solid rgb(96, 71, 54);
 }
 
 .history-end-separator {
