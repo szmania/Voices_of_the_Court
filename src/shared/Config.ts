@@ -18,6 +18,7 @@ export class Config{
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
     aiFirstSpeakerChance!: number;
+    actionRequestTimeout!: number;
 
     
 
