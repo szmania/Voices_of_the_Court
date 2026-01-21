@@ -471,7 +471,7 @@ export class Conversation{
         console.log(`Writing conversation history to: ${historyFile}`);
         
         const historyToSave = {
-            location: this.gameData.location,
+            location: `${this.gameData.location} - ${this.gameData.talkScene}`,
             messages: this.messages
         };
 

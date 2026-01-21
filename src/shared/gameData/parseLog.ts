@@ -85,7 +85,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
             switch (dataType){
                 case "init":
                     gameData = new GameData(data);
-                    console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
+                    console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID}) at ${gameData.location} (${gameData.talkScene})`); // Updated log
                 break;
                 case "character": 
                     if (!gameData) continue;
