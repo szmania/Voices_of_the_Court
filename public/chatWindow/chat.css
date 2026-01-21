@@ -464,7 +464,7 @@ mark {
 }
 
 .system-message {
-    text-align: center;
+    text-align: left;
     color: #666;
     font-style: italic;
     padding: 20px;
@@ -472,7 +472,7 @@ mark {
 }
 
 .history-separator {
-    text-align: center;
+    text-align: left;
     margin: 15px 0;
     font-size: 0.9rem;
     color: #91918f; /* Same as em */

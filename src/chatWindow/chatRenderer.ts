@@ -334,38 +334,40 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversations: HistoricalConversation[]) =>{   
+ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversations: HistoricalConversation[], showPreviousConversations: boolean) =>{   
     console.log('Received chat-start event. GameData:', gameData);
-    console.log(`Received ${historicalConversations ? historicalConversations.length : 0} historical conversations.`);
+    console.log(`Received ${historicalConversations ? historicalConversations.length : 0} historical conversations. showPreviousConversations: ${showPreviousConversations}`);
     
     playerName = gameData.playerName;
     aiName = gameData.aiName;
     initChat();
     
     // Display historical conversations if available
-    if (historicalConversations && historicalConversations.length > 0) {
-        console.log('Displaying historical conversations...');
-        historicalConversations.reverse();
-        for (const conversation of historicalConversations) {
-            console.log(`Rendering historical conversation from ${conversation.date} with ${conversation.messages.length} messages.`);
-            await displayHistoricalConversation(conversation);
+    if (showPreviousConversations) {
+        if (historicalConversations && historicalConversations.length > 0) {
+            console.log('Displaying historical conversations...');
+            historicalConversations.reverse();
+            for (const conversation of historicalConversations) {
+                console.log(`Rendering historical conversation from ${conversation.date} with ${conversation.messages.length} messages.`);
+                await displayHistoricalConversation(conversation);
+            }
+
+            // Add a solid line to mark the end of history and start of current chat
+            const endSeparator = document.createElement('div');
+            endSeparator.classList.add('history-separator', 'history-end-separator');
+            endSeparator.textContent = "Current Conversation";
+            chatMessages.appendChild(endSeparator);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            console.log('Finished displaying historical conversations.');
+        } else {
+            console.log('No historical conversations to display.');
+            // Display a message when no conversation history is found
+            const noHistoryMessage = document.createElement('div');
+            noHistoryMessage.className = 'system-message';
+            noHistoryMessage.textContent = 'No previous conversation history found.';
+            chatMessages.appendChild(noHistoryMessage);
         }
-
-        // Add a solid line to mark the end of history and start of current chat
-        const endSeparator = document.createElement('div');
-        endSeparator.classList.add('history-separator', 'history-end-separator');
-        endSeparator.textContent = "Current Conversation";
-        chatMessages.appendChild(endSeparator);
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        console.log('Finished displaying historical conversations.');
-    } else {
-        console.log('No historical conversations to display.');
-        // Display a message when no conversation history is found
-        const noHistoryMessage = document.createElement('div');
-        noHistoryMessage.className = 'system-message';
-        noHistoryMessage.textContent = 'No previous conversation history found.';
-        chatMessages.appendChild(noHistoryMessage);
     }
     
     document.body.style.display = '';
