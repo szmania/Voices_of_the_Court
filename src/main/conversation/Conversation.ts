@@ -121,10 +121,17 @@ export class Conversation{
                     }
                 } else {
                     if (!summary.historyFile) {
-                        console.warn(`History file path is missing in summary dated ${summary.date}. Full summary object: ${JSON.stringify(summary)}`);
+                        console.log(`History file path is missing in summary dated ${summary.date} (legacy summary). Adding summary without messages.`);
                     } else {
-                        console.warn(`History file does not exist at path: ${summary.historyFile} for summary dated ${summary.date}.`);
+                        console.warn(`History file does not exist at path: ${summary.historyFile} for summary dated ${summary.date}. Adding summary without messages.`);
                     }
+                    
+                    historicalConversations.push({
+                        summary: summary.content,
+                        date: summary.date,
+                        location: undefined,
+                        messages: []
+                    });
                 }
             }
             console.log(`Total historical conversations prepared for sending to UI: ${historicalConversations.length}`);
@@ -485,41 +492,55 @@ export class Conversation{
         fs.writeFileSync(historyFile, JSON.stringify(historyToSave, null, '\t'));
         console.log(`Conversation history saved to: ${historyFile}`);
 
-        // 3. Generate the summary content
-        const summaryContent = await summarize(this);
-        if (!summaryContent.trim()) {
-            console.log("Generated summary was empty. Skipping saving.");
-            return;
-        }
-        console.log(`Generated new summary for conversation: ${summaryContent.substring(0, 100)}...`);
-
-        // 4. Create the new summary object
+        // 3. Create the initial summary object with empty content and notify UI
         const newSummary: Summary = {
             date: this.gameData.date,
-            content: summaryContent,
-            historyFile: historyFile // Link to the history file
+            content: "", // Empty content initially
+            historyFile: historyFile
         };
 
-        // 5. Save the summary for ALL AI participants in the conversation
         const aiParticipantIds = sortedParticipantIds.filter(id => id !== this.gameData.playerID);
         const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
         }
 
+        // Save initial summaries and notify UI immediately
         for (const aiCharacterId of aiParticipantIds) {
             const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
-            console.log(`Writing updated summaries for AI ID ${aiCharacterId} to: ${summaryFile}`);
-
             const existingSummaries = this.summaries.get(aiCharacterId) || [];
-            existingSummaries.unshift(newSummary); // Add to the beginning of the array
-
+            existingSummaries.unshift(newSummary);
             fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-            console.log(`Saved updated summaries for AI ID ${aiCharacterId} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
             
-            // Notify the UI that history has been updated for this character.
-            // This allows a newly opened conversation to "catch up" with the summary from the previous one.
             this.chatWindow.window.webContents.send('history-updated', aiCharacterId, newSummary);
+        }
+
+        console.log('History saved and UI notified. Starting background summarization.');
+
+        // 4. Generate the summary content in the background
+        const summaryContent = await summarize(this);
+        if (!summaryContent.trim()) {
+            console.log("Generated summary was empty. Background summarization finished without update.");
+            this.isSummarizing = false;
+            return;
+        }
+        console.log(`Generated new summary for conversation: ${summaryContent.substring(0, 100)}...`);
+
+        // 5. Update the summary object and files with the generated content
+        newSummary.content = summaryContent;
+
+        for (const aiCharacterId of aiParticipantIds) {
+            const summaryFile = path.join(summaryDir, `${aiCharacterId.toString()}.json`);
+            const existingSummaries = this.summaries.get(aiCharacterId) || [];
+            // The summary we added is at index 0
+            if (existingSummaries.length > 0) {
+                existingSummaries[0].content = summaryContent;
+                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                console.log(`Updated summary content for AI ID ${aiCharacterId}.`);
+                
+                // Notify the UI again with the updated summary content
+                this.chatWindow.window.webContents.send('history-updated', aiCharacterId, newSummary);
+            }
         }
         this.isSummarizing = false;
         console.log('End-of-conversation summarization process finished.');
