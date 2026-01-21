@@ -353,7 +353,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
-        chatWindow.window.webContents.send('chat-start', conversation.gameData);
+        await conversation.start();
 
         if (Math.random() < (config.aiFirstSpeakerChance / 100) && gameData.playerID !== gameData.aiID) {
             console.log("AI is initiating the conversation.");
