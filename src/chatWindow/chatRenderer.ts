@@ -278,7 +278,13 @@ async function displayHistoricalConversation(conversation: HistoricalConversatio
     const summaryDiv = document.createElement('div');
     summaryDiv.classList.add('system-message');
     summaryDiv.style.textAlign = 'center';
-    summaryDiv.innerHTML = `<strong>Summary:</strong> ${conversation.summary}`;
+    
+    let summaryHTML = `<strong>Summary:</strong> ${conversation.summary}`;
+    if (conversation.location) {
+        summaryHTML += `<br><strong>Location:</strong> ${conversation.location}`;
+    }
+    
+    summaryDiv.innerHTML = summaryHTML;
     chatMessages.appendChild(summaryDiv);
     
     for (const message of conversation.messages) {

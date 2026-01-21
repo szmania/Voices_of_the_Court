@@ -61,5 +61,6 @@ export interface ActionResponse{
 export interface HistoricalConversation {
     summary: string;
     date: string;
+    location?: string;
     messages: Message[];
 }

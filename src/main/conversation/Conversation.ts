@@ -102,11 +102,17 @@ export class Conversation{
                 if (summary.historyFile && fs.existsSync(summary.historyFile)) {
                     try {
                         console.log(`Attempting to load history from file: ${summary.historyFile}`);
-                        const messages: Message[] = JSON.parse(fs.readFileSync(summary.historyFile, 'utf8'));
+                        const historyData = JSON.parse(fs.readFileSync(summary.historyFile, 'utf8'));
+                        
+                        // Support both old format (array of messages) and new format (object with location)
+                        const messages: Message[] = Array.isArray(historyData) ? historyData : historyData.messages;
+                        const location: string | undefined = Array.isArray(historyData) ? undefined : historyData.location;
+
                         console.log(`Successfully loaded ${messages.length} messages from ${summary.historyFile}.`);
                         historicalConversations.push({
                             summary: summary.content,
                             date: summary.date,
+                            location: location,
                             messages: messages
                         });
                     } catch (e) {
@@ -463,7 +469,13 @@ export class Conversation{
             `${participantIdString}_${new Date().getTime()}.json`
         );
         console.log(`Writing conversation history to: ${historyFile}`);
-        fs.writeFileSync(historyFile, JSON.stringify(this.messages, null, '\t'));
+        
+        const historyToSave = {
+            location: this.gameData.location,
+            messages: this.messages
+        };
+
+        fs.writeFileSync(historyFile, JSON.stringify(historyToSave, null, '\t'));
         console.log(`Conversation history saved to: ${historyFile}`);
 
         // 3. Generate the summary content
