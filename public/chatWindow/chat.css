@@ -431,6 +431,12 @@ em{
     color: #dcdcd2;
 }
 
+.message-date {
+    font-size: 0.8rem;
+    color: #91918f;
+    margin-right: 5px;
+}
+
 .error-message{
     color: red;
 }

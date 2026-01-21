@@ -36,7 +36,7 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
+async function displayMessage(message: Message, isHistorical: boolean = false, date?: string): Promise<HTMLDivElement>{
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
@@ -47,15 +47,21 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     if (isHistorical) {
         messageDiv.classList.add('historical-message');
     }
+
+    let dateHtml = '';
+    if (date) {
+        dateHtml = `<span class="message-date">[${date}]</span> `;
+    }
+
     switch (message.role){
         case 'user':
             messageDiv.classList.add('player-message');
-            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`${dateHtml}**${message.name}:** ${message.content}`), sanitizeConfig);
             break;
         case 'assistant':
             removeLoadingDots();
             messageDiv.classList.add('ai-message');
-            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`${dateHtml}**${message.name}:** ${message.content}`), sanitizeConfig);
 
             break;
     };   
@@ -265,13 +271,18 @@ function hideChat(){
 async function displayHistoricalConversation(conversation: HistoricalConversation): Promise<void> {
     console.log(`Displaying historical conversation: ${conversation.summary} (${conversation.date}) with ${conversation.messages.length} messages.`);
     
+    const summaryDiv = document.createElement('div');
+    summaryDiv.classList.add('system-message');
+    summaryDiv.textContent = conversation.summary;
+    chatMessages.appendChild(summaryDiv);
+
     const separator = document.createElement('div');
     separator.classList.add('history-separator');
-    separator.textContent = `${conversation.summary} (${conversation.date})`;
+    separator.textContent = conversation.date;
     chatMessages.appendChild(separator);
     
     for (const message of conversation.messages) {
-        await displayMessage(message, true);
+        await displayMessage(message, true, conversation.date);
     }
     
     console.log(`Finished displaying historical conversation: ${conversation.summary}`);
