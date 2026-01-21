@@ -25,9 +25,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     let triggeredActions: ActionResponse[] = [];
     
     let response;
+    const timeout = conv.config.actionRequestTimeout; // Get timeout from config
+
     if(conv.actionsApiConnection.isChat()){
         let prompt = buildActionChatPrompt(conv, availableActions);
-        response = await conv.actionsApiConnection.complete(prompt, false, {} );
+        // Pass timeout to the complete method
+        response = await conv.actionsApiConnection.complete(prompt, false, {}, undefined, timeout);
     }
     else{
         let prompt = convertChatToTextNoNames(buildActionChatPrompt(conv, availableActions), conv.config );
@@ -38,6 +41,8 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                 stop: [conv.config.inputSequence, conv.config.outputSequence],
                 max_tokens: conv.config.maxTokens,
             },
+            undefined, // streamRelay
+            timeout    // Pass timeout here
         );
     }
 

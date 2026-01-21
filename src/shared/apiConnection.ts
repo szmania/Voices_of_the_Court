@@ -124,11 +124,13 @@ export class ApiConnection{
         prompt: string | Message[],
         stream: boolean,
         otherArgs: object,
-        streamRelay?: (arg1: MessageChunk) => void
+        streamRelay?: (arg1: MessageChunk) => void,
+        timeout?: number // Add this parameter
     ): Promise<string> {
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
+        console.debug(`Timeout: ${timeout}ms`); // Log the timeout
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
         
@@ -139,6 +141,17 @@ export class ApiConnection{
     
         while (retries < MAX_RETRIES) {
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
+            
+            const controller = new AbortController();
+            let timeoutId: NodeJS.Timeout | null = null;
+
+            if (timeout && timeout > 0) {
+                timeoutId = setTimeout(() => {
+                    console.error(`API request timed out after ${timeout}ms.`);
+                    controller.abort();
+                }, timeout);
+            }
+
             try {
                 if (this.type === 'gemini') {
                     const url = stream 
@@ -187,7 +200,8 @@ export class ApiConnection{
                     const res = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify(requestBody),
+                        signal: controller.signal // Pass the signal
                     });
 
                     if (!res.ok) {
@@ -265,7 +279,8 @@ export class ApiConnection{
                         ...otherArgs
                     };
                     console.debug("Making chat completion request with body:", requestBody);
-                    let completion = await this.client.chat.completions.create(requestBody as any);
+                    // Pass signal in the options
+                    let completion = await this.client.chat.completions.create(requestBody as any, { signal: controller.signal });
     
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
@@ -305,8 +320,9 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making OpenRouter legacy completion request with body:", requestBody);
+                        // Pass signal in the options
                         //@ts-ignore
-                        completion = await this.client.chat.completions.create(requestBody as any);
+                        completion = await this.client.chat.completions.create(requestBody as any, { signal: controller.signal });
                     } else {
                         // Standard non-chat API
                         const requestBody = {
@@ -317,7 +333,7 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making standard completion request with body:", requestBody);
-                        completion = await this.client.completions.create(requestBody as any);
+                        completion = await this.client.completions.create(requestBody as any, { signal: controller.signal });
                     }
 
                     console.debug("Received API response (completion object):", completion);
@@ -360,6 +376,12 @@ export class ApiConnection{
             } catch (error) {
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);
+
+                // Handle our custom timeout first and do not retry
+                if (error instanceof Error && error.name === 'AbortError') {
+                    throw new Error(`API request timed out after ${timeout}ms.`);
+                }
+
                 // Narrow down the error type
                 if (typeof error === "object" && error !== null && "code" in error && "error" in error) {
                     const typedError = error as {
@@ -396,6 +418,11 @@ export class ApiConnection{
                 } else {
                     console.debug("Unknown error type:", error);
                     throw error; // If it's not an object or doesn't have the expected properties
+                }
+            } finally {
+                // Always clear the timeout timer
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
                 }
             }
             
