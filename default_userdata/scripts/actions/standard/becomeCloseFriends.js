@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become friends. (in past tense)"
+            desc: "the reason (the event) that made them become friends. (in past tense)."
         }
     ],
-    description: "Execute when a strong and close friendship formed between {{playerName}} and {{aiName}}.",
+    description: "当{{playerName}}和{{aiName}}之间形成牢固而亲密的友谊时执行。",
 
     /**
      * @param {GameData} gameData 
@@ -36,7 +36,7 @@ module.exports = {
         gameData.getAi().relationsToPlayer.push("Friend");
     },
     chatMessage: (args) =>{
-        return `{{aiName}} has become your friend.`
+        return `{{aiName}}成为了你的朋友。`
     },
     chatMessageClass: "positive-action-message"
 }

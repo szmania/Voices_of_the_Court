@@ -3,6 +3,7 @@ import { ipcRenderer} from 'electron';
 let appVersionSpan: HTMLElement = document.querySelector("#app-version")!;
 let updateButton: HTMLElement = document.querySelector("#update-button")!;
 let clearSummariesButton: HTMLElement = document.querySelector("#clear-summaries")!;
+let themeSelector: HTMLSelectElement = document.querySelector("#theme-selector")!;
 
 document.getElementById("container")!.style.display = "block";
 
@@ -15,3 +16,37 @@ updateButton.addEventListener('click', ()=>{
 clearSummariesButton.addEventListener('click', ()=>{
     ipcRenderer.send('clear-summaries');
 })
+
+// 主题选择功能
+themeSelector.addEventListener('change', (event) => {
+    const selectedTheme = (event.target as HTMLSelectElement).value;
+    applyTheme(selectedTheme);
+    // 保存主题选择
+    localStorage.setItem('selectedTheme', selectedTheme);
+});
+
+// 应用主题函数
+function applyTheme(theme: string) {
+    // 应用到当前窗口
+    const currentWindow = document.querySelector('body');
+    if (currentWindow) {
+        currentWindow.classList.remove('theme-original', 'theme-chinese', 'theme-west');
+        if (theme === 'original') {
+            currentWindow.classList.add('theme-original');
+        } else if (theme === 'chinese') {
+            currentWindow.classList.add('theme-chinese');
+        } else if (theme === 'west') {
+            currentWindow.classList.add('theme-west');
+        }
+    }
+    
+    // 通知聊天窗口更新主题
+    ipcRenderer.send('theme-changed', theme);
+}
+
+// 页面加载时恢复之前的主题选择
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
+    themeSelector.value = savedTheme;
+    applyTheme(savedTheme);
+});

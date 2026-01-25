@@ -11,7 +11,7 @@ v0.1.0
 module.exports = {
     signature: "fireAiFromCouncil",
     args: [],
-    description: `Execute if {{playerName}} decides to fire/dismiss/retire {{aiName}} from {{playerName}}'s council.`,
+    description: `当{{playerName}}决定从{{playerName}}的内阁中解雇/开除/退休{{aiName}}时执行。`,
 
     /**
      * @param {GameData} gameData 
@@ -27,7 +27,8 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) => {
         runGameEffect(`
-            trigger = {
+            if = {
+            limit = {
                 global_var:talk_second_scope = {
                     exists = liege
                     liege = global_var:talk_first_scope
@@ -37,16 +38,17 @@ module.exports = {
                         has_council_position = councillor_steward
                         has_council_position = councillor_spymaster
                         has_council_position = councillor_court_chaplain
-                    }
+                        }
                     can_be_fired_from_council_trigger = { COURT_OWNER = root }
+                    }
                 }
-            }
             global_var:talk_first_scope = { fire_councillor = global_var:talk_second_scope }
+            }
         `);
     },    
 
     chatMessage: (args) =>{
-        return `You fired {{aiName}} from the council.`
+        return `你将{{aiName}}从内阁中开除`
     },
     chatMessageClass: "negative-action-message"
 }

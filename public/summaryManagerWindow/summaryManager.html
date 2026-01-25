@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>总结管理器 - Voices of the Court</title>
+    <link rel="stylesheet" href="summaryManager.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>总结管理器</h1>
+            <div class="header-controls">
+                <button id="refreshBtn" class="btn btn-primary">刷新</button>
+                <button id="saveBtn" class="btn btn-success">保存</button>
+                <button id="closeBtn" class="btn btn-secondary">关闭</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="info-panel">
+                <div class="info-item">
+                    <label for="playerId">玩家ID:</label>
+                    <input type="text" id="playerId" readonly>
+                </div>
+                <div class="info-item">
+                    <label for="characterSelect">选择角色:</label>
+                    <select id="characterSelect">
+                        <option value="all">所有角色</option>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <label for="summaryPath">总结文件路径:</label>
+                    <input type="text" id="summaryPath" readonly>
+                </div>
+            </div>
+
+            <div class="summary-list-container">
+                <h2>总结列表</h2>
+                <div id="summaryList" class="summary-list">
+                    <!-- 总结项目将在这里动态生成 -->
+                </div>
+                <div class="list-controls">
+                    <button id="addSummaryBtn" class="btn btn-primary">添加新总结</button>
+                </div>
+            </div>
+
+            <div class="summary-editor">
+                <h2>编辑总结</h2>
+                <div class="editor-form">
+                    <div class="form-group">
+                        <label for="summaryDate">日期:</label>
+                        <input type="text" id="summaryDate" placeholder="例如: 1179年3月21日">
+                    </div>
+                    <div class="form-group">
+                        <label for="summaryContent">内容:</label>
+                        <textarea id="summaryContent" rows="10" placeholder="输入总结内容..."></textarea>
+                    </div>
+                    <div class="editor-controls">
+                        <button id="updateSummaryBtn" class="btn btn-success">更新总结</button>
+                        <button id="deleteSummaryBtn" class="btn btn-danger">删除总结</button>
+                        <button id="newSummaryBtn" class="btn btn-primary">新建总结</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="summaryManagerRenderer.js"></script>
+</body>
+</html>

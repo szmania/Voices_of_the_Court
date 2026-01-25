@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Voices of the Court - Community Edition</title>
+    <title>Voices of the Court</title>
     <link rel="stylesheet" href="config.css" />
     
   </head>
@@ -15,6 +15,7 @@
         <li class="active"><a href="prompts.html">Prompts</a></li>
         <li ><a href="settings.html">Settings</a></li>
         <li><a href="system.html">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
       </ul> 
     </div>
 
@@ -48,13 +49,30 @@
 
                     <div class="input-group">
                       Memories prompt
-                      <config-textarea confID="memoriesPrompt" rows="6"></config-textarea>
+                      <config-textarea confID="memoriesPrompt" rows="2"></config-textarea>
                     </div>
 
                     <div class="input-group">
                         <config-checkbox id="suffix-prompt-checkbox" confID="enableSuffixPrompt" label="Suffix prompt"></config-checkbox> <tooltip-text side="top">If enabled, suffix prompt is inserted as the last (system) message before sending the API request, it's useful for jailbreaking, or instructing the model on how to format the response message.</tooltip-text>
                         <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea> 
                     </div>
+
+                    <div class="input-group">
+                        Narrative prompt
+                        <tooltip-text side="top">This prompt is used to generate AI narrative descriptions after actions are triggered. The narrative provides atmospheric descriptions of events in the game.</tooltip-text>
+                        <config-textarea confID="narrativePrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        Scene Description prompt
+                        <tooltip-text side="top">This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.</tooltip-text>
+                        <config-textarea confID="sceneDescriptionPrompt" rows="6"></config-textarea>
+                    </div>
+                </div>
+                
+                <div class="input-group" style="margin-top: 20px;">
+                    <button type="button" id="restore-default-prompts" class="btn-warning">🔄 恢复默认Prompt</button>
+                    <tooltip-text side="top">点击此按钮将所有prompt恢复为默认值</tooltip-text>
                 </div>
                 
             </div>
@@ -84,6 +102,15 @@
                     
                   </div>
                   
+                  <div class="input-group">
+                    <label for="bookmark-script-select">Bookmarks</label>
+                    <select id="bookmark-script-select">
+                      
+                    </select>
+                    <open-folder-button path="scripts/bookmarks/" label="open folder"></open-folder-button>
+                    
+                  </div>
+                  
                   
                 </div>
       
@@ -100,5 +127,19 @@
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
     <script>require("../../dist/configWindow/components/configTextarea.js")</script>
     <script>require("../../dist/configWindow/promptsRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
   </body>
 </html>

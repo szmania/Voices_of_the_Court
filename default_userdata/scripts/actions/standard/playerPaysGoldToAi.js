@@ -10,7 +10,7 @@ module.exports = {
             desc: "the amount of gold {{playerName}} pays to {{aiName}}"
         }
     ],
-    description: `Execute when {{playerName}} gave gold to {{aiName}}, only execute if it's clear that {{aiName}} accepted it and took the gold.`,
+    description: `当{{playerName}}给{{aiName}}金币时执行，仅在明确{{aiName}}接受并收取金币时执行。`,
 
     /**
      * @param {GameData} gameData 
@@ -40,7 +40,7 @@ module.exports = {
         gameData.getPlayer().gold += args[0];
     },
     chatMessage: (args) =>{
-        return `You paid ${args[0]} gold to {{aiName}}.`
+        return `你向{{aiName}}支付了${args[0]}金币`
     },
     chatMessageClass: "neutral-action-message"
 }

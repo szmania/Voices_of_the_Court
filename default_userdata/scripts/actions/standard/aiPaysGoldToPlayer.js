@@ -10,7 +10,7 @@ module.exports = {
             desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
         }
     ],
-    description: `Execute when {{aiName}} pays gold to {{playerName}} either willingly or forcefully against {{aiName}}'s wish and ONLY WHEN {{aiName}} has enough gold to pay`,
+    description: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
     
     /**
      * @param {GameData} gameData 
@@ -42,10 +42,10 @@ module.exports = {
     },
     chatMessage: (args) =>{
         if (Number(args[0]) <= Number(args[1])) {
-            return `{{aiName}} paid ${args[0]} gold to you.`
+            return `{{aiName}}向你支付了${args[0]}金币`
         }
         else {
-            return `{{aiName}} doesn't have enough gold to pay.`
+            return `{{aiName}}没有足够的金币支付`
         }
     },
     chatMessageClass: "neutral-action-message"

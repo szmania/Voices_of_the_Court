@@ -10,7 +10,7 @@ module.exports = {
             desc: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully"
         }
     ],
-    description: `Execute when {{aiName}} converts to {{playerName}}'s faith either willingly or forcefully against {{aiName}}'s wish`,
+    description: `当{{aiName}}自愿或被迫改变信仰，皈依{{playerName}}的宗教时执行`,
 
 	
     /**
@@ -78,7 +78,7 @@ module.exports = {
  
     },
     chatMessage: (args) =>{
-        return `{{aiName}} converted to your religion.`
+        return `{{aiName}}皈依了你的宗教`
     },
     chatMessageClass: "neutral-action-message"
 }

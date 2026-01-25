@@ -5,7 +5,7 @@ module.exports = {
     signature: "playerKillsAI",
     args: [],
 	
-    description: `Execute when {{aiName}} is killed.`,
+    description: `当{{aiName}}被杀死时执行。`,
 
     /**
      * @param {GameData} gameData
@@ -28,7 +28,7 @@ module.exports = {
         }`)
     },
     chatMessage: () => {
-        return `{{aiName}} got killed.`
+        return `{{aiName}}被杀死了。`
     },
     chatMessageClass: "negative-action-message"
 }

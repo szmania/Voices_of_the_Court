@@ -20,206 +20,27 @@ html{
     height: 90%;
     left: 3%;
     top: 5%;
-    padding: 0.5%;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-radius: 4px;
+    border: 2px solid #5a4a35;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0,0,0,0.5);
     background-image: url('../assets/background_area_light.png');
+    background-color: #1a1a1a;
     cursor: url('../assets/cursor.png'), auto;
-    font-family: Gitan;	
-    resize: both;
-    overflow: hidden;
-    min-width: 300px;
-    min-height: 400px;
-    border: 1px solid rgba(96, 71, 54, 0.5);
-}
-
-.drag-handle {
-    height: 20px;
-    width: 100%;
-    cursor: move;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    margin-bottom: 5px; /* Add some space below the handle */
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.search-container {
-    position: absolute;
-    top: 2px;
-    right: 35px;
-    z-index: 2;
-}
-
-.search-icon {
-    cursor: pointer;
-    font-size: 16px;
-    color: transparent; /* Muted grey color */
-    text-shadow: 0 0 0 #604736;
-    padding: 2px;
-    float: right; /* Align icon to the right */
-    position: relative; /* Required for tooltip positioning */
-}
-
-.search-icon:hover {
-    text-shadow: 0 0 0 #dcdcd2; /* Make icon brighter on hover for feedback */
-}
-
-/* Show tooltip on hover */
-.search-icon:hover::after,
-.search-icon:hover::before {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.5s;
-}
-
-/* Tooltip bubble for search icon */
-.search-icon::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 50%;
-    right: calc(100% + 8px); /* Position to the left of the icon */
-    transform: translateY(-50%);
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
     font-family: Gitan;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 100;
-}
-
-/* Tooltip arrow for search icon */
-.search-icon::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 100%;
-    transform: translateY(-50%);
-    border: 8px solid transparent;
-    border-left-color: #111; /* Arrow pointing right */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 100;
-}
-
-.search-dropdown {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s, visibility 0.2s;
-    position: absolute;
-    right: 0;
-    top: 120%;
-    background-color: rgba(17, 17, 17, 0.85);
-    padding: 8px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    display: flex;
-    gap: 5px;
-}
-
-/* Show dropdown on hover or when active */
-.search-container:hover .search-dropdown,
-.search-container.active .search-dropdown {
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s;
-}
-
-.search-container .search-bar {
-    width: 200px;
-    background: rgba(0, 0, 0, 0.5);
-    color: rgb(209, 209, 209);
-    border: 1px solid rgb(96, 71, 54);
-    border-radius: 5px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    padding: 5px;
-}
-
-.search-container .search-button {
-    flex-shrink: 0;
-    padding: 0 10px;
-}
-
-.reset-button {
-    background: transparent;
-    border: none;
-    color: #dcdcd2;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 8px;
-    line-height: 20px;
-    z-index: 1;
-}
-
-.reset-button:hover {
-    color: white;
-}
-
-.reset-button-wrapper {
-    position: relative;
-}
-
-.reset-button-wrapper:hover::after,
-.reset-button-wrapper:hover::before {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.5s;
-}
-
-/* Tooltip bubble for reset button */
-.reset-button-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 50%;
-    right: calc(100% + 8px); /* Position to the left of the button */
-    transform: translateY(-50%);
-    
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 100;
-}
-
-/* Tooltip arrow for reset button */
-.reset-button-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 50%; /* Vertically centered */
-    right: 100%;
-    transform: translateY(-50%);
-
-    border: 8px solid transparent;
-    border-left-color: #111; /* Creates a right-pointing arrow */
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 100;
+    color: #e0e0e0;
+    box-sizing: border-box;
 }
 
 .messages-container{
     overflow: hidden;
     position: relative;
     width: 100%;
-    flex-grow: 1; /* Allow this container to grow and fill available space */
-    background: rgba(0, 0, 0, 0.5);
+    height: calc(100% - 280px); /* 动态计算高度，为输入区域和按钮留出空间 */
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #3d2e1e;
+    border-radius: 2px;
+    flex-shrink: 0;
 }
 
 .messages{
@@ -232,21 +53,7 @@ html{
 }
 
 .messages::-webkit-scrollbar {
-    width: 8px;
-}
-
-.messages::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-.messages::-webkit-scrollbar-thumb {
-    background: rgba(96, 71, 54, 0.5);
-    border-radius: 4px;
-}
-
-.messages::-webkit-scrollbar-thumb:hover {
-    background: rgba(96, 71, 54, 0.8);
+    display: none;
 }
 
 .message{
@@ -256,180 +63,172 @@ html{
     font-size: 110%;
 }
 
-.input-container {
-    width: 100%;
-    height: 12%;
-    margin-bottom: 1%;
-    margin-top: 1%;
-}
-
 .chat-input{
-
-padding-top: 0;
-padding-bottom: 0;
     width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    color: rgb(209, 209, 209);
-    border: 1px solid rgb(96, 71, 54);
-    border-radius: 5px;
+    height: 80px; /* 固定高度，避免过大 */
+    resize: none;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    background: rgba(20, 20, 20, 0.8);
+    color: #e0e0e0;
+    border: 1px solid #cca43b;
+    border-radius: 2px;
     font-family: Gitan;
     font-size: 1rem;
+    padding: 8px;
     box-sizing: border-box;
-    transition: border-color 0.3s;
-    cursor: url('../assets/cursor.png'), auto; 	
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: url('../assets/cursor.png'), auto; 
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 }
 
-.chat-input::-webkit-scrollbar{
-    display: none;
+.chat-input:focus {
+    border-color: #ffd700;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 5px rgba(204, 164, 59, 0.3);
+    outline: none;
 }
 
-
-.button-container {
+/* 输入容器样式 */
+.input-container {
     display: flex;
-    gap: 10px; /* Adds space between the buttons */
-    height: 8%;
+    flex-direction: column;
+    width: 100%;
+    height: auto; /* 改为自动高度 */
+    flex-shrink: 0;
+    margin-bottom: 10px;
 }
 
-.leave-button,
-.regenerate-button,
-.search-button {
+/* 推荐输入语句容器样式 */
+.suggestions-container {
+    background-color: #2b2b2b;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #cca43b;
+    max-height: 120px; /* 减少最大高度 */
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    position: absolute;
+    bottom: 110px; /* 在离开按钮上方显示 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    z-index: 200;
+}
+
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #cca43b;
+    font-family: 'Gitan', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 1px solid #5a4a35;
+    padding-bottom: 5px;
+}
+
+.suggestions-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.suggestions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.suggestion-item {
+    background-color: #383838;
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+    padding: 8px 12px;
+    color: #e0e0e0;
+    font-family: 'Gitan', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestion-item:hover {
+    background-color: #4a4a4a;
+    border-color: #cca43b;
+    color: #fff;
+}
+
+.suggestion-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.suggestions-button {
+    background-color: #523e1a;
+    border: 1px solid #706b2a;
+    border-radius: 2px;
+    color: #e0e0e0;
+    font-family: 'Gitan', sans-serif;
+    font-size: 14px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+
+.suggestions-button:hover {
+    background-color: #2a5270;
+    border-color: #3d85c6;
+    color: #fff;
+}
+
+
+/* 原始UI主题 */
+.leave-button {
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
+    width: 97%;
+    height: 90px;
     font-size: 1rem;
-    background-image: url('../assets/button.png');
+    background-image: url(../assets/button.png);
     background-size: cover;
-    font-family: Gitan;
+    font-family: 'Gitan', sans-serif;
     cursor: url('../assets/cursor.png'), auto;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    transition: all 0.2s;
+    padding: 8px 16px;
+    margin: 0;
+    border-radius: 2px;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
 }
 
-.leave-button,
-.button-wrapper {
-    flex: 1; /* Each will take up equal space */
-}
-
-.leave-button:hover,
-.regenerate-button:hover {
+.leave-button:hover {
     background-color: rgb(84, 84, 84);
     color: white;
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
+    transition: background-color 0.2s;
+    align-self: flex-end;
+}
+.leave-button:active {
+    transform: translateX(-50%) scale(0.9);
 }
 
-.regenerate-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
 
-.button-wrapper {
-    position: relative;
-}
-
-.button-wrapper .regenerate-button {
-    width: 100%;
-    height: 100%;
-}
-
-/* Show tooltip on hover only when button is disabled */
-.button-wrapper:has(.regenerate-button:disabled):hover::after,
-.button-wrapper:has(.regenerate-button:disabled):hover::before {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.5s; /* Add a small delay before showing */
-}
-
-/* Tooltip bubble */
-.button-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
-    
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
-}
-
-/* Tooltip arrow */
-.button-wrapper::before {
-    content: '';
-    position: absolute;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%) translateY(100%);
-
-    border: 8px solid transparent;
-    border-top-color: #111;
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
-}
-
-/* Make input container relative for tooltip positioning */
-.input-container {
-    position: relative;
-}
-
-/* Show tooltip on hover only when textarea is disabled */
-#input-wrapper:has(#chat-input:disabled):hover::after,
-#input-wrapper:has(#chat-input:disabled):hover::before {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.5s; /* Add a small delay before showing */
-}
-
-/* Tooltip bubble for input */
-#input-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
-    
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
-}
-
-/* Tooltip arrow for input */
-#input-wrapper::before {
-    content: '';
-    position: absolute;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%) translateY(100%);
-
-    border: 8px solid transparent;
-    border-top-color: #111;
-
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
+.chat-input::-webkit-scrollbar{
+    display: none;
 }
 
 
@@ -443,12 +242,6 @@ em{
 
 .ai-message{ 
     color: #dcdcd2;
-}
-
-.message-date {
-    font-size: 0.8rem;
-    color: #91918f;
-    margin-right: 5px;
 }
 
 .error-message{
@@ -467,66 +260,30 @@ em{
     color: yellow;
 }
 
-mark {
-    background-color: #d2b73a; /* Gold color to fit the theme */
-    color: #111;
-    padding: 2px;
-    border-radius: 3px;
-}
-
-.neutral-action-message{
-    color: yellow;
-}
-
-.historical-message {
-    opacity: 0.6;
-    filter: brightness(0.8);
-}
-
-.system-message {
-    text-align: left;
-    color: #666;
+.narrative-message{
+    color: #a9a9a9;
     font-style: italic;
-    padding: 20px;
-    border-bottom: 1px dashed rgb(96, 71, 54);
+    margin: 10px 0;
+    padding: 5px 10px;
+    border-left: 3px solid #696969;
+    background-color: rgba(105, 105, 105, 0.1);
 }
 
-.history-separator {
-    text-align: left;
-    margin: 15px 0;
-    font-size: 0.9rem;
-    color: #91918f; /* Same as em */
-    display: flex;
-    align-items: center;
+.scene-description-message{
+    color: #d4af37;
+    font-style: italic;
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid #d4af37;
+    background-color: rgba(212, 175, 55, 0.1);
+    font-size: 105%;
 }
 
-.history-separator::before,
-.history-separator::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid rgb(96, 71, 54);
+.loading{
+    margin-left: 5px;
 }
 
-.history-end-separator {
-    margin-top: 30px;
-    margin-bottom: 20px;
-    font-weight: bold;
-}
-
-.history-end-separator::before,
-.history-end-separator::after {
-    border-bottom: 2px solid rgb(96, 71, 54);
-}
-
-.history-separator:not(:empty)::before {
-    margin-right: .25em;
-}
-
-.history-separator:not(:empty)::after {
-    margin-left: .25em;
-}
-  
-.loading {
+.loading:after {
     content: ' .';
     animation: dots 1s steps(5, end) infinite;
 }

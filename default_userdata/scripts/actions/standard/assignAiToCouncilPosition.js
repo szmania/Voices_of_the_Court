@@ -14,10 +14,10 @@ module.exports = {
         {
             name: "council_position",
             type: "string",
-            desc: "the position to which the {{playerName}} decided to assign {{aiName}} to the council. BE CAREFUL! You must choose ONLY from these variants: marshal, steward, spymaster, chancellor"
-        } 
+            desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。请注意！您只能从以下选项中选择一个：掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官"
+        }   
     ],
-    description: `Run only if the {{playerName}} announces that the {{aiName}} is now appointed to their council! WARNING! Execute ONLY if {{playerName}} decides to assign {{aiName}} as marshal, steward, spymaster, chancellor`,
+    description: `仅在{{playerName}}宣布{{aiName}}现在被任命到其内阁时运行！警告！仅在{{playerName}}决定任命{{aiName}}为掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官时执行`,
 
     /**
      * @param {GameData} gameData 
@@ -32,84 +32,95 @@ module.exports = {
      * @param {string[]} args 
      */
     run: (gameData, runGameEffect, args) => {
-        const council_position = cleanAndLowercase(args[0]);
+        const council_position = args[0];
         switch (council_position) {
-            case "chancellor":
+            case "长史":
+            case "宰相":
+            case "掌玺大臣":
                 runGameEffect(`
-                    trigger = {
-                        global_var:talk_second_scope = {
-                            exists = liege
-                            liege = global_var:talk_first_scope
-                            can_be_chancellor_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                    if = {
+                        limit = {
+                            global_var:talk_second_scope = {
+                                exists = liege
+                                liege = global_var:talk_first_scope
+                                can_be_chancellor_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                            }
                         }
-                    }
-
-                    global_var:talk_first_scope = {
-                        scope:council_position = flag:chancellor
-                        fire_councillor = cp:councillor_chancellor
-                        assign_councillor_type = {
-                                type = councillor_chancellor
-                                target = global_var:talk_second_scope
+                        global_var:talk_first_scope = {
+                            scope:council_position = flag:chancellor
+                            fire_councillor = cp:councillor_chancellor
+                            assign_councillor_type = {
+                                    type = councillor_chancellor
+                                    target = global_var:talk_second_scope
+                            }
                         }
                     }
                 `);
                 break;
-            case "steward":
+            case "财政总管":
+            case "司户":
+            case "大司库":
                 runGameEffect(`
-                    trigger = {
-                        global_var:talk_second_scope = {
-                            exists = liege
-                            liege = global_var:talk_first_scope
-                            can_be_steward_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                    if = {
+                        limit = {
+                            global_var:talk_second_scope = {
+                                exists = liege
+                                liege = global_var:talk_first_scope
+                            }
                         }
-                    }
-
-                    global_var:talk_first_scope = {
-                        scope:council_position = flag:steward
-                        fire_councillor = cp:councillor_steward
-                        assign_councillor_type = {
-                                type = councillor_steward
-                                target = global_var:talk_second_scope
+                        global_var:talk_first_scope = {
+                            scope:council_position = flag:steward
+                            fire_councillor = cp:councillor_steward
+                            assign_councillor_type = {
+                                    type = councillor_steward
+                                    target = global_var:talk_second_scope
+                            }
                         }
                     }
                 `);
                 break;
-            case "marshal":
+            case "军事统帅":
+            case "司马":
+            case "大将军":
                 runGameEffect(`
-                    trigger = {
-                        global_var:talk_second_scope = {
-                            exists = liege
-                            liege = global_var:talk_first_scope
-                            can_be_marshal_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                    if = {
+                        limit = {
+                            global_var:talk_second_scope = {
+                                exists = liege
+                                liege = global_var:talk_first_scope
+                                can_be_marshal_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                            }
                         }
-                    }
-
-                    global_var:talk_first_scope = {
-                        scope:council_position = flag:marshal
-                        fire_councillor = cp:councillor_marshal
-                        assign_councillor_type = {
-                                type = councillor_marshal
-                                target = global_var:talk_second_scope
+                        global_var:talk_first_scope = {
+                            scope:council_position = flag:marshal
+                            fire_councillor = cp:councillor_marshal
+                            assign_councillor_type = {
+                                    type = councillor_marshal
+                                    target = global_var:talk_second_scope
+                            }
                         }
                     }
                 `);
                 break;
-            case "spymaster":
+            case "大监察官":
+            case "察事":
+            case "间谍首脑":
                 runGameEffect(`
-                    trigger = {
-                        global_var:talk_second_scope = {
-                            exists = liege
-                            liege = global_var:talk_first_scope
-                            can_be_spymaster_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                    if = {
+                        limit = {
+                            global_var:talk_second_scope = {
+                                exists = liege
+                                liege = global_var:talk_first_scope
+                                can_be_spymaster_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                            }
                         }
-                    }
-
-                    global_var:talk_first_scope = {
-                        scope:council_position = flag:spymaster
-                        fire_councillor = cp:councillor_spymaster
-                        assign_councillor_type = {
-                                type = councillor_spymaster
-                                target = global_var:talk_second_scope
+                        global_var:talk_first_scope = {
+                            scope:council_position = flag:spymaster
+                            fire_councillor = cp:councillor_spymaster
+                            assign_councillor_type = {
+                                    type = councillor_spymaster
+                                    target = global_var:talk_second_scope
+                            }
                         }
                     }
                 `);
@@ -118,7 +129,7 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `You assigned {{aiName}} to the council as ${args[0]}.`
+        return `你任命{{aiName}}为内阁的${args[0]}`
     },
     chatMessageClass: "positive-action-message"
 }

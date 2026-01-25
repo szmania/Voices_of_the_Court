@@ -85,7 +85,7 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
             switch (dataType){
                 case "init":
                     gameData = new GameData(data);
-                    console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID}) at ${gameData.location} (${gameData.talkScene})`); // Updated log
+                    console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
                 break;
                 case "character": 
                     if (!gameData) continue;
@@ -215,6 +215,12 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     }
 
     console.debug("Finished parsing log. Final GameData object:", gameData!);
+    
+    // 初始化角色名称属性，供parseVariables使用
+    if (gameData) {
+        gameData.setCharacterNames();
+    }
+    
     return gameData!;
 }
 
@@ -224,8 +230,10 @@ export function removeTooltip(str: string): string {
     // Remove unwanted ASCII control characters and tooltip/onclick prefixes
     let cleanedStr = str.replace(/[\x15]/g, '')
                       .replace(/\^U[^\n]*/g, '')
-                      .replace(/(ONCLICK|TOOLTIP):[A-Z_]+,\d+\s*/g, '')
-                      .replace(/^\s*([A-Z][;\s]\s*)+/, '');
+                      .replace(/\b(?:ONCLICK|TOOLTIP):[A-Z_]+,[^\s)]+/g, '')
+                      .replace(/^\s*([A-Z][;\s]\s*)+/, '')
+                      .replace(/(?<![A-Za-z])L\s+/g, '')
+                      .replace(/(?<![A-Za-z])[A-Z];\s*/g, '');
 
     // If a tooltip description marker ' L; ' exists, take the text after it
     const lSemicolonIndex = cleanedStr.indexOf(' L; ');
@@ -234,8 +242,8 @@ export function removeTooltip(str: string): string {
     }
 
     // Final cleanup on the resulting string
-    cleanedStr = cleanedStr.replace(/!+/g, '')      // remove runs of exclamation marks (don't truncate rest)
-      .replace(/[\s:!']+$/, '')   // Clean any remaining trailing punctuation
+    cleanedStr = cleanedStr.replace(/!+/g, '')
+      .replace(/[\s:!']+$/, '')
       .trim();
 
     return cleanedStr;

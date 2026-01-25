@@ -11,13 +11,14 @@ export interface apiConnectionTestResult{
 }
 
 export interface Connection{
-    type: string; //openrouter, openai, ooba
+    type: string; //openrouter, openai, ooba, gemini, glm
     baseUrl: string;
     key: string;
     model: string;
-    forceInstruct: boolean; // Weird: when true, forces text completions API; when false, uses chat completions API
+    forceInstruct: boolean ;//only used by openrouter
     overwriteContext: boolean;
     customContext: number;
+    apiKeys?: { [apiType: string]: any }; // 存储所有API类型的配置
 }
 
 export interface Parameters{
@@ -33,10 +34,11 @@ export class ApiConnection{
     type: string; //openrouter, openai, ooba, custom
     client: any;
     model: string;
-    forceInstruct: boolean; // Weird: when true, forces text completions API; when false, uses chat completions API
+    forceInstruct: boolean ;//only used by openrouter
     parameters: Parameters;
     context: number;
     overwriteWarning: boolean;
+    config: Connection; // 保存原始配置对象，包括apiKeys
     
 
     constructor(connection: Connection, parameters: Parameters){
@@ -44,15 +46,24 @@ export class ApiConnection{
         const redactedConnection = { ...connection, key: '[REDACTED]' };
         console.debug("Received connection:", redactedConnection);
         console.debug("Received parameters:", parameters);
+        
+        // 保存原始配置对象，包括apiKeys
+        this.config = connection;
+        
+        // 如果apiKeys存在，确保所有API类型的配置都被加载
+        if (connection.apiKeys) {
+            console.log('Loading API keys from config:', Object.keys(connection.apiKeys));
+        }
+        
         this.type = connection.type;
-        if(this.type !== 'gemini'){
+        if(this.type !== 'gemini' && this.type !== 'glm'){
             this.client = new OpenAI({
                 baseURL: connection.baseUrl,
                 apiKey: connection.key,
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    "HTTP-Referer": "https://github.com/szmania/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
-                    "X-Title": "Voices of the Court - Community Edition", // Optional. Shows in rankings on openrouter.ai.
+                    "HTTP-Referer": "https://github.com/Demeter29/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
+                    "X-Title": "Voices of the Court", // Optional. Shows in rankings on openrouter.ai.
                   }
             })
         }else{
@@ -63,13 +74,7 @@ export class ApiConnection{
         }
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
-        // Remove unsupported parameters for Gemini models
-        if (this.model && this.model.toLowerCase().includes('gemini')) {
-          const { presence_penalty, frequency_penalty, ...supportedParameters } = parameters;
-          this.parameters = supportedParameters as Parameters;
-        } else {
-          this.parameters = parameters;
-        }
+        this.parameters = parameters;
         
 
         let modelName = this.model
@@ -108,29 +113,26 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || this.type === "gemini"){
+        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek'){
             console.debug("isChat() is returning true");
             return true;
         }
-        if((this.type === "openrouter" || this.type === "custom") && !this.forceInstruct){
-            console.debug("isChat() is returning true (forceInstruct is false)");
-            return true;
+        else{
+            console.debug("isChat() is returning false");
+            return false;
         }
-        console.debug("isChat() is returning false");
-        return false;
+    
     }
 
     async complete(
         prompt: string | Message[],
         stream: boolean,
         otherArgs: object,
-        streamRelay?: (arg1: MessageChunk) => void,
-        timeout?: number // Add this parameter
+        streamRelay?: (arg1: MessageChunk) => void
     ): Promise<string> {
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
-        console.debug(`Timeout: ${timeout}ms`); // Log the timeout
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
         
@@ -141,17 +143,6 @@ export class ApiConnection{
     
         while (retries < MAX_RETRIES) {
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
-            
-            const controller = new AbortController();
-            let timeoutId: NodeJS.Timeout | null = null;
-
-            if (timeout && timeout > 0) {
-                timeoutId = setTimeout(() => {
-                    console.error(`API request timed out after ${timeout}ms.`);
-                    controller.abort();
-                }, timeout);
-            }
-
             try {
                 if (this.type === 'gemini') {
                     const url = stream 
@@ -200,8 +191,7 @@ export class ApiConnection{
                     const res = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestBody),
-                        signal: controller.signal // Pass the signal
+                        body: JSON.stringify(requestBody)
                     });
 
                     if (!res.ok) {
@@ -255,6 +245,105 @@ export class ApiConnection{
                         }
                     }
                 }
+                
+                if (this.type === 'glm') {
+                    // GLM API uses OpenAI-compatible format but requires custom headers
+                    const url = stream 
+                        ? `${this.client.baseURL}/chat/completions`
+                        : `${this.client.baseURL}/chat/completions`;
+
+                    // GLM expects standard OpenAI message format but doesn't support system role
+                    // Convert system messages to user messages only if there are no user messages
+                    const hasUserMessage = (prompt as Message[]).some(msg => msg.role === 'user');
+                    const messages = (prompt as Message[]).map(msg => {
+                        if (msg.role === 'system' && !hasUserMessage) {
+                            return {
+                                role: 'user',
+                                content: msg.content
+                            };
+                        }
+                        return {
+                            role: msg.role,
+                            name: msg.name,
+                            content: msg.content
+                        };
+                    });
+
+                    const requestBody = {
+                        model: this.model,
+                        messages: messages,
+                        stream: stream,
+                        temperature: this.parameters.temperature,
+                        top_p: this.parameters.top_p,
+                        frequency_penalty: this.parameters.frequency_penalty,
+                        presence_penalty: this.parameters.presence_penalty,
+                        thinking: {
+                            type: "disabled"
+                        },
+                        ...otherArgs
+                    };
+                    console.debug("Making GLM request with body:", JSON.stringify(requestBody, null, 2));
+
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.client.apiKey}`
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        console.error("GLM API Error:", errorText);
+                        throw new Error(`GLM API error: ${res.status} ${errorText}`);
+                    }
+
+                    if (stream) {
+                        const reader = res.body!.getReader();
+                        const decoder = new TextDecoder();
+                        let responseText = "";
+                        let buffer = "";
+
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop() || ""; // Keep the last partial line in buffer
+
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const jsonStr = line.substring(6);
+                                        if (jsonStr === '[DONE]') {
+                                            continue;
+                                        }
+                                        const parsed = JSON.parse(jsonStr);
+                                        if (parsed.choices && parsed.choices[0].delta.content) {
+                                            const textChunk = parsed.choices[0].delta.content;
+                                            streamRelay!({ content: textChunk });
+                                            responseText += textChunk;
+                                        }
+                                    } catch (e) {
+                                        console.error("Error parsing GLM stream chunk:", e, line);
+                                    }
+                                }
+                            }
+                        }
+                        return responseText;
+                    } else {
+                        const data = await res.json();
+                        console.debug("Received GLM non-stream response:", data);
+                        if (data.choices && data.choices[0].message.content) {
+                            return data.choices[0].message.content;
+                        } else {
+                            console.error("Invalid GLM response:", data);
+                            throw new Error("Invalid response from GLM API");
+                        }
+                    }
+                }
                 //OPENAI DOESN'T ALLOW spaces inside message.name so we have to put them inside the Message content.
                 if (this.type === "openai") {
                     for (let i = 0; i < prompt.length; i++) {
@@ -279,8 +368,7 @@ export class ApiConnection{
                         ...otherArgs
                     };
                     console.debug("Making chat completion request with body:", requestBody);
-                    // Pass signal in the options
-                    let completion = await this.client.chat.completions.create(requestBody as any, { signal: controller.signal });
+                    let completion = await this.client.chat.completions.create(requestBody as any);
     
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
@@ -302,9 +390,16 @@ export class ApiConnection{
                         }
                     } else {
                         // @ts-ignore
-                        response = completion.choices[0].message.content;
+                        const choice = completion.choices?.[0];
+                        if (choice) {
+                            // Prefer chat message content, fall back to text field if provided
+                            response = choice.message?.content ?? choice.text ?? "";
+                        }
                     }
     
+                    if (!response) {
+                        console.error("Empty response parsed from chat completion:", JSON.stringify(completion, null, 2));
+                    }
                     console.debug("Parsed response:", response);
                     return response;
                 } else {
@@ -320,9 +415,8 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making OpenRouter legacy completion request with body:", requestBody);
-                        // Pass signal in the options
                         //@ts-ignore
-                        completion = await this.client.chat.completions.create(requestBody as any, { signal: controller.signal });
+                        completion = await this.client.chat.completions.create(requestBody as any);
                     } else {
                         // Standard non-chat API
                         const requestBody = {
@@ -333,7 +427,7 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making standard completion request with body:", requestBody);
-                        completion = await this.client.completions.create(requestBody as any, { signal: controller.signal });
+                        completion = await this.client.completions.create(requestBody as any);
                     }
 
                     console.debug("Received API response (completion object):", completion);
@@ -348,25 +442,28 @@ export class ApiConnection{
                     if (stream) {
                         // @ts-ignore
                         for await (const chunk of completion) {
-                            let msgChunk: MessageChunk = {
-                                // @ts-ignore
-                                content: chunk.choices[0].text
-                            };
-                            streamRelay!(msgChunk);
-
-                            response += msgChunk.content;
+                            // @ts-ignore
+                            const textChunk = chunk.choices[0].text ?? chunk.choices[0].delta?.content ?? "";
+                            if (textChunk) {
+                                let msgChunk: MessageChunk = {
+                                    content: textChunk
+                                };
+                                streamRelay!(msgChunk);
+                                response += msgChunk.content;
+                            }
                         }
                     } else {
                         // Notice: OpenRouter returns response in completion.choices[0].text trough chat endpoint with legacy format
-                        if (this.type === "openrouter") {
-                            // @ts-ignore
-                            response = completion.choices[0].text;
-                        } else {
-                            // @ts-ignore
-                            response = completion.choices[0].text;
+                        // @ts-ignore
+                        const choice = completion.choices?.[0];
+                        if (choice) {
+                            response = choice.text ?? choice.message?.content ?? "";
                         }
                     }
 
+                    if (!response) {
+                        console.error("Empty response parsed from completion endpoint:", JSON.stringify(completion, null, 2));
+                    }
                     console.debug("Parsed response:", response);
                     if (response === "" || response === undefined || response === null || response === " ") {
                         throw new Error("{code: 599, error: {message: 'No response'}}");
@@ -376,12 +473,6 @@ export class ApiConnection{
             } catch (error) {
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);
-
-                // Handle our custom timeout first and do not retry
-                if (error instanceof Error && error.name === 'AbortError') {
-                    throw new Error(`API request timed out after ${timeout}ms.`);
-                }
-
                 // Narrow down the error type
                 if (typeof error === "object" && error !== null && "code" in error && "error" in error) {
                     const typedError = error as {
@@ -419,11 +510,6 @@ export class ApiConnection{
                     console.debug("Unknown error type:", error);
                     throw error; // If it's not an object or doesn't have the expected properties
                 }
-            } finally {
-                // Always clear the timeout timer
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
             }
             
         }
@@ -459,6 +545,40 @@ export class ApiConnection{
                 return { success: false, overwriteWarning: false, errorMessage: String(err) };
             }
         }
+        
+        if (this.type === 'glm') {
+            const url = `${this.client.baseURL}/chat/completions`;
+            const body = {
+                model: this.model,
+                messages: [{ role: "user", content: "ping" }],
+                max_tokens: 1,
+                thinking: {
+                    type: "disabled"
+                }
+            };
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.client.apiKey}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (data.choices && data.choices.length > 0) {
+                    return { success: true, overwriteWarning: this.overwriteWarning };
+                } else {
+                    return { success: false, overwriteWarning: false, errorMessage: data.error?.message || "Invalid response from GLM" };
+                }
+            } catch (err) {
+                if (err instanceof Error) {
+                    return { success: false, overwriteWarning: false, errorMessage: err.message };
+                }
+                return { success: false, overwriteWarning: false, errorMessage: String(err) };
+            }
+        }
+        
         let prompt: string | Message[];
         if(this.isChat()){
             prompt = [

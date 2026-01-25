@@ -34,7 +34,6 @@ export type Secret = {
 export class GameData {
     date: string;
     scene: string;
-    talkScene: string;
     location: string;
     locationController: string;
 
@@ -42,6 +41,10 @@ export class GameData {
     playerName: string;
     aiID: number;
     aiName: string;
+
+    // 用于存储非玩家角色的shortName，供parseVariables使用
+    character1Name: string = "";
+    character2Name: string = "";
 
     characters: Map<number,Character>
 
@@ -52,7 +55,6 @@ export class GameData {
             this.aiName = removeTooltip(data[3]),
             this.date = data[4],
             this.scene = data[5].substring(11),
-            this.talkScene = data[5],
             this.location = data[6],
             this.locationController = data[7],
     
@@ -73,5 +75,16 @@ export class GameData {
 
     getCharacter(characterID: number): Character | undefined {
         return this.characters.get(characterID);
+    }
+
+    /**
+     * 设置非玩家角色的名称，供parseVariables使用
+     */
+    setCharacterNames(): void {
+        const nonPlayerCharacters = Array.from(this.characters.values())
+            .filter(char => char.id !== this.playerID);
+        
+        this.character1Name = nonPlayerCharacters[0]?.shortName || "某人";
+        this.character2Name = nonPlayerCharacters[1]?.shortName || "另一人";
     }
 }

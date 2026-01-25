@@ -14,10 +14,10 @@ module.exports = {
         {
             name: "court_position",
             type: "string",
-            desc: "the court position to which the {{playerName}} decided to assign {{aiName}}. BE CAREFUL! You must choose ONLY from these variants: physician, keeper_of_swans, travel_leader, master_of_horse, court_jester, master_of_hunt, high_almoner, cupbearer, seneschal, antiquarian, tutor, royal_architect, court_poet, bodyguard, court_champion, musician, food_taster, lady_in_waiting, garuda, chief_eunuch, court_gardener, chief_qadi, wet_nurse, akolouthos"
+            desc: "{{playerName}}决定将{{aiName}}分配到宫廷的职位。请注意！您只能从以下选项中选择一个：御医、天鹅官、旅行领队、马厩总管、宫廷小丑、狩猎主管、大施赈官、执杯官、总管、古物收藏家、导师、建筑师、宫廷诗人、侍卫、宫廷冠军、音乐家、试食官、侍女、首席太监、宫廷园丁、大法官、乳母、侍从官"
         } 
     ],
-    description: `Execute if {{playerName}} decides to assign {{aiName}} to court position of {{playerName}}'s council.`,
+    description: `当{{playerName}}决定将{{aiName}}分配到{{playerName}}宫廷的宫廷职位时执行。`,
 
     /**
      * @param {GameData} gameData 
@@ -35,7 +35,7 @@ module.exports = {
     run: (gameData, runGameEffect, args) => {
         const court_position = args[0];
         switch (court_position) {
-            case "physician":
+            case "御医":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_physician_court_position
@@ -47,7 +47,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "keeper_of_swans":
+            case "天鹅官":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = keeper_of_swans_court_position
@@ -59,7 +59,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "travel_leader":
+            case "旅行领队":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = travel_leader_court_position
@@ -71,7 +71,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "master_of_horse":
+            case "马厩总管":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = master_of_horse_court_position
@@ -83,7 +83,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "court_jester":
+            case "宫廷小丑":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_jester_court_position
@@ -95,7 +95,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "master_of_hunt":
+            case "狩猎主管":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = master_of_hunt_court_position
@@ -107,7 +107,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "high_almoner":
+            case "大施赈官":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = high_almoner_court_position
@@ -119,7 +119,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "cupbearer":
+            case "执杯官":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = cupbearer_court_position
@@ -131,7 +131,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "seneschal":
+            case "总管":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = seneschal_court_position
@@ -143,7 +143,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "antiquarian":
+            case "古物收藏家":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = antiquarian_court_position
@@ -155,7 +155,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "tutor":
+            case "导师":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_tutor_court_position
@@ -167,7 +167,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "royal_architect":
+            case "建筑师":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = royal_architect_court_position
@@ -179,7 +179,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "court_poet":
+            case "宫廷诗人":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_poet_court_position
@@ -191,7 +191,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "bodyguard":
+            case "侍卫":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = bodyguard_court_position
@@ -203,7 +203,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "court_champion":
+            case "宫廷冠军":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = champion_court_position
@@ -215,7 +215,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "musician":
+            case "音乐家":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_musician_court_position
@@ -227,7 +227,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "food_taster":
+            case "试食官":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = food_taster_court_position
@@ -239,7 +239,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "lady_in_waiting":
+            case "侍女":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = lady_in_waiting_court_position
@@ -251,19 +251,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "garuda":
-                runGameEffect(`
-                    revoke_court_position = {
-                        court_position = garuda_court_position
-                    }
-                    
-                    appoint_court_position = {
-                        recipient = global_var:talk_second_scope
-                        court_position = garuda_court_position
-                    }
-                `);
-                break;
-            case "chief_eunuch":
+            case "首席太监":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = chief_eunuch_court_position
@@ -275,7 +263,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "court_gardener":
+            case "宫廷园丁":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_gardener_court_position
@@ -287,7 +275,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "chief_qadi":
+            case "大法官":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = chief_qadi_court_position
@@ -299,26 +287,28 @@ module.exports = {
                     }
                 `);
                 break;
-            case "wet_nurse":
+            case "乳母":
                 runGameEffect(`
-                    trigger = {
-                        global_var:talk_second_scope = {
+                    if={
+                        limit = {
+                            global_var:talk_second_scope = {
                             is_female = yes
+                            }
                         }
-                    }
-                    revoke_court_position = {
-                        court_position = wet_nurse_court_position
-                    }
-                    
-                    appoint_court_position = {
-                        recipient = global_var:talk_second_scope
-                        court_position = wet_nurse_court_position
-                    }
+                        revoke_court_position = {
+                            court_position = wet_nurse_court_position
+                            }
+                        appoint_court_position = {
+                            recipient = global_var:talk_second_scope
+                            court_position = wet_nurse_court_position
+                            }
+                        }
                 `);
                 break;
-            case "akolouthos":
+            case "侍从官":
                 runGameEffect(`
-                    trigger = {
+                    if = {
+                    limit = {
                         global_var:talk_second_scope = {
                             is_male = yes
                         }
@@ -331,13 +321,14 @@ module.exports = {
                         recipient = global_var:talk_second_scope
                         court_position = akolouthos_court_position
                     }
+                    }
                 `);
                 break;
         }
     },    
 
     chatMessage: (args) =>{
-        return `You assigned {{aiName}} to the ${args[0]} position.`
+        return `你任命{{aiName}}为${args[0]}职位`
     },
     chatMessageClass: "neutral-action-message"
 }

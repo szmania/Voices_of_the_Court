@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become soulmates with each other (write it in past tense)"
+            desc: "the reason (the event) that made them become soulmates of eachother. (write it in past tense)."
         }
     ],
-    description: "Execute when {{playerName}} and {{aiName}} became passionate soulmates with each other.",
+    description: "当{{playerName}}和{{aiName}}成为彼此的激情灵魂伴侣时执行。",
 
     /**
      * @param {GameData} gameData 
@@ -40,7 +40,7 @@ module.exports = {
 		gameData.getAi().relationsToPlayer.push("Soulmate");
     },
     chatMessage: (args) =>{
-        return `{{aiName}} has become your soulmate.`
+        return `{{aiName}}成为了你的灵魂伴侣。`
     },
     chatMessageClass: "positive-action-message"
 }

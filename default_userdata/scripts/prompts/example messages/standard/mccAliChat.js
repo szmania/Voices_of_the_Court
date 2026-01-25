@@ -35,14 +35,14 @@ module.exports = (gameData, id) => {
     //trait 1
     
     if(personalityTraits.length > 0){
-        let output = `*${ai.shortName}'s eyes light up* My personality, my lord? *${ai.sheHe} takes a short pause, thinking* Well, I am ${personalityTraits[0].name}, ${traitMessageMap.get(personalityTraits[0].name)}`;
+        let output = `*${ai.shortName}'s eyes lit up* My personality, my lord? *${ai.sheHe} takes a short pause thinking* Well, I am ${personalityTraits[0].name}, ${traitMessageMap.get(personalityTraits[0].name)}`;
 
         msgs.push({
             role: "user",
             name: player.shortName,
             content: "Personality?"
         });
-
+    
         msgs.push({
             role: "assistant",
             name: ai.shortName,
@@ -52,15 +52,15 @@ module.exports = (gameData, id) => {
     
 
     //trait 2
-    if(personalityTraits.length > 1){
-        let output = `Yes, *${ai.sheHe} pauses again, thinking about what else to say* I am also ${personalityTraits[1].name}, ${traitMessageMap.get(personalityTraits[1].name)}`;
+    if(personalityTraits.length > 1){   
+        let output = `Yes, *${ai.sheHe} pauses again thinking about what else to say* I am also ${personalityTraits[1].name}, ${traitMessageMap.get(personalityTraits[1].name)}`;
 
         msgs.push({
             role: "user",
             name: player.shortName,
-            content: "Anything else?"
+            content: "Anyting else?"
         });
-
+    
         msgs.push({
             role: "assistant",
             name: ai.shortName,
@@ -70,7 +70,7 @@ module.exports = (gameData, id) => {
 
     //trait 3
     if(personalityTraits.length > 2){
-        let output = `No, I am also ${personalityTraits[2].name}, ${traitMessageMap.get(personalityTraits[2].name)}`;
+        let output = `*No, I am also ${personalityTraits[2].name}, ${traitMessageMap.get(personalityTraits[2].name)}`;
 
         msgs.push({
             role: "user",
@@ -93,15 +93,15 @@ const traitMessageMap = new Map([
     ["Chaste", "I dislike intimate contact, I avoid the temptations of the flesh."],
     ["Lustful", "Carnal desires burn hot in my core."],
     ["Temperate", "I think it's best to enjoy things in moderation."],
-    ["Gluttonous", "I frown at moderation, I want it ALL!"],
+    ["Gluttonous", "I frown at moderation, I want it ALL!."],
     ["Generous", "Acts of benevolence and charity are no strangers to me."],
-    ["Greedy", "I keep a tight grip on my purse and I always look for ways to engorge it."],
+    ["Greedy", "I keeps a tight grip on my purse and I alway look for ways to engorge it."],
     ["Diligent", "I do not shy away from hard work."],
     ["Lazy", "The easiest road in life is the road most taken by me."],
     ["Wrathful", "I am quick to anger and fury."],
     ["Calm", "I take things in stride, I lead a slow-paced life."],
-    ["Impatient", "I think that most things should happen fast: ideally they should happen NOW!"],
-    ["Patient", "To wait and bide my time is my specialty."],
+    ["Impatient", "I think that most things should happen fast: ideally they should happen NOW!."],
+    ["Patient", "To wait and bide my time is a specialty of me."],
     ["Humble", "I do not ask for much in life."],
     ["Arrogant", "I have no problem with my sense of worth."],
     ["Deceitful", "To lie and deceive is in my nature."],
@@ -125,12 +125,12 @@ const traitMessageMap = new Map([
     ["Fickle", "I change my mind more often than not, making me hard to predict."],
     ["Vengeful", "I am slow to forget a slight or someone who does me wrong."],
     ["Forgiving", "I am quick to move on from most things."],
-    ["Eccentric", "My behavior is seen by others to be erratic and irrational."],
+    ["Eccentric", "my behavior is seen by others to be erratic and irrational."],
     ["Rowdy", "I am always on the move, full of energy and mischief. When I am up to something, it is not uncommon for others to get hurt."],
     ["Charming", "I certainly know how to wrap people around my little finger. I am sweet and amiable, which allows me to get away with almost anything."],
-    ["Curious", "There is rarely a silent moment with me. I constantly ask questions, I am curious about everything and everyone."],
+    ["Curious", "There is rarely a silent moment with me. I Constantly ask questions, I am curious about everything and everyone."],
     ["Pensive", "I am often lost in thought, trying to understand the world around me. I often rely on books and systems to make sense of things."],
-    ["Bossy", "I can often be seen ordering other children around. While I am concerned with getting things done the right way, getting things done MY way is equally important."],
+    ["Bossy", "I can often be seen ordering other children around. While I am concerned with getting things done the right way, getting things done MY! way is equally important."],
     ["Loyal", "I take my relations more seriously than most."],
     ["Disloyal", "Where most people see a relationship, I see an opportunity."],
 ]);

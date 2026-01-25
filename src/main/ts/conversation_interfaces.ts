@@ -4,6 +4,7 @@ export interface Message {
     role: 'system' | 'user' | 'assistant';
     name?: string,
     content: string ;
+    narrative?: string; // 添加旁白属性
 }
 
 
@@ -31,8 +32,7 @@ export interface Setting {
 
 export interface Summary{
     date: string,
-    content: string,
-    historyFile: string
+    content: string
 }
 
 export interface ActionArgument{
@@ -58,9 +58,3 @@ export interface ActionResponse{
     chatMessageClass: string
 }
 
-export interface HistoricalConversation {
-    summary: string;
-    date: string;
-    location?: string;
-    messages: Message[];
-}

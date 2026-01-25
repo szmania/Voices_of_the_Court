@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "opinion",
             type: "number",
-            desc: "the number of opinion values the relation improves with. Can be between 1 and 5"
+            desc: "the number of opinion values the relation improves with. Can be between 1 and 5."
         }
     ],
-    description: `Execute when {{playerName}}'s last single dialogue or action drastically improved {{aiName}}'s opinion of {{playerName}}.`,
+    description: `当{{playerName}}的最后一次对话或行动极大地改善了{{aiName}}对{{playerName}}的看法时执行。`,
 
     /**
      * @param {GameData} gameData 
@@ -42,7 +42,7 @@ module.exports = {
         }
     },
     chatMessage: (args) =>{
-        return `{{aiName}}'s opinion of you has improved by ${args[0]}.`
+        return `{{aiName}}对你的好感度提高了${args[0]}。`
     },
     chatMessageClass: "positive-action-message"
 }

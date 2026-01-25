@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "injuryType",
             type: "string",
-            desc: "type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injury, remove_eye, blind if it's the last eye, cut_leg, cut_balls, disfigured"
+            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injure, remove_eye, blind if it last eye, cut_leg, cut_balls, disfigured"
         }
     ],
-    description: `Execute when {{playerName}} injures {{aiName}} in various ways, based on the injuryType argument`,
+    description: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
     
     check: (gameData) => {
         // Always return true for now
@@ -97,26 +97,22 @@ module.exports = {
 
             case "cut_balls":
                 console.log("Executing cut_balls effect"); // Debug log
-                if (ai.sheHe == 'he' && (!ai.hasTrait('Eunuch') || !ai.hasTrait('Beardless Eunuch'))) {
                     runGameEffect(`
                         global_var:talk_second_scope = {
-                            if = {
-                                limit = {
-                                  age < 12
-                                }
-                                ep3_child_castration_effect = yes
-                            }
-                            else = {
-                                ep3_youth_castration_effect = yes
-                            }
+	                        add_trait = eunuch_1
+	                        torture_memory_effect = {
+		                        VICTIM = scope:recipient
+		                        TORTURER = scope:actor  
+		                        TYPE = castrated
+	                            }                            
                         }
+                        
                     `);
                     gameData.getAi().addTrait({
                         category: "health",
                         name: "Eunuch",
                         desc: `${ai.shortName} is an eunuch`
                     });
-                }
                 break;
 
             case "disfigured":
@@ -218,17 +214,17 @@ module.exports = {
         let injuryType = args[0]
 		switch (injuryType) {
 			case 'remove_eye':
-				return "You have removed an eye from the {{aiName}} character.";
+				return "你挖去了{{aiName}}的一只眼睛。";
 			case 'blind':
-				return "You have blinded the {{aiName}} character.";
+				return "你使{{aiName}}失明了。";
 			case 'cut_leg':
-				return "You have cut off the {{aiName}} character's leg.";
+				return "你砍断了{{aiName}}的腿。";
 			case 'cut_balls':
-				return "You have castrated the {{aiName}} character.";
+				return "你阉割了{{aiName}}。";
 			case 'disfigured':
-				return "You have disfigured the {{aiName}} character.";
+				return "你毁容了{{aiName}}。";
 			default:
-				return "You have injured the {{aiName}} character.";
+				return "你伤害了{{aiName}}。";
 		}
 	},
 		

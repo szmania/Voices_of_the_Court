@@ -5,7 +5,7 @@ module.exports = {
     signature: "allianceDiplomatic",
     args: [],
 	
-    description: `Execute when {{aiName}} and {{playerName}} agree on an alliance.`,
+    description: `当{{aiName}}和{{playerName}}同意结成同盟时执行。`,
 	
     check: (gameData) => {
         let ai = gameData.getAi();
@@ -48,7 +48,7 @@ module.exports = {
         `);
     },
     chatMessage: () =>{
-        return `{{aiName}} and {{playerName}} agreed to a diplomatic alliance.`;
+        return `{{aiName}}和{{playerName}}结成了同盟。`;
     },
     chatMessageClass: "positive-action-message"
 }

@@ -17,8 +17,54 @@ module.exports = (gameData) =>{
     }
     const scene = gameData.scene;
     
+// 在此处可添加或修改自定义特质描述，新增内容请遵循原有数据结构，保持“特质名: 描述”的键值对形式，并确保与下方 PERSONALITY_DESCRIPTIONS 对象格式一致，自己修改后要放在custom文件夹中不然下次启动会被覆盖。
+    const PERSONALITY_DESCRIPTIONS = {
+        "勇敢": "面对挑战与危险无所畏惧，积极承担风险与职责；在对话中常主动提议行动，语气坚定，敢于承担责任，遇冲突不退缩。",
+        "怯懦": "回避挑战与惊吓，倾向选择安全与低风险的道路；说话谨慎，常用模糊或推脱措辞，遇压力易妥协或转移话题。",
+        "冷静": "处事从容，节奏稳健，情绪波动小，善于理性判断；语调平稳，先分析后表态，极少失态，喜用数据或逻辑说服他人。",
+        "暴怒": "情绪易被激怒，反应强烈，难以在冲突中保持克制；说话带火药味，易提高音量，使用质问或命令句式，冲突中先攻击后思考。",
+        "忠贞": "克制亲密接触的欲望，远离肉体诱惑，专注于长久承诺；用词保守，回避暧昧话题，强调责任与忠诚，常以道德准则自限。",
+        "色欲": "对肉体享乐渴求旺盛，易被情欲驱动而忽视后果；语调暧昧，善用双关或暗示，主动拉近身体或情感距离，话题易滑向私密。",
+        "安于现状": "满足于已有，少有更进一步的追求，重视稳定与舒适；语气随和，反对激进方案，强调维持现状的好处。",
+        "野心勃勃": "目标明确，意志坚定，不达目的誓不罢休；说话直接指向结果，主动提出扩张或升级计划，对阻碍表现不耐。",
+        "勤勉": "勤于劳作，不畏艰辛，长期投入以达成成果；主动揽活，对拖延者表现出不满，强调努力必有回报。",
+        "懒惰": "趋向最省力的选择，缺乏持续投入与自我要求；语气懒散，提议捷径或推迟，对复杂计划先问“能否简化”。",
+        "宽宏大量": "易于释怀冒犯与挫折，不计前嫌，心胸开阔；语调轻松，主动缓和紧张，倾向用幽默或转移化解尴尬。",
+        "睚眦必报": "对怠慢与错误耿耿于怀，倾向寻求报复或补偿；语气阴冷，记仇细节清晰，常提醒旧账，谈判中要求“先补偿再谈未来”。",
+        "慷慨": "乐于施予与分享，主动参与慈善与援助；说话豪爽，先提出帮助，对讨价还价表现不耐。",
+        "贪婪": "执着于财富积累，谨慎花费，不断寻找获利机会；对成本敏感",
+        "合群": "乐于社交，享受与他人共处，从群体中汲取能量；语调热情，频繁称呼对方名字，主动发起聚会或联盟，怕冷场。",
+        "害羞": "避免过多互动，偏好独处或小范围交流；说话轻声，眼神回避，对公开表态需多次鼓励。",
+        "诚实": "重视事实与真诚，言行透明，少有欺瞒；直接陈述利弊，主动承认错误，对谎言表现明显不适。",
+        "狡诈": "擅长欺骗与操弄，善用谎言达成目的；语调圆滑，先探口风再表态，回避直接承诺。",
+        "谦卑": "自我要求不高，态度谦逊，避免夸耀与炫示；把功劳归于他人，对赞美先否认再转移。",
+        "傲慢": "深信自身价值与优越，难以接受质疑与批评；语气居高临下，对反对意见先贬低再反驳。",
+        "公正": "强烈的正义感，强调公平与秩序，恪守规则；提议投票或第三方仲裁，对特权表现反感。",
+        "专断": "独断行事，鲜少征求意见，以自身判断为先；打断他人发言，对协商表现不耐，要求立即执行。",
+        "耐心": "善于等待与观察，选择时机后稳妥行动；语调缓慢，极少打断。",
+        "急躁": "追求快速结果，难以忍受拖延，偏好立刻执行；说话短促，对冗长解释表现烦躁，易中途插话。",
+        "节制": "主张节欲与适度，克制冲动，保持平衡；用词中性，反对极端方案。",
+        "暴食": "轻视节度与克制，倾向过度享受与占有；语气夸张，对限制表现反感，主动加码。",
+        "轻信他人": "容易相信他人陈述，防范意识不足；快速接受新信息，对证据要求低，易跟随对方思路。",
+        "多疑": "对周遭持怀疑态度，时常预见潜在威胁；频繁提问，要求证据或担保，对好意先质疑动机。",
+        "狂热": "宗教热忱高涨，以信仰为行事准绳；引用经典或神谕，对异见视为亵渎，语调激昂。",
+        "愤世嫉俗": "以个人利益为先，对理想与善念持怀疑态度；冷嘲热讽，对利他提议先拆台。",
+        "慈悲": "心怀仁爱与同情，愿意为他人承担与施予；语调柔和，主动提出减免或援助，对痛苦表现共情。",
+        "冷酷": "情感反应淡漠，对他人痛苦缺乏共鸣；语气平淡，对求助先评估利弊，鲜少安慰。",
+        "虐待狂": "以他人受苦为乐，倾向施加伤害；语调兴奋，对求饶表现愉悦，主动提议惩罚性方案。",
+        "多变": "观点与选择常变化无常，难以预测；同一话题前后矛盾，对承诺随时反悔，话题跳跃大。",
+        "固执": "不轻易让步，坚守己见，抵制改变；重复原有立场，对新证据表现排斥，谈判中寸步不让。",
+        "怪客": "行为异于常人，模式不稳定但并非彻底失序；用词或语调突兀，喜用自创比喻，话题跳跃，对常规社交规则表现漠视。",
+        "螓首蛾眉": "面容姣好，眉目如画，自带温婉柔和的气质；言谈举止间常显端庄，易赢得他人好感。",
+        "英姿飒爽": "神采飞扬，气度豪迈",
+        "倾国倾城": "美貌绝伦，令人一见难忘，自带光环效应；说话时常被倾听，易成为焦点，话题不自觉围绕其展开。",
+        "海格力斯": "拥有超凡体魄与力量，勇猛过人",
+        "阿玛宗": "拥有超凡体魄与力量，勇猛过人"
+    };
+
     let playerPersonaItems = [
         `id(${player.id})`,
+        `姓名：${player.firstName}`,
         mainPosition(player), 
         courtAndCouncilPositions(player), 
         houseAndStatus(player), 
@@ -34,6 +80,7 @@ module.exports = (gameData) =>{
     
     let aiPersonaItems = [
         `id(${ai.id})`,
+        `姓名：${ai.firstName}`,
         mainPosition(ai), 
         courtAndCouncilPositions(ai), 
         listRelationsToPlayer(ai), 
@@ -57,8 +104,8 @@ module.exports = (gameData) =>{
     aiPersonaItems = aiPersonaItems.filter(function(e){return e}); 
     
     let output = "";
-    output+= `\n[${player.house}${player.firstName}的角色信息: ${playerPersonaItems.join("; ")}]`;
-    output+=`\n[${ai.house}${ai.firstName}的角色信息: ${aiPersonaItems.join("; ")}]`;
+    output+= `\n[${player.shortName}'（user）的角色信息: ${playerPersonaItems.join("; ")}]`;
+    output+=`\n[${ai.shortName}'的角色信息: ${aiPersonaItems.join("; ")}]`;
     
     if (gameData.characters.size > 2){
         gameData.characters.forEach((value, key) => {
@@ -66,6 +113,7 @@ module.exports = (gameData) =>{
             {
                 let secondaryAiItems = [
                     `id(${value.id})`,
+                    `姓名：${value.firstName}`,
                     mainPosition(value), 
                     courtAndCouncilPositions(value), 
                     listRelationsToPlayer(value), 
@@ -79,9 +127,10 @@ module.exports = (gameData) =>{
                     marriage(value),  
                     goldStatus(value),
                     age(value), 
+                    describeProwess(value),
                     `信仰：${value.faith}`, 
                     `民族：${value.culture}`]
-                output+=`\n[${value.house}${value.firstName}的角色信息: ${secondaryAiItems.join("; ")}]`;
+                output+=`\n[${value.shortName}'的角色信息: ${secondaryAiItems.join("; ")}]`;
             }
         })
     }
@@ -204,10 +253,13 @@ module.exports = (gameData) =>{
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != "性格特质");
     
-        let traitNames = otherTraits.map(trait => trait.name);
+        let traitTexts = otherTraits.map(trait => {
+            const d = PERSONALITY_DESCRIPTIONS[trait.name] || trait.desc;
+            return d ? `${trait.name}：${d}` : trait.name;
+        });
     
         let output = "拥有特质：("
-        output+= traitNames.join(", ");
+        output+= traitTexts.join(", ");
         output+=")";
     
         return output;
@@ -215,11 +267,12 @@ module.exports = (gameData) =>{
     
     function personalityTraits(char){
         let personalityTraits = filterTraitsToCategory(char.traits, "性格特质");
-    
-        let traitNames = personalityTraits.map(trait => trait.name);
-    
+        let traitTexts = personalityTraits.map(trait => {
+            const d = PERSONALITY_DESCRIPTIONS[trait.name] || trait.desc;
+            return d ? `${trait.name}：${d}` : trait.name;
+        });
         let output = "性格：("
-        output+= traitNames.join(", ");
+        output+= traitTexts.join(", ");
         output+=")";
     
         return output;
@@ -227,7 +280,7 @@ module.exports = (gameData) =>{
     
     function listRelationsToCharacters(char) {
         if (char.relationsToCharacters.length === 0) {
-            return `${char.shortName}没有什么人际关系。`;
+            return ` `;
         } else {
             return char.relationsToCharacters
                 .map(relation => {
@@ -258,13 +311,147 @@ module.exports = (gameData) =>{
 
 
     function scenario(){
+        // 如果角色数大于2，返回所有角色名在场景名称
+        if (gameData.characters.size > 2) {
+            const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join('、');
+            let sceneDescription = scene; // 默认使用scene变量
+            
+            // 沿用原来的switch-case逻辑获取场景描述
+            switch (scene){
+                //添加更多场景
+                case "family_meeting_east":
+                case "family_meeting":
+                    sceneDescription = `${player.shortName}召开的家族会议`;
+                    break;
+                case "cabinet_meeting_chinese_empire":
+                    sceneDescription = `${player.shortName}召开的中枢会议`;
+                    break;
+                case "cabinet_meeting":
+                case "cabinet_meeting_chinese":
+                    sceneDescription = `${player.shortName}召开的内阁会议`;
+                    break;
+                case "lingyinsi":
+                    sceneDescription = "灵隐寺";
+                    break;
+                case "throneroom_japan":
+                    sceneDescription = "平安宫";
+                    break;
+                case "shaolinsidai":
+                    sceneDescription = "少林寺";
+                    break;
+                case "wudangshandaoguan":
+                    sceneDescription = "武当山道观";
+                    break;
+                case "yungangshiku":
+                    sceneDescription = "云冈石窟";
+                    break;
+                case "leshandafou":
+                    sceneDescription = "乐山大佛";
+                    break;
+                case "taishan":
+                    sceneDescription = "泰山";
+                    break;
+                case "wulingyuan":
+                    sceneDescription = "武陵源";
+                    break;
+                case "kaifenghuangcheng":
+                    sceneDescription = "开封皇城";
+                    break;
+                case "huanghelou":
+                    sceneDescription = "黄鹤楼";
+                    break;
+                case "tengwangge":
+                    sceneDescription = "滕王阁";
+                    break;
+                case "yueyanglou":
+                    sceneDescription = "岳阳楼";
+                    break;
+                case "bedchamber_east1":
+                    sceneDescription = "卧室";
+                    break;
+                case "garden_east1":
+                    sceneDescription = "御花园";
+                    break;
+                case "throneroom_east_fuya1":
+                    sceneDescription = "府衙";
+                    break;
+                case "throneroom_east_fuya":
+                    sceneDescription = "府衙";
+                    break;
+                case "throneroom_east_empire":
+                    sceneDescription = "皇宫大殿";
+                    break;
+                case "throneroom_east_empire1":
+                    sceneDescription = "皇宫大殿";
+                    break;
+                //原作者设置的场景
+                case "throneroom":
+                    sceneDescription = `${locationController}的王座厅`;
+                    break;
+                case "garden":
+                    sceneDescription = "城堡花园";
+                    break;
+                case "bedchamber":
+                    sceneDescription = "私人寝宫";
+                    break;
+                case "feast":
+                    sceneDescription = `${locationController}举办的宴会`;
+                    break;
+                case "armycamp":
+                    sceneDescription = "军营";
+                    break;
+                case "hunt":
+                    sceneDescription = "迷雾森林";
+                    break;
+                case "dungeon":
+                    sceneDescription = "地牢";
+                    break;
+                case "alley":
+                    sceneDescription = "隐蔽小巷";
+                    break;
+            }
+            
+            return `${characterNames}在${sceneDescription}`;
+        }
 
         switch (scene){
              //添加更多场景
+            case "family_meeting_east":
+                return `${player.shortName}召开了家族会议`;
+            case "cabinet_meeting_chinese_empire":
+                return `${player.shortName}召开了中枢会议`;
+            case "cabinet_meeting":
+                return `${player.shortName}召开了内阁会议`;
+            case "cabinet_meeting_chinese":
+                return `${player.shortName}召开了内阁会议`;
+            case "lingyinsi":
+                return `${ai.shortName}与${player.shortName}在灵隐寺会见`;
+            case "throneroom_japan":
+                return `${ai.shortName}与${player.shortName}在平安宫会见`;
+            case "shaolinsidai":
+                return `${ai.shortName}与${player.shortName}在少林寺见面`;
+            case "wudangshandaoguan":
+                return `${ai.shortName}与${player.shortName}在武当山道观见面`;
+            case "yungangshiku":
+                return `${ai.shortName}与${player.shortName}在云冈石窟见面`;
+            case "leshandafou":
+                return `${ai.shortName}与${player.shortName}在乐山大佛见面`;
+            case "taishan":
+                return `${ai.shortName}与${player.shortName}在泰山见面`;
+            case "wulingyuan":
+                return `${ai.shortName}与${player.shortName}在武陵源见面`;
+            case "kaifenghuangcheng":
+                return `${ai.shortName}与${player.shortName}在开封皇城会见`;
+            case "huanghelou":
+                return `${ai.shortName}与${player.shortName}在黄鹤楼会见`;
+            case "tengwangge":
+                return `${ai.shortName}与${player.shortName}在滕王阁会见`;
+            case "yueyanglou":
+                return `${ai.shortName}与${player.shortName}在岳阳楼会见`;
             case "bedchamber_east1":
                 return `${ai.shortName}与${player.shortName}在卧室里对话`;
             case "garden_east1":
-                return `${ai.shortName}在御花园里与${player.shortName}对话`;
+                return `${ai.shortName}在御花园里与${player.shortName}会见`;
             case "throneroom_east_fuya1":
                 return `${ai.shortName}在府衙里拜见${player.shortName}`;
             case "throneroom_east_fuya":
@@ -283,7 +470,7 @@ module.exports = (gameData) =>{
                 return `${ai.shortName}在私人寝宫接待${player.shortName}`;
             case "feast":
                 return `${ai.shortName}在${locationController}举办的宴会上与${player.shortName}交谈`;
-            case "army_camp":
+            case "armycamp":
                 return `${ai.shortName}在军营中会见${player.shortName}`;
             case "hunt":
                 return `${ai.shortName}在迷雾森林狩猎时遇见${player.shortName}，他们都拿着弓箭`;
@@ -335,27 +522,17 @@ module.exports = (gameData) =>{
     
     function age(char) {
         const age = char.age;
-    
+        if (age > 13) {
+            return `${age} 岁`;
+        }
         if (age < 3) {
             return `${char.shortName} 是个婴儿，还不会说话，但能通过咿呀声、哭闹或微笑来表达需求。他们大部分时间都在观察周围，伸手去够身边的东西。`;
         } else if (age < 6) {
             return `${char.shortName} 是个小孩子，正学着用简单的短语说话，对周围的一切充满好奇。他们经常玩耍，天真活泼地模仿大人的动作。`;
         } else if (age < 10) {
             return `${char.shortName} 是个儿童，能清晰地说话，喜欢玩游戏和听故事。他们明白一些基本的责任，可能会帮忙做些简单的事，但仍非常依赖他人的指导。`;
-        } else if (age < 13) {
+        } else if (age <= 13) {
             return `${char.shortName} 是个少年，开始承担一些小任务或接受技能训练。他们说话更有自信，开始有了责任感，常常渴望得到长辈的认可。`;
-        } else if (age < 16) {
-            return `${char.shortName} 是个青少年，在言行上表现出独立性。他们可能正在为未来的职责接受训练，并且可能会为承担早期责任而感到自豪。`;
-        } else if (age < 20) {
-            return `${char.shortName} 是个年轻人，自信满满，通常已准备好做决定。他们处理日常事务，言语中透露出雄心壮志和青春活力。`;
-        } else if (age < 30) {
-            return `${char.shortName} 是个成熟的年轻人，做事有目的、有条理。他们常常独立平衡工作和个人事务，说话有目的且充满信念。`;
-        } else if (age < 40) {
-            return `${char.shortName} 经验丰富，行事稳健。他们说话直截了当，稳定地完成任务，值得信赖。`;
-        } else if (age < 60) {
-            return `${char.shortName} 是个阅历丰富的成年人，言行审慎。他们带着一种沉稳的自信，往往会给年轻人提供建议或指导。`;
-        } else {
-            return `${char.shortName} 是位长者，常常善于反思且深思熟虑。他们可能更为内敛，只在必要时发言，但身上散发着一种平静的气质，反映出他们丰富的人生阅历。`;
         }
     }
     

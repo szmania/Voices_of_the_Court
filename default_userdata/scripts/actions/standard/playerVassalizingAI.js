@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "changePoliticalScore",
             type: "number",
-            desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}"
+            desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}."
         }
     ],
-    description: `Execute when {{aiName}} and {{playerName}} are talking about {{playerName}}'s vassalization of {{aiName}} or its terms.`,
+    description: `当{{aiName}}和{{playerName}}讨论{{playerName}}将{{aiName}}封臣化或其条款时执行。`,
     
     /**
      * @param {GameData} gameData 
@@ -85,10 +85,10 @@ module.exports = {
         console.log(`PVAIchat: score: ${aiScore}`)
         if (aiScore >= 30) {
             console.log(`PVAIchat: if`)
-            return `{{aiName}} agreed to be vassalized by {{playerName}}.`;
+            return `{{aiName}}同意成为{{playerName}}的封臣。`;
         } else {
             console.log(`PVAIchat: else`)
-            return `Acceptance score: ${aiScore} | Vassalization if score > 30, negotiations breakdown if < -20`;
+            return `接受分数：${aiScore} | 如果分数>30则封臣化，如果分数<-20则谈判破裂`;
         }
     },
     

@@ -15,14 +15,14 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
         
         switch(msg.role){
             case "system":
-                output += msg.content+"\n";
+                    output += msg.content+"\n";
                 break;
             case "user":
                 output += `${config.inputSequence}\n${msg.name}: ${msg.content}\n`;
                 break;
-            case "assistant":
-                output += `${config.outputSequence}\n${msg.name}: ${msg.content}\n`;
-                break;
+                case "assistant":
+                    output += `${config.outputSequence}\n${msg.name}: ${msg.content}\n`;
+                    break;
         }
     }
 
@@ -31,17 +31,16 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
 }
 
 export function convertChatToTextNoNames(messages: Message[], config: Config): string{
-    let output: string[] = [];
-    for (let msg of messages) {
-        if (msg.role === "user") {
-            output.push(config.inputSequence);
-        } else if (msg.role === "assistant") {
-            output.push(config.outputSequence);
+    let output: string = "";
+    for(let msg of messages){
+        if(msg.role === "user"){
+            output+=config.inputSequence+"\n";
         }
-        output.push(msg.content);
+        output += msg.content+"\n";
     }
-    output.push(config.outputSequence, "")
-    return output.join("\n");
+
+    output+=config.outputSequence+"\n";
+    return output;
 }
 
 export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
@@ -51,27 +50,14 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
-    if (isSelfTalk) {
-        chatPrompt.push({
-            role: "system",
-            content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
-        });
-        console.log('Added self-talk main prompt from config.');
-    } else {
-        chatPrompt.push({
-            role: "system",
-            content: parseVariables(conv.config.mainPrompt, conv.gameData)
-        });
-        console.log('Added standard main prompt.');
-    }
-
-    chatPrompt.push({
-        role: "system",
-        content: "[example messages]"
-    })
 
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
+
+    chatPrompt.push({
+        role: "system",
+        content: "你的任务是扮演角色 " + character.fullName + "，为该角色写一条回复，只要写该角色的回复，注意你扮演的是" + character.fullName + "，不要写其他任何角色的回复。" + "\n"
+    })
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
@@ -95,8 +81,18 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         try {
             delete require.cache[require.resolve(exampleMessagesPath)];
             let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
-            chatPrompt = chatPrompt.concat(exampleMessages);
-            console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
+            
+            // 只有当example messages不为空时才添加占位符和实际消息
+            if (exampleMessages && exampleMessages.length > 0) {
+                chatPrompt.push({
+                    role: "system",
+                    content: "[example messages]"
+                });
+                chatPrompt = chatPrompt.concat(exampleMessages);
+                console.log(`Added example messages from script: ${exampleMessagesScriptFileName}.`);
+            } else {
+                console.log(`Example messages script returned empty array: ${exampleMessagesScriptFileName}. Skipping example messages.`);
+            }
         } catch (err) {
             console.error(`Error loading example message script '${exampleMessagesScriptFileName}': ${err}`);
             conv.chatWindow.window.webContents.send('error-message', `Error in example message script '${exampleMessagesScriptFileName}'.`);
@@ -115,7 +111,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     const descMessage: Message = {
         role: "system",
-        content: conv.description
+        content: "参与对话的角色：" + conv.description
     };
 
     insertMessageAtDepth(messages, descMessage, conv.config.descInsertDepth);
@@ -151,7 +147,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         if (isSelfTalk) {
             summaryString = "Here are the date and summary of previous internal monologues for " + conv.gameData.playerName + ":\n";
         } else {
-            summaryString = "Here are the date and summary of previous conversations between " + character.fullName + " and " + conv.gameData.playerName + ":\n";
+            summaryString = "以下是之前对话的日期与摘要：\n";
         }
 
         const summariesToProcess = [...characterSummaries];
@@ -192,16 +188,20 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
 
     chatPrompt = chatPrompt.concat(messages);
 
-    const isNewConversation = conv.messages.length === 0;
-    const isAiInitiating = isNewConversation; 
-
-    if (isAiInitiating && !isSelfTalk) {
+    if (isSelfTalk) {
         chatPrompt.push({
             role: "system",
-            content: "You are starting a new conversation. Greet the other character and begin a new topic. You can draw inspiration from the provided summaries of past conversations, but do not simply continue the last one."
+            content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
         });
-        console.log('Added AI initiation prompt.');
+        console.log('Added self-talk main prompt from config.');
+    } else {
+        chatPrompt.push({
+            role: "system",
+            content: "你的任务是扮演角色 " + character.fullName + "，为该角色写一条回复，只要写该角色的回复，注意你扮演的是" + character.fullName + "，不要写其他任何角色的回复。"+ "\n" + parseVariables(conv.config.mainPrompt, conv.gameData) + "现在开始写" +character.fullName +"的回复："
+        });
+        console.log('Added standard main prompt.');
     }
+
 
     if(conv.config.enableSuffixPrompt){
         chatPrompt.push({
@@ -305,10 +305,66 @@ function parseGameDate(dateStr: string): Date | null {
     // Handle purely numeric strings, assuming they are a year.
     if (/^\d+$/.test(str)) {
         // Creates a date for Jan 1st of that year.
-        return new Date(parseInt(str), 0, 1);
+        // For two-digit years, we want to use them as-is (e.g., 82 = 82 AD, not 1982)
+        const year = parseInt(str);
+        // Use setFullYear to ensure two-digit years are not interpreted as 1900s
+        const date = new Date();
+        date.setFullYear(year, 0, 1);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    // Handle Chinese date format with optional prefix (e.g., "伊耿历82年1月22日" or "82年1月22日")
+    const chineseDateMatch = str.match(/^.*?(\d+)年(\d+)月(\d+)日$/);
+    if (chineseDateMatch) {
+        const year = parseInt(chineseDateMatch[1]);
+        const month = parseInt(chineseDateMatch[2]) - 1; // JavaScript months are 0-indexed
+        const day = parseInt(chineseDateMatch[3]);
+        // For two-digit years, we want to use them as-is (e.g., 82 = 82 AD, not 1982)
+        // Use setFullYear to ensure two-digit years are not interpreted as 1900s
+        const date = new Date();
+        date.setFullYear(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    // Handle "Moon" format dates (e.g., "14th Third Moon, 172 A.C.")
+    const moonDateMatch = str.match(/^(\d+)(?:st|nd|rd|th)\s+(\w+)\s+Moon,\s+(\d+)\s*(?:A\.C\.|AC)?$/);
+    if (moonDateMatch) {
+        const day = parseInt(moonDateMatch[1]);
+        const moonName = moonDateMatch[2].toLowerCase();
+        const year = parseInt(moonDateMatch[3]);
+        
+        // Map moon names to month numbers
+        const moonToMonth: { [key: string]: number } = {
+            'first': 0,     // January
+            'second': 1,    // February
+            'third': 2,     // March
+            'fourth': 3,    // April
+            'fifth': 4,     // May
+            'sixth': 5,     // June
+            'seventh': 6,   // July
+            'eighth': 7,    // August
+            'ninth': 8,     // September
+            'tenth': 9,     // October
+            'eleventh': 10, // November
+            'twelfth': 11   // December
+        };
+        
+        const month = moonToMonth[moonName];
+        if (month !== undefined) {
+            // For two-digit years, we want to use them as-is (e.g., 73 = 73 AD, not 1973)
+            // Use setFullYear to ensure two-digit years are not interpreted as 1900s
+            const date = new Date();
+            date.setFullYear(year, month, day);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        }
     }
 
     // Attempt to parse with the native constructor for standard/English formats.
+    // Note: This may still interpret two-digit years as 1900s, but we've already
+    // handled the specific game date formats above.
     const date = new Date(str);
 
     // Return the date object if it's valid, otherwise return null.
@@ -321,48 +377,31 @@ function parseGameDate(dateStr: string): Date | null {
 }
 
 function getDateDifference(pastDate: string, todayDate: string): string{
+    // Use parseGameDate to handle both English and Chinese date formats
+    const pastDateObj = parseGameDate(pastDate);
+    const todayDateObj = parseGameDate(todayDate);
 
-    const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
+    // If either date can't be parsed, return a default string
+    if (!pastDateObj || !todayDateObj) {
+        return "unknown time ago";
+    }
 
-      const past = {
-        day: Number(pastDate.split(" ")[0]),
-        month: months.indexOf(pastDate.split(" ")[1]),
-        year: Number(pastDate.split(" ")[2])
-      }
+    // Calculate the difference in days
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const totalDays = Math.floor((todayDateObj.getTime() - pastDateObj.getTime()) / msPerDay);
 
-      const today = {
-        day: Number(todayDate.split(" ")[0]),
-        month: months.indexOf(todayDate.split(" ")[1]),
-        year: Number(todayDate.split(" ")[2])
-      }
-
-      let totalDays = (today.year - past.year) * 365 + (today.month - past.month) * 30 + (today.day - past.day);
-
-      if(totalDays > 365){
+    if(totalDays > 365){
         return Math.round(totalDays/365) + " years ago"
-      }
-      else if(totalDays >= 30){
+    }
+    else if(totalDays >= 30){
         return Math.round(totalDays/30) + " months ago"
-      }
-      else if(totalDays > 0){
+    }
+    else if(totalDays > 0){
         return totalDays + " days ago"
-      }
-      else{
+    }
+    else{
         return "today"
-      }
+    }
 }
 
 
@@ -373,7 +412,7 @@ function createSecretString(conv: Conversation): string{
     aiSecrets = aiSecrets.concat(conv.gameData.characters.get(conv.gameData.aiID)!.secrets);
     playerSecrets = playerSecrets.concat(conv.gameData.characters.get(conv.gameData.playerID)!.secrets);
 
-    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASILY. IF A CHARACTER REVEALS IT, IT MAY BE USED AGAINST THEM AND LEAD THEM TO DEATH OR PRISON.\n";
+    let output ="SECRETS BELOW SHALL NOT BE REVEALED EASY, IF CHARACTER REVEALS IT, IT MAY BE USED AGAINST HIM AND LEAD HIM TO DEATH OR PRISON\n";
     if(aiSecrets.length>0){
         output += `${conv.gameData.aiName}'s secrets:`;
     }
@@ -393,7 +432,7 @@ function createSecretString(conv: Conversation): string{
     return output+"\n\n";
 }
 
-function createMemoryString(conv: Conversation): string{
+export function createMemoryString(conv: Conversation): string{
 
     let allMemories: Memory[] = [];
 

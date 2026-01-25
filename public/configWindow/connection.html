@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Voices of the Court - Community Edition</title>
+    <title>Voices of the Court</title>
     <link rel="stylesheet" href="config.css" />
     
   </head>
@@ -17,6 +17,7 @@
         <li><a href="prompts.html">Prompts</a></li>
         <li><a href="settings.html">Settings</a></li>
         <li><a href="system.html">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
       </ul> 
     </div>
     
@@ -44,6 +45,20 @@
     <script>require("../../dist/configWindow/components/apiSelector.js")</script>
     <script>require("../../dist/configWindow/components/tooltip.js")</script>
     <script>require("../../dist/configWindow/connectionRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
     
   </body>
 </html>

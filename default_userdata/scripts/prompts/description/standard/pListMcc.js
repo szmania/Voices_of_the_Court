@@ -135,10 +135,10 @@ module.exports = (gameData) =>{
             output+="lowborn ";
         }
     
-        if(char.sheHe === "she"){
+        if(char.SheHe === "she"){
             output+= "woman";
         }
-        else if(char.sheHe === "he"){
+        else if(char.SheHe === "he"){
             output+= "man";
         }
 
@@ -277,7 +277,7 @@ module.exports = (gameData) =>{
     
         
     function listRelationsToPlayer(char){
-        if(char.relationsToPlayer.length === 0){
+        if(char.relationsToPlayer === 0){
             return `has no relation to ${player.shortName}`;
         }
         else{

@@ -10,19 +10,24 @@ export class ChatWindow{
     isShown: boolean;
     windowWatchId: number;
     interval: any;
-    title: string;
 
 
     constructor(){
-        this.title = "Voices of the Court - Community Edition - Chat";
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
+            fullscreenable: false, // 禁用全屏支持，避免与游戏窗口冲突
+            transparent: true,
+            resizable: true, // 必须设为true，否则Windows下无法切换输入法/显示候选框
+            width: 650,
+            height: 800,
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
             preload: path.join(__dirname, '..', 'preload.js'),
             }       
         })
+
+        //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
         
         this.windowWatchId = 0;
 
@@ -50,11 +55,6 @@ export class ChatWindow{
         
     }
 
-    setTitle(title: string){
-        this.title = title;
-        this.window.setTitle(title);
-    }
-
     show(){
         console.log("Chat window showed!");
         OverlayController.activateOverlay();
@@ -77,7 +77,7 @@ export class ChatWindow{
                 let win = ActiveWindow.getActiveWindow();
                // console.log(win.title)
 
-                if(win.title === "Crusader Kings III" || win.title === this.title){
+                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Chat"){
                     OverlayController.activateOverlay();
                     //this.window.webContents.send('chat-show');
                 }else{

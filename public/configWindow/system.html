@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Voices of the Court - Community Edition</title>
+    <title>Voices of the Court</title>
     <link rel="stylesheet" href="config.css" />
     
   </head>
@@ -15,6 +15,7 @@
         <li><a href="prompts.html">Prompts</a></li>
         <li><a href="settings.html">Settings</a></li>
         <li class="active"><a href="system.html">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
       </ul> 
     </div>
 
@@ -31,29 +32,28 @@
 
             <hr>
 
+            <h3>Theme Selection</h3>
+            <p>Choose your preferred UI theme:</p>
+            <select id="theme-selector">
+              <option value="original">Original UI</option>
+              <option value="chinese">中式 UI</option>
+              <option value="west">West UI</option>
+            </select>
+
+            <hr>
+
             <h3>Log files</h3>
             <p>If you experience errors/crashes, send the logs to our discord server</p>
             <open-folder-button path="logs" label="open log files folder"></open-folder-button>
           </div>
-
-          <br>
-
+        </div>
+        <div class="column">
           <div class="border">
             <h3>Clear conversation summaries</h3>
             <p>This will delete the summaries of previous conversations of all characters</p>
             <button type="button" id="clear-summaries">Clear Summaries</button>
-          </div>
-        </div>
-        <div class="column">
-          <div class ="border">
-            <div class="row">
-              <div class="column">
-                <h3>Discord</h3>
-                <a href="https://discord.gg/UQpE4mJSqZ" target="_blank"><img src="../assets/discord-icon.jpg" width="50%" height="50%"></a>
-
-            
-              </div>
-            </div>
+            <br><br>
+            <open-folder-button path="conversation_summaries" label="Open conversation summaries folder"></open-folder-button>
           </div>
         </div>
       </div>  
@@ -64,6 +64,20 @@
     <script>require("../../dist/configWindow/components/openFolderButton.js")</script>
     <script>require("../../dist/configWindow/components/ConfigCheckbox.js")</script>
     <script>require("../../dist/configWindow/systemRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
     
   </body>
 </html>

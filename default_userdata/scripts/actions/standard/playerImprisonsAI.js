@@ -7,10 +7,10 @@ module.exports = {
         {
             name: "prisonType",
             type: "string",
-            desc: "type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon",
+            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon`,
         }
     ],
-    description: `Execute when {{aiName}} gets explicitly imprisoned by {{playerName}}.`,
+    description: `当{{aiName}}被{{playerName}}明确监禁时执行`,
     
     check: (gameData) => {
         let ai = gameData.getAi();
@@ -103,11 +103,11 @@ module.exports = {
         let prisonType = args[0];
         switch (prisonType) {
             case 'house_arrest':
-                return "{{aiName}} was taken into house arrest.";
+                return "{{aiName}}被软禁。";
             case 'dungeon':
-                return "{{aiName}} was taken to the dungeon.";
+                return "{{aiName}}被关进地牢。";
             default:
-                return "{{aiName}} was imprisoned.";
+                return "{{aiName}}被监禁。";
         }
     },
     

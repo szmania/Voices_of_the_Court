@@ -4,7 +4,7 @@
 module.exports = {
     signature: "intercourseA",
     args: [],
-    description: `Execute only after {{aiName}} and {{playerName}} had sexual intercourse. The act can be either consensual or rape.`,
+    description: `仅在{{aiName}}和{{playerName}}发生性关系后执行。行为可以是双方自愿的或强奸。`,
 
     /**
      * @param {GameData} gameData 
@@ -34,7 +34,7 @@ module.exports = {
     })
     },
     chatMessage: (args) =>{
-        return `You lay with {{aiName}}.`
+        return `你与{{aiName}}性交`
     },
     chatMessageClass: "neutral-action-message"
 }

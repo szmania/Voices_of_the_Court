@@ -4,7 +4,7 @@
 module.exports = {
     signature: "aiGetsWounded",
     args: [],
-    description: `Execute when {{aiName}} got seriously wounded.`,
+    description: `当{{aiName}}受重伤时执行。`,
     creator: "Durond",
     /**
      * @param {GameData} gameData 
@@ -31,7 +31,7 @@ module.exports = {
         })
     },
     chatMessage: () =>{
-        return `{{aiName}} got wounded!`
+        return `{{aiName}}受伤了！`
     },
     chatMessageClass: "negative-action-message"
 }

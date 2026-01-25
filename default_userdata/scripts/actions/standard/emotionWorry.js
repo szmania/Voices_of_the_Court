@@ -4,7 +4,7 @@
 module.exports = {
     signature: "emotionWorry",
     args: [],
-    description: `Execute when {{aiName}} is feeling worried.`,
+    description: `当{{aiName}}感到担忧时执行。`,
 
     /**
      * @param {GameData} gameData 

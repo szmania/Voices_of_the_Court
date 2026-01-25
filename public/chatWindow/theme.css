@@ -1,0 +1,516 @@
+/* 主题样式定义 */
+
+/* 字体定义 */
+@font-face {
+    font-family: 'SiYuanSongTiRegular';
+    src: url('../assets/SiYuanSongTiRegular/SourceHanSerifCN-Heavy-4.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 中式UI主题 - 设置聊天窗口背景 */
+body.theme-chinese {
+    background-image: url(../assets/background.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* 中式UI主题下聊天框的背景 */
+body.theme-chinese .chat-box {
+    background-image: url(../assets/background2.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent; /* 移除原有的背景色 */
+}
+
+/* 中式UI主题 - 使用当前的图像按钮样式 */
+.theme-chinese .leave-button {
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    width: 180px;
+    height: 90px;
+    background-image: url(../assets/button4.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: url('../assets/cursor.png'), auto;
+    transition: background-image 0.3s ease;
+    padding: 0;
+    margin: 0;
+    font-size: 0px;
+    font-family: 'SiYuanSongTiRegularSiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    position: absolute;
+    bottom: 30px; /* 稍微上移 */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-chinese .leave-button:hover {
+    background-image: url(../assets/button3.png);
+    color: #ffffff;
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-chinese .leave-button:active {
+    /* 移除点击缩小效果 */
+}
+
+/* 中式UI主题 - 输入框和文本显示框样式 */
+.theme-chinese .chat-input {
+    border: 2px solid #957c53;
+    width: 90%; /* 缩小宽度 */
+    margin-left: 5%; /* 居中显示 */
+}
+
+.theme-chinese .chat-input:focus {
+    border-color: #957c53;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 5px rgba(149, 124, 83, 0.3);
+}
+
+/* 缩小文本显示框宽度 */
+.theme-chinese .messages-container {
+    width: 90%;
+    margin-left: 5%; /* 居中显示 */
+    margin-top: 6%; /* 进一步降低顶部高度 */
+    height: 65%; /* 降低总体高度 */
+}
+
+/* 中式UI主题 - 显示建议按钮样式 */
+.theme-chinese .suggestions-button {
+    background: transparent;
+    color: transparent;
+    border: none;
+    width: 80px;
+    height: 30px;
+    background-image: url(../assets/suggestions_button.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: url('../assets/cursor.png'), auto;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0;
+    font-size: 0;
+    display: inline-block;
+    position: absolute;
+    right: 6.5%; /* 与输入框右对齐 */
+    bottom: 17.5%; /* 与输入框底部对齐 */
+}
+
+.theme-chinese .suggestions-button:hover {
+    opacity: 0.8;
+}
+
+
+
+/* 中式UI主题 - 建议选项窗口样式 */
+.theme-chinese .suggestions-container {
+    background-color: transparent; /* 透明背景 */
+    border: none; /* 移除边框 */
+    box-shadow: none; /* 移除阴影 */
+    max-height: 400px; /* 增加最大高度 */
+    overflow-y: visible; /* 移除滚动条 */
+    padding: 0;
+    width: 50%; /* 缩小窗口宽度 */
+    margin-left: 5%; /* 设置位置为左侧5% */
+    margin-bottom: 5%; /* 增加底部边缘1% */
+}
+/* 隐藏推荐输入语句标题块 */
+.theme-chinese .suggestions-header {
+    display: none; /* 完全隐藏标题块 */
+}
+
+/* 中式UI主题 - 每个建议选项使用不同的气泡背景 */
+.theme-chinese .suggestion-item:nth-child(1) {
+    background-image: url(../assets/xuanxiang1.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #957c53; /* 白色文字 */
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-chinese .suggestion-item:nth-child(2) {
+    background-image: url(../assets/xuanxiang2.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #957c53; /* 白色文字 */
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-chinese .suggestion-item:nth-child(3) {
+    background-image: url(../assets/xuanxiang3.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #957c53; /* 白色文字 */
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-chinese .suggestion-item:nth-child(4) {
+    background-image: url(../assets/xuanxiang4.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #957c53; /* 白色文字 */
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-chinese .suggestion-item:nth-child(5) {
+    background-image: url(../assets/xuanxiang5.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #957c53; /* 白色文字 */
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-chinese .suggestion-item:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* 中式UI主题 + 自动发送建议功能 - 建议选项居中显示 */
+.theme-chinese.auto-send-suggestions .suggestions-container {
+    width: 60%; /* 增加窗口宽度 */
+    margin-left: 50%; /* 设置左边距使容器居中 */
+    margin-bottom: 10%; /* 保持底部边缘 */
+}
+
+/* 中式UI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
+.theme-chinese.auto-send-suggestions .suggestions-button {
+    right: auto; /* 取消右对齐 */
+    left: 6.2%; /* 设置左边距为5% */
+}
+
+/* WestUI主题 - 设置聊天窗口背景 */
+body.theme-west {
+    background-image: url(../assets/background_east1.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* WestUI主题下聊天框的背景 */
+body.theme-west .chat-box {
+    background-image: url(../assets/background_east1.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent; /* 移除原有的背景色 */
+    width: 31%; /* 调整宽度为31% */
+}
+
+/* WestUI主题 - 使用当前的图像按钮样式 */
+.theme-west .leave-button {
+    background: transparent;
+    color: #a18c61;
+    border: none;
+    width: 180px;
+    height: 90px;
+    background-image: url(../assets/leave_button_west.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: url('../assets/cursor.png'), auto;
+    transition: background-image 0.3s ease;
+    padding: 0;
+    margin: 0;
+    font-size: 10px;
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    position: absolute;
+    bottom: 30px; /* 稍微上移 */
+    left: 50%;
+    z-index: 100;
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-west .leave-button:hover {
+    background-image: url(../assets/leave_button_west1.png);
+    color: #ffffff;
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-west .leave-button:active {
+    /* 移除点击缩小效果 */
+    transform: translateX(-50%);
+}
+
+
+/* WestUI主题 - 输入框和文本显示框样式 */
+.theme-west .chat-input {
+    border: 2px solid #232321;
+    width: 86%; /* 缩小宽度 */
+    margin-top: 5%; /* 增加顶部外边距 */
+    margin-left: 7%; /* 居中显示 */
+}
+
+.theme-west .chat-input:focus {
+    border-color: #232321;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 0 5px rgba(35, 35, 33, 0.3);
+}
+
+/* 缩小文本显示框宽度 */
+.theme-west .messages-container {
+    border: 2px solid #232321;
+    width: 86%;
+    margin-left: 7%; /* 居中显示 */
+    margin-top: 7%; /* 进一步降低顶部高度 */
+    height: 60%; /* 降低总体高度 */
+}
+
+/* WestUI主题 - 显示建议按钮样式 */
+.theme-west .suggestions-button {
+    background: transparent;
+    color: transparent;
+    border: none;
+    width: 80px;
+    height: 30px;
+    background-image: url(../assets/suggestion_button_west.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: url('../assets/cursor.png'), auto;
+    transition: all 0.3s ease;
+    padding: 0;
+    margin: 0;
+    font-size: 0;
+    display: inline-block;
+    position: absolute;
+    right: 8.1%; /* 与输入框右对齐 */
+    bottom: 17.5%; /* 与输入框底部对齐 */
+}
+
+.theme-west .suggestions-button:hover {
+    background-image: url(../assets/suggestion_button_west1.png);
+    background-size: 100% 100%; /* 拉伸填充 */
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* WestUI主题 - 建议选项窗口样式 */
+.theme-west .suggestions-container {
+    background-color: transparent; /* 透明背景 */
+    border: none; /* 移除边框 */
+    box-shadow: none; /* 移除阴影 */
+    max-height: 400px; /* 增加最大高度 */
+    overflow-y: visible; /* 移除滚动条 */
+    padding: 0;
+    width: 150%; /* 缩小窗口宽度 */
+    margin-left: 5%; /* 设置位置为左侧5% */
+    margin-bottom: 10%; /* 增加底部边缘1% */
+}
+
+/* 隐藏推荐输入语句标题块 */
+.theme-west .suggestions-header {
+    display: none; /* 完全隐藏标题块 */
+}
+
+/* WestUI主题 - 每个建议选项使用不同的气泡背景 */
+.theme-west .suggestion-item:nth-child(1) {
+    background-image: url(../assets/xuanxiang_west1.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #20201e; /* 浅灰色文字 */
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-west .suggestion-item:nth-child(2) {
+    background-image: url(../assets/xuanxiang_west2.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #20201e; /* 浅灰色文字 */
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-west .suggestion-item:nth-child(3) {
+    background-image: url(../assets/xuanxiang_west3.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #20201e; /* 浅灰色文字 */
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-west .suggestion-item:nth-child(4) {
+    background-image: url(../assets/xuanxiang_west4.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #20201e; /* 浅灰色文字 */
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-west .suggestion-item:nth-child(5) {
+    background-image: url(../assets/xuanxiang_west5.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 20px 16px; /* 增加上下内边距 */
+    margin: 8px 0; /* 增加上下外边距 */
+    color: #20201e; /* 浅灰色文字 */
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    font-size: 23px; /* 增大字号 */
+    line-height: 1.6; /* 调整行高 */
+    text-align: center; /* 文字居中显示 */
+    min-height: 60px; /* 设置最小高度 */
+    display: flex; /* 使用flex布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+}
+
+.theme-west .suggestion-item:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* WestUI主题 + 自动发送建议功能 - 建议选项居中显示 */
+.theme-west.auto-send-suggestions .suggestions-container {
+    width: 150%; /* 增加窗口宽度 */
+    margin-left: 100%; /* 设置左边距使容器居中 */
+    margin-bottom: 15%; /* 保持底部边缘 */
+}
+
+/* WestUI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
+.theme-west.auto-send-suggestions .suggestions-button {
+    right: auto; /* 取消右对齐 */
+    left: 8.1%; /* 设置左边距为5% */
+}
+

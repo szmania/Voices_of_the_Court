@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import {ActionResponse, Message, HistoricalConversation} from '../main/ts/conversation_interfaces.js';
+import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
 const DOMPurify = require('dompurify');
@@ -11,32 +11,43 @@ const sanitizeConfig = {
 
 hideChat();
 
+// 初始化主题
+function initTheme() {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
+    document.body.classList.add(`theme-${savedTheme}`);
+}
+
+// 页面加载时初始化主题
+initTheme();
 
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
-let chatInput: HTMLTextAreaElement= document.querySelector('.chat-input')!;
+let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
-
-let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
-let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
-let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
-let searchContainer: HTMLDivElement = document.querySelector('.search-container')!;
-let searchInput: HTMLInputElement = document.querySelector('.search-bar')!;
-let searchButton: HTMLButtonElement = document.querySelector('.search-button')!;
+let suggestionsButton: HTMLButtonElement = document.querySelector('.suggestions-button')!;
+let suggestionsContainer: HTMLDivElement = document.querySelector('.suggestions-container')!;
+let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list')!;
+let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-close')!;
 let loadingDots: any;
 
 let playerName: string;
 let aiName: string;
+let showSuggestionsButton: boolean = true; // 默认显示建议按钮
+let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 
 
 async function initChat(){
     
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
-    chatInput.disabled = false;    
-    updateRegenerateButtonState();
+    chatInput.disabled = false;
+    
+    // 根据配置显示或隐藏建议按钮
+    if (suggestionsButton) {
+        suggestionsButton.style.display = showSuggestionsButton ? 'block' : 'none';
+    }
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false, date?: string): Promise<HTMLDivElement>{
+async function displayMessage(message: Message): Promise<HTMLDivElement>{
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
@@ -44,43 +55,43 @@ async function displayMessage(message: Message, isHistorical: boolean = false, d
 
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
-    if (isHistorical) {
-        messageDiv.classList.add('historical-message');
-    }
-
-    let dateSpan = '';
-    if (isHistorical && date) {
-        dateSpan = `<span class="message-date">${date}</span> `;
-    }
-
     switch (message.role){
         case 'user':
             messageDiv.classList.add('player-message');
-            messageDiv.innerHTML = dateSpan + DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
             break;
         case 'assistant':
             removeLoadingDots();
             messageDiv.classList.add('ai-message');
-            messageDiv.innerHTML = dateSpan + DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
 
             break;
     };   
     chatMessages.append(messageDiv);
-    
     chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    updateRegenerateButtonState();
 
     return messageDiv;
 }
 
-function displayActions(actions: ActionResponse[]){
-    if (!actions || actions.length === 0) {
-        return;
-    }
+function displayNarrative(narrative: string) {
+    if (!narrative) return;
     
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', 'action-message');
+    messageDiv.classList.add('message');
+    messageDiv.classList.add('narrative-message');
+    
+    const narrativeSpan = document.createElement('span');
+    narrativeSpan.innerText = narrative;
+    messageDiv.appendChild(narrativeSpan);
+    
+    chatMessages.append(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function displayActions(actions: ActionResponse[]){
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message');
     for(const action of actions){
         
         const ActionSpan = document.createElement('span');
@@ -93,12 +104,9 @@ function displayActions(actions: ActionResponse[]){
     
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight; 
-    
-    updateRegenerateButtonState();
 }
 
 function displayErrorMessage(error: string){
-    
     removeLoadingDots();
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -107,113 +115,6 @@ function displayErrorMessage(error: string){
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
-    updateRegenerateButtonState();
-}
-
-function escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
-function clearHighlights() {
-    const marks = chatMessages.querySelectorAll('mark');
-    marks.forEach(mark => {
-        const parent = mark.parentNode!;
-        // Replace the <mark> element with its text content
-        parent.replaceChild(document.createTextNode(mark.textContent!), mark);
-        // Merge adjacent text nodes to clean up the DOM for the next search
-        parent.normalize();
-    });
-}
-
-function performSearch() {
-    const query = searchInput.value;
-    clearHighlights(); // Clears previous search results
-
-    if (!query.trim()) {
-        return; // Do not search for empty or whitespace-only strings
-    }
-
-    const messages = chatMessages.querySelectorAll('.message:not(.action-message)');
-    const regex = new RegExp(escapeRegExp(query), 'gi');
-    let firstMatchElement: HTMLElement | null = null;
-
-    // Use a for...of loop instead of forEach
-    for (const messageElement of messages) {
-        const message = messageElement as HTMLElement;
-        // Use a TreeWalker to safely traverse and modify only text nodes
-        const treeWalker = document.createTreeWalker(message, NodeFilter.SHOW_TEXT);
-        const nodes: Node[] = [];
-        while (treeWalker.nextNode()) {
-            nodes.push(treeWalker.currentNode);
-        }
-
-        let foundInMessage = false;
-        nodes.forEach(node => {
-            if (node.nodeValue && regex.test(node.nodeValue)) {
-                foundInMessage = true;
-                const span = document.createElement('span');
-                span.innerHTML = node.nodeValue.replace(regex, '<mark>$&</mark>');
-                
-                // Replace the original text node with the new nodes (including <mark>)
-                node.parentNode!.replaceChild(span, node);
-            }
-        });
-
-        if (foundInMessage && !firstMatchElement) {
-            firstMatchElement = message;
-        }
-    }
-
-    if (firstMatchElement) {
-        firstMatchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-function updateRegenerateButtonState() {
-    const lastMessageElement = chatMessages.lastElementChild as HTMLElement;
-    const defaultTooltip = "You can only regenerate a response if the AI was the last one to speak.";
-    const actionTooltip = "Cannot regenerate a response that includes actions.";
-    const waitingTooltip = "Waiting for a response...";
-
-    // Case 1: Loading dots are visible
-    if (document.querySelector('.loading')) {
-        regenerateButton.disabled = true;
-        regenerateButtonWrapper.setAttribute('data-tooltip', waitingTooltip);
-        return;
-    }
-
-    // Case 2: No messages or last message is not a valid message element
-    if (!lastMessageElement || !lastMessageElement.classList.contains('message')) {
-        regenerateButton.disabled = true;
-        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
-        return;
-    }
-
-    // Case 3: Last message is an action message
-    if (lastMessageElement.classList.contains('action-message')) {
-        regenerateButton.disabled = true;
-        regenerateButtonWrapper.setAttribute('data-tooltip', actionTooltip);
-        return;
-    }
-
-    // Case 4: Last message is a player message or error message
-    if (lastMessageElement.classList.contains('player-message') || lastMessageElement.classList.contains('error-message')) {
-        regenerateButton.disabled = true;
-        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
-        return;
-    }
-
-    // Case 5: Last message is a plain AI message (enabling the button)
-    if (lastMessageElement.classList.contains('ai-message')) {
-        regenerateButton.disabled = false;
-        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
-        return;
-    }
-
-    // Default case: Disable the button
-    regenerateButton.disabled = true;
-    regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
 }
 
 
@@ -223,7 +124,6 @@ chatInput.addEventListener('keydown', async function(e) {
         e.preventDefault(); //disallow newlines   
         if(chatInput.value != ''){
             const messageText = chatInput.value;
-            console.log(`User submitted message: "${messageText}"`);
             chatInput.value = ''
 
             let message: Message = {
@@ -235,7 +135,6 @@ chatInput.addEventListener('keydown', async function(e) {
             await displayMessage(message);
             showLoadingDots();
             ipcRenderer.send('message-send', message);
-            console.log('Sent message-send event to main process.');
 
         };
     };
@@ -252,94 +151,139 @@ function showLoadingDots(){  //and disable chat
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
-    
-    updateRegenerateButtonState();
 }
 
 function removeLoadingDots(){
     loadingDots?.remove();
     chatInput.disabled = false;
+}
+
+// 显示推荐输入语句
+function displaySuggestions(suggestions: string[]) {
+    // 清空之前的推荐
+    suggestionsList.innerHTML = ''
     
-    updateRegenerateButtonState();
+    // 如果没有推荐，显示提示信息
+    if (suggestions.length === 0) {
+        const noSuggestionsItem = document.createElement('div')
+        noSuggestionsItem.className = 'suggestion-item'
+        noSuggestionsItem.textContent = '暂无推荐输入语句'
+        suggestionsList.appendChild(noSuggestionsItem)
+    } else {
+        // 添加每个推荐语句
+        suggestions.forEach(suggestion => {
+            const suggestionItem = document.createElement('div')
+            suggestionItem.className = 'suggestion-item'
+            suggestionItem.textContent = suggestion
+            
+            // 点击推荐语句时，将其填入输入框
+            suggestionItem.addEventListener('click', async () => {
+                // 处理建议文本：移除引号、前面的序号以及结尾的括号内容
+                let processedText = suggestion
+                    .replace(/^\d+\.\s*/, '') // 移除开头的序号（如"1. "）
+                    .replace(/（[^）]*）$/, '') // 移除结尾的中文括号及其内容
+                    .replace(/\([^)]*\)$/, '') // 移除结尾的英文括号及其内容
+                    .replace(/^[""]/g, '') // 移除开头的引号
+                    .replace(/[""]$/g, ''); // 移除结尾的引号
+                
+                chatInput.value = processedText
+                suggestionsContainer.style.display = 'none'
+                
+                // 如果启用了自动发送建议功能，直接发送消息
+                if (autoSendSuggestion) {
+                    console.log('Auto-sending suggestion:', processedText);
+                    const messageText = processedText;
+                    chatInput.value = ''
+
+                    let message: Message = {
+                        role: "user",
+                        name: playerName,
+                        content: messageText
+                    }
+
+                    await displayMessage(message);
+                    showLoadingDots();
+                    ipcRenderer.send('message-send', message);
+                } else {
+                    console.log('Not auto-sending suggestion, autoSendSuggestion is:', autoSendSuggestion);
+                    chatInput.focus()
+                }
+            })
+            
+            suggestionsList.appendChild(suggestionItem)
+        })
+    }
+    
+    // 显示推荐容器
+    suggestionsContainer.style.display = 'block'
 }
 
 function hideChat(){
     document.body.style.display = 'none';
 }
 
-async function displayHistoricalConversation(conversation: HistoricalConversation): Promise<void> {
-    console.log(`Displaying historical conversation: ${conversation.summary} (${conversation.date}) with ${conversation.messages.length} messages.`);
-    
-    const separator = document.createElement('div');
-    separator.classList.add('history-separator');
-    separator.textContent = conversation.date;
-    chatMessages.appendChild(separator);
-
-    const summaryDiv = document.createElement('div');
-    summaryDiv.classList.add('system-message');
-    summaryDiv.style.textAlign = 'center';
-    
-    let summaryHTML = `<strong>Summary:</strong> ${conversation.summary}`;
-    if (conversation.location) {
-        summaryHTML += `<br><strong>Location:</strong> ${conversation.location}`;
-    }
-    
-    summaryDiv.innerHTML = summaryHTML;
-    chatMessages.appendChild(summaryDiv);
-    
-    for (const message of conversation.messages) {
-        await displayMessage(message, true, conversation.date);
-    }
-
-    console.log(`Finished displaying historical conversation: ${conversation.summary}`);
-}
-
 leaveButton.addEventListener("click", ()=>{
     hideChat();
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
+    // 关闭建议选项框
+    if (suggestionsContainer) {
+        suggestionsContainer.style.display = 'none';
+    }
     ipcRenderer.send('chat-stop');
 });
 
-regenerateButton.addEventListener('click', () => {
-    const messages = Array.from(chatMessages.querySelectorAll('.message'));
-
-    // Iterate backwards from the end of the messages
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const messageElement = messages[i];
-        // If it's a player message, we've gone back far enough. Stop.
-        if (messageElement.classList.contains('player-message')) {
-            break;
-        }
-        // Otherwise, it's an AI message, an action message, or an error. Remove it.
-        messageElement.remove();
-    }
-
-    updateRegenerateButtonState();
-    showLoadingDots();
-    ipcRenderer.send('regenerate-response');
-});
-
-searchInput.addEventListener('input', () => {
-    // Keep search bar visible if there is text, hide otherwise
-    if (searchInput.value.trim() !== '') {
-        searchContainer.classList.add('active');
+// 更新建议容器样式的函数
+function updateSuggestionsContainerStyle() {
+    const isChineseTheme = document.body.classList.contains('theme-chinese');
+    const isWestTheme = document.body.classList.contains('theme-west');
+    
+    if ((isChineseTheme || isWestTheme) && autoSendSuggestion) {
+        document.body.classList.add('auto-send-suggestions');
     } else {
-        searchContainer.classList.remove('active');
-        clearHighlights(); // Clear highlights when search input is empty
+        document.body.classList.remove('auto-send-suggestions');
     }
+}
+
+// 监听主题更新事件
+ipcRenderer.on('update-theme', (event, theme: string) => {
+    document.body.classList.remove('theme-original', 'theme-chinese', 'theme-west');
+    document.body.classList.add(`theme-${theme}`);
+    localStorage.setItem('selectedTheme', theme);
+    
+    // 更新建议容器样式
+    updateSuggestionsContainerStyle();
 });
 
-searchButton.addEventListener('click', () => {
-    performSearch();
-});
+    // 推荐输入语句功能事件处理
+    suggestionsButton.addEventListener('click', () => {
+        ipcRenderer.send('get-suggestions')
+    })
 
-searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        performSearch();
-    }
-});
+    suggestionsClose.addEventListener('click', () => {
+        suggestionsContainer.style.display = 'none'
+    })
+
+    // 监听推荐输入语句响应
+    ipcRenderer.on('suggestions-response', (event, suggestions) => {
+        displaySuggestions(suggestions)
+    })
+
+// 监听配置变更
+    ipcRenderer.on('config-change', (event, key, value) => {
+        console.log(`Received config-change in chat window: ${key} = ${value}`);
+        if (key === 'showSuggestionsButton') {
+            showSuggestionsButton = value;
+            if (suggestionsButton) {
+                suggestionsButton.style.display = showSuggestionsButton ? 'block' : 'none';
+            }
+        } else if (key === 'autoSendSuggestion') {
+            autoSendSuggestion = value;
+            console.log(`autoSendSuggestion updated to: ${autoSendSuggestion}`);
+            // 更新建议容器样式
+            updateSuggestionsContainerStyle();
+        }
+    })
 
 //IPC Events
 
@@ -351,65 +295,44 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, gameData: GameData, historicalConversations: HistoricalConversation[], showPreviousConversations: boolean) =>{   
-    console.log('Received chat-start event. GameData:', gameData);
-    console.log(`Received ${historicalConversations ? historicalConversations.length : 0} historical conversations. showPreviousConversations: ${showPreviousConversations}`);
-    
-    playerName = gameData.playerName;
+ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{   
+    playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
+    
+    // 获取配置并设置建议按钮的显示状态
+    try {
+        const config = await ipcRenderer.invoke('get-config');
+        showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
+        autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
+    } catch (error) {
+        console.error('Error getting config:', error);
+        showSuggestionsButton = true; // 默认显示
+        autoSendSuggestion = false; // 默认不自动发送建议
+    }
+    
     initChat();
-    
-    // Display historical conversations if available
-    if (showPreviousConversations) {
-        if (historicalConversations && historicalConversations.length > 0) {
-            console.log('Displaying historical conversations...');
-            historicalConversations.reverse();
-            for (const conversation of historicalConversations) {
-                console.log(`Rendering historical conversation from ${conversation.date} with ${conversation.messages.length} messages.`);
-                await displayHistoricalConversation(conversation);
-            }
-
-            // Add a solid line to mark the end of history and start of current chat
-            const endSeparator = document.createElement('div');
-            endSeparator.classList.add('history-separator', 'history-end-separator');
-            endSeparator.textContent = "Current Conversation";
-            chatMessages.appendChild(endSeparator);
-
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            console.log('Finished displaying historical conversations.');
-        } else {
-            console.log('No historical conversations to display.');
-            // Display a message when no conversation history is found
-            const noHistoryMessage = document.createElement('div');
-            noHistoryMessage.className = 'system-message';
-            noHistoryMessage.textContent = 'No previous conversation history found.';
-            chatMessages.appendChild(noHistoryMessage);
-        }
-    }
-    
     document.body.style.display = '';
-    // For self-talk, the AI initiates. Otherwise, the player does.
-    if (gameData.playerID === gameData.aiID) {
-        showLoadingDots();
-    }
+    
+    // 初始化建议容器样式
+    updateSuggestionsContainerStyle();
 })
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
-    console.log('Received new AI message:', message);
     await displayMessage(message);
-    console.log("wait for actions: "+waitForActions)
+    console.log("wait: "+waitForActions)
 
-    if(waitForActions){
-        showLoadingDots();
-    } else{
+    if(!waitForActions){
         removeLoadingDots();
+    }else{
+        showLoadingDots();
     }
 
     
 })
 
-ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[]) =>{
+ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrative: string) =>{
     displayActions(actionsResponse);
+    displayNarrative(narrative);
 
     removeLoadingDots();
 })
@@ -428,8 +351,9 @@ ipcRenderer.on('stream-message', (e, message: Message)=>{
     //@ts-ignore
 })
 
-ipcRenderer.on('stream-end', (e, actions: ActionResponse[])=>{
+ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrative: string) =>{
     displayActions(actions);
+    displayNarrative(narrative);
     removeLoadingDots();
 })
 
@@ -437,52 +361,26 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
 })
 
-function makeDraggable(element: HTMLElement, handle: HTMLElement) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-    handle.onmousedown = dragMouseDown;
-
-    function dragMouseDown(e: MouseEvent) {
-        e.preventDefault();
-        // get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
+// 监听场景描述事件
+ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
+    if (sceneDescription && sceneDescription.trim()) {
+        // 创建场景描述消息元素
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add('scene-description-message');
+        
+        // 创建场景描述内容
+        const sceneDescSpan = document.createElement('span');
+        sceneDescSpan.innerText = sceneDescription;
+        sceneDescSpan.classList.add('scene-description-text');
+        
+        messageDiv.appendChild(sceneDescSpan);
+        
+        // 将场景描述插入到消息列表的开头
+        chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
+        
+        console.log(`Scene description displayed: ${sceneDescription.substring(0, 50)}...`);
     }
+})
 
-    function elementDrag(e: MouseEvent) {
-        e.preventDefault();
-        // calculate the new cursor position:
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        // set the element's new position:
-        element.style.top = (element.offsetTop - pos2) + "px";
-        element.style.left = (element.offsetLeft - pos1) + "px";
-    }
 
-    function closeDragElement() {
-        // stop moving when mouse button is released:
-        document.onmouseup = null;
-        document.onmousemove = null;
-    }
-}
-
-// Initialize dragging
-const chatBox = document.querySelector('.chat-box') as HTMLElement;
-const dragHandle = document.querySelector('.drag-handle') as HTMLElement;
-if (chatBox && dragHandle) {
-    makeDraggable(chatBox, dragHandle);
-}
-
-resetButton.addEventListener('click', () => {
-    if (chatBox) {
-        chatBox.style.top = '';
-        chatBox.style.left = '';
-        chatBox.style.width = '';
-        chatBox.style.height = '';
-    }
-});

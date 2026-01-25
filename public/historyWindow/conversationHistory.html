@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史对话查看器 - Voices of the Court</title>
+    <link rel="stylesheet" href="conversationHistory.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>历史对话查看器</h1>
+            <div class="header-controls">
+                <button id="refreshBtn" class="btn btn-primary">刷新</button>
+                <button id="closeBtn" class="btn btn-secondary">关闭</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="info-panel">
+                <div class="info-item">
+                    <label for="playerId">玩家ID:</label>
+                    <input type="text" id="playerId" readonly>
+                </div>
+            </div>
+
+            <div class="conversation-list-container">
+                <h2>对话历史列表</h2>
+                <div id="conversationList" class="conversation-list">
+                    <!-- 对话文件将在这里动态生成 -->
+                </div>
+            </div>
+
+            <div class="conversation-viewer">
+                <h2>对话内容</h2>
+                <div class="conversation-info">
+                    <div class="info-item">
+                        <label for="currentFileName">当前文件:</label>
+                        <input type="text" id="currentFileName" readonly>
+                    </div>
+                </div>
+                <div class="conversation-content">
+                    <pre id="conversationText">请从左侧列表选择一个对话文件查看内容</pre>
+                </div>
+            </div>
+        </main>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="conversationHistoryRenderer.js"></script>
+</body>
+</html>

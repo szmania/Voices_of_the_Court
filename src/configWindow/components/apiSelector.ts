@@ -17,6 +17,8 @@ function defineTemplate(label: string){
             <option value="ooba">Text Gen WebUI (ooba)</option>
             <option value="openai">OpenAI</option>
             <option value="gemini">Google Gemini</option>
+            <option value="glm">GLM</option>
+            <option value="deepseek">DeepSeek</option>
             <option value="custom">Custom (OpenAI-compatible)</option>
         </select> 
     </div>
@@ -38,8 +40,8 @@ function defineTemplate(label: string){
             </div>
 
             <div class="input-group">
-            <input type="checkbox" id="openrouter-use-chat">
-            <label for="openrouter-use-chat">Use Chat Completions API</label>
+            <input type="checkbox" id="openrouter-instruct-mode">
+            <label for="openrouter-instruct-mode">Force Instruct mode</label>
             </div>
         </div>
 
@@ -88,6 +90,37 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="glm-menu">
+            <h2>GLM</h2>
+
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="glm-key">
+            </div>
+        
+            <div class="input-group">
+            <label for="glm-model-select">Model</label>
+            <select id="glm-model-select">
+                <option value="glm-4.6">GLM-4.6</option>
+                <option value="glm-4.5">GLM-4.5</option>
+                <option value="glm-4.5-x">GLM-4.5-X</option>
+                <option value="glm-4.5-flash">GLM-4.5-Flash</option>
+                <option value="glm-4.5-air">GLM-4.5-Air</option>
+                <option value="glm-4.5-airx">GLM-4.5-AirX</option>
+            </select>
+            </div>
+        </div>
+
+        <div id="deepseek-menu">
+            <h2>DeepSeek</h2>
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="deepseek-key">
+            </div>
+        </div>
+
         <div id="custom-menu">
             <h2>Custom (Openai-compatible) endpoint</h2>
 
@@ -106,12 +139,7 @@ function defineTemplate(label: string){
                 <br>
                 <input type="text" id="custom-model">
             </div>
-
-            <div class="input-group">
-                <input type="checkbox" id="custom-use-chat">
-                <label for="custom-use-chat">Use Chat Completions API</label>
-            </div>
-
+    
         </div>
 
         <hr>
@@ -137,6 +165,8 @@ class ApiSelector extends HTMLElement{
     openrouterDiv: HTMLDivElement 
     customDiv: HTMLDivElement 
     geminiDiv: HTMLDivElement
+    glmDiv: HTMLDivElement
+    deepseekDiv: HTMLDivElement
 
     openaiKeyInput: HTMLInputElement 
     openaiModelSelect: HTMLSelectElement 
@@ -144,17 +174,20 @@ class ApiSelector extends HTMLElement{
     geminiKeyInput: HTMLInputElement 
     geminiModelInput: HTMLInputElement 
 
+    glmKeyInput: HTMLInputElement 
+    glmModelSelect: HTMLSelectElement 
+    deepseekKeyInput: HTMLInputElement
+
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
 
-    openrouterKeyInput: HTMLSelectElement
-    openrouterModelInput: HTMLInputElement
-    openrouterUseChatCheckbox: HTMLInputElement
+    openrouterKeyInput: HTMLSelectElement 
+    openrouterModelInput: HTMLInputElement 
+    openrouterInstructModeCheckbox: HTMLInputElement 
 
-    customUrlInput: HTMLSelectElement
-    customKeyInput: HTMLInputElement
-    customModelInput: HTMLSelectElement
-    customUseChatCheckbox: HTMLInputElement 
+    customUrlInput: HTMLSelectElement 
+    customKeyInput: HTMLInputElement 
+    customModelInput: HTMLSelectElement 
 
     testConnectionButton: HTMLButtonElement 
     testConnectionSpan: HTMLButtonElement 
@@ -182,6 +215,8 @@ class ApiSelector extends HTMLElement{
         this.openrouterDiv = this.shadow.querySelector("#openrouter-menu")!;
         this.customDiv = this.shadow.querySelector("#custom-menu")!;
         this.geminiDiv = this.shadow.querySelector("#gemini-menu")!;
+        this.glmDiv = this.shadow.querySelector("#glm-menu")!;
+        this.deepseekDiv = this.shadow.querySelector("#deepseek-menu")!;
 
         this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
         this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
@@ -189,17 +224,20 @@ class ApiSelector extends HTMLElement{
         this.geminiKeyInput = this.shadow.querySelector("#gemini-key")!;
         this.geminiModelInput = this.shadow.querySelector("#gemini-model")!;
 
+        this.glmKeyInput = this.shadow.querySelector("#glm-key")!;
+        this.glmModelSelect = this.shadow.querySelector("#glm-model-select")!;
+        this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
+
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
 
         this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")!;
         this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")!;
-        this.openrouterUseChatCheckbox = this.shadow.querySelector("#openrouter-use-chat")!;
+        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")!;
 
         this.customUrlInput = this.shadow.querySelector("#custom-url")!;
         this.customKeyInput = this.shadow.querySelector("#custom-key")!;
         this.customModelInput = this.shadow.querySelector("#custom-model")!;
-        this.customUseChatCheckbox = this.shadow.querySelector("#custom-use-chat")!;
 
         this.testConnectionButton = this.shadow.querySelector("#connection-test-button")!;
         this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")!;
@@ -224,31 +262,71 @@ class ApiSelector extends HTMLElement{
         this.typeSelector.value = apiConfig.type;
         this.displaySelectedApiBox();
 
+        // 从apiKeys字段中加载所有API类型的配置（如果存在）
+        const apiKeys = apiConfig.apiKeys || {};
         
-        if(apiConfig.type === "openai"){
+        // 加载OpenAI配置
+        if (apiKeys.openai) {
+            this.openaiKeyInput.value = apiKeys.openai.key || "";
+            this.openaiModelSelect.value = apiKeys.openai.model || "";
+        } else if(apiConfig.type == "openai"){
             this.openaiKeyInput.value = apiConfig.key;
-            this.openaiModelSelect.value =  apiConfig.model;
+            this.openaiModelSelect.value = apiConfig.model;
         }
-        else if(apiConfig.type === "ooba"){
+        
+        // 加载OOBA配置
+        if (apiKeys.ooba) {
+            this.oobaUrlInput.value = apiKeys.ooba.baseUrl || "";
+        } else if(apiConfig.type == "ooba"){
             this.oobaUrlInput.value = apiConfig.key;
         }
-        else if(apiConfig.type === "openrouter"){
+        
+        // 加载OpenRouter配置
+        if (apiKeys.openrouter) {
+            this.openrouterKeyInput.value = apiKeys.openrouter.key || "";
+            this.openrouterModelInput.value = apiKeys.openrouter.model || "";
+        } else if(apiConfig.type == "openrouter"){
             this.openrouterKeyInput.value = apiConfig.key;
             this.openrouterModelInput.value = apiConfig.model;
         }
-        else if(apiConfig.type === "custom"){
+        
+        // 加载Custom配置
+        if (apiKeys.custom) {
+            this.customUrlInput.value = apiKeys.custom.baseUrl || "";
+            this.customKeyInput.value = apiKeys.custom.key || "";
+            this.customModelInput.value = apiKeys.custom.model || "";
+        } else if(apiConfig.type == "custom"){
             this.customUrlInput.value = apiConfig.baseUrl;
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
         }
-        else if(apiConfig.type === "gemini"){
+        
+        // 加载Gemini配置
+        if (apiKeys.gemini) {
+            this.geminiKeyInput.value = apiKeys.gemini.key || "";
+            this.geminiModelInput.value = apiKeys.gemini.model || "";
+        } else if(apiConfig.type == "gemini"){
             this.geminiKeyInput.value = apiConfig.key;
             this.geminiModelInput.value = apiConfig.model;
         }
-
-        // Default to checked; only uncheck if forceInstruct is true for the current apiConfig type
-        this.customUseChatCheckbox.checked = apiConfig.type !== "custom" || !(apiConfig.forceInstruct ?? false);
-        this.openrouterUseChatCheckbox.checked = apiConfig.type !== "openrouter" || !(apiConfig.forceInstruct ?? false);
+        
+        // 加载GLM配置
+        if (apiKeys.glm) {
+            this.glmKeyInput.value = apiKeys.glm.key || "";
+            this.glmModelSelect.value = apiKeys.glm.model || "";
+        } else if(apiConfig.type == "glm"){
+            this.glmKeyInput.value = apiConfig.key;
+            this.glmModelSelect.value = apiConfig.model;
+        }
+        
+        // 加载DeepSeek配置
+        if (apiKeys.deepseek) {
+            this.deepseekKeyInput.value = apiKeys.deepseek.key || "";
+        } else if(apiConfig.type == "deepseek"){
+            this.deepseekKeyInput.value = apiConfig.key;
+        }
+        
+        this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
         this.customContextNumber.value = apiConfig.customContext;
@@ -272,6 +350,12 @@ class ApiSelector extends HTMLElement{
                 break;
                 case 'gemini': 
                     this.saveGeminiConfig();
+                break;
+                case 'glm': 
+                    this.saveGlmConfig();
+                break;
+                case 'deepseek':
+                    this.saveDeepseekConfig();
                 break;
                 case 'custom': 
                     this.saveCustomConfig();
@@ -298,6 +382,14 @@ class ApiSelector extends HTMLElement{
 
         this.geminiDiv.addEventListener("change", (e:any) =>{
             this.saveGeminiConfig();
+        })
+
+        this.glmDiv.addEventListener("change", (e:any) =>{
+            this.saveGlmConfig();
+        })
+
+        this.deepseekDiv.addEventListener("change", (e:any) =>{
+            this.saveDeepseekConfig();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -378,6 +470,8 @@ class ApiSelector extends HTMLElement{
         this.openrouterDiv.style.display = "none";
         this.customDiv.style.display = "none";
         this.geminiDiv.style.display = "none";
+        this.glmDiv.style.display = "none";
+        this.deepseekDiv.style.display = "none";
 
         switch (this.typeSelector.value) {
             case 'openai':  
@@ -395,77 +489,159 @@ class ApiSelector extends HTMLElement{
             case 'gemini':
                 this.geminiDiv.style.display = "block";
                 break;
+            case 'glm':
+                this.glmDiv.style.display = "block";
+                break;
+            case 'deepseek':
+                this.deepseekDiv.style.display = "block";
+                break;
         }
     }
 
+    saveAllApiConfigs() {
+        console.log('Saving all API configurations...');
+        
+        // 保存所有API类型的配置
+        this.saveOpenaiConfig();
+        this.saveOobaConfig();
+        this.saveOpenrouterConfig();
+        this.saveGeminiConfig();
+        this.saveGlmConfig();
+        this.saveDeepseekConfig();
+        this.saveCustomConfig();
+        
+        // 通知主进程所有API配置已更新
+        const allConfigs = {
+            openai: {
+                key: this.openaiKeyInput.value,
+                baseUrl: "https://api.openai.com/v1",
+                model: this.openaiModelSelect.value
+            },
+            ooba: {
+                key: this.oobaUrlInput.value ? 'ooba-placeholder-key' : '',
+                baseUrl: this.oobaUrlInput.value,
+                model: "string"
+            },
+            openrouter: {
+                key: this.openrouterKeyInput.value,
+                baseUrl: "https://openrouter.ai/api/v1",
+                model: this.openrouterModelInput.value,
+                forceInstruct: this.openrouterInstructModeCheckbox.checked
+            },
+            gemini: {
+                key: this.geminiKeyInput.value,
+                baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+                model: this.geminiModelInput.value
+            },
+            glm: {
+                key: this.glmKeyInput.value,
+                baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+                model: this.glmModelSelect.value
+            },
+            deepseek: {
+                key: this.deepseekKeyInput.value,
+                baseUrl: "https://api.deepseek.com",
+                model: "deepseek-chat"
+            },
+            custom: {
+                key: this.customKeyInput.value,
+                baseUrl: this.customUrlInput.value,
+                model: this.customModelInput.value
+            }
+        };
+        
+        // 发送所有API配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'all', allConfigs);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'all', allConfigs);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'all', allConfigs);
+        
+        console.log('All API configurations saved and sent to main process');
+    }
+
     saveOpenaiConfig(){
-        const newConf = {
+        const config = {
             type: "openai",
             baseUrl: "https://api.openai.com/v1",
             key: this.openaiKeyInput.value,
             model: this.openaiModelSelect.value,
-            forceInstruct: false,
+            forceInstruct: this.openrouterInstructModeCheckbox.checked,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
-        }
-
-        //ipcRenderer.send('config-change', this.confID, newConf);
-        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
-        //@ts-ignore
+        };
+        
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'openai', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'openai', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'openai', config);
     }
     
 
     //OOBA DIV
     saveOobaConfig(){
-        const newConf = {
+        const config = {
             type: "ooba",
             baseUrl: this.oobaUrlInput.value,
-            key: "11111111111111111111",
+            key: this.oobaUrlInput.value ? "ooba-placeholder-key" : "",
             model: "string",
-            forceInstruct: true,
+            forceInstruct: this.openrouterInstructModeCheckbox.checked,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
-        }
+        };
 
-        //ipcRenderer.send('config-change', this.confID, newConf);
-        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
-        //@ts-ignore
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'ooba', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'ooba', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'ooba', config);
     }
     
 
     //OPENROUTER DIV
     saveOpenrouterConfig(){
-        const newConf = {
+        const config = {
             type: "openrouter",
             baseUrl: "https://openrouter.ai/api/v1",
             key: this.openrouterKeyInput.value,
             model: this.openrouterModelInput.value,
-            forceInstruct: !this.openrouterUseChatCheckbox.checked,
+            forceInstruct: this.openrouterInstructModeCheckbox.checked,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
-        }
-        //ipcRenderer.send('config-change', this.confID, newConf);
-        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
-        //@ts-ignore
+        };
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'openrouter', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'openrouter', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'openrouter', config);
     }   
 
     saveCustomConfig(){
-        const newConf = {
+        const config = {
             type: "custom",
             baseUrl: this.customUrlInput.value,
             key: this.customKeyInput.value,
             model: this.customModelInput.value,
-            forceInstruct: !this.customUseChatCheckbox.checked,
+            forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
-        }
-        //ipcRenderer.send('config-change', this.confID, newConf);
-        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
-        //@ts-ignore
+        };
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'custom', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'custom', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'custom', config);
     }  
 
     saveGeminiConfig(){
-        const newConf = {
+        const config = {
             type: "gemini",
             baseUrl: "https://generativelanguage.googleapis.com/v1beta",
             key: this.geminiKeyInput.value,
@@ -473,8 +649,49 @@ class ApiSelector extends HTMLElement{
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
-        }
-        ipcRenderer.send('config-change-nested', this.confID, "connection", newConf);
+        };
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'gemini', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'gemini', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'gemini', config);
+    }
+
+    saveGlmConfig(){
+        const config = {
+            type: "glm",
+            baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+            key: this.glmKeyInput.value,
+            model: this.glmModelSelect.value,
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        
+        // 发送配置到主进程
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'glm', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'glm', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'glm', config);
+    }
+    
+    saveDeepseekConfig(){
+        const config = {
+            type: "deepseek",
+            baseUrl: "https://api.deepseek.com",
+            key: this.deepseekKeyInput.value,
+            model: "deepseek-chat",
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'deepseek', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'deepseek', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'deepseek', config);
     }
     
 }

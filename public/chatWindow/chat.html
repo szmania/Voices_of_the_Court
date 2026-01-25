@@ -2,38 +2,31 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Voices of the Court - Community Edition</title>
+  <title>Voices of the Court - Chat</title>
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="chat.css"/>
   <link rel="stylesheet" href="user.css"/>
+  <link rel="stylesheet" href="theme.css"/>
 </head>
 <body>
   <div class="chat-box">
-    <div class="drag-handle">
-      <div class="reset-button-wrapper" data-tooltip="Reset position and size">
-        <button class="reset-button">&#x21BA;</button>
-      </div>
-    </div>
-    <div class="search-container">
-      <div class="search-icon" data-tooltip="Search messages">&#128269;</div>
-      <div class="search-dropdown">
-        <input type="text" class="search-bar" placeholder="Search messages..." />
-        <button class="search-button">Search</button>
-      </div>
-    </div>
     <div class="messages-container">
       <div class="messages">
       </div>
     </div>
-    <div class="input-container" id="input-wrapper" data-tooltip="Waiting for AI response...">
-      <textarea class="chat-input" id="chat-input" placeholder="Write a message..." rows="4" cols="20"></textarea>
-    </div>
-    <div class="button-container">
-      <div class="button-wrapper" id="regenerate-button-wrapper" data-tooltip="You can only regenerate a response if the AI was the last one to speak.">
-        <button class="regenerate-button" disabled>Regenerate</button>
+    <div class="input-container">
+      <textarea class="chat-input" placeholder="Write a message..." rows="4" cols="20"></textarea>
+      <div class="suggestions-container" style="display: none;">
+        <div class="suggestions-header">
+          <span>推荐输入语句</span>
+          <button class="suggestions-close">×</button>
+        </div>
+        <div class="suggestions-list">
+        </div>
       </div>
-      <button class="leave-button">End conversation</button>
+      <button class="suggestions-button">显示建议</button>
     </div>
+    <button class="leave-button">END CONVERSATION</button>
   </div>
   
   <script>require("../../dist/chatWindow/chatRenderer.js")</script>

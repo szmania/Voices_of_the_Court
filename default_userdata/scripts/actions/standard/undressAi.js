@@ -4,7 +4,7 @@
 module.exports = {
     signature: "undressAi",
     args: [],
-    description: `Execute when {{aiName}} got undressed either willingly or forcefully against their wish.`,
+    description: `当{{aiName}}自愿或被迫脱去衣服时执行。`,
 
     /**
      * @param {GameData} gameData 
@@ -29,7 +29,7 @@ module.exports = {
     `);
     },
     chatMessage: (args) =>{
-        return `{{aiName}} got undressed.`
+        return `{{aiName}}脱去了衣服`
     },
     chatMessageClass: "neutral-action-message"
 }

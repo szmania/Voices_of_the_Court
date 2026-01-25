@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Voices of the Court - Community Edition</title>
+    <title>Voices of the Court</title>
     <link rel="stylesheet" href="config.css" />
     
   </head>
@@ -15,12 +15,15 @@
         <li><a href="prompts.html">Prompts</a></li>
         <li><a href="settings.html">Settings</a></li>
         <li><a href="system.html">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
       </ul> 
     </div>
 
     <div class="container" id="container">
       
       <config-checkbox id="enable-actions" confID="actionsEnableAll" label="Enable actions"></config-checkbox>
+      
+      <config-checkbox id="enable-narrative" confID="narrativeEnable" label="Enable AI narrative after actions"></config-checkbox>
       
       <div id="actions" class="border">
 
@@ -44,18 +47,18 @@
           <open-folder-button path="scripts/actions/" label="open folder"></open-folder-button>
         </div>
         
-            <div id="actions-menu">
-              <div class="row">
-                <div class="column">
-                  <div id="actions-group"></div>
-                </div>
-                <div class="column">
-                  <div id="action-descriptor" class="border">
-                    
-                  </div>
-                </div>
+        <div id="actions-menu">
+          <div class="row">
+            <div class="column">
+              <div id="actions-group"></div>
+            </div>
+            <div class="column">
+              <div id="action-descriptor">
+                <!-- 动作描述将在这里显示 -->
               </div>
             </div>
+          </div>
+        </div>
             
             </div>    
 
@@ -69,5 +72,19 @@
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
     <script>require("../../dist/configWindow/actionsRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
   </body>
 </html>
