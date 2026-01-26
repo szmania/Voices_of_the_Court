@@ -8,6 +8,7 @@ ActiveWindow.initialize();
 
 export class ChatWindow{
     window: BrowserWindow;
+    conversation: any;
     isShown: boolean;
     windowWatchId: number;
     interval: any;

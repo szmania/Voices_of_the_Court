@@ -40,6 +40,7 @@ export class Conversation{
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
         this.chatWindow = chatWindow;
+        this.chatWindow.conversation = this;
         this.isOpen = true;
         this.gameData = gameData;
         this.messages = [];
