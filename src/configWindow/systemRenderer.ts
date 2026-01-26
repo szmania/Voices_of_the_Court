@@ -5,6 +5,7 @@ let updateButton: HTMLElement = document.querySelector("#update-button")!;
 let clearSummariesButton: HTMLElement = document.querySelector("#clear-summaries")!;
 let themeSelector: HTMLSelectElement = document.querySelector("#theme-selector")!;
 
+
 document.getElementById("container")!.style.display = "block";
 
 appVersionSpan.innerText = "Current app version: "+require('../../package.json').version;
@@ -44,9 +45,18 @@ function applyTheme(theme: string) {
     ipcRenderer.send('theme-changed', theme);
 }
 
-// 页面加载时恢复之前的主题选择
-document.addEventListener('DOMContentLoaded', () => {
+// 页面加载时恢复之前的主题和语言选择
+document.addEventListener('DOMContentLoaded', async () => {
     const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
     themeSelector.value = savedTheme;
     applyTheme(savedTheme);
+    
+    const config = await ipcRenderer.invoke('get-config');
+    const lang = config.language || 'en';
+    
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(lang);
+    }
 });

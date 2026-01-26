@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <title>Voices of the Court</title>
     <link rel="stylesheet" href="config.css" />
-    
+
   </head>
   <body>
     <div class="navbar">
@@ -15,7 +15,8 @@
         <li><a href="prompts.html">Prompts</a></li>
         <li><a href="settings.html">Settings</a></li>
         <li class="active"><a href="system.html">System</a></li>
-        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <language-selector></language-selector>
       </ul> 
     </div>
 
@@ -61,7 +62,13 @@
     </div>
     
    
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
     <script>require("../../dist/configWindow/components/openFolderButton.js")</script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
     <script>require("../../dist/configWindow/components/ConfigCheckbox.js")</script>
     <script>require("../../dist/configWindow/systemRenderer.js")</script>
     
