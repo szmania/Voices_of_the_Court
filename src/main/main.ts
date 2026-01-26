@@ -60,10 +60,90 @@ const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
 
 
+const compareVersions = (v1: string, v2: string): number => {
+    const parse = (v: string) => {
+        const [main, pre] = v.replace(/^v/, '').split('-');
+        const parts = main.split('.').map(Number);
+        return { parts, pre };
+    };
+
+    const p1 = parse(v1);
+    const p2 = parse(v2);
+
+    for (let i = 0; i < Math.max(p1.parts.length, p2.parts.length); i++) {
+        const n1 = p1.parts[i] || 0;
+        const n2 = p2.parts[i] || 0;
+        if (n1 > n2) return 1;
+        if (n1 < n2) return -1;
+    }
+
+    if (!p1.pre && p2.pre) return 1;
+    if (p1.pre && !p2.pre) return -1;
+    if (p1.pre && p2.pre) {
+        return p1.pre.localeCompare(p2.pre, undefined, { numeric: true });
+    }
+
+    return 0;
+};
+
+const checkGitHubForUpdates = async (manual: boolean = false) => {
+    console.log(`Checking for updates (manual: ${manual})...`);
+    try {
+        const response = await fetch('https://api.github.com/repos/szmania/Voices_of_the_Court/releases');
+        if (!response.ok) throw new Error(`GitHub API error: ${response.statusText}`);
+        
+        const releases: any[] = await response.json();
+        if (!releases || releases.length === 0) return;
+
+        const currentVersion = packagejson.version;
+        let latestRelease = null;
+
+        if (config.earlyAccessUpdates) {
+            latestRelease = releases[0];
+        } else {
+            latestRelease = releases.find(r => !r.prerelease);
+        }
+
+        if (latestRelease && compareVersions(latestRelease.tag_name, currentVersion) > 0) {
+            console.log(`New version found: ${latestRelease.tag_name}`);
+            
+            const isPreRelease = latestRelease.prerelease;
+            const dialogOpts = {
+                type: 'info' as const,
+                buttons: isPreRelease ? ['Open Download Page', 'Later'] : ['Update Now', 'Later'],
+                title: 'Update Available',
+                message: `A new version (${latestRelease.tag_name}) is available!`,
+                detail: isPreRelease 
+                    ? 'This is an Early Access release. You can download it manually from GitHub.' 
+                    : 'A new stable version is available. Would you like to update now?'
+            };
+
+            const { response: buttonIndex } = await dialog.showMessageBox(dialogOpts);
+            if (buttonIndex === 0) {
+                if (isPreRelease) {
+                    shell.openExternal(latestRelease.html_url);
+                } else {
+                    autoUpdater.checkForUpdates();
+                }
+            }
+        } else if (manual) {
+            dialog.showMessageBox({
+                type: 'info',
+                title: 'No Updates',
+                message: 'You are running the latest version.'
+            });
+        }
+    } catch (err) {
+        console.error('Failed to check for updates:', err);
+        if (manual) {
+            dialog.showErrorBox('Update Check Failed', 'Could not connect to GitHub to check for updates.');
+        }
+    }
+};
+
 const checkForUpdates = () => {
     if (app.isPackaged) {
-        console.log('Manual update check triggered.');
-        autoUpdater.checkForUpdates();
+        checkGitHubForUpdates(true);
     } else {
         console.log('Update check skipped in development mode.');
         dialog.showMessageBox({
@@ -222,8 +302,14 @@ app.on('ready',  async () => {
     // Conditional automatic update check based on config
     if (app.isPackaged && config.checkForUpdatesOnStartup) {
         console.log('Initializing automatic update check on startup...');
+        
+        // Use custom check to respect earlyAccessUpdates toggle
+        checkGitHubForUpdates(false);
+
+        // Still initialize updateElectronApp for background stable updates if not in early access mode
+        // or just let checkGitHubForUpdates handle the initial check.
         updateElectronApp({
-            repo: 'szmania/Voices_of_the_Court', // Explicitly set repository to fix updater crash
+            repo: 'szmania/Voices_of_the_Court',
             updateInterval: '1 hour',
             notifyUser: true,
             logger: {
