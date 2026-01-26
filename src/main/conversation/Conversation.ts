@@ -1,16 +1,4 @@
 
-public getHistory(): Message[] {
-    return this.messages;
-}
-
-    public async initiateConversation(){
-        if(this.config.aiCanStartConversation){
-            if(Math.random() < this.config.aiStartConversationChance){
-                await this.generateAIsMessages();
-            }
-        }
-    }
-}
 import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
