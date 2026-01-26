@@ -40,6 +40,7 @@ export class Config{
 
     cleanMessages!: boolean;
     debugMode!: boolean;
+    aiCanStartConversation!: boolean;
     aiStartConversationChance!: number;
     shuffleCharacterOrder!: boolean;
     dynamicCharacterSelection!: boolean;

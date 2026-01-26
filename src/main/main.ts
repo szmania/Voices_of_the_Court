@@ -63,10 +63,7 @@ process.on('unhandledRejection', (error, p) => {
 });
 
 //check config files
-const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-
-
-
+let userDataPath: string;
 
 const checkForUpdates = () => {
     if (app.isPackaged) {
@@ -107,6 +104,7 @@ let config: Config;
 
 app.on('ready',  async () => {
     console.log('App is ready event triggered.');
+    userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
    await checkUserData();
    console.log('User data check completed.');
