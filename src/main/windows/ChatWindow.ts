@@ -110,4 +110,8 @@ export class ChatWindow{
 
         clearInterval(this.interval);
     }
+
+    resetPosition(){
+        this.window.setPosition(100, 100);
+    }
 }
