@@ -27,6 +27,8 @@ let suggestionsButton: HTMLButtonElement = document.querySelector('.suggestions-
 let suggestionsContainer: HTMLDivElement = document.querySelector('.suggestions-container')!;
 let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list')!;
 let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-close')!;
+let searchInput: HTMLInputElement = document.querySelector('.search-input')!;
+let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
 let loadingDots: any;
 
 let playerName: string;
@@ -268,6 +270,26 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
     ipcRenderer.on('suggestions-response', (event, suggestions) => {
         displaySuggestions(suggestions)
     })
+
+    // 搜索功能
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const messages = chatMessages.querySelectorAll('.message');
+        
+        messages.forEach((msg: any) => {
+            const text = msg.innerText.toLowerCase();
+            if (text.includes(searchTerm)) {
+                msg.classList.remove('hidden');
+            } else {
+                msg.classList.add('hidden');
+            }
+        });
+    });
+
+    // 重置窗口位置和大小
+    resetButton.addEventListener('click', () => {
+        ipcRenderer.send('reset-window-position');
+    });
 
 // 监听配置变更
     ipcRenderer.on('config-change', (event, key, value) => {

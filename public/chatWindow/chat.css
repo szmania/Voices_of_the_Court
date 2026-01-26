@@ -1,8 +1,72 @@
 }
 
-.search-button:hover {
+.chat-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 5px;
+    gap: 10px;
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    z-index: 300;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-button, .reset-button {
+    background: rgba(43, 43, 43, 0.8);
+    border: 1px solid #cca43b;
+    color: #e0e0e0;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.search-button:hover, .reset-button:hover {
     background-color: #2a5270;
     border-color: #3d85c6;
+    color: #fff;
+}
+
+.search-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #2b2b2b;
+    border: 1px solid #cca43b;
+    padding: 5px;
+    z-index: 301;
+    width: 200px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.search-container:hover .search-dropdown {
+    display: block;
+}
+
+.search-input {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #5a4a35;
+    color: #e0e0e0;
+    padding: 5px;
+    box-sizing: border-box;
+    font-family: Gitan;
+}
+
+.search-input:focus {
+    border-color: #cca43b;
+    outline: none;
+}
+
+.message.hidden {
+    display: none;
 }
 @font-face {
     font-family: Paradox;
