@@ -49,6 +49,10 @@ export class Config{
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
 
+    aiCanStartConversation!: boolean;
+    aiStartConversationChance!: number;
+
+
     summariesInsertDepth!: number;
     memoriesInsertDepth!: number;
     descInsertDepth!: number;
@@ -117,4 +121,3 @@ export class Config{
     }
 
 }
-
