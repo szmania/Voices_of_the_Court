@@ -226,7 +226,6 @@ app.on('ready',  async () => {
             repo: 'szmania/Voices_of_the_Court', // Explicitly set repository to fix updater crash
             updateInterval: '1 hour',
             notifyUser: true,
-            prereleases: config.earlyAccessUpdates,
             logger: {
                 info: (message) => console.info(`[Updater] ${message}`),
                 warn: (message) => console.warn(`[Updater] ${message}`),
