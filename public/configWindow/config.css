@@ -56,7 +56,7 @@ input::-webkit-inner-spin-button {
   float: left;
   order:1;
   flex-grow:1;
-  width: 100%;
+  min-width: 100px;
 }
 
 .navbar li a {
@@ -73,13 +73,18 @@ input::-webkit-inner-spin-button {
 
 .navbar li a:hover {
   background-color: #3d2e1e;
-  color: #332c04;
+  color: #ffd700;
 }
 
 /* 帮助菜单样式 */
 .navbar li.help-menu {
   margin-left: auto;
   background-color: #1e3a52;
+  flex-grow: 0;
+}
+
+language-selector {
+  flex-grow: 0;
 }
 
 .navbar li.help-menu a {
@@ -196,8 +201,7 @@ input[type=checkbox]{
 }
 
 .column {
-  flex: 50%;
-  width: 50%;
+  flex: 1;
 }
 
 .column + .column {
@@ -357,4 +361,46 @@ a {
 
 h1,h2,h3{
   text-align: center;
+}
+
+.language-selector {
+  /* margin-left: auto; */
+}
+.dropbtn {
+  background-color: transparent;
+  color: white;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #1a1a1a;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+  z-index: 1000;
+  right: 0;
+  border: 1px solid #5a4a35;
+}
+.dropdown-content a {
+  color: #b8860b;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-family: 'Gitan', sans-serif;
+  font-size: 14px;
+  text-align: left;
+}
+.dropdown-content a:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
 }

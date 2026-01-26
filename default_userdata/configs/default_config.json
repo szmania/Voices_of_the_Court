@@ -1,5 +1,6 @@
 {
 	"userFolderPath": "",
+	"language": "en",
 	"stream": false,
 	"maxTokens": 500,
 	"maxMemoryTokens": 600,
@@ -73,6 +74,8 @@
 	],
 	"cleanMessages": true,
 	"debugMode": false,
+	"aiCanStartConversation": true,
+	"aiStartConversationChance": 0.25,
 	"checkForUpdatesOnStartup": true,
 	"shuffleCharacterOrder": false,
 	"dynamicCharacterSelection": false,

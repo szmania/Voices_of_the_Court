@@ -16,6 +16,7 @@
         <li ><a href="settings.html">Settings</a></li>
         <li><a href="system.html">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
+        <language-selector></language-selector>
       </ul> 
     </div>
 
@@ -122,6 +123,12 @@
     
    
 
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
     <script>require("../../dist/configWindow/components/openFolderButton.js")</script>
     <script>require("../../dist/configWindow/components/tooltip.js")</script>
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
