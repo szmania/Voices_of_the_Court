@@ -4,7 +4,7 @@ Voices of the Court - Community Edition is a Crusader Kings 3 mod which integrat
 
 Documentation: https://docs.voicesofthecourt.app
 
-[Steam page](https://steamcommunity.com/sharedfiles/filedetails/?id=3346777360)
+[Steam page](https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139)
 
 Join our Discord:
 
