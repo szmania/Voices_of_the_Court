@@ -162,17 +162,27 @@ export class ApiConnection{
                     // Gemini API has some constraints on conversation history.
                     // It must alternate between 'user' and 'model'.
                     // Let's fix it if it doesn't.
-                    for (let i = 0; i < contents.length - 1; i++) {
-                        if (contents[i].role === contents[i+1].role) {
-                            // A bit of a hack: merge consecutive messages from the same role.
-                            contents[i+1].parts[0].text = contents[i].parts[0].text + "\n" + contents[i+1].parts[0].text;
-                            contents.splice(i, 1);
-                            i--; // re-check from the same index
+                    if (contents.length > 0) {
+                        const fixedContents = [];
+                        let currentMsg = contents[0];
+
+                        for (let i = 1; i < contents.length; i++) {
+                            if (contents[i].role === currentMsg.role) {
+                                // Merge consecutive messages from the same role
+                                currentMsg.parts[0].text += "\n" + contents[i].parts[0].text;
+                            } else {
+                                fixedContents.push(currentMsg);
+                                currentMsg = contents[i];
+                            }
                         }
-                    }
-                    // The first message must be from a 'user'.
-                    if (contents.length > 0 && contents[0].role === 'model') {
-                        contents.shift();
+                        fixedContents.push(currentMsg);
+
+                        // The first message must be from a 'user'.
+                        while (fixedContents.length > 0 && fixedContents[0].role === 'model') {
+                            fixedContents.shift();
+                        }
+                        
+                        requestBody.contents = fixedContents;
                     }
 
 
