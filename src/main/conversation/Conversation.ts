@@ -984,6 +984,18 @@ ${character.fullName}的发言：`
         }
     }
 
+    public getHistory(): Message[] {
+        return this.messages;
+    }
+
+    public async initiateConversation(){
+        if(this.config.aiCanStartConversation){
+            if(Math.random() < this.config.aiStartConversationChance){
+                await this.generateAIsMessages();
+            }
+        }
+    }
+
 
     updateConfig(config: Config){
         console.log("Config updated! Reloading conversation configuration.");
