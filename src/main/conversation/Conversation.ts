@@ -973,15 +973,7 @@ ${character.fullName}的发言：`
         }
     }
 
-    public getHistory(): Message[] {
-        return this.messages;
-    }
 
-    public async initiateConversation(){
-        if(this.config.aiCanStartConversation){
-            if(Math.random() < this.config.aiStartConversationChance){
-                await this.generateAIsMessages();
-            }
         }
     }
 
@@ -1138,6 +1130,18 @@ ${character.fullName}的发言：`
         } catch (error) {
             console.error('Error generating initial suggestions:', error);
             // 如果生成失败，不影响对话的正常进行
+        }
+    }
+}
+
+public getHistory(): Message[] {
+    return this.messages;
+}
+
+public async initiateConversation(){
+    if(this.config.aiCanStartConversation){
+        if(Math.random() < this.config.aiStartConversationChance){
+            await this.generateAIsMessages();
         }
     }
 }

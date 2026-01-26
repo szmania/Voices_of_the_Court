@@ -162,12 +162,17 @@ export class ApiConnection{
                     // Gemini API has some constraints on conversation history.
                     // It must alternate between 'user' and 'model'.
                     // Let's fix it if it doesn't.
-                    for (let i = 0; i < contents.length - 1; i++) {
-                        if (contents[i].role === contents[i+1].role) {
-                            // A bit of a hack: merge consecutive messages from the same role.
-                            contents[i+1].parts[0].text = contents[i].parts[0].text + "\n" + contents[i+1].parts[0].text;
-                            contents.splice(i, 1);
-                            i--; // re-check from the same index
+                    if (contents.length > 1) {
+                        let i = 0;
+                        while (i < contents.length - 1) {
+                            if (contents[i].role === contents[i+1].role) {
+                                // A bit of a hack: merge consecutive messages from the same role.
+                                contents[i+1].parts[0].text = contents[i].parts[0].text + "\n" + contents[i+1].parts[0].text;
+                                contents.splice(i, 1);
+                                // do not increment i, re-check from the same index
+                            } else {
+                                i++;
+                            }
                         }
                     }
                     // The first message must be from a 'user'.

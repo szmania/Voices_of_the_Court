@@ -11,27 +11,23 @@
 <body>
   <div class="chat-box">
 
-  <div class="search-container">
-    <input type="text" class="search-input" placeholder="Search messages...">
-    <button class="search-button">Search</button>
-  </div>
     <div class="messages-container">
       <div class="messages">
       </div>
     </div>
     <div class="input-container">
-      <textarea class="chat-input" placeholder="Write a message..." rows="4" cols="20"></textarea>
+      <textarea class="chat-input" data-i18n-placeholder="chat.input_placeholder" placeholder="Write a message..." rows="4" cols="20"></textarea>
       <div class="suggestions-container" style="display: none;">
         <div class="suggestions-header">
-          <span>推荐输入语句</span>
+          <span data-i18n="suggestions.header">推荐输入语句</span>
           <button class="suggestions-close">×</button>
         </div>
         <div class="suggestions-list">
         </div>
       </div>
-      <button class="suggestions-button">显示建议</button>
+      <button class="suggestions-button" data-i18n="suggestions.button">显示建议</button>
     </div>
-    <button class="leave-button">END CONVERSATION</button>
+    <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
   </div>
   
   <script>require("../../dist/chatWindow/chatRenderer.js")</script>

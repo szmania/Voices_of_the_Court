@@ -40,7 +40,10 @@ export class Config{
 
     cleanMessages!: boolean;
     debugMode!: boolean;
-    checkForUpdatesOnStartup!: boolean;
+    autoSendSuggestion!: boolean;
+
+    aiCanStartConversation!: boolean;
+    aiStartConversationChance!: number;
     shuffleCharacterOrder!: boolean;
     dynamicCharacterSelection!: boolean;
     validateCharacterIdentity!: boolean;
@@ -78,7 +81,8 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
         
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'].forEach(configType => {
+    sceneDescriptionPrompt!: string;
+    language!: string;
             if (configData[configType] && configData[configType].connection && 
                 configData[configType].connection.apiKeys) {
                 // 确保apiKeys字段被包含在导出的配置中

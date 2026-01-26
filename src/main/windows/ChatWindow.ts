@@ -58,6 +58,12 @@ export class ChatWindow{
             event.reply('conversation-history', this.conversation.getHistory());
         });
 
+        ipcMain.on('reset-window-position', () =>{this.resetPosition()})
+
+        ipcMain.on('get-conversation-history', (event) => {
+            event.reply('conversation-history', this.conversation.getHistory());
+        });
+
 
         
         console.log("Chat window opened!")

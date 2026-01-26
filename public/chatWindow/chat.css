@@ -1,28 +1,3 @@
-.search-container {
-    display: flex;
-    margin-bottom: 10px;
-    padding: 0 5px;
-}
-
-.search-input {
-    flex-grow: 1;
-    background: rgba(20, 20, 20, 0.8);
-    color: #e0e0e0;
-    border: 1px solid #cca43b;
-    padding: 8px;
-    border-radius: 2px;
-    font-family: Gitan;
-}
-
-.search-button {
-    background-color: #523e1a;
-    color: #e0e0e0;
-    padding: 8px 12px;
-    border: 1px solid #706b2a;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-left: 5px;
-    font-family: Gitan;
 }
 
 .search-button:hover {
