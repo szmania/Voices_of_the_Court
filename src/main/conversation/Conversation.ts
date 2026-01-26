@@ -973,11 +973,6 @@ ${character.fullName}的发言：`
         }
     }
 
-
-        }
-    }
-
-
     updateConfig(config: Config){
         console.log("Config updated! Reloading conversation configuration.");
         this.config = config; // Ensure the config object itself is updated
@@ -1132,16 +1127,16 @@ ${character.fullName}的发言：`
             // 如果生成失败，不影响对话的正常进行
         }
     }
-}
 
-public getHistory(): Message[] {
-    return this.messages;
-}
+    public getHistory(): Message[] {
+        return this.messages;
+    }
 
-public async initiateConversation(){
-    if(this.config.aiCanStartConversation){
-        if(Math.random() < this.config.aiStartConversationChance){
-            await this.generateAIsMessages();
+    public async initiateConversation(){
+        if(this.config.aiCanStartConversation){
+            if(Math.random() < this.config.aiStartConversationChance){
+                await this.generateAIsMessages();
+            }
         }
     }
 }

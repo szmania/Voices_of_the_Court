@@ -52,10 +52,6 @@ export class Config{
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
 
-    aiCanStartConversation!: boolean;
-    aiStartConversationChance!: number;
-
-
     summariesInsertDepth!: number;
     memoriesInsertDepth!: number;
     descInsertDepth!: number;
@@ -81,8 +77,8 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
         
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-    sceneDescriptionPrompt!: string;
-    language!: string;
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection && 
                 configData[configType].connection.apiKeys) {
                 // 确保apiKeys字段被包含在导出的配置中
