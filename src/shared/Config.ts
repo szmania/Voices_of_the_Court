@@ -40,9 +40,6 @@ export class Config{
 
     cleanMessages!: boolean;
     debugMode!: boolean;
-    autoSendSuggestion!: boolean;
-
-    aiCanStartConversation!: boolean;
     aiStartConversationChance!: number;
     shuffleCharacterOrder!: boolean;
     dynamicCharacterSelection!: boolean;
@@ -51,6 +48,7 @@ export class Config{
     generateSceneDescription!: boolean;
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
+    checkForUpdatesOnStartup!: boolean;
 
     summariesInsertDepth!: number;
     memoriesInsertDepth!: number;
