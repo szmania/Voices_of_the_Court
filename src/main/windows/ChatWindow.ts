@@ -1,7 +1,4 @@
 
-resetPosition(){
-    this.window.setPosition(100, 100);
-}
 import {  app, BrowserWindow, ipcMain} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
 import ActiveWindow from '@paymoapp/active-window';
