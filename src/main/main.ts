@@ -110,21 +110,17 @@ const checkGitHubForUpdates = async (manual: boolean = false) => {
             const isPreRelease = latestRelease.prerelease;
             const dialogOpts = {
                 type: 'info' as const,
-                buttons: isPreRelease ? ['Open Download Page', 'Later'] : ['Update Now', 'Later'],
+                buttons: ['Update Now', 'Later'],
                 title: 'Update Available',
                 message: `A new version (${latestRelease.tag_name}) is available!`,
                 detail: isPreRelease 
-                    ? 'This is an Early Access release. You can download it manually from GitHub.' 
+                    ? 'A new Early Access version is available. Would you like to update now?' 
                     : 'A new stable version is available. Would you like to update now?'
             };
 
             const { response: buttonIndex } = await dialog.showMessageBox(dialogOpts);
             if (buttonIndex === 0) {
-                if (isPreRelease) {
-                    shell.openExternal(latestRelease.html_url);
-                } else {
-                    autoUpdater.checkForUpdates();
-                }
+                autoUpdater.checkForUpdates();
             }
         } else if (manual) {
             dialog.showMessageBox({
