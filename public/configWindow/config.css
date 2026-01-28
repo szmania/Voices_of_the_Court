@@ -84,7 +84,14 @@ input::-webkit-inner-spin-button {
 }
 
 language-selector {
+  display: block;
   flex-grow: 0;
+  order: 1;
+}
+
+.navbar li.language-selector {
+  flex-grow: 0;
+  min-width: auto;
 }
 
 .navbar li.help-menu a {

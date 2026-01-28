@@ -9,9 +9,9 @@ class LanguageSelector extends HTMLElement {
         this.innerHTML = `
             <li class="language-selector">
                 <div class="dropdown">
-                    <button class="dropbtn" id="current-language-btn">🇺🇸 English</button>
+                    <button class="dropbtn" id="current-language-btn">🇬🇧 English</button>
                     <div class="dropdown-content" id="language-dropdown">
-                        <a href="#" data-lang="en">🇺🇸 English</a>
+                        <a href="#" data-lang="en">🇬🇧 English</a>
                         <a href="#" data-lang="zh">🇨🇳 中文</a>
                     </div>
                 </div>
@@ -35,7 +35,7 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        btn.innerText = lang === 'en' ? '🇺🇸 English' : '🇨🇳 中文';
+        btn.innerText = lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文';
     }
 
     async updateLanguage(lang: 'en' | 'zh', btn: HTMLElement) {
