@@ -51,6 +51,7 @@ export class Config{
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
     checkForUpdatesOnStartup!: boolean;
+    earlyAccessUpdates!: boolean;
 
     summariesInsertDepth!: number;
     memoriesInsertDepth!: number;

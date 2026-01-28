@@ -84,6 +84,8 @@
 	"generateSceneDescription": true,
 	"autoGenerateSuggestions": false,
 	"autoSendSuggestion": false,
+	"earlyAccessUpdates": true,
+	"aiFirstSpeakerChance": 25,
 	"summariesInsertDepth": 6,
 	"memoriesInsertDepth": 5,
 	"descInsertDepth": 4,
