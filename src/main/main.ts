@@ -862,3 +862,4 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         chatWindow.window.webContents.send('update-theme', theme);
     }
 });
+// No changes needed here as the logic for language switching is handled via config-change events which are already implemented.

@@ -12,7 +12,7 @@ export interface ApiConnectionConfig{
 
 export class Config{
     userFolderPath!: string;
-    language!: 'en' | 'zh';
+    language: 'en' | 'zh' = 'en';
 
     stream!: boolean;
     maxTokens!: number;
