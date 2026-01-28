@@ -47,7 +47,7 @@ function applyTheme(theme: string) {
 
 // 页面加载时恢复之前的主题和语言选择
 document.addEventListener('DOMContentLoaded', async () => {
-    const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
+    const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     themeSelector.value = savedTheme;
     applyTheme(savedTheme);
     
