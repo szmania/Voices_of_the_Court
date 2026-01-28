@@ -27,7 +27,7 @@ themeSelector.addEventListener('change', (event) => {
 });
 
 // 应用主题函数
-function applyTheme(theme: string) {
+function applyTheme(theme: string, broadcast: boolean = true) {
     // 应用到当前窗口
     const currentWindow = document.querySelector('body');
     if (currentWindow) {
@@ -41,9 +41,18 @@ function applyTheme(theme: string) {
         }
     }
     
-    // 通知聊天窗口更新主题
-    ipcRenderer.send('theme-changed', theme);
+    if (broadcast) {
+        // 通知其他窗口更新主题
+        ipcRenderer.send('theme-changed', theme);
+    }
 }
+
+// 监听来自主进程的主题更新通知
+ipcRenderer.on('update-theme', (event, theme) => {
+    themeSelector.value = theme;
+    applyTheme(theme, false);
+    localStorage.setItem('selectedTheme', theme);
+});
 
 // 页面加载时恢复之前的主题和语言选择
 document.addEventListener('DOMContentLoaded', async () => {

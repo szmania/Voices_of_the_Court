@@ -857,9 +857,19 @@ ipcMain.on('close-summary-manager', () => {
 // 处理主题切换事件
 ipcMain.on('theme-changed', (event, theme: string) => {
     console.log(`IPC: Received theme-changed event. Theme: ${theme}`);
-    // 通知聊天窗口更新主题
-    if (chatWindow && chatWindow.window && !chatWindow.window.isDestroyed()) {
-        chatWindow.window.webContents.send('update-theme', theme);
-    }
+    
+    const windows = [
+        configWindow,
+        chatWindow,
+        summaryManagerWindow,
+        readmeWindow,
+        conversationHistoryWindow
+    ];
+
+    windows.forEach(win => {
+        if (win && win.window && !win.window.isDestroyed()) {
+            win.window.webContents.send('update-theme', theme);
+        }
+    });
 });
 // No changes needed here as the logic for language switching is handled via config-change events which are already implemented.

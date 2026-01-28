@@ -29,6 +29,10 @@ let userDataPath = '';
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // 应用主题
+        const savedTheme = localStorage.getItem('selectedTheme') || 'original';
+        applyTheme(savedTheme);
+
         // 获取用户数据路径
         userDataPath = await ipcRenderer.invoke('get-userdata-path');
         
@@ -41,6 +45,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         showStatusMessage('初始化失败: ' + error.message, 'error');
         console.error('初始化错误:', error);
     }
+});
+
+// 应用主题函数
+function applyTheme(theme) {
+    const body = document.querySelector('body');
+    if (body) {
+        body.classList.remove('theme-original', 'theme-chinese', 'theme-west');
+        body.classList.add(`theme-${theme}`);
+    }
+}
+
+// 监听主题更新
+ipcRenderer.on('update-theme', (event, theme) => {
+    applyTheme(theme);
+    localStorage.setItem('selectedTheme', theme);
 });
 
 // 设置事件监听器
