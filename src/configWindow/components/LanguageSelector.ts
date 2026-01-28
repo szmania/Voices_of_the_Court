@@ -7,15 +7,13 @@ class LanguageSelector extends HTMLElement {
 
     async connectedCallback() {
         this.innerHTML = `
-            <li class="language-selector">
-                <div class="dropdown">
-                    <button class="dropbtn" id="current-language-btn">🇬🇧 English</button>
-                    <div class="dropdown-content" id="language-dropdown">
-                        <a href="#" data-lang="en">🇬🇧 English</a>
-                        <a href="#" data-lang="zh">🇨🇳 中文</a>
-                    </div>
+            <div class="dropdown">
+                <button class="dropbtn" id="current-language-btn">🇬🇧 English</button>
+                <div class="dropdown-content" id="language-dropdown">
+                    <a href="#" data-lang="en">🇬🇧 English</a>
+                    <a href="#" data-lang="zh">🇨🇳 中文</a>
                 </div>
-            </li>
+            </div>
         `;
 
         const currentLanguageBtn = this.querySelector('#current-language-btn') as HTMLElement;
