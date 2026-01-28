@@ -330,7 +330,7 @@ app.on('ready',  async () => {
             app.quit();
       }},
     ])
-    tray.setToolTip('Voices of the Court CK3 mod')
+    tray.setToolTip('Voices of the Court - Community Edition CK3 mod')
     tray.setContextMenu(contextMenu)
     console.log('Tray icon and context menu created.');
 
@@ -872,4 +872,22 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         }
     });
 });
-// No changes needed here as the logic for language switching is handled via config-change events which are already implemented.
+
+// 处理语言切换事件
+ipcMain.on('language-changed', (event, lang: string) => {
+    console.log(`IPC: Received language-changed event. Language: ${lang}`);
+    
+    const windows = [
+        configWindow,
+        chatWindow,
+        summaryManagerWindow,
+        readmeWindow,
+        conversationHistoryWindow
+    ];
+
+    windows.forEach(win => {
+        if (win && win.window && !win.window.isDestroyed()) {
+            win.window.webContents.send('update-language', lang);
+        }
+    });
+});

@@ -6,9 +6,12 @@ class LanguageSelector extends HTMLElement {
     }
 
     async connectedCallback() {
+        const config = await ipcRenderer.invoke('get-config');
+        const lang = config.language || 'en';
+
         this.innerHTML = `
             <div class="dropdown">
-                <button class="dropbtn" id="current-language-btn">🇬🇧 English</button>
+                <button class="dropbtn" id="current-language-btn">${lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文'}</button>
                 <div class="dropdown-content" id="language-dropdown">
                     <a href="#" data-lang="en">🇬🇧 English</a>
                     <a href="#" data-lang="zh">🇨🇳 中文</a>
@@ -18,10 +21,6 @@ class LanguageSelector extends HTMLElement {
 
         const currentLanguageBtn = this.querySelector('#current-language-btn') as HTMLElement;
         const languageDropdown = this.querySelector('#language-dropdown') as HTMLElement;
-
-        const config = await ipcRenderer.invoke('get-config');
-        const lang = config.language || 'en';
-        this.updateButtonText(currentLanguageBtn, lang);
 
         languageDropdown.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -39,6 +38,7 @@ class LanguageSelector extends HTMLElement {
     async updateLanguage(lang: 'en' | 'zh', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
+        ipcRenderer.send('language-changed', lang);
 
         // @ts-ignore
         if (window.LocalizationManager) {
