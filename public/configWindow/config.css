@@ -79,7 +79,6 @@ input::-webkit-inner-spin-button {
 /* 帮助菜单样式 */
 .navbar li.help-menu {
   margin-left: auto;
-  background-color: #1e3a52;
   flex-grow: 0;
 }
 
@@ -95,15 +94,14 @@ language-selector {
 }
 
 .navbar li.help-menu a {
-  background-color: #1e3a52;
-  color: #8ab6d6;
+  color: #b8860b;
   font-weight: bold;
   border-left: 1px solid #3d2e1e;
 }
 
 .navbar li.help-menu a:hover {
-  background-color: #2c5270;
-  color: white;
+  background-color: #3d2e1e;
+  color: #ffd700;
 }
 
 .navbar .active{

@@ -35,7 +35,7 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        btn.innerText = lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文';
+        btn.innerHTML = lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文';
     }
 
     async updateLanguage(lang: 'en' | 'zh', btn: HTMLElement) {
