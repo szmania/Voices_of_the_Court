@@ -257,6 +257,18 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
     updateSuggestionsContainerStyle();
 });
 
+// 监听语言更新事件
+ipcRenderer.on('update-language', async (event, lang: string) => {
+    console.log(`Received update-language in chat window: ${lang}`);
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(lang);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+    }
+});
+
     // 推荐输入语句功能事件处理
     suggestionsButton.addEventListener('click', () => {
         ipcRenderer.send('get-suggestions')

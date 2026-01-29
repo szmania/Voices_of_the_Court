@@ -11,10 +11,19 @@ class LanguageSelector extends HTMLElement {
 
         this.innerHTML = `
             <div class="dropdown">
-                <button class="dropbtn" id="current-language-btn">${lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文'}</button>
+                <button class="dropbtn" id="current-language-btn">
+                    <span class="flag-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; margin-right: 5px;">${lang === 'en' ? '🇬🇧' : '🇨🇳'}</span>
+                    <span class="lang-text">${lang === 'en' ? 'English' : '中文'}</span>
+                </button>
                 <div class="dropdown-content" id="language-dropdown">
-                    <a href="#" data-lang="en">🇬🇧 English</a>
-                    <a href="#" data-lang="zh">🇨🇳 中文</a>
+                    <a href="#" data-lang="en">
+                        <span class="flag-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; margin-right: 5px;">🇬🇧</span>
+                        <span class="lang-text">English</span>
+                    </a>
+                    <a href="#" data-lang="zh">
+                        <span class="flag-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; margin-right: 5px;">🇨🇳</span>
+                        <span class="lang-text">中文</span>
+                    </a>
                 </div>
             </div>
         `;
@@ -32,7 +41,12 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        btn.innerHTML = lang === 'en' ? '🇬🇧 English' : '🇨🇳 中文';
+        const flag = lang === 'en' ? '🇬🇧' : '🇨🇳';
+        const text = lang === 'en' ? 'English' : '中文';
+        btn.innerHTML = `
+            <span class="flag-icon" style="font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif; margin-right: 5px;">${flag}</span>
+            <span class="lang-text">${text}</span>
+        `;
     }
 
     async updateLanguage(lang: 'en' | 'zh', btn: HTMLElement) {
@@ -44,6 +58,8 @@ class LanguageSelector extends HTMLElement {
         if (window.LocalizationManager) {
             // @ts-ignore
             await window.LocalizationManager.loadTranslations(lang);
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
         }
     }
 }

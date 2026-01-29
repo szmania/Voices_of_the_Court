@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Voices of the Court - Chat</title>
+  <title>Voices of the Court - Community Edition - Chat</title>
   <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="chat.css"/>
   <link rel="stylesheet" href="user.css"/>
@@ -39,6 +39,11 @@
     <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
   </div>
   
+  <script>require("../../dist/shared/LocalizationManager.js")</script>
+  <script>
+    const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+    window.LocalizationManager = LocalizationManager;
+  </script>
   <script>require("../../dist/chatWindow/chatRenderer.js")</script>
 </body>
 </html>

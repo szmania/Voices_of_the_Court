@@ -1,1 +1,41 @@
-{ "nav": { "connection": "??", "actions": "??", "summarization": "??", "prompts": "???", "settings": "??", "system": "??", "help": "??" }, "system": { "update": "??", "current_version": "????: ", "check_updates": "????..", "check_on_startup": "???????", "theme": "????", "theme_original": "?? UI", "theme_chinese": "?? UI", "theme_west": "?? UI", "logs": "????", "logs_desc": "???????/??,?????????? Discord ???", "open_logs": "???????", "clear_summaries": "??????", "clear_summaries_desc": "???????????????", "clear_button": "????", "open_summaries": "?????????" } } 
+{
+  "nav": {
+    "connection": "连接",
+    "actions": "动作",
+    "summarization": "总结",
+    "prompts": "提示词",
+    "settings": "设置",
+    "system": "系统",
+    "help": "帮助"
+  },
+  "system": {
+    "update": "更新",
+    "current_version": "当前版本: ",
+    "check_updates": "检查更新..",
+    "check_on_startup": "启动时检查更新",
+    "early_access": "抢先体验",
+    "early_access_desc": "VOTC - 社区版将自动更新到预发布版本。",
+    "theme": "主题选择",
+    "theme_desc": "选择您喜欢的 UI 主题：",
+    "theme_original": "原始 UI",
+    "theme_chinese": "中式 UI",
+    "theme_west": "西式 UI",
+    "logs": "日志文件",
+    "logs_desc": "如果您遇到错误/崩溃，请将日志发送到我们的 Discord 服务器",
+    "open_logs": "打开日志文件夹",
+    "clear_summaries": "清除对话总结",
+    "clear_summaries_desc": "这将删除所有角色的先前对话总结",
+    "clear_button": "清除总结",
+    "open_summaries": "打开对话总结文件夹"
+  },
+  "chat": {
+    "leave_button": "结束对话",
+    "input_placeholder": "输入消息..."
+  },
+  "suggestions": {
+    "header": "推荐输入语句",
+    "button": "显示建议",
+    "no_suggestions": "暂无推荐输入语句",
+    "close": "×"
+  }
+} 
