@@ -5,8 +5,8 @@ export class LocalizationManager {
 
     static async loadTranslations(lang: string) {
         try {
-            const response = await fetch(`../../locales/${lang}.json`);
-            this.translations = await response.json();
+            // Use require for local JSON files to avoid fetch/file protocol issues
+            this.translations = require(`../../public/locales/${lang}.json`);
             this.applyTranslations();
         } catch (error) {
             console.error('Failed to load translations:', error);
