@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>欢迎使用 Voices of the Court</title>
+    <title>Voices of the Court - Community Edition</title>
     <link rel="stylesheet" href="readme.css">
     <link rel="stylesheet" href="../chatWindow/theme.css">
 </head>
@@ -11,432 +11,432 @@
     <div class="container">
         <header class="header">
             <img src="../assets/icon-full.png" alt="Voices of the Court Logo" class="logo">
-            <h1>欢迎使用 Voices of the Court</h1>
-            <p class="subtitle">《十字军之王3》AI对话模组</p>
-            <p class="version">版本 <span id="app-version">1.3.7</span></p>
+            <h1>Voices of the Court - Community Edition</h1>
+            <p class="subtitle" data-i18n="readme.subtitle">《十字军之王3》AI对话模组</p>
+            <p class="version"><span data-i18n="readme.version">版本</span> <span id="app-version">1.3.7</span></p>
         </header>
 
         <nav class="nav-tabs">
-            <button class="nav-tab active" data-tab="quickstart">快速开始</button>
-            <button class="nav-tab" data-tab="features">功能介绍</button>
-            <button class="nav-tab" data-tab="config">配置指南</button>
-            <button class="nav-tab" data-tab="troubleshooting">故障排除</button>
-            <button class="nav-tab" data-tab="about">关于</button>
+            <button class="nav-tab active" data-tab="quickstart" data-i18n="readme.quickstart">快速开始</button>
+            <button class="nav-tab" data-tab="features" data-i18n="readme.features">功能介绍</button>
+            <button class="nav-tab" data-tab="config" data-i18n="readme.config">配置指南</button>
+            <button class="nav-tab" data-tab="troubleshooting" data-i18n="readme.troubleshooting">故障排除</button>
+            <button class="nav-tab" data-tab="about" data-i18n="readme.about">关于</button>
         </nav>
 
         <main class="content">
             <!-- 快速开始 -->
             <div id="quickstart" class="tab-content active">
-                <h2>🚀 快速开始</h2>
-                
+                <h2 data-i18n="readme.quickstart">🚀 快速开始</h2>
+
                 <div class="section">
-                    <h3>第一步：配置API连接</h3>
+                    <h3 data-i18n="readme.step1_title">第一步：配置API连接</h3>
                     <ol>
-                        <li>点击左侧菜单中的"连接"选项</li>
-                        <li>选择您的文本生成API提供商（如OpenAI、Kobold等）</li>
-                        <li>输入您的API密钥和相关配置</li>
-                        <li>设置CK3用户文件夹路径（通常位于"我的文档/Paradox Interactive/Crusader Kings III"）</li>
+                        <li data-i18n="readme.step1_1">点击左侧菜单中的"连接"选项</li>
+                        <li data-i18n="readme.step1_2">选择您的文本生成API提供商（如OpenAI、Kobold等）</li>
+                        <li data-i18n="readme.step1_3">输入您的API密钥和相关配置</li>
+                        <li data-i18n="readme.step1_4">设置CK3用户文件夹路径（通常位于"我的文档/Paradox Interactive/Crusader Kings III"）</li>
                     </ol>
                 </div>
 
                 <div class="section">
-                    <h3>第二步：启动游戏</h3>
+                    <h3 data-i18n="readme.step2_title">第二步：启动游戏</h3>
                     <ol>
-                        <li>启动《十字军之王3》</li>
-                        <li>加载您的存档</li>
-                        <li>在游戏中右键点击任何角色</li>
-                        <li>选择"谈话"选项</li>
+                        <li data-i18n="readme.step2_1">启动《十字军之王3》</li>
+                        <li data-i18n="readme.step2_2">加载您的存档</li>
+                        <li data-i18n="readme.step2_3">在游戏中右键点击任何角色</li>
+                        <li data-i18n="readme.step2_4">选择"谈话"选项</li>
                     </ol>
                 </div>
 
                 <div class="section">
-                    <h3>第三步：开始对话</h3>
-                    <p>当您在游戏中发起对话时，Voices of the Court会自动弹出聊天窗口，您可以：</p>
+                    <h3 data-i18n="readme.step3_title">第三步：开始对话</h3>
+                    <p data-i18n="readme.step3_desc">当您在游戏中发起对话时，Voices of the Court会自动弹出聊天窗口，您可以：</p>
                     <ul>
-                        <li>与角色进行自然对话</li>
-                        <li>影响游戏状态和角色关系</li>
-                        <li>体验动态生成的角色性格特征</li>
+                        <li data-i18n="readme.step3_1">与角色进行自然对话</li>
+                        <li data-i18n="readme.step3_2">影响游戏状态和角色关系</li>
+                        <li data-i18n="readme.step3_3">体验动态生成的角色性格特征</li>
                     </ul>
                 </div>
 
                 <div class="warning-box">
-                    <strong>⚠️ 重要提醒：</strong>
-                    <p>首次使用前，请确保已在游戏中启用Voices of the Court模组，并按照模组说明进行正确安装。</p>
+                    <strong data-i18n="readme.warning_title">⚠️ 重要提醒：</strong>
+                    <p data-i18n="readme.warning_desc">首次使用前，请确保已在游戏中启用Voices of the Court模组，并按照模组说明进行正确安装。</p>
                 </div>
             </div>
 
             <!-- 功能介绍 -->
             <div id="features" class="tab-content">
-                <h2>✨ 功能介绍</h2>
-                
+                <h2 data-i18n="readme.features">✨ 功能介绍</h2>
+
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3>🗣️ AI角色对话</h3>
-                        <p>与游戏中的任何角色进行智能对话，AI会根据角色的性格、特质和当前情境生成合适的回应。</p>
+                        <h3 data-i18n="readme.feat1_title">🗣️ AI角色对话</h3>
+                        <p data-i18n="readme.feat1_desc">与游戏中的任何角色进行智能对话，AI会根据角色的性格、特质和当前情境生成合适的回应。</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>🧠 动态性格系统</h3>
-                        <p>AI会根据角色的特质、技能和关系动态生成独特的性格特征和对话风格。</p>
+                        <h3 data-i18n="readme.feat2_title">🧠 动态性格系统</h3>
+                        <p data-i18n="readme.feat2_desc">AI会根据角色的特质、技能和关系动态生成独特的性格特征和对话风格。</p>
                     </div>
 
 
                     <div class="feature-card">
-                        <h3>📜 智能摘要</h3>
-                        <p>自动为长对话生成摘要，保持对话上下文，避免token限制问题。</p>
+                        <h3 data-i18n="readme.feat3_title">📜 智能摘要</h3>
+                        <p data-i18n="readme.feat3_desc">自动为长对话生成摘要，保持对话上下文，避免token限制问题。</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>⚡ 动作检测</h3>
-                        <p>检测游戏中的各种动作（如好感变化、给予金钱等），并生成相应的AI叙述。</p>
+                        <h3 data-i18n="readme.feat4_title">⚡ 动作检测</h3>
+                        <p data-i18n="readme.feat4_desc">检测游戏中的各种动作（如好感变化、给予金钱等），并生成相应的AI叙述。</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>🔖 剧本系统</h3>
-                        <p>导入特定剧本填充游戏世界观和角色总结</p>
+                        <h3 data-i18n="readme.feat5_title">🔖 剧本系统</h3>
+                        <p data-i18n="readme.feat5_desc">导入特定剧本填充游戏世界观和角色总结</p>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>高级功能</h3>
+                    <h3 data-i18n="readme.adv_feat_title">高级功能</h3>
                     <ul>
-                        <li><strong>多角色对话：</strong>支持同时与多个角色进行对话</li>
-                        <li><strong>角色验证：</strong>确保AI生成的回应符合角色身份</li>
-                        <li><strong>动态角色选择：</strong>AI智能选择下一个应该回应的角色</li>
-                        <li><strong>自定义提示词：</strong>完全自定义AI的行为和回应方式</li>
-                        <li><strong>对话历史管理：</strong>查看和管理所有对话记录</li>
+                        <li data-i18n="readme.adv_feat1"><strong>多角色对话：</strong>支持同时与多个角色进行对话</li>
+                        <li data-i18n="readme.adv_feat2"><strong>角色验证：</strong>确保AI生成的回应符合角色身份</li>
+                        <li data-i18n="readme.adv_feat3"><strong>动态角色选择：</strong>AI智能选择下一个应该回应的角色</li>
+                        <li data-i18n="readme.adv_feat4"><strong>自定义提示词：</strong>完全自定义AI的行为 and 回应方式</li>
+                        <li data-i18n="readme.adv_feat5"><strong>对话历史管理：</strong>查看和管理所有对话记录</li>
                     </ul>
                 </div>
             </div>
 
             <!-- 配置指南 -->
             <div id="config" class="tab-content">
-                <h2>⚙️ 配置指南</h2>
-                
+                <h2 data-i18n="readme.config">⚙️ 配置指南</h2>
+
                 <div class="section">
-                    <h3>🔌 连接页面 (Connection)</h3>
-                    <p>配置与语言模型API的连接和游戏路径设置。</p>
-                    
+                    <h3 data-i18n="readme.conf_conn_title">🔌 连接页面 (Connection)</h3>
+                    <p data-i18n="readme.conf_conn_desc">配置与语言模型API的连接和游戏路径设置。</p>
+
                     <div class="config-subsection">
-                        <h4>API连接配置</h4>
+                        <h4 data-i18n="readme.conf_conn_api_title">API连接配置</h4>
                         <ul>
-                            <li><strong>API提供商：</strong>选择文本生成API（OpenAI、KoboldAI、Text Generation WebUI、OobaBooga等）</li>
-                            <li><strong>API密钥：</strong>输入所选服务的API密钥</li>
-                            <li><strong>端点URL：</strong>API服务的URL地址</li>
-                            <li><strong>模型名称：</strong>选择要使用的具体模型</li>
+                            <li data-i18n="readme.conf_conn_api1"><strong>API提供商：</strong>选择文本生成API（OpenAI、KoboldAI、Text Generation WebUI、OobaBooga等）</li>
+                            <li data-i18n="readme.conf_conn_api2"><strong>API密钥：</strong>输入所选服务的API密钥</li>
+                            <li data-i18n="readme.conf_conn_api3"><strong>端点URL：</strong>API服务的URL地址</li>
+                            <li data-i18n="readme.conf_conn_api4"><strong>模型名称：</strong>选择要使用的具体模型</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>CK3用户文件夹路径</h4>
+                        <h4 data-i18n="readme.conf_conn_path_title">CK3用户文件夹路径</h4>
                         <ul>
-                            <li><strong>路径设置：</strong>设置存储用户数据的CK3文件夹路径</li>
-                            <li><strong>默认路径：</strong>用户文档/Paradox Interactive/Crusader Kings III</li>
-                            <li><strong>选择方式：</strong>通过"选择文件夹"按钮浏览并选择正确路径</li>
+                            <li data-i18n="readme.conf_conn_path1"><strong>路径设置：</strong>设置存储用户数据的CK3文件夹路径</li>
+                            <li data-i18n="readme.conf_conn_path2"><strong>默认路径：</strong>用户文档/Paradox Interactive/Crusader Kings III</li>
+                            <li data-i18n="readme.conf_conn_path3"><strong>选择方式：</strong>通过"选择文件夹"按钮浏览并选择正确路径</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>🎮 动作页面 (Actions)</h3>
-                    <p>配置游戏中可检测的动作和相应的AI响应。</p>
-                    
+                    <h3 data-i18n="readme.conf_act_title">🎮 动作页面 (Actions)</h3>
+                    <p data-i18n="readme.conf_act_desc">配置游戏中可检测的动作和相应的AI响应。</p>
+
                     <div class="config-subsection">
-                        <h4>启用动作</h4>
+                        <h4 data-i18n="readme.conf_act_enable_title">启用动作</h4>
                         <ul>
-                            <li><strong>总开关：</strong>控制是否启用动作检测功能</li>
-                            <li><strong>启用AI叙述：</strong>在动作触发后生成AI叙述描述</li>
+                            <li data-i18n="readme.conf_act_enable1"><strong>总开关：</strong>控制是否启用动作检测功能</li>
+                            <li data-i18n="readme.conf_act_enable2"><strong>启用AI叙述：</strong>在动作触发后生成AI叙述描述</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>API配置</h4>
+                        <h4 data-i18n="readme.conf_act_api_title">API配置</h4>
                         <ul>
-                            <li><strong>相同设置：</strong>使用与连接页面相同的API配置</li>
-                            <li><strong>独立配置：</strong>为动作功能单独配置API设置</li>
+                            <li data-i18n="readme.conf_act_api1"><strong>相同设置：</strong>使用与连接页面相同的API配置</li>
+                            <li data-i18n="readme.conf_act_api2"><strong>独立配置：</strong>为动作功能单独配置API设置</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>参数设置</h4>
+                        <h4 data-i18n="readme.conf_act_param_title">参数设置</h4>
                         <ul>
-                            <li><strong>温度：</strong>控制AI响应的创造性（默认0.2，较低值使响应更确定）</li>
-                            <li><strong>频率惩罚：</strong>减少重复内容的生成</li>
-                            <li><strong>存在惩罚：</strong>鼓励谈论新话题</li>
-                            <li><strong>Top P：</strong>控制词汇选择的多样性</li>
+                            <li data-i18n="readme.conf_act_param1"><strong>温度：</strong>控制AI响应的创造性（默认0.2，较低值使响应更确定）</li>
+                            <li data-i18n="readme.conf_act_param2"><strong>频率惩罚：</strong>减少重复内容的生成</li>
+                            <li data-i18n="readme.conf_act_param3"><strong>存在惩罚：</strong>鼓励谈论新话题</li>
+                            <li data-i18n="readme.conf_act_param4"><strong>Top P：</strong>控制词汇选择的多样性</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>动作选择</h4>
+                        <h4 data-i18n="readme.conf_act_sel_title">动作选择</h4>
                         <ul>
-                            <li><strong>动作列表：</strong>从列表中选择希望模组检测的动作类型</li>
-                            <li><strong>动作信息：</strong>每个动作都有描述和创建者信息</li>
-                            <li><strong>重新加载文件：</strong>刷新动作列表按钮</li>
-                            <li><strong>打开文件夹：</strong>访问自定义动作脚本按钮</li>
+                            <li data-i18n="readme.conf_act_sel1"><strong>动作列表：</strong>从列表中选择希望模组检测的动作类型</li>
+                            <li data-i18n="readme.conf_act_sel2"><strong>动作信息：</strong>每个动作都有描述和创建者信息</li>
+                            <li data-i18n="readme.conf_act_sel3"><strong>重新加载文件：</strong>刷新动作列表按钮</li>
+                            <li data-i18n="readme.conf_act_sel4"><strong>打开文件夹：</strong>访问自定义动作脚本按钮</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>📝 摘要页面 (Summarization)</h3>
-                    <p>配置对话摘要功能的API设置。</p>
-                    
+                    <h3 data-i18n="readme.conf_sum_title">📝 摘要页面 (Summarization)</h3>
+                    <p data-i18n="readme.conf_sum_desc">配置对话摘要功能的API设置。</p>
+
                     <div class="config-subsection">
-                        <h4>API配置</h4>
+                        <h4 data-i18n="readme.conf_sum_api_title">API配置</h4>
                         <ul>
-                            <li><strong>相同设置：</strong>使用与连接页面相同的API配置</li>
-                            <li><strong>独立配置：</strong>为摘要功能单独配置API设置</li>
+                            <li data-i18n="readme.conf_sum_api1"><strong>相同设置：</strong>使用与连接页面相同的API配置</li>
+                            <li data-i18n="readme.conf_sum_api2"><strong>独立配置：</strong>为摘要功能单独配置API设置</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>参数设置</h4>
+                        <h4 data-i18n="readme.conf_sum_param_title">参数设置</h4>
                         <ul>
-                            <li><strong>温度：</strong>控制摘要的创造性（默认0.2）</li>
-                            <li><strong>频率惩罚：</strong>减少摘要中的重复内容</li>
-                            <li><strong>存在惩罚：</strong>鼓励包含新信息</li>
-                            <li><strong>Top P：</strong>控制词汇选择的多样性</li>
+                            <li data-i18n="readme.conf_sum_param1"><strong>温度：</strong>控制摘要的创造性（默认0.2）</li>
+                            <li data-i18n="readme.conf_sum_param2"><strong>频率惩罚：</strong>减少摘要中的重复内容</li>
+                            <li data-i18n="readme.conf_sum_param3"><strong>存在惩罚：</strong>鼓励包含新信息</li>
+                            <li data-i18n="readme.conf_sum_param4"><strong>Top P：</strong>控制词汇选择的多样性</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>功能说明</h4>
-                        <p>摘要功能用于将长对话压缩为简短摘要，帮助保持对话上下文在token限制内，并在对话结束后生成摘要用于以后的对话。</p>
+                        <h4 data-i18n="readme.conf_sum_info_title">功能说明</h4>
+                        <p data-i18n="readme.conf_sum_info_desc">摘要功能用于将长对话压缩为简短摘要，帮助保持对话上下文在token限制内，并在对话结束后生成摘要用于以后的对话。</p>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>💬 提示词页面 (Prompts)</h3>
-                    <p>配置与AI交互的各种提示词和脚本。</p>
-                    
-                    <div class="config-subsection">
-                        <h4>主要提示词</h4>
-                        <ul>
-                            <li><strong>主提示词：</strong>控制AI如何响应的基本指令</li>
-                            <li><strong>自言自语提示词：</strong>角色内心独白的生成规则</li>
-                            <li><strong>摘要提示词：</strong>生成对话摘要的指令</li>
-                            <li><strong>自言自语摘要提示词：</strong>角色内心独白的摘要规则</li>
-                            <li><strong>记忆提示词：</strong>角色如何记忆和引用过去事件</li>
-                            <li><strong>后缀提示词：</strong>在API请求前插入的最后一条系统消息，用于指导模型格式化响应</li>
-                            <li><strong>叙述提示词：</strong>在动作触发后生成AI叙述描述的规则</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>脚本选择</h4>
-                        <ul>
-                            <li><strong>角色描述脚本：</strong>动态生成角色描述的脚本</li>
-                            <li><strong>示例消息脚本：</strong>生成示例对话消息的脚本</li>
-                            <li><strong>剧本：</strong>用于导入的特定剧本文件，包含世界观和角色设定</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>版本管理</h4>
-                        <ul>
-                            <li><strong>标准版本：</strong>应用程序提供的默认脚本</li>
-                            <li><strong>自定义版本：</strong>用户创建或修改的脚本</li>
-                            <li><strong>下拉选择：</strong>通过下拉菜单选择要使用的脚本版本</li>
-                            <li><strong>打开文件夹：</strong>访问脚本文件按钮</li>
-                        </ul>
-                    </div>
-                </div>
+                    <h3 data-i18n="readme.conf_prom_title">💬 提示词页面 (Prompts)</h3>
+                    <p data-i18n="readme.conf_prom_desc">配置与AI交互的各种提示词和脚本。</p>
 
-                <div class="section">
-                    <h3>⚙️ 设置页面 (Settings)</h3>
-                    <p>包含应用程序的各种行为和生成参数配置。</p>
-                    
                     <div class="config-subsection">
-                        <h4>基本设置</h4>
+                        <h4 data-i18n="readme.conf_prom_main_title">主要提示词</h4>
                         <ul>
-                            <li><strong>最大新token数：</strong>限制AI单次响应的最大长度</li>
-                            <li><strong>最大记忆token数：</strong>限制角色记忆的最大长度</li>
-                            <li><strong>流式消息：</strong>启用/禁用流式响应（实时显示AI生成过程）</li>
-                            <li><strong>清理消息：</strong>尝试移除AI生成的不应有内容（如表情符号）</li>
-                            <li><strong>角色顺序乱序：</strong>在多人对话中随机化角色发言顺序</li>
-                            <li><strong>动态角色选择：</strong>使用LLM分析对话并选择下一个发言角色</li>
-                            <li><strong>验证角色身份：</strong>验证生成的消息是否符合角色身份，防止llm生成别的角色的回复</li>
-                            <li><strong>显示建议按钮：</strong>在聊天窗口中显示/隐藏推荐输入语句功能</li>
+                            <li data-i18n="readme.conf_prom_main1"><strong>主提示词：</strong>控制AI如何响应的基本指令</li>
+                            <li data-i18n="readme.conf_prom_main2"><strong>自言自语提示词：</strong>角色内心独白的生成规则</li>
+                            <li data-i18n="readme.conf_prom_main3"><strong>摘要提示词：</strong>生成对话摘要的指令</li>
+                            <li data-i18n="readme.conf_prom_main4"><strong>自言自语摘要提示词：</strong>角色内心独白的摘要规则</li>
+                            <li data-i18n="readme.conf_prom_main5"><strong>记忆提示词：</strong>角色如何记忆和引用过去事件</li>
+                            <li data-i18n="readme.conf_prom_main6"><strong>后缀提示词：</strong>在API请求前插入的最后一条系统消息，用于指导模型格式化响应</li>
+                            <li data-i18n="readme.conf_prom_main7"><strong>叙述提示词：</strong>在动作触发后生成AI叙述描述的规则</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>插入深度设置</h4>
+                        <h4 data-i18n="readme.conf_prom_script_title">脚本选择</h4>
                         <ul>
-                            <li><strong>摘要插入深度：</strong>控制摘要在对话历史中的插入位置</li>
-                            <li><strong>记忆插入深度：</strong>控制角色记忆在对话历史中的插入位置</li>
-                            <li><strong>角色描述插入深度：</strong>控制角色描述在对话历史中的插入位置</li>
+                            <li data-i18n="readme.conf_prom_script1"><strong>角色描述脚本：</strong>动态生成角色描述的脚本</li>
+                            <li data-i18n="readme.conf_prom_script2"><strong>示例消息脚本：</strong>生成示例对话消息的脚本</li>
+                            <li data-i18n="readme.conf_prom_script3"><strong>剧本：</strong>用于导入的特定剧本文件，包含世界观和角色设定</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>指令设置</h4>
+                        <h4 data-i18n="readme.conf_prom_ver_title">版本管理</h4>
                         <ul>
-                            <li><strong>输入序列：</strong>标记用户输入的特殊标记</li>
-                            <li><strong>输出序列：</strong>标记AI输出的特殊标记</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>文本生成参数</h4>
-                        <ul>
-                            <li><strong>温度：</strong>控制AI响应的创造性（默认0.8）</li>
-                            <li><strong>频率惩罚：</strong>减少重复内容的生成</li>
-                            <li><strong>存在惩罚：</strong>鼓励谈论新话题</li>
-                            <li><strong>Top P：</strong>控制词汇选择的多样性（默认0.9）</li>
+                            <li data-i18n="readme.conf_prom_ver1"><strong>标准版本：</strong>应用程序提供的默认脚本</li>
+                            <li data-i18n="readme.conf_prom_ver2"><strong>自定义版本：</strong>用户创建或修改的脚本</li>
+                            <li data-i18n="readme.conf_prom_ver3"><strong>下拉选择：</strong>通过下拉菜单选择要使用的脚本版本</li>
+                            <li data-i18n="readme.conf_prom_ver4"><strong>打开文件夹：</strong>访问脚本文件按钮</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>🖥️ 系统页面 (System)</h3>
-                    <p>提供应用程序维护和社区链接功能。</p>
-                    
+                    <h3 data-i18n="readme.conf_sett_title">⚙️ 设置页面 (Settings)</h3>
+                    <p data-i18n="readme.conf_sett_desc">包含应用程序的各种行为和生成参数配置。</p>
+
                     <div class="config-subsection">
-                        <h4>更新功能</h4>
+                        <h4 data-i18n="readme.conf_sett_basic_title">基本设置</h4>
                         <ul>
-                            <li><strong>当前版本：</strong>显示当前应用程序版本</li>
-                            <li><strong>检查更新：</strong>手动检查是否有新版本按钮</li>
-                            <li><strong>启动时检查更新：</strong>自动在应用启动时检查更新选项</li>
+                            <li data-i18n="readme.conf_sett_basic1"><strong>最大新token数：</strong>限制AI单次响应的最大长度</li>
+                            <li data-i18n="readme.conf_sett_basic2"><strong>最大记忆token数：</strong>限制角色记忆的最大长度</li>
+                            <li data-i18n="readme.conf_sett_basic3"><strong>流式消息：</strong>启用/禁用流式响应（实时显示AI生成过程）</li>
+                            <li data-i18n="readme.conf_sett_basic4"><strong>清理消息：</strong>尝试移除AI生成的不应有内容（如表情符号）</li>
+                            <li data-i18n="readme.conf_sett_basic5"><strong>角色顺序乱序：</strong>在多人对话中随机化角色发言顺序</li>
+                            <li data-i18n="readme.conf_sett_basic6"><strong>动态角色选择：</strong>使用LLM分析对话并选择下一个发言角色</li>
+                            <li data-i18n="readme.conf_sett_basic7"><strong>验证角色身份：</strong>验证生成的消息是否符合角色身份，防止llm生成别的角色的回复</li>
+                            <li data-i18n="readme.conf_sett_basic8"><strong>显示建议按钮：</strong>在聊天窗口中显示/隐藏推荐输入语句功能</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>日志文件</h4>
+                        <h4 data-i18n="readme.conf_sett_depth_title">插入深度设置</h4>
                         <ul>
-                            <li><strong>错误查看：</strong>如果遇到错误/崩溃，可以查看日志文件</li>
-                            <li><strong>打开日志文件夹：</strong>直接访问日志文件按钮</li>
+                            <li data-i18n="readme.conf_sett_depth1"><strong>摘要插入深度：</strong>控制摘要在对话历史中的插入位置</li>
+                            <li data-i18n="readme.conf_sett_depth2"><strong>记忆插入深度：</strong>控制角色记忆在对话历史中的插入位置</li>
+                            <li data-i18n="readme.conf_sett_depth3"><strong>角色描述插入深度：</strong>控制角色描述在对话历史中的插入位置</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>对话摘要管理</h4>
+                        <h4 data-i18n="readme.conf_sett_instr_title">指令设置</h4>
                         <ul>
-                            <li><strong>清除摘要：</strong>删除所有角色的先前对话摘要按钮</li>
-                            <li><strong>打开对话摘要文件夹：</strong>访问存储的对话摘要按钮</li>
+                            <li data-i18n="readme.conf_sett_instr1"><strong>输入序列：</strong>标记用户输入的特殊标记</li>
+                            <li data-i18n="readme.conf_sett_instr2"><strong>输出序列：</strong>标记AI输出的特殊标记</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.conf_sett_param_title">文本生成参数</h4>
+                        <ul>
+                            <li data-i18n="readme.conf_sett_param1"><strong>温度：</strong>控制AI响应的创造性（默认0.8）</li>
+                            <li data-i18n="readme.conf_sett_param2"><strong>频率惩罚：</strong>减少重复内容的生成</li>
+                            <li data-i18n="readme.conf_sett_param3"><strong>存在惩罚：</strong>鼓励谈论新话题</li>
+                            <li data-i18n="readme.conf_sett_param4"><strong>Top P：</strong>控制词汇选择的多样性（默认0.9）</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>🎯 参数调优建议</h3>
+                    <h3 data-i18n="readme.conf_sys_title">🖥️ 系统页面 (System)</h3>
+                    <p data-i18n="readme.conf_sys_desc">提供应用程序维护和社区链接功能。</p>
+
                     <div class="config-subsection">
-                        <h4>关键参数说明</h4>
+                        <h4 data-i18n="readme.conf_sys_upd_title">更新功能</h4>
                         <ul>
-                            <li><strong>温度 (Temperature)：</strong>控制AI的创造性，0.1-0.3适合确定性回应，0.7-1.0适合创造性对话</li>
-                            <li><strong>Top P：</strong>控制词汇选择的多样性，建议值0.9</li>
-                            <li><strong>频率惩罚：</strong>减少重复内容，建议值0.1-0.5</li>
-                            <li><strong>存在惩罚：</strong>鼓励谈论新话题，建议值0.1-0.5</li>
-                            <li><strong>最大Token数：</strong>控制单次回应的长度，根据模型调整</li>
+                            <li data-i18n="readme.conf_sys_upd1"><strong>当前版本：</strong>显示当前应用程序版本</li>
+                            <li data-i18n="readme.conf_sys_upd2"><strong>检查更新：</strong>手动检查是否有新版本按钮</li>
+                            <li data-i18n="readme.conf_sys_upd3"><strong>启动时检查更新：</strong>自动在应用启动时检查更新选项</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>场景推荐设置</h4>
+                        <h4 data-i18n="readme.conf_sys_log_title">日志文件</h4>
                         <ul>
-                            <li><strong>严肃角色扮演：</strong>温度0.2-0.4，频率惩罚0.3，存在惩罚0.2</li>
-                            <li><strong>创造性对话：</strong>温度0.7-0.9，频率惩罚0.1，存在惩罚0.1</li>
-                            <li><strong>历史模拟：</strong>温度0.3-0.5，频率惩罚0.2，存在惩罚0.3</li>
+                            <li data-i18n="readme.conf_sys_log1"><strong>错误查看：</strong>如果遇到错误/崩溃，可以查看日志文件</li>
+                            <li data-i18n="readme.conf_sys_log2"><strong>打开日志文件夹：</strong>直接访问日志文件按钮</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.conf_sys_sum_title">对话摘要管理</h4>
+                        <ul>
+                            <li data-i18n="readme.conf_sys_sum1"><strong>清除摘要：</strong>删除所有角色的先前对话摘要按钮</li>
+                            <li data-i18n="readme.conf_sys_sum2"><strong>打开对话摘要文件夹：</strong>访问存储的对话摘要按钮</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>💭 聊天界面功能</h3>
-                    <p>聊天界面是与游戏角色进行交互的主要界面。</p>
-                    
+                    <h3 data-i18n="readme.conf_tune_title">🎯 参数调优建议</h3>
                     <div class="config-subsection">
-                        <h4>消息显示</h4>
+                        <h4 data-i18n="readme.conf_tune_key_title">关键参数说明</h4>
                         <ul>
-                            <li><strong>消息样式：</strong>玩家消息和AI角色消息以不同样式显示</li>
-                            <li><strong>格式支持：</strong>支持Markdown格式的基本标记（粗体、斜体）</li>
-                            <li><strong>叙述消息：</strong>叙述消息以特殊样式显示，提供场景描述</li>
+                            <li data-i18n="readme.conf_tune_key1"><strong>温度 (Temperature)：</strong>控制AI的创造性，0.1-0.3适合确定性回应，0.7-1.0适合创造性对话</li>
+                            <li data-i18n="readme.conf_tune_key2"><strong>Top P：</strong>控制词汇选择的多样性，建议值0.9</li>
+                            <li data-i18n="readme.conf_tune_key3"><strong>频率惩罚：</strong>减少重复内容，建议值0.1-0.5</li>
+                            <li data-i18n="readme.conf_tune_key4"><strong>存在惩罚：</strong>鼓励谈论新话题，建议值0.1-0.5</li>
+                            <li data-i18n="readme.conf_tune_key5"><strong>最大Token数：</strong>控制单次回应的长度，根据模型调整</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>输入功能</h4>
+                        <h4 data-i18n="readme.conf_tune_scene_title">场景推荐设置</h4>
                         <ul>
-                            <li><strong>文本输入：</strong>输入与角色的对话内容</li>
-                            <li><strong>发送方式：</strong>Enter键发送消息</li>
-                            <li><strong>多行支持：</strong>支持多行输入</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>建议功能（可配置）</h4>
-                        <ul>
-                            <li><strong>建议按钮：</strong>显示推荐输入语句</li>
-                            <li><strong>建议列表：</strong>点击建议项可自动填入输入框</li>
-                            <li><strong>关闭按钮：</strong>隐藏建议面板</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>对话控制</h4>
-                        <ul>
-                            <li><strong>结束对话：</strong>退出当前对话按钮</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="config-subsection">
-                        <h4>状态指示</h4>
-                        <ul>
-                            <li><strong>加载指示：</strong>显示AI正在生成响应</li>
-                            <li><strong>错误消息：</strong>显示连接或生成错误</li>
+                            <li data-i18n="readme.conf_tune_scene1"><strong>严肃角色扮演：</strong>温度0.2-0.4，频率惩罚0.3，存在惩罚0.2</li>
+                            <li data-i18n="readme.conf_tune_scene2"><strong>创造性对话：</strong>温度0.7-0.9，频率惩罚0.1，存在惩罚0.1</li>
+                            <li data-i18n="readme.conf_tune_scene3"><strong>历史模拟：</strong>温度0.3-0.5，频率惩罚0.2，存在惩罚0.3</li>
                         </ul>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>📋 总结管理器功能</h3>
-                    <p>用于管理和编辑游戏角色对话摘要的界面。</p>
-                    
+                    <h3 data-i18n="readme.chat_feat_title">💭 聊天界面功能</h3>
+                    <p data-i18n="readme.chat_feat_desc">聊天界面是与游戏角色进行交互的主要界面。</p>
+
                     <div class="config-subsection">
-                        <h4>顶部控制按钮</h4>
+                        <h4 data-i18n="readme.chat_feat_msg_title">消息显示</h4>
                         <ul>
-                            <li><strong>刷新按钮：</strong>重新加载所有摘要数据，包括从游戏日志解析玩家ID和读取摘要文件</li>
-                            <li><strong>保存按钮：</strong>将当前所有摘要更改保存到文件</li>
-                            <li><strong>关闭按钮：</strong>关闭总结管理器窗口</li>
+                            <li data-i18n="readme.chat_feat_msg1"><strong>消息样式：</strong>玩家消息和AI角色消息以不同样式显示</li>
+                            <li data-i18n="readme.chat_feat_msg2"><strong>格式支持：</strong>支持Markdown格式的基本标记（粗体、斜体）</li>
+                            <li data-i18n="readme.chat_feat_msg3"><strong>叙述消息：</strong>叙述消息以特殊样式显示，提供场景描述</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>信息面板</h4>
+                        <h4 data-i18n="readme.chat_feat_inp_title">输入功能</h4>
                         <ul>
-                            <li><strong>玩家ID：</strong>显示从游戏日志中解析出的当前玩家ID（只读）</li>
-                            <li><strong>选择角色：</strong>下拉菜单，用于筛选特定角色的摘要或查看所有角色摘要</li>
-                            <li><strong>总结文件路径：</strong>显示当前摘要文件的存储路径（只读）</li>
+                            <li data-i18n="readme.chat_feat_inp1"><strong>文本输入：</strong>输入与角色的对话内容</li>
+                            <li data-i18n="readme.chat_feat_inp2"><strong>发送方式：</strong>Enter键发送消息</li>
+                            <li data-i18n="readme.chat_feat_inp3"><strong>多行支持：</strong>支持多行输入</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>总结列表区域</h4>
+                        <h4 data-i18n="readme.chat_feat_sug_title">建议功能（可配置）</h4>
                         <ul>
-                            <li><strong>总结列表：</strong>显示当前筛选条件下的所有摘要，每项包含日期、角色和摘要内容</li>
-                            <li><strong>添加新总结：</strong>在列表顶部创建一个新的空白摘要，默认使用当前选择的角色</li>
+                            <li data-i18n="readme.chat_feat_sug1"><strong>建议按钮：</strong>显示推荐输入语句</li>
+                            <li data-i18n="readme.chat_feat_sug2"><strong>建议列表：</strong>点击建议项可自动填入输入框</li>
+                            <li data-i18n="readme.chat_feat_sug3"><strong>关闭按钮：</strong>隐藏建议面板</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>编辑器区域</h4>
+                        <h4 data-i18n="readme.chat_feat_ctrl_title">对话控制</h4>
                         <ul>
-                            <li><strong>日期输入框：</strong>编辑当前选中摘要的日期</li>
-                            <li><strong>内容文本框：</strong>编辑当前选中摘要的详细内容</li>
-                            <li><strong>更新总结：</strong>保存对当前选中摘要的更改按钮</li>
-                            <li><strong>删除总结：</strong>删除当前选中的摘要（需要确认）按钮</li>
-                            <li><strong>新建总结：</strong>清空编辑器，准备创建新摘要按钮</li>
+                            <li data-i18n="readme.chat_feat_ctrl1"><strong>结束对话：</strong>退出当前对话按钮</li>
                         </ul>
                     </div>
-                    
+
                     <div class="config-subsection">
-                        <h4>使用说明</h4>
+                        <h4 data-i18n="readme.chat_feat_stat_title">状态指示</h4>
                         <ul>
-                            <li><strong>选择摘要：</strong>点击列表中的摘要项可选中并加载到编辑器</li>
-                            <li><strong>角色筛选：</strong>使用角色筛选器可以查看特定角色或所有角色的摘要</li>
-                            <li><strong>保存更改：</strong>所有更改需要点击"保存"按钮才会写入文件</li>
-                            <li><strong>删除注意：</strong>删除操作不可撤销，请谨慎使用</li>
+                            <li data-i18n="readme.chat_feat_stat1"><strong>加载指示：</strong>显示AI正在生成响应</li>
+                            <li data-i18n="readme.chat_feat_stat2"><strong>错误消息：</strong>显示连接或生成错误</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3 data-i18n="readme.sum_feat_title">📋 总结管理器功能</h3>
+                    <p data-i18n="readme.sum_feat_desc">用于管理和编辑游戏角色对话摘要的界面。</p>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.sum_feat_btn_title">顶部控制按钮</h4>
+                        <ul>
+                            <li data-i18n="readme.sum_feat_btn1"><strong>刷新按钮：</strong>重新加载所有摘要数据，包括从游戏日志解析玩家ID和读取摘要文件</li>
+                            <li data-i18n="readme.sum_feat_btn2"><strong>保存按钮：</strong>将当前所有摘要更改保存到文件</li>
+                            <li data-i18n="readme.sum_feat_btn3"><strong>关闭按钮：</strong>关闭总结管理器窗口</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.sum_feat_info_title">信息面板</h4>
+                        <ul>
+                            <li data-i18n="readme.sum_feat_info1"><strong>玩家ID：</strong>显示从游戏日志中解析出的当前玩家ID（只读）</li>
+                            <li data-i18n="readme.sum_feat_info2"><strong>选择角色：</strong>下拉菜单，用于筛选特定角色的摘要或查看所有角色摘要</li>
+                            <li data-i18n="readme.sum_feat_info3"><strong>总结文件路径：</strong>显示当前摘要文件的存储路径（只读）</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.sum_feat_list_title">总结列表区域</h4>
+                        <ul>
+                            <li data-i18n="readme.sum_feat_list1"><strong>总结列表：</strong>显示当前筛选条件下的所有摘要，每项包含日期、角色和摘要内容</li>
+                            <li data-i18n="readme.sum_feat_list2"><strong>添加新总结：</strong>在列表顶部创建一个新的空白摘要，默认使用当前选择的角色</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.sum_feat_edit_title">编辑器区域</h4>
+                        <ul>
+                            <li data-i18n="readme.sum_feat_edit1"><strong>日期输入框：</strong>编辑当前选中摘要的日期</li>
+                            <li data-i18n="readme.sum_feat_edit2"><strong>内容文本框：</strong>编辑当前选中摘要的详细内容</li>
+                            <li data-i18n="readme.sum_feat_edit3"><strong>更新总结：</strong>保存对当前选中摘要的更改按钮</li>
+                            <li data-i18n="readme.sum_feat_edit4"><strong>删除总结：</strong>删除当前选中的摘要（需要确认）按钮</li>
+                            <li data-i18n="readme.sum_feat_edit5"><strong>新建总结：</strong>清空编辑器，准备创建新摘要按钮</li>
+                        </ul>
+                    </div>
+
+                    <div class="config-subsection">
+                        <h4 data-i18n="readme.sum_feat_use_title">使用说明</h4>
+                        <ul>
+                            <li data-i18n="readme.sum_feat_use1"><strong>选择摘要：</strong>点击列表中的摘要项可选中并加载到编辑器</li>
+                            <li data-i18n="readme.sum_feat_use2"><strong>角色筛选：</strong>使用角色筛选器可以查看特定角色或所有角色的摘要</li>
+                            <li data-i18n="readme.sum_feat_use3"><strong>保存更改：</strong>所有更改需要点击"保存"按钮才会写入文件</li>
+                            <li data-i18n="readme.sum_feat_use4"><strong>删除注意：</strong>删除操作不可撤销，请谨慎使用</li>
                         </ul>
                     </div>
                 </div>
@@ -445,10 +445,10 @@
             <!-- 故障排除 -->
             <div id="troubleshooting" class="tab-content">
                 <h2>🔧 故障排除</h2>
-                
+
                 <div class="section">
                     <h3>常见问题</h3>
-                    
+
                     <div class="problem">
                         <h4>Q: 应用程序无法连接到AI服务</h4>
                         <p><strong>A:</strong> 检查以下几点：</p>
@@ -509,56 +509,56 @@
 
             <!-- 关于 -->
             <div id="about" class="tab-content">
-                <h2>ℹ️ 关于</h2>
-                
+                <h2 data-i18n="readme.about">ℹ️ 关于</h2>
+
                 <div class="section">
-                    <h3>Voices of the Court</h3>
-                    <p>一个为《十字军之王3》设计的革命性模组，将大型语言模型集成到游戏中，让玩家能够与游戏角色进行对话。原作者为Durond。</p>
-                    
+                    <h3 data-i18n="readme.about_title">Voices of the Court - Community Edition</h3>
+                    <p data-i18n="readme.about_desc">一个为《十字军之王3》设计的革命性模组，将大型语言模型集成到游戏中，让玩家能够与游戏角色进行对话。原作者为Durond。</p>
+
                     <div class="info-grid">
                         <div class="info-item">
-                            <strong>版本：</strong>
-                            <span id="app-version">加载中...</span>
+                            <strong data-i18n="readme.about_ver">版本：</strong>
+                            <span id="app-version" data-i18n="readme.loading">加载中...</span>
                         </div>
                         <div class="info-item">
-                            <strong>作者：</strong>
+                            <strong data-i18n="readme.about_auth">作者：</strong>
                             <span>Lisiyuan233</span>
                         </div>
                         <div class="info-item">
-                            <strong>许可证：</strong>
+                            <strong data-i18n="readme.about_lic">许可证：</strong>
                             <span>GPL-3.0 license</span>
                         </div>
                         <div class="info-item">
-                            <strong>更新日期：</strong>
+                            <strong data-i18n="readme.about_date">更新日期：</strong>
                             <span></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="section">
-                    <h3>相关链接</h3>
+                    <h3 data-i18n="readme.about_links">相关链接</h3>
                     <div class="link-grid">
                         <a href="https://docs.voicesofthecourt.app" class="link-card" target="_blank">
                             <div class="link-icon">📚</div>
                             <div class="link-content">
-                                <h4>官方文档</h4>
-                                <p>完整的使用指南和API文档</p>
+                                <h4 data-i18n="readme.link1_title">官方文档</h4>
+                                <p data-i18n="readme.link1_desc">完整的使用指南和API文档</p>
                             </div>
                         </a>
 
-                        <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3346777360" class="link-card" target="_blank">
+                        <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139" class="link-card" target="_blank">
                             <div class="link-icon">🎮</div>
                             <div class="link-content">
-                                <h4>原作者模组Steam页面</h4>
-                                <p>在Steam创意工坊中查看模组（旧版未更新）</p>
+                                <h4 data-i18n="readme.link2_title">原作者模组Steam页面</h4>
+                                <p data-i18n="readme.link2_desc">在Steam创意工坊中查看模组（旧版未更新）</p>
                             </div>
                         </a>
 
-                        <a href="https://github.com/Lisiyuan233/Voices_of_the_Court1" class="link-card" target="_blank">
+                        <a href="https://github.com/szmania/Voices_of_the_Court1" class="link-card" target="_blank">
                             <div class="link-icon">💻</div>
                             <div class="link-content">
-                                <h4>GitHub仓库最新地址</h4>
-                                <p>查看源代码和提交问题</p>
+                                <h4 data-i18n="readme.link3_title">GitHub仓库最新地址</h4>
+                                <p data-i18n="readme.link3_desc">查看源代码和提交问题</p>
                             </div>
                         </a>
 
@@ -567,18 +567,23 @@
                 </div>
 
                 <div class="section">
-                    <h3>致谢</h3>
-                    <p>感谢所有贡献者和社区成员的支持，让这个项目得以持续发展。</p>
+                    <h3 data-i18n="readme.about_thanks">致谢</h3>
+                    <p data-i18n="readme.about_thanks_desc">感谢所有贡献者和社区成员的支持，让这个项目得以持续发展。</p>
                 </div>
             </div>
         </main>
 
         <footer class="footer">
-            <button id="dont-show-again" class="btn-secondary">不再显示</button>
-            <button id="close-readme" class="btn-primary">开始使用</button>
+            <button id="dont-show-again" class="btn-secondary" data-i18n="readme.dont_show_again">不再显示</button>
+            <button id="close-readme" class="btn-primary" data-i18n="readme.start_using">开始使用</button>
         </footer>
     </div>
 
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
     <script src="readmeRenderer.js"></script>
 </body>
 </html>

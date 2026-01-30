@@ -33,6 +33,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
 
+        // 初始化语言
+        const config = await ipcRenderer.invoke('get-config');
+        if (window.LocalizationManager) {
+            await window.LocalizationManager.loadTranslations(config.language || 'en');
+            window.LocalizationManager.applyTranslations();
+        }
+
         // 获取用户数据路径
         userDataPath = await ipcRenderer.invoke('get-userdata-path');
         
@@ -42,7 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 设置事件监听器
         setupEventListeners();
     } catch (error) {
-        showStatusMessage('初始化失败: ' + error.message, 'error');
+        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail') : '初始化失败: ';
+        showStatusMessage(errorMsg + error.message, 'error');
         console.error('初始化错误:', error);
     }
 });
@@ -60,6 +68,18 @@ function applyTheme(theme) {
 ipcRenderer.on('update-theme', (event, theme) => {
     applyTheme(theme);
     localStorage.setItem('selectedTheme', theme);
+});
+
+// 监听语言更新
+ipcRenderer.on('update-language', async (event, lang) => {
+    if (window.LocalizationManager) {
+        await window.LocalizationManager.loadTranslations(lang);
+        window.LocalizationManager.applyTranslations();
+        // 重新填充下拉框以更新"所有角色"文本
+        populateCharacterSelect();
+        // 重新渲染列表以更新"暂无数据"文本
+        renderSummaryList();
+    }
 });
 
 // 设置事件监听器
@@ -115,7 +135,8 @@ async function loadSummaryData() {
 // 填充角色选择下拉框
 function populateCharacterSelect() {
     // 清空现有选项（保留"所有角色"）
-    characterSelect.innerHTML = '<option value="all">所有角色</option>';
+    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters') : '所有角色';
+    characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
     
     // 获取所有不重复的角色ID
     const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || '未知'))];
@@ -198,7 +219,8 @@ function renderSummaryList() {
     summaryList.innerHTML = '';
     
     if (!filteredSummaries || filteredSummaries.length === 0) {
-        summaryList.innerHTML = '<div class="no-summaries">暂无总结数据</div>';
+        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data') : '暂无总结数据';
+        summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
         return;
     }
     

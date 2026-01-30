@@ -36,6 +36,17 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
+// 监听语言更新
+ipcRenderer.on('update-language', async (event, lang) => {
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(lang);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+    }
+});
+
 async function init(){
     // 应用初始主题
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
@@ -43,6 +54,15 @@ async function init(){
 
 
     let config = await ipcRenderer.invoke('get-config');
+
+    // 初始化语言
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(config.language || 'en');
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+    }
 
     const userDataPath = await ipcRenderer.invoke('get-userdata-path');
     populateSelectWithFileNames(descScriptSelect, path.join(userDataPath, 'scripts', 'prompts', 'description'), '.js');

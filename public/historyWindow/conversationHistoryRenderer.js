@@ -23,13 +23,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
 
+        // 初始化语言
+        const config = await ipcRenderer.invoke('get-config');
+        if (window.LocalizationManager) {
+            await window.LocalizationManager.loadTranslations(config.language || 'en');
+            window.LocalizationManager.applyTranslations();
+        }
+
         // 初始加载数据
         await loadConversationHistoryData();
         
         // 设置事件监听器
         setupEventListeners();
     } catch (error) {
-        showStatusMessage('初始化失败: ' + error.message, 'error');
+        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.load_fail') : '初始化失败: ';
+        showStatusMessage(errorMsg + error.message, 'error');
         console.error('初始化错误:', error);
     }
 });
@@ -49,6 +57,16 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
+// 监听语言更新
+ipcRenderer.on('update-language', async (event, lang) => {
+    if (window.LocalizationManager) {
+        await window.LocalizationManager.loadTranslations(lang);
+        window.LocalizationManager.applyTranslations();
+        // 重新渲染列表以更新"暂无数据"文本
+        renderConversationList();
+    }
+});
+
 // 设置事件监听器
 function setupEventListeners() {
     refreshBtn.addEventListener('click', loadConversationHistoryData);
@@ -58,13 +76,15 @@ function setupEventListeners() {
 // 加载对话历史数据
 async function loadConversationHistoryData() {
     try {
-        showStatusMessage('正在加载对话历史数据...', 'info');
+        const loadingMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.loading_data') : '正在加载对话历史数据...';
+        showStatusMessage(loadingMsg, 'info');
         
         // 从debuglog解析玩家ID
         const { playerId: pId } = await ipcRenderer.invoke('get-conversation-history-ids');
         
         if (!pId) {
-            throw new Error('无法从游戏日志中解析玩家ID');
+            const noPlayerIdMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.no_player_id') : '无法从游戏日志中解析玩家ID';
+            throw new Error(noPlayerIdMsg);
         }
         
         playerId = pId;
@@ -78,9 +98,11 @@ async function loadConversationHistoryData() {
         // 渲染对话文件列表
         renderConversationList();
         
-        showStatusMessage('对话历史数据加载成功', 'success');
+        const successMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.load_success') : '对话历史数据加载成功';
+        showStatusMessage(successMsg, 'success');
     } catch (error) {
-        showStatusMessage('加载对话历史数据失败: ' + error.message, 'error');
+        const failMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.load_fail') : '加载对话历史数据失败: ';
+        showStatusMessage(failMsg + error.message, 'error');
         console.error('加载对话历史数据错误:', error);
     }
 }
@@ -90,7 +112,8 @@ function renderConversationList() {
     conversationList.innerHTML = '';
     
     if (!conversationFiles || conversationFiles.length === 0) {
-        conversationList.innerHTML = '<div class="no-conversations">暂无对话历史文件</div>';
+        const noHistoryText = window.LocalizationManager ? window.LocalizationManager.getTranslation('history.no_history') : '暂无对话历史文件';
+        conversationList.innerHTML = `<div class="no-conversations">${noHistoryText}</div>`;
         return;
     }
     

@@ -125,11 +125,26 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('selectedTheme', theme);
     });
 
+    // 监听语言更新
+    ipcRenderer.on('update-language', async (event, lang) => {
+        if (window.LocalizationManager) {
+            await window.LocalizationManager.loadTranslations(lang);
+            window.LocalizationManager.applyTranslations();
+        }
+    });
+
     // 初始化函数
-    function initialize() {
+    async function initialize() {
         // 应用主题
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
+
+        // 初始化语言
+        const config = await ipcRenderer.invoke('get-config');
+        if (window.LocalizationManager) {
+            await window.LocalizationManager.loadTranslations(config.language || 'en');
+            window.LocalizationManager.applyTranslations();
+        }
 
         loadAppVersion();
         addSmoothScroll();

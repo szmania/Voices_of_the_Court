@@ -67,5 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.LocalizationManager) {
         // @ts-ignore
         await window.LocalizationManager.loadTranslations(lang);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
     }
 });

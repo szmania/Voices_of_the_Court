@@ -18,6 +18,31 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
+// 监听语言更新
+ipcRenderer.on('update-language', async (event, lang) => {
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(lang);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+    }
+});
+
 // 应用初始主题
 const savedTheme = localStorage.getItem('selectedTheme') || 'original';
 applyTheme(savedTheme);
+
+// 初始化语言
+async function initLocalization() {
+    const config = await ipcRenderer.invoke('get-config');
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(config.language || 'en');
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+    }
+}
+
+initLocalization();
