@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Voices of the Court</title>
+    <title>Voices of the Court - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
     
@@ -10,27 +10,27 @@
   <body>
     <div class="navbar">
       <ul>
-        <li><a href="connection.html">Connection</a></li>
-        <li><a href="actions.html">Actions</a></li>
-        <li class="active"><a href="summarization.html">Summarization</a></li>
-        <li><a href="prompts.html">Prompts</a></li>
-        <li><a href="settings.html">Settings</a></li>
-        <li><a href="system.html">System</a></li>
-        <li class="help-menu"><a href="#" id="open-readme">Help</a></li>
+        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+        <li class="active"><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
         <language-selector></language-selector>
       </ul> 
     </div>
     
     <div class="container" id="container">
 
-        <config-checkbox id="use-connection-api" confID="summarizationUseTextGenApi" label="Use the same API as in the connection tab"></config-checkbox>
+        <config-checkbox id="use-connection-api" confID="summarizationUseTextGenApi" label="Use the same API as in the connection tab" data-i18n="summarization.use_same_api"></config-checkbox>
 
         <div class="border">   
             <config-api-selector id="api-selector" confID="summarizationApiConnectionConfig"></config-api-selector>      
         </div>
         <br>
 
-        <h2>Parameters</h2>
+        <h2 data-i18n="summarization.parameters">Parameters</h2>
         <parameters-box confID="summarizationApiConnectionConfig" tempDefault="0.2" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
         

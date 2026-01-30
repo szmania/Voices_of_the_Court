@@ -31,6 +31,20 @@ class LanguageSelector extends HTMLElement {
         const config = await ipcRenderer.invoke('get-config');
         const lang = config.language || 'en';
 
+        ipcRenderer.on('update-language', async (event, newLang) => {
+            const btn = this.querySelector('#current-language-btn') as HTMLElement;
+            if (btn) {
+                this.updateButtonText(btn, newLang);
+            }
+            // @ts-ignore
+            if (window.LocalizationManager) {
+                // @ts-ignore
+                await window.LocalizationManager.loadTranslations(newLang);
+                // @ts-ignore
+                window.LocalizationManager.applyTranslations();
+            }
+        });
+
         this.innerHTML = `
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">

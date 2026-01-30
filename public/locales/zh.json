@@ -8,13 +8,84 @@
     "system": "系统",
     "help": "帮助"
   },
+  "connection": {
+    "ck3_path": "CK3 用户文件夹路径",
+    "select_folder": "选择文件夹",
+    "path_tooltip": "这里需要选择存储用户数据的 CK3 文件夹，而不是游戏文件所在的文件夹！默认情况下，它存储在您的用户文档中的 Paradox Interactive 文件夹内。"
+  },
+  "actions": {
+    "enable_actions": "启用动作",
+    "enable_narrative": "启用动作后的 AI 叙述",
+    "use_same_api": "使用与连接选项卡相同的 API",
+    "parameters": "参数",
+    "select_actions": "选择您希望模组检测的动作：",
+    "reload_files": "重新加载文件",
+    "open_folder": "打开文件夹"
+  },
+  "summarization": {
+    "use_same_api": "使用与连接选项卡相同的 API",
+    "parameters": "参数"
+  },
+  "prompts": {
+    "header": "提示词",
+    "main_prompt": "主提示词",
+    "self_talk_prompt": "自言自语提示词",
+    "summarize_prompt": "总结提示词",
+    "self_talk_summarize_prompt": "自言自语总结提示词",
+    "memories_prompt": "记忆提示词",
+    "suffix_prompt": "后缀提示词",
+    "suffix_tooltip": "如果启用，后缀提示词将作为发送 API 请求前的最后一条（系统）消息插入，这对于越狱或指示模型如何格式化响应消息非常有用。",
+    "narrative_prompt": "叙述提示词",
+    "narrative_tooltip": "此提示词用于在触发动作后生成 AI 叙述描述。叙述提供游戏中事件的氛围描述。",
+    "scene_description_prompt": "场景描述提示词",
+    "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
+    "restore_defaults": "恢复默认提示词",
+    "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
+    "scripts_header": "脚本",
+    "scripts_tooltip": "某些提示词过于先进，无法由静态文本组成，它们需要根据游戏内变量动态编写提示词的脚本文件。",
+    "char_desc_script": "角色描述脚本",
+    "ex_msg_script": "示例消息脚本",
+    "bookmarks": "书签"
+  },
+  "settings": {
+    "header": "设置",
+    "max_tokens": "最大新 Token 数",
+    "max_memory_tokens": "最大记忆 Token 数",
+    "stream": "流式传输消息",
+    "clean_messages": "清理消息",
+    "clean_tooltip": "模组将尝试删除 LLM 不应生成的消息部分，例如表情符号",
+    "shuffle_order": "随机角色顺序",
+    "shuffle_tooltip": "在多角色对话中随机化角色生成消息的顺序。注意：如果启用，每个角色的发言顺序将是随机的，这可能会导致 LLM 输出的角色身份混乱。",
+    "dynamic_selection": "动态角色选择",
+    "dynamic_tooltip": "使用 LLM 分析对话并选择下一个发言的角色。LLM 将从当前轮次中尚未发言的角色池中进行选择。",
+    "validate_identity": "验证角色身份",
+    "validate_tooltip": "当禁用流式传输且角色超过 2 个时，验证生成的消息是否符合角色的身份。如果验证失败，最多重新生成 3 次。",
+    "show_suggestions": "显示建议按钮",
+    "show_suggestions_tooltip": "在聊天窗口中显示或隐藏建议按钮。控制是否显示推荐输入语句功能。",
+    "generate_scene": "生成场景描述",
+    "generate_scene_tooltip": "在对话开始时生成场景描述，为角色提供背景和情境信息。",
+    "auto_suggestions": "自动生成建议",
+    "auto_suggestions_tooltip": "启用后，将在对话开始时和每轮对话结束后自动生成建议。",
+    "auto_send": "自动发送建议",
+    "auto_send_tooltip": "启用后，选择建议将自动发送消息，无需点击发送按钮。",
+    "summaries_depth": "总结插入深度",
+    "memories_depth": "记忆插入深度",
+    "desc_depth": "角色描述插入深度",
+    "ai_start": "AI 可以发起对话",
+    "ai_start_chance": "AI 发起概率 (%)",
+    "instruct_header": "指令设置",
+    "input_seq": "输入序列",
+    "output_seq": "输出序列",
+    "text_gen_params": "文本生成参数"
+  },
   "system": {
     "update": "更新",
     "current_version": "当前版本: ",
     "check_updates": "检查更新..",
     "check_on_startup": "启动时检查更新",
+    "check_on_startup_desc": "VOTC - 社区版将在应用程序启动时自动检查新版本。",
     "early_access": "抢先体验",
-    "early_access_desc": "VOTC - 社区版将自动更新到预发布版本。",
+    "early_access_desc": "VOTC - 社区版也将自动更新到预发布版本。",
     "theme": "主题选择",
     "theme_desc": "选择您喜欢的 UI 主题：",
     "theme_original": "原始 UI",
@@ -38,4 +109,4 @@
     "no_suggestions": "暂无推荐输入语句",
     "close": "×"
   }
-} 
+}

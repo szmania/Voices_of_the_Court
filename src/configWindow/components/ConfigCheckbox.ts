@@ -19,6 +19,7 @@ class ConfigCheckbox extends HTMLElement{
     confID: string;
     shadow: any;
     checkbox: any;
+    labelElement: any;
 
     constructor(){
         super();
@@ -29,14 +30,12 @@ class ConfigCheckbox extends HTMLElement{
         template.innerHTML = defineTemplate(this.label);
         this.shadow.append(template.content.cloneNode(true));
         this.checkbox = this.shadow.querySelector("input");
-
-        
-
+        this.labelElement = this.shadow.querySelector("label");
     }
 
 
     static get observedAttributes(){
-        return ["name", "confID", "label"]
+        return ["name", "confID", "label", "data-i18n"]
     }
 
     async connectedCallback(){
@@ -52,6 +51,28 @@ class ConfigCheckbox extends HTMLElement{
 
             ipcRenderer.send('config-change', confID, this.checkbox.checked);
         });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            // Listen for language changes
+            ipcRenderer.on('update-language', () => {
+                this.updateTranslation(i18nKey);
+            });
+        }
+    }
+
+    private updateTranslation(key: string) {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translation = window.LocalizationManager.getNestedTranslation(key);
+            if (translation) {
+                this.labelElement.textContent = translation;
+            }
+        }
     }
 }
 

@@ -24,6 +24,7 @@ class ConfigNumber extends HTMLElement{
     confID: string;
     shadow: any;
     input: any;
+    labelElement: any;
     min: number;
     max: number;
     step: number;
@@ -40,14 +41,12 @@ class ConfigNumber extends HTMLElement{
         template.innerHTML = defineTemplate(this.label, this.min, this.max, this.step);
         this.shadow.append(template.content.cloneNode(true));
         this.input = this.shadow.querySelector("input");
-
-        
-
+        this.labelElement = this.shadow.querySelector("label");
     }
 
 
     static get observedAttributes(){
-        return ["name", "confID", "label", "min", "max"]
+        return ["name", "confID", "label", "min", "max", "data-i18n"]
     }
 
     async connectedCallback(){
@@ -63,6 +62,28 @@ class ConfigNumber extends HTMLElement{
 
             ipcRenderer.send('config-change', confID, parseFloat(this.input.value));
         });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            // Listen for language changes
+            ipcRenderer.on('update-language', () => {
+                this.updateTranslation(i18nKey);
+            });
+        }
+    }
+
+    private updateTranslation(key: string) {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translation = window.LocalizationManager.getNestedTranslation(key);
+            if (translation) {
+                this.labelElement.textContent = translation;
+            }
+        }
     }
 }
 
