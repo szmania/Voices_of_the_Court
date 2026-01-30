@@ -191,6 +191,48 @@ let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
 
+let tray: Tray;
+const createTray = () => {
+    if (tray) tray.destroy();
+    tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
+    const contextMenu = Menu.buildFromTemplate([
+        { 
+            label: t('tray.open_config'),
+            click: () => { 
+                if(configWindow.window.isDestroyed()){
+                    configWindow = new ConfigWindow();
+                }
+                else if(configWindow.window.isMinimized()){
+                    configWindow.window.focus();
+                }
+            }
+        },
+        { 
+            label: t('tray.check_updates'),
+            click: () => { 
+                checkForUpdates();
+            }
+        },
+        { 
+            label: t('tray.exit'), 
+            click: () => { 
+                app.quit();
+            }
+        },
+    ]);
+    tray.setToolTip(t('tray.tooltip'));
+    tray.setContextMenu(contextMenu);
+
+    tray.on('click', ()=>{
+        if(configWindow.window.isDestroyed()){
+            configWindow = new ConfigWindow();
+        }
+        else if(configWindow.window.isMinimized()){
+            configWindow.window.focus();
+        }
+    });
+};
+
 let clipboardListener = new ClipboardListener();
 let config: Config;
 
@@ -326,47 +368,6 @@ app.on('ready',  async () => {
         console.log('Update checks are skipped in development mode.');
     }
 
-    let tray: Tray;
-    const createTray = () => {
-        if (tray) tray.destroy();
-        tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
-        const contextMenu = Menu.buildFromTemplate([
-            { 
-                label: t('tray.open_config'),
-                click: () => { 
-                    if(configWindow.window.isDestroyed()){
-                        configWindow = new ConfigWindow();
-                    }
-                    else if(configWindow.window.isMinimized()){
-                        configWindow.window.focus();
-                    }
-                }
-            },
-            { 
-                label: t('tray.check_updates'),
-                click: () => { 
-                    checkForUpdates();
-                }
-            },
-            { 
-                label: t('tray.exit'), 
-                click: () => { 
-                    app.quit();
-                }
-            },
-        ]);
-        tray.setToolTip(t('tray.tooltip'));
-        tray.setContextMenu(contextMenu);
-
-        tray.on('click', ()=>{
-            if(configWindow.window.isDestroyed()){
-                configWindow = new ConfigWindow();
-            }
-            else if(configWindow.window.isMinimized()){
-                configWindow.window.focus();
-            }
-        });
-    };
 
     createTray();
     console.log('Tray icon and context menu created.');
