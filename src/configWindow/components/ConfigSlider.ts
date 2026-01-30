@@ -9,7 +9,7 @@ function defineTemplate(label: string, min: number, max: number, step: number){
     <style>
     </style>
     <div>
-        <label for="awd">${label}</label><br>
+        <label for="awd" id="label">${label}</label><br>
         <input type="range" id="slider"  min=${min} max=${max} step=${step}>
         <input type="number" id="number" min=${min} max=${max} />
         <button type="button" id="button">Reset</button>
@@ -61,6 +61,20 @@ class ConfigSlider extends HTMLElement{
 
     async connectedCallback(){
         const confID: string = this.confID;
+
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translatedLabel = window.LocalizationManager.getNestedTranslation(`parameters.${confID}`);
+            if (translatedLabel) {
+                this.shadow.querySelector('#label').textContent = translatedLabel;
+            }
+            // @ts-ignore
+            const translatedReset = window.LocalizationManager.getNestedTranslation('parameters.reset');
+            if (translatedReset) {
+                this.button.textContent = translatedReset;
+            }
+        }
 
         let config = await ipcRenderer.invoke('get-config');
 

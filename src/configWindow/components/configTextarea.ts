@@ -28,10 +28,10 @@ class ConfigTextarea extends HTMLElement{
 
     constructor(){
         super();
-        this.confID = this.getAttribute("confID")!;
-        this.rows =  parseInt(this.getAttribute("rows")!);
-        this.cols = parseInt(this.getAttribute("cols")!);
-        this.placeholder = this.getAttribute("placeholder")!;
+        this.confID = this.getAttribute("confID") || "";
+        this.rows = parseInt(this.getAttribute("rows") || "4");
+        this.cols = parseInt(this.getAttribute("cols") || "20");
+        this.placeholder = this.getAttribute("placeholder") || "";
 
         this.shadow = this.attachShadow({mode: "open"});
         template.innerHTML = defineTemplate(this.rows, this.cols, this.placeholder);
@@ -60,6 +60,28 @@ class ConfigTextarea extends HTMLElement{
 
             ipcRenderer.send('config-change', confID, this.textarea.value);
         });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            // Listen for language changes
+            ipcRenderer.on('update-language', () => {
+                this.updateTranslation(i18nKey);
+            });
+        }
+    }
+
+    private updateTranslation(key: string) {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translation = window.LocalizationManager.getNestedTranslation(key);
+            if (translation) {
+                this.textarea.placeholder = translation;
+            }
+        }
     }
 }
 

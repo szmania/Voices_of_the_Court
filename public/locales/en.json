@@ -101,7 +101,10 @@
   },
   "chat": {
     "leave_button": "END CONVERSATION",
-    "input_placeholder": "Write a message..."
+    "input_placeholder": "Write a message...",
+    "search_title": "Search messages",
+    "search_placeholder": "Search...",
+    "reset_title": "Reset window"
   },
   "suggestions": {
     "header": "Recommended Input",
@@ -183,6 +186,37 @@
     "adv_feat3": "Dynamic Character Selection: AI intelligently selects the next character to respond",
     "adv_feat4": "Custom Prompts: Fully customize AI behavior and response styles",
     "adv_feat5": "Conversation History Management: View and manage all conversation records"
+  },
+  "dialog": {
+    "update_title": "Update Available",
+    "update_message": "A new version ({version}) is available!",
+    "update_now": "Update Now",
+    "later": "Later",
+    "no_updates_title": "No Updates",
+    "no_updates_message": "You are running the latest version.",
+    "dev_updates_title": "Updates",
+    "dev_updates_message": "Updates are disabled in development mode.",
+    "early_access_detail": "A new Early Access version is available. Would you like to update now?",
+    "stable_detail": "A new stable version is available. Would you like to update now?",
+    "update_failed_title": "Update Check Failed",
+    "update_failed_message": "Could not connect to GitHub to check for updates.",
+    "clear_summaries_title": "Clear summaries",
+    "clear_summaries_message": "Are you sure you want to clear conversation summaries?",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "tray": {
+    "open_config": "Open config window",
+    "check_updates": "Check for updates..",
+    "exit": "Exit",
+    "tooltip": "Voices of the Court - Community Edition CK3 mod"
+  },
+  "parameters": {
+    "temperature": "Temperature",
+    "frequency_penalty": "Frequency Penalty",
+    "presence_penalty": "Presence Penalty",
+    "top_p": "Top P",
+    "reset": "Reset"
   },
   "history": {
     "header": "Conversation History Viewer",

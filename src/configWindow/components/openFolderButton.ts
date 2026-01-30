@@ -50,6 +50,28 @@ class openFolderButton extends HTMLElement{
             //ipcRenderer.send('open-folder', this.path);
             shell.openPath(path.resolve(path.join(userdataPath, this.path)));
         }); 
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            // Listen for language changes
+            ipcRenderer.on('update-language', () => {
+                this.updateTranslation(i18nKey);
+            });
+        }
+    }
+
+    private updateTranslation(key: string) {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translation = window.LocalizationManager.getNestedTranslation(key);
+            if (translation) {
+                this.button.textContent = translation;
+            }
+        }
     }
 }
 

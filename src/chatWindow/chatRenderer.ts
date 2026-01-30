@@ -169,7 +169,13 @@ function displaySuggestions(suggestions: string[]) {
     if (suggestions.length === 0) {
         const noSuggestionsItem = document.createElement('div')
         noSuggestionsItem.className = 'suggestion-item'
-        noSuggestionsItem.textContent = '暂无推荐输入语句'
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            noSuggestionsItem.textContent = window.LocalizationManager.getNestedTranslation('suggestions.no_suggestions') || 'No suggestions available';
+        } else {
+            noSuggestionsItem.textContent = 'No suggestions available';
+        }
         suggestionsList.appendChild(noSuggestionsItem)
     } else {
         // 添加每个推荐语句
@@ -262,10 +268,15 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
     console.log(`Received update-language in chat window: ${lang}`);
     // @ts-ignore
     if (window.LocalizationManager) {
-        // @ts-ignore
-        await window.LocalizationManager.loadTranslations(lang);
-        // @ts-ignore
-        window.LocalizationManager.applyTranslations();
+        try {
+            // @ts-ignore
+            await window.LocalizationManager.loadTranslations(lang);
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
+            console.log(`UI Translations applied for: ${lang}`);
+        } catch (err) {
+            console.error('Failed to apply translations:', err);
+        }
     }
 });
 

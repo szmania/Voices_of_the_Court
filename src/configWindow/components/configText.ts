@@ -50,6 +50,29 @@ class ConfigText extends HTMLElement{
 
             ipcRenderer.send('config-change', confID, this.input.value);
         });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            // Listen for language changes
+            ipcRenderer.on('update-language', () => {
+                this.updateTranslation(i18nKey);
+            });
+        }
+    }
+
+    private updateTranslation(key: string) {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translation = window.LocalizationManager.getNestedTranslation(key);
+            if (translation) {
+                const labelElement = this.shadow.querySelector('label');
+                if (labelElement) labelElement.textContent = translation;
+            }
+        }
     }
 }
 

@@ -35,6 +35,17 @@ export class LocalizationManager {
                 }
             }
         });
+
+        const titles = document.querySelectorAll('[data-i18n-title]');
+        titles.forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (key) {
+                const translation = this.getNestedTranslation(key);
+                if (translation) {
+                    (el as HTMLElement).title = translation;
+                }
+            }
+        });
     }
 
     private static getNestedTranslation(key: string) {

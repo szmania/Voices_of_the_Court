@@ -22,6 +22,24 @@ import { ReadmeWindow } from './windows/ReadmeWindow.js';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
+let translations: any = {};
+const loadTranslations = (lang: string) => {
+    try {
+        const localePath = path.join(__dirname, '..', '..', 'public', 'locales', `${lang}.json`);
+        translations = JSON.parse(fs.readFileSync(localePath, 'utf8'));
+    } catch (err) {
+        console.error(`Failed to load translations for ${lang}:`, err);
+    }
+};
+
+const t = (key: string, variables: any = {}) => {
+    let text = key.split('.').reduce((obj, i) => (obj ? obj[i] : null), translations) || key;
+    Object.keys(variables).forEach(v => {
+        text = text.replace(`{${v}}`, variables[v]);
+    });
+    return text;
+};
+
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const isFirstInstance = app.requestSingleInstanceLock();
@@ -112,15 +130,14 @@ const checkGitHubForUpdates = async (manual: boolean = false) => {
         if (latestRelease && compareVersions(latestRelease.tag_name, currentVersion) > 0) {
             console.log(`New version found: ${latestRelease.tag_name}`);
             
-            const isPreRelease = latestRelease.prerelease;
             const dialogOpts = {
                 type: 'info' as const,
-                buttons: ['Update Now', 'Later'],
-                title: 'Update Available',
-                message: `A new version (${latestRelease.tag_name}) is available!`,
-                detail: isPreRelease 
-                    ? 'A new Early Access version is available. Would you like to update now?' 
-                    : 'A new stable version is available. Would you like to update now?'
+                buttons: [t('dialog.update_now'), t('dialog.later')],
+                title: t('dialog.update_title'),
+                message: t('dialog.update_message', { version: latestRelease.tag_name }),
+                detail: latestRelease.prerelease 
+                    ? t('dialog.early_access_detail')
+                    : t('dialog.stable_detail')
             };
 
             const { response: buttonIndex } = await dialog.showMessageBox(dialogOpts);
@@ -130,14 +147,14 @@ const checkGitHubForUpdates = async (manual: boolean = false) => {
         } else if (manual) {
             dialog.showMessageBox({
                 type: 'info',
-                title: 'No Updates',
-                message: 'You are running the latest version.'
+                title: t('dialog.no_updates_title'),
+                message: t('dialog.no_updates_message')
             });
         }
     } catch (err) {
         console.error('Failed to check for updates:', err);
         if (manual) {
-            dialog.showErrorBox('Update Check Failed', 'Could not connect to GitHub to check for updates.');
+            dialog.showErrorBox(t('dialog.update_failed_title'), t('dialog.update_failed_message'));
         }
     }
 };
@@ -149,8 +166,8 @@ const checkForUpdates = () => {
         console.log('Update check skipped in development mode.');
         dialog.showMessageBox({
             type: 'info',
-            title: 'Updates',
-            message: 'Updates are disabled in development mode.'
+            title: t('dialog.dev_updates_title'),
+            message: t('dialog.dev_updates_message')
         });
     }
 };
@@ -192,6 +209,7 @@ app.on('ready',  async () => {
     }
     
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
+    loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
 
@@ -308,40 +326,50 @@ app.on('ready',  async () => {
         console.log('Update checks are skipped in development mode.');
     }
 
-   let tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
-   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Open config window',
-        click: () => { 
+    let tray: Tray;
+    const createTray = () => {
+        if (tray) tray.destroy();
+        tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
+        const contextMenu = Menu.buildFromTemplate([
+            { 
+                label: t('tray.open_config'),
+                click: () => { 
+                    if(configWindow.window.isDestroyed()){
+                        configWindow = new ConfigWindow();
+                    }
+                    else if(configWindow.window.isMinimized()){
+                        configWindow.window.focus();
+                    }
+                }
+            },
+            { 
+                label: t('tray.check_updates'),
+                click: () => { 
+                    checkForUpdates();
+                }
+            },
+            { 
+                label: t('tray.exit'), 
+                click: () => { 
+                    app.quit();
+                }
+            },
+        ]);
+        tray.setToolTip(t('tray.tooltip'));
+        tray.setContextMenu(contextMenu);
+
+        tray.on('click', ()=>{
             if(configWindow.window.isDestroyed()){
                 configWindow = new ConfigWindow();
             }
             else if(configWindow.window.isMinimized()){
                 configWindow.window.focus();
             }
-          }
-    },
-    { label: 'Check for updates..',
-        click: () => { 
-            checkForUpdates();
-          }
-    },
-    { label: 'Exit', 
-        click: () => { 
-            app.quit();
-      }},
-    ])
-    tray.setToolTip('Voices of the Court - Community Edition CK3 mod')
-    tray.setContextMenu(contextMenu)
-    console.log('Tray icon and context menu created.');
+        });
+    };
 
-    tray.on('click', ()=>{
-        if(configWindow.window.isDestroyed()){
-            configWindow = new ConfigWindow();
-        }
-        else if(configWindow.window.isMinimized()){
-            configWindow.window.focus();
-        }
-    })
+    createTray();
+    console.log('Tray icon and context menu created.');
 
     
 
@@ -449,9 +477,9 @@ ipcMain.on('clear-summaries', ()=>{
     console.log('IPC: Received clear-summaries event.');
     const dialogOpts = {
         type: 'question' as const,
-        buttons: ['Yes', 'No'],
-        title: 'Clear summaries',
-        message: "Are you sure you want to clear conversation summaries?",
+        buttons: [t('dialog.yes'), t('dialog.no')],
+        title: t('dialog.clear_summaries_title'),
+        message: t('dialog.clear_summaries_message'),
       }
     
       dialog.showMessageBox(dialogOpts).then((returnValue) => {
@@ -877,6 +905,9 @@ ipcMain.on('theme-changed', (event, theme: string) => {
 ipcMain.on('language-changed', (event, lang: string) => {
     console.log(`IPC: Received language-changed event. Language: ${lang}`);
     
+    loadTranslations(lang);
+    createTray();
+
     const windows = [
         configWindow,
         chatWindow,
@@ -887,6 +918,7 @@ ipcMain.on('language-changed', (event, lang: string) => {
 
     windows.forEach(win => {
         if (win && win.window && !win.window.isDestroyed()) {
+            console.log(`Sending update-language to window: ${win.constructor.name}`);
             win.window.webContents.send('update-language', lang);
         }
     });
