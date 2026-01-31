@@ -5,12 +5,17 @@ module.exports = {
   packagerConfig: {
      icon: './build/icons/icon.ico',
     //"asar":true
+    ignore: /^\/\./,
   },
   rebuildConfig: {},
   makers: [
     {
-      name: '@electron-forge/maker-squirrel',
-      config: { loadingGif: path.join(__dirname, 'build', 'icons', 'installerPic.png')}
+      name: '@electron-forge/maker-nsis',
+      platforms: ['win32'],
+      config: {
+        oneClick: false,
+        perMachine: false
+      }
     },
     {
       name: '@electron-forge/maker-deb',
