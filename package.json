@@ -13,7 +13,7 @@
     "publish": "npm run build && electron-forge publish"
   },
   "keywords": [],
-  "author": "Durond",
+  "author": "VOTC Community",
   "license": "GNU GPLv3",
   "dependencies": {
     "@paymoapp/active-window": "^2.1.1",
