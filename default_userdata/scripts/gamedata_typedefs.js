@@ -31,7 +31,6 @@ export type Secret = {
 export class GameData {
     date: string;
     scene: string;
-    talkScene: string;
     location: string;
     locationController: string;
 
@@ -53,7 +52,6 @@ export class GameData {
             this.aiName = removeTooltip(data[3]),
             this.date = data[4],
             this.scene = data[5].substring(11),
-            this.talkScene = data[5],
             this.location = data[6],
             this.locationController = data[7],
     
