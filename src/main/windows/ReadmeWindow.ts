@@ -23,7 +23,7 @@ export class ReadmeWindow{
             closable: true,
             alwaysOnTop: false,
             skipTaskbar: false,
-            title: '欢迎使用 Voices of the Court - 使用指南',
+            title: 'Voices of the Court - Community Edition',
         });
 
         this.window.loadFile('./public/readmeWindow/readme.html');

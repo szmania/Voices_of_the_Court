@@ -49,11 +49,25 @@ class ConfigTextarea extends HTMLElement{
 
     async connectedCallback(){
         const confID: string = this.confID;
+        const promptKeys = [
+            'mainPrompt', 
+            'summarizePrompt', 
+            'memoriesPrompt', 
+            'suffixPrompt', 
+            'selfTalkPrompt', 
+            'selfTalkSummarizePrompt', 
+            'narrativePrompt', 
+            'sceneDescriptionPrompt'
+        ];
 
         let config = await ipcRenderer.invoke('get-config');
 
         //@ts-ignore
-        this.textarea.value = config[confID];
+        if (promptKeys.includes(confID)) {
+            this.textarea.value = config.prompts[config.language][confID];
+        } else {
+            this.textarea.value = config[confID];
+        }
 
         this.textarea.addEventListener("change", (e: any) => {
             console.log(confID)
@@ -61,12 +75,23 @@ class ConfigTextarea extends HTMLElement{
             ipcRenderer.send('config-change', confID, this.textarea.value);
         });
 
+        // Listen for language changes to refresh prompt content
+        ipcRenderer.on('update-language', async () => {
+            let config = await ipcRenderer.invoke('get-config');
+            //@ts-ignore
+            if (promptKeys.includes(confID)) {
+                this.textarea.value = config.prompts[config.language][confID];
+            } else {
+                this.textarea.value = config[confID];
+            }
+        });
+
         // Handle localization
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
             
-            // Listen for language changes
+            // Listen for language changes for label/placeholder
             ipcRenderer.on('update-language', () => {
                 this.updateTranslation(i18nKey);
             });

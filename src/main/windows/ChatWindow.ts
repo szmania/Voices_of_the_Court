@@ -93,7 +93,7 @@ export class ChatWindow{
                 let win = ActiveWindow.getActiveWindow();
                // console.log(win.title)
 
-                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Chat"){
+                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court - Community Edition - Chat"){
                     OverlayController.activateOverlay();
                     //this.window.webContents.send('chat-show');
                 }else{

@@ -683,10 +683,28 @@ ipcMain.handle('get-userdata-path', () => {
 });
 
 
+const promptKeys = [
+    'mainPrompt', 
+    'summarizePrompt', 
+    'memoriesPrompt', 
+    'suffixPrompt', 
+    'selfTalkPrompt', 
+    'selfTalkSummarizePrompt', 
+    'narrativePrompt', 
+    'sceneDescriptionPrompt'
+];
+
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     console.log(`IPC: Received config-change event. ID: ${confID}, New Value: ${newValue}`);
-    //@ts-ignore
-    config[confID] = newValue;
+    
+    if (promptKeys.includes(confID)) {
+        // @ts-ignore
+        config.prompts[config.language][confID] = newValue;
+    } else {
+        // @ts-ignore
+        config[confID] = newValue;
+    }
+    
     config.export();
     if(chatWindow.isShown){
         conversation.updateConfig(config);

@@ -10,6 +10,17 @@ export interface ApiConnectionConfig{
     parameters: Parameters;
 }
 
+export interface PromptConfig {
+    mainPrompt: string;
+    summarizePrompt: string;
+    memoriesPrompt: string;
+    suffixPrompt: string;
+    selfTalkPrompt: string;
+    selfTalkSummarizePrompt: string;
+    narrativePrompt: string;
+    sceneDescriptionPrompt: string;
+}
+
 export class Config{
     userFolderPath!: string;
     language: 'en' | 'zh' = 'en';
@@ -57,16 +68,22 @@ export class Config{
     memoriesInsertDepth!: number;
     descInsertDepth!: number;
 
-    mainPrompt!: string;
-    summarizePrompt!: string;
-    memoriesPrompt!: string;
-    suffixPrompt!: string;
+    prompts!: {
+        en: PromptConfig;
+        zh: PromptConfig;
+    };
+
+    get mainPrompt(): string { return this.prompts[this.language].mainPrompt; }
+    get summarizePrompt(): string { return this.prompts[this.language].summarizePrompt; }
+    get memoriesPrompt(): string { return this.prompts[this.language].memoriesPrompt; }
+    get suffixPrompt(): string { return this.prompts[this.language].suffixPrompt; }
+    get selfTalkPrompt(): string { return this.prompts[this.language].selfTalkPrompt; }
+    get selfTalkSummarizePrompt(): string { return this.prompts[this.language].selfTalkSummarizePrompt; }
+    get narrativePrompt(): string { return this.prompts[this.language].narrativePrompt; }
+    get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
+
     enableSuffixPrompt!: boolean;
-    selfTalkPrompt!: string;
     selectedSelfTalkExMsgScript!: string;
-    selfTalkSummarizePrompt!: string;
-    narrativePrompt!: string;
-    sceneDescriptionPrompt!: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
