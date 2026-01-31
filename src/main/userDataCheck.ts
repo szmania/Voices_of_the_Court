@@ -50,6 +50,19 @@ export async function checkUserData(){
     console.log(`User data path: ${userPath}`);
 
     if(!existsSync(userPath)){
+        const legacyPath = path.join(path.dirname(app.getPath('userData')), "Voices of the Court");
+        
+        if (existsSync(legacyPath)) {
+            console.log(`Legacy data found at ${legacyPath}. Migrating to ${userPath}...`);
+            try {
+                fs.cpSync(legacyPath, userPath, { recursive: true });
+                console.log('Migration from legacy folder completed successfully!');
+                return;
+            } catch (err) {
+                console.error(`Migration failed: ${err}. Falling back to default initialization.`);
+            }
+        }
+
         console.log('User data votc folder not found! Creating default folder.');
         fs.cpSync(path.join(__dirname, "..", "..", "default_userdata"), userPath, {recursive: true});
         console.log('User data votc default folder created!');
