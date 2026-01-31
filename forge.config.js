@@ -6,7 +6,7 @@ module.exports = {
   packagerConfig: {
      icon: './build/icons/icon.ico',
     //"asar":true
-    ignore: /^\/\./,
+    ignore: /^(\/node_modules|\/out|\/tests|\/logs|\/debug|\/\.)/
   },
   rebuildConfig: {},
   makers: [
