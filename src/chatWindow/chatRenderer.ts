@@ -358,6 +358,16 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
     initChat();
     document.body.style.display = '';
     
+    // 应用当前语言翻译
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.loadTranslations(config.language || 'en').then(() => {
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
+        });
+    }
+
     // 初始化建议容器样式
     updateSuggestionsContainerStyle();
 })
