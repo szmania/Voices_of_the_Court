@@ -32,21 +32,37 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，包含当前对话描述和之前的总结
-    const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt || "请生成一个引人入胜的场景描述，为角色们的对话提供背景和氛围。";
-    const prompt = `根据以下信息，生成一个简短的角色扮演场景描述（50-100字）：
+    const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt || 
+        (conv.config.language === 'zh' 
+            ? "请生成一个引人入胜的场景描述，为角色们的对话提供背景和氛围。"
+            : "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
+    
+    const instruction = conv.config.language === 'zh' 
+        ? "根据以下信息，生成一个简短的角色扮演场景描述（50-100字）："
+        : "Based on the following information, generate a brief role-playing scene description (50-100 words):";
+    
+    const descriptionLabel = conv.config.language === 'zh' ? "当前对话描述：" : "Current conversation description:";
+    const summariesLabel = conv.config.language === 'zh' ? "之前的对话总结：" : "Previous conversation summaries:";
+    const noSummariesText = conv.config.language === 'zh' ? "暂无之前的对话总结" : "No previous conversation summaries";
+    
+    const prompt = `${instruction}
 
-当前对话描述：${conv.description}
+${descriptionLabel}${conv.description}
 
-之前的对话总结：
-${previousSummaries.length > 0 ? previousSummaries.map(summary => `- ${summary}`).join('\n') : '暂无之前的对话总结'}
+${summariesLabel}
+${previousSummaries.length > 0 ? previousSummaries.map(summary => `- ${summary}`).join('\n') : noSummariesText}
 
 ${sceneDescriptionPrompt}`;
 
     // 构建消息数组
+    const systemPrompt = conv.config.language === 'zh' 
+        ? "你是一个场景描述生成助手，负责为角色扮演游戏创造生动的场景氛围描述。"
+        : "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.";
+    
     const messages: Message[] = [
         {
             role: "system",
-            content: "你是一个场景描述生成助手，负责为角色扮演游戏创造生动的场景氛围描述。"
+            content: systemPrompt
         },
         {
             role: "user",
