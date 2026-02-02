@@ -111,13 +111,13 @@ function parseGameDate(dateStr: string): Date | null {
     return null;
 }
 
-function getDateDifference(pastDate: string, todayDate: string): string{
+function getDateDifference(pastDate: string, todayDate: string, isZh: boolean = false): string{
     const pastDateObj = parseGameDate(pastDate);
     const todayDateObj = parseGameDate(todayDate);
 
     // If either date can't be parsed, return a default string
     if (!pastDateObj || !todayDateObj) {
-        return "unknown time ago";
+        return isZh ? "未知时间前" : "unknown time ago";
     }
 
     // Calculate the difference in days
@@ -125,22 +125,24 @@ function getDateDifference(pastDate: string, todayDate: string): string{
     const totalDays = Math.floor((todayDateObj.getTime() - pastDateObj.getTime()) / msPerDay);
 
     if(totalDays > 365){
-        return Math.round(totalDays/365) + " years ago"
+        const years = Math.round(totalDays/365);
+        return isZh ? `${years}年前` : years + " years ago";
     }
     else if(totalDays >= 30){
-        return Math.round(totalDays/30) + " months ago"
+        const months = Math.round(totalDays/30);
+        return isZh ? `${months}个月前` : months + " months ago";
     }
     else if(totalDays > 0){
-        return totalDays + " days ago"
+        return isZh ? `${totalDays}天前` : totalDays + " days ago";
     }
     else{
-        return "today"
+        return isZh ? "今天" : "today";
     }
 }
 
 /**
- * 构建用于生成建议的提示词
- * @param conv 当前对话对象
+ * 构建建议提示词
+ * @param conv 对话对象
  * @returns 构建好的消息数组
  */
 export function buildSuggestionPrompt(conv: Conversation): Message[] {
@@ -159,12 +161,15 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     let memoryString = createMemoryString(conv);
     
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
+    const isZh = conv.config.language === 'zh';
+    
+    // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
     let summaryString = "";
     // 获取当前AI角色的摘要，而不是玩家角色的摘要
     const characterSummaries = conv.summaries.get(aiCharacter.id) || [];
     
     if(characterSummaries.length > 0){
-        summaryString = "以下是之前对话的日期与摘要：\n";
+        summaryString = isZh ? "以下是之前对话的日期与摘要：\n" : "Here are the dates and summaries of previous conversations:\n";
         
         const summariesToProcess = [...characterSummaries];
         summariesToProcess.reverse();
@@ -176,13 +181,15 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
             
             // Include summary if its date is unknown OR if it's in the past/present.
             if(!summaryDate || (currentGameDate && summaryDate <= currentGameDate)){
-                summaryString += `${summary.date} (${getDateDifference(summary.date, conv.gameData.date)}): ${summary.content}\n`;
+                const timeAgo = getDateDifference(summary.date, conv.gameData.date, isZh);
+                summaryString += `${summary.date} (${timeAgo}): ${summary.content}\n`;
             }
         }
     }
     
-    // 构建提示词，请求生成推荐输入语句（使用中文）
-    const prompt = `基于以下对话上下文和角色信息，为玩家角色${playerCharacter.shortName}生成3-5个简短且合适的回应建议。建议应该：
+    // 构建提示词，请求生成推荐输入语句
+    const prompt = isZh ? 
+        `基于以下对话上下文和角色信息，为玩家角色${playerCharacter.shortName}生成3-5个简短且合适的回应建议。建议应该：
 1. 符合角色特点和当前情境
 2. 语气多样（例如：询问、同意、反对、中立）
 3. 简洁自然
@@ -197,37 +204,58 @@ ${summaryString ? summaryString + "\n" : ""}
 对话上下文：
 ${conversationContext}
 
-玩家角色建议（仅提供建议，每行一条）：`;
+玩家角色建议（仅提供建议，每行一条）：` :
+        `Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character ${playerCharacter.shortName}. Suggestions should:
+1. Match the character's personality and current situation
+2. Have diverse tones (e.g., inquiring, agreeing, disagreeing, neutral)
+3. Be concise and natural
+4. Each suggestion should not exceed 15 words
+
+${conv.description}
+
+${memoryString ? memoryString + "\n" : ""}
+
+${summaryString ? summaryString + "\n" : ""}
+
+Conversation Context:
+${conversationContext}
+
+Player Character Suggestions (provide only the suggestions, one per line):`;
 
     // 构建消息数组，参考promptBuilder.ts中的结构
     const messages: Message[] = [
         {
             role: "system",
-            content: "你是一个助手，负责为角色扮演游戏生成合适的玩家回应建议。"
+            content: isZh ? "你是一个助手，负责为角色扮演游戏生成合适的玩家回应建议。" : "You are an assistant responsible for generating appropriate player response suggestions for a role-playing game."
         },
         {
             role: "user",
             content: prompt
         }
     ];
-    
+
     console.log(`Built suggestion prompt with ${messages.length} messages`);
     return messages;
 }
 
 /**
  * 生成玩家回应建议
- * @param conv 当前对话对象
- * @returns 生成的建议数组
+ * @param conv 对话对象
+ * @returns 建议字符串数组
  */
 export async function generateSuggestions(conv: Conversation): Promise<string[]> {
+    const isZh = conv.config.language === 'zh';
+    const defaultSuggestions = isZh ? 
+        ["我明白了。", "告诉我更多。", "你是什么意思？"] : 
+        ["I understand.", "Tell me more.", "What do you mean?"];
+
     try {
         console.log('Starting to generate suggestions...');
         
         // 检查API连接是否可用
         if (!conv.textGenApiConnection) {
             console.error('Text generation API connection is not available');
-            return ["我明白了。", "告诉我更多。", "你是什么意思？"];
+            return defaultSuggestions;
         }
         
         // 构建提示词
@@ -243,7 +271,7 @@ export async function generateSuggestions(conv: Conversation): Promise<string[]>
         
         // 如果没有生成足够的建议，添加默认建议
         if (suggestions.length < 3) {
-            suggestions = suggestions.concat(["我明白了。", "告诉我更多。", "你是什么意思？"]);
+            suggestions = suggestions.concat(defaultSuggestions);
         }
         
         // 限制建议数量
@@ -253,6 +281,6 @@ export async function generateSuggestions(conv: Conversation): Promise<string[]>
         return suggestions;
     } catch (error) {
         console.error('Error generating suggestions:', error);
-        return ["我明白了。", "告诉我更多。", "你是什么意思？"];
+        return defaultSuggestions;
     }
 }
