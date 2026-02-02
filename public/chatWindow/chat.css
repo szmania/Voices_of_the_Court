@@ -123,7 +123,21 @@ html{
 }
 
 .messages::-webkit-scrollbar {
-    display: none;
+    width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: #3d2e1e;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #5a4a35;
 }
 
 .message{

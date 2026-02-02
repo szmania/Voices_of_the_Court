@@ -22,6 +22,27 @@ body {
     cursor: url('../assets/cursor.png'), auto;
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-left: 1px solid #5a4a35;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3d2e1e;
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5a4a35;
+    border-color: #cca43b;
+}
+
 .container {
     display: flex;
     flex-direction: column;
