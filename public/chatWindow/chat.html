@@ -12,12 +12,14 @@
   <div class="chat-box">
     <div class="chat-header">
       <div class="search-container">
-        <button class="search-button" data-i18n-title="chat.search_title" title="Search messages">🔍</button>
+        <div class="search-icon" data-i18n-title="chat.search_title" title="Search messages">🔍</div>
         <div class="search-dropdown">
           <input type="text" class="search-input" data-i18n-placeholder="chat.search_placeholder" placeholder="Search...">
         </div>
       </div>
-      <button class="reset-button" data-i18n-title="chat.reset_title" title="Reset window">🔄</button>
+      <div class="reset-button-wrapper" data-i18n-title="chat.reset_title" title="Reset window">
+        <button class="reset-button">🔄</button>
+      </div>
     </div>
 
     <div class="messages-container">
@@ -28,15 +30,20 @@
       <textarea class="chat-input" data-i18n-placeholder="chat.input_placeholder" placeholder="Write a message..." rows="4" cols="20"></textarea>
       <div class="suggestions-container" style="display: none;">
         <div class="suggestions-header">
-          <span data-i18n="suggestions.header">推荐输入语句</span>
+          <span data-i18n="suggestions.header">Recommended Input</span>
           <button class="suggestions-close">×</button>
         </div>
         <div class="suggestions-list">
         </div>
       </div>
-      <button class="suggestions-button" data-i18n="suggestions.button">显示建议</button>
+      <button class="suggestions-button" data-i18n="suggestions.button">Show Suggestions</button>
     </div>
-    <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
+    <div class="button-container">
+      <div class="button-wrapper" id="regenerate-button-wrapper" data-i18n-title="chat.regenerate_tooltip" title="You can only regenerate a response if the AI was the last one to speak.">
+        <button class="regenerate-button" data-i18n="chat.regenerate_button" disabled>REGENERATE</button>
+      </div>
+      <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
+    </div>
   </div>
   
   <script>require("../../dist/shared/LocalizationManager.js")</script>

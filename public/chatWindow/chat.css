@@ -16,7 +16,7 @@
     position: relative;
 }
 
-.search-button, .reset-button {
+.search-icon, .reset-button {
     background: rgba(43, 43, 43, 0.8);
     border: 1px solid #cca43b;
     color: #e0e0e0;
@@ -27,7 +27,7 @@
     transition: all 0.2s;
 }
 
-.search-button:hover, .reset-button:hover {
+.search-icon:hover, .reset-button:hover {
     background-color: #2a5270;
     border-color: #3d85c6;
     color: #fff;
@@ -100,6 +100,10 @@ html{
     font-family: Gitan;
     color: #e0e0e0;
     box-sizing: border-box;
+    resize: both;
+    overflow: hidden;
+    min-width: 300px;
+    min-height: 400px;
 }
 
 .messages-container{
@@ -275,13 +279,20 @@ html{
 }
 
 
-/* 原始UI主题 */
-.leave-button {
+.button-container {
+    display: flex;
+    gap: 10px;
+    height: 60px;
+    width: 100%;
+    margin-top: 10px;
+    flex-shrink: 0;
+}
+
+.leave-button,
+.regenerate-button {
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
-    width: 97%;
-    height: 90px;
     font-size: 1rem;
     background-image: url(../assets/button.png);
     background-size: cover;
@@ -289,25 +300,63 @@ html{
     cursor: url('../assets/cursor.png'), auto;
     transition: all 0.2s;
     padding: 8px 16px;
-    margin: 0;
     border-radius: 2px;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
-.leave-button:hover {
+.leave-button,
+.button-wrapper {
+    flex: 1;
+}
+
+.leave-button:hover,
+.regenerate-button:hover {
     background-color: rgb(84, 84, 84);
     color: white;
     border-color: #ffd700;
     box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
-    transition: background-color 0.2s;
-    align-self: flex-end;
 }
-.leave-button:active {
-    transform: translateX(-50%) scale(0.9);
+
+.regenerate-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.button-wrapper {
+    position: relative;
+}
+
+.button-wrapper .regenerate-button {
+    width: 100%;
+    height: 100%;
+}
+
+/* Tooltip bubble for regenerate button */
+.button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+}
+
+.button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 

@@ -23,6 +23,10 @@ initTheme();
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
 let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
+
+let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
+let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
+
 let suggestionsButton: HTMLButtonElement = document.querySelector('.suggestions-button')!;
 let suggestionsContainer: HTMLDivElement = document.querySelector('.suggestions-container')!;
 let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list')!;
@@ -47,6 +51,7 @@ async function initChat(){
     if (suggestionsButton) {
         suggestionsButton.style.display = showSuggestionsButton ? 'block' : 'none';
     }
+    updateRegenerateButtonState();
 }
 
 async function displayMessage(message: Message): Promise<HTMLDivElement>{
@@ -71,6 +76,8 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
     };   
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    updateRegenerateButtonState();
 
     return messageDiv;
 }
@@ -117,6 +124,8 @@ function displayErrorMessage(error: string){
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    updateRegenerateButtonState();
 }
 
 
@@ -153,11 +162,61 @@ function showLoadingDots(){  //and disable chat
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
+    
+    updateRegenerateButtonState();
 }
 
 function removeLoadingDots(){
     loadingDots?.remove();
     chatInput.disabled = false;
+    
+    updateRegenerateButtonState();
+}
+
+function updateRegenerateButtonState() {
+    const lastMessageElement = chatMessages.lastElementChild as HTMLElement;
+    const defaultTooltip = "You can only regenerate a response if the AI was the last one to speak.";
+    const actionTooltip = "Cannot regenerate a response that includes actions.";
+    const waitingTooltip = "Waiting for a response...";
+
+    // Case 1: Loading dots are visible
+    if (document.querySelector('.loading')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', waitingTooltip);
+        return;
+    }
+
+    // Case 2: No messages or last message is not a valid message element
+    if (!lastMessageElement || !lastMessageElement.classList.contains('message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Case 3: Last message is an action message
+    if (lastMessageElement.classList.contains('action-message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', actionTooltip);
+        return;
+    }
+
+    // Case 4: Last message is a player message or error message
+    if (lastMessageElement.classList.contains('player-message') || lastMessageElement.classList.contains('error-message')) {
+        regenerateButton.disabled = true;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Case 5: Last message is a plain AI message (enabling the button)
+    if (lastMessageElement.classList.contains('ai-message')) {
+        regenerateButton.disabled = false;
+        regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
+        return;
+    }
+
+    // Default case: Disable the button
+    regenerateButton.disabled = true;
+    regenerateButtonWrapper.setAttribute('data-tooltip', defaultTooltip);
 }
 
 // 显示推荐输入语句
@@ -241,6 +300,25 @@ leaveButton.addEventListener("click", ()=>{
     ipcRenderer.send('chat-stop');
 });
 
+regenerateButton.addEventListener('click', () => {
+    const messages = Array.from(chatMessages.querySelectorAll('.message'));
+
+    // Iterate backwards from the end of the messages
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const messageElement = messages[i];
+        // If it's a player message, we've gone back far enough. Stop.
+        if (messageElement.classList.contains('player-message')) {
+            break;
+        }
+        // Otherwise, it's an AI message, an action message, or an error. Remove it.
+        messageElement.remove();
+    }
+
+    updateRegenerateButtonState();
+    showLoadingDots();
+    ipcRenderer.send('regenerate-response');
+});
+
 // 更新建议容器样式的函数
 function updateSuggestionsContainerStyle() {
     const isChineseTheme = document.body.classList.contains('theme-chinese');
@@ -311,6 +389,13 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
     // 重置窗口位置和大小
     resetButton.addEventListener('click', () => {
+        const chatBox = document.querySelector('.chat-box') as HTMLElement;
+        if (chatBox) {
+            chatBox.style.width = '';
+            chatBox.style.height = '';
+            chatBox.style.top = '';
+            chatBox.style.left = '';
+        }
         ipcRenderer.send('reset-window-position');
     });
 
