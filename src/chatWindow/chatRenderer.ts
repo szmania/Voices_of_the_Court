@@ -88,6 +88,7 @@ function displayNarrative(narrative: string) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add('narrative-message');
+    messageDiv.classList.add('action-message'); // Narratives are tied to actions/state changes
     
     const narrativeSpan = document.createElement('span');
     narrativeSpan.innerText = narrative;
@@ -98,17 +99,17 @@ function displayNarrative(narrative: string) {
 }
 
 function displayActions(actions: ActionResponse[]){
-    
+    if (!actions || actions.length === 0) return;
+
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
+    messageDiv.classList.add('action-message');
+    
     for(const action of actions){
-        
         const ActionSpan = document.createElement('span');
         ActionSpan.innerText = action.chatMessage+"\n";
         ActionSpan.classList.add(action.chatMessageClass);
         messageDiv.appendChild(ActionSpan);
-
-        
     }
     
     chatMessages.append(messageDiv);

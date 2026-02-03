@@ -406,8 +406,11 @@ module.exports = (gameData) =>{
                 case "dungeon":
                     sceneDescription = "地牢";
                     break;
-                case "alley":
+                case "talk_scene_alley":
                     sceneDescription = "隐蔽小巷";
+                    break;
+                case "talk_scene_market":
+                    sceneDescription = "繁华的集市";
                     break;
             }
             
@@ -478,6 +481,10 @@ module.exports = (gameData) =>{
                 return `${ai.shortName}在地牢里以囚犯身份见到${player.shortName}`;
             case "alley":
                 return `${ai.shortName}在隐蔽小巷中私会${player.shortName}`;
+            case "market":
+                return `${ai.shortName}与${player.shortName}在繁华的集市见面`;
+            default:
+                return `${ai.shortName}与${player.shortName}在${location}见面`;
         }
     }
 
