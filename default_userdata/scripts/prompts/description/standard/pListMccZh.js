@@ -406,10 +406,10 @@ module.exports = (gameData) =>{
                 case "dungeon":
                     sceneDescription = "地牢";
                     break;
-                case "talk_scene_alley":
+                case "alley":
                     sceneDescription = "隐蔽小巷";
                     break;
-                case "talk_scene_market":
+                case "market":
                     sceneDescription = "繁华的集市";
                     break;
             }

@@ -434,7 +434,7 @@ module.exports = (gameData) =>{
                 case "alley":
                     sceneDescription = "a narrow alley";
                     break;
-                case "talk_scene_market":
+                case "market":
                     sceneDescription = "the bustling market";
                     break;
             }
@@ -504,7 +504,7 @@ module.exports = (gameData) =>{
                 return `${ai.shortName} meets ${player.shortName} in the dungeon, where ${ai.shortName} is held as a prisoner.`;
             case "alley":
                 return `${ai.shortName} meets ${player.shortName} in the narrow alley, hidden from everyone`;
-            case "talk_scene_market":
+            case "market":
                 return `${ai.shortName} meets ${player.shortName} in the bustling market.`;
             default:
                 return `${ai.shortName} and ${player.shortName} are at ${location}.`;

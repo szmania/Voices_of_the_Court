@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabContents = document.querySelectorAll('.tab-content');
     const dontShowAgainBtn = document.getElementById('dont-show-again');
     const closeReadmeBtn = document.getElementById('close-readme');
-    const appVersionSpan = document.getElementById('app-version');
+    const appVersionSpans = document.querySelectorAll('.app-version');
 
     // 标签页切换功能
     navTabs.forEach(tab => {
@@ -27,18 +27,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取应用版本信息
     async function loadAppVersion() {
         try {
-            const packageJson = await fetch('../package.json')
-                .then(response => response.json())
-                .catch(() => ({ version: '1.3.7' })); // 如果无法获取，使用默认值
+            // 在 Electron 中，我们可以尝试通过 IPC 获取版本，或者从 package.json 获取
+            // 这里的路径相对于 public/readmeWindow/readme.html
+            const response = await fetch('../../package.json');
+            const packageJson = await response.json();
+            const version = packageJson.version || '1.3.0-alpha.1';
             
-            if (appVersionSpan) {
-                appVersionSpan.textContent = packageJson.version || '1.3.7';
-            }
+            appVersionSpans.forEach(span => {
+                span.textContent = version;
+                // 移除 data-i18n 属性，防止被 LocalizationManager 覆盖
+                span.removeAttribute('data-i18n');
+            });
         } catch (error) {
             console.error('无法加载应用版本:', error);
-            if (appVersionSpan) {
-                appVersionSpan.textContent = '1.3.7';
-            }
+            appVersionSpans.forEach(span => {
+                span.textContent = '1.3.0-alpha.1';
+            });
         }
     }
 

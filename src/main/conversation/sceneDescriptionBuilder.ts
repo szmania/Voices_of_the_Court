@@ -13,9 +13,6 @@ import { Message } from "../ts/conversation_interfaces";
  */
 export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     console.log('Building scene description prompt...');
-    
-
-
 
     // 获取之前的总结信息
     const previousSummaries: string[] = [];

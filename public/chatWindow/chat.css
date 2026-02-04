@@ -97,6 +97,13 @@
     display: none;
 }
 
+.search-highlight {
+    background-color: #cca43b;
+    color: #000;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
 .drag-handle {
     position: absolute;
     top: 0;
@@ -147,7 +154,7 @@ html{
     color: #e0e0e0;
     box-sizing: border-box;
     resize: both;
-    /* overflow: hidden; */ /* Removed to allow tooltips to overflow the container */
+    overflow: hidden;
     min-width: 300px;
     min-height: 400px;
 }

@@ -383,17 +383,70 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
     // 搜索功能
     searchInput.addEventListener('input', () => {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value.trim();
         const messages = chatMessages.querySelectorAll('.message');
         
+        // 首先清除所有现有的高亮
         messages.forEach((msg: any) => {
-            const text = msg.innerText.toLowerCase();
-            if (text.includes(searchTerm)) {
-                msg.classList.remove('hidden');
-            } else {
-                msg.classList.add('hidden');
-            }
+            // 恢复原始文本（移除 span.search-highlight）
+            const highlights = msg.querySelectorAll('.search-highlight');
+            highlights.forEach((h: HTMLElement) => {
+                const parent = h.parentNode;
+                if (parent) {
+                    parent.replaceChild(document.createTextNode(h.innerText), h);
+                    parent.normalize(); // 合并相邻文本节点
+                }
+            });
         });
+
+        if (searchTerm === '') return;
+
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        let firstMatch: HTMLElement | null = null;
+
+        messages.forEach((msg: any) => {
+            // 深度遍历文本节点进行替换，避免破坏 HTML 结构
+            const walker = document.createTreeWalker(msg, NodeFilter.SHOW_TEXT, null);
+            const nodesToReplace: {node: Text, matches: RegExpMatchArray}[] = [];
+            
+            let node;
+            while (node = walker.nextNode()) {
+                const matches = node.nodeValue?.match(regex);
+                if (matches) {
+                    nodesToReplace.push({node: node as Text, matches});
+                }
+            }
+
+            nodesToReplace.forEach(({node, matches}) => {
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                const text = node.nodeValue || "";
+                
+                text.replace(regex, (match, p1, offset) => {
+                    // 添加匹配前的文本
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+                    
+                    // 添加高亮元素
+                    const span = document.createElement('span');
+                    span.className = 'search-highlight';
+                    span.textContent = match;
+                    fragment.appendChild(span);
+                    
+                    if (!firstMatch) firstMatch = span;
+                    
+                    lastIndex = offset + match.length;
+                    return match;
+                });
+                
+                // 添加剩余文本
+                fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                node.parentNode?.replaceChild(fragment, node);
+            });
+        });
+
+        if (firstMatch) {
+            (firstMatch as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
 
     // 重置窗口位置和大小
