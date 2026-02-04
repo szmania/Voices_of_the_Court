@@ -199,7 +199,155 @@ module.exports = (gameData) =>{
     }
     
     function scenario(){
+        // If there are more than 2 characters, return all character names in the scene name
+        if (gameData.characters.size > 2) {
+            const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join(', ');
+            let sceneDescription = scene; // Default to scene variable
+            
+            switch (scene){
+                case "family_meeting_east":
+                case "family_meeting":
+                    sceneDescription = `a family meeting convened by ${player.shortName}`;
+                    break;
+                case "cabinet_meeting_chinese_empire":
+                    sceneDescription = `a central meeting convened by ${player.shortName}`;
+                    break;
+                case "cabinet_meeting":
+                case "cabinet_meeting_chinese":
+                    sceneDescription = `a cabinet meeting convened by ${player.shortName}`;
+                    break;
+                case "lingyinsi":
+                    sceneDescription = "Lingyin Temple";
+                    break;
+                case "throneroom_japan":
+                    sceneDescription = "Heian Palace";
+                    break;
+                case "shaolinsidai":
+                    sceneDescription = "Shaolin Temple";
+                    break;
+                case "wudangshandaoguan":
+                    sceneDescription = "Wudang Mountain Taoist Temple";
+                    break;
+                case "yungangshiku":
+                    sceneDescription = "Yungang Grottoes";
+                    break;
+                case "leshandafou":
+                    sceneDescription = "Leshan Giant Buddha";
+                    break;
+                case "taishan":
+                    sceneDescription = "Mount Tai";
+                    break;
+                case "wulingyuan":
+                    sceneDescription = "Wulingyuan";
+                    break;
+                case "kaifenghuangcheng":
+                    sceneDescription = "Kaifeng Imperial City";
+                    break;
+                case "huanghelou":
+                    sceneDescription = "Yellow Crane Tower";
+                    break;
+                case "tengwangge":
+                    sceneDescription = "Tengwang Pavilion";
+                    break;
+                case "yueyanglou":
+                    sceneDescription = "Yueyang Tower";
+                    break;
+                case "bedchamber_east1":
+                    sceneDescription = "the bedchamber";
+                    break;
+                case "garden_east1":
+                    sceneDescription = "the Imperial Garden";
+                    break;
+                case "throneroom_east_fuya1":
+                    sceneDescription = "the government office";
+                    break;
+                case "throneroom_east_fuya":
+                    sceneDescription = "the government office";
+                    break;
+                case "throneroom_east_empire":
+                    sceneDescription = "the Imperial Palace Hall";
+                    break;
+                case "throneroom_east_empire1":
+                    sceneDescription = "the Imperial Palace Hall";
+                    break;
+                case "throneroom":
+                    sceneDescription = `${locationController}'s throneroom`;
+                    break;
+                case "garden":
+                    sceneDescription = "the castle garden";
+                    break;
+                case "bedchamber":
+                    sceneDescription = "the private bedchamber";
+                    break;
+                case "feast":
+                    sceneDescription = `the feast hosted by ${locationController}`;
+                    break;
+                case "armycamp":
+                case "army_camp":
+                    sceneDescription = "the army camp";
+                    break;
+                case "hunt":
+                    sceneDescription = "the foggy forest";
+                    break;
+                case "dungeon":
+                    sceneDescription = "the dungeon";
+                    break;
+                case "alley":
+                    sceneDescription = "a narrow alley";
+                    break;
+                case "market":
+                    sceneDescription = "the bustling market";
+                    break;
+            }
+            
+            return `${characterNames} in ${sceneDescription}`;
+        }
+
         switch (scene){
+            case "family_meeting_east":
+                return `${player.shortName} has convened a family meeting`;
+            case "cabinet_meeting_chinese_empire":
+                return `${player.shortName} has convened a central meeting`;
+            case "cabinet_meeting":
+            case "cabinet_meeting_chinese":
+                return `${player.shortName} has convened a cabinet meeting`;
+            case "lingyinsi":
+                return `${ai.shortName} and ${player.shortName} meet at Lingyin Temple`;
+            case "throneroom_japan":
+                return `${ai.shortName} and ${player.shortName} meet at Heian Palace`;
+            case "shaolinsidai":
+                return `${ai.shortName} and ${player.shortName} meet at Shaolin Temple`;
+            case "wudangshandaoguan":
+                return `${ai.shortName} and ${player.shortName} meet at Wudang Mountain Taoist Temple`;
+            case "yungangshiku":
+                return `${ai.shortName} and ${player.shortName} meet at Yungang Grottoes`;
+            case "leshandafou":
+                return `${ai.shortName} and ${player.shortName} meet at Leshan Giant Buddha`;
+            case "taishan":
+                return `${ai.shortName} and ${player.shortName} meet at Mount Tai`;
+            case "wulingyuan":
+                return `${ai.shortName} and ${player.shortName} meet at Wulingyuan`;
+            case "kaifenghuangcheng":
+                return `${ai.shortName} and ${player.shortName} meet at Kaifeng Imperial City`;
+            case "huanghelou":
+                return `${ai.shortName} and ${player.shortName} meet at Yellow Crane Tower`;
+            case "tengwangge":
+                return `${ai.shortName} and ${player.shortName} meet at Tengwang Pavilion`;
+            case "yueyanglou":
+                return `${ai.shortName} and ${player.shortName} meet at Yueyang Tower`;
+            case "bedchamber_east1":
+                return `${ai.shortName} and ${player.shortName} are talking in the bedchamber`;
+            case "garden_east1":
+                return `${ai.shortName} meets ${player.shortName} in the Imperial Garden`;
+            case "throneroom_east_fuya1":
+                return `${ai.shortName} pays respects to ${player.shortName} in the government office`;
+            case "throneroom_east_fuya":
+                return `${ai.shortName} receives ${player.shortName} in the government office`;
+            case "throneroom_east_empire":
+                return `${ai.shortName} summons ${player.shortName} in the Imperial Palace Hall`;
+            case "throneroom_east_empire1":
+                return `${ai.shortName} has an audience with ${player.shortName} in the Imperial Palace Hall`;
+
             case "throneroom":
                 return `${ai.shortName} meets ${player.shortName} in ${locationController}'s throneroom.`;
             case "garden":
@@ -208,6 +356,7 @@ module.exports = (gameData) =>{
                 return `${ai.shortName} meets ${player.shortName} in their private bedchamber.`;
             case "feast":
                 return `${ai.shortName} talks to ${player.shortName} during the feast hosted by ${locationController}.`;
+            case "armycamp":
             case "army_camp":
                 return `${ai.shortName} meets ${player.shortName} in the army camp.`;
             case "hunt":
@@ -216,6 +365,10 @@ module.exports = (gameData) =>{
                 return `${ai.shortName} meets ${player.shortName} in the dungeon, where ${ai.shortName} is held as a prisoner.`;
             case "alley":
                 return `${ai.shortName} meets ${player.shortName} in the narrow alley, hidden from everyone`;
+            case "market":
+                return `${ai.shortName} meets ${player.shortName} in the bustling market.`;
+            default:
+                return `${ai.shortName} and ${player.shortName} are at ${location}.`;
         }
     }
     
@@ -233,4 +386,3 @@ module.exports = (gameData) =>{
         const landlessLaws = ["Wanderers", "Swords-for-Hire", "Scholars", "Explorers", "Freebooters", "Legitimists"]
         return landlessLaws.includes(char.liegeRealmLaw);
     }
-
