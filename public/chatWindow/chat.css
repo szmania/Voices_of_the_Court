@@ -17,20 +17,22 @@
 }
 
 .search-icon, .reset-button {
-    background: rgba(26, 26, 26, 0.9);
-    border: 1px solid #5a4a35;
-    color: #a0a0a0;
+    background: rgba(15, 15, 15, 0.8);
+    border: 1px solid #3d2e1e;
+    color: #808080;
     padding: 4px 7px;
     cursor: pointer;
     border-radius: 2px;
     font-size: 13px;
     transition: all 0.2s;
+    opacity: 0.7;
 }
 
 .search-icon:hover, .reset-button:hover {
-    background-color: #3d2e1e;
-    border-color: #cca43b;
-    color: #e0e0e0;
+    background-color: #2b2b2b;
+    border-color: #5a4a35;
+    color: #a0a0a0;
+    opacity: 1;
 }
 
 .search-dropdown {
