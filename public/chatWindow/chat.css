@@ -136,7 +136,7 @@ html{
     height: 90%;
     left: 3%;
     top: 2%;
-    padding: 15px;
+    padding: 15px 15px 10px 15px;
     border-radius: 4px;
     border: 2px solid #5a4a35;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0,0,0,0.5);
