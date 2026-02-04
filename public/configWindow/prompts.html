@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Voices of the Court - Community Edition</title>
+    <link rel="stylesheet" href="config.css" />
+    <link rel="stylesheet" href="../chatWindow/theme.css" />
+    
+  </head>
+  <body>
+    <div class="navbar">
+      <ul>
+        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+        <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
+        <li class="active"><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li ><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <language-selector></language-selector>
+      </ul> 
+    </div>
+
+    <div class="container" id="container">
+        <div class="row">
+            <div class="column">
+
+                <h2 data-i18n="prompts.header">Prompts</h2>
+
+                <div class="border" id="prompt-options">
+                    
+                    <div class="input-group">
+                        <label data-i18n="prompts.main_prompt">Main prompt</label>
+                        <config-textarea confID="mainPrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.self_talk_prompt">Self-Talk Prompt</label>
+                        <config-textarea confID="selfTalkPrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                      <label data-i18n="prompts.summarize_prompt">Summarize prompt</label>
+                      <config-textarea confID="summarizePrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.self_talk_summarize_prompt">Self-Talk Summarize prompt</label>
+                        <config-textarea confID="selfTalkSummarizePrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                      <label data-i18n="prompts.memories_prompt">Memories prompt</label>
+                      <config-textarea confID="memoriesPrompt" rows="2"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <config-checkbox id="suffix-prompt-checkbox" confID="enableSuffixPrompt" label="Suffix prompt" data-i18n="prompts.suffix_prompt"></config-checkbox> <tooltip-text side="top" data-i18n="prompts.suffix_tooltip">If enabled, suffix prompt is inserted as the last (system) message before sending the API request, it's useful for jailbreaking, or instructing the model on how to format the response message.</tooltip-text>
+                        <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea> 
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.narrative_prompt">Narrative prompt</label>
+                        <tooltip-text side="top" data-i18n="prompts.narrative_tooltip">This prompt is used to generate AI narrative descriptions after actions are triggered. The narrative provides atmospheric descriptions of events in the game.</tooltip-text>
+                        <config-textarea confID="narrativePrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.scene_description_prompt">Scene Description prompt</label>
+                        <tooltip-text side="top" data-i18n="prompts.scene_description_tooltip">This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.</tooltip-text>
+                        <config-textarea confID="sceneDescriptionPrompt" rows="6"></config-textarea>
+                    </div>
+                </div>
+                
+                <div class="input-group" style="margin-top: 20px;">
+                    <button type="button" id="restore-default-prompts" class="btn-warning" data-i18n="prompts.restore_defaults">🔄 恢复默认Prompt</button>
+                    <tooltip-text side="top" data-i18n="prompts.restore_tooltip">点击此按钮将所有prompt恢复为默认值</tooltip-text>
+                </div>
+                
+            </div>
+            <div class="column">
+
+              <br></br>
+                <h2 style="display: inline;" data-i18n="prompts.scripts_header">Scripts</h2> <tooltip-text side="bottom" data-i18n="prompts.scripts_tooltip">Some prompts are too advanced to be made up by static texts, they require script files that dynamically writes the prompts based on the ingame variables.</tooltip-text>
+                <br></br>
+                <div id="script-selectors" class="border">
+      
+                  <div class="input-group">
+                    <button type="button" data-i18n="actions.reload_files">🔄 Reload files</button>
+                  </div>
+                  
+                  <div class="input-group">
+                    <label for="description-script-select" data-i18n="prompts.char_desc_script">Character Description script</label>
+                    <select id="description-script-select"></select>
+                    <open-folder-button path="scripts/prompts/description/" label="open folder" data-i18n="actions.open_folder"></open-folder-button>
+                  </div>
+      
+                  <div class="input-group">
+                    <label for="example-messages-script-select" data-i18n="prompts.ex_msg_script">Example messages script</label>
+                    <select id="example-messages-script-select">
+                      
+                    </select>
+                    <open-folder-button path="scripts/prompts/example messages/" label="open folder" data-i18n="actions.open_folder"></open-folder-button>
+                    
+                  </div>
+                  
+                  <div class="input-group">
+                    <label for="bookmark-script-select" data-i18n="prompts.bookmarks">Bookmarks</label>
+                    <select id="bookmark-script-select">
+                      
+                    </select>
+                    <open-folder-button path="scripts/bookmarks/" label="open folder" data-i18n="actions.open_folder"></open-folder-button>
+                    
+                  </div>
+                  
+                  
+                </div>
+      
+            </div>
+        </div>
+      
+
+    </div>
+    
+   
+
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/components/openFolderButton.js")</script>
+    <script>require("../../dist/configWindow/components/tooltip.js")</script>
+    <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
+    <script>require("../../dist/configWindow/components/configTextarea.js")</script>
+    <script>require("../../dist/configWindow/promptsRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

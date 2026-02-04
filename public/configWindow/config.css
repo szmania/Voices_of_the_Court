@@ -1,0 +1,434 @@
+@font-face {
+    font-family: Paradox;
+    src: url("../assets/Paradox_King_Script.otf");
+}
+@font-face {
+    font-family: Gitan;
+    src: url("../assets/GitanLatin-Regular.otf");
+}
+
+html{
+  background-image: url('../assets/background_area_light.png');
+  background-color: #1a1a1a;
+  font-family: 'Gitan', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #e0e0e0;
+  cursor: url('../assets/cursor.png'), auto;
+}
+
+body{
+  margin:0px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-left: 1px solid #5a4a35;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3d2e1e;
+  border: 1px solid #5a4a35;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a4a35;
+  border-color: #cca43b;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.navbar{
+  position: fixed;
+  top: 0px;
+  width:100%;
+  z-index: 10;
+}
+
+.navbar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  background-color: #1a1a1a;
+  border-bottom: 2px solid #5a4a35;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+
+  width: 100%;
+  float: left;
+  display:flex;
+  flex-direction:row;
+}
+
+.navbar li {
+  text-align: center;
+  float: left;
+  order:1;
+  flex-grow:1;
+  min-width: 100px;
+}
+
+.navbar li a {
+  display: block;
+  color: #b8860b;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-family: 'Gitan', sans-serif;
+  font-weight: bold;
+  border-right: 1px solid #3d2e1e;
+  transition: all 0.2s;
+  background-color: #2d2d2d;
+}
+
+.navbar li a:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+
+/* 帮助菜单样式 */
+.navbar li.help-menu {
+  margin-left: auto;
+  flex-grow: 0;
+}
+
+.navbar li.help-menu a {
+  color: #b8860b;
+  font-weight: bold;
+  border-left: 1px solid #3d2e1e;
+  background-color: #2d2d2d;
+}
+
+.navbar li.help-menu a:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+
+.navbar .active{
+  background-color: #3d2e1e;
+  color: #ffd700;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.navbar .active a {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+
+.border{
+  border: 2px solid #5a4a35;
+  border-radius: 4px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+}
+
+.border h2{
+  padding: 0;
+  margin:0;
+}
+
+button{
+  background-color: #591919;
+  color: #e0e0e0;
+  border: 1px solid #8c2b2b;
+  border-radius: 2px;
+  padding: 8px 16px;
+  font-family: 'Gitan', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+
+button:hover{
+  background-color: #7a2222;
+  border-color: #cca43b;
+  color: #fff;
+  box-shadow: 0 0 5px rgba(204, 164, 59, 0.2);
+}
+
+select{
+  width: 100%;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid #5a4a35;
+  border-radius: 2px;
+  padding: 5px;
+  font-family: 'Gitan', sans-serif;
+}
+
+input{
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid #5a4a35;
+  border-radius: 2px;
+  padding: 5px;
+  font-family: 'Gitan', sans-serif;
+}
+
+input[type=text], input[type="password"]{
+  width: 100%;
+}
+
+input[type=checkbox]{
+  accent-color: black;
+  outline: 0.5px solid white;
+}
+
+.input-group{
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.input-group input,select,button, textarea {
+  border: 1px solid #5a4a35;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  font-family: 'Gitan', sans-serif;
+}
+
+.input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+  border-color: #cca43b;
+  outline: none;
+  box-shadow: 0 0 5px rgba(204, 164, 59, 0.3);
+}
+
+.container{
+  padding: 2rem;
+  padding-top: 4rem;
+
+  display: none;
+}
+
+.row {
+  display: flex;
+  width:100%;
+}
+
+.column {
+  flex: 1;
+}
+
+.column + .column {
+  margin-left:3%
+}
+
+/* status Page */
+
+.status-icon{
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+/* Connection Page */
+
+#run-path-input{
+  width: 80%;
+}
+
+/* actions page */
+
+#action-descriptor{
+  position: sticky;
+  top: 5rem;
+  height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background-color: rgba(37, 37, 38, 0.9);
+  border: 2px solid #5a4a35;
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+#action-descriptor h3 {
+  margin-top: 0;
+  color: #cca43b;
+  border-bottom: 1px solid #5a4a35;
+  padding-bottom: 8px;
+}
+
+#action-descriptor ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#action-descriptor li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+#action-descriptor li b {
+  color: #b8860b;
+}
+
+li.action-item:not(:last-child) { 
+  margin-bottom: 1vh;  
+}
+
+/* interaction page */
+
+/* model settings */
+
+input[type=range]{
+  width: 60%;
+  vertical-align: middle;
+}
+
+.model-setting-number{
+  width: 30%;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  color: #105e53;
+}
+
+
+.border hr{
+  border: 1px solid black;
+}
+
+
+textarea{
+  width: 100%;
+  max-width: 100%;
+}
+
+.success-message{
+  color:green;
+}
+
+.error-message{
+  color:red
+}
+
+.btn-warning {
+  background-color: #1b1a1a;
+  color: white;
+  border: 1px solid #1b1a1a;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-warning:hover {
+  background-color: #1f0806;
+  border-color: #1f0806;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltiptext{
+  width:2000%;
+}
+
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  border: 1px solid grey;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+
+  left: 50%;
+  margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+}
+
+.tooltip-top .tooltiptext-top {
+  bottom: 100%;
+}
+
+.tooltip-bottom .tooltiptext-bottom {
+  top: 100%;
+}
+
+
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+a {
+  color: inherit;
+}
+
+h1,h2,h3{
+  text-align: center;
+}
+
+language-selector {
+  display: block;
+  flex-grow: 0;
+  order: 1;
+  min-width: 120px;
+}
+
+.dropbtn {
+  background-color: #2d2d2d;
+  color: #b8860b;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Gitan', sans-serif;
+  font-weight: bold;
+  width: 100%;
+  border-right: 1px solid #3d2e1e;
+  transition: all 0.2s;
+}
+
+.dropbtn:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+
+.dropdown {
+  position: relative;
+  display: block;
+  height: 100%;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #1a1a1a;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+  z-index: 1000;
+  right: 0;
+  border: 1px solid #5a4a35;
+}
+.dropdown-content a {
+  color: #b8860b;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-family: 'Gitan', sans-serif;
+  font-size: 14px;
+  text-align: left;
+}
+.dropdown-content a:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}

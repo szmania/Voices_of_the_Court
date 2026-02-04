@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Voices of the Court - Community Edition</title>
+    <link rel="stylesheet" href="config.css" />
+    <link rel="stylesheet" href="../chatWindow/theme.css" />
+    
+  </head>
+  <body>
+    <div class="navbar">
+      <ul>
+        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+        <li class="active"><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <language-selector></language-selector>
+      </ul> 
+    </div>
+    
+    <div class="container" id="container">
+
+        <config-checkbox id="use-connection-api" confID="summarizationUseTextGenApi" label="Use the same API as in the connection tab" data-i18n="summarization.use_same_api"></config-checkbox>
+
+        <div class="border">   
+            <config-api-selector id="api-selector" confID="summarizationApiConnectionConfig"></config-api-selector>      
+        </div>
+        <br>
+
+        <h2 data-i18n="summarization.parameters">Parameters</h2>
+        <parameters-box confID="summarizationApiConnectionConfig" tempDefault="0.2" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
+
+        
+             
+    </div>
+
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
+    <script>require("../../dist/configWindow/components/apiSelector.js")</script> 
+    <script>require("../../dist/configWindow/components/configSlider.js")</script>
+    <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
+    <script>require("../../dist/configWindow/summarizationRenderer.js")</script>
+    
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
+    
+  </body>
+</html>
