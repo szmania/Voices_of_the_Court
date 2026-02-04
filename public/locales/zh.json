@@ -398,7 +398,11 @@
     "clear_summaries_title": "清除总结",
     "clear_summaries_message": "您确定要清除对话总结吗？",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "announcement_title": "新的社区资源！",
+    "announcement_message": "我们有了新的 Discord 服务器和新的 Steam 模组！\n\nDiscord：加入我们的社区进行支持和讨论。\nSteam：在 Steam 创意工坊中查看“Voices of the Court - Community Edition”。",
+    "join_discord": "加入 Discord",
+    "view_steam": "查看 Steam 模组"
   },
   "tray": {
     "open_config": "打开配置窗口",

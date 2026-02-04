@@ -398,7 +398,11 @@
     "clear_summaries_title": "Clear summaries",
     "clear_summaries_message": "Are you sure you want to clear conversation summaries?",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "announcement_title": "New Community Resources!",
+    "announcement_message": "We have a new Discord server and a new Steam mod!\n\nDiscord: Join our community for support and discussion.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.",
+    "join_discord": "Join Discord",
+    "view_steam": "View Steam Mod"
   },
   "tray": {
     "open_config": "Open config window",

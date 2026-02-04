@@ -63,6 +63,7 @@ export class Config{
     autoSendSuggestion!: boolean;
     checkForUpdatesOnStartup!: boolean;
     earlyAccessUpdates!: boolean;
+    lastAnnouncementVersion!: string;
 
     summariesInsertDepth!: number;
     memoriesInsertDepth!: number;

@@ -376,6 +376,26 @@ app.on('ready',  async () => {
 
     console.log("App ready!");
 
+    // Show announcement popup if it's a new version
+    if (config.lastAnnouncementVersion !== packagejson.version) {
+        const announcementOpts = {
+            type: 'info' as const,
+            buttons: [t('dialog.join_discord'), t('dialog.view_steam'), t('dialog.later')],
+            title: t('dialog.announcement_title'),
+            message: t('dialog.announcement_message'),
+            noLink: true
+        };
+
+        dialog.showMessageBox(announcementOpts).then((returnValue) => {
+            if (returnValue.response === 0) {
+                shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+            } else if (returnValue.response === 1) {
+                shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+            }
+            config.lastAnnouncementVersion = packagejson.version;
+            config.export();
+        });
+    }
 
     configWindow = new ConfigWindow();
     console.log('ConfigWindow created.');
