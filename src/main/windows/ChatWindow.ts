@@ -1,5 +1,5 @@
 
-import {  app, BrowserWindow, ipcMain} from "electron";
+import {  app, BrowserWindow, ipcMain, screen} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
 import ActiveWindow from '@paymoapp/active-window';
 import path from 'path';
@@ -15,13 +15,16 @@ export class ChatWindow{
 
 
     constructor(){
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const { width, height } = primaryDisplay.bounds;
+
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
             fullscreenable: false, // 禁用全屏支持，避免与游戏窗口冲突
             transparent: true,
             resizable: true, // 必须设为true，否则Windows下无法切换输入法/显示候选框
-            width: 650,
-            height: 800,
+            width: width,
+            height: height,
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -119,6 +122,8 @@ export class ChatWindow{
     }
 
     resetPosition(){
-        this.window.setPosition(100, 100);
+        // Window position is managed by OverlayController to match the game window.
+        // We only need to reset the internal div position which is handled in the renderer.
+        console.log("Resetting chat window position (internal div)...");
     }
 }
