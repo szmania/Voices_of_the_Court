@@ -40,6 +40,14 @@ let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 
+// Store initial window state
+let initialWindowState = {
+    width: '',
+    height: '',
+    top: '',
+    left: ''
+};
+
 
 async function initChat(){
     
@@ -389,13 +397,14 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
     });
 
     // 重置窗口位置和大小
+    // 重置窗口位置和大小
     resetButton.addEventListener('click', () => {
         const chatBox = document.querySelector('.chat-box') as HTMLElement;
-        if (chatBox) {
-            chatBox.style.width = '';
-            chatBox.style.height = '';
-            chatBox.style.top = '';
-            chatBox.style.left = '';
+        if (chatBox && initialWindowState.width) {
+            chatBox.style.width = initialWindowState.width;
+            chatBox.style.height = initialWindowState.height;
+            chatBox.style.top = initialWindowState.top;
+            chatBox.style.left = initialWindowState.left;
         }
         ipcRenderer.send('reset-window-position');
     });
@@ -430,9 +439,27 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
     
-    // 获取配置并设置建议按钮的显示状态
+    document.body.style.display = '';
+    initChat();
+
+    // Capture initial state if not already captured
+    // This represents the "default" position and size
+    const chatBox = document.querySelector('.chat-box') as HTMLElement;
+    if (chatBox && !initialWindowState.width) {
+        const computedStyle = window.getComputedStyle(chatBox);
+        initialWindowState = {
+            width: computedStyle.width,
+            height: computedStyle.height,
+            top: chatBox.offsetTop + 'px',
+            left: chatBox.offsetLeft + 'px'
+        };
+        console.log('Captured initial window state:', initialWindowState);
+    }
+    
+    let config;
+    // 应用当前语言翻译
     try {
-        const config = await ipcRenderer.invoke('get-config');
+        config = await ipcRenderer.invoke('get-config');
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
         autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
     } catch (error) {
@@ -441,12 +468,9 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
         autoSendSuggestion = false; // 默认不自动发送建议
     }
     
-    initChat();
-    document.body.style.display = '';
-    
     // 应用当前语言翻译
     // @ts-ignore
-    if (window.LocalizationManager) {
+    if (window.LocalizationManager && config) {
         // @ts-ignore
         window.LocalizationManager.loadTranslations(config.language || 'en').then(() => {
             // @ts-ignore
