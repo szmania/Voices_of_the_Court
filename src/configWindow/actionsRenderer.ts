@@ -46,6 +46,10 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
+    if (config) {
+        config.language = lang;
+        loadactions();
+    }
 });
 
 async function init(){
