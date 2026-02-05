@@ -1,0 +1,14 @@
+{
+  "chat": {
+    "search_placeholder": "Поиск...",
+    "input_placeholder": "Напишите сообщение...",
+    "regenerate_button": "ПЕРЕГЕНЕРИРОВАТЬ",
+    "regenerate_tooltip": "Вы можете перегенерировать ответ только если ИИ говорил последним.",
+    "leave_button": "ЗАВЕРШИТЬ БЕСЕДУ"
+  },
+  "suggestions": {
+    "header": "Рекомендуемый ввод",
+    "button": "Показать предложения",
+    "no_suggestions": "Нет доступных предложений"
+  }
+}
