@@ -10,7 +10,12 @@ module.exports = {
             desc: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided."
         }
     ],
-    description: `当{{aiName}}和{{playerName}}同意达成一定年限的相互休战协议时执行。`,
+    description: {
+        en: `Executed when {{aiName}} and {{playerName}} agree to a mutual truce for a certain number of years.`,
+        zh: `当{{aiName}}和{{playerName}}同意达成一定年限的相互休战协议时执行。`,
+        ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются на взаимное перемирие на определенное количество лет.`,
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent d'une trêve mutuelle pour un certain nombre d'années.`
+    },
     
     /**
      * @param {GameData} gameData 
@@ -54,7 +59,12 @@ module.exports = {
 
     chatMessage: (args) => {
         let truceYears = args.length > 0 ? args[0] : 3;
-        return `{{aiName}}和{{playerName}}同意了${truceYears}年的休战协议。`;
+        return {
+            en: `{{aiName}} and {{playerName}} agreed to a ${truceYears}-year truce.`,
+            zh: `{{aiName}}和{{playerName}}同意了${truceYears}年的休战协议。`,
+            ru: `{{aiName}} и {{playerName}} согласились на перемирие на ${truceYears} года.`,
+            fr: `{{aiName}} et {{playerName}} ont convenu d'une trêve de ${truceYears} ans.`
+        };
     },
     
     chatMessageClass: "positive-action-message"

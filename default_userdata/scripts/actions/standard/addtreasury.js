@@ -10,7 +10,12 @@ module.exports = {
             desc: "the amount of gold {{playerName}}'treasury gets, should be always positive"
         }
     ],
-    description: `当{{playerName}}的国库获得收入时执行`,
+    description: {
+        en: `Executed when {{playerName}}'s treasury receives income.`,
+        zh: `当{{playerName}}的国库获得收入时执行`,
+        ru: `Выполняется, когда казна {{playerName}} получает доход.`,
+        fr: `Exécuté lorsque le trésor de {{playerName}} reçoit des revenus.`
+    },
     
     /**
      * @param {GameData} gameData 
@@ -32,7 +37,12 @@ module.exports = {
             `);
         },
     chatMessage: (args) =>{
-            return `{{playerName}}的国库获得了${args[0]}金币`
+            return {
+                en: `{{playerName}}'s treasury received ${args[0]} gold.`,
+                zh: `{{playerName}}的国库获得了${args[0]}金币`,
+                ru: `Казна {{playerName}} получила ${args[0]} золота.`,
+                fr: `Le trésor de {{playerName}} a reçu ${args[0]} pièces d'or.`
+            }
         }
     ,
     chatMessageClass: "neutral-action-message"

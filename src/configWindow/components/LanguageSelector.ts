@@ -15,7 +15,7 @@ class LanguageSelector extends HTMLElement {
                 <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/>
                 <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/>
             </svg>`;
-        } else {
+        } else if (lang === 'zh') {
             return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
                 <path d="M0,0 h30 v20 h-30 z" fill="#ee1c25"/>
                 <path d="M5,5 l-0.94,2.91 -2.47,-1.79 2.47,-1.79 0.94,2.91 z" fill="#ffff00" transform="translate(0,0) scale(1.5)"/>
@@ -29,6 +29,12 @@ class LanguageSelector extends HTMLElement {
                 <rect width="900" height="600" fill="#fff"/>
                 <rect width="900" height="400" y="200" fill="#0039a6"/>
                 <rect width="900" height="200" y="400" fill="#d52b1e"/>
+            </svg>`;
+        } else if (lang === 'fr') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="300" height="600" fill="#002654"/>
+                <rect width="300" height="600" x="300" fill="#fff"/>
+                <rect width="300" height="600" x="600" fill="#ed2939"/>
             </svg>`;
         } else {
             return '';
@@ -57,7 +63,7 @@ class LanguageSelector extends HTMLElement {
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
                     ${this.getFlagSvg(lang)}
-                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : 'Русский'}</span>
+                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : 'Français'}</span>
                 </button>
                 <div class="dropdown-content" id="language-dropdown">
                     <a href="#" data-lang="en">
@@ -71,6 +77,10 @@ class LanguageSelector extends HTMLElement {
                     <a href="#" data-lang="ru">
                         ${this.getFlagSvg('ru')}
                         <span class="lang-text">Русский</span>
+                    </a>
+                    <a href="#" data-lang="fr">
+                        ${this.getFlagSvg('fr')}
+                        <span class="lang-text">Français</span>
                     </a>
                 </div>
             </div>
@@ -89,14 +99,14 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : 'Русский';
+        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : 'Français';
         btn.innerHTML = `
             ${this.getFlagSvg(lang)}
             <span class="lang-text">${text}</span>
         `;
     }
 
-    async updateLanguage(lang: 'en' | 'zh' | 'ru', btn: HTMLElement) {
+    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
         ipcRenderer.send('language-changed', lang);

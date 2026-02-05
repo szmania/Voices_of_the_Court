@@ -176,10 +176,15 @@ async function loadactions(){
         }
         
         element.addEventListener("mouseenter", (e: any)=>{
+            let description = file.description;
+            if (typeof description === 'object') {
+                description = description[config.language] || description['en'] || Object.values(description)[0];
+            }
+
             actionDescriptorDiv.innerHTML = `
             <h3>${file.signature}</h3>
             <ul>
-                <li class="action-item"><b>Description:</b> ${file.description}</li>
+                <li class="action-item"><b>Description:</b> ${description}</li>
                 ${creatorString}
             </ul>
             `;

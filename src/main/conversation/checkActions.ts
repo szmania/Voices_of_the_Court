@@ -92,9 +92,13 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
                 }
 
                 if(matchedAction.chatMessageClass != null){
+                    let chatMessage = matchedAction.chatMessage([]);
+                    if (typeof chatMessage === 'object') {
+                        chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                    }
                     triggeredActions.push({
                         actionName: matchedAction.signature,
-                        chatMessage: parseVariables(matchedAction.chatMessage([]), conv.gameData),
+                        chatMessage: parseVariables(chatMessage, conv.gameData),
                         chatMessageClass: matchedAction.chatMessageClass
                     })
                 }
@@ -144,9 +148,13 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         
 
         if(matchedAction.chatMessageClass != null){
+            let chatMessage = matchedAction.chatMessage(args);
+            if (typeof chatMessage === 'object') {
+                chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+            }
             triggeredActions.push({
                 actionName: matchedAction.signature,
-                chatMessage: parseVariables(matchedAction.chatMessage(args), conv.gameData),
+                chatMessage: parseVariables(chatMessage, conv.gameData),
                 chatMessageClass: matchedAction.chatMessageClass
             })
         }
@@ -201,8 +209,12 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
             argString += `${arg.name} (${arg.type}): ${arg.desc}. `
         }
 
+        let description = action.description;
+        if (typeof description === 'object') {
+            description = description[conv.config.language] || description['en'] || Object.values(description)[0];
+        }
         
-        listOfActions += `\n- ${signature}: ${parseVariables(action.description, conv.gameData)} ${parseVariables(argString, conv.gameData)}`;
+        listOfActions += `\n- ${signature}: ${parseVariables(description, conv.gameData)} ${parseVariables(argString, conv.gameData)}`;
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
