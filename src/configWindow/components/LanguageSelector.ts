@@ -24,6 +24,14 @@ class LanguageSelector extends HTMLElement {
                 <path d="M12,7 l-0.31,0.95 -0.81,-0.59 0.81,-0.59 0.31,0.95 z" fill="#ffff00" transform="rotate(20.5,12,7)"/>
                 <path d="M10,9 l-0.31,0.95 -0.81,-0.59 0.81,-0.59 0.31,0.95 z" fill="#ffff00" transform="rotate(45,10,9)"/>
             </svg>`;
+        } else if (lang === 'ru') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="900" height="600" fill="#fff"/>
+                <rect width="900" height="400" y="200" fill="#0039a6"/>
+                <rect width="900" height="200" y="400" fill="#d52b1e"/>
+            </svg>`;
+        } else {
+            return '';
         }
     }
 
@@ -49,7 +57,7 @@ class LanguageSelector extends HTMLElement {
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
                     ${this.getFlagSvg(lang)}
-                    <span class="lang-text">${lang === 'en' ? 'English' : '中文'}</span>
+                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : 'Русский'}</span>
                 </button>
                 <div class="dropdown-content" id="language-dropdown">
                     <a href="#" data-lang="en">
@@ -59,6 +67,10 @@ class LanguageSelector extends HTMLElement {
                     <a href="#" data-lang="zh">
                         ${this.getFlagSvg('zh')}
                         <span class="lang-text">中文</span>
+                    </a>
+                    <a href="#" data-lang="ru">
+                        ${this.getFlagSvg('ru')}
+                        <span class="lang-text">Русский</span>
                     </a>
                 </div>
             </div>
@@ -77,14 +89,14 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        const text = lang === 'en' ? 'English' : '中文';
+        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : 'Русский';
         btn.innerHTML = `
             ${this.getFlagSvg(lang)}
             <span class="lang-text">${text}</span>
         `;
     }
 
-    async updateLanguage(lang: 'en' | 'zh', btn: HTMLElement) {
+    async updateLanguage(lang: 'en' | 'zh' | 'ru', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
         ipcRenderer.send('language-changed', lang);
