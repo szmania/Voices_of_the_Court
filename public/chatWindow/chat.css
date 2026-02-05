@@ -348,10 +348,10 @@ html{
     color: white;
     border: solid 2px rgb(39, 33, 0);
     font-size: 1rem;
-    background-image: url(../assets/button.png);
+    background-image: url("../assets/button.png");
     background-size: cover;
     font-family: 'Gitan', sans-serif;
-    cursor: url('../assets/cursor.png'), auto;
+    cursor: url("../assets/cursor.png"), auto;
     transition: all 0.2s;
     padding: 8px 16px;
     border-radius: 2px;
