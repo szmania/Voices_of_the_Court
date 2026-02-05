@@ -1132,6 +1132,29 @@ ${character.fullName}的发言：`
         return this.messages;
     }
 
+    public clearHistory(): void {
+        console.log("Clearing conversation history.");
+        this.messages = [];
+        this.narratives.clear();
+        this.currentSummary = "";
+    }
+
+    public undo(): void {
+        console.log("Undoing last exchange.");
+        const lastUserIndex = [...this.messages].reverse().findIndex(m => m.role === 'user');
+        
+        if (lastUserIndex !== -1) {
+            const actualIndex = this.messages.length - 1 - lastUserIndex;
+            console.log(`Removing messages from index ${actualIndex} onwards.`);
+            this.messages.splice(actualIndex);
+            
+            // Clean up narratives for removed messages
+            for (let i = actualIndex; i <= this.messages.length + 1; i++) {
+                this.narratives.delete(i);
+            }
+        }
+    }
+
     public async initiateConversation(){
         if(this.config.aiCanStartConversation){
             if(Math.random() < this.config.aiStartConversationChance){

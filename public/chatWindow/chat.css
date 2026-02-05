@@ -343,6 +343,7 @@ html{
 
 .leave-button,
 .regenerate-button,
+.undo-button,
 .clear-history-button {
     background: gray;
     color: white;
@@ -369,6 +370,7 @@ html{
 
 .leave-button:hover,
 .regenerate-button:hover,
+.undo-button:hover,
 .clear-history-button:hover {
     background-color: rgb(84, 84, 84);
     color: white;
@@ -385,7 +387,8 @@ html{
     background-color: #7a2e2e;
 }
 
-.regenerate-button:disabled {
+.regenerate-button:disabled,
+.undo-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

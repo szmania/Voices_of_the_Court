@@ -27,6 +27,8 @@ let clearHistoryButton: HTMLButtonElement = document.querySelector('.clear-histo
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
+let undoButton: HTMLButtonElement = document.querySelector('.undo-button')!;
+let undoButtonWrapper: HTMLDivElement = document.querySelector('#undo-button-wrapper')!;
 
 let suggestionsButton: HTMLButtonElement = document.querySelector('.suggestions-button')!;
 let suggestionsContainer: HTMLDivElement = document.querySelector('.suggestions-container')!;
@@ -188,13 +190,19 @@ function updateRegenerateButtonState() {
     const defaultTooltip = "You can only regenerate a response if the AI was the last one to speak.";
     const actionTooltip = "Cannot regenerate a response that includes actions.";
     const waitingTooltip = "Waiting for a response...";
+    const undoTooltip = "Remove the last exchange (your message and the AI's response).";
 
     // Case 1: Loading dots are visible
     if (document.querySelector('.loading')) {
         regenerateButton.disabled = true;
         regenerateButtonWrapper.setAttribute('data-tooltip', waitingTooltip);
+        undoButton.disabled = true;
         return;
     }
+
+    // Update Undo button state
+    const hasPlayerMessage = !!chatMessages.querySelector('.player-message');
+    undoButton.disabled = !hasPlayerMessage;
 
     // Case 2: No messages or last message is not a valid message element
     if (!lastMessageElement || !lastMessageElement.classList.contains('message')) {
@@ -317,6 +325,27 @@ clearHistoryButton.addEventListener("click", ()=>{
     chatMessages.innerHTML = '';
     clearHistoryButton.style.display = 'none';
     ipcRenderer.send('clear-conversation-history');
+});
+
+undoButton.addEventListener('click', () => {
+    const messages = Array.from(chatMessages.querySelectorAll('.message'));
+    let foundPlayerMessage = false;
+
+    // Iterate backwards to find the last player message and remove everything from there
+    for (let i = messages.length - 1; i >= 0; i--) {
+        const msg = messages[i];
+        const isPlayer = msg.classList.contains('player-message');
+        msg.remove();
+        if (isPlayer) {
+            foundPlayerMessage = true;
+            break;
+        }
+    }
+
+    if (foundPlayerMessage) {
+        ipcRenderer.send('undo-message');
+    }
+    updateRegenerateButtonState();
 });
 
 regenerateButton.addEventListener('click', () => {

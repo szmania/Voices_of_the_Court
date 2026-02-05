@@ -740,6 +740,13 @@ ipcMain.on('clear-conversation-history', () => {
     }
 });
 
+ipcMain.on('undo-message', () => {
+    console.log('IPC: Received undo-message event.');
+    if (conversation) {
+        conversation.undo();
+    }
+});
+
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');

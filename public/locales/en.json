@@ -106,7 +106,9 @@
     "search_placeholder": "Search...",
     "reset_title": "Reset window",
     "clear_history_button": "Clear History",
-    "clear_history_tooltip": "Clear conversation history"
+    "clear_history_tooltip": "Clear conversation history",
+    "undo_button": "UNDO",
+    "undo_tooltip": "Remove the last exchange (your message and the AI's response)."
   },
   "suggestions": {
     "header": "Recommended Input",
