@@ -35,8 +35,13 @@ module.exports = {
             desc: `${gameData.getAi().shortName} is wounded`    
         })
     },
-    chatMessage: () =>{
-        return `{{aiName}}受伤了！`
+    chatMessage: () => {
+        return {
+            en: `{{aiName}} is wounded!`,
+            zh: `{{aiName}}受伤了！`,
+            ru: `{{aiName}} ранен!`,
+            fr: `{{aiName}} est blessé !`
+        }
     },
     chatMessageClass: "negative-action-message"
 }

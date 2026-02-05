@@ -34,8 +34,13 @@ module.exports = {
         `);
         
     },
-    chatMessage: (args) =>{
-        return `{{aiName}}加入了你的宫廷`
+    chatMessage: (args) => {
+        return {
+            en: `{{aiName}} joined your court.`,
+            zh: `{{aiName}}加入了你的宫廷`,
+            ru: `{{aiName}} присоединился к вашему двору.`,
+            fr: `{{aiName}} a rejoint votre cour.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

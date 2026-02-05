@@ -45,12 +45,21 @@ module.exports = {
             `);
         }
     },
-    chatMessage: (args) =>{
+    chatMessage: (args) => {
         if (Number(args[0]) <= Number(args[1])) {
-            return `{{aiName}}向你支付了${args[0]}金币`
-        }
-        else {
-            return `{{aiName}}没有足够的金币支付`
+            return {
+                en: `{{aiName}} paid you ${args[0]} gold.`,
+                zh: `{{aiName}}向你支付了${args[0]}金币`,
+                ru: `{{aiName}} заплатил вам ${args[0]} золота.`,
+                fr: `{{aiName}} vous a payé ${args[0]} pièces d'or.`
+            }
+        } else {
+            return {
+                en: `{{aiName}} does not have enough gold to pay.`,
+                zh: `{{aiName}}没有足够的金币支付`,
+                ru: `У {{aiName}} недостаточно золота для оплаты.`,
+                fr: `{{aiName}} n'a pas assez d'or pour payer.`
+            }
         }
     },
     chatMessageClass: "neutral-action-message"

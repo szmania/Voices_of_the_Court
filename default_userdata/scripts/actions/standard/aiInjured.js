@@ -216,20 +216,50 @@ module.exports = {
     },
 
 	chatMessage: (args) => {
-        let injuryType = args[0]
+		let injuryType = args[0];
 		switch (injuryType) {
 			case 'remove_eye':
-				return "你挖去了{{aiName}}的一只眼睛。";
+				return {
+					en: `You gouged out one of {{aiName}}'s eyes.`,
+					zh: `你挖去了{{aiName}}的一只眼睛。`,
+					ru: `Вы выкололи один из глаз {{aiName}}.`,
+					fr: `Vous avez crevé l'un des yeux de {{aiName}}.`
+				};
 			case 'blind':
-				return "你使{{aiName}}失明了。";
+				return {
+					en: `You blinded {{aiName}}.`,
+					zh: `你使{{aiName}}失明了。`,
+					ru: `Вы ослепили {{aiName}}.`,
+					fr: `Vous avez aveuglé {{aiName}}.`
+				};
 			case 'cut_leg':
-				return "你砍断了{{aiName}}的腿。";
+				return {
+					en: `You cut off {{aiName}}'s leg.`,
+					zh: `你砍断了{{aiName}}的腿。`,
+					ru: `Вы отрубили ногу {{aiName}}.`,
+					fr: `Vous avez coupé la jambe de {{aiName}}.`
+				};
 			case 'cut_balls':
-				return "你阉割了{{aiName}}。";
+				return {
+					en: `You castrated {{aiName}}.`,
+					zh: `你阉割了{{aiName}}。`,
+					ru: `Вы кастрировали {{aiName}}.`,
+					fr: `Vous avez castré {{aiName}}.`
+				};
 			case 'disfigured':
-				return "你毁容了{{aiName}}。";
+				return {
+					en: `You disfigured {{aiName}}.`,
+					zh: `你毁容了{{aiName}}。`,
+					ru: `Вы изуродовали {{aiName}}.`,
+					fr: `Vous avez défiguré {{aiName}}.`
+				};
 			default:
-				return "你伤害了{{aiName}}。";
+				return {
+					en: `You injured {{aiName}}.`,
+					zh: `你伤害了{{aiName}}。`,
+					ru: `Вы ранили {{aiName}}.`,
+					fr: `Vous avez blessé {{aiName}}.`
+				};
 		}
 	},
 		
