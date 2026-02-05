@@ -10,7 +10,12 @@ module.exports = {
             desc: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully"
         }
     ],
-    description: `当{{aiName}}自愿或被迫改变信仰，皈依{{playerName}}的宗教时执行`,
+    description: {
+        en: `Executed when {{aiName}} converts to {{playerName}}'s religion, either willingly or forcefully.`,
+        zh: `当{{aiName}}自愿或被迫改变信仰，皈依{{playerName}}的宗教时执行`,
+        ru: `Выполняется, когда {{aiName}} переходит в религию {{playerName}}, добровольно или принудительно.`,
+        fr: `Exécuté lorsque {{aiName}} se convertit à la religion de {{playerName}}, de plein gré ou par la force.`
+    },
 
 	
     /**
