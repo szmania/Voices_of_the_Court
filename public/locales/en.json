@@ -104,7 +104,9 @@
     "input_placeholder": "Write a message...",
     "search_title": "Search messages",
     "search_placeholder": "Search...",
-    "reset_title": "Reset window"
+    "reset_title": "Reset window",
+    "clear_history_button": "Clear History",
+    "clear_history_tooltip": "Clear conversation history"
   },
   "suggestions": {
     "header": "Recommended Input",

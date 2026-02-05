@@ -23,6 +23,7 @@ initTheme();
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
 let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
+let clearHistoryButton: HTMLButtonElement = document.querySelector('.clear-history-button')!;
 
 let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-button')!;
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
@@ -306,7 +307,16 @@ leaveButton.addEventListener("click", ()=>{
     if (suggestionsContainer) {
         suggestionsContainer.style.display = 'none';
     }
+    if (clearHistoryButton) {
+        clearHistoryButton.style.display = 'none';
+    }
     ipcRenderer.send('chat-stop');
+});
+
+clearHistoryButton.addEventListener("click", ()=>{
+    chatMessages.innerHTML = '';
+    clearHistoryButton.style.display = 'none';
+    ipcRenderer.send('clear-conversation-history');
 });
 
 regenerateButton.addEventListener('click', () => {
@@ -543,6 +553,11 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
         removeLoadingDots();
     }else{
         showLoadingDots();
+    }
+    
+    // Show clear history button after first message
+    if (clearHistoryButton && clearHistoryButton.style.display === 'none') {
+        clearHistoryButton.style.display = 'flex';
     }
 
     

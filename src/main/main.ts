@@ -729,6 +729,17 @@ ipcMain.on('chat-stop', () =>{
     
 })
 
+ipcMain.on('clear-conversation-history', () => {
+    console.log('IPC: Received clear-conversation-history event.');
+    if (conversation) {
+        conversation.clearHistory();
+        // Notify chat window that history was cleared
+        if (chatWindow && !chatWindow.window.isDestroyed()) {
+            chatWindow.window.webContents.send('conversation-history-cleared');
+        }
+    }
+});
+
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');

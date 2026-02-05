@@ -342,7 +342,8 @@ html{
 }
 
 .leave-button,
-.regenerate-button {
+.regenerate-button,
+.clear-history-button {
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
@@ -361,16 +362,27 @@ html{
 }
 
 .leave-button,
-.button-wrapper {
+.button-wrapper,
+.clear-history-button {
     flex: 1;
 }
 
 .leave-button:hover,
-.regenerate-button:hover {
+.regenerate-button:hover,
+.clear-history-button:hover {
     background-color: rgb(84, 84, 84);
     color: white;
     border-color: #ffd700;
     box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
+}
+
+.clear-history-button {
+    background: #5a1e1e;
+    display: none;
+}
+
+.clear-history-button:hover {
+    background-color: #7a2e2e;
 }
 
 .regenerate-button:disabled {
