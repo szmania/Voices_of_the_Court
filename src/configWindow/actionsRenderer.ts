@@ -1,6 +1,7 @@
 import { ipcRenderer} from 'electron';
 import fs, { createReadStream } from 'fs';
 import path from 'path';
+import { Config } from '../shared/Config';
 
 //@ts-ignore
 let enableActions: HTMLElement = document.querySelector("#enable-actions").checkbox;
@@ -14,7 +15,7 @@ let actionDescriptorDiv: HTMLDivElement = document.querySelector("#action-descri
 
 let refreshactionsButton: HTMLButtonElement = document.querySelector("#refresh-actions")!;
 
-let config;
+let config: Config;
 let disabledActions:string[];
 let actionsPath: string;
 
