@@ -11,7 +11,12 @@ v0.1.0
 module.exports = {
     signature: "fireAiFromCouncil",
     args: [],
-    description: `当{{playerName}}决定从{{playerName}}的内阁中解雇/开除/退休{{aiName}}时执行。`,
+    description: {
+        en: `Executed when {{playerName}} decides to fire or dismiss {{aiName}} from their council.`,
+        zh: `当{{playerName}}决定从{{playerName}}的内阁中解雇/开除/退休{{aiName}}时执行。`,
+        ru: `Выполняется, когда {{playerName}} решает уволить или отстранить {{aiName}} из своего совета.`,
+        fr: `Exécuté lorsque {{playerName}} décide de renvoyer ou de démettre {{aiName}} de son conseil.`
+    },
 
     /**
      * @param {GameData} gameData 

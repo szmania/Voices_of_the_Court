@@ -10,7 +10,12 @@ module.exports = {
             desc: "the reason (the event) that made them become soulmates of eachother. (write it in past tense)."
         }
     ],
-    description: "当{{playerName}}和{{aiName}}成为彼此的激情灵魂伴侣时执行。",
+    description: {
+        en: `Executed when {{playerName}} and {{aiName}} become passionate soulmates.`,
+        zh: `当{{playerName}}和{{aiName}}成为彼此的激情灵魂伴侣时执行。`,
+        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся страстными родственными душами.`,
+        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent des âmes sœurs passionnées.`
+    },
 
     /**
      * @param {GameData} gameData 

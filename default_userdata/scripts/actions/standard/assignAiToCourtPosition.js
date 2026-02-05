@@ -17,7 +17,12 @@ module.exports = {
             desc: "{{playerName}}决定将{{aiName}}分配到宫廷的职位。请注意！您只能从以下选项中选择一个：御医、天鹅官、旅行领队、马厩总管、宫廷小丑、狩猎主管、大施赈官、执杯官、总管、古物收藏家、导师、建筑师、宫廷诗人、侍卫、宫廷冠军、音乐家、试食官、侍女、首席太监、宫廷园丁、大法官、乳母、侍从官"
         } 
     ],
-    description: `当{{playerName}}决定将{{aiName}}分配到{{playerName}}宫廷的宫廷职位时执行。`,
+    description: {
+        en: `Executed when {{playerName}} appoints {{aiName}} to a court position in their court.`,
+        zh: `当{{playerName}}决定将{{aiName}}分配到{{playerName}}宫廷的宫廷职位时执行。`,
+        ru: `Выполняется, когда {{playerName}} назначает {{aiName}} на придворную должность в своем дворе.`,
+        fr: `Exécuté lorsque {{playerName}} nomme {{aiName}} à une charge curiale dans sa cour.`
+    },
 
     /**
      * @param {GameData} gameData 

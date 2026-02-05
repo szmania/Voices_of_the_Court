@@ -10,7 +10,12 @@ module.exports = {
             desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}."
         }
     ],
-    description: `当{{aiName}}和{{playerName}}讨论{{playerName}}将{{aiName}}封臣化或其条款时执行。`,
+    description: {
+        en: `Executed when {{aiName}} and {{playerName}} discuss vassalization or its terms.`,
+        zh: `当{{aiName}}和{{playerName}}讨论{{playerName}}将{{aiName}}封臣化或其条款时执行。`,
+        ru: `Выполняется, когда {{aiName}} и {{playerName}} обсуждают вассализацию или ее условия.`,
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} discutent de la vassalisation ou de ses conditions.`
+    },
     
     /**
      * @param {GameData} gameData 

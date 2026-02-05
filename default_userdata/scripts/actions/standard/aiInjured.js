@@ -10,7 +10,12 @@ module.exports = {
             desc: "Type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injure, remove_eye, blind if it last eye, cut_leg, cut_balls, disfigured"
         }
     ],
-    description: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
+    description: {
+        en: `Executed when {{playerName}} injures {{aiName}} in various ways based on the injuryType parameter.`,
+        zh: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
+        ru: `Выполняется, когда {{playerName}} наносит увечья {{aiName}} различными способами в зависимости от параметра injuryType.`,
+        fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`
+    },
     
     check: (gameData) => {
         // Always return true for now

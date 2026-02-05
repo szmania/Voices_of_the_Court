@@ -10,7 +10,12 @@ module.exports = {
             desc: "the number of opinion values the relation improves with. Can be between 1 and 5."
         }
     ],
-    description: `当{{playerName}}的最后一次对话或行动极大地改善了{{aiName}}对{{playerName}}的看法时执行。`,
+    description: {
+        en: `Executed when {{playerName}}'s last dialogue or action significantly improves {{aiName}}'s opinion of them.`,
+        zh: `当{{playerName}}的最后一次对话或行动极大地改善了{{aiName}}对{{playerName}}的看法时执行。`,
+        ru: `Выполняется, когда последний диалог или действие {{playerName}} значительно улучшает мнение {{aiName}} о нем.`,
+        fr: `Exécuté lorsque le dernier dialogue ou la dernière action de {{playerName}} améliore considérablement l'opinion que {{aiName}} a de lui.`
+    },
 
     /**
      * @param {GameData} gameData 

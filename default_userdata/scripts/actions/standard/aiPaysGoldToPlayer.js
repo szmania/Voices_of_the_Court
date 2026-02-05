@@ -10,7 +10,12 @@ module.exports = {
             desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
         }
     ],
-    description: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
+    description: {
+        en: `Executed when {{aiName}} pays gold to {{playerName}}, willingly or forcefully, only if {{aiName}} has enough gold.`,
+        zh: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
+        ru: `Выполняется, когда {{aiName}} платит золото {{playerName}}, добровольно или принудительно, только если у {{aiName}} достаточно золота.`,
+        fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`
+    },
     
     /**
      * @param {GameData} gameData 

@@ -4,7 +4,12 @@
 module.exports = {
     signature: "undressAi",
     args: [],
-    description: `当{{aiName}}自愿或被迫脱去衣服时执行。`,
+    description: {
+        en: `Executed when {{aiName}} undresses, either willingly or forcefully.`,
+        zh: `当{{aiName}}自愿或被迫脱去衣服时执行。`,
+        ru: `Выполняется, когда {{aiName}} раздевается, добровольно или принудительно.`,
+        fr: `Exécuté lorsque {{aiName}} se déshabille, de plein gré ou par la force.`
+    },
 
     /**
      * @param {GameData} gameData 

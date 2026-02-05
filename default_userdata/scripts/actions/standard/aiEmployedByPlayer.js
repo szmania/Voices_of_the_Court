@@ -4,7 +4,12 @@
 module.exports = {
     signature: "aiEmployedByPlayer",
     args: [],
-    description: `当{{aiName}}不是统治者或勇士，并决定加入{{playerName}}的宫廷时执行`,
+    description: {
+        en: `Executed when {{aiName}} is not a ruler or knight and decides to join {{playerName}}'s court.`,
+        zh: `当{{aiName}}不是统治者或勇士，并决定加入{{playerName}}的宫廷时执行`,
+        ru: `Выполняется, когда {{aiName}} не является правителем или рыцарем и решает присоединиться к двору {{playerName}}.`,
+        fr: `Exécuté lorsque {{aiName}} n'est pas un souverain ou un chevalier et décide de rejoindre la cour de {{playerName}}.`
+    },
 
     /**
      * @param {GameData} gameData 

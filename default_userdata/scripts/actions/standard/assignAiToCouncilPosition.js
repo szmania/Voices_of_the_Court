@@ -17,7 +17,12 @@ module.exports = {
             desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。请注意！您只能从以下选项中选择一个：掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官"
         }   
     ],
-    description: `仅在{{playerName}}宣布{{aiName}}现在被任命到其内阁时运行！警告！仅在{{playerName}}决定任命{{aiName}}为掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官时执行`,
+    description: {
+        en: `Executed when {{playerName}} appoints {{aiName}} to a council position (Chancellor, Steward, Spymaster, or Marshal).`,
+        zh: `仅在{{playerName}}宣布{{aiName}}现在被任命到其内阁时运行！警告！仅在{{playerName}}决定任命{{aiName}}为掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官时执行`,
+        ru: `Выполняется, когда {{playerName}} назначает {{aiName}} на должность в совете (канцлер, управляющий, тайный советник или маршал).`,
+        fr: `Exécuté lorsque {{playerName}} nomme {{aiName}} à un poste au conseil (chancelier, intendant, maître des espions ou maréchal).`
+    },
 
     /**
      * @param {GameData} gameData 

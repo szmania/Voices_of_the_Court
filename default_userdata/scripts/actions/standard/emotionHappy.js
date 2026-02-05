@@ -4,7 +4,12 @@
 module.exports = {
     signature: "emotionHappy",
     args: [],
-    description: `当{{aiName}}感到快乐时执行。`,
+    description: {
+        en: `Executed when {{aiName}} feels happy.`,
+        zh: `当{{aiName}}感到快乐时执行。`,
+        ru: `Выполняется, когда {{aiName}} чувствует себя счастливым.`,
+        fr: `Exécuté lorsque {{aiName}} se sent heureux.`
+    },
 
     /**
      * @param {GameData} gameData 

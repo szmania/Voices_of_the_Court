@@ -10,7 +10,12 @@ module.exports = {
             desc: "the reason (the event) that made them become friends. (in past tense)."
         }
     ],
-    description: "当{{playerName}}和{{aiName}}之间形成牢固而亲密的友谊时执行。",
+    description: {
+        en: `Executed when a strong and close friendship forms between {{playerName}} and {{aiName}}.`,
+        zh: `当{{playerName}}和{{aiName}}之间形成牢固而亲密的友谊时执行。`,
+        ru: `Выполняется, когда между {{playerName}} и {{aiName}} завязывается крепкая и близкая дружба.`,
+        fr: `Exécuté lorsqu'une amitié forte et étroite se noue entre {{playerName}} et {{aiName}}.`
+    },
 
     /**
      * @param {GameData} gameData 

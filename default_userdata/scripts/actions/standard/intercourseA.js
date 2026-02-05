@@ -4,7 +4,12 @@
 module.exports = {
     signature: "intercourseA",
     args: [],
-    description: `仅在{{aiName}}和{{playerName}}发生性关系后执行。行为可以是双方自愿的或强奸。`,
+    description: {
+        en: `Executed after {{aiName}} and {{playerName}} have sexual intercourse. Can be consensual or forced.`,
+        zh: `仅在{{aiName}}和{{playerName}}发生性关系后执行。行为可以是双方自愿的或强奸。`,
+        ru: `Выполняется после того, как {{aiName}} и {{playerName}} вступают в половую связь. Может быть по обоюдному согласию или принудительно.`,
+        fr: `Exécuté après que {{aiName}} et {{playerName}} ont eu des rapports sexuels. Peut être consensuel ou forcé.`
+    },
 
     /**
      * @param {GameData} gameData 

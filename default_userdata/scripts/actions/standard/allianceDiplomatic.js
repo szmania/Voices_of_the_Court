@@ -5,7 +5,12 @@ module.exports = {
     signature: "allianceDiplomatic",
     args: [],
 	
-    description: `当{{aiName}}和{{playerName}}同意结成同盟时执行。`,
+    description: {
+        en: `Executed when {{aiName}} and {{playerName}} agree to form an alliance.`,
+        zh: `当{{aiName}}和{{playerName}}同意结成同盟时执行。`,
+        ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются заключить союз.`,
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent de former une alliance.`
+    },
 	
     check: (gameData) => {
         let ai = gameData.getAi();

@@ -4,7 +4,12 @@
 module.exports = {
     signature: "aiGetsWounded",
     args: [],
-    description: `当{{aiName}}受重伤时执行。`,
+    description: {
+        en: `Executed when {{aiName}} is seriously wounded.`,
+        zh: `当{{aiName}}受重伤时执行。`,
+        ru: `Выполняется, когда {{aiName}} получает серьезное ранение.`,
+        fr: `Exécuté lorsque {{aiName}} est gravement blessé.`
+    },
     creator: "Durond",
     /**
      * @param {GameData} gameData 

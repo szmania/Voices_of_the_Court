@@ -5,7 +5,12 @@ module.exports = {
     signature: "playerKillsAI",
     args: [],
 	
-    description: `当{{aiName}}被杀死时执行。`,
+    description: {
+        en: `Executed when {{aiName}} is killed by {{playerName}}.`,
+        zh: `当{{aiName}}被杀死时执行。`,
+        ru: `Выполняется, когда {{aiName}} убит {{playerName}}.`,
+        fr: `Exécuté lorsque {{aiName}} est tué par {{playerName}}.`
+    },
 
     /**
      * @param {GameData} gameData

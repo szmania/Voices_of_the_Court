@@ -10,7 +10,12 @@ module.exports = {
             desc: "the reason (the event) that made them become rivals with eachother. (write it in past tense)."
         }
     ],
-    description: "当{{playerName}}和{{aiName}}成为彼此的仇人时执行。",
+    description: {
+        en: `Executed when {{playerName}} and {{aiName}} become rivals.`,
+        zh: `当{{playerName}}和{{aiName}}成为彼此的仇人时执行。`,
+        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся соперниками.`,
+        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent rivaux.`
+    },
 
     /**
      * @param {GameData} gameData 

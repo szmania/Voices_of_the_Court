@@ -10,7 +10,12 @@ module.exports = {
             desc: "the amount of gold {{playerName}} pays to {{aiName}}"
         }
     ],
-    description: `当{{playerName}}给{{aiName}}金币时执行，仅在明确{{aiName}}接受并收取金币时执行。`,
+    description: {
+        en: `Executed when {{playerName}} gives gold to {{aiName}}, only if {{aiName}} accepts it.`,
+        zh: `当{{playerName}}给{{aiName}}金币时执行，仅在明确{{aiName}}接受并收取金币时执行。`,
+        ru: `Выполняется, когда {{playerName}} дает золото {{aiName}}, только если {{aiName}} принимает его.`,
+        fr: `Exécuté lorsque {{playerName}} donne de l'or à {{aiName}}, seulement si {{aiName}} l'accepte.`
+    },
 
     /**
      * @param {GameData} gameData 

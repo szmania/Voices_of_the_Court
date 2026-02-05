@@ -10,7 +10,12 @@ module.exports = {
             desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon`,
         }
     ],
-    description: `当{{aiName}}被{{playerName}}明确监禁时执行`,
+    description: {
+        en: `Executed when {{aiName}} is explicitly imprisoned by {{playerName}}.`,
+        zh: `当{{aiName}}被{{playerName}}明确监禁时执行`,
+        ru: `Выполняется, когда {{aiName}} явно заключен в тюрьму {{playerName}}.`,
+        fr: `Exécuté lorsque {{aiName}} est explicitement emprisonné par {{playerName}}.`
+    },
     
     check: (gameData) => {
         let ai = gameData.getAi();
