@@ -43,9 +43,12 @@ module.exports = {
      * @param {string[]} args 
      */
     chatMessage: (args) =>{      
-        // 返回包含两个角色名称的消息字符串
-        // 使用{{character1Name}}和{{character2Name}}变量，它们将在parseVariables中被替换为实际角色名称
-        return `{{character1Name}}和{{character2Name}}共赴巫山`
+        return {
+            en: `{{character1Name}} and {{character2Name}} had intercourse.`,
+            zh: `{{character1Name}}和{{character2Name}}共赴巫山`,
+            ru: `{{character1Name}} и {{character2Name}} вступили в половую связь.`,
+            fr: `{{character1Name}} et {{character2Name}} ont eu des rapports sexuels.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

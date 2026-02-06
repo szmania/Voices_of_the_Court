@@ -45,7 +45,12 @@ module.exports = {
 		gameData.getAi().relationsToPlayer.push("Soulmate");
     },
     chatMessage: (args) =>{
-        return `{{aiName}}成为了你的灵魂伴侣。`
+        return {
+            en: `{{aiName}} became your soulmate.`,
+            zh: `{{aiName}}成为了你的灵魂伴侣。`,
+            ru: `{{aiName}} стал вашей родственной душой.`,
+            fr: `{{aiName}} est devenu votre âme sœur.`
+        }
     },
     chatMessageClass: "positive-action-message"
 }

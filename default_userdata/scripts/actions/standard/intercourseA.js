@@ -39,7 +39,12 @@ module.exports = {
     })
     },
     chatMessage: (args) =>{
-        return `你与{{aiName}}性交`
+        return {
+            en: `You had intercourse with {{aiName}}.`,
+            zh: `你与{{aiName}}性交`,
+            ru: `Вы вступили в половую связь с {{aiName}}.`,
+            fr: `Vous avez eu des rapports sexuels avec {{aiName}}.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

@@ -47,7 +47,12 @@ module.exports = {
         }
     },
     chatMessage: (args) =>{
-        return `{{aiName}}对你的好感度降低了${args[0]}。`
+        return {
+            en: `{{aiName}}'s opinion of you decreased by ${args[0]}.`,
+            zh: `{{aiName}}对你的好感度降低了${args[0]}。`,
+            ru: `Мнение {{aiName}} о вас ухудшилось на ${args[0]}.`,
+            fr: `L'opinion de {{aiName}} à votre égard a diminué de ${args[0]}.`
+        }
     },
     chatMessageClass: "negative-action-message"
 }

@@ -33,7 +33,12 @@ module.exports = {
         }`)
     },
     chatMessage: () => {
-        return `{{aiName}}被杀死了。`
+        return {
+            en: `{{aiName}} was killed.`,
+            zh: `{{aiName}}被杀死了。`,
+            ru: `{{aiName}} был убит.`,
+            fr: `{{aiName}} a été tué.`
+        };
     },
     chatMessageClass: "negative-action-message"
 }

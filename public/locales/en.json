@@ -108,7 +108,8 @@
     "clear_history_button": "Clear History",
     "clear_history_tooltip": "Clear conversation history",
     "undo_button": "UNDO",
-    "undo_tooltip": "Remove the last exchange (your message and the AI's response)."
+    "undo_tooltip": "Remove the last exchange (your message and the AI's response).",
+    "leave_tooltip": "End the current conversation and save the summary."
   },
   "suggestions": {
     "header": "Recommended Input",

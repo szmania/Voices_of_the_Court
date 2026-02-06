@@ -134,7 +134,12 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `你任命{{aiName}}为内阁的${args[0]}`
+        return {
+            en: `You appointed {{aiName}} as ${args[0]} on the council.`,
+            zh: `你任命{{aiName}}为内阁的${args[0]}`,
+            ru: `Вы назначили {{aiName}} на должность ${args[0]} в совете.`,
+            fr: `Vous avez nommé {{aiName}} au poste de ${args[0]} au conseil.`
+        }
     },
     chatMessageClass: "positive-action-message"
 }

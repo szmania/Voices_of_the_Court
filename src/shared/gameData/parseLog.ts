@@ -3,6 +3,48 @@ import { Character } from "./Character";
 const fs = require('fs');
 
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
+async function readLastRelevantBlock(filePath: string): Promise<string | undefined> {
+    const CHUNK_SIZE = 256 * 1024; // 256KB chunks
+    const SEARCH_STRING = 'VOTC:IN/;/init';
+
+    let handle;
+    try {
+        handle = await fs.promises.open(filePath, 'r');
+        const { size } = await handle.stat();
+
+        let position = Math.max(0, size - CHUNK_SIZE);
+        let currentReadSize = size - position;
+
+        while (true) {
+            const buffer = Buffer.alloc(currentReadSize);
+            await handle.read(buffer, 0, currentReadSize, position);
+            const content = buffer.toString('utf8');
+
+            const lastIndex = content.lastIndexOf(SEARCH_STRING);
+            if (lastIndex !== -1) {
+                const lineStartIndex = content.lastIndexOf('\n', lastIndex);
+                const absoluteStart = position + (lineStartIndex === -1 ? 0 : Buffer.byteLength(content.substring(0, lineStartIndex + 1), 'utf8'));
+
+                const resultSize = size - absoluteStart;
+                const resultBuffer = Buffer.alloc(resultSize);
+                await handle.read(resultBuffer, 0, resultSize, absoluteStart);
+                return resultBuffer.toString('utf8');
+            }
+
+            if (position === 0) break;
+
+            // Move back another chunk, with overlap to ensure we don't miss the search string
+            const newPosition = Math.max(0, position - CHUNK_SIZE);
+            currentReadSize = position - newPosition + SEARCH_STRING.length;
+            position = newPosition;
+        }
+    } catch (err) {
+        console.error(`Error reading log file efficiently: ${err}`);
+    } finally {
+        if (handle) await handle.close();
+    }
+    return undefined;
+}
     console.log(`Starting to parse log file at: ${debugLogPath}`);
     if (!fs.existsSync(debugLogPath)) {
         console.error(`Error: Log file not found at ${debugLogPath}`);
@@ -16,17 +58,14 @@ export async function parseLog(debugLogPath: string): Promise<GameData | undefin
     let isWaitingForMultiLine: boolean = false;
     let multiLineType: string = ""; //relation or opinionModifier
 
-    const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
-    const lastInitIndex = fileContent.lastIndexOf('VOTC:IN/;/init');
+    // Efficiently find the last block by reading from the end of the file
+    const relevantLogBlock = await readLastRelevantBlock(debugLogPath);
 
-    if (lastInitIndex === -1) {
+    if (!relevantLogBlock) {
         console.debug("Finished parsing log file, but 'VOTC:IN/;/init' was not found. No game data will be loaded.");
         return undefined;
     }
 
-    // Find the start of the line containing the last VOTC:IN to get the whole block
-    const lastBlockStartIndex = fileContent.lastIndexOf('\n', lastInitIndex) + 1;
-    const relevantLogBlock = fileContent.substring(lastBlockStartIndex);
     const lines = relevantLogBlock.split(/\r?\n/);
 
     console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);

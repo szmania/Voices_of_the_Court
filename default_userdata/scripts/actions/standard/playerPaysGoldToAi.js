@@ -45,7 +45,12 @@ module.exports = {
         gameData.getPlayer().gold += args[0];
     },
     chatMessage: (args) =>{
-        return `你向{{aiName}}支付了${args[0]}金币`
+        return {
+            en: `You paid {{aiName}} ${args[0]} gold.`,
+            zh: `你向{{aiName}}支付了${args[0]}金币`,
+            ru: `Вы заплатили {{aiName}} ${args[0]} золота.`,
+            fr: `Vous avez payé ${args[0]} pièces d'or à {{aiName}}.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

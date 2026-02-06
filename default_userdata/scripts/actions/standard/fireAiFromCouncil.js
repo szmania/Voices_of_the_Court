@@ -53,7 +53,12 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `你将{{aiName}}从内阁中开除`
+        return {
+            en: `You fired {{aiName}} from the council.`,
+            zh: `你将{{aiName}}从内阁中开除`,
+            ru: `Вы уволили {{aiName}} из совета.`,
+            fr: `Vous avez renvoyé {{aiName}} du conseil.`
+        }
     },
     chatMessageClass: "negative-action-message"
 }

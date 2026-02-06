@@ -108,11 +108,26 @@ module.exports = {
         let prisonType = args[0];
         switch (prisonType) {
             case 'house_arrest':
-                return "{{aiName}}被软禁。";
+                return {
+                    en: `{{aiName}} is under house arrest.`,
+                    zh: `{{aiName}}被软禁。`,
+                    ru: `{{aiName}} под домашним арестом.`,
+                    fr: `{{aiName}} est aux arrêts domiciliaires.`
+                };
             case 'dungeon':
-                return "{{aiName}}被关进地牢。";
+                return {
+                    en: `{{aiName}} is thrown into the dungeon.`,
+                    zh: `{{aiName}}被关进地牢。`,
+                    ru: `{{aiName}} брошен в темницу.`,
+                    fr: `{{aiName}} est jeté au cachot.`
+                };
             default:
-                return "{{aiName}}被监禁。";
+                return {
+                    en: `{{aiName}} is imprisoned.`,
+                    zh: `{{aiName}}被监禁。`,
+                    ru: `{{aiName}} заключен в тюрьму.`,
+                    fr: `{{aiName}} est emprisonné.`
+                };
         }
     },
     

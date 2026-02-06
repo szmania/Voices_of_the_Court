@@ -43,7 +43,12 @@ module.exports = {
         gameData.getAi().relationsToPlayer.push("Rival");
     },
     chatMessage: (args) =>{
-        return `{{aiName}}成为了你的仇人。`
+        return {
+            en: `{{aiName}} became your rival.`,
+            zh: `{{aiName}}成为了你的仇人。`,
+            ru: `{{aiName}} стал вашим соперником.`,
+            fr: `{{aiName}} est devenu votre rival.`
+        }
     },
     chatMessageClass: "negative-action-message"
 }

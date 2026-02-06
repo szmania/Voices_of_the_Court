@@ -43,7 +43,12 @@ module.exports = {
 		gameData.getAi().relationsToPlayer.push("Lover");
     },
     chatMessage: (args) =>{
-        return `{{aiName}}成为了你的恋人。`
+        return {
+            en: `{{aiName}} became your lover.`,
+            zh: `{{aiName}}成为了你的恋人。`,
+            ru: `{{aiName}} стал вашим любовником.`,
+            fr: `{{aiName}} est devenu votre amant.`
+        }
     },
     chatMessageClass: "positive-action-message"
 }

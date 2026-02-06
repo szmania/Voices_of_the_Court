@@ -90,10 +90,20 @@ module.exports = {
         console.log(`PVAIchat: score: ${aiScore}`)
         if (aiScore >= 30) {
             console.log(`PVAIchat: if`)
-            return `{{aiName}}同意成为{{playerName}}的封臣。`;
+            return {
+                en: `{{aiName}} agreed to become {{playerName}}'s vassal.`,
+                zh: `{{aiName}}同意成为{{playerName}}的封臣。`,
+                ru: `{{aiName}} согласился стать вассалом {{playerName}}.`,
+                fr: `{{aiName}} a accepté de devenir le vassal de {{playerName}}.`
+            };
         } else {
             console.log(`PVAIchat: else`)
-            return `接受分数：${aiScore} | 如果分数>30则封臣化，如果分数<-20则谈判破裂`;
+            return {
+                en: `Acceptance score: ${aiScore} | Vassalization if >30, breakdown if <-20`,
+                zh: `接受分数：${aiScore} | 如果分数>30则封臣化，如果分数<-20则谈判破裂`,
+                ru: `Очки принятия: ${aiScore} | Вассализация если >30, провал если <-20`,
+                fr: `Score d'acceptation : ${aiScore} | Vassalisation si >30, rupture si <-20`
+            };
         }
     },
     

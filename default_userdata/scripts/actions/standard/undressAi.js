@@ -34,7 +34,12 @@ module.exports = {
     `);
     },
     chatMessage: (args) =>{
-        return `{{aiName}}脱去了衣服`
+        return {
+            en: `{{aiName}} undressed.`,
+            zh: `{{aiName}}脱去了衣服`,
+            ru: `{{aiName}} разделся.`,
+            fr: `{{aiName}} s'est déshabillé.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

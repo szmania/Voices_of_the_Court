@@ -83,7 +83,12 @@ module.exports = {
  
     },
     chatMessage: (args) =>{
-        return `{{aiName}}皈依了你的宗教`
+        return {
+            en: `{{aiName}} converted to your religion.`,
+            zh: `{{aiName}}皈依了你的宗教`,
+            ru: `{{aiName}} перешел в вашу религию.`,
+            fr: `{{aiName}} s'est converti à votre religion.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }

@@ -104,7 +104,10 @@
     "input_placeholder": "输入消息...",
     "search_title": "搜索消息",
     "search_placeholder": "搜索...",
-    "reset_title": "重置窗口"
+    "reset_title": "重置窗口",
+    "undo_button": "撤销",
+    "undo_tooltip": "移除最后一次对话（您的消息和AI的回复）。",
+    "leave_tooltip": "结束当前对话并保存总结。"
   },
   "suggestions": {
     "header": "推荐输入语句",

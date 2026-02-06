@@ -47,7 +47,12 @@ module.exports = {
         }
     },
     chatMessage: (args) =>{
-        return `{{aiName}}对你的好感度提高了${args[0]}。`
+        return {
+            en: `{{aiName}}'s opinion of you increased by ${args[0]}.`,
+            zh: `{{aiName}}对你的好感度提高了${args[0]}。`,
+            ru: `Мнение {{aiName}} о вас улучшилось на ${args[0]}.`,
+            fr: `L'opinion de {{aiName}} à votre égard a augmenté de ${args[0]}.`
+        }
     },
     chatMessageClass: "positive-action-message"
 }

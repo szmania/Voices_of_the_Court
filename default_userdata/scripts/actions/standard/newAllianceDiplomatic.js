@@ -58,7 +58,12 @@ module.exports = {
         `);
     },
     chatMessage: () =>{
-        return `{{aiName}}和{{playerName}}结为同盟。`;
+        return {
+            en: `{{aiName}} and {{playerName}} formed an alliance.`,
+            zh: `{{aiName}}和{{playerName}}结为同盟。`,
+            ru: `{{aiName}} и {{playerName}} заключили союз.`,
+            fr: `{{aiName}} et {{playerName}} ont formé une alliance.`
+        };
     },
     chatMessageClass: "positive-action-message"
 }

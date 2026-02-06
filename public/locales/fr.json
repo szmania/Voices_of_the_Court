@@ -104,7 +104,15 @@
     "input_placeholder": "Écrire un message...",
     "search_title": "Rechercher des messages",
     "search_placeholder": "Rechercher...",
-    "reset_title": "Réinitialiser la fenêtre"
+    "reset_title": "Réinitialiser la fenêtre",
+    "clear_history_button": "Effacer l'historique",
+    "clear_history_tooltip": "Effacer l'historique de la conversation",
+    "undo_button": "ANNULER",
+    "undo_tooltip": "Supprimer le dernier échange (votre message et la réponse de l'IA).",
+    "leave_button": "QUITTER LA CONVERSATION",
+    "leave_tooltip": "Terminer la conversation actuelle et enregistrer le résumé.",
+    "regenerate_button": "RÉGÉNÉRER",
+    "regenerate_tooltip": "Vous ne pouvez régénérer une réponse que si l'IA a parlé en dernier."
   },
   "suggestions": {
     "header": "Entrées recommandées",

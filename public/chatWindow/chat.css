@@ -31,7 +31,7 @@
 .reset-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    top: 120%;
+    bottom: 120%;
     right: 0;
     background-color: #111;
     color: #fff;
@@ -46,6 +46,14 @@
     z-index: 1000;
     border: 1px solid #5a4a35;
     pointer-events: none;
+}
+
+/* Ensure tooltips on the right edge don't go off-screen */
+.chat-header .search-container::after,
+.chat-header .reset-button-wrapper::after {
+    right: 0;
+    left: auto;
+    transform: none;
 }
 
 .search-container:hover::after,
@@ -140,7 +148,7 @@ html{
     flex-direction: column;
     position: absolute;
     width: 47%;
-    height: 90%;
+    height: 95%;
     left: 3%;
     top: 2%;
     padding: 15px 15px 5px 15px;
@@ -154,7 +162,7 @@ html{
     color: #e0e0e0;
     box-sizing: border-box;
     resize: both;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to allow tooltips to show outside */
     min-width: 300px;
     min-height: 400px;
 }
@@ -163,7 +171,7 @@ html{
     overflow: hidden;
     position: relative;
     width: 100%;
-    height: calc(100% - 240px); /* 动态计算高度，为输入区域和按钮留出空间 */
+    height: calc(100% - 280px); /* 动态计算高度，为输入区域和按钮留出空间 */
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid #3d2e1e;
     border-radius: 2px;
@@ -206,7 +214,7 @@ html{
 
 .chat-input{
     width: 100%;
-    height: 80px; /* 固定高度，避免过大 */
+    height: 120px; /* 固定高度，避免过大 */
     resize: vertical;
     margin-bottom: 8px;
     margin-top: 8px;
@@ -335,7 +343,7 @@ html{
 .button-container {
     display: flex;
     gap: 10px;
-    height: 60px;
+    height: 50px;
     width: 100%;
     margin-top: 10px;
     flex-shrink: 0;
@@ -348,13 +356,13 @@ html{
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
-    font-size: 1rem;
+    font-size: 0.9rem;
     background-image: url("../assets/button.png");
     background-size: cover;
     font-family: 'Gitan', sans-serif;
     cursor: url("../assets/cursor.png"), auto;
     transition: all 0.2s;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 2px;
     display: flex;
     justify-content: center;
@@ -362,7 +370,6 @@ html{
     text-align: center;
 }
 
-.leave-button,
 .button-wrapper,
 .clear-history-button {
     flex: 1;
@@ -397,7 +404,10 @@ html{
     position: relative;
 }
 
-.button-wrapper .regenerate-button {
+.button-wrapper .regenerate-button,
+.button-wrapper .undo-button,
+.button-wrapper .clear-history-button,
+.button-wrapper .leave-button {
     width: 100%;
     height: 100%;
 }

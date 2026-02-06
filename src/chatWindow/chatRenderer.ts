@@ -187,10 +187,19 @@ function removeLoadingDots(){
 
 function updateRegenerateButtonState() {
     const lastMessageElement = chatMessages.lastElementChild as HTMLElement;
-    const defaultTooltip = "You can only regenerate a response if the AI was the last one to speak.";
-    const actionTooltip = "Cannot regenerate a response that includes actions.";
-    const waitingTooltip = "Waiting for a response...";
-    const undoTooltip = "Remove the last exchange (your message and the AI's response).";
+    // @ts-ignore
+    const lm = window.LocalizationManager;
+    const defaultTooltip = (lm ? lm.getNestedTranslation('chat.regenerate_tooltip') : null) || "You can only regenerate a response if the AI was the last one to speak.";
+    const actionTooltip = (lm ? lm.getNestedTranslation('chat.action_tooltip') : null) || "Cannot regenerate a response that includes actions.";
+    const waitingTooltip = (lm ? lm.getNestedTranslation('chat.waiting_tooltip') : null) || "Waiting for a response...";
+    const undoTooltip = (lm ? lm.getNestedTranslation('chat.undo_tooltip') : null) || "Remove the last exchange (your message and the AI's response).";
+    const leaveTooltip = (lm ? lm.getNestedTranslation('chat.leave_tooltip') : null) || "End the current conversation and save the summary.";
+    const clearHistoryTooltip = (lm ? lm.getNestedTranslation('chat.clear_history_tooltip') : null) || "Clear conversation history";
+
+    // Set static tooltips
+    undoButtonWrapper.setAttribute('data-tooltip', undoTooltip);
+    document.getElementById('leave-button-wrapper')?.setAttribute('data-tooltip', leaveTooltip);
+    document.getElementById('clear-history-button-wrapper')?.setAttribute('data-tooltip', clearHistoryTooltip);
 
     // Case 1: Loading dots are visible
     if (document.querySelector('.loading')) {
@@ -215,6 +224,8 @@ function updateRegenerateButtonState() {
     if (lastMessageElement.classList.contains('action-message')) {
         regenerateButton.disabled = true;
         regenerateButtonWrapper.setAttribute('data-tooltip', actionTooltip);
+        undoButton.disabled = true;
+        undoButtonWrapper.setAttribute('data-tooltip', actionTooltip);
         return;
     }
 

@@ -333,7 +333,12 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
-        return `你任命{{aiName}}为${args[0]}职位`
+        return {
+            en: `You appointed {{aiName}} to the position of ${args[0]}.`,
+            zh: `你任命{{aiName}}为${args[0]}职位`,
+            ru: `Вы назначили {{aiName}} на должность ${args[0]}.`,
+            fr: `Vous avez nommé {{aiName}} au poste de ${args[0]}.`
+        }
     },
     chatMessageClass: "neutral-action-message"
 }
