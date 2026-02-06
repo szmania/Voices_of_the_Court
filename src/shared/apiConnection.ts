@@ -11,7 +11,7 @@ export interface apiConnectionTestResult{
 }
 
 export interface Connection{
-    type: string; //openrouter, openai, ooba, gemini, glm
+    type: string; //openrouter, openai, ooba, gemini, glm, grok
     baseUrl: string;
     key: string;
     model: string;
@@ -113,7 +113,7 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek'){
+        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok'){
             console.debug("isChat() is returning true");
             return true;
         }

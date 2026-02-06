@@ -19,6 +19,7 @@ function defineTemplate(label: string){
             <option value="gemini">Google Gemini</option>
             <option value="glm">GLM</option>
             <option value="deepseek">DeepSeek</option>
+            <option value="grok">Grok (xAI)</option>
             <option value="custom">Custom (OpenAI-compatible)</option>
         </select> 
     </div>
@@ -121,6 +122,26 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="grok-menu">
+            <h2>Grok (xAI)</h2>
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="grok-key">
+            </div>
+            <div class="input-group">
+            <label for="grok-model-select">Model</label>
+            <select id="grok-model-select">
+                <option value="grok-4">Grok-4 (Reasoning)</option>
+                <option value="grok-3">Grok-3</option>
+                <option value="grok-3-mini">Grok-3 Mini (Fast)</option>
+                <option value="grok-2-1212">Grok-2</option>
+                <option value="grok-2-latest">Grok-2 (Latest)</option>
+                <option value="grok-beta">Grok Beta (Fast)</option>
+            </select>
+            </div>
+        </div>
+
         <div id="custom-menu">
             <h2>Custom (Openai-compatible) endpoint</h2>
 
@@ -167,6 +188,7 @@ class ApiSelector extends HTMLElement{
     geminiDiv: HTMLDivElement
     glmDiv: HTMLDivElement
     deepseekDiv: HTMLDivElement
+    grokDiv: HTMLDivElement
 
     openaiKeyInput: HTMLInputElement 
     openaiModelSelect: HTMLSelectElement 
@@ -177,6 +199,8 @@ class ApiSelector extends HTMLElement{
     glmKeyInput: HTMLInputElement 
     glmModelSelect: HTMLSelectElement 
     deepseekKeyInput: HTMLInputElement
+    grokKeyInput: HTMLInputElement
+    grokModelSelect: HTMLSelectElement
 
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
@@ -217,6 +241,7 @@ class ApiSelector extends HTMLElement{
         this.geminiDiv = this.shadow.querySelector("#gemini-menu")!;
         this.glmDiv = this.shadow.querySelector("#glm-menu")!;
         this.deepseekDiv = this.shadow.querySelector("#deepseek-menu")!;
+        this.grokDiv = this.shadow.querySelector("#grok-menu")!;
 
         this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
         this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
@@ -227,6 +252,8 @@ class ApiSelector extends HTMLElement{
         this.glmKeyInput = this.shadow.querySelector("#glm-key")!;
         this.glmModelSelect = this.shadow.querySelector("#glm-model-select")!;
         this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
+        this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
+        this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
@@ -325,6 +352,15 @@ class ApiSelector extends HTMLElement{
         } else if(apiConfig.type == "deepseek"){
             this.deepseekKeyInput.value = apiConfig.key;
         }
+
+        // 加载Grok配置
+        if (apiKeys.grok) {
+            this.grokKeyInput.value = apiKeys.grok.key || "";
+            this.grokModelSelect.value = apiKeys.grok.model || "";
+        } else if(apiConfig.type == "grok"){
+            this.grokKeyInput.value = apiConfig.key;
+            this.grokModelSelect.value = apiConfig.model;
+        }
         
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
@@ -356,6 +392,9 @@ class ApiSelector extends HTMLElement{
                 break;
                 case 'deepseek':
                     this.saveDeepseekConfig();
+                break;
+                case 'grok':
+                    this.saveGrokConfig();
                 break;
                 case 'custom': 
                     this.saveCustomConfig();
@@ -390,6 +429,10 @@ class ApiSelector extends HTMLElement{
 
         this.deepseekDiv.addEventListener("change", (e:any) =>{
             this.saveDeepseekConfig();
+        })
+
+        this.grokDiv.addEventListener("change", (e:any) =>{
+            this.saveGrokConfig();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -472,6 +515,7 @@ class ApiSelector extends HTMLElement{
         this.geminiDiv.style.display = "none";
         this.glmDiv.style.display = "none";
         this.deepseekDiv.style.display = "none";
+        this.grokDiv.style.display = "none";
 
         switch (this.typeSelector.value) {
             case 'openai':  
@@ -494,6 +538,9 @@ class ApiSelector extends HTMLElement{
                 break;
             case 'deepseek':
                 this.deepseekDiv.style.display = "block";
+                break;
+            case 'grok':
+                this.grokDiv.style.display = "block";
                 break;
         }
     }
@@ -542,6 +589,11 @@ class ApiSelector extends HTMLElement{
                 key: this.deepseekKeyInput.value,
                 baseUrl: "https://api.deepseek.com",
                 model: "deepseek-chat"
+            },
+            grok: {
+                key: this.grokKeyInput.value,
+                baseUrl: "https://api.x.ai/v1",
+                model: this.grokModelSelect.value
             },
             custom: {
                 key: this.customKeyInput.value,
@@ -692,6 +744,22 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'deepseek', config);
         ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'deepseek', config);
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'deepseek', config);
+    }
+
+    saveGrokConfig(){
+        const config = {
+            type: "grok",
+            baseUrl: "https://api.x.ai/v1",
+            key: this.grokKeyInput.value,
+            model: this.grokModelSelect.value,
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'grok', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'grok', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'grok', config);
     }
     
 }
