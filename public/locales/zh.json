@@ -192,7 +192,7 @@
     "conf_conn_title": "🔌 连接页面",
     "conf_conn_desc": "配置与语言模型API的连接和游戏路径设置。",
     "conf_conn_api_title": "API连接配置",
-    "conf_conn_api1": "API提供商：选择文本生成API（OpenAI、KoboldAI、Text Generation WebUI、OobaBooga等）",
+    "conf_conn_api1": "API提供商：选择文本生成API（OpenAI、KoboldAI、Text Generation WebUI、OobaBooga、Player2等）",
     "conf_conn_api2": "API密钥：输入所选服务的API密钥",
     "conf_conn_api3": "端点URL：API服务的URL地址",
     "conf_conn_api4": "模型名称：选择要使用的具体模型",

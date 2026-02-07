@@ -194,7 +194,7 @@
     "conf_conn_title": "🔌 Connection Page",
     "conf_conn_desc": "Configure the connection with the language model API and game path settings.",
     "conf_conn_api_title": "API Connection Configuration",
-    "conf_conn_api1": "API Provider: Select text generation API (OpenAI, KoboldAI, Text Generation WebUI, OobaBooga, etc.)",
+    "conf_conn_api1": "API Provider: Select text generation API (OpenAI, KoboldAI, Text Generation WebUI, OobaBooga, Player2, etc.)",
     "conf_conn_api2": "API Key: Enter the API key for the selected service",
     "conf_conn_api3": "Endpoint URL: The URL address of the API service",
     "conf_conn_api4": "Model Name: Select the specific model to use",

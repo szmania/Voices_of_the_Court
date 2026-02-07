@@ -197,7 +197,7 @@
     "conf_conn_title": "🔌 Page de connexion",
     "conf_conn_desc": "Configurez la connexion avec l'API du modèle de langage et les paramètres du chemin du jeu.",
     "conf_conn_api_title": "Configuration de la connexion API",
-    "conf_conn_api1": "Fournisseur d'API : Sélectionnez l'API de génération de texte (OpenAI, KoboldAI, Text Generation WebUI, OobaBooga, etc.)",
+    "conf_conn_api1": "Fournisseur d'API : Sélectionnez l'API de génération de texte (OpenAI, KoboldAI, Text Generation WebUI, OobaBooga, Player2, etc.)",
     "conf_conn_api2": "Clé API : Entrez la clé API pour le service sélectionné",
     "conf_conn_api3": "URL du point de terminaison : L'adresse URL du service API",
     "conf_conn_api4": "Nom du modèle : Sélectionnez le modèle spécifique à utiliser",

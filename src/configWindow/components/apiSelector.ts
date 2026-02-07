@@ -20,6 +20,7 @@ function defineTemplate(label: string){
             <option value="glm">GLM</option>
             <option value="deepseek">DeepSeek</option>
             <option value="grok">Grok (xAI)</option>
+            <option value="player2">Player2</option>
             <option value="custom">Custom (OpenAI-compatible)</option>
         </select> 
     </div>
@@ -148,6 +149,22 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="player2-menu">
+            <h2>Player2</h2>
+            <div class="input-group">
+            <label for="api-key">API Key</label>
+            <br>
+            <input type="password" id="player2-key">
+            </div>
+            <div class="input-group">
+            <label for="player2-model-select">Model</label>
+            <select id="player2-model-select">
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="gpt-4o">GPT-4o</option>
+            </select>
+            </div>
+        </div>
+
         <div id="custom-menu">
             <h2>Custom (Openai-compatible) endpoint</h2>
 
@@ -195,6 +212,7 @@ class ApiSelector extends HTMLElement{
     glmDiv: HTMLDivElement
     deepseekDiv: HTMLDivElement
     grokDiv: HTMLDivElement
+    player2Div: HTMLDivElement
 
     openaiKeyInput: HTMLInputElement 
     openaiModelSelect: HTMLSelectElement 
@@ -207,6 +225,8 @@ class ApiSelector extends HTMLElement{
     deepseekKeyInput: HTMLInputElement
     grokKeyInput: HTMLInputElement
     grokModelSelect: HTMLSelectElement
+    player2KeyInput: HTMLInputElement
+    player2ModelSelect: HTMLSelectElement
 
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
@@ -248,6 +268,7 @@ class ApiSelector extends HTMLElement{
         this.glmDiv = this.shadow.querySelector("#glm-menu")!;
         this.deepseekDiv = this.shadow.querySelector("#deepseek-menu")!;
         this.grokDiv = this.shadow.querySelector("#grok-menu")!;
+        this.player2Div = this.shadow.querySelector("#player2-menu")!;
 
         this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
         this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
@@ -260,6 +281,8 @@ class ApiSelector extends HTMLElement{
         this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
         this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
         this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
+        this.player2KeyInput = this.shadow.querySelector("#player2-key")!;
+        this.player2ModelSelect = this.shadow.querySelector("#player2-model-select")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
@@ -367,6 +390,15 @@ class ApiSelector extends HTMLElement{
             this.grokKeyInput.value = apiConfig.key;
             this.grokModelSelect.value = apiConfig.model;
         }
+
+        // 加载Player2配置
+        if (apiKeys.player2) {
+            this.player2KeyInput.value = apiKeys.player2.key || "";
+            this.player2ModelSelect.value = apiKeys.player2.model || "";
+        } else if(apiConfig.type == "player2"){
+            this.player2KeyInput.value = apiConfig.key;
+            this.player2ModelSelect.value = apiConfig.model;
+        }
         
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
@@ -401,6 +433,9 @@ class ApiSelector extends HTMLElement{
                 break;
                 case 'grok':
                     this.saveGrokConfig();
+                break;
+                case 'player2':
+                    this.savePlayer2Config();
                 break;
                 case 'custom': 
                     this.saveCustomConfig();
@@ -439,6 +474,10 @@ class ApiSelector extends HTMLElement{
 
         this.grokDiv.addEventListener("change", (e:any) =>{
             this.saveGrokConfig();
+        })
+
+        this.player2Div.addEventListener("change", (e:any) =>{
+            this.savePlayer2Config();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -522,6 +561,7 @@ class ApiSelector extends HTMLElement{
         this.glmDiv.style.display = "none";
         this.deepseekDiv.style.display = "none";
         this.grokDiv.style.display = "none";
+        this.player2Div.style.display = "none";
 
         switch (this.typeSelector.value) {
             case 'openai':  
@@ -547,6 +587,9 @@ class ApiSelector extends HTMLElement{
                 break;
             case 'grok':
                 this.grokDiv.style.display = "block";
+                break;
+            case 'player2':
+                this.player2Div.style.display = "block";
                 break;
         }
     }
@@ -600,6 +643,11 @@ class ApiSelector extends HTMLElement{
                 key: this.grokKeyInput.value,
                 baseUrl: "https://api.x.ai/v1",
                 model: this.grokModelSelect.value
+            },
+            player2: {
+                key: this.player2KeyInput.value,
+                baseUrl: "https://api.player2.game/v1",
+                model: this.player2ModelSelect.value
             },
             custom: {
                 key: this.customKeyInput.value,
@@ -766,6 +814,22 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'grok', config);
         ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'grok', config);
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'grok', config);
+    }
+
+    savePlayer2Config(){
+        const config = {
+            type: "player2",
+            baseUrl: "https://api.player2.game/v1",
+            key: this.player2KeyInput.value,
+            model: this.player2ModelSelect.value,
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'player2', config);
+        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'player2', config);
+        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'player2', config);
     }
     
 }

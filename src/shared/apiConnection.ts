@@ -57,12 +57,17 @@ export class ApiConnection{
         
         this.type = connection.type;
         if(this.type !== 'gemini' && this.type !== 'glm'){
+            let baseURL = connection.baseUrl;
+            if (this.type === 'player2') {
+                baseURL = "https://api.player2.game/v1";
+            }
+
             this.client = new OpenAI({
-                baseURL: connection.baseUrl,
+                baseURL: baseURL,
                 apiKey: connection.key,
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    "HTTP-Referer": "https://github.com/Demeter29/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
+                    "HTTP-Referer": "https://github.com/szmania/Voices_of_the_Court", // Optional, for including your app on openrouter.ai rankings.
                     "X-Title": "Voices of the Court - Community Edition", // Optional. Shows in rankings on openrouter.ai.
                   }
             })
@@ -113,7 +118,7 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok'){
+        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2'){
             console.debug("isChat() is returning true");
             return true;
         }
@@ -350,7 +355,7 @@ export class ApiConnection{
                     }
                 }
                 //OPENAI DOESN'T ALLOW spaces inside message.name so we have to put them inside the Message content.
-                if (this.type === "openai") {
+                if (this.type === "openai" || this.type === "player2") {
                     for (let i = 0; i < prompt.length; i++) {
                         //@ts-ignore
                         if (prompt[i].name) {

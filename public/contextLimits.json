@@ -138,5 +138,7 @@
     "grok-4-0709": 256000,
     "grok-3-mini": 131072,
     "grok-3": 131072,
-    "grok-2-vision-1212": 32768
+    "grok-2-vision-1212": 32768,
+    "player2-gpt-3.5-turbo": 16385,
+    "player2-gpt-4o": 128000
 }
