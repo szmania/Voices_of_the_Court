@@ -132,9 +132,15 @@ function defineTemplate(label: string){
             <div class="input-group">
             <label for="grok-model-select">Model</label>
             <select id="grok-model-select">
-                <option value="grok-4">Grok-4 (Reasoning)</option>
+                <option value="grok-4-1-fast-reasoning">Grok-4.1 Fast Reasoning</option>
+                <option value="grok-4-1-fast-non-reasoning">Grok-4.1 Fast Non-Reasoning</option>
+                <option value="grok-4-fast-reasoning">Grok-4 Fast Reasoning</option>
+                <option value="grok-4-fast-non-reasoning">Grok-4 Fast Non-Reasoning</option>
+                <option value="grok-4-0709">Grok-4 (0709)</option>
                 <option value="grok-3">Grok-3</option>
-                <option value="grok-3-mini">Grok-3 Mini (Fast)</option>
+                <option value="grok-3-mini">Grok-3 Mini</option>
+                <option value="grok-code-fast-1">Grok Code Fast 1</option>
+                <option value="grok-2-vision-1212">Grok-2 Vision</option>
                 <option value="grok-2-1212">Grok-2</option>
                 <option value="grok-2-latest">Grok-2 (Latest)</option>
                 <option value="grok-beta">Grok Beta (Fast)</option>

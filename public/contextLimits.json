@@ -129,5 +129,14 @@
     "hermes-3-llama-3.1-405b": 131072,
     "hermes-3-llama-3.1-405b:free": 8192,
     "llama-3.1-405b-instruct:free": 8192,
-    "hermes-3-llama-3.1-70b": 131072
+    "hermes-3-llama-3.1-70b": 131072,
+    "grok-4-1-fast-reasoning": 2000000,
+    "grok-4-1-fast-non-reasoning": 2000000,
+    "grok-code-fast-1": 256000,
+    "grok-4-fast-reasoning": 2000000,
+    "grok-4-fast-non-reasoning": 2000000,
+    "grok-4-0709": 256000,
+    "grok-3-mini": 131072,
+    "grok-3": 131072,
+    "grok-2-vision-1212": 32768
 }
