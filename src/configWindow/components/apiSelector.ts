@@ -11,47 +11,47 @@ function defineTemplate(label: string){
     </style>
     
     <div class="input-group">
-        <label for="connection-api">API</label>
+        <label for="connection-api" data-i18n="connection.api_label">API</label>
         <select name="connection-api" id="connection-api">
-            <option value="openrouter">OpenRouter</option>
-            <option value="ooba">Text Gen WebUI (ooba)</option>
-            <option value="openai">OpenAI</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="glm">GLM</option>
-            <option value="deepseek">DeepSeek</option>
-            <option value="grok">Grok (xAI)</option>
-            <option value="player2">Player2</option>
-            <option value="custom">Custom (OpenAI-compatible)</option>
+            <option value="openrouter" data-i18n="api.openrouter">OpenRouter</option>
+            <option value="ooba" data-i18n="api.ooba">Text Gen WebUI (ooba)</option>
+            <option value="openai" data-i18n="api.openai">OpenAI</option>
+            <option value="gemini" data-i18n="api.gemini">Google Gemini</option>
+            <option value="glm" data-i18n="api.glm">GLM</option>
+            <option value="deepseek" data-i18n="api.deepseek">DeepSeek</option>
+            <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
+            <option value="player2" data-i18n="api.player2">Player2</option>
+            <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
         </select> 
     </div>
     
     <div class="border">
         <div id="openrouter-menu">
-            <h2>OpenRouter</h2>
+            <h2 data-i18n="api.openrouter">OpenRouter</h2>
 
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="openrouter-key">
             </div>
         
             <div class="input-group">
-            <label for="openrouter-model">Model</label>
+            <label for="openrouter-model" data-i18n="connection.model">Model</label>
             <input type="text" id="openrouter-model">
-            <a href="https://openrouter.ai/models" target="_blank">Browse models..</a>
+            <a href="https://openrouter.ai/models" target="_blank" data-i18n="connection.browse_models">Browse models..</a>
             </div>
 
             <div class="input-group">
             <input type="checkbox" id="openrouter-instruct-mode">
-            <label for="openrouter-instruct-mode">Force Instruct mode</label>
+            <label for="openrouter-instruct-mode" data-i18n="connection.force_instruct">Force Instruct mode</label>
             </div>
         </div>
 
         <div id="ooba-menu">
-            <h2>Text-Gen-WebUI (Ooba)</h2>
+            <h2 data-i18n="api.ooba">Text-Gen-WebUI (Ooba)</h2>
 
             <div class="input-group">
-                <label for="ooba-url">Server URL</label>
+                <label for="ooba-url" data-i18n="connection.server_url">Server URL</label>
                 <br>
                 <input type="text" id="ooba-url">
                 <br>
@@ -60,16 +60,16 @@ function defineTemplate(label: string){
         </div>
 
         <div id="openai-menu">
-            <h2>OpenAI</h2>
+            <h2 data-i18n="api.openai">OpenAI</h2>
 
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="openai-key">
             </div>
         
             <div class="input-group">
-            <label for="openai-model-select">Model</label>
+            <label for="openai-model-select" data-i18n="connection.model">Model</label>
             <select id="openai-model-select">
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Recommended)</option>
                 <option value="gpt-4o">GPT-4-o</option>
@@ -78,31 +78,31 @@ function defineTemplate(label: string){
         </div>
 
         <div id="gemini-menu">
-            <h2>Google Gemini</h2>
+            <h2 data-i18n="api.gemini">Google Gemini</h2>
 
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="gemini-key">
             </div>
         
             <div class="input-group">
-            <label for="gemini-model">Model</label>
+            <label for="gemini-model" data-i18n="connection.model">Model</label>
             <input type="text" id="gemini-model" placeholder="e.g. gemini-2.5-pro">
             </div>
         </div>
 
         <div id="glm-menu">
-            <h2>GLM</h2>
+            <h2 data-i18n="api.glm">GLM</h2>
 
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="glm-key">
             </div>
         
             <div class="input-group">
-            <label for="glm-model-select">Model</label>
+            <label for="glm-model-select" data-i18n="connection.model">Model</label>
             <select id="glm-model-select">
                 <option value="glm-4.6">GLM-4.6</option>
                 <option value="glm-4.5">GLM-4.5</option>
@@ -115,23 +115,23 @@ function defineTemplate(label: string){
         </div>
 
         <div id="deepseek-menu">
-            <h2>DeepSeek</h2>
+            <h2 data-i18n="api.deepseek">DeepSeek</h2>
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="deepseek-key">
             </div>
         </div>
 
         <div id="grok-menu">
-            <h2>Grok (xAI)</h2>
+            <h2 data-i18n="api.grok">Grok (xAI)</h2>
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="grok-key">
             </div>
             <div class="input-group">
-            <label for="grok-model-select">Model</label>
+            <label for="grok-model-select" data-i18n="connection.model">Model</label>
             <select id="grok-model-select">
                 <option value="grok-4-1-fast-reasoning">Grok-4.1 Fast Reasoning</option>
                 <option value="grok-4-1-fast-non-reasoning">Grok-4.1 Fast Non-Reasoning</option>
@@ -150,14 +150,14 @@ function defineTemplate(label: string){
         </div>
 
         <div id="player2-menu">
-            <h2>Player2</h2>
+            <h2 data-i18n="api.player2">Player2</h2>
             <div class="input-group">
-            <label for="api-key">API Key</label>
+            <label for="api-key" data-i18n="connection.api_key">API Key</label>
             <br>
             <input type="password" id="player2-key">
             </div>
             <div class="input-group">
-            <label for="player2-model-select">Model</label>
+            <label for="player2-model-select" data-i18n="connection.model">Model</label>
             <select id="player2-model-select">
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                 <option value="gpt-4o">GPT-4o</option>
@@ -166,20 +166,20 @@ function defineTemplate(label: string){
         </div>
 
         <div id="custom-menu">
-            <h2>Custom (Openai-compatible) endpoint</h2>
+            <h2 data-i18n="api.custom">Custom (Openai-compatible) endpoint</h2>
 
             <div class="input-group">
-                <label for="custom-url">Server URL</label>
+                <label for="custom-url" data-i18n="connection.server_url">Server URL</label>
                 <br>
                 <input type="text" id="custom-url">
             </div>
             <div class="input-group">
-                <label for="custom-key">API Key</label>
+                <label for="custom-key" data-i18n="connection.api_key">API Key</label>
                 <br>
                 <input type="password" id="custom-key">
             </div>
             <div class="input-group">
-                <label for="custom-model">Model</label>
+                <label for="custom-model" data-i18n="connection.model">Model</label>
                 <br>
                 <input type="text" id="custom-model">
             </div>
@@ -188,11 +188,11 @@ function defineTemplate(label: string){
 
         <hr>
         <input type="checkbox" id="overwrite-context"/>
-        <label>Overwrite context size</label> <br>
+        <label data-i18n="connection.overwrite_context">Overwrite context size</label> <br>
         <input type="number" id="custom-context" min="0" style="width: 10%;"/>
     </div>
 
-  <button type="button" id="connection-test-button">Test Connection</button> <span id="connection-test-span"></span>`
+  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
 }
 
     
@@ -304,13 +304,21 @@ class ApiSelector extends HTMLElement{
 
 
     static get observedAttributes(){
-        return ["name", "confID", "label"]
+        return ["name", "confID", "label", "data-i18n"]
     }
 
     async connectedCallback(){
         const confID: string = this.confID;
 
         let config = await ipcRenderer.invoke('get-config');
+
+        // Handle localization
+        this.applyTranslations();
+        
+        // Listen for language changes
+        ipcRenderer.on('update-language', () => {
+            this.applyTranslations();
+        });
 
         let apiConfig = config[confID].connection;
 
@@ -604,6 +612,8 @@ class ApiSelector extends HTMLElement{
         this.saveGeminiConfig();
         this.saveGlmConfig();
         this.saveDeepseekConfig();
+        this.saveGrokConfig();
+        this.savePlayer2Config();
         this.saveCustomConfig();
         
         // 通知主进程所有API配置已更新

@@ -19,7 +19,7 @@ Join our Discord:
 ### 🌟 Features
 
 ### 🎮 Configuration Interface
-- **🤖 Multiple AI Models**: Support for OpenAI GPT models, Anthropic Claude, and local models
+- **🤖 Multiple AI Models**: Support for OpenAI GPT models, Anthropic Claude, Player2, and local models
 - **🧠 Character Memory**: Persistent memory system that tracks character relationships and history
 - **📚 Context Management**: Adjustable context window and conversation history settings
 - **🎯 Custom Prompts**: Personalized system prompts for different character types
