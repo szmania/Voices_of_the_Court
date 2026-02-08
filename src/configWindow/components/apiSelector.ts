@@ -192,8 +192,7 @@ function defineTemplate(label: string){
         <input type="number" id="custom-context" min="0" style="width: 10%;"/>
     </div>
 
-  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
-    \`;
+  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>`
 }
 
     
@@ -842,7 +841,14 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'player2', config);
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'player2', config);
     }
-    
+
+    applyTranslations() {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations(this.shadow);
+        }
+    }
 }
 
 
