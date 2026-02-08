@@ -193,6 +193,7 @@ function defineTemplate(label: string){
     </div>
 
   <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
+    \`;
 }
 
     
