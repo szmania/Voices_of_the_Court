@@ -23,13 +23,13 @@
 
     <div class="container" id="container">
       
-      <config-checkbox id="enable-actions" confID="actionsEnableAll" label="Enable actions" data-i18n="actions.enable_actions"></config-checkbox>
+      <config-checkbox id="enable-actions" confID="actionsEnableAll" data-i18n="actions.enable_actions"></config-checkbox>
       
-      <config-checkbox id="enable-narrative" confID="narrativeEnable" label="Enable AI narrative after actions" data-i18n="actions.enable_narrative"></config-checkbox>
+      <config-checkbox id="enable-narrative" confID="narrativeEnable" data-i18n="actions.enable_narrative"></config-checkbox>
       
       <div id="actions" class="border">
 
-        <config-checkbox id="use-connection-api" confID="actionsUseTextGenApi" label="Use the same API as in the connection tab" data-i18n="actions.use_same_api"></config-checkbox>
+        <config-checkbox id="use-connection-api" confID="actionsUseTextGenApi" data-i18n="actions.use_same_api"></config-checkbox>
 
         <hr>
 
@@ -45,8 +45,8 @@
         <p data-i18n="actions.select_actions">Select which actions you want the mod to detect:</p>
 
         <div class="input-group">
-          <button type="button" id="refresh-actions" data-i18n="actions.reload_files">🔄 Reload files</button>
-          <open-folder-button path="scripts/actions/" label="open folder" data-i18n="actions.open_folder"></open-folder-button>
+          <button type="button" id="refresh-actions" data-i18n="actions.reload_files">🔄</button>
+          <open-folder-button path="scripts/actions/" data-i18n="actions.open_folder"></open-folder-button>
         </div>
         
         <div id="actions-menu">
