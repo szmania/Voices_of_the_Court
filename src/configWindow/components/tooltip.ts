@@ -7,7 +7,7 @@ function defineTemplate(side:string){
     <link rel="stylesheet" href="../../public/configWindow/config.css"/>
     <style>
     </style>
-    <div class="tooltip tooltip-${side}"> <img src="../../public/assets/tooltip2.png" height="15" wdith="15">
+    <div class="tooltip tooltip-${side}"> <img src="../../public/assets/tooltip2.png" height="15" width="15">
         <span class="tooltiptext tooltiptext-${side}"><slot></slot></span>
     </div>
     `

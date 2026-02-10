@@ -31,7 +31,7 @@ class ConfigNumber extends HTMLElement{
 
     constructor(){
         super();
-        this.label = this.getAttribute("label")!;
+        this.label = this.getAttribute("label") || "";
         this.confID = this.getAttribute("confID")!;
         this.min =  parseFloat(this.getAttribute("min")!);
         this.max = parseFloat(this.getAttribute("max")!);

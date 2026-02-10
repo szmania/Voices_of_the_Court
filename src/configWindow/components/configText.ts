@@ -23,7 +23,7 @@ class ConfigText extends HTMLElement{
 
     constructor(){
         super();
-        this.label = this.getAttribute("label")!;
+        this.label = this.getAttribute("label") || "";
         this.confID = this.getAttribute("confID")!;
 
         this.shadow = this.attachShadow({mode: "open"});

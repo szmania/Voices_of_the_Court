@@ -36,7 +36,7 @@ class ConfigSlider extends HTMLElement{
 
     constructor(){
         super();
-        this.label = this.getAttribute("label")!;
+        this.label = this.getAttribute("label") || "";
         this.confID = this.getAttribute("confID")!;
         this.min =  parseFloat(this.getAttribute("min")!);
         this.max = parseFloat(this.getAttribute("max")!);
@@ -62,19 +62,12 @@ class ConfigSlider extends HTMLElement{
     async connectedCallback(){
         const confID: string = this.confID;
 
-        // @ts-ignore
-        if (window.LocalizationManager) {
-            // @ts-ignore
-            const translatedLabel = window.LocalizationManager.getNestedTranslation(`parameters.${confID}`);
-            if (translatedLabel) {
-                this.shadow.querySelector('#label').textContent = translatedLabel;
-            }
-            // @ts-ignore
-            const translatedReset = window.LocalizationManager.getNestedTranslation('parameters.reset');
-            if (translatedReset) {
-                this.button.textContent = translatedReset;
-            }
-        }
+        this.updateTranslation();
+        
+        // Listen for language changes
+        ipcRenderer.on('update-language', () => {
+            this.updateTranslation();
+        });
 
         let config = await ipcRenderer.invoke('get-config');
 
@@ -114,6 +107,22 @@ class ConfigSlider extends HTMLElement{
     changeValue(newValue: number){
         this.slider.value = newValue;
         this.number.value = newValue;
+    }
+
+    private updateTranslation() {
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const translatedLabel = window.LocalizationManager.getNestedTranslation(`parameters.${this.confID}`);
+            if (translatedLabel) {
+                this.shadow.querySelector('#label').textContent = translatedLabel;
+            }
+            // @ts-ignore
+            const translatedReset = window.LocalizationManager.getNestedTranslation('parameters.reset');
+            if (translatedReset) {
+                this.button.textContent = translatedReset;
+            }
+        }
     }
 }
 

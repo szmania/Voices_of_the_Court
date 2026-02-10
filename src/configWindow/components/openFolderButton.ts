@@ -24,7 +24,7 @@ class openFolderButton extends HTMLElement{
     constructor(){
         super();
         this.path = this.getAttribute("path")!;
-        this.label = this.getAttribute("label")!;
+        this.label = this.getAttribute("label") || "";
 
         this.shadow = this.attachShadow({mode: "open"});
         template.innerHTML = defineTemplate(this.path, this.label);
