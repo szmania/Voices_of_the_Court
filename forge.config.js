@@ -2,6 +2,7 @@
 const path = require('path');
 
 module.exports = {
+  outDir: 'C:/tmp',
   packagerConfig: {
      icon: './build/icons/icon.ico',
     //"asar":true
