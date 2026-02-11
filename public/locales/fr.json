@@ -11,7 +11,28 @@
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",
     "select_folder": "Sélectionner le dossier",
-    "path_tooltip": "Ici, vous devez sélectionner le dossier CK3 où sont stockées vos données utilisateur, pas celui des fichiers du jeu ! Par défaut, il se trouve dans vos documents utilisateur, dans le dossier Paradox Interactive"
+    "path_tooltip": "Ici, vous devez sélectionner le dossier CK3 où sont stockées vos données utilisateur, pas celui des fichiers du jeu ! Par défaut, il se trouve dans vos documents utilisateur, dans le dossier Paradox Interactive",
+    "api_label": "API",
+    "api_key": "Clé API",
+    "model": "Modèle",
+    "server_url": "URL du serveur",
+    "force_instruct": "Forcer le mode Instruct",
+    "browse_models": "Parcourir les modèles..",
+    "overwrite_context": "Écraser la taille du contexte",
+    "test_connection": "Tester la connexion",
+    "connection_valid": "Connexion valide !",
+    "connection_valid_warning": "Connexion valide ! Attention : la taille du contexte n'a pas pu être détectée, la taille d'écrasement sera utilisée ! (même si désactivée !)"
+  },
+  "api": {
+    "openrouter": "OpenRouter",
+    "ooba": "Text Gen WebUI (ooba)",
+    "openai": "OpenAI",
+    "gemini": "Google Gemini",
+    "glm": "GLM",
+    "deepseek": "DeepSeek",
+    "grok": "Grok (xAI)",
+    "player2": "Player2",
+    "custom": "Personnalisé (compatible OpenAI)"
   },
   "actions": {
     "enable_actions": "Activer les actions",
