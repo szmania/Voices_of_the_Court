@@ -156,7 +156,7 @@ function defineTemplate(label: string){
             <br>
             <input type="password" id="player2-key">
             </div>
-            <div class="input-group">
+            <div class="input-group" style="display: none;">
             <label for="player2-model-select" data-i18n="connection.model">Model</label>
             <select id="player2-model-select">
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -313,11 +313,11 @@ class ApiSelector extends HTMLElement{
         let config = await ipcRenderer.invoke('get-config');
 
         // Handle localization
-        this.applyTranslations();
+        this.updateTranslation();
         
         // Listen for language changes
         ipcRenderer.on('update-language', () => {
-            this.applyTranslations();
+            this.updateTranslation();
         });
 
         let apiConfig = config[confID].connection;
@@ -842,7 +842,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'player2', config);
     }
 
-    applyTranslations() {
+    public updateTranslation() {
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore

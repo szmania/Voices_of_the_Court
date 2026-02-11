@@ -109,19 +109,23 @@ class ConfigSlider extends HTMLElement{
         this.number.value = newValue;
     }
 
-    private updateTranslation() {
+    public updateTranslation() {
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore
             const translatedLabel = window.LocalizationManager.getNestedTranslation(`parameters.${this.confID}`);
             if (translatedLabel) {
                 this.shadow.querySelector('#label').textContent = translatedLabel;
+            } else if (this.label) {
+                this.shadow.querySelector('#label').textContent = this.label;
             }
             // @ts-ignore
             const translatedReset = window.LocalizationManager.getNestedTranslation('parameters.reset');
             if (translatedReset) {
                 this.button.textContent = translatedReset;
             }
+        } else if (this.label) {
+            this.shadow.querySelector('#label').textContent = this.label;
         }
     }
 }

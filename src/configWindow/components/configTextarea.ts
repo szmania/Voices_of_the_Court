@@ -98,14 +98,18 @@ class ConfigTextarea extends HTMLElement{
         }
     }
 
-    private updateTranslation(key: string) {
+    public updateTranslation(key: string) {
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore
             const translation = window.LocalizationManager.getNestedTranslation(key);
             if (translation) {
                 this.textarea.placeholder = translation;
+            } else if (this.placeholder) {
+                this.textarea.placeholder = this.placeholder;
             }
+        } else if (this.placeholder) {
+            this.textarea.placeholder = this.placeholder;
         }
     }
 }

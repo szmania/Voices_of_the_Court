@@ -63,15 +63,20 @@ class ConfigText extends HTMLElement{
         }
     }
 
-    private updateTranslation(key: string) {
+    public updateTranslation(key: string) {
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore
             const translation = window.LocalizationManager.getNestedTranslation(key);
+            const labelElement = this.shadow.querySelector('label');
             if (translation) {
-                const labelElement = this.shadow.querySelector('label');
                 if (labelElement) labelElement.textContent = translation;
+            } else if (this.label) {
+                if (labelElement) labelElement.textContent = this.label;
             }
+        } else if (this.label) {
+            const labelElement = this.shadow.querySelector('label');
+            if (labelElement) labelElement.textContent = this.label;
         }
     }
 }

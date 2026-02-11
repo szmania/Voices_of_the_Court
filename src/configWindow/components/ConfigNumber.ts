@@ -75,14 +75,18 @@ class ConfigNumber extends HTMLElement{
         }
     }
 
-    private updateTranslation(key: string) {
+    public updateTranslation(key: string) {
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore
             const translation = window.LocalizationManager.getNestedTranslation(key);
             if (translation) {
                 this.labelElement.textContent = translation;
+            } else if (this.label) {
+                this.labelElement.textContent = this.label;
             }
+        } else if (this.label) {
+            this.labelElement.textContent = this.label;
         }
     }
 }
