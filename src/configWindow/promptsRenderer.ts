@@ -140,7 +140,7 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                     for (const file of files) {
                         var el = document.createElement("option");
                         el.textContent = `${subfolder}/${path.parse(file).name}`;
-                        el.value = path.join(subfolder, file);
+                        el.value = path.join(subfolder, file).replace(/\\/g, '/');
                         selectElement.appendChild(el);
                     }
                 }
@@ -152,8 +152,9 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         // Original logic for other script types
         let standardFiles: string[] = [];
         try {
-            if (fs.existsSync(path.join(folderPath, 'standard'))) {
-                standardFiles = fs.readdirSync(path.join(folderPath, 'standard')).filter(file => path.extname(file) === fileExtension);
+            const standardPath = path.join(folderPath, 'standard');
+            if (fs.existsSync(standardPath)) {
+                standardFiles = fs.readdirSync(standardPath).filter(file => path.extname(file) === fileExtension);
             }
         } catch (e) {
             console.error('Error reading standard scripts:', e);
@@ -161,8 +162,9 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         
         let customFiles: string[] = [];
         try {
-            if (fs.existsSync(path.join(folderPath, 'custom'))) {
-                customFiles = fs.readdirSync(path.join(folderPath, 'custom')).filter(file => path.extname(file) === fileExtension);
+            const customPath = path.join(folderPath, 'custom');
+            if (fs.existsSync(customPath)) {
+                customFiles = fs.readdirSync(customPath).filter(file => path.extname(file) === fileExtension);
             }
         } catch (e) {
             console.error('Error reading custom scripts:', e);
@@ -171,14 +173,14 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         for(const file of standardFiles) {
             var el = document.createElement("option");
             el.textContent = `standard / ${path.parse(file).name}`;
-            el.value = path.join('standard', file);
+            el.value = path.join('standard', file).replace(/\\/g, '/');
             selectElement.appendChild(el);
         }
 
         for(const file of customFiles) {
             var el = document.createElement("option");
             el.textContent = `custom / ${path.parse(file).name}`;
-            el.value = path.join('custom', file);
+            el.value = path.join('custom', file).replace(/\\/g, '/');
             selectElement.appendChild(el);
         }
     }

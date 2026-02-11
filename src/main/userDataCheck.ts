@@ -123,37 +123,23 @@ export async function checkUserData(){
 
     //actions
     console.log('Updating action scripts...');
-    /*
     const standardActionsPath = path.join(userDataScriptsPath, 'actions', 'standard');
     if(fs.existsSync(standardActionsPath)){
-        fs.rmdirSync(standardActionsPath, {recursive: true});
+        fs.rmSync(standardActionsPath, {recursive: true, force: true});
         console.log(`Removed old standard actions directory: ${standardActionsPath}`);
     } 
-    fs.cp(path.join(defaultScriptsPath, 'actions', 'standard'), standardActionsPath, {recursive: true}, (err) => {
-        if(err) {
-            console.error(`Error copying standard actions: ${err}`);
-            throw err;
-        }
-        console.log(`Copied standard actions to: ${standardActionsPath}`);
-    });
-    */
+    fs.cpSync(path.join(defaultScriptsPath, 'actions', 'standard'), standardActionsPath, {recursive: true});
+    console.log(`Copied standard actions to: ${standardActionsPath}`);
 
     //description
     console.log('Updating description scripts...');
-    /*
     const standardDescriptionPath = path.join(userDataScriptsPath, 'prompts', 'description', 'standard');
     if(fs.existsSync(standardDescriptionPath)){
-        fs.rmdirSync(standardDescriptionPath, {recursive: true});
+        fs.rmSync(standardDescriptionPath, {recursive: true, force: true});
         console.log(`Removed old standard description directory: ${standardDescriptionPath}`);
     }
-    fs.cp(path.join(defaultScriptsPath, 'prompts', 'description', 'standard'), standardDescriptionPath, {recursive: true}, (err) => {
-        if(err) {
-            console.error(`Error copying standard description: ${err}`);
-            throw err;
-        }
-        console.log(`Copied standard description to: ${standardDescriptionPath}`);
-    });
-    */
+    fs.cpSync(path.join(defaultScriptsPath, 'prompts', 'description', 'standard'), standardDescriptionPath, {recursive: true});
+    console.log(`Copied standard description to: ${standardDescriptionPath}`);
 
     // Check and create custom description folder if it doesn't exist
     const customDescriptionPath = path.join(userDataScriptsPath, 'prompts', 'description', 'custom');
@@ -164,60 +150,40 @@ export async function checkUserData(){
     // Copy any files from workspace custom folder to userdata custom folder if they exist
     const workspaceCustomDescriptionPath = path.join(defaultScriptsPath, 'prompts', 'description', 'custom');
     if (fs.existsSync(workspaceCustomDescriptionPath)) {
-        fs.cp(workspaceCustomDescriptionPath, customDescriptionPath, {recursive: true, force: false}, (err) => {
-             if(err) {
-                console.error(`Error copying custom description files: ${err}`);
-             } else {
-                console.log(`Copied custom description files to: ${customDescriptionPath}`);
-             }
-        });
+        try {
+            fs.cpSync(workspaceCustomDescriptionPath, customDescriptionPath, {recursive: true, force: false});
+            console.log(`Copied custom description files to: ${customDescriptionPath}`);
+        } catch (err) {
+            console.error(`Error copying custom description files: ${err}`);
+        }
     }
 
     //example messages
     console.log('Updating example messages scripts...');
-    /*
     const standardExampleMessagesPath = path.join(userDataScriptsPath, 'prompts', 'example messages', 'standard');
     if(fs.existsSync(standardExampleMessagesPath)){
-        fs.rmdirSync(standardExampleMessagesPath, {recursive: true});
+        fs.rmSync(standardExampleMessagesPath, {recursive: true, force: true});
         console.log(`Removed old standard example messages directory: ${standardExampleMessagesPath}`);
     }
-    fs.cp(path.join(defaultScriptsPath, 'prompts', 'example messages', 'standard'), standardExampleMessagesPath, {recursive: true}, (err) => {
-        if(err) {
-            console.error(`Error copying standard example messages: ${err}`);
-            throw err;
-        }
-        console.log(`Copied standard example messages to: ${standardExampleMessagesPath}`);
-    });
-    */
+    fs.cpSync(path.join(defaultScriptsPath, 'prompts', 'example messages', 'standard'), standardExampleMessagesPath, {recursive: true});
+    console.log(`Copied standard example messages to: ${standardExampleMessagesPath}`);
 
     //copy typedefs
     console.log('Updating gamedata_typedefs.js...');
     const typedefsSourcePath = path.join(defaultScriptsPath, 'gamedata_typedefs.js');
     const typedefsDestPath = path.join(userDataScriptsPath, 'gamedata_typedefs.js');
-    fs.cp(typedefsSourcePath, typedefsDestPath, {}, (err) => {
-        if(err) {
-            console.error(`Error copying gamedata_typedefs.js: ${err}`);
-            throw err;
-        }
-        console.log(`Copied gamedata_typedefs.js from ${typedefsSourcePath} to ${typedefsDestPath}`);
-    });
+    fs.cpSync(typedefsSourcePath, typedefsDestPath);
+    console.log(`Copied gamedata_typedefs.js from ${typedefsSourcePath} to ${typedefsDestPath}`);
 
     //bookmarks
     console.log('Updating bookmarks...');
-    /*
     const standardBookmarksPath = path.join(userDataScriptsPath, 'bookmarks', 'standard');
     if(fs.existsSync(standardBookmarksPath)){
-        fs.rmdirSync(standardBookmarksPath, {recursive: true});
+        fs.rmSync(standardBookmarksPath, {recursive: true, force: true});
         console.log(`Removed old standard bookmarks directory: ${standardBookmarksPath}`);
     }
-    fs.cp(path.join(defaultScriptsPath, 'bookmarks', 'standard'), standardBookmarksPath, {recursive: true}, (err) => {
-        if(err) {
-            console.error(`Error copying standard bookmarks: ${err}`);
-            throw err;
-        }
-        console.log(`Copied standard bookmarks to: ${standardBookmarksPath}`);
-    });
-    */
+    fs.cpSync(path.join(defaultScriptsPath, 'bookmarks', 'standard'), standardBookmarksPath, {recursive: true});
+    console.log(`Copied standard bookmarks to: ${standardBookmarksPath}`);
 
     console.log('User data check completed successfully.');
     return true;
