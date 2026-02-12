@@ -66,7 +66,10 @@
     "scripts_tooltip": "某些提示词过于先进，无法由静态文本组成，它们需要根据游戏内变量动态编写提示词的脚本文件。",
     "char_desc_script": "角色描述脚本",
     "ex_msg_script": "示例消息脚本",
-    "bookmarks": "书签"
+    "bookmarks": "书签",
+    "char_desc_script_tooltip": "选择生成角色描述的脚本。标准脚本由模组提供，用户可以添加自定义脚本。",
+    "ex_msg_script_tooltip": "选择为 AI 提供示例消息的脚本。这有助于 AI 理解所需的语气和格式。",
+    "bookmarks_tooltip": "选择用于将游戏事件处理为总结的书签脚本。"
   },
   "settings": {
     "header": "设置",

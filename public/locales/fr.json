@@ -66,7 +66,10 @@
     "scripts_tooltip": "Certains prompts sont trop complexes pour être de simples textes statiques ; ils nécessitent des fichiers de script qui écrivent dynamiquement les prompts en fonction des variables du jeu.",
     "char_desc_script": "Script de description de personnage",
     "ex_msg_script": "Script d'exemples de messages",
-    "bookmarks": "Signets"
+    "bookmarks": "Signets",
+    "char_desc_script_tooltip": "Sélectionnez le script qui génère les descriptions de personnages. Les scripts standard sont fournis par le mod, des scripts personnalisés peuvent être ajoutés par l'utilisateur.",
+    "ex_msg_script_tooltip": "Sélectionnez le script qui fournit des exemples de messages pour l'IA. Cela aide l'IA à comprendre le ton et le format souhaités.",
+    "bookmarks_tooltip": "Sélectionnez le script de signet à utiliser pour transformer les événements du jeu en résumés."
   },
   "settings": {
     "header": "Paramètres",

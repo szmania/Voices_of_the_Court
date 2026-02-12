@@ -65,13 +65,21 @@ async function init(){
     }
 
     const userDataPath = await ipcRenderer.invoke('get-userdata-path');
-    populateSelectWithFileNames(descScriptSelect, path.join(userDataPath, 'scripts', 'prompts', 'description'), '.js');
+    console.log('userDataPath:', userDataPath);
+
+    const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
+    console.log('Populating desc scripts from:', descPath);
+    populateSelectWithFileNames(descScriptSelect, descPath, '.js');
     descScriptSelect.value = config.selectedDescScript;
 
-    populateSelectWithFileNames(exMessagesScriptSelect,  path.join(userDataPath, 'scripts', 'prompts', 'example messages'), '.js');
+    const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
+    console.log('Populating exMsg scripts from:', exMsgPath);
+    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js');
     exMessagesScriptSelect.value = config.selectedExMsgScript;
 
-    populateSelectWithFileNames(bookmarkScriptSelect,  path.join(userDataPath, 'scripts', 'bookmarks'), '.json');
+    const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
+    console.log('Populating bookmark scripts from:', bookmarkPath);
+    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json');
     bookmarkScriptSelect.value = config.selectedBookmarkScript;
 
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
@@ -125,6 +133,7 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
 }
 
 function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, ): void {
+    console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}`);
     // For bookmarks, we need to handle subfolders differently
     if (folderPath.includes('bookmarks')) {
         try {
@@ -133,10 +142,14 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                     .filter(dirent => dirent.isDirectory())
                     .map(dirent => dirent.name);
 
+                console.log('Found bookmark subfolders:', subfolders);
+
                 for (const subfolder of subfolders) {
                     const subfolderPath = path.join(folderPath, subfolder);
                     const files = fs.readdirSync(subfolderPath).filter(file => path.extname(file) === fileExtension);
                     
+                    console.log(`Found ${files.length} files in ${subfolder}`);
+
                     for (const file of files) {
                         var el = document.createElement("option");
                         el.textContent = `${subfolder}/${path.parse(file).name}`;
@@ -144,6 +157,8 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                         selectElement.appendChild(el);
                     }
                 }
+            } else {
+                console.warn('Bookmark folder does not exist:', folderPath);
             }
         } catch (error) {
             console.error('Error reading bookmarks folder:', error);
@@ -153,8 +168,12 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         let standardFiles: string[] = [];
         try {
             const standardPath = path.join(folderPath, 'standard');
+            console.log('Checking standard path:', standardPath);
             if (fs.existsSync(standardPath)) {
                 standardFiles = fs.readdirSync(standardPath).filter(file => path.extname(file) === fileExtension);
+                console.log('Found standard files:', standardFiles);
+            } else {
+                console.warn('Standard path does not exist:', standardPath);
             }
         } catch (e) {
             console.error('Error reading standard scripts:', e);
@@ -163,8 +182,12 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         let customFiles: string[] = [];
         try {
             const customPath = path.join(folderPath, 'custom');
+            console.log('Checking custom path:', customPath);
             if (fs.existsSync(customPath)) {
                 customFiles = fs.readdirSync(customPath).filter(file => path.extname(file) === fileExtension);
+                console.log('Found custom files:', customFiles);
+            } else {
+                console.warn('Custom path does not exist:', customPath);
             }
         } catch (e) {
             console.error('Error reading custom scripts:', e);

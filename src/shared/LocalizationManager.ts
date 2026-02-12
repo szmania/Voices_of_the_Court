@@ -79,7 +79,7 @@ export class LocalizationManager {
         }
     }
 
-    private static getNestedTranslation(key: string) {
+    public static getNestedTranslation(key: string) {
         return key.split('.').reduce((obj, i) => (obj ? obj[i] : null), this.translations);
     }
 }

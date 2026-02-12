@@ -8,7 +8,8 @@ let themeSelector: HTMLSelectElement = document.querySelector("#theme-selector")
 
 document.getElementById("container")!.style.display = "block";
 
-appVersionSpan.innerText = "Current app version: "+require('../../package.json').version;
+const version = require('../../package.json').version;
+appVersionSpan.innerText = "Current app version: " + version;
 
 updateButton.addEventListener('click', ()=>{
     ipcRenderer.send('update-app');
@@ -69,5 +70,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         await window.LocalizationManager.loadTranslations(lang);
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
+        
+        // Update version text with translation
+        // @ts-ignore
+        const translatedPrefix = window.LocalizationManager.getNestedTranslation('system.current_version');
+        if (translatedPrefix) {
+            appVersionSpan.innerText = translatedPrefix + version;
+        }
     }
 });
