@@ -69,16 +69,19 @@ async function init(){
 
     const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
     console.log('Populating desc scripts from:', descPath);
+    console.log('Description folder exists?', fs.existsSync(descPath));
     populateSelectWithFileNames(descScriptSelect, descPath, '.js');
     descScriptSelect.value = config.selectedDescScript;
 
     const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
     console.log('Populating exMsg scripts from:', exMsgPath);
+    console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
     populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js');
     exMessagesScriptSelect.value = config.selectedExMsgScript;
 
     const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
     console.log('Populating bookmark scripts from:', bookmarkPath);
+    console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));
     populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json');
     bookmarkScriptSelect.value = config.selectedBookmarkScript;
 
@@ -135,10 +138,21 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
 function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string): void {
     console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}`);
     
+    // Clear existing options
+    selectElement.innerHTML = '';
+    
+    // Check if folder exists
+    if (!fs.existsSync(folderPath)) {
+        console.warn(`Folder does not exist: ${folderPath}`);
+        const option = document.createElement('option');
+        option.textContent = `No ${fileExtension} files found`;
+        option.value = '';
+        selectElement.appendChild(option);
+        return;
+    }
+    
     function walkDir(currentPath: string, relativePath: string = "") {
         try {
-            if (!fs.existsSync(currentPath)) return;
-            
             const entries = fs.readdirSync(currentPath, { withFileTypes: true });
             
             for (const entry of entries) {
@@ -151,7 +165,7 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                     const el = document.createElement("option");
                     // Format display name: "folder / subfolder / filename"
                     const displayName = entryRelativePath
-                        .replace(new RegExp(`\\${fileExtension}$`), '')
+                        .replace(fileExtension, '')
                         .replace(/[\\/]/g, ' / ');
                     
                     el.textContent = displayName;
@@ -163,10 +177,16 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
             console.error(`Error walking directory ${currentPath}:`, error);
         }
     }
-
-    // Clear existing options except maybe a default one if needed
-    selectElement.innerHTML = '';
+    
     walkDir(folderPath);
+    
+    // If no options were added, add a placeholder
+    if (selectElement.options.length === 0) {
+        const option = document.createElement('option');
+        option.textContent = `No ${fileExtension} files found`;
+        option.value = '';
+        selectElement.appendChild(option);
+    }
 }
 
 /**
