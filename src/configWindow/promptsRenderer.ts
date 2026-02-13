@@ -48,85 +48,90 @@ ipcRenderer.on('update-language', async (event, lang) => {
 });
 
 async function init(){
-    // 应用初始主题
-    const savedTheme = localStorage.getItem('selectedTheme') || 'original';
-    applyTheme(savedTheme);
+    try {
+        // 应用初始主题
+        const savedTheme = localStorage.getItem('selectedTheme') || 'original';
+        applyTheme(savedTheme);
 
+        let config = await ipcRenderer.invoke('get-config');
+        console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
+        console.log('selectedExMsgScript:', config.selectedExMsgScript);
+        console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
 
-    let config = await ipcRenderer.invoke('get-config');
-
-    // 初始化语言
-    // @ts-ignore
-    if (window.LocalizationManager) {
+        // 初始化语言
         // @ts-ignore
-        await window.LocalizationManager.loadTranslations(config.language || 'en');
-        // @ts-ignore
-        window.LocalizationManager.applyTranslations();
-    }
-
-    const userDataPath = await ipcRenderer.invoke('get-userdata-path');
-    console.log('userDataPath:', userDataPath);
-
-    // Compute fallback paths from default_userdata (located two levels up from this file)
-    const defaultScriptsBase = path.join(__dirname, '..', '..', 'default_userdata', 'scripts');
-    console.log('Default scripts base:', defaultScriptsBase);
-
-    const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
-    const fallbackDescPath = path.join(defaultScriptsBase, 'prompts', 'description');
-    console.log('Populating desc scripts from:', descPath, 'fallback:', fallbackDescPath);
-    console.log('Description folder exists?', fs.existsSync(descPath));
-    populateSelectWithFileNames(descScriptSelect, descPath, '.js', fallbackDescPath, 'desc');
-    descScriptSelect.value = config.selectedDescScript;
-    console.log('Selected desc script:', config.selectedDescScript);
-
-    const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
-    const fallbackExMsgPath = path.join(defaultScriptsBase, 'prompts', 'example messages');
-    console.log('Populating exMsg scripts from:', exMsgPath, 'fallback:', fallbackExMsgPath);
-    console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
-    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js', fallbackExMsgPath, 'exMsg');
-    exMessagesScriptSelect.value = config.selectedExMsgScript;
-    console.log('Selected exMsg script:', config.selectedExMsgScript);
-
-    const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
-    const fallbackBookmarkPath = path.join(defaultScriptsBase, 'bookmarks');
-    console.log('Populating bookmark scripts from:', bookmarkPath, 'fallback:', fallbackBookmarkPath);
-    console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));
-    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json', fallbackBookmarkPath, 'bookmark');
-    bookmarkScriptSelect.value = config.selectedBookmarkScript;
-    console.log('Selected bookmark script:', config.selectedBookmarkScript);
-
-    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
-
-    //events
-
-    descScriptSelect.addEventListener('change', () =>{
-
-        ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
-    })
-
-    exMessagesScriptSelect.addEventListener('change', () =>{
-
-        ipcRenderer.send('config-change', "selectedExMsgScript", exMessagesScriptSelect.value);
-    })
-
-    bookmarkScriptSelect.addEventListener('change', () =>{
-
-        ipcRenderer.send('config-change', "selectedBookmarkScript", bookmarkScriptSelect.value);
-    })
-
-
-
-
-    suffixPromptCheckbox.checkbox.addEventListener('change', () =>{
-        togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
-    })
-
-    // 恢复默认prompts按钮事件
-    restoreDefaultPromptsBtn.addEventListener('click', async () => {
-        if (confirm('确定要将所有Prompt恢复为默认值吗？此操作不可撤销。')) {
-            await restoreDefaultPrompts();
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            await window.LocalizationManager.loadTranslations(config.language || 'en');
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
         }
-    });
+
+        const userDataPath = await ipcRenderer.invoke('get-userdata-path');
+        console.log('userDataPath:', userDataPath);
+
+        // Compute fallback paths from default_userdata (located two levels up from this file)
+        const defaultScriptsBase = path.join(__dirname, '..', '..', 'default_userdata', 'scripts');
+        console.log('Default scripts base:', defaultScriptsBase);
+        console.log('Default scripts base exists?', fs.existsSync(defaultScriptsBase));
+
+        const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
+        const fallbackDescPath = path.join(defaultScriptsBase, 'prompts', 'description');
+        console.log('Populating desc scripts from:', descPath, 'fallback:', fallbackDescPath);
+        console.log('Description folder exists?', fs.existsSync(descPath));
+        console.log('Fallback description folder exists?', fs.existsSync(fallbackDescPath));
+        populateSelectWithFileNames(descScriptSelect, descPath, '.js', fallbackDescPath, 'desc');
+        descScriptSelect.value = config.selectedDescScript;
+        console.log('Selected desc script:', config.selectedDescScript, 'options count:', descScriptSelect.options.length);
+
+        const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
+        const fallbackExMsgPath = path.join(defaultScriptsBase, 'prompts', 'example messages');
+        console.log('Populating exMsg scripts from:', exMsgPath, 'fallback:', fallbackExMsgPath);
+        console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
+        console.log('Fallback example messages folder exists?', fs.existsSync(fallbackExMsgPath));
+        populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js', fallbackExMsgPath, 'exMsg');
+        exMessagesScriptSelect.value = config.selectedExMsgScript;
+        console.log('Selected exMsg script:', config.selectedExMsgScript, 'options count:', exMessagesScriptSelect.options.length);
+
+        const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
+        const fallbackBookmarkPath = path.join(defaultScriptsBase, 'bookmarks');
+        console.log('Populating bookmark scripts from:', bookmarkPath, 'fallback:', fallbackBookmarkPath);
+        console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));
+        console.log('Fallback bookmarks folder exists?', fs.existsSync(fallbackBookmarkPath));
+        populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json', fallbackBookmarkPath, 'bookmark');
+        bookmarkScriptSelect.value = config.selectedBookmarkScript;
+        console.log('Selected bookmark script:', config.selectedBookmarkScript, 'options count:', bookmarkScriptSelect.options.length);
+
+        togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+
+        //events
+
+        descScriptSelect.addEventListener('change', () =>{
+            ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
+        });
+
+        exMessagesScriptSelect.addEventListener('change', () =>{
+            ipcRenderer.send('config-change', "selectedExMsgScript", exMessagesScriptSelect.value);
+        });
+
+        bookmarkScriptSelect.addEventListener('change', () =>{
+            ipcRenderer.send('config-change', "selectedBookmarkScript", bookmarkScriptSelect.value);
+        });
+
+        suffixPromptCheckbox.checkbox.addEventListener('change', () =>{
+            togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+        });
+
+        // 恢复默认prompts按钮事件
+        restoreDefaultPromptsBtn.addEventListener('click', async () => {
+            if (confirm('确定要将所有Prompt恢复为默认值吗？此操作不可撤销。')) {
+                await restoreDefaultPrompts();
+            }
+        });
+    } catch (error) {
+        console.error('Error in init:', error);
+        alert('初始化配置页面时发生错误，请查看控制台日志。');
+    }
 }
 
 
@@ -170,14 +175,17 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                 for (const entry of entries) {
                     const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
                     const entryFullPath = path.join(currentPath, entry.name);
+                    const entryExt = path.extname(entry.name).toLowerCase();
+                    
+                    console.log(`${logPrefix}  entry: ${entry.name}, isDirectory: ${entry.isDirectory()}, ext: ${entryExt}`);
                     
                     if (entry.isDirectory()) {
                         walkDir(entryFullPath, entryRelativePath);
-                    } else if (entry.isFile() && path.extname(entry.name) === fileExtension) {
+                    } else if (entry.isFile() && entryExt === fileExtension.toLowerCase()) {
                         const el = document.createElement("option");
                         // Format display name: "folder / subfolder / filename"
                         const displayName = entryRelativePath
-                            .replace(fileExtension, '')
+                            .replace(new RegExp(fileExtension + '$', 'i'), '')
                             .replace(/[\\/]/g, ' / ');
                         
                         el.textContent = displayName;
