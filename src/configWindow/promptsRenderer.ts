@@ -75,22 +75,25 @@ async function init(){
     const fallbackDescPath = path.join(defaultScriptsBase, 'prompts', 'description');
     console.log('Populating desc scripts from:', descPath, 'fallback:', fallbackDescPath);
     console.log('Description folder exists?', fs.existsSync(descPath));
-    populateSelectWithFileNames(descScriptSelect, descPath, '.js', fallbackDescPath);
+    populateSelectWithFileNames(descScriptSelect, descPath, '.js', fallbackDescPath, 'desc');
     descScriptSelect.value = config.selectedDescScript;
+    console.log('Selected desc script:', config.selectedDescScript);
 
     const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
     const fallbackExMsgPath = path.join(defaultScriptsBase, 'prompts', 'example messages');
     console.log('Populating exMsg scripts from:', exMsgPath, 'fallback:', fallbackExMsgPath);
     console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
-    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js', fallbackExMsgPath);
+    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js', fallbackExMsgPath, 'exMsg');
     exMessagesScriptSelect.value = config.selectedExMsgScript;
+    console.log('Selected exMsg script:', config.selectedExMsgScript);
 
     const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
     const fallbackBookmarkPath = path.join(defaultScriptsBase, 'bookmarks');
     console.log('Populating bookmark scripts from:', bookmarkPath, 'fallback:', fallbackBookmarkPath);
     console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));
-    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json', fallbackBookmarkPath);
+    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json', fallbackBookmarkPath, 'bookmark');
     bookmarkScriptSelect.value = config.selectedBookmarkScript;
+    console.log('Selected bookmark script:', config.selectedBookmarkScript);
 
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
@@ -142,23 +145,27 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
     }
 }
 
-function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, fallbackFolderPath?: string): void {
-    console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}, fallback=${fallbackFolderPath}`);
+function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, fallbackFolderPath?: string, label?: string): void {
+    const logPrefix = label ? `[${label}] ` : '';
+    console.log(`${logPrefix}populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}, fallback=${fallbackFolderPath}`);
     
     // Clear existing options
     selectElement.innerHTML = '';
     
     // Helper to try populating from a given folder
-    const tryPopulate = (targetPath: string): boolean => {
+    const tryPopulate = (targetPath: string, sourceLabel: string): boolean => {
+        console.log(`${logPrefix}tryPopulate: targetPath=${targetPath}, sourceLabel=${sourceLabel}`);
         if (!fs.existsSync(targetPath)) {
-            console.warn(`Folder does not exist: ${targetPath}`);
+            console.warn(`${logPrefix}Folder does not exist: ${targetPath}`);
             return false;
         }
         
         let added = false;
+        let fileCount = 0;
         function walkDir(currentPath: string, relativePath: string = "") {
             try {
                 const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+                console.log(`${logPrefix}walkDir: currentPath=${currentPath}, entries=${entries.length}`);
                 
                 for (const entry of entries) {
                     const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
@@ -177,24 +184,27 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
                         el.value = entryRelativePath.replace(/\\/g, '/');
                         selectElement.appendChild(el);
                         added = true;
+                        fileCount++;
+                        console.log(`${logPrefix}Added option: ${el.value}`);
                     }
                 }
             } catch (error) {
-                console.error(`Error walking directory ${currentPath}:`, error);
+                console.error(`${logPrefix}Error walking directory ${currentPath}:`, error);
             }
         }
         
         walkDir(targetPath);
+        console.log(`${logPrefix}tryPopulate result: added=${added}, fileCount=${fileCount}`);
         return added;
     };
     
     // First try the primary folder
-    let success = tryPopulate(folderPath);
+    let success = tryPopulate(folderPath, 'primary');
     
     // If primary folder yielded no files and a fallback is provided, try the fallback
     if (!success && fallbackFolderPath && fs.existsSync(fallbackFolderPath)) {
-        console.log(`Primary folder empty, trying fallback: ${fallbackFolderPath}`);
-        success = tryPopulate(fallbackFolderPath);
+        console.log(`${logPrefix}Primary folder empty, trying fallback: ${fallbackFolderPath}`);
+        success = tryPopulate(fallbackFolderPath, 'fallback');
     }
     
     // If still no options were added, add a placeholder
@@ -203,6 +213,9 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
         option.textContent = `No ${fileExtension} files found`;
         option.value = '';
         selectElement.appendChild(option);
+        console.log(`${logPrefix}Added placeholder option because no files found`);
+    } else {
+        console.log(`${logPrefix}Total options added: ${selectElement.options.length}`);
     }
 }
 
