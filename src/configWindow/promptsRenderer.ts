@@ -67,22 +67,29 @@ async function init(){
     const userDataPath = await ipcRenderer.invoke('get-userdata-path');
     console.log('userDataPath:', userDataPath);
 
+    // Compute fallback paths from default_userdata (located two levels up from this file)
+    const defaultScriptsBase = path.join(__dirname, '..', '..', 'default_userdata', 'scripts');
+    console.log('Default scripts base:', defaultScriptsBase);
+
     const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
-    console.log('Populating desc scripts from:', descPath);
+    const fallbackDescPath = path.join(defaultScriptsBase, 'prompts', 'description');
+    console.log('Populating desc scripts from:', descPath, 'fallback:', fallbackDescPath);
     console.log('Description folder exists?', fs.existsSync(descPath));
-    populateSelectWithFileNames(descScriptSelect, descPath, '.js');
+    populateSelectWithFileNames(descScriptSelect, descPath, '.js', fallbackDescPath);
     descScriptSelect.value = config.selectedDescScript;
 
     const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
-    console.log('Populating exMsg scripts from:', exMsgPath);
+    const fallbackExMsgPath = path.join(defaultScriptsBase, 'prompts', 'example messages');
+    console.log('Populating exMsg scripts from:', exMsgPath, 'fallback:', fallbackExMsgPath);
     console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
-    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js');
+    populateSelectWithFileNames(exMessagesScriptSelect, exMsgPath, '.js', fallbackExMsgPath);
     exMessagesScriptSelect.value = config.selectedExMsgScript;
 
     const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
-    console.log('Populating bookmark scripts from:', bookmarkPath);
+    const fallbackBookmarkPath = path.join(defaultScriptsBase, 'bookmarks');
+    console.log('Populating bookmark scripts from:', bookmarkPath, 'fallback:', fallbackBookmarkPath);
     console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));
-    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json');
+    populateSelectWithFileNames(bookmarkScriptSelect, bookmarkPath, '.json', fallbackBookmarkPath);
     bookmarkScriptSelect.value = config.selectedBookmarkScript;
 
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
@@ -135,53 +142,63 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
     }
 }
 
-function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string): void {
-    console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}`);
+function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, fallbackFolderPath?: string): void {
+    console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}, fallback=${fallbackFolderPath}`);
     
     // Clear existing options
     selectElement.innerHTML = '';
     
-    // Check if folder exists
-    if (!fs.existsSync(folderPath)) {
-        console.warn(`Folder does not exist: ${folderPath}`);
-        const option = document.createElement('option');
-        option.textContent = `No ${fileExtension} files found`;
-        option.value = '';
-        selectElement.appendChild(option);
-        return;
-    }
-    
-    function walkDir(currentPath: string, relativePath: string = "") {
-        try {
-            const entries = fs.readdirSync(currentPath, { withFileTypes: true });
-            
-            for (const entry of entries) {
-                const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
-                const entryFullPath = path.join(currentPath, entry.name);
-                
-                if (entry.isDirectory()) {
-                    walkDir(entryFullPath, entryRelativePath);
-                } else if (entry.isFile() && path.extname(entry.name) === fileExtension) {
-                    const el = document.createElement("option");
-                    // Format display name: "folder / subfolder / filename"
-                    const displayName = entryRelativePath
-                        .replace(fileExtension, '')
-                        .replace(/[\\/]/g, ' / ');
-                    
-                    el.textContent = displayName;
-                    el.value = entryRelativePath.replace(/\\/g, '/');
-                    selectElement.appendChild(el);
-                }
-            }
-        } catch (error) {
-            console.error(`Error walking directory ${currentPath}:`, error);
+    // Helper to try populating from a given folder
+    const tryPopulate = (targetPath: string): boolean => {
+        if (!fs.existsSync(targetPath)) {
+            console.warn(`Folder does not exist: ${targetPath}`);
+            return false;
         }
+        
+        let added = false;
+        function walkDir(currentPath: string, relativePath: string = "") {
+            try {
+                const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+                
+                for (const entry of entries) {
+                    const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+                    const entryFullPath = path.join(currentPath, entry.name);
+                    
+                    if (entry.isDirectory()) {
+                        walkDir(entryFullPath, entryRelativePath);
+                    } else if (entry.isFile() && path.extname(entry.name) === fileExtension) {
+                        const el = document.createElement("option");
+                        // Format display name: "folder / subfolder / filename"
+                        const displayName = entryRelativePath
+                            .replace(fileExtension, '')
+                            .replace(/[\\/]/g, ' / ');
+                        
+                        el.textContent = displayName;
+                        el.value = entryRelativePath.replace(/\\/g, '/');
+                        selectElement.appendChild(el);
+                        added = true;
+                    }
+                }
+            } catch (error) {
+                console.error(`Error walking directory ${currentPath}:`, error);
+            }
+        }
+        
+        walkDir(targetPath);
+        return added;
+    };
+    
+    // First try the primary folder
+    let success = tryPopulate(folderPath);
+    
+    // If primary folder yielded no files and a fallback is provided, try the fallback
+    if (!success && fallbackFolderPath && fs.existsSync(fallbackFolderPath)) {
+        console.log(`Primary folder empty, trying fallback: ${fallbackFolderPath}`);
+        success = tryPopulate(fallbackFolderPath);
     }
     
-    walkDir(folderPath);
-    
-    // If no options were added, add a placeholder
-    if (selectElement.options.length === 0) {
+    // If still no options were added, add a placeholder
+    if (!success) {
         const option = document.createElement('option');
         option.textContent = `No ${fileExtension} files found`;
         option.value = '';
