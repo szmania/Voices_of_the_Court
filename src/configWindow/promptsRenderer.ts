@@ -132,81 +132,41 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
     }
 }
 
-function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, ): void {
+function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string): void {
     console.log(`populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}`);
-    // For bookmarks, we need to handle subfolders differently
-    if (folderPath.includes('bookmarks')) {
+    
+    function walkDir(currentPath: string, relativePath: string = "") {
         try {
-            if (fs.existsSync(folderPath)) {
-                const subfolders = fs.readdirSync(folderPath, { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory())
-                    .map(dirent => dirent.name);
-
-                console.log('Found bookmark subfolders:', subfolders);
-
-                for (const subfolder of subfolders) {
-                    const subfolderPath = path.join(folderPath, subfolder);
-                    const files = fs.readdirSync(subfolderPath).filter(file => path.extname(file) === fileExtension);
+            if (!fs.existsSync(currentPath)) return;
+            
+            const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+            
+            for (const entry of entries) {
+                const entryRelativePath = relativePath ? path.join(relativePath, entry.name) : entry.name;
+                const entryFullPath = path.join(currentPath, entry.name);
+                
+                if (entry.isDirectory()) {
+                    walkDir(entryFullPath, entryRelativePath);
+                } else if (entry.isFile() && path.extname(entry.name) === fileExtension) {
+                    const el = document.createElement("option");
+                    // Format display name: "folder / subfolder / filename"
+                    const displayName = entryRelativePath
+                        .replace(new RegExp(`\\${fileExtension}$`), '')
+                        .replace(/[\\/]/g, ' / ');
                     
-                    console.log(`Found ${files.length} files in ${subfolder}`);
-
-                    for (const file of files) {
-                        var el = document.createElement("option");
-                        el.textContent = `${subfolder}/${path.parse(file).name}`;
-                        el.value = path.join(subfolder, file).replace(/\\/g, '/');
-                        selectElement.appendChild(el);
-                    }
+                    el.textContent = displayName;
+                    el.value = entryRelativePath.replace(/\\/g, '/');
+                    selectElement.appendChild(el);
                 }
-            } else {
-                console.warn('Bookmark folder does not exist:', folderPath);
             }
         } catch (error) {
-            console.error('Error reading bookmarks folder:', error);
-        }
-    } else {
-        // Original logic for other script types
-        let standardFiles: string[] = [];
-        try {
-            const standardPath = path.join(folderPath, 'standard');
-            console.log('Checking standard path:', standardPath);
-            if (fs.existsSync(standardPath)) {
-                standardFiles = fs.readdirSync(standardPath).filter(file => path.extname(file) === fileExtension);
-                console.log('Found standard files:', standardFiles);
-            } else {
-                console.warn('Standard path does not exist:', standardPath);
-            }
-        } catch (e) {
-            console.error('Error reading standard scripts:', e);
-        }
-        
-        let customFiles: string[] = [];
-        try {
-            const customPath = path.join(folderPath, 'custom');
-            console.log('Checking custom path:', customPath);
-            if (fs.existsSync(customPath)) {
-                customFiles = fs.readdirSync(customPath).filter(file => path.extname(file) === fileExtension);
-                console.log('Found custom files:', customFiles);
-            } else {
-                console.warn('Custom path does not exist:', customPath);
-            }
-        } catch (e) {
-            console.error('Error reading custom scripts:', e);
-        }
-
-        for(const file of standardFiles) {
-            var el = document.createElement("option");
-            el.textContent = `standard / ${path.parse(file).name}`;
-            el.value = path.join('standard', file).replace(/\\/g, '/');
-            selectElement.appendChild(el);
-        }
-
-        for(const file of customFiles) {
-            var el = document.createElement("option");
-            el.textContent = `custom / ${path.parse(file).name}`;
-            el.value = path.join('custom', file).replace(/\\/g, '/');
-            selectElement.appendChild(el);
+            console.error(`Error walking directory ${currentPath}:`, error);
         }
     }
+
+    // Clear existing options except maybe a default one if needed
+    selectElement.innerHTML = '';
+    walkDir(folderPath);
 }
 
 /**
