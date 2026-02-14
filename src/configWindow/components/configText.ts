@@ -63,11 +63,14 @@ class ConfigText extends HTMLElement{
         }
     }
 
-    public updateTranslation(key: string) {
+    public updateTranslation(key?: string) {
+        const i18nKey = key || this.getAttribute('data-i18n');
+        if (!i18nKey) return;
+
         // @ts-ignore
         if (window.LocalizationManager) {
             // @ts-ignore
-            const translation = window.LocalizationManager.getNestedTranslation(key);
+            const translation = window.LocalizationManager.getNestedTranslation(i18nKey);
             const labelElement = this.shadow.querySelector('label');
             if (translation) {
                 if (labelElement) labelElement.textContent = translation;
