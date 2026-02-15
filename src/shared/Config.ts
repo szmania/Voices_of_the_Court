@@ -23,7 +23,7 @@ export interface PromptConfig {
 
 export class Config{
     userFolderPath!: string;
-    language: 'en' | 'zh' = 'en';
+    language: 'en' | 'zh' | 'ru' | 'fr' | 'es' = 'en';
 
     stream!: boolean;
     maxTokens!: number;
@@ -72,6 +72,9 @@ export class Config{
     prompts!: {
         en: PromptConfig;
         zh: PromptConfig;
+        ru: PromptConfig;
+        fr: PromptConfig;
+        es: PromptConfig;
     };
 
     get mainPrompt(): string { return this.prompts[this.language].mainPrompt; }

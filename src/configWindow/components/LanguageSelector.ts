@@ -36,6 +36,11 @@ class LanguageSelector extends HTMLElement {
                 <rect width="300" height="600" x="300" fill="#fff"/>
                 <rect width="300" height="600" x="600" fill="#ed2939"/>
             </svg>`;
+        } else if (lang === 'es') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 500" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="750" height="500" fill="#c60b1e"/>
+                <rect width="750" height="250" y="125" fill="#ffc400"/>
+            </svg>`;
         } else {
             return '';
         }
@@ -82,6 +87,10 @@ class LanguageSelector extends HTMLElement {
                         ${this.getFlagSvg('fr')}
                         <span class="lang-text">Français</span>
                     </a>
+                    <a href="#" data-lang="es">
+                        ${this.getFlagSvg('es')}
+                        <span class="lang-text">Español</span>
+                    </a>
                 </div>
             </div>
         `;
@@ -99,14 +108,14 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : 'Français';
+        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : 'Español';
         btn.innerHTML = `
             ${this.getFlagSvg(lang)}
             <span class="lang-text">${text}</span>
         `;
     }
 
-    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr', btn: HTMLElement) {
+    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr' | 'es', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
         ipcRenderer.send('language-changed', lang);
