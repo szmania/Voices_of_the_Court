@@ -21,7 +21,8 @@
     "overwrite_context": "Overwrite context size",
     "test_connection": "Test Connection",
     "connection_valid": "Connection valid!",
-    "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)"
+    "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)",
+    "path_placeholder": "Enter CK3 user folder path..."
   },
   "api": {
     "openrouter": "OpenRouter",
