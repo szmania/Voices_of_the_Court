@@ -40,7 +40,7 @@
 			"customContext": 90000
 		},
 		"parameters": {
-			"temperature": 0.2,
+			"temperature": 0.5,
 			"frequency_penalty": 0.0,
 			"presence_penalty": 0.0,
 			"top_p": 0.9
@@ -57,7 +57,7 @@
     	"customContext": 90000
 		},
 		"parameters": {
-			"temperature": 0.2,
+			"temperature": 0.5,
 			"frequency_penalty": 0.0,
 			"presence_penalty": 0.0,
 			"top_p": 0.9
@@ -72,6 +72,9 @@
 		"undressAi",
 		"intercourse"
 	],
+	"actionProbability": 0.3,
+	"minimumMessagesBeforeAction": 3,
+	"maxConsecutiveActions": 3,
 	"cleanMessages": true,
 	"debugMode": false,
 	"aiCanStartConversation": true,
