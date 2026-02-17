@@ -21,7 +21,8 @@
     "overwrite_context": "Écraser la taille du contexte",
     "test_connection": "Tester la connexion",
     "connection_valid": "Connexion valide !",
-    "connection_valid_warning": "Connexion valide ! Attention : la taille du contexte n'a pas pu être détectée, la taille d'écrasement sera utilisée ! (même si désactivée !)"
+    "connection_valid_warning": "Connexion valide ! Attention : la taille du contexte n'a pas pu être détectée, la taille d'écrasement sera utilisée ! (même si désactivée !)",
+    "path_placeholder": "Entrez le chemin du dossier utilisateur CK3..."
   },
   "api": {
     "openrouter": "OpenRouter",
