@@ -36,6 +36,8 @@ export class Conversation{
     currentSummary: string;
     narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
+    consecutiveActionsCount: number; // Track consecutive responses with actions
+    lastActionMessageIndex: number; // Track the last message index that had actions
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
@@ -65,6 +67,8 @@ export class Conversation{
 
         this.summaries = new Map<number, Summary[]>();
         this.summaryFileWatcher = new SummaryFileWatcher(); // 初始化文件监控器
+        this.consecutiveActionsCount = 0; // Initialize consecutive actions counter
+        this.lastActionMessageIndex = -1; // Initialize last action message index
         
         const summariesBasePath = path.join(userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
@@ -135,6 +139,12 @@ export class Conversation{
     pushMessage(message: Message): void{           
         this.messages.push(message);
         console.log(`Message pushed to conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
+        
+        // Reset consecutive actions counter when player sends a message
+        if (message.role === "user") {
+            this.consecutiveActionsCount = 0;
+            console.log('Player message sent, resetting consecutive actions count.');
+        }
     }
 
     // 添加旁白到指定消息
@@ -521,26 +531,49 @@ ${conversationSummary}
                     if(this.config.actionsEnableAll){
                         try{
                             console.log('Actions are enabled. Checking for actions...');
-                            const actionResult = await checkActions(this);
-                            collectedActions = actionResult.actions;
-                            narrative = actionResult.narrative;
                             
-                            // 如果有旁白，将其与当前消息关联
-                            if (narrative) {
-                                this.addNarrativeToMessage(messageIndex, narrative);
-                                console.log(`Associated narrative with message at index ${messageIndex}`);
+                            // Check max consecutive actions limit
+                            if (this.consecutiveActionsCount >= this.config.maxConsecutiveActions) {
+                                console.log(`Skipping action check: consecutive actions limit reached (${this.consecutiveActionsCount}/${this.config.maxConsecutiveActions})`);
+                                collectedActions = [];
+                                narrative = "";
+                            } else {
+                                const actionResult = await checkActions(this);
+                                collectedActions = actionResult.actions;
+                                narrative = actionResult.narrative;
+                                
+                                // Update consecutive actions tracking
+                                if (collectedActions.length > 0) {
+                                    this.consecutiveActionsCount++;
+                                    this.lastActionMessageIndex = messageIndex;
+                                    console.log(`Action triggered. Consecutive actions count: ${this.consecutiveActionsCount}`);
+                                } else {
+                                    // Reset counter if no actions were triggered
+                                    this.consecutiveActionsCount = 0;
+                                    console.log('No actions triggered, resetting consecutive actions count.');
+                                }
+                                
+                                // 如果有旁白，将其与当前消息关联
+                                if (narrative) {
+                                    this.addNarrativeToMessage(messageIndex, narrative);
+                                    console.log(`Associated narrative with message at index ${messageIndex}`);
+                                }
                             }
                         }
                         catch(e){
                             console.error(`Error during action check: ${e}`);
                             collectedActions = [];
                             narrative = "";
+                            // Reset counter on error
+                            this.consecutiveActionsCount = 0;
                         }
                     }
                     else{
                         console.log('Actions are disabled in config.');
                         collectedActions = [];
                         narrative = "";
+                        // Reset counter when actions are disabled
+                        this.consecutiveActionsCount = 0;
                     }
         
                     this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);    
@@ -709,28 +742,51 @@ ${conversationHistory}
                 if(this.config.actionsEnableAll){
                     try{
                         console.log('Actions are enabled. Checking for actions...');
-                        const actionResult = await checkActions(this);
-                        collectedActions = actionResult.actions;
-                        narrative = actionResult.narrative;
                         
-                        // 将旁白与消息关联
-                        if (narrative) {
-                            this.addNarrativeToMessage(messageIndex, narrative);
-                            console.log(`Associated narrative with message at index ${messageIndex}`);
+                        // Check max consecutive actions limit
+                        if (this.consecutiveActionsCount >= this.config.maxConsecutiveActions) {
+                            console.log(`Skipping action check: consecutive actions limit reached (${this.consecutiveActionsCount}/${this.config.maxConsecutiveActions})`);
+                            collectedActions = [];
+                            narrative = "";
+                        } else {
+                            const actionResult = await checkActions(this);
+                            collectedActions = actionResult.actions;
+                            narrative = actionResult.narrative;
+                            
+                            // Update consecutive actions tracking
+                            if (collectedActions.length > 0) {
+                                this.consecutiveActionsCount++;
+                                this.lastActionMessageIndex = messageIndex;
+                                console.log(`Action triggered. Consecutive actions count: ${this.consecutiveActionsCount}`);
+                            } else {
+                                // Reset counter if no actions were triggered
+                                this.consecutiveActionsCount = 0;
+                                console.log('No actions triggered, resetting consecutive actions count.');
+                            }
+                            
+                            // 将旁白与消息关联
+                            if (narrative) {
+                                this.addNarrativeToMessage(messageIndex, narrative);
+                                console.log(`Associated narrative with message at index ${messageIndex}`);
+                            }
                         }
                     }
                     catch(e){
                         console.error(`Error during action check: ${e}`);
                         collectedActions = [];
                         narrative = "";
+                        // Reset counter on error
+                        this.consecutiveActionsCount = 0;
                     }
                 }
                 else{
                     console.log('Actions are disabled in config.');
                     collectedActions = [];
                     narrative = "";
+                    // Reset counter when actions are disabled
+                    this.consecutiveActionsCount = 0;
                 }
-    
+
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);    
                 console.log(`Sent ${collectedActions.length} actions to chat window.`);
                 if (narrative) {
@@ -1137,6 +1193,8 @@ ${character.fullName}的发言：`
         this.messages = [];
         this.narratives.clear();
         this.currentSummary = "";
+        this.consecutiveActionsCount = 0;
+        this.lastActionMessageIndex = -1;
     }
 
     public undo(): void {
@@ -1152,6 +1210,10 @@ ${character.fullName}的发言：`
             for (let i = actualIndex; i <= this.messages.length + 1; i++) {
                 this.narratives.delete(i);
             }
+            
+            // Reset consecutive actions counter since we're going back in time
+            this.consecutiveActionsCount = 0;
+            this.lastActionMessageIndex = -1;
         }
     }
 

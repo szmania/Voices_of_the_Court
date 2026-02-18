@@ -7,6 +7,20 @@ import { generateNarrative } from "./generateNarrative";
 
 export async function checkActions(conv: Conversation): Promise<{actions: ActionResponse[], narrative: string}>{
     console.log('Starting action check.');
+    
+    // Check minimum messages before any action can trigger
+    const totalMessages = conv.messages.length;
+    if (totalMessages < conv.config.minimumMessagesBeforeAction) {
+        console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is ${conv.config.minimumMessagesBeforeAction}`);
+        return { actions: [], narrative: "" };
+    }
+    
+    // Apply action probability filter
+    if (Math.random() > conv.config.actionProbability) {
+        console.log(`Skipping action check: random probability filter (${conv.config.actionProbability}) did not pass`);
+        return { actions: [], narrative: "" };
+    }
+    
     let availableActions: Action[] = [];
 
     for(let action of conv.actions){
@@ -22,6 +36,12 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         
     }
     console.log(`Available actions for current context: ${availableActions.map(a => a.signature).join(', ')}`);
+    
+    // If no actions are available, return early
+    if (availableActions.length === 0) {
+        console.log('No actions available for current context.');
+        return { actions: [], narrative: "" };
+    }
 
     let triggeredActions: ActionResponse[] = [];
     
