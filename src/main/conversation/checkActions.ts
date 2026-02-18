@@ -21,6 +21,44 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         return { actions: [], narrative: "" };
     }
     
+    // Additional check: Skip action check if conversation is still in greeting phase
+    // This prevents actions from triggering during simple hello/goodbye exchanges
+    if (totalMessages < 6) {
+        const recentMessages = conv.messages.slice(-3);
+        const isGreetingPhase = recentMessages.every(msg => {
+            const content = msg.content.toLowerCase().trim();
+            return content.includes('hello') || 
+                   content.includes('hi ') || 
+                   content.includes('greetings') ||
+                   content.includes('hey ') ||
+                   content.includes('good ') || // good morning, good day, etc.
+                   content.length < 20; // Very short messages
+        });
+        
+        if (isGreetingPhase) {
+            console.log('Skipping action check: conversation is still in greeting phase');
+            return { actions: [], narrative: "" };
+        }
+    }
+    
+    // Check conversation quality - actions should only trigger in meaningful conversations
+    // Skip if last few messages are just greetings or very short
+    const recentMessages = conv.messages.slice(-3);
+    const isMeaningfulConversation = recentMessages.some(msg => {
+        const content = msg.content.toLowerCase();
+        // Check if message has substantial content (not just greetings)
+        return content.length > 20 && 
+               !content.includes('hello') && 
+               !content.includes('hi ') && 
+               !content.includes('greetings') &&
+               !content.includes('hey ');
+    });
+    
+    if (!isMeaningfulConversation && totalMessages < 5) {
+        console.log('Skipping action check: conversation is still in greeting phase or lacks meaningful content');
+        return { actions: [], narrative: "" };
+    }
+    
     let availableActions: Action[] = [];
 
     for(let action of conv.actions){
