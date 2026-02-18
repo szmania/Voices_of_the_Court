@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Voices of the Court - Community Edition"
+  },
   "nav": {
     "connection": "连接",
     "actions": "动作",

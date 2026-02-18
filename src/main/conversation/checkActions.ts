@@ -41,6 +41,46 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         }
     }
     
+    // Additional check: Skip action check if conversation is still in greeting phase
+    // This prevents actions from triggering during simple hello/goodbye exchanges
+    if (totalMessages < 6) {
+        const recentMessages = conv.messages.slice(-3);
+        const isGreetingPhase = recentMessages.every(msg => {
+            const content = msg.content.toLowerCase().trim();
+            return content.includes('hello') || 
+                   content.includes('hi ') || 
+                   content.includes('greetings') ||
+                   content.includes('hey ') ||
+                   content.includes('good ') || // good morning, good day, etc.
+                   content.length < 20; // Very short messages
+        });
+        
+        if (isGreetingPhase) {
+            console.log('Skipping action check: conversation is still in greeting phase');
+            return { actions: [], narrative: "" };
+        }
+    }
+    
+    // Additional check: Skip action check if conversation is still in greeting phase
+    // This prevents actions from triggering during simple hello/goodbye exchanges
+    if (totalMessages < 6) {
+        const recentMessages = conv.messages.slice(-3);
+        const isGreetingPhase = recentMessages.every(msg => {
+            const content = msg.content.toLowerCase().trim();
+            return content.includes('hello') || 
+                   content.includes('hi ') || 
+                   content.includes('greetings') ||
+                   content.includes('hey ') ||
+                   content.includes('good ') || // good morning, good day, etc.
+                   content.length < 20; // Very short messages
+        });
+        
+        if (isGreetingPhase) {
+            console.log('Skipping action check: conversation is still in greeting phase');
+            return { actions: [], narrative: "" };
+        }
+    }
+    
     // Check conversation quality - actions should only trigger in meaningful conversations
     // Skip if last few messages are just greetings or very short
     const recentMessages = conv.messages.slice(-3);
@@ -227,6 +267,11 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
     );
     
     console.log(`Final triggered actions: ${triggeredActions.map(a => a.actionName).join(', ')}`);
+    
+    // Log action frequency statistics
+    if (triggeredActions.length > 0) {
+        console.log(`Action frequency stats: totalMessages=${totalMessages}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
+    }
     
     // 生成AI旁白
     let narrative = "";
