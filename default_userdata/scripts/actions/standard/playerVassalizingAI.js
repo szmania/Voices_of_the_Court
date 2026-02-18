@@ -25,25 +25,43 @@ module.exports = {
         let player = gameData.getPlayer();
 
         console.log(`PVAI: ${ai.opinionOfPlayer} ${player.isLandedRuler} ${ai.isLandedRuler}`)
-            if ((ai.opinionOfPlayer >= -30) && (player.isLandedRuler) && (ai.isLandedRuler)){
-                if (ai.hasTrait("VassalizationDebateScore")) {
-                    let aiScore = Number(ai.traits.find(trait => trait.name === "VassalizationDebateScore").desc);
-                    return (aiScore > -20)
+        
+        // Check basic conditions
+        if ((ai.opinionOfPlayer >= -30) && (player.isLandedRuler) && (ai.isLandedRuler)){
+            // Check if AI has the vassalization debate score trait
+            if (ai.hasTrait("VassalizationDebateScore")) {
+                let aiScore = Number(ai.traits.find(trait => trait.name === "VassalizationDebateScore").desc);
+                
+                // Only allow vassalization discussion if score is in a moderate range (-15 to 25)
+                // This prevents triggering too early or too late in the process
+                if (aiScore >= -15 && aiScore <= 25) {
+                    // Add some randomness based on score
+                    // Higher scores have higher probability, but never guaranteed
+                    const probability = Math.min(0.8, 0.3 + (aiScore + 15) * 0.02);
+                    return Math.random() < probability;
                 }
-                else {
+                return false;
+            }
+            else {
+                // Initial trait addition - only allow if opinion is positive
+                if (ai.opinionOfPlayer > 10) {
                     ai.addTrait({
                         category: "politicalVariable",
                         name: "VassalizationDebateScore",
                         desc: `0`
                     });
                     console.log(`PVAI: Added trait to ${ai.shortName}`);
-                return true
+                    
+                    // Only 40% chance to start vassalization discussion even when conditions are met
+                    // This prevents every positive interaction from triggering vassalization talks
+                    return Math.random() < 0.4;
                 }
+                return false;
+            }
         }
         else {
-            return false
+            return false;
         }
-        
     },
 
     /**

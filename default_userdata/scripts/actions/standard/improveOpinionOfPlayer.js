@@ -21,7 +21,32 @@ module.exports = {
      * @param {GameData} gameData 
      */
     check: (gameData) =>{
-        return true
+        // Only trigger if there's meaningful conversation context
+        // Check if conversation has progressed beyond initial greetings
+        const ai = gameData.getAi();
+        const player = gameData.getPlayer();
+        
+        // Check if AI has positive opinion of player (opinion > 0)
+        // This prevents improving opinion when AI already dislikes player
+        if (ai.opinionOfPlayer <= 0) {
+            return false;
+        }
+        
+        // Check if conversation has had at least 2 exchanges
+        // This prevents immediate opinion changes
+        // Note: This is a simplified check - actual message count would need to be tracked elsewhere
+        // For now, we'll use a basic check based on opinion modifier value
+        const conversationOpinion = ai.getOpinionModifierValue("From conversations");
+        
+        // Only allow opinion improvement if conversation opinion is moderately positive (between 10 and 40)
+        // This prevents excessive triggering at both low and high values
+        if (conversationOpinion < 10 || conversationOpinion > 40) {
+            return false;
+        }
+        
+        // Add some randomness to prevent every eligible conversation from triggering
+        // 70% chance when conditions are met
+        return Math.random() < 0.7;
     },
 
     /**
