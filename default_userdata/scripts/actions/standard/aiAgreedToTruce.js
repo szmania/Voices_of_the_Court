@@ -21,7 +21,23 @@ module.exports = {
      * @param {GameData} gameData 
      */
     check: (gameData) => {
-        return (gameData.getAi().opinionOfPlayer >= -30);
+        const ai = gameData.getAi();
+        
+        // Only allow truce if opinion is moderately positive (>= 0)
+        // and there's been meaningful conversation
+        if (ai.opinionOfPlayer >= 0) {
+            const conversationOpinion = ai.getOpinionModifierValue("From conversations");
+            
+            // Only allow if conversation has built up some positive opinion (>= 15)
+            // This prevents truces from happening too early in conversations
+            if (conversationOpinion >= 15) {
+                // Higher opinion = higher probability of truce
+                // Range: 50% chance at opinion 0 to 80% chance at opinion 100
+                const probability = 0.5 + (ai.opinionOfPlayer / 100) * 0.3;
+                return Math.random() < probability;
+            }
+        }
+        return false;
     },
 
     /**

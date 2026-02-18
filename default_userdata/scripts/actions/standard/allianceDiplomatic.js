@@ -26,7 +26,15 @@ module.exports = {
         console.log(`Diplomatic Alliance Score: ` + score);
 
         console.log((score >= 60));
-        return (score >= 60);
+        
+        // Only allow alliance if score is high enough AND there's some randomness
+        // Higher scores have higher probability
+        if (score >= 60) {
+            // Range: 60% chance at score 60 to 90% chance at score 100+
+            const probability = Math.min(0.9, 0.6 + (Math.min(score, 100) - 60) * 0.0075);
+            return Math.random() < probability;
+        }
+        return false;
     },
 	
     /**
