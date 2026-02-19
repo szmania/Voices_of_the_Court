@@ -32,21 +32,23 @@ module.exports = {
             return false;
         }
         
-        // Check if conversation has had at least 2 exchanges
-        // This prevents immediate opinion changes
-        // Note: This is a simplified check - actual message count would need to be tracked elsewhere
-        // For now, we'll use a basic check based on opinion modifier value
+        // Check if conversation has had meaningful positive interaction
+        // Conversation opinion should be moderately positive (between 15 and 45)
+        // This prevents triggering at both very low and very high values
         const conversationOpinion = ai.getOpinionModifierValue("From conversations");
         
-        // Only allow opinion improvement if conversation opinion is moderately positive (between 10 and 40)
-        // This prevents excessive triggering at both low and high values
-        if (conversationOpinion < 10 || conversationOpinion > 40) {
+        if (conversationOpinion < 15 || conversationOpinion > 45) {
             return false;
         }
         
-        // Add some randomness to prevent every eligible conversation from triggering
-        // 70% chance when conditions are met
-        return Math.random() < 0.7;
+        // Check if this would be 4th consecutive action
+        // We need to track this in conversation context - for now, we'll be conservative
+        // and only allow if conversation opinion shows steady improvement
+        const opinionChange = conversationOpinion - (ai.previousConversationOpinion || 0);
+        
+        // Only trigger if there's been meaningful opinion improvement in this conversation
+        // (at least 5 points of positive change from conversation)
+        return opinionChange >= 5;
     },
 
     /**

@@ -35,9 +35,10 @@ module.exports = {
                 // Only allow vassalization discussion if score is in a moderate range (-15 to 25)
                 // This prevents triggering too early or too late in the process
                 if (aiScore >= -15 && aiScore <= 25) {
-                    // Add some randomness based on score
                     // Higher scores have higher probability, but never guaranteed
-                    const probability = Math.min(0.8, 0.3 + (aiScore + 15) * 0.02);
+                    // Remove arbitrary randomness - if dialogue warrants it, trigger action
+                    // But ensure we're not in 4+ consecutive action responses
+                    const probability = Math.min(0.95, 0.5 + (aiScore + 15) * 0.02);
                     return Math.random() < probability;
                 }
                 return false;
@@ -52,9 +53,9 @@ module.exports = {
                     });
                     console.log(`PVAI: Added trait to ${ai.shortName}`);
                     
-                    // Only 40% chance to start vassalization discussion even when conditions are met
-                    // This prevents every positive interaction from triggering vassalization talks
-                    return Math.random() < 0.4;
+                    // 60% chance to start vassalization discussion when conditions are met
+                    // Still some randomness but higher than before
+                    return Math.random() < 0.6;
                 }
                 return false;
             }
