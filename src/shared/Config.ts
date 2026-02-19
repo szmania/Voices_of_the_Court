@@ -49,6 +49,10 @@ export class Config{
     actionsEnableAll!: boolean;
     narrativeEnable!: boolean;
     disabledActions!: string[];
+    
+    minimumMessagesBeforeAction!: number;
+    actionProbability!: number;
+    maxConsecutiveActions!: number;
 
     cleanMessages!: boolean;
     debugMode!: boolean;
