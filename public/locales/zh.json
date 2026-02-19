@@ -133,8 +133,12 @@
     "search_title": "搜索消息",
     "search_placeholder": "搜索...",
     "reset_title": "重置窗口",
+    "clear_history_button": "清除历史",
+    "clear_history_tooltip": "清除对话历史",
     "undo_button": "撤销",
     "undo_tooltip": "移除最后一次对话（您的消息和AI的回复）。",
+    "regenerate_button": "重新生成",
+    "regenerate_tooltip": "只有在AI最后发言时才能重新生成响应。",
     "leave_tooltip": "结束当前对话并保存总结。"
   },
   "suggestions": {

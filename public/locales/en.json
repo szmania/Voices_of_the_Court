@@ -137,6 +137,8 @@
     "clear_history_tooltip": "Clear conversation history",
     "undo_button": "UNDO",
     "undo_tooltip": "Remove the last exchange (your message and the AI's response).",
+    "regenerate_button": "REGENERATE",
+    "regenerate_tooltip": "You can only regenerate a response if the AI was the last one to speak.",
     "leave_tooltip": "End the current conversation and save the summary."
   },
   "suggestions": {

@@ -40,12 +40,12 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 0px;
-    font-family: 'SiYuanSongTiRegularSiYuanSongTiRegular', sans-serif;
+    font-size: 16px;
+    font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 30px; /* 稍微上移 */
+    bottom: 50px; /* 稍微上移 */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -80,12 +80,22 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 0px;
+    font-size: 16px;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     box-shadow: none;
     filter: none;
+    position: absolute;
+    bottom: 50px; /* 与离开按钮对齐 */
+}
+
+.theme-chinese .undo-button {
+    left: 30%; /* 调整撤销按钮位置 */
+}
+
+.theme-chinese .regenerate-button {
+    right: 30%; /* 调整重新生成按钮位置 */
 }
 
 .theme-chinese .undo-button:hover,
