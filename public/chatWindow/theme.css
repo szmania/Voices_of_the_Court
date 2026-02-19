@@ -45,7 +45,7 @@ body.theme-chinese .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 50px; /* 稍微上移 */
+    bottom: 30px; /* 下移避免遮挡输入框 */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -87,7 +87,7 @@ body.theme-chinese .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: 50px; /* 与离开按钮对齐 */
+    bottom: 30px; /* 与离开按钮对齐 */
 }
 
 .theme-chinese .undo-button {
@@ -95,7 +95,8 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .regenerate-button {
-    right: 30%; /* 调整重新生成按钮位置 */
+    left: 40%; /* 居中在撤销按钮(30%)和结束对话按钮(50%)之间 */
+    transform: translateX(-50%);
 }
 
 .theme-chinese .undo-button:hover,
