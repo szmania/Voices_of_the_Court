@@ -64,6 +64,43 @@ body.theme-chinese .chat-box {
     /* 移除点击缩小效果 */
 }
 
+/* 中式UI主题 - 重做和重新生成按钮样式 */
+.theme-chinese .undo-button,
+.theme-chinese .regenerate-button {
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    width: 180px;
+    height: 90px;
+    background-image: url(../assets/button4.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: url('../assets/cursor.png'), auto;
+    transition: background-image 0.3s ease;
+    padding: 0;
+    margin: 0;
+    font-size: 0px;
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-chinese .undo-button:hover,
+.theme-chinese .regenerate-button:hover {
+    background-image: url(../assets/button3.png);
+    color: #ffffff;
+    box-shadow: none;
+    filter: none;
+}
+
+.theme-chinese .undo-button:disabled,
+.theme-chinese .regenerate-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 /* 中式UI主题 - 输入框和文本显示框样式 */
 .theme-chinese .chat-input {
     border: 2px solid #957c53;
@@ -513,4 +550,3 @@ body.theme-west .chat-box {
     right: auto; /* 取消右对齐 */
     left: 8.1%; /* 设置左边距为5% */
 }
-
