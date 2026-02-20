@@ -313,10 +313,8 @@ body.theme-chinese .chat-box {
 
 /* WestUI主题 - 设置聊天窗口背景 */
 body.theme-west {
-    background-image: url(../assets/background_east1.png);
-    background-size: 100% 100%; /* 拉伸填充 */
-    background-repeat: no-repeat;
-    background-position: center;
+    background-image: none;
+    background-color: transparent;
 }
 
 /* WestUI主题下聊天框的背景 */
@@ -326,7 +324,11 @@ body.theme-west .chat-box {
     background-repeat: no-repeat;
     background-position: center;
     background-color: transparent; /* 移除原有的背景色 */
-    width: 31%; /* 调整宽度为31% */
+    width: 40%; /* 增加宽度 */
+    resize: both; /* 允许拖动调整大小 */
+    overflow: auto; /* 确保内容可滚动 */
+    min-width: 300px;
+    min-height: 400px;
 }
 
 /* WestUI主题 - 使用当前的图像按钮样式 */
@@ -349,8 +351,9 @@ body.theme-west .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 20px; /* 进一步下移 */
+    bottom: 10px; /* 下移以与撤销/重新生成按钮对齐 */
     left: 50%;
+    transform: translateX(-50%);
     z-index: 100;
     box-shadow: none;
     filter: none;
@@ -365,7 +368,6 @@ body.theme-west .chat-box {
 
 .theme-west .leave-button:active {
     /* 移除点击缩小效果 */
-    transform: translateX(-50%);
 }
 
 
