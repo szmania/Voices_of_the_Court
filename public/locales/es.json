@@ -139,7 +139,7 @@
   },
   "suggestions": {
     "header": "Entrada recomendada",
-    "button": "Mostrar sugerencias",
+    "button": "Sugerencias",
     "tooltip": "Muestra u oculta la función de frases de entrada recomendadas.",
     "no_suggestions": "No hay sugerencias disponibles",
     "close": "×"

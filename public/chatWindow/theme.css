@@ -324,7 +324,7 @@ body.theme-west .chat-box {
     background-repeat: no-repeat;
     background-position: center;
     background-color: transparent; /* 移除原有的背景色 */
-    width: 40%; /* 增加宽度 */
+    width: 50%; /* 增加宽度 */
     resize: both; /* 允许拖动调整大小 */
     overflow: visible; /* 确保内容可滚动 */
     overflow-x: hidden; /* 移除水平滚动条 */
@@ -353,7 +353,7 @@ body.theme-west .chat-box {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
     bottom: -25px; /* 进一步下移 */
-    left: 72%;
+    left: 65%; /* 向左移动 */
     transform: translateX(-50%);
     z-index: 100;
     box-shadow: none;
@@ -446,7 +446,7 @@ body.theme-west .chat-box {
 /* WestUI主题 - 显示建议按钮样式 */
 .theme-west .suggestions-button {
     background: transparent;
-    color: transparent;
+    color: #a18c61;
     border: none;
     width: 80px;
     height: 30px;
@@ -458,11 +458,14 @@ body.theme-west .chat-box {
     transition: all 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 0;
+    font-size: 10px;
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
     display: inline-block;
     position: absolute;
     right: 8.1%; /* 与输入框右对齐 */
     bottom: 17.5%; /* 与输入框底部对齐 */
+    z-index: 300;
 }
 
 .theme-west .suggestions-button:hover {
@@ -617,4 +620,5 @@ body.theme-west .chat-box {
 .theme-west.auto-send-suggestions .suggestions-button {
     right: auto; /* 取消右对齐 */
     left: 8.1%; /* 设置左边距为5% */
+    z-index: 300;
 }
