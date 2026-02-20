@@ -353,7 +353,7 @@ body.theme-west .chat-box {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
     bottom: -25px; /* 进一步下移 */
-    left: 55%; /* 向左移动 */
+    left: 40%; /* 向左移动 */
     transform: translateX(-50%);
     z-index: 100;
     box-shadow: none;
@@ -398,7 +398,7 @@ body.theme-west .chat-box {
 }
 
 .theme-west .undo-button {
-    left: 25%; /* 向右移动一点 */
+    left: 30%; /* 向右移动一点 */
 }
 
 .theme-west .regenerate-button {
