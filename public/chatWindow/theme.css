@@ -353,7 +353,7 @@ body.theme-west .chat-box {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
     bottom: -25px; /* 进一步下移 */
-    left: 65%; /* 向左移动 */
+    left: 55%; /* 向左移动 */
     transform: translateX(-50%);
     z-index: 100;
     box-shadow: none;
@@ -473,6 +473,44 @@ body.theme-west .chat-box {
     background-size: 100% 100%; /* 拉伸填充 */
     background-repeat: no-repeat;
     background-position: center;
+}
+
+/* WestUI主题 - 调整建议按钮工具提示位置 */
+.theme-west .suggestions-button-wrapper {
+    position: absolute;
+    right: 8.1%;
+    bottom: 17.5%;
+    z-index: 300;
+}
+
+.theme-west .suggestions-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+}
+
+.theme-west .suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+.theme-west .suggestions-button {
+    position: static;
+    right: auto;
+    bottom: auto;
 }
 
 /* WestUI主题 - 建议选项窗口样式 */
