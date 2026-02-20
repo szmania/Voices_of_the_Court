@@ -145,6 +145,7 @@
   "suggestions": {
     "header": "Entrées recommandées",
     "button": "Afficher les suggestions",
+    "tooltip": "Affiche ou masque la fonction de recommandations de saisie.",
     "no_suggestions": "Aucune suggestion disponible",
     "close": "×"
   },

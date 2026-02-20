@@ -144,6 +144,7 @@
   "suggestions": {
     "header": "推荐输入语句",
     "button": "显示建议",
+    "tooltip": "显示或隐藏推荐输入语句功能。",
     "no_suggestions": "暂无推荐输入语句",
     "close": "×"
   },

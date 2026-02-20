@@ -144,6 +144,7 @@
   "suggestions": {
     "header": "Recommended Input",
     "button": "Show Suggestions",
+    "tooltip": "Show or hide the recommended input statements feature.",
     "no_suggestions": "No suggestions available",
     "close": "×"
   },

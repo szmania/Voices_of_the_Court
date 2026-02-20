@@ -195,11 +195,13 @@ function updateRegenerateButtonState() {
     const undoTooltip = (lm ? lm.getNestedTranslation('chat.undo_tooltip') : null) || "Remove the last exchange (your message and the AI's response).";
     const leaveTooltip = (lm ? lm.getNestedTranslation('chat.leave_tooltip') : null) || "End the current conversation and save the summary.";
     const clearHistoryTooltip = (lm ? lm.getNestedTranslation('chat.clear_history_tooltip') : null) || "Clear conversation history";
+    const suggestionsTooltip = (lm ? lm.getNestedTranslation('suggestions.tooltip') : null) || "Show or hide the recommended input statements feature.";
 
     // Set static tooltips
     undoButtonWrapper.setAttribute('data-tooltip', undoTooltip);
     document.getElementById('leave-button-wrapper')?.setAttribute('data-tooltip', leaveTooltip);
     document.getElementById('clear-history-button-wrapper')?.setAttribute('data-tooltip', clearHistoryTooltip);
+    document.querySelector('.suggestions-button-wrapper')?.setAttribute('data-tooltip', suggestionsTooltip);
 
     // Case 1: Loading dots are visible
     if (document.querySelector('.loading')) {
