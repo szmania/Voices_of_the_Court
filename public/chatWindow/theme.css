@@ -45,7 +45,7 @@ body.theme-chinese .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 0px; /* 进一步下移 */
+    bottom: -10px; /* 进一步下移 */
     left: 48%;
     transform: translateX(-50%);
     z-index: 100;
@@ -87,7 +87,7 @@ body.theme-chinese .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: 0px; /* 进一步下移 */
+    bottom: -10px; /* 进一步下移 */
 }
 
 .theme-chinese .undo-button {
@@ -111,6 +111,11 @@ body.theme-chinese .chat-box {
 .theme-chinese .regenerate-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* 中式UI主题 - 调整按钮工具提示位置 */
+.theme-chinese .button-wrapper::after {
+    bottom: 130%; /* 将工具提示向上移动 */
 }
 /* 中式UI主题 - 输入框和文本显示框样式 */
 .theme-chinese .chat-input {
