@@ -46,7 +46,7 @@ body.theme-chinese .chat-box {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
     bottom: 0px; /* 进一步下移 */
-    left: 50%;
+    left: 48%;
     transform: translateX(-50%);
     z-index: 100;
     box-shadow: none;
@@ -91,11 +91,11 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .undo-button {
-    left: 25%; /* 调整撤销按钮位置 */
+    left: 23%; /* 调整撤销按钮位置 */
 }
 
 .theme-chinese .regenerate-button {
-    left: 44%; /* 向右移动一点 */
+    left: 42%; /* 向右移动一点 */
     transform: translateX(-50%);
 }
 
