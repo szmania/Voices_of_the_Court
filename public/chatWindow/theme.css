@@ -352,7 +352,7 @@ body.theme-west .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 10px; /* 下移以与撤销/重新生成按钮对齐 */
+    bottom: -10px; /* 进一步下移 */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -394,15 +394,15 @@ body.theme-west .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: 10px; /* 与离开按钮对齐 */
+    bottom: -10px; /* 与离开按钮对齐并进一步下移 */
 }
 
 .theme-west .undo-button {
-    left: 20%;
+    left: 25%; /* 向右移动一点 */
 }
 
 .theme-west .regenerate-button {
-    left: 42%;
+    left: 45%; /* 调整位置 */
     transform: translateX(-50%);
 }
 
