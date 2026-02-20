@@ -415,12 +415,6 @@ html{
 }
 
 /* Tooltip bubble for regenerate button */
-/* West Theme Button Overrides */
-.theme-west .regenerate-button,
-.theme-west .undo-button {
-    background-image: url("../assets/button.png") !important;
-    background-size: cover !important;
-}
 
 .button-wrapper::after {
     content: attr(data-tooltip);
