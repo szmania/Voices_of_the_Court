@@ -91,7 +91,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .undo-button {
-    left: 23%; /* 调整撤销按钮位置 */
+    left: 20%; /* 向左移动撤销按钮 */
 }
 
 .theme-chinese .regenerate-button {
