@@ -30,8 +30,8 @@ body.theme-chinese .chat-box {
     background: transparent;
     color: #ffffff;
     border: none;
-    width: 180px;
-    height: 90px;
+    width: 200px; /* 增大按钮尺寸 */
+    height: 100px; /* 增大按钮尺寸 */
     background-image: url(../assets/button4.png);
     background-size: contain;
     background-repeat: no-repeat;
@@ -40,7 +40,7 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 16px;
+    font-size: 18px; /* 增大字体 */
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -70,8 +70,8 @@ body.theme-chinese .chat-box {
     background: transparent;
     color: #ffffff;
     border: none;
-    width: 180px;
-    height: 90px;
+    width: 190px; /* 增大按钮尺寸 */
+    height: 95px; /* 增大按钮尺寸 */
     background-image: url(../assets/button4.png);
     background-size: contain;
     background-repeat: no-repeat;
@@ -80,7 +80,7 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 16px;
+    font-size: 17px; /* 增大字体 */
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -91,11 +91,11 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .undo-button {
-    left: 30%; /* 调整撤销按钮位置 */
+    left: 25%; /* 调整撤销按钮位置 */
 }
 
 .theme-chinese .regenerate-button {
-    left: 40%; /* 居中在撤销按钮(30%)和结束对话按钮(50%)之间 */
+    left: 37.5%; /* 居中在撤销按钮(25%)和结束对话按钮(50%)之间 */
     transform: translateX(-50%);
 }
 
