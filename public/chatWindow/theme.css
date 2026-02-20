@@ -40,12 +40,12 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 14px; /* 减小字体 */
+    font-size: 12px; /* 减小字体 */
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: 2px; /* 进一步下移 */
+    bottom: 0px; /* 进一步下移 */
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
@@ -80,14 +80,14 @@ body.theme-chinese .chat-box {
     transition: background-image 0.3s ease;
     padding: 0;
     margin: 0;
-    font-size: 13px; /* 减小字体 */
+    font-size: 11px; /* 减小字体 */
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: 2px; /* 进一步下移 */
+    bottom: 0px; /* 进一步下移 */
 }
 
 .theme-chinese .undo-button {
@@ -95,7 +95,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .regenerate-button {
-    left: 42%; /* 向右移动一点 */
+    left: 44%; /* 向右移动一点 */
     transform: translateX(-50%);
 }
 
