@@ -163,6 +163,7 @@ html{
     box-sizing: border-box;
     resize: both;
     overflow: visible; /* Changed from hidden to allow tooltips to show outside */
+    overflow-x: hidden; /* Remove horizontal scrollbar */
     min-width: 300px;
     min-height: 400px;
 }
@@ -347,6 +348,7 @@ html{
     width: 100%;
     margin-top: 10px;
     flex-shrink: 0;
+    align-items: stretch;
 }
 
 .leave-button,
@@ -413,6 +415,13 @@ html{
 }
 
 /* Tooltip bubble for regenerate button */
+/* West Theme Button Overrides */
+.theme-west .regenerate-button,
+.theme-west .undo-button {
+    background-image: url("../assets/button.png") !important;
+    background-size: cover !important;
+}
+
 .button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
