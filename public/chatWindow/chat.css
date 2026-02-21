@@ -270,7 +270,7 @@ html{
     margin-bottom: 10px;
     padding: 10px;
     border: 1px solid #cca43b;
-    max-height: 120px; /* 减少最大高度 */
+    max-height: 200px; /* Increased height */
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     position: absolute;
