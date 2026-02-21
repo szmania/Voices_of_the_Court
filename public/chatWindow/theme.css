@@ -191,8 +191,7 @@ body.theme-chinese .chat-box {
 
 /* East UI主题 - 建议选项窗口样式 */
 .theme-chinese .suggestions-container {
-    background-image: url(../assets/background_area_light.png);
-    background-color: #1a1a1a;
+    background-color: #2b2b2b;
     border: 1px solid #957c53;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     max-height: 200px; /* Matched West UI height */
@@ -563,9 +562,7 @@ body.theme-west .chat-box {
 
 /* WestUI主题 - 建议选项窗口样式 */
 .theme-west .suggestions-container {
-    background-image: url(../assets/background_east2.png);
-    background-size: cover;
-    background-color: transparent;
+    background-color: #2b2b2b;
     border: 1px solid #cca43b;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     max-height: 200px; /* Increased height */
