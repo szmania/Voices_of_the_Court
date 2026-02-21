@@ -135,7 +135,10 @@
     "undo_tooltip": "Elimina el último intercambio (tu mensaje y la respuesta de la IA).",
     "regenerate_button": "REGENERAR",
     "regenerate_tooltip": "Solo puedes regenerar una respuesta si la IA fue la última en hablar.",
-    "leave_tooltip": "Termina la conversación actual y guarda el resumen."
+    "leave_tooltip": "Termina la conversación actual y guarda el resumen.",
+    "scene_description": "Descripción de la escena",
+    "narrative": "Narrativa",
+    "not_spoken": "No ha hablado todavía"
   },
   "suggestions": {
     "header": "Entrada recomendada",

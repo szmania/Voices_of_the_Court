@@ -140,7 +140,10 @@
     "leave_button": "QUITTER LA CONVERSATION",
     "leave_tooltip": "Terminer la conversation actuelle et enregistrer le résumé.",
     "regenerate_button": "RÉGÉNÉRER",
-    "regenerate_tooltip": "Vous ne pouvez régénérer une réponse que si l'IA a parlé en dernier."
+    "regenerate_tooltip": "Vous ne pouvez régénérer une réponse que si l'IA a parlé en dernier.",
+    "scene_description": "Description de la scène",
+    "narrative": "Narration",
+    "not_spoken": "N'a pas encore parlé"
   },
   "suggestions": {
     "header": "Entrées recommandées",

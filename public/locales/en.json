@@ -139,7 +139,10 @@
     "undo_tooltip": "Remove the last exchange (your message and the AI's response).",
     "regenerate_button": "REGENERATE",
     "regenerate_tooltip": "You can only regenerate a response if the AI was the last one to speak.",
-    "leave_tooltip": "End the current conversation and save the summary."
+    "leave_tooltip": "End the current conversation and save the summary.",
+    "scene_description": "Scene Description",
+    "narrative": "Narrative",
+    "not_spoken": "Has not spoken yet"
   },
   "suggestions": {
     "header": "Recommended Input",

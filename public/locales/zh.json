@@ -139,7 +139,10 @@
     "undo_tooltip": "移除最后一次对话（您的消息和AI的回复）。",
     "regenerate_button": "重新生成",
     "regenerate_tooltip": "只有在AI最后发言时才能重新生成响应。",
-    "leave_tooltip": "结束当前对话并保存总结。"
+    "leave_tooltip": "结束当前对话并保存总结。",
+    "scene_description": "场景描述",
+    "narrative": "旁白",
+    "not_spoken": "尚未发言"
   },
   "suggestions": {
     "header": "推荐输入语句",
