@@ -32,7 +32,7 @@
     content: attr(data-tooltip);
     position: absolute;
     top: 120%; /* Move below the icons to avoid being cut off by window edge */
-    right: -60px; /* Shifted further right to avoid covering dropdown */
+    right: -80px; /* Shifted further right to avoid covering dropdown */
     background-color: #111;
     color: #fff;
     padding: 5px 8px;
@@ -273,6 +273,24 @@ html{
     transform: translateX(-50%);
     width: 95%;
     z-index: 200;
+}
+
+.suggestions-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.suggestions-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.suggestions-container::-webkit-scrollbar-thumb {
+    background: #3d2e1e;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+}
+
+.suggestions-container::-webkit-scrollbar-thumb:hover {
+    background: #5a4a35;
 }
 
 .suggestions-header {
