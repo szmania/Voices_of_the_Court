@@ -39,7 +39,9 @@
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.8rem;
-    white-space: nowrap;
+    max-width: 200px;
+    white-space: normal;
+    overflow-wrap: break-word;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
@@ -428,7 +430,9 @@ html{
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
-    white-space: nowrap;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;

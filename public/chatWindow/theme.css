@@ -8,14 +8,6 @@
     font-style: normal;
 }
 
-/* 中式UI主题 - 设置聊天窗口背景 */
-body.theme-chinese {
-    background-image: url(../assets/background.png);
-    background-size: 100% 100%; /* 拉伸填充 */
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 /* 中式UI主题下聊天框的背景 */
 body.theme-chinese .chat-box {
     background-image: url(../assets/background2.png);
@@ -141,8 +133,8 @@ body.theme-chinese .chat-box {
 /* 中式UI主题 - 显示建议按钮样式 */
 .theme-chinese .suggestions-button-wrapper {
     position: absolute;
-    left: 5%; /* 与输入框左对齐 */
-    bottom: 12%; /* 移至输入框下方 */
+    left: 8%; /* 向右移动一点 */
+    bottom: 13.5%; /* 向上移动一点 */
     z-index: 300;
 }
 
@@ -363,7 +355,7 @@ body.theme-chinese .chat-box {
 /* 中式UI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
 .theme-chinese.auto-send-suggestions .suggestions-button-wrapper {
     right: auto; /* 取消右对齐 */
-    left: 5%; /* 设置左边距 */
+    left: 8%; /* 设置左边距 */
 }
 
 /* WestUI主题 - 设置聊天窗口背景 */
