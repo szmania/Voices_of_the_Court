@@ -142,8 +142,33 @@ body.theme-chinese .chat-box {
 .theme-chinese .suggestions-button-wrapper {
     position: absolute;
     left: 5%; /* 与输入框左对齐 */
-    bottom: 17.5%; /* 与输入框底部对齐 */
+    bottom: 12%; /* 移至输入框下方 */
     z-index: 300;
+}
+
+.theme-chinese .suggestions-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1001; /* 确保在窗口最上层 */
+    border: 1px solid #957c53;
+}
+
+.theme-chinese .suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 .theme-chinese .suggestions-button {
@@ -177,12 +202,12 @@ body.theme-chinese .chat-box {
     background-color: transparent; /* 透明背景 */
     border: none; /* 移除边框 */
     box-shadow: none; /* 移除阴影 */
-    max-height: 400px; /* 增加最大高度 */
+    max-height: 450px; /* 增加最大高度 */
     overflow-y: visible; /* 移除滚动条 */
     padding: 0;
     width: 50%; /* 缩小窗口宽度 */
     margin-left: 5%; /* 设置位置为左侧5% */
-    margin-bottom: 5%; /* 增加底部边缘1% */
+    margin-bottom: 12%; /* 向上移动，确保底部选项可见 */
 }
 /* 中式UI主题 - 建议标题块 */
 .theme-chinese .suggestions-header {
@@ -332,7 +357,7 @@ body.theme-chinese .chat-box {
 .theme-chinese.auto-send-suggestions .suggestions-container {
     width: 60%; /* 增加窗口宽度 */
     margin-left: 50%; /* 设置左边距使容器居中 */
-    margin-bottom: 10%; /* 保持底部边缘 */
+    margin-bottom: 15%; /* 向上移动 */
 }
 
 /* 中式UI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
