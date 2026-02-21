@@ -201,7 +201,7 @@ body.theme-chinese .chat-box {
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 0;
-    bottom: 90px; /* Moved down further */
+    bottom: 70px; /* Moved down further */
     z-index: 200;
 }
 /* East UI主题 - 建议标题块 */
@@ -491,7 +491,7 @@ body.theme-west .chat-box {
     width: 86%;
     margin-left: 7%; /* 居中显示 */
     margin-top: 3%; /* Moved up slightly more */
-    height: 60%; /* 降低总体高度 */
+    height: 65%; /* 降低总体高度 */
 }
 
 /* WestUI主题 - 显示建议按钮样式 */
