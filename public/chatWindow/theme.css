@@ -489,7 +489,7 @@ body.theme-west .chat-box {
     border: 2px solid #232321;
     width: 86%;
     margin-left: 7%; /* 居中显示 */
-    margin-top: 7%; /* 进一步降低顶部高度 */
+    margin-top: 4%; /* Moved up from 7% */
     height: 60%; /* 降低总体高度 */
 }
 
@@ -573,6 +573,24 @@ body.theme-west .chat-box {
     transform: translateX(-50%);
     margin-bottom: 0;
     bottom: 120px; /* Moved up slightly */
+}
+
+.theme-west .suggestions-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.theme-west .suggestions-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.theme-west .suggestions-container::-webkit-scrollbar-thumb {
+    background: #3d2e1e;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+}
+
+.theme-west .suggestions-container::-webkit-scrollbar-thumb:hover {
+    background: #5a4a35;
 }
 
 /* WestUI主题 - 建议标题块 */
