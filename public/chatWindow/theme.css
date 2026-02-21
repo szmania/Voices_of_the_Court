@@ -527,7 +527,7 @@ body.theme-west .chat-box {
 .theme-west .suggestions-button-wrapper {
     position: absolute;
     left: 12%; /* Moved left slightly */
-    bottom: 15%; /* Moved down quite a bit */
+    bottom: 18%; /* Moved up a little */
     z-index: 150; /* Lowered so it stays behind suggestions-container */
 }
 

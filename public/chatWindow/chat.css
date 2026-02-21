@@ -52,9 +52,9 @@
 
 /* Ensure tooltips on the right edge don't go off-screen */
 .chat-header .search-container::after {
-    right: 110%;
+    left: 110%; /* Position to the right of the button */
     top: 0;
-    left: auto;
+    right: auto;
     transform: none;
 }
 
