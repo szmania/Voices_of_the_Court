@@ -274,7 +274,7 @@ html{
     overflow-y: auto;
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     position: absolute;
-    bottom: 110px; /* 在离开按钮上方显示 */
+    bottom: 80px; /* Moved down further */
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
