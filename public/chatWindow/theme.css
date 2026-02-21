@@ -522,8 +522,8 @@ body.theme-west .chat-box {
 /* WestUI主题 - 调整建议按钮工具提示位置 */
 .theme-west .suggestions-button-wrapper {
     position: absolute;
-    left: 7%; /* 与输入框左对齐 */
-    bottom: 17.5%; /* 与输入框底部对齐 */
+    left: 10%; /* 向右移动 */
+    bottom: 15%; /* 向下移动 */
     z-index: 300;
 }
 
@@ -609,18 +609,18 @@ body.theme-west .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #20201e; /* 浅灰色文字 */
+    padding: 10px 12px; /* 减小内边距 */
+    margin: 4px 0; /* 减小外边距 */
+    color: #20201e;
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px; /* 减小字号 */
+    line-height: 1.4; /* 调整行高 */
+    text-align: center;
+    min-height: 40px; /* 减小最小高度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-west .suggestion-item:nth-child(2) {
@@ -631,18 +631,18 @@ body.theme-west .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #20201e; /* 浅灰色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #20201e;
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-west .suggestion-item:nth-child(3) {
@@ -653,18 +653,18 @@ body.theme-west .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #20201e; /* 浅灰色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #20201e;
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-west .suggestion-item:nth-child(4) {
@@ -675,18 +675,18 @@ body.theme-west .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #20201e; /* 浅灰色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #20201e;
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-west .suggestion-item:nth-child(5) {
@@ -697,18 +697,18 @@ body.theme-west .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #20201e; /* 浅灰色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #20201e;
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-west .suggestion-item:hover {
