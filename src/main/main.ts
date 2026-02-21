@@ -499,6 +499,12 @@ clipboardListener.on('VOTC:IN', async () =>{
         conversation = new Conversation(gameData, config, chatWindow);
         chatWindow.window.webContents.send('chat-start', conversation.gameData);
         
+        // Send loaded history if any
+        if (conversation.messages.length > 0) {
+            console.log(`Sending ${conversation.messages.length} historical messages to chat window.`);
+            chatWindow.window.webContents.send('chat-history', conversation.messages, Array.from(conversation.narratives.entries()));
+        }
+        
     }catch(err){
         console.log("==VOTC:IN ERROR==");
         console.error(err); // Changed from console.log(err)

@@ -540,6 +540,26 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
+ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][]) => {
+    console.log(`Received ${messages.length} historical messages.`);
+    const narrativeMap = new Map(narratives);
+    
+    for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        await displayMessage(msg);
+        
+        const msgNarratives = narrativeMap.get(i);
+        if (msgNarratives) {
+            msgNarratives.forEach(n => displayNarrative(n));
+        }
+    }
+    
+    // Show clear history button if there are messages
+    if (messages.length > 0 && clearHistoryButton) {
+        clearHistoryButton.style.display = 'flex';
+    }
+});
+
 ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{   
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;

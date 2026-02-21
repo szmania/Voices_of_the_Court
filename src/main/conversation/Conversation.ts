@@ -133,7 +133,74 @@ export class Conversation{
                 this.generateInitialSuggestions();
             }
         }
+        this.loadHistory();
         this.initiateConversation();
+    }
+
+    private loadHistory(): void {
+        console.log('Attempting to load most recent conversation history.');
+        const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        
+        if (!fs.existsSync(historyDir)) {
+            console.log('No history directory found for this player.');
+            return;
+        }
+
+        const files = fs.readdirSync(historyDir)
+            .filter(file => file.startsWith(`${this.gameData.playerID}_${this.gameData.aiID}_`) && file.endsWith('.txt'))
+            .map(file => ({
+                name: file,
+                time: parseInt(file.split('_')[2].split('.')[0]) || 0
+            }))
+            .sort((a, b) => b.time - a.time);
+
+        if (files.length === 0) {
+            console.log('No previous history files found for this character pair.');
+            return;
+        }
+
+        const latestFile = path.join(historyDir, files[0].name);
+        console.log(`Loading history from: ${latestFile}`);
+
+        try {
+            const content = fs.readFileSync(latestFile, 'utf8');
+            const lines = content.split('\n');
+            
+            let currentMessage: Message | null = null;
+            let messageIndex = -1;
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line || line.startsWith('Date:')) continue;
+
+                if (line.startsWith('[旁白]:')) {
+                    if (messageIndex !== -1) {
+                        const narrative = line.replace('[旁白]:', '').trim();
+                        this.addNarrativeToMessage(messageIndex, narrative);
+                    }
+                    continue;
+                }
+
+                const colonIndex = line.indexOf(':');
+                if (colonIndex !== -1) {
+                    const name = line.substring(0, colonIndex).trim();
+                    const messageContent = line.substring(colonIndex + 1).trim();
+                    
+                    const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
+                    
+                    currentMessage = {
+                        role: role as 'user' | 'assistant',
+                        name: name,
+                        content: messageContent
+                    };
+                    this.messages.push(currentMessage);
+                    messageIndex = this.messages.length - 1;
+                }
+            }
+            console.log(`Successfully loaded ${this.messages.length} messages from history.`);
+        } catch (error) {
+            console.error(`Error reading or parsing history file: ${error}`);
+        }
     }
 
     pushMessage(message: Message): void{           
