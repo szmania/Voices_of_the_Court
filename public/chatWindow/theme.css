@@ -566,10 +566,10 @@ body.theme-west .chat-box {
     overflow-y: auto;
     padding: 10px;
     width: 95%;
-    left: 52%; /* 向右移动一点 */
+    left: 50%; /* Moved left slightly */
     transform: translateX(-50%);
     margin-bottom: 0;
-    bottom: 110px;
+    bottom: 120px; /* Moved up slightly */
 }
 
 /* WestUI主题 - 建议标题块 */
