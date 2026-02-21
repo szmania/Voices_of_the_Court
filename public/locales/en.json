@@ -117,7 +117,7 @@
     "theme": "Theme Selection",
     "theme_desc": "Choose your preferred UI theme:",
     "theme_original": "Original UI",
-    "theme_chinese": "Chinese Style UI",
+    "theme_chinese": "East UI",
     "theme_west": "West UI",
     "logs": "Log files",
     "logs_desc": "If you experience errors/crashes, send the logs to our discord server",

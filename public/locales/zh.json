@@ -117,7 +117,7 @@
     "theme": "主题选择",
     "theme_desc": "选择您喜欢的 UI 主题：",
     "theme_original": "原始 UI",
-    "theme_chinese": "中式 UI",
+    "theme_chinese": "东亚风格 UI",
     "theme_west": "西式 UI",
     "logs": "日志文件",
     "logs_desc": "如果您遇到错误/崩溃，请将日志发送到我们的 Discord 服务器",

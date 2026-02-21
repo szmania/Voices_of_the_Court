@@ -8,7 +8,7 @@
     font-style: normal;
 }
 
-/* 中式UI主题下聊天框的背景 */
+/* East UI主题下聊天框的背景 */
 body.theme-chinese .chat-box {
     background-image: url(../assets/background2.png);
     background-size: 100% 100%; /* 拉伸填充 */
@@ -17,7 +17,7 @@ body.theme-chinese .chat-box {
     background-color: transparent; /* 移除原有的背景色 */
 }
 
-/* 中式UI主题 - 使用当前的图像按钮样式 */
+/* East UI主题 - 使用当前的图像按钮样式 */
 .theme-chinese .leave-button {
     background: transparent;
     color: #ffffff;
@@ -56,7 +56,7 @@ body.theme-chinese .chat-box {
     /* 移除点击缩小效果 */
 }
 
-/* 中式UI主题 - 重做和重新生成按钮样式 */
+/* East UI主题 - 重做和重新生成按钮样式 */
 .theme-chinese .undo-button,
 .theme-chinese .regenerate-button {
     background: transparent;
@@ -105,12 +105,12 @@ body.theme-chinese .chat-box {
     cursor: not-allowed;
 }
 
-/* 中式UI主题 - 调整按钮工具提示位置 */
+/* East UI主题 - 调整按钮工具提示位置 */
 .theme-chinese .button-wrapper::after,
 .theme-chinese .suggestions-button-wrapper::after {
     bottom: 130%; /* 将工具提示向上移动 */
 }
-/* 中式UI主题 - 输入框和文本显示框样式 */
+/* East UI主题 - 输入框和文本显示框样式 */
 .theme-chinese .chat-input {
     border: 2px solid #957c53;
     width: 90%; /* 缩小宽度 */
@@ -130,7 +130,7 @@ body.theme-chinese .chat-box {
     height: 65%; /* 降低总体高度 */
 }
 
-/* 中式UI主题 - 显示建议按钮样式 */
+/* East UI主题 - 显示建议按钮样式 */
 .theme-chinese .suggestions-button-wrapper {
     position: absolute;
     left: 8%; /* 向右移动一点 */
@@ -189,7 +189,7 @@ body.theme-chinese .chat-box {
 
 
 
-/* 中式UI主题 - 建议选项窗口样式 */
+/* East UI主题 - 建议选项窗口样式 */
 .theme-chinese .suggestions-container {
     background-color: transparent; /* 透明背景 */
     border: none; /* 移除边框 */
@@ -201,7 +201,7 @@ body.theme-chinese .chat-box {
     margin-left: 5%; /* 设置位置为左侧5% */
     margin-bottom: 12%; /* 向上移动，确保底部选项可见 */
 }
-/* 中式UI主题 - 建议标题块 */
+/* East UI主题 - 建议标题块 */
 .theme-chinese .suggestions-header {
     display: flex;
     justify-content: space-between;
@@ -229,7 +229,7 @@ body.theme-chinese .chat-box {
     justify-content: center;
 }
 
-/* 中式UI主题 - 每个建议选项使用不同的气泡背景 */
+/* East UI主题 - 每个建议选项使用不同的气泡背景 */
 .theme-chinese .suggestion-item:nth-child(1) {
     background-image: url(../assets/xuanxiang1.png);
     background-size: 100% 100%;
@@ -345,14 +345,14 @@ body.theme-chinese .chat-box {
     transform: scale(1.02);
 }
 
-/* 中式UI主题 + 自动发送建议功能 - 建议选项居中显示 */
+/* East UI主题 + 自动发送建议功能 - 建议选项居中显示 */
 .theme-chinese.auto-send-suggestions .suggestions-container {
     width: 60%; /* 增加窗口宽度 */
     margin-left: 50%; /* 设置左边距使容器居中 */
     margin-bottom: 15%; /* 向上移动 */
 }
 
-/* 中式UI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
+/* East UI主题 + 自动发送建议功能 - 显示建议按钮靠左侧显示 */
 .theme-chinese.auto-send-suggestions .suggestions-button-wrapper {
     right: auto; /* 取消右对齐 */
     left: 8%; /* 设置左边距 */
