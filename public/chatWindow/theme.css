@@ -135,7 +135,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 8%; /* 向右移动一点 */
     bottom: 13.5%; /* 向上移动一点 */
-    z-index: 300;
+    z-index: 150; /* Lowered so it stays behind suggestions-container */
 }
 
 .theme-chinese .suggestions-button-wrapper::after {
@@ -201,7 +201,8 @@ body.theme-chinese .chat-box {
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 0;
-    bottom: 120px; /* Matched West UI position */
+    bottom: 110px; /* Moved down slightly */
+    z-index: 200;
 }
 /* East UI主题 - 建议标题块 */
 .theme-chinese .suggestions-header {
@@ -231,7 +232,7 @@ body.theme-chinese .chat-box {
     justify-content: center;
 }
 
-/* East UI主题 - 每个建议选项使用不同的气泡背景 */
+/* East UI主题 - 每个建议选项使用不同的气泡背景 - Matched West UI size */
 .theme-chinese .suggestion-item:nth-child(1) {
     background-image: url(../assets/xuanxiang1.png);
     background-size: 100% 100%;
@@ -240,18 +241,18 @@ body.theme-chinese .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #957c53; /* 白色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #957c53;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-chinese .suggestion-item:nth-child(2) {
@@ -262,18 +263,18 @@ body.theme-chinese .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #957c53; /* 白色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #957c53;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-chinese .suggestion-item:nth-child(3) {
@@ -284,18 +285,18 @@ body.theme-chinese .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #957c53; /* 白色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #957c53;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-chinese .suggestion-item:nth-child(4) {
@@ -306,18 +307,18 @@ body.theme-chinese .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #957c53; /* 白色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #957c53;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-chinese .suggestion-item:nth-child(5) {
@@ -328,18 +329,18 @@ body.theme-chinese .chat-box {
     background-color: transparent;
     border: none;
     border-radius: 0;
-    padding: 20px 16px; /* 增加上下内边距 */
-    margin: 8px 0; /* 增加上下外边距 */
-    color: #957c53; /* 白色文字 */
+    padding: 10px 12px;
+    margin: 4px 0;
+    color: #957c53;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
-    font-size: 23px; /* 增大字号 */
-    line-height: 1.6; /* 调整行高 */
-    text-align: center; /* 文字居中显示 */
-    min-height: 60px; /* 设置最小高度 */
-    display: flex; /* 使用flex布局 */
-    align-items: center; /* 垂直居中 */
-    justify-content: center; /* 水平居中 */
+    font-size: 16px;
+    line-height: 1.4;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-chinese .suggestion-item:hover {

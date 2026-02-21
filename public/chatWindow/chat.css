@@ -32,7 +32,7 @@
     content: attr(data-tooltip);
     position: absolute;
     top: 120%; /* Move below the icons to avoid being cut off by window edge */
-    right: -40px; /* Shifted further right to avoid covering dropdown */
+    right: -60px; /* Shifted further right to avoid covering dropdown */
     background-color: #111;
     color: #fff;
     padding: 5px 8px;
