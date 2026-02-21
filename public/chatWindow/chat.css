@@ -31,7 +31,7 @@
 .reset-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 120%;
+    top: 120%; /* Move below the icons to avoid being cut off by window edge */
     right: 0;
     background-color: #111;
     color: #fff;
@@ -68,6 +68,7 @@
 .reset-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
+    z-index: 2000;
 }
 
 .search-icon:hover, .reset-button:hover {
