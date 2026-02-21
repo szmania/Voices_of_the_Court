@@ -201,7 +201,7 @@ body.theme-chinese .chat-box {
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 0;
-    bottom: 110px; /* Moved down slightly */
+    bottom: 90px; /* Moved down further */
     z-index: 200;
 }
 /* East UI主题 - 建议标题块 */
