@@ -402,7 +402,7 @@ body.theme-west .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: -65px; /* Moved down further */
+    bottom: -63px; /* Moved down further */
     left: 40%; /* 向左移动 */
     transform: translateX(-50%);
     z-index: 100;
@@ -444,7 +444,7 @@ body.theme-west .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -65px; /* Moved down further to align with leave button */
+    bottom: -63px; /* Moved down further to align with leave button */
 }
 
 .theme-west .undo-button {
@@ -491,7 +491,7 @@ body.theme-west .chat-box {
     width: 86%;
     margin-left: 7%; /* 居中显示 */
     margin-top: 3%; /* Moved up slightly more */
-    height: 65%; /* 降低总体高度 */
+    height: 60%; /* 降低总体高度 */
 }
 
 /* WestUI主题 - 显示建议按钮样式 */
@@ -527,7 +527,7 @@ body.theme-west .chat-box {
 .theme-west .suggestions-button-wrapper {
     position: absolute;
     left: 12%; /* Moved left slightly */
-    bottom: 18%; /* Moved up a little */
+    bottom: 19%; /* Moved up a little */
     z-index: 150; /* Lowered so it stays behind suggestions-container */
 }
 
