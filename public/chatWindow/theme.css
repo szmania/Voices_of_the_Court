@@ -489,7 +489,7 @@ body.theme-west .chat-box {
     border: 2px solid #232321;
     width: 86%;
     margin-left: 7%; /* 居中显示 */
-    margin-top: 4%; /* Moved up from 7% */
+    margin-top: 3%; /* Moved up slightly more */
     height: 60%; /* 降低总体高度 */
 }
 
@@ -525,8 +525,8 @@ body.theme-west .chat-box {
 /* WestUI主题 - 调整建议按钮工具提示位置 */
 .theme-west .suggestions-button-wrapper {
     position: absolute;
-    left: 15%; /* 向右移动 */
-    bottom: 18%; /* Moved up from 15% */
+    left: 12%; /* Moved left slightly */
+    bottom: 20%; /* Moved up slightly more */
     z-index: 150; /* Lowered so it stays behind suggestions-container */
 }
 

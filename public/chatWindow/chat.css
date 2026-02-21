@@ -51,7 +51,13 @@
 }
 
 /* Ensure tooltips on the right edge don't go off-screen */
-.chat-header .search-container::after,
+.chat-header .search-container::after {
+    right: 110%;
+    top: 0;
+    left: auto;
+    transform: none;
+}
+
 .chat-header .reset-button-wrapper::after {
     right: 0;
     left: auto;
