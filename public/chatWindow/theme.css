@@ -142,8 +142,8 @@ body.theme-chinese .chat-box {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    transform: none;
     background-color: #111;
     color: #fff;
     padding: 8px 12px;
@@ -531,8 +531,8 @@ body.theme-west .chat-box {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    transform: none;
     background-color: #111;
     color: #fff;
     padding: 8px 12px;

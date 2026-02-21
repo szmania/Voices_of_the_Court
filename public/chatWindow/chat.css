@@ -58,6 +58,12 @@
     transform: none;
 }
 
+/* Ensure suggestions tooltip doesn't go off-screen on the left */
+.suggestions-button-wrapper::after {
+    left: 0;
+    transform: none;
+}
+
 .search-container:hover::after,
 .reset-button-wrapper:hover::after {
     opacity: 1;
