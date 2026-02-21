@@ -37,7 +37,7 @@ body.theme-chinese .chat-box {
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     position: absolute;
-    bottom: -35px; /* 进一步下移 */
+    bottom: -45px; /* 进一步下移 */
     left: 40%;
     transform: translateX(-50%);
     z-index: 100;
@@ -79,7 +79,7 @@ body.theme-chinese .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -35px; /* 进一步下移 */
+    bottom: -45px; /* 进一步下移 */
 }
 
 .theme-chinese .undo-button {
