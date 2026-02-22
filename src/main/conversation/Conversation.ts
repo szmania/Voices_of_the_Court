@@ -138,7 +138,13 @@ export class Conversation{
     }
 
     private loadHistory(): void {
-        console.log('Attempting to load most recent conversation history.');
+        // Check if historical conversation loading is enabled
+        if (!this.config.showPreviousConversations) {
+            console.log('Historical conversation loading is disabled in config.');
+            return;
+        }
+        
+        console.log('Attempting to load historical conversation history.');
         const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
         
         if (!fs.existsSync(historyDir)) {
@@ -146,61 +152,93 @@ export class Conversation{
             return;
         }
 
+        // Get all historical conversation files for this player and AI character
         const files = fs.readdirSync(historyDir)
             .filter(file => file.startsWith(`${this.gameData.playerID}_${this.gameData.aiID}_`) && file.endsWith('.txt'))
             .map(file => ({
                 name: file,
                 time: parseInt(file.split('_')[2].split('.')[0]) || 0
             }))
-            .sort((a, b) => b.time - a.time);
+            .sort((a, b) => b.time - a.time); // Sort by timestamp, newest first
 
         if (files.length === 0) {
             console.log('No previous history files found for this character pair.');
             return;
         }
 
-        const latestFile = path.join(historyDir, files[0].name);
-        console.log(`Loading history from: ${latestFile}`);
-
-        try {
-            const content = fs.readFileSync(latestFile, 'utf8');
-            const lines = content.split('\n');
+        console.log(`Found ${files.length} historical conversation files. Loading all files...`);
+        
+        // Track loaded messages count
+        let totalMessagesLoaded = 0;
+        
+        // Load all historical conversation files
+        for (const fileInfo of files) {
+            const filePath = path.join(historyDir, fileInfo.name);
+            console.log(`Loading historical conversation from: ${filePath}`);
             
-            let currentMessage: Message | null = null;
-            let messageIndex = -1;
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const lines = content.split('\n');
+                
+                let currentDate = this.gameData.date; // Default to current date
+                let currentLocation = this.gameData.location; // Default to current location
+                let currentMessage: Message | null = null;
+                let messageIndex = -1;
 
-            for (let line of lines) {
-                line = line.trim();
-                if (!line || line.startsWith('Date:')) continue;
-
-                if (line.startsWith('[旁白]:')) {
-                    if (messageIndex !== -1) {
-                        const narrative = line.replace('[旁白]:', '').trim();
-                        this.addNarrativeToMessage(messageIndex, narrative);
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Parse date from file
+                    if (line.startsWith('Date:')) {
+                        currentDate = line.replace('Date:', '').trim();
+                        console.log(`Found historical conversation date: ${currentDate}`);
+                        continue;
                     }
-                    continue;
-                }
+                    
+                    // Parse location if present (custom format)
+                    if (line.startsWith('Location:')) {
+                        currentLocation = line.replace('Location:', '').trim();
+                        console.log(`Found historical conversation location: ${currentLocation}`);
+                        continue;
+                    }
 
-                const colonIndex = line.indexOf(':');
-                if (colonIndex !== -1) {
-                    const name = line.substring(0, colonIndex).trim();
-                    const messageContent = line.substring(colonIndex + 1).trim();
-                    
-                    const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
-                    
-                    currentMessage = {
-                        role: role as 'user' | 'assistant',
-                        name: name,
-                        content: messageContent
-                    };
-                    this.messages.push(currentMessage);
-                    messageIndex = this.messages.length - 1;
+                    if (line.startsWith('[旁白]:')) {
+                        if (messageIndex !== -1) {
+                            const narrative = line.replace('[旁白]:', '').trim();
+                            this.addNarrativeToMessage(messageIndex, narrative);
+                        }
+                        continue;
+                    }
+
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex !== -1) {
+                        const name = line.substring(0, colonIndex).trim();
+                        const messageContent = line.substring(colonIndex + 1).trim();
+                        
+                        const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
+                        
+                        currentMessage = {
+                            role: role as 'user' | 'assistant',
+                            name: name,
+                            content: messageContent
+                        };
+                        this.messages.push(currentMessage);
+                        messageIndex = this.messages.length - 1;
+                        totalMessagesLoaded++;
+                    }
                 }
+                console.log(`Loaded ${totalMessagesLoaded - (totalMessagesLoaded - this.messages.length)} messages from ${fileInfo.name}`);
+            } catch (error) {
+                console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
             }
-            console.log(`Successfully loaded ${this.messages.length} messages from history.`);
-        } catch (error) {
-            console.error(`Error reading or parsing history file: ${error}`);
         }
+        
+        console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${files.length} historical conversations.`);
+        
+        // Mark historical messages with a special property or store separately
+        // For now, we'll just load them into the messages array
+        // In a future update, we might want to store them separately or mark them as historical
     }
 
     pushMessage(message: Message): void{           
