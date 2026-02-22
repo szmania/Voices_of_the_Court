@@ -65,6 +65,7 @@ export class Config{
     generateSceneDescription!: boolean;
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
+    showPreviousConversations!: boolean;
     checkForUpdatesOnStartup!: boolean;
     earlyAccessUpdates!: boolean;
     lastAnnouncementVersion!: string;
