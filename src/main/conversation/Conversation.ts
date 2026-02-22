@@ -13,7 +13,7 @@ import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
-import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
+import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, HistoricalConversation} from '../ts/conversation_interfaces.js';
 import { RunFileManager } from '../RunFileManager.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 import { SummaryFileWatcher } from './SummaryFileWatcher.js';

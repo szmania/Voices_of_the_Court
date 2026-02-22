@@ -66,6 +66,7 @@
 	"summarizationUseTextGenApi": true,
 	"actionsUseTextGenApi": true,
 	"actionsEnableAll": true,
+	"showPreviousConversations": true,
 	"narrativeEnable": true,
 	"disabledActions": [
 		"aiGetsWounded",
