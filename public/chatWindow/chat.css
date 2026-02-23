@@ -536,6 +536,27 @@ em{
     content: ' .';
     animation: dots 1s steps(5, end) infinite;
 }
+
+/* Loading indicator for historical conversations */
+.loading-indicator {
+    color: #a18c61;
+    font-style: italic;
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    background-color: rgba(90, 74, 53, 0.1);
+}
+
+.loading-text {
+    font-family: 'Gitan', sans-serif;
+    font-size: 14px;
+}
+
+.loading-dots {
+    animation: dots 1s steps(5, end) infinite;
+}
   
 @keyframes dots {
 0%, 20% {

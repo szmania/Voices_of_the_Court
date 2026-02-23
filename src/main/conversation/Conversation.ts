@@ -170,6 +170,9 @@ export class Conversation{
 
         console.log(`Found ${files.length} historical conversation files. Loading all files...`);
         
+        // Send loading indicator to chat window
+        this.chatWindow.window.webContents.send('historical-conversations-loading', true);
+        
         // Track loaded messages count
         let totalMessagesLoaded = 0;
         
@@ -259,6 +262,9 @@ export class Conversation{
         }
         
         console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${files.length} historical conversations.`);
+        
+        // Send loading complete event to chat window
+        this.chatWindow.window.webContents.send('historical-conversations-loading', false);
         
         // Store historical conversation metadata for later use
         this.historicalConversations = historicalConversations;

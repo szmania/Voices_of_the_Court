@@ -152,6 +152,39 @@ function displayErrorMessage(error: string){
     updateRegenerateButtonState();
 }
 
+function displayLoadingIndicator(message: string = "Loading historical conversations..."): HTMLDivElement {
+    removeLoadingDots(); // Remove any existing loading dots
+    const loadingDiv = document.createElement('div');
+    loadingDiv.classList.add('message');
+    loadingDiv.classList.add('loading-indicator');
+    loadingDiv.id = 'historical-loading-indicator';
+    
+    const loadingSpan = document.createElement('span');
+    loadingSpan.innerText = message;
+    loadingSpan.classList.add('loading-text');
+    
+    const dotsSpan = document.createElement('span');
+    dotsSpan.classList.add('loading-dots');
+    dotsSpan.innerText = '...';
+    
+    loadingDiv.appendChild(loadingSpan);
+    loadingDiv.appendChild(dotsSpan);
+    
+    chatMessages.append(loadingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    console.log('Displayed loading indicator for historical conversations');
+    return loadingDiv;
+}
+
+function removeLoadingIndicator(): void {
+    const loadingIndicator = document.getElementById('historical-loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+        console.log('Removed historical conversations loading indicator');
+    }
+}
+
 
 
 chatInput.addEventListener('keydown', async function(e) {    
@@ -794,6 +827,18 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
         chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
         
         console.log(`Scene description displayed: ${sceneDescription.substring(0, 50)}...`);
+    }
+})
+
+// 监听历史对话加载事件
+ipcRenderer.on('historical-conversations-loading', (e, isLoading: boolean) =>{
+    console.log(`Historical conversations loading: ${isLoading}`);
+    if (isLoading) {
+        // 显示加载指示器
+        displayLoadingIndicator();
+    } else {
+        // 移除加载指示器
+        removeLoadingIndicator();
     }
 })
 
