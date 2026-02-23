@@ -174,7 +174,7 @@ export class Conversation{
         let totalMessagesLoaded = 0;
         
         // Store historical conversation metadata (date and location for each file)
-        const historicalConversations: Array<{date: string, location: string, messages: Message[]}> = [];
+        const historicalConversations: Array<{date: string, location: string, characters: string[], messages: Message[]}> = [];
         
         // Load all historical conversation files
         for (const fileInfo of files) {
