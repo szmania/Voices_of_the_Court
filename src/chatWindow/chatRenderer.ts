@@ -765,9 +765,9 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     await displayMessage(message);
     console.log("wait: "+waitForActions)
 
-    if(!waitForActions){
-        removeLoadingDots();
-    }else{
+    // Always keep loading dots visible until actions are received
+    // Don't remove loading dots here - wait for actions-receive event
+    if(waitForActions){
         showLoadingDots();
     }
     

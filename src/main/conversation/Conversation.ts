@@ -182,8 +182,20 @@ export class Conversation{
         // Store historical conversation metadata (date and location for each file)
         const historicalConversations: Array<{date: string, location: string, characters: string[], messages: Message[]}> = [];
         
-        // Load all historical conversation files
-        for (const fileInfo of files) {
+        // Load historical conversation files with a limit to prevent UI freezing
+        const MAX_HISTORICAL_MESSAGES = 100; // Limit total historical messages to prevent UI freezing
+        const MAX_CONVERSATIONS_TO_LOAD = 10; // Limit number of conversation files to load
+        
+        // Load most recent conversation files first (reverse chronological order)
+        const recentFiles = files.slice(-MAX_CONVERSATIONS_TO_LOAD).reverse();
+        
+        for (const fileInfo of recentFiles) {
+            // Stop if we've reached the maximum number of messages
+            if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
+                console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}). Stopping loading.`);
+                break;
+            }
+            
             const filePath = path.join(historyDir, fileInfo.name);
             console.log(`Loading historical conversation from: ${filePath}`);
             
@@ -242,6 +254,12 @@ export class Conversation{
                         fileMessages.push(currentMessage);
                         messageIndex = fileMessages.length - 1;
                         totalMessagesLoaded++;
+                        
+                        // Stop if we've reached the maximum number of messages
+                        if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
+                            console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}) while loading ${fileInfo.name}.`);
+                            break;
+                        }
                     }
                 }
                 
