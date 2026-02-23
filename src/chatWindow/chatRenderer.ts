@@ -42,6 +42,7 @@ let playerName: string;
 let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
+let currentGameData: GameData | null = null; // Store current game data for scene/location and character list
 
 // Store initial window state
 let initialWindowState = {
@@ -551,7 +552,7 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, location: string, messages: Message[]}>) => {
+ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, location: string, characters: string[], messages: Message[]}>) => {
     console.log(`Received ${messages.length} historical messages with ${historicalMetadata?.length || 0} conversation files.`);
     const narrativeMap = new Map(narratives);
     
@@ -574,7 +575,7 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     // Display each historical conversation with its date and location
     if (historicalMetadata && historicalMetadata.length > 0) {
         for (const conv of historicalMetadata) {
-            // Add conversation header with date and location
+            // Add conversation header with date, location, and character list
             const convHeader = document.createElement('div');
             convHeader.classList.add('historical-conversation-header');
             convHeader.classList.add('message');
@@ -584,6 +585,19 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
                 headerText += ` | Location: ${conv.location}`;
             }
             convHeader.textContent = headerText;
+            
+            // Add character list after the scene/location
+            if (conv.characters && conv.characters.length > 0) {
+                const characterDiv = document.createElement('div');
+                characterDiv.classList.add('historical-characters');
+                characterDiv.classList.add('message');
+                characterDiv.style.fontSize = '0.9rem';
+                characterDiv.style.color = '#a18c61';
+                characterDiv.style.marginTop = '2px';
+                characterDiv.style.marginBottom = '5px';
+                characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
+                chatMessages.append(characterDiv);
+            }
             chatMessages.append(convHeader);
             
             // Display messages for this conversation
@@ -623,12 +637,40 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     currentSeparator.innerHTML = '<hr>';
     chatMessages.append(currentSeparator);
     
-    // Add current conversation header
+    // Add current conversation header with scene/location and character list
     const currentHeader = document.createElement('div');
     currentHeader.classList.add('current-conversation-header');
     currentHeader.classList.add('message');
-    currentHeader.textContent = 'Current Conversation:';
+    
+    let headerText = 'Current Conversation:';
+    if (currentGameData) {
+        headerText += ` | Date: ${currentGameData.date}`;
+        if (currentGameData.location && currentGameData.location.trim()) {
+            headerText += ` | Location: ${currentGameData.location}`;
+        }
+    }
+    currentHeader.textContent = headerText;
     chatMessages.append(currentHeader);
+    
+    // Add character list for current conversation
+    if (currentGameData) {
+        const characterDiv = document.createElement('div');
+        characterDiv.classList.add('current-characters');
+        characterDiv.classList.add('message');
+        characterDiv.style.fontSize = '0.9rem';
+        characterDiv.style.color = '#a18c61';
+        characterDiv.style.marginTop = '2px';
+        characterDiv.style.marginBottom = '5px';
+        
+        // Get all character names from the game data
+        const characterNames: string[] = [];
+        currentGameData.characters.forEach((character) => {
+            characterNames.push(character.shortName);
+        });
+        
+        characterDiv.textContent = `Characters: ${characterNames.join(', ')}`;
+        chatMessages.append(characterDiv);
+    }
     
     // Show clear history button if there are messages
     if (messages.length > 0 && clearHistoryButton) {
@@ -639,6 +681,7 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
 ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{   
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
+    currentGameData = gameData; // Store game data for scene/location and character list
     
     document.body.style.display = '';
     initChat();

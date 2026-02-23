@@ -38,7 +38,7 @@ export class Conversation{
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
-    historicalConversations!: Array<{date: string, location: string, messages: Message[]}>; // Store historical conversation metadata
+    historicalConversations!: Array<{date: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
@@ -161,7 +161,7 @@ export class Conversation{
                 name: file,
                 time: parseInt(file.split('_')[2].split('.')[0]) || 0
             }))
-            .sort((a, b) => b.time - a.time); // Sort by timestamp, newest first
+            .sort((a, b) => a.time - b.time); // Sort by timestamp, oldest first
 
         if (files.length === 0) {
             console.log('No previous history files found for this character pair.');
@@ -188,6 +188,7 @@ export class Conversation{
                 let currentDate = this.gameData.date; // Default to current date
                 let currentLocation = this.gameData.location; // Default to current location
                 const fileMessages: Message[] = [];
+                const characterNames = new Set<string>();
                 let currentMessage: Message | null = null;
                 let messageIndex = -1;
 
@@ -222,6 +223,9 @@ export class Conversation{
                         const name = line.substring(0, colonIndex).trim();
                         const messageContent = line.substring(colonIndex + 1).trim();
                         
+                        // Add character name to the set
+                        characterNames.add(name);
+                        
                         const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
                         
                         currentMessage = {
@@ -240,6 +244,7 @@ export class Conversation{
                     historicalConversations.push({
                         date: currentDate,
                         location: currentLocation,
+                        characters: Array.from(characterNames),
                         messages: fileMessages
                     });
                     
