@@ -587,6 +587,8 @@ ipcRenderer.on('chat-hide', () =>{
 
 ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, location: string, characters: string[], messages: Message[]}>) => {
     console.log(`Received ${messages.length} historical messages with ${historicalMetadata?.length || 0} conversation files.`);
+    console.log('Historical metadata:', historicalMetadata);
+    console.log('Messages:', messages);
     const narrativeMap = new Map(narratives);
     
     // Add separation line before historical conversations

@@ -147,7 +147,9 @@ export class Conversation{
         }
         
         console.log('Attempting to load historical conversation history.');
+        console.log('showPreviousConversations config value:', this.config.showPreviousConversations);
         const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        console.log('Looking for historical conversations in:', historyDir);
         
         if (!fs.existsSync(historyDir)) {
             console.log('No history directory found for this player.');
@@ -163,6 +165,7 @@ export class Conversation{
             }))
             .sort((a, b) => a.time - b.time); // Sort by timestamp, oldest first
 
+        console.log(`Found ${files.length} historical conversation files:`, files.map(f => f.name));
         if (files.length === 0) {
             console.log('No previous history files found for this character pair.');
             return;
