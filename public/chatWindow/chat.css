@@ -596,3 +596,25 @@ em{
       border-bottom: 1px solid #5a4a35;
       padding-bottom: 5px;
   }
+
+  .historical-conversation-header {
+      text-align: center;
+      font-style: italic;
+      color: #a18c61;
+      margin: 5px 0;
+      font-size: 0.95rem;
+      padding: 3px 0;
+      border-bottom: 1px dashed #5a4a35;
+  }
+
+  .historical-conversation-separator {
+      margin: 5px 0;
+      text-align: center;
+  }
+
+  .historical-conversation-separator hr {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #3d2e1e, transparent);
+      margin: 5px 20px;
+  }

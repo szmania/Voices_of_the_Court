@@ -502,7 +502,9 @@ clipboardListener.on('VOTC:IN', async () =>{
         // Send loaded history if any
         if (conversation.messages.length > 0) {
             console.log(`Sending ${conversation.messages.length} historical messages to chat window.`);
-            chatWindow.window.webContents.send('chat-history', conversation.messages, Array.from(conversation.narratives.entries()));
+            // Send historical conversation metadata along with messages
+            const historicalMetadata = conversation.historicalConversations || [];
+            chatWindow.window.webContents.send('chat-history', conversation.messages, Array.from(conversation.narratives.entries()), historicalMetadata);
         }
         
     }catch(err){

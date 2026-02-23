@@ -551,8 +551,8 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][]) => {
-    console.log(`Received ${messages.length} historical messages.`);
+ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, location: string, messages: Message[]}>) => {
+    console.log(`Received ${messages.length} historical messages with ${historicalMetadata?.length || 0} conversation files.`);
     const narrativeMap = new Map(narratives);
     
     // Add separation line before historical conversations
@@ -568,13 +568,52 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     header.textContent = 'Previous Conversations:';
     chatMessages.append(header);
     
-    for (let i = 0; i < messages.length; i++) {
-        const msg = messages[i];
-        await displayMessage(msg, true); // Pass true for isHistorical parameter
-        
-        const msgNarratives = narrativeMap.get(i);
-        if (msgNarratives) {
-            msgNarratives.forEach(n => displayNarrative(n));
+    // Track current message index for grouping messages by conversation file
+    let messageIndex = 0;
+    
+    // Display each historical conversation with its date and location
+    if (historicalMetadata && historicalMetadata.length > 0) {
+        for (const conv of historicalMetadata) {
+            // Add conversation header with date and location
+            const convHeader = document.createElement('div');
+            convHeader.classList.add('historical-conversation-header');
+            convHeader.classList.add('message');
+            
+            let headerText = `Date: ${conv.date}`;
+            if (conv.location && conv.location.trim()) {
+                headerText += ` | Location: ${conv.location}`;
+            }
+            convHeader.textContent = headerText;
+            chatMessages.append(convHeader);
+            
+            // Display messages for this conversation
+            for (let i = 0; i < conv.messages.length; i++) {
+                const msg = conv.messages[i];
+                await displayMessage(msg, true); // Pass true for isHistorical parameter
+                
+                const msgNarratives = narrativeMap.get(messageIndex);
+                if (msgNarratives) {
+                    msgNarratives.forEach(n => displayNarrative(n));
+                }
+                messageIndex++;
+            }
+            
+            // Add separation between conversation files
+            const convSeparator = document.createElement('div');
+            convSeparator.classList.add('historical-conversation-separator');
+            convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
+            chatMessages.append(convSeparator);
+        }
+    } else {
+        // Fallback: display all messages without grouping if no metadata
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            await displayMessage(msg, true); // Pass true for isHistorical parameter
+            
+            const msgNarratives = narrativeMap.get(i);
+            if (msgNarratives) {
+                msgNarratives.forEach(n => displayNarrative(n));
+            }
         }
     }
     

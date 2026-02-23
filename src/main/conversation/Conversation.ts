@@ -38,6 +38,7 @@ export class Conversation{
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
+    historicalConversations: Array<{date: string, location: string, messages: Message[]}>; // Store historical conversation metadata
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
@@ -171,6 +172,9 @@ export class Conversation{
         // Track loaded messages count
         let totalMessagesLoaded = 0;
         
+        // Store historical conversation metadata (date and location for each file)
+        const historicalConversations: Array<{date: string, location: string, messages: Message[]}> = [];
+        
         // Load all historical conversation files
         for (const fileInfo of files) {
             const filePath = path.join(historyDir, fileInfo.name);
@@ -182,6 +186,7 @@ export class Conversation{
                 
                 let currentDate = this.gameData.date; // Default to current date
                 let currentLocation = this.gameData.location; // Default to current location
+                const fileMessages: Message[] = [];
                 let currentMessage: Message | null = null;
                 let messageIndex = -1;
 
@@ -206,7 +211,7 @@ export class Conversation{
                     if (line.startsWith('[旁白]:')) {
                         if (messageIndex !== -1) {
                             const narrative = line.replace('[旁白]:', '').trim();
-                            this.addNarrativeToMessage(messageIndex, narrative);
+                            this.addNarrativeToMessage(this.messages.length + messageIndex, narrative);
                         }
                         continue;
                     }
@@ -223,12 +228,25 @@ export class Conversation{
                             name: name,
                             content: messageContent
                         };
-                        this.messages.push(currentMessage);
-                        messageIndex = this.messages.length - 1;
+                        fileMessages.push(currentMessage);
+                        messageIndex = fileMessages.length - 1;
                         totalMessagesLoaded++;
                     }
                 }
-                console.log(`Loaded ${totalMessagesLoaded - (totalMessagesLoaded - this.messages.length)} messages from ${fileInfo.name}`);
+                
+                // Store this conversation's metadata and messages
+                if (fileMessages.length > 0) {
+                    historicalConversations.push({
+                        date: currentDate,
+                        location: currentLocation,
+                        messages: fileMessages
+                    });
+                    
+                    // Add messages to the main messages array
+                    this.messages.push(...fileMessages);
+                }
+                
+                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation})`);
             } catch (error) {
                 console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
             }
@@ -236,9 +254,8 @@ export class Conversation{
         
         console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${files.length} historical conversations.`);
         
-        // Mark historical messages with a special property or store separately
-        // For now, we'll just load them into the messages array
-        // In a future update, we might want to store them separately or mark them as historical
+        // Store historical conversation metadata for later use
+        this.historicalConversations = historicalConversations;
     }
 
     pushMessage(message: Message): void{           
@@ -1242,13 +1259,20 @@ ${character.fullName}的发言：`
                     content: sceneDescription
                 };
                 
-                // 将场景描述添加到消息列表的开头
-                this.messages.unshift(sceneMessage);
+                // Calculate the position to insert scene description (after historical conversations)
+                // Count total historical messages
+                let historicalMessageCount = 0;
+                if (this.historicalConversations) {
+                    historicalMessageCount = this.historicalConversations.reduce((total, conv) => total + conv.messages.length, 0);
+                }
+                
+                // Insert scene description after historical messages but before current conversation
+                this.messages.splice(historicalMessageCount, 0, sceneMessage);
                 
                 // 发送场景描述到聊天窗口
                 this.chatWindow.window.webContents.send('scene-description', sceneDescription);
                 
-                console.log(`Initial scene description generated and added to conversation: ${sceneDescription.substring(0, 100)}...`);
+                console.log(`Initial scene description generated and inserted at position ${historicalMessageCount} (after ${historicalMessageCount} historical messages): ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
             }
