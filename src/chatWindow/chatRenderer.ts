@@ -823,10 +823,26 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
         
         messageDiv.appendChild(sceneDescSpan);
         
-        // 将场景描述插入到消息列表的开头
-        chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
-        
-        console.log(`Scene description displayed: ${sceneDescription.substring(0, 50)}...`);
+        // 尝试将场景描述插入到当前对话部分的正确位置
+        // 首先查找当前角色列表元素
+        const currentCharacters = chatMessages.querySelector('.current-characters');
+        if (currentCharacters) {
+            // 插入到当前角色列表之后
+            currentCharacters.parentNode?.insertBefore(messageDiv, currentCharacters.nextSibling);
+            console.log(`Scene description inserted after current characters: ${sceneDescription.substring(0, 50)}...`);
+        } else {
+            // 如果没有找到当前角色列表，查找当前对话标题
+            const currentHeader = chatMessages.querySelector('.current-conversation-header');
+            if (currentHeader) {
+                // 插入到当前对话标题之后
+                currentHeader.parentNode?.insertBefore(messageDiv, currentHeader.nextSibling);
+                console.log(`Scene description inserted after current conversation header: ${sceneDescription.substring(0, 50)}...`);
+            } else {
+                // 如果都没有找到，回退到插入到开头
+                chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
+                console.log(`Scene description inserted at beginning (fallback): ${sceneDescription.substring(0, 50)}...`);
+            }
+        }
     }
 })
 
