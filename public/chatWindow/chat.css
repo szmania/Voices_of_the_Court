@@ -559,3 +559,40 @@ em{
 }
 
   
+  /* Historical conversation styles */
+  .historical-message {
+      opacity: 0.7;
+  }
+
+  .historical-player-message {
+      color: #8a8a8a !important;
+  }
+
+  .historical-ai-message {
+      color: #a0a0a0 !important;
+  }
+
+  .historical-separator,
+  .current-conversation-separator {
+      margin: 15px 0;
+      text-align: center;
+  }
+
+  .historical-separator hr,
+  .current-conversation-separator hr {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #5a4a35, transparent);
+      margin: 10px 20px;
+  }
+
+  .historical-header,
+  .current-conversation-header {
+      text-align: center;
+      font-weight: bold;
+      color: #cca43b;
+      margin: 10px 0;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #5a4a35;
+      padding-bottom: 5px;
+  }

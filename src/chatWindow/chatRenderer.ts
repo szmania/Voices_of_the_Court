@@ -65,7 +65,7 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message): Promise<HTMLDivElement>{
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
@@ -73,14 +73,25 @@ async function displayMessage(message: Message): Promise<HTMLDivElement>{
 
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
+    
+    if (isHistorical) {
+        messageDiv.classList.add('historical-message');
+    }
+    
     switch (message.role){
         case 'user':
             messageDiv.classList.add('player-message');
+            if (isHistorical) {
+                messageDiv.classList.add('historical-player-message');
+            }
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
             break;
         case 'assistant':
             removeLoadingDots();
             messageDiv.classList.add('ai-message');
+            if (isHistorical) {
+                messageDiv.classList.add('historical-ai-message');
+            }
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
 
             break;
@@ -544,15 +555,41 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     console.log(`Received ${messages.length} historical messages.`);
     const narrativeMap = new Map(narratives);
     
+    // Add separation line before historical conversations
+    const separator = document.createElement('div');
+    separator.classList.add('historical-separator');
+    separator.innerHTML = '<hr>';
+    chatMessages.append(separator);
+    
+    // Add historical conversations header
+    const header = document.createElement('div');
+    header.classList.add('historical-header');
+    header.classList.add('message');
+    header.textContent = 'Previous Conversations:';
+    chatMessages.append(header);
+    
     for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];
-        await displayMessage(msg);
+        await displayMessage(msg, true); // Pass true for isHistorical parameter
         
         const msgNarratives = narrativeMap.get(i);
         if (msgNarratives) {
             msgNarratives.forEach(n => displayNarrative(n));
         }
     }
+    
+    // Add separation line between historical and current conversation
+    const currentSeparator = document.createElement('div');
+    currentSeparator.classList.add('current-conversation-separator');
+    currentSeparator.innerHTML = '<hr>';
+    chatMessages.append(currentSeparator);
+    
+    // Add current conversation header
+    const currentHeader = document.createElement('div');
+    currentHeader.classList.add('current-conversation-header');
+    currentHeader.classList.add('message');
+    currentHeader.textContent = 'Current Conversation:';
+    chatMessages.append(currentHeader);
     
     // Show clear history button if there are messages
     if (messages.length > 0 && clearHistoryButton) {
