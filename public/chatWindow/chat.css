@@ -131,10 +131,11 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: calc(100% - 100px); /* Leave space for reset button on the right */
     height: 30px;
     cursor: move;
     z-index: 250;
+    pointer-events: auto; /* Allow dragging only on the drag handle area */
 }
 @font-face {
     font-family: Paradox;

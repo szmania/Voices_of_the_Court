@@ -851,10 +851,19 @@ ipcRenderer.on('historical-conversations-loading', (e, isLoading: boolean) =>{
     console.log(`Historical conversations loading: ${isLoading}`);
     if (isLoading) {
         // 显示加载指示器
-        displayLoadingIndicator();
+        // 将输入框占位符改为"Loading..."
+        chatInput.placeholder = "Loading...";
     } else {
         // 移除加载指示器
-        removeLoadingIndicator();
+        // 将输入框占位符恢复为默认值
+        // @ts-ignore
+        if (window.LocalizationManager) {
+            // @ts-ignore
+            const placeholderText = window.LocalizationManager.getNestedTranslation('chat.input_placeholder') || 'Write a message...';
+            chatInput.placeholder = placeholderText;
+        } else {
+            chatInput.placeholder = 'Write a message...';
+        }
     }
 })
 
