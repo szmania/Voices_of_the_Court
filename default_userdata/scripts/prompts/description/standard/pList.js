@@ -24,6 +24,7 @@ module.exports = (gameData) =>{
         personalityTraits(player), 
         otherTraits(player), 
         marriage(player), 
+        family(player),
         `age(${player.age})`, 
         `faith(${player.faith})`, 
         `culture(${player.culture})`,
@@ -40,6 +41,7 @@ module.exports = (gameData) =>{
         otherTraits(ai), 
         greedines(ai), 
         marriage(ai),  
+        family(ai),
         `age(${ai.age})`, 
         `faith(${ai.faith})`, 
         `culture(${ai.culture})`,
@@ -162,6 +164,16 @@ module.exports = (gameData) =>{
         }
         else{
             return `unmarried`;
+        }
+    }
+    
+    function family(char){
+        const familyDesc = char.getFamilyDescription();
+        if(familyDesc){
+            return familyDesc;
+        }
+        else{
+            return null;
         }
     }
     

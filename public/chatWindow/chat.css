@@ -147,11 +147,17 @@
 }
 
 html, body {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 html{
@@ -182,6 +188,8 @@ html{
     overflow-x: hidden; /* Remove horizontal scrollbar */
     min-width: 300px;
     min-height: 400px;
+    max-width: calc(100vw - 20px); /* Prevent resizing beyond viewport width */
+    max-height: calc(100vh - 20px); /* Prevent resizing beyond viewport height */
 }
 
 .messages-container{
