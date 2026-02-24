@@ -179,8 +179,8 @@ export class Conversation{
         // Track loaded messages count
         let totalMessagesLoaded = 0;
         
-        // Store historical conversation metadata (date and location for each file)
-        const historicalConversations: Array<{date: string, location: string, characters: string[], messages: Message[]}> = [];
+        // Store historical conversation metadata (date, scene, and location for each file)
+        const historicalConversations: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}> = [];
         
         // Load historical conversation files with a limit to prevent UI freezing
         const MAX_HISTORICAL_MESSAGES = 100; // Limit total historical messages to prevent UI freezing
@@ -204,6 +204,7 @@ export class Conversation{
                 const lines = content.split('\n');
                 
                 let currentDate = this.gameData.date; // Default to current date
+                let currentScene = this.gameData.scene; // Default to current scene
                 let currentLocation = this.gameData.location; // Default to current location
                 const fileMessages: Message[] = [];
                 const characterNames = new Set<string>();
@@ -218,6 +219,13 @@ export class Conversation{
                     if (line.startsWith('Date:')) {
                         currentDate = line.replace('Date:', '').trim();
                         console.log(`Found historical conversation date: ${currentDate}`);
+                        continue;
+                    }
+                    
+                    // Parse scene if present
+                    if (line.startsWith('Scene:')) {
+                        currentScene = line.replace('Scene:', '').trim();
+                        console.log(`Found historical conversation scene: ${currentScene}`);
                         continue;
                     }
                     
@@ -267,6 +275,7 @@ export class Conversation{
                 if (fileMessages.length > 0) {
                     historicalConversations.push({
                         date: currentDate,
+                        scene: currentScene,
                         location: currentLocation,
                         characters: Array.from(characterNames),
                         messages: fileMessages
@@ -276,7 +285,7 @@ export class Conversation{
                     this.messages.push(...fileMessages);
                 }
                 
-                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation})`);
+                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Scene: ${currentScene}, Location: ${currentLocation})`);
             } catch (error) {
                 console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
             }
@@ -1101,7 +1110,14 @@ ${character.fullName}的发言：`
         });
 
         // Build the text content to be saved
-        let textContent = `Date: ${this.gameData.date}\n\n`;
+        let textContent = `Date: ${this.gameData.date}\n`;
+        if (this.gameData.scene && this.gameData.scene.trim()) {
+            textContent += `Scene: ${this.gameData.scene}\n`;
+        }
+        if (this.gameData.location && this.gameData.location.trim()) {
+            textContent += `Location: ${this.gameData.location}\n`;
+        }
+        textContent += '\n';
 
         processedMessages.forEach((msg, index) => {
           textContent += `${msg.name}: ${msg.content}\n`;

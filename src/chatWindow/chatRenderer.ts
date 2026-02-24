@@ -616,6 +616,9 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
             convHeader.classList.add('message');
             
             let headerText = `Date: ${conv.date}`;
+            if (conv.scene && conv.scene.trim()) {
+                headerText += ` | Scene: ${conv.scene}`;
+            }
             if (conv.location && conv.location.trim()) {
                 headerText += ` | Location: ${conv.location}`;
             }
@@ -680,6 +683,9 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     let headerText = 'Current Conversation:';
     if (currentGameData) {
         headerText += ` | Date: ${currentGameData.date}`;
+        if (currentGameData.scene && currentGameData.scene.trim()) {
+            headerText += ` | Scene: ${currentGameData.scene}`;
+        }
         if (currentGameData.location && currentGameData.location.trim()) {
             headerText += ` | Location: ${currentGameData.location}`;
         }
