@@ -585,7 +585,7 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, location: string, characters: string[], messages: Message[]}>) => {
+ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>) => {
     console.log(`Received ${messages.length} historical messages with ${historicalMetadata?.length || 0} conversation files.`);
     console.log('Historical metadata:', historicalMetadata);
     console.log('Messages:', messages);
