@@ -38,7 +38,7 @@ export class Conversation{
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
-    historicalConversations!: Array<{date: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
+    historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
