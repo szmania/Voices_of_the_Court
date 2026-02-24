@@ -156,7 +156,11 @@ export class Character {
      * @returns {string} - Formatted family description or empty string if no family
      */
     getFamilyDescription(): string {
-        if (this.familyMembers.length === 0) return "";
+        console.log(`Getting family description for ${this.fullName}, familyMembers count: ${this.familyMembers.length}`);
+        if (this.familyMembers.length === 0) {
+            console.log(`No family members for ${this.fullName}, returning empty string`);
+            return "";
+        }
         
         const byRelationship = new Map<string, string[]>();
         this.familyMembers.forEach(member => {
@@ -171,7 +175,9 @@ export class Character {
             parts.push(`${relationship}: ${names.join(", ")}`);
         });
         
-        return `Family: ${parts.join(", ")}`;
+        const result = `Family: ${parts.join(", ")}`;
+        console.log(`Family description for ${this.fullName}: ${result}`);
+        return result;
     }
 }
 

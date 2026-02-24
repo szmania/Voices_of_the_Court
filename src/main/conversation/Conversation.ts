@@ -1221,6 +1221,8 @@ ${character.fullName}的发言：`
             delete require.cache[require.resolve(descriptionPath)];
             this.description = require(descriptionPath)(this.gameData); 
             console.log(`Description script '${descriptionScriptFileName}' loaded successfully.`);
+            console.log(`Generated description length: ${this.description.length} characters`);
+            console.log(`Description preview: ${this.description.substring(0, 200)}...`);
         }catch(err){
             console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
             throw new Error("description script error, your used description script file is not valid! error message:\n"+err);

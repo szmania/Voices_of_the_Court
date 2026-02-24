@@ -104,11 +104,11 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
            continue;
         }
 
-        if(line.includes("VOTC:IN")){
-            //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
+        if(line.includes("VOTC:IN") || line.includes("VOTC:FAMILY")){
+            //0: VOTC:IN or VOTC:FAMILY, 1: dataType, 3: rootID 4...: data
             let data = line.split("/;/")
 
-            const dataType = data[1];
+            const dataType = line.includes("VOTC:FAMILY") ? "family" : data[1];
             console.log(`Parsing data type: ${dataType}`);
 
             data.splice(0,2)
@@ -210,10 +210,14 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     const relationshipType = data[1]; // e.g., "Child"
                     const familyMemberId = Number(data[2]);
                     
-                    // Extract name from tooltip (line.split('#')[1])
+                    // Extract name from tooltip - it's in data[3] after the splice
                     let familyMemberName = "";
-                    if (line.split('#')[1] !== '') {
-                        familyMemberName = removeTooltip(line.split('#')[1]);
+                    if (data.length > 3 && data[3] !== '') {
+                        familyMemberName = removeTooltip(data[3]);
+                        console.log(`Family parsing - raw data[3]: "${data[3]}"`);
+                        console.log(`Family parsing - cleaned name: "${familyMemberName}"`);
+                    } else {
+                        console.log(`Family parsing - no tooltip data found in data[3]`);
                     }
                     
                     const character = gameData.characters.get(characterId);
@@ -224,6 +228,9 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                             relationship: relationshipType
                         });
                         console.log(`Parsed family for character ${characterId}: ${relationshipType} ${familyMemberName} (ID: ${familyMemberId})`);
+                        console.log(`Character ${characterId} (${character.fullName}) now has ${character.familyMembers.length} family members`);
+                    } else {
+                        console.warn(`Character with ID ${characterId} not found when parsing family data`);
                     }
                     break;
             }
