@@ -25,6 +25,13 @@ export type Secret = {
     category: string
 }
 
+export type FamilyMember = {
+    id: number;
+    name: string;
+    relationship: string; // 'Child', 'Spouse', 'Parent', 'Sibling'
+    characterId?: number;
+}
+
 /** 
  * @class
 */
@@ -125,6 +132,7 @@ export class Character {
     relationsToCharacters: { id: number, relations: string[]}[];
     opinionBreakdownToPlayer: OpinionModifier[];
     opinions: { id: number, opinon: number}[];
+    familyMembers: FamilyMember[];
 
     constructor(data: string[]){
         this.id = Number(data[0]),
@@ -161,6 +169,7 @@ export class Character {
             this.relationsToCharacters = [],
             this.opinionBreakdownToPlayer = []
             this.opinions = [];
+            this.familyMembers = [];
     }
 
     /**
@@ -234,5 +243,33 @@ export class Character {
         this.opinionOfPlayer = sum;
     }   
 
+    /**
+     * Get a formatted description of the character's family relationships
+     * @returns {string} - Formatted family description or empty string if no family
+     */
+    getFamilyDescription(): string {
+        console.log(`Getting family description for ${this.fullName}, familyMembers count: ${this.familyMembers.length}`);
+        if (this.familyMembers.length === 0) {
+            console.log(`No family members for ${this.fullName}, returning empty string`);
+            return "";
+        }
+        
+        const byRelationship = new Map<string, string[]>();
+        this.familyMembers.forEach(member => {
+            if (!byRelationship.has(member.relationship)) {
+                byRelationship.set(member.relationship, []);
+            }
+            byRelationship.get(member.relationship)!.push(member.name);
+        });
+        
+        const parts: string[] = [];
+        byRelationship.forEach((names, relationship) => {
+            parts.push(`${relationship}: ${names.join(", ")}`);
+        });
+        
+        const result = `Family: ${parts.join(", ")}`;
+        console.log(`Family description for ${this.fullName}: ${result}`);
+        return result;
+    }
 }
 
