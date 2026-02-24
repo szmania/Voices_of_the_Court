@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, FamilyMember} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -40,6 +40,7 @@ export class Character {
     relationsToCharacters: { id: number, relations: string[]}[];
     opinionBreakdownToPlayer: OpinionModifier[];
     opinions: { id: number, opinon: number}[];
+    familyMembers: FamilyMember[];
 
     constructor(data: string[]){
         this.id = Number(data[0]),
@@ -76,6 +77,7 @@ export class Character {
             this.relationsToCharacters = [],
             this.opinionBreakdownToPlayer = []
             this.opinions = [];
+            this.familyMembers = [];
     }
 
     /**
@@ -149,5 +151,27 @@ export class Character {
         this.opinionOfPlayer = sum;
     }   
 
+    /**
+     * Get a formatted description of the character's family relationships
+     * @returns {string} - Formatted family description or empty string if no family
+     */
+    getFamilyDescription(): string {
+        if (this.familyMembers.length === 0) return "";
+        
+        const byRelationship = new Map<string, string[]>();
+        this.familyMembers.forEach(member => {
+            if (!byRelationship.has(member.relationship)) {
+                byRelationship.set(member.relationship, []);
+            }
+            byRelationship.get(member.relationship)!.push(member.name);
+        });
+        
+        const parts: string[] = [];
+        byRelationship.forEach((names, relationship) => {
+            parts.push(`${relationship}: ${names.join(", ")}`);
+        });
+        
+        return `Family: ${parts.join(", ")}`;
+    }
 }
 

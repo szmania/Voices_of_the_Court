@@ -203,6 +203,29 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         multiLineType = "opinionBreakdown";
                         console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
+                    break;
+                case "family":
+                    if (!gameData) continue;
+                    const characterId = rootID;
+                    const relationshipType = data[1]; // e.g., "Child"
+                    const familyMemberId = Number(data[2]);
+                    
+                    // Extract name from tooltip (line.split('#')[1])
+                    let familyMemberName = "";
+                    if (line.split('#')[1] !== '') {
+                        familyMemberName = removeTooltip(line.split('#')[1]);
+                    }
+                    
+                    const character = gameData.characters.get(characterId);
+                    if (character) {
+                        character.familyMembers.push({
+                            id: familyMemberId,
+                            name: familyMemberName,
+                            relationship: relationshipType
+                        });
+                        console.log(`Parsed family for character ${characterId}: ${relationshipType} ${familyMemberName} (ID: ${familyMemberId})`);
+                    }
+                    break;
             }
         } else {
             if (line.trim() !== "") {

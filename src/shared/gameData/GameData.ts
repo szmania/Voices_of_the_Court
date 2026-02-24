@@ -28,6 +28,13 @@ export type Secret = {
     category: string
 }
 
+export type FamilyMember = {
+    id: number;
+    name: string;
+    relationship: string; // 'Child', 'Spouse', 'Parent', 'Sibling'
+    characterId?: number;
+}
+
 /** 
  * @class
 */
