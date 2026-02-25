@@ -41,6 +41,32 @@ class LanguageSelector extends HTMLElement {
                 <rect width="750" height="500" fill="#c60b1e"/>
                 <rect width="750" height="250" y="125" fill="#ffc400"/>
             </svg>`;
+        } else if (lang === 'de') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 3" width="20" height="12" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="5" height="3" y="0" fill="#000"/>
+                <rect width="5" height="2" y="1" fill="#D00"/>
+                <rect width="5" height="1" y="2" fill="#FFCE00"/>
+            </svg>`;
+        } else if (lang === 'ja') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="900" height="600" fill="#fff"/>
+                <circle cx="450" cy="300" r="180" fill="#bc002d"/>
+            </svg>`;
+        } else if (lang === 'ko') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="36" height="24" fill="#fff"/>
+                <circle cx="18" cy="12" r="6" fill="#cd2e3a"/>
+                <path d="M18,12 a6,6 0 0,1 0,-12 a3,3 0 0,1 0,6 a3,3 0 0,0 0,6" fill="#0047a0"/>
+                <g transform="translate(18,12) rotate(-33.7)">
+                    <g id="g"><rect x="-9" y="-1" width="4" height="2" fill="#000"/><rect x="-9" y="2" width="4" height="2" fill="#000"/><rect x="-9" y="5" width="4" height="2" fill="#000"/></g>
+                    <use href="#g" transform="rotate(67.4)"/><use href="#g" transform="rotate(180)"/><use href="#g" transform="rotate(247.4)"/>
+                </g>
+            </svg>`;
+        } else if (lang === 'pl') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 5" width="20" height="12.5" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="8" height="5" fill="#fff"/>
+                <rect width="8" height="2.5" y="2.5" fill="#dc143c"/>
+            </svg>`;
         } else {
             return '';
         }
@@ -68,7 +94,7 @@ class LanguageSelector extends HTMLElement {
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
                     ${this.getFlagSvg(lang)}
-                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : 'Français'}</span>
+                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang Japan === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : 'Polski'}</span>
                 </button>
                 <div class="dropdown-content" id="language-dropdown">
                     <a href="#" data-lang="en">
@@ -91,6 +117,22 @@ class LanguageSelector extends HTMLElement {
                         ${this.getFlagSvg('es')}
                         <span class="lang-text">Español</span>
                     </a>
+                    <a href="#" data-lang="de">
+                        ${this.getFlagSvg('de')}
+                        <span class="lang-text">Deutsch</span>
+                    </a>
+                    <a href="#" data-lang="ja">
+                        ${this.getFlagSvg('ja')}
+                        <span class="lang-text">日本語</span>
+                    </a>
+                    <a href="#" data-lang="ko">
+                        ${this.getFlagSvg('ko')}
+                        <span class="lang-text">한국어</span>
+                    </a>
+                    <a href="#" data-lang="pl">
+                        ${this.getFlagSvg('pl')}
+                        <span class="lang-text">Polski</span>
+                    </a>
                 </div>
             </div>
         `;
@@ -108,14 +150,22 @@ class LanguageSelector extends HTMLElement {
     }
 
     updateButtonText(btn: HTMLElement, lang: string) {
-        const text = lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : 'Español';
+        const text = lang === 'en' ? 'English' : 
+                     lang === 'zh' ? '中文' : 
+                     lang === 'ru' ? 'Русский' : 
+                     lang === 'fr' ? 'Français' : 
+                     lang === 'es' ? 'Español' : 
+                     lang === 'de' ? 'Deutsch' : 
+                     lang === 'ja' ? '日本語' : 
+                     lang === 'ko' ? '한국어' : 
+                     'Polski';
         btn.innerHTML = `
             ${this.getFlagSvg(lang)}
             <span class="lang-text">${text}</span>
         `;
     }
 
-    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr' | 'es', btn: HTMLElement) {
+    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
         ipcRenderer.send('language-changed', lang);
