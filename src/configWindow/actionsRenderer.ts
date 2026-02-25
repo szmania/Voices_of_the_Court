@@ -176,9 +176,6 @@ async function loadactions(){
         });
 
         let creatorString = "";
-        if(file.creator){
-            creatorString = `<li class="action-item"><b>Made by:</b> ${file.creator}</li>`;
-        }
         
         element.addEventListener("mouseenter", (e: any)=>{
             let description = file.description;
@@ -186,10 +183,17 @@ async function loadactions(){
                 description = description[config.language] || description['en'] || Object.values(description)[0];
             }
 
+            const descLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.description') || "Description:";
+            const madeByLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.made_by') || "Made by:";
+            
+            if(file.creator){
+                creatorString = `<li class="action-item"><b>${madeByLabel}</b> ${file.creator}</li>`;
+            }
+
             actionDescriptorDiv.innerHTML = `
             <h3>${file.signature}</h3>
             <ul>
-                <li class="action-item"><b>Description:</b> ${description}</li>
+                <li class="action-item"><b>${descLabel}</b> ${description}</li>
                 ${creatorString}
             </ul>
             `;
