@@ -45,7 +45,9 @@
     "parameters": "パラメーター",
     "select_actions": "モッドに検出させたいアクションを選択してください：",
     "reload_files": "ファイルを再読み込み",
-    "open_folder": "フォルダを開く"
+    "open_folder": "フォルダを開く",
+    "description": "説明：",
+    "made_by": "作成者："
   },
   "summarization": {
     "use_same_api": "接続タブと同じ API を使用する",

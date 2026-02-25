@@ -45,7 +45,9 @@
     "parameters": "매개변수",
     "select_actions": "모드가 감지할 작업을 선택하세요:",
     "reload_files": "파일 새로고침",
-    "open_folder": "폴더 열기"
+    "open_folder": "폴더 열기",
+    "description": "설명:",
+    "made_by": "제작자:"
   },
   "summarization": {
     "use_same_api": "연결 탭과 동일한 API 사용",

@@ -45,7 +45,9 @@
     "parameters": "Parameters",
     "select_actions": "Select which actions you want the mod to detect:",
     "reload_files": "Reload files",
-    "open_folder": "open folder"
+    "open_folder": "open folder",
+    "description": "Description:",
+    "made_by": "Made by:"
   },
   "summarization": {
     "use_same_api": "Use the same API as in the connection tab",

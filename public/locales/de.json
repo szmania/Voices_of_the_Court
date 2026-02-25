@@ -45,7 +45,9 @@
     "parameters": "Parameter",
     "select_actions": "Wählen Sie aus, welche Aktionen der Mod erkennen soll:",
     "reload_files": "Dateien neu laden",
-    "open_folder": "Ordner öffnen"
+    "open_folder": "Ordner öffnen",
+    "description": "Beschreibung:",
+    "made_by": "Erstellt von:"
   },
   "summarization": {
     "use_same_api": "Gleiche API wie im Verbindungs-Tab verwenden",

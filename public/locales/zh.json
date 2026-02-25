@@ -45,7 +45,9 @@
     "parameters": "参数",
     "select_actions": "选择您希望模组检测的动作：",
     "reload_files": "重新加载文件",
-    "open_folder": "打开文件夹"
+    "open_folder": "打开文件夹",
+    "description": "描述：",
+    "made_by": "制作者："
   },
   "summarization": {
     "use_same_api": "使用与连接选项卡相同的 API",

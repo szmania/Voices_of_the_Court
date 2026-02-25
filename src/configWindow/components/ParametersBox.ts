@@ -10,7 +10,7 @@ function defineTemplate(tempDefault: number, freqPenDefault: number, presPenDefa
         <config-slider id="temp" confID="temperature" label="Temperature"  min="0" max="2" step="0.01" default="${tempDefault}"></config-slider>
         <config-slider id="freqPen" confID="frequency_penalty" label="Frequency Penalty"  min="-2" max="2" step="0.01" default="${freqPenDefault}"></config-slider>
         <config-slider id="presPen" confID="presence_penalty" label="Presence Penalty"  min="-2" max="2" step="0.01" default="${presPenDefault}"></config-slider>
-        <config-slider id="topP" confID="top_p" label="top P"  min="0" max="1" step="0.01" default="${topPDefault}"></config-slider>
+        <config-slider id="topP" confID="top_p" label="Top P"  min="0" max="1" step="0.01" default="${topPDefault}"></config-slider>
     </div>
     `
     

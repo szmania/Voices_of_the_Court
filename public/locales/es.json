@@ -41,7 +41,9 @@
     "parameters": "Parámetros",
     "select_actions": "Selecciona qué acciones quieres que detecte el mod:",
     "reload_files": "Recargar archivos",
-    "open_folder": "abrir carpeta"
+    "open_folder": "abrir carpeta",
+    "description": "Descripción:",
+    "made_by": "Hecho por:"
   },
   "summarization": {
     "use_same_api": "Usar la misma API que en la pestaña de conexión",
