@@ -121,7 +121,11 @@ export class Conversation{
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
         this.loadConfig();
-        
+        this.loadHistory();
+        this.initialize();
+    }
+
+    private async initialize(): Promise<void> {
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
             await this.generateInitialSceneDescription();
@@ -132,11 +136,10 @@ export class Conversation{
             // 如果场景描述生成也启用了，会在场景描述生成完成后自动调用建议生成
             if (!this.config.generateSceneDescription) {
                 // 如果没有启用场景描述生成，直接生成建议
-                this.generateInitialSuggestions();
+                await this.generateInitialSuggestions();
             }
         }
-        this.loadHistory();
-        this.initiateConversation();
+        await this.initiateConversation();
     }
 
     private loadHistory(): void {
