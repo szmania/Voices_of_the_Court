@@ -91,6 +91,7 @@
 .suggestions-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
+    transition-delay: 0.1s; /* Small delay before hiding */
 }
 
 .search-container:hover::after,
@@ -507,6 +508,7 @@ html{
 .button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
+    transition-delay: 0.1s; /* Small delay before hiding */
 }
 
 

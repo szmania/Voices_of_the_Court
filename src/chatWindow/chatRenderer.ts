@@ -98,7 +98,10 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             break;
     };   
     chatMessages.append(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Auto-scroll to bottom after adding message
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 10);
 
     updateRegenerateButtonState();
 
@@ -735,6 +738,11 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     if (messages.length > 0 && clearHistoryButton) {
         clearHistoryButton.style.display = 'flex';
     }
+    
+    // Auto-scroll to bottom after historical conversations are loaded
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 100);
 });
 
 ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{   
@@ -783,6 +791,11 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
 
     // 初始化建议容器样式
     updateSuggestionsContainerStyle();
+    
+    // Auto-scroll to bottom after chat window opens
+    setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 100);
 })
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{

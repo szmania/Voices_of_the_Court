@@ -106,8 +106,7 @@ body.theme-chinese .chat-box {
 }
 
 /* East UI主题 - 调整按钮工具提示位置 */
-.theme-chinese .button-wrapper::after,
-.theme-chinese .suggestions-button-wrapper::after {
+.theme-chinese .button-wrapper::after {
     bottom: 130%; /* 将工具提示向上移动 */
 }
 /* East UI主题 - 输入框和文本显示框样式 */
