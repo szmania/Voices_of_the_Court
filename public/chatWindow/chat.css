@@ -66,8 +66,31 @@
 
 /* Ensure suggestions tooltip doesn't go off-screen on the left */
 .suggestions-button-wrapper::after {
-    left: 0;
-    transform: none;
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 10;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 .search-container:hover::after,
@@ -477,6 +500,8 @@ html{
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
     z-index: 10;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
 }
 
 .button-wrapper:hover::after {
