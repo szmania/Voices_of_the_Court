@@ -243,21 +243,23 @@ function updateTokenCount(text: string) {
     });
 }
 chatInput.addEventListener('keydown', async function(e) {    
-            const messageText = chatInput.value;
-            chatInput.value = ''
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const messageText = chatInput.value.trim();
+        if (!messageText) return;
+        
+        chatInput.value = '';
 
-            let message: Message = {
-                role: "user",
-                name: playerName,
-                content: messageText
-            }
-
-            await displayMessage(message);
-            showLoadingDots();
-            ipcRenderer.send('message-send', message);
-
+        let message: Message = {
+            role: "user",
+            name: playerName,
+            content: messageText
         };
-    };
+
+        await displayMessage(message);
+        showLoadingDots();
+        ipcRenderer.send('message-send', message);
+    }
 });
 
 async function replaceLastMessage(message: Message){
