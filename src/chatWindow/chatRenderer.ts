@@ -889,6 +889,11 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
             }
         }
         
+        // Auto-scroll to bottom after scene description is inserted
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 10);
+        
         // Clear loading state AFTER scene description is inserted into DOM
         removeLoadingDots();
     } else {

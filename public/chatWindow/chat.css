@@ -485,7 +485,7 @@ html{
 .button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 110%;
+    bottom: 130%; /* Match East UI theme positioning */
     left: 50%;
     transform: translateX(-50%);
     background-color: #111;
