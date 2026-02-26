@@ -142,20 +142,23 @@ body.theme-chinese .chat-box {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 110%;
-    left: 0;
-    transform: none;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #111;
     color: #fff;
     padding: 8px 12px;
     border-radius: 4px;
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-size: 0.9rem;
-    white-space: nowrap;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
-    z-index: 1001; /* 确保在窗口最上层 */
-    border: 1px solid #957c53;
+    z-index: 10;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
 }
 
 .theme-chinese .suggestions-button-wrapper:hover::after {
@@ -535,19 +538,23 @@ body.theme-west .chat-box {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 110%;
-    left: 0;
-    transform: none;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #111;
     color: #fff;
     padding: 8px 12px;
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
-    white-space: nowrap;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
     z-index: 10;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
 }
 
 .theme-west .suggestions-button-wrapper:hover::after {

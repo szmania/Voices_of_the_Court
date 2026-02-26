@@ -1312,7 +1312,7 @@ ${character.fullName}的发言：`
                 // 创建场景描述消息
                 const sceneMessage: Message = {
                     role: "system",
-                    name: "场景描述",
+                    name: "",
                     content: sceneDescription
                 };
                 
