@@ -8,6 +8,12 @@ const sanitizeConfig = {
     ALLOWED_TAGS: ['em', 'strong'], 
     KEEP_CONTENT: true, 
   };
+  // Add input event listener for real-time token counting
+  chatInput.addEventListener('input', function(e) {
+      if (showTokenizerDisplay) {
+          updateTokenCount(chatInput.value);
+      }
+  });
 
 hideChat();
 
@@ -36,12 +42,16 @@ let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list'
 let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-close')!;
 let searchInput: HTMLInputElement = document.querySelector('.search-input')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
+let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display-wrapper')!;
+let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
+let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
 let loadingDots: any;
 
 let playerName: string;
 let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
+let showTokenizerDisplay: boolean = false; // 默认不显示分词器
 let currentGameData: GameData | null = null; // Store current game data for scene/location and character list
 
 // Store initial window state
@@ -62,6 +72,11 @@ async function initChat(){
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
         suggestionsButton.style.display = showSuggestionsButton ? 'block' : 'none';
+    }
+    
+    // 根据配置显示或隐藏分词器显示
+    if (tokenDisplayWrapper) {
+        tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
 }
@@ -190,10 +205,44 @@ function removeLoadingIndicator(): void {
 
 
 
+// Token counting function
+function updateTokenCount(text: string) {
+    if (!showTokenizerDisplay || !tokenDisplayWrapper || !tokenCountElement) {
+        return;
+    }
+
+    // Calculate token count using the ApiConnection's calculateTokensFromText method
+    // We'll need to get this from the main process
+    ipcRenderer.invoke('calculate-tokens', text).then((tokenCount: number) => {
+        tokenCountElement.textContent = `Tokens: ${tokenCount}`;
+
+        // Get context limit if available
+        ipcRenderer.invoke('get-context-limit').then((contextLimit: number) => {
+            if (contextLimit > 0) {
+                contextLimitElement.textContent = `/${contextLimit}`;
+
+                // Add warning/critical classes based on usage percentage
+                const usagePercentage = (tokenCount / contextLimit) * 100;
+                tokenDisplayWrapper.classList.remove('warning', 'critical');
+
+                if (usagePercentage > 90) {
+                    tokenDisplayWrapper.classList.add('critical');
+                } else if (usagePercentage > 75) {
+                    tokenDisplayWrapper.classList.add('warning');
+                }
+            } else {
+                contextLimitElement.textContent = '/0';
+            }
+        }).catch(() => {
+            contextLimitElement.textContent = '/0';
+        });
+    }).catch((error) => {
+        console.error('Error calculating tokens:', error);
+        tokenCountElement.textContent = 'Tokens: Error';
+        contextLimitElement.textContent = '/0';
+    });
+}
 chatInput.addEventListener('keydown', async function(e) {    
-    if(e.which == 13) { //on enter
-        e.preventDefault(); //disallow newlines   
-        if(chatInput.value != ''){
             const messageText = chatInput.value;
             chatInput.value = ''
 
@@ -593,6 +642,17 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
             console.log(`autoSendSuggestion updated to: ${autoSendSuggestion}`);
             // 更新建议容器样式
             updateSuggestionsContainerStyle();
+        } else if (key === 'showTokenizerDisplay') {
+            showTokenizerDisplay = value;
+            console.log(`showTokenizerDisplay updated to: ${showTokenizerDisplay}`);
+            // 更新分词器显示
+            if (tokenDisplayWrapper) {
+                tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
+            }
+            // Update token count if display is now visible
+            if (showTokenizerDisplay) {
+                updateTokenCount(chatInput.value);
+            }
         }
     })
 
