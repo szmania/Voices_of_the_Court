@@ -92,6 +92,8 @@
     "validate_tooltip": "When streaming is disabled and there are more than 2 characters, validate that the generated message matches the character's identity. If validation fails, regenerate up to 3 times.",
     "show_suggestions": "show suggestions button",
     "show_suggestions_tooltip": "Show or hide the suggestions button in the chat window. Controls whether to display the recommended input statements feature.",
+    "disable_historical": "disable historical conversations",
+    "disable_historical_tooltip": "Disable loading of historical conversations that prepopulate the chat window with previous conversations with that character.",
     "generate_scene": "generate scene description",
     "generate_scene_tooltip": "Generate scene description at the start of conversation to provide context and background for characters.",
     "auto_suggestions": "auto generate suggestions",
