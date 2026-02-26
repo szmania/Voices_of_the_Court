@@ -98,6 +98,8 @@
     "auto_suggestions_tooltip": "启用后，将在对话开始时和每轮对话结束后自动生成建议。",
     "auto_send": "自动发送建议",
     "auto_send_tooltip": "启用后，选择建议将自动发送消息，无需点击发送按钮。",
+    "show_tokenizer": "显示分词器显示",
+    "show_tokenizer_tooltip": "启用后，在聊天窗口中显示实时分词计数显示。",
     "summaries_depth": "总结插入深度",
     "memories_depth": "记忆插入深度",
     "desc_depth": "角色描述插入深度",

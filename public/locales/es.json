@@ -94,6 +94,8 @@
     "auto_suggestions_tooltip": "Cuando está habilitado, las sugerencias se generarán automáticamente al comienzo de la conversación y después de cada ronda de diálogo.",
     "auto_send": "enviar sugerencia automáticamente",
     "auto_send_tooltip": "Cuando está habilitado, al seleccionar una sugerencia se enviará automáticamente el mensaje sin tener que hacer clic en el botón de enviar.",
+    "show_tokenizer": "mostrar tokenizador",
+    "show_tokenizer_tooltip": "Cuando está habilitado, muestra un contador de tokens en tiempo real en la ventana de chat.",
     "summaries_depth": "Profundidad de inserción de resúmenes",
     "memories_depth": "Profundidad de inserción de recuerdos",
     "desc_depth": "Profundidad de inserción de desc. de personaje",

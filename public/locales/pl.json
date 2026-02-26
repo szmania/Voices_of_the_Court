@@ -96,6 +96,8 @@
     "auto_suggestions_tooltip": "Gdy włączone, sugestie będą generowane automatycznie na początku rozmowy i po każdej rundzie dialogu.",
     "auto_send": "automatycznie wysyłaj sugestię",
     "auto_send_tooltip": "Gdy włączone, wybranie sugestii automatycznie wyśle wiadomość bez klikania przycisku wyślij.",
+    "show_tokenizer": "pokaż tokenizer",
+    "show_tokenizer_tooltip": "Gdy włączone, pokazuje licznik tokenów w czasie rzeczywistym w oknie czatu.",
     "summaries_depth": "Głębokość wstawiania podsumowań",
     "memories_depth": "Głębokość wstawiania wspomnień",
     "desc_depth": "Głębokość wstawiania opisu postaci",

@@ -98,6 +98,8 @@
     "auto_suggestions_tooltip": "Falls aktiviert, werden zu Beginn des Gesprächs und nach jeder Dialogrunde automatisch Vorschläge generiert.",
     "auto_send": "Vorschlag automatisch senden",
     "auto_send_tooltip": "Falls aktiviert, wird durch Auswahl eines Vorschlags die Nachricht automatisch gesendet, ohne auf die Senden-Schaltfläche zu klicken.",
+    "show_tokenizer": "Tokenizer-Anzeige anzeigen",
+    "show_tokenizer_tooltip": "Falls aktiviert, wird eine Echtzeit-Token-Anzeige im Chat-Fenster angezeigt.",
     "summaries_depth": "Einfügetiefe für Zusammenfassungen",
     "memories_depth": "Einfügetiefe für Erinnerungen",
     "desc_depth": "Einfügetiefe für Charakterbeschreibungen",

@@ -98,6 +98,8 @@
     "auto_suggestions_tooltip": "활성화하면 대화 시작 시와 각 대화 라운드 후에 제안이 자동으로 생성됩니다.",
     "auto_send": "제안 자동 전송",
     "auto_send_tooltip": "활성화하면 제안을 선택할 때 전송 버튼을 클릭하지 않고도 메시지가 자동으로 전송됩니다.",
+    "show_tokenizer": "토크나이저 표시",
+    "show_tokenizer_tooltip": "활성화하면 채팅 창에 실시간 토큰 수 표시가 표시됩니다.",
     "summaries_depth": "요약 삽입 깊이",
     "memories_depth": "기억 삽입 깊이",
     "desc_depth": "캐릭터 설명 삽입 깊이",

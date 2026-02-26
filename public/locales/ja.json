@@ -98,6 +98,8 @@
     "auto_suggestions_tooltip": "有効にすると、会話の開始時および各対話ラウンドの後に提案が自動的に生成されます。",
     "auto_send": "提案を自動送信",
     "auto_send_tooltip": "有効にすると、提案を選択すると送信ボタンをクリックせずにメッセージが自動的に送信されます。",
+    "show_tokenizer": "トークナイザー表示を表示",
+    "show_tokenizer_tooltip": "有効にすると、チャットウィンドウにリアルタイムのトークンカウント表示が表示されます。",
     "summaries_depth": "要約の挿入深度",
     "memories_depth": "記憶の挿入深度",
     "desc_depth": "キャラクター説明の挿入深度",

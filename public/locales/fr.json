@@ -98,6 +98,8 @@
     "auto_suggestions_tooltip": "Si activé, des suggestions seront automatiquement générées au début de la conversation et après chaque tour de dialogue.",
     "auto_send": "envoi automatique de suggestion",
     "auto_send_tooltip": "Si activé, la sélection d'une suggestion enverra automatiquement le message sans avoir à cliquer sur le bouton d'envoi.",
+    "show_tokenizer": "afficher le tokenizer",
+    "show_tokenizer_tooltip": "Si activé, affiche un compteur de tokens en temps réel dans la fenêtre de chat.",
     "summaries_depth": "Profondeur d'insertion des résumés",
     "memories_depth": "Profondeur d'insertion des souvenirs",
     "desc_depth": "Profondeur d'insertion de la desc. perso",

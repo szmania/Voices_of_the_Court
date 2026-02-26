@@ -100,6 +100,8 @@
     "auto_suggestions_tooltip": "When enabled, suggestions will be automatically generated at the start of conversation and after each round of dialogue.",
     "auto_send": "auto send suggestion",
     "auto_send_tooltip": "When enabled, selecting a suggestion will automatically send the message without clicking the send button.",
+    "show_tokenizer": "show tokenizer display",
+    "show_tokenizer_tooltip": "When enabled, shows a real-time token count display in the chat window.",
     "summaries_depth": "Summaries insert depth",
     "memories_depth": "Memories insert depth",
     "desc_depth": "Char desc insert depth",
