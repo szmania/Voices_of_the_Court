@@ -144,6 +144,8 @@
     "regenerate_button": "REGENERATE",
     "regenerate_tooltip": "You can only regenerate a response if the AI was the last one to speak.",
     "leave_tooltip": "End the current conversation and save the summary.",
+    "waiting_tooltip": "Waiting for response...",
+    "action_tooltip": "Cannot regenerate a response that includes actions.",
     "scene_description": "Scene Description",
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet"

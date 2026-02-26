@@ -141,7 +141,7 @@ export class Conversation{
 
     private loadHistory(): void {
         // Check if historical conversation loading is enabled
-        if (!this.config.showPreviousConversations) {
+        if (!this.config.showPreviousConversations || this.config.disableHistoricalConversations) {
             console.log('Historical conversation loading is disabled in config.');
             return;
         }
@@ -1298,6 +1298,9 @@ ${character.fullName}的发言：`
     private async generateInitialSceneDescription(): Promise<void> {
         console.log('Starting initial scene description generation.');
         
+        // Send loading event to chat window
+        this.chatWindow.window.webContents.send('scene-description-loading', true);
+        
         try {
             // 生成场景描述
             const sceneDescription = await generateSceneDescription(this);
@@ -1400,6 +1403,8 @@ ${character.fullName}的发言：`
     public async initiateConversation(){
         if(this.config.aiCanStartConversation){
             if(Math.random() < this.config.aiStartConversationChance){
+                // Send loading event to chat window when AI starts conversation
+                this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
                 await this.generateAIsMessages();
             }
         }

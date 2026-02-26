@@ -221,6 +221,7 @@ function showLoadingDots(){  //and disable chat
     chatInput.disabled = true;
     
     updateRegenerateButtonState();
+    updateInputTooltip();
 }
 
 function removeLoadingDots(){
@@ -228,6 +229,21 @@ function removeLoadingDots(){
     chatInput.disabled = false;
     
     updateRegenerateButtonState();
+    updateInputTooltip();
+}
+
+function updateInputTooltip() {
+    // Update tooltip for chat input when it's disabled
+    if (chatInput.disabled) {
+        // @ts-ignore
+        const lm = window.LocalizationManager;
+        const waitingTooltip = (lm ? lm.getNestedTranslation('chat.waiting_tooltip') : null) || "Waiting for response...";
+        chatInput.title = waitingTooltip;
+        chatInput.style.cursor = 'not-allowed';
+    } else {
+        chatInput.title = '';
+        chatInput.style.cursor = 'url(../assets/cursor.png), auto';
+    }
 }
 
 function updateRegenerateButtonState() {
@@ -771,6 +787,12 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     await displayMessage(message);
     console.log("wait: "+waitForActions)
 
+    // Clear loading dots if this is an AI message and we're not waiting for actions
+    // This handles the case where AI speaks first in a conversation
+    if (message.role === "assistant" && !waitForActions) {
+        removeLoadingDots();
+    }
+    
     // Always keep loading dots visible until actions are received
     // Don't remove loading dots here - wait for actions-receive event
     if(waitForActions){
@@ -818,6 +840,9 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
 
 // 监听场景描述事件
 ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
+    // Clear loading state when scene description arrives
+    removeLoadingDots();
+    
     if (sceneDescription && sceneDescription.trim()) {
         // 创建场景描述消息元素
         const messageDiv = document.createElement('div');
@@ -851,6 +876,28 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
                 console.log(`Scene description inserted at beginning (fallback): ${sceneDescription.substring(0, 50)}...`);
             }
         }
+    }
+})
+
+// 监听场景描述加载事件
+ipcRenderer.on('scene-description-loading', (e, isLoading: boolean) =>{
+    console.log(`Scene description loading: ${isLoading}`);
+    if (isLoading) {
+        showLoadingDots();
+        // Update tooltip for disabled input
+        updateInputTooltip();
+    } else {
+        removeLoadingDots();
+    }
+})
+
+// 监听AI首次对话加载事件
+ipcRenderer.on('ai-first-conversation-loading', (e, isLoading: boolean) =>{
+    console.log(`AI first conversation loading: ${isLoading}`);
+    if (isLoading) {
+        showLoadingDots();
+        // Update tooltip for disabled input
+        updateInputTooltip();
     }
 })
 
