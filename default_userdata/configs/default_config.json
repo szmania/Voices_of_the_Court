@@ -67,6 +67,7 @@
 	"actionsUseTextGenApi": true,
 	"actionsEnableAll": true,
 	"showPreviousConversations": true,
+	"disableHistoricalConversations": false,
 	"narrativeEnable": true,
 	"disabledActions": [
 		"aiGetsWounded",

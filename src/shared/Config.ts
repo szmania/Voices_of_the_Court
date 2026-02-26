@@ -66,6 +66,7 @@ export class Config{
     autoGenerateSuggestions!: boolean;
     autoSendSuggestion!: boolean;
     showPreviousConversations!: boolean;
+    disableHistoricalConversations!: boolean;
     checkForUpdatesOnStartup!: boolean;
     earlyAccessUpdates!: boolean;
     lastAnnouncementVersion!: string;
