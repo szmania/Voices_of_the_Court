@@ -214,6 +214,7 @@ async function replaceLastMessage(message: Message){
 }
 
 function showLoadingDots(){  //and disable chat
+    console.log('showLoadingDots() called');
     loadingDots = document.createElement('div');
     loadingDots.classList.add('loading');
     chatMessages.append(loadingDots);
@@ -225,6 +226,7 @@ function showLoadingDots(){  //and disable chat
 }
 
 function removeLoadingDots(){
+    console.log('removeLoadingDots() called');
     loadingDots?.remove();
     chatInput.disabled = false;
     
@@ -840,9 +842,6 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
 
 // 监听场景描述事件
 ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
-    // Clear loading state when scene description arrives
-    removeLoadingDots();
-    
     if (sceneDescription && sceneDescription.trim()) {
         // 创建场景描述消息元素
         const messageDiv = document.createElement('div');
@@ -876,18 +875,26 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
                 console.log(`Scene description inserted at beginning (fallback): ${sceneDescription.substring(0, 50)}...`);
             }
         }
+        
+        // Clear loading state AFTER scene description is inserted into DOM
+        removeLoadingDots();
+    } else {
+        // If scene description is empty, still clear loading dots
+        removeLoadingDots();
     }
 })
 
 // 监听场景描述加载事件
 ipcRenderer.on('scene-description-loading', (e, isLoading: boolean) =>{
     console.log(`Scene description loading: ${isLoading}`);
-    if (isLoading) {
+    if (isLoading === true) {
         showLoadingDots();
         // Update tooltip for disabled input
         updateInputTooltip();
-    } else {
+    } else if (isLoading === false) {
         removeLoadingDots();
+    } else {
+        console.warn(`Invalid isLoading value received: ${isLoading}`);
     }
 })
 

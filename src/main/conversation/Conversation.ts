@@ -40,7 +40,7 @@ export class Conversation{
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
+    async constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
@@ -124,7 +124,7 @@ export class Conversation{
         
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
-            this.generateInitialSceneDescription();
+            await this.generateInitialSceneDescription();
         }
         
         // 如果启用了自动生成建议功能，在对话开始时生成建议
@@ -1329,10 +1329,14 @@ ${character.fullName}的发言：`
                 console.log(`Initial scene description generated and inserted at position ${historicalMessageCount} (after ${historicalMessageCount} historical messages): ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
+                // 发送空场景描述以清除加载状态
+                this.chatWindow.window.webContents.send('scene-description', '');
             }
         } catch (error) {
             console.error('Error generating initial scene description:', error);
             // 如果生成失败，不影响对话的正常进行
+            // 但仍然需要清除加载状态
+            this.chatWindow.window.webContents.send('scene-description', '');
         }
         
         // 场景描述生成完成后，如果启用了自动生成建议功能，则生成建议
