@@ -40,7 +40,7 @@ export class Conversation{
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
-    async constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
