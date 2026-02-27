@@ -8,12 +8,6 @@ const sanitizeConfig = {
     ALLOWED_TAGS: ['em', 'strong'], 
     KEEP_CONTENT: true, 
   };
-  // Add input event listener for real-time token counting
-  chatInput.addEventListener('input', function(e) {
-      if (showTokenizerDisplay) {
-          updateTokenCount(chatInput.value);
-      }
-  });
 
 hideChat();
 
@@ -52,6 +46,12 @@ let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
+// Add input event listener for real-time token counting
+chatInput.addEventListener('input', function(e) {
+    if (showTokenizerDisplay) {
+        updateTokenCount(chatInput.value);
+    }
+});
 let currentGameData: GameData | null = null; // Store current game data for scene/location and character list
 
 // Store initial window state
