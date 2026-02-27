@@ -89,6 +89,7 @@
 	"generateSceneDescription": true,
 	"autoGenerateSuggestions": false,
 	"autoSendSuggestion": false,
+	"showTokenizerDisplay": true,
 	"earlyAccessUpdates": true,
 	"lastAnnouncementVersion": "",
 	"aiFirstSpeakerChance": 25,
