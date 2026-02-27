@@ -843,6 +843,42 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
     }
 });
 
+// Tokenizer IPC handlers
+ipcMain.handle('calculate-tokens', async (event, text: string) => {
+    try {
+        if (config?.textGenerationApiConnectionConfig?.connection) {
+            // Import ApiConnection dynamically to avoid circular dependencies
+            const { ApiConnection } = await import('../shared/apiConnection.js');
+            const apiConnection = new ApiConnection(
+                config.textGenerationApiConnectionConfig.connection,
+                config.textGenerationApiConnectionConfig.parameters
+            );
+            return apiConnection.calculateTokensFromText(text);
+        }
+    } catch (error) {
+        console.error('Error calculating tokens in main:', error);
+    }
+    // Fallback: simple token estimation (rough approximation)
+    return Math.ceil((text || "").length / 4);
+});
+
+ipcMain.handle('get-context-limit', async () => {
+    try {
+        if (config?.textGenerationApiConnectionConfig?.connection) {
+            // Import ApiConnection dynamically to avoid circular dependencies
+            const { ApiConnection } = await import('../shared/apiConnection.js');
+            const apiConnection = new ApiConnection(
+                config.textGenerationApiConnectionConfig.connection,
+                config.textGenerationApiConnectionConfig.parameters
+            );
+            return apiConnection.context || 0;
+        }
+    } catch (error) {
+        console.error('Error getting context limit in main:', error);
+    }
+    return 0;
+});
+
 // 处理API配置更改事件
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {
     console.log(`IPC: Received api-config-change event. Config Type: ${configType}, API Type: ${apiType}`);
