@@ -527,6 +527,36 @@ html{
     height: 34px; /* Match suggestions button height roughly */
     display: flex;
     align-items: center;
+    position: relative;
+}
+
+.token-display-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.token-display-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
 }
 
 .token-display {
