@@ -313,9 +313,11 @@ function updateRegenerateButtonState() {
     const leaveTooltip = (lm ? lm.getNestedTranslation('chat.leave_tooltip') : null) || "End the current conversation and save the summary.";
     const clearHistoryTooltip = (lm ? lm.getNestedTranslation('chat.clear_history_tooltip') : null) || "Clear conversation history";
     const suggestionsTooltip = (lm ? lm.getNestedTranslation('suggestions.tooltip') : null) || "Show or hide the recommended input statements feature.";
+    const tokenizerTooltip = (lm ? lm.getNestedTranslation('chat.tokenizer_tooltip') : null) || "Real-time token count for the current message. Tokens are the basic units of text used by the AI.";
 
     // Set static tooltips
     undoButtonWrapper.setAttribute('data-tooltip', undoTooltip);
+    tokenDisplayWrapper.setAttribute('data-tooltip', tokenizerTooltip);
     document.getElementById('leave-button-wrapper')?.setAttribute('data-tooltip', leaveTooltip);
     document.getElementById('clear-history-button-wrapper')?.setAttribute('data-tooltip', clearHistoryTooltip);
     document.querySelector('.suggestions-button-wrapper')?.setAttribute('data-tooltip', suggestionsTooltip);
