@@ -160,17 +160,15 @@ body.theme-chinese .chat-box {
     pointer-events: none;
 }
 
+/* East UI主题 - 调整tokenizer位置到左侧并向下移动 */
 .theme-chinese .token-display-wrapper {
     position: absolute;
-    right: 10px;
-    bottom: 13.5%;
+    left: 12%; /* 移动到左侧 */
+    bottom: 11%; /* 向下移动一点 */
     z-index: 160;
 }
 
-.theme-chinese .token-display-wrapper {
-    position: absolute;
-    right: 10px;
-    bottom: 13.5%;
+.theme-chinese .token-count {
     z-index: 160;
 }
 
@@ -571,17 +569,15 @@ body.theme-west .chat-box {
     pointer-events: none;
 }
 
+/* WestUI主题 - 调整tokenizer位置到左侧并向下移动 */
 .theme-west .token-display-wrapper {
     position: absolute;
-    right: 10px;
-    bottom: 19%;
+    left: 15%; /* 移动到左侧更多 */
+    bottom: 16%; /* 向下移动一点 */
     z-index: 160;
 }
 
-.theme-west .token-display-wrapper {
-    position: absolute;
-    right: 10px;
-    bottom: 19%;
+.theme-west .token-count {
     z-index: 160;
 }
 
