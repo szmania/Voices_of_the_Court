@@ -146,7 +146,8 @@
     "leave_tooltip": "現在の会話を終了し、要約を保存します。",
     "scene_description": "シーン説明",
     "narrative": "ナラティブ",
-    "not_spoken": "まだ話していません"
+    "not_spoken": "まだ話していません",
+    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
   },
   "suggestions": {
     "header": "推奨入力",

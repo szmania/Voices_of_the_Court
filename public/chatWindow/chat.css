@@ -65,7 +65,8 @@
 }
 
 /* Ensure suggestions tooltip doesn't go off-screen on the left */
-.suggestions-button-wrapper::after {
+.suggestions-button-wrapper::after,
+.token-display-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 130%; /* Move tooltip higher up to match East UI theme */
@@ -88,7 +89,8 @@
     pointer-events: none;
 }
 
-.suggestions-button-wrapper:hover::after {
+.suggestions-button-wrapper:hover::after,
+.token-display-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s; /* Small delay before hiding */

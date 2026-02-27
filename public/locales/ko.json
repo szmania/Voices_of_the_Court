@@ -146,7 +146,8 @@
     "leave_tooltip": "현재 대화를 종료하고 요약을 저장합니다.",
     "scene_description": "장면 설명",
     "narrative": "내러티브",
-    "not_spoken": "아직 말하지 않음"
+    "not_spoken": "아직 말하지 않음",
+    "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다."
   },
   "suggestions": {
     "header": "권장 입력",
