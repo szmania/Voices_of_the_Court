@@ -167,6 +167,13 @@ body.theme-chinese .chat-box {
     z-index: 160;
 }
 
+.theme-chinese .token-display-wrapper {
+    position: absolute;
+    right: 10px;
+    bottom: 13.5%;
+    z-index: 160;
+}
+
 .theme-chinese .suggestions-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
@@ -562,6 +569,13 @@ body.theme-west .chat-box {
     z-index: 2000;
     border: 1px solid #5a4a35;
     pointer-events: none;
+}
+
+.theme-west .token-display-wrapper {
+    position: absolute;
+    right: 10px;
+    bottom: 19%;
+    z-index: 160;
 }
 
 .theme-west .token-display-wrapper {
