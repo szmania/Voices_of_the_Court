@@ -148,7 +148,7 @@
     "leave_tooltip": "End the current conversation and save the summary.",
     "waiting_tooltip": "Waiting for response...",
     "action_tooltip": "Cannot regenerate a response that includes actions.",
-    "scene_description": "Szenenbeschreibung",
+    "scene_description": "シーンの説明",
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet",
     "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI."
