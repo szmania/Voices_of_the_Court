@@ -144,7 +144,7 @@
     "regenerate_button": "再生成",
     "regenerate_tooltip": "AI が最後に話した場合のみ、応答を再生成できます。",
     "leave_tooltip": "現在の会話を終了し、要約を保存します。",
-    "scene_description": "シーン説明",
+    "scene_description": "Scene Description",
     "narrative": "ナラティブ",
     "not_spoken": "まだ話していません",
     "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
