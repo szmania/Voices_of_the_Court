@@ -144,7 +144,8 @@
     "leave_tooltip": "Zakończ bieżącą rozmowę i zapisz podsumowanie.",
     "scene_description": "Opis sceny",
     "narrative": "Narracja",
-    "not_spoken": "Jeszcze nie mówił(a)"
+    "not_spoken": "Jeszcze nie mówił(a)",
+    "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI."
   },
   "suggestions": {
     "header": "Rekomendowane wejście",

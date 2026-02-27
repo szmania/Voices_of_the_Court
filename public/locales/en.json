@@ -150,7 +150,8 @@
     "action_tooltip": "Cannot regenerate a response that includes actions.",
     "scene_description": "Scene Description",
     "narrative": "Narrative",
-    "not_spoken": "Has not spoken yet"
+    "not_spoken": "Has not spoken yet",
+    "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI."
   },
   "suggestions": {
     "header": "Recommended Input",
