@@ -407,6 +407,87 @@ html{
 }
 
 
+/* Token Display Styles */
+.input-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 5px;
+}
+
+.token-display-wrapper {
+    font-family: 'Gitan', sans-serif;
+    font-size: 14px;
+    color: #a18c61;
+    background-color: rgba(90, 74, 53, 0.1);
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+    padding: 5px 10px;
+    transition: all 0.3s ease;
+    height: 34px; /* Match suggestions button height roughly */
+    display: flex;
+    align-items: center;
+}
+
+.token-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.token-count {
+    font-weight: bold;
+    color: #cca43b;
+}
+
+.context-limit {
+    color: #a0a0a0;
+    font-style: italic;
+}
+
+/* Theme-specific token display styles */
+.theme-chinese .token-display-wrapper {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+.theme-chinese .token-count {
+    color: #ffd700;
+}
+
+.theme-west .token-display-wrapper {
+    background-color: rgba(105, 105, 105, 0.1);
+    border-color: #696969;
+    color: #a9a9a9;
+}
+
+.theme-west .token-count {
+    color: #dcdcd2;
+}
+
+/* Warning state when approaching limit */
+.token-display-wrapper.warning {
+    background-color: rgba(204, 164, 59, 0.2);
+    border-color: #cca43b;
+    color: #ffd700;
+}
+
+.token-display-wrapper.critical {
+    background-color: rgba(255, 69, 0, 0.2);
+    border-color: #ff4500;
+    color: #ff6347;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
 .button-container {
     display: flex;
     gap: 10px;
