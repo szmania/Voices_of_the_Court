@@ -438,6 +438,39 @@ html{
     color: #fff;
 }
 
+.suggestions-button-wrapper {
+    position: relative;
+}
+
+.suggestions-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
+}
+
 
 /* Token Display Styles */
 .input-footer {
@@ -487,14 +520,26 @@ html{
     color: #d4af37;
 }
 
-.theme-chinese .token-count {
-    color: #ffd700;
+.theme-chinese .token-display-wrapper {
+    position: absolute;
+    right: 10px;
+    bottom: 13.5%;
 }
 
 .theme-west .token-display-wrapper {
     background-color: rgba(105, 105, 105, 0.1);
     border-color: #696969;
     color: #a9a9a9;
+}
+
+.theme-west .token-display-wrapper {
+    position: absolute;
+    right: 10px;
+    bottom: 19%;
+}
+
+.theme-chinese .token-count {
+    color: #ffd700;
 }
 
 .theme-west .token-count {

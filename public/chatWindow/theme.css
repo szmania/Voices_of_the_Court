@@ -140,7 +140,7 @@ body.theme-chinese .chat-box {
 .theme-chinese .suggestions-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 110%;
+    bottom: 130%;
     left: 50%;
     transform: translateX(-50%);
     background-color: #111;
@@ -155,7 +155,7 @@ body.theme-chinese .chat-box {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
+    z-index: 2000;
     border: 1px solid #5a4a35;
     pointer-events: none;
 }
@@ -537,7 +537,7 @@ body.theme-west .chat-box {
 .theme-west .suggestions-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 110%;
+    bottom: 130%;
     left: 50%;
     transform: translateX(-50%);
     background-color: #111;
@@ -552,7 +552,7 @@ body.theme-west .chat-box {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
-    z-index: 10;
+    z-index: 2000;
     border: 1px solid #5a4a35;
     pointer-events: none;
 }
