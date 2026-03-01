@@ -689,7 +689,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     }
 
     // Load config and apply settings
-    let config;
+    let config: any;
     try {
         config = await ipcRenderer.invoke('get-config');
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
