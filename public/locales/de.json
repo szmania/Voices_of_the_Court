@@ -146,7 +146,8 @@
     "leave_tooltip": "Beendet das aktuelle Gespräch und speichert die Zusammenfassung.",
     "scene_description": "Szenenbeschreibung",
     "narrative": "Erzählung",
-    "not_spoken": "Hat noch nicht gesprochen"
+    "not_spoken": "Hat noch nicht gesprochen",
+    "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden."
   },
   "suggestions": {
     "header": "Empfohlene Eingabe",

@@ -288,7 +288,7 @@ export class Conversation{
                     this.messages.push(...fileMessages);
                 }
                 
-                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Scene: ${currentScene}, Location: ${currentLocation})`);
+                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
             } catch (error) {
                 console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
             }

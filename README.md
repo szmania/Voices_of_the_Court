@@ -297,3 +297,4 @@ Fix for Electron version issues:
 ```
 npx electron-rebuild
 ```
+
