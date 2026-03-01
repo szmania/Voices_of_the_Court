@@ -166,14 +166,13 @@ body.theme-chinese .chat-box {
     left: 40%;
     transform: translateX(-50%);
     bottom: 60px; /* Positioned above the leave button */
-    width: 200px; /* Same width as leave button */
-    height: 100px; /* Same height as leave button */
     z-index: 160;
-    justify-content: center;
+    color: #d4af37;
 }
 
 .theme-chinese .token-count {
     z-index: 160;
+    color: #ffd700;
 }
 
 .theme-chinese .suggestions-button-wrapper:hover::after {
@@ -579,14 +578,13 @@ body.theme-west .chat-box {
     left: 40%;
     transform: translateX(-50%);
     bottom: 32px; /* Positioned above the leave button */
-    width: 180px; /* Same width as leave button */
-    height: 90px; /* Same height as leave button */
     z-index: 160;
-    justify-content: center;
+    color: #a9a9a9;
 }
 
 .theme-west .token-count {
     z-index: 160;
+    color: #dcdcd2;
 }
 
 .theme-west .suggestions-button-wrapper:hover::after {

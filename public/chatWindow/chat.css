@@ -519,12 +519,10 @@ html{
     font-family: 'Gitan', sans-serif;
     font-size: 14px;
     color: #a18c61;
-    background-color: rgba(90, 74, 53, 0.1);
-    border: 1px solid #5a4a35;
-    border-radius: 2px;
-    padding: 5px 10px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
     transition: all 0.3s ease;
-    height: 34px; /* Match suggestions button height roughly */
     display: flex;
     align-items: center;
     position: relative;
@@ -576,38 +574,7 @@ html{
     font-style: italic;
 }
 
-/* Theme-specific token display styles */
-.theme-chinese .token-display-wrapper {
-    background-color: rgba(212, 175, 55, 0.1);
-    border-color: #d4af37;
-    color: #d4af37;
-}
-
-.theme-chinese .token-display-wrapper {
-    position: absolute;
-    right: 10px;
-    bottom: 13.5%;
-}
-
-.theme-west .token-display-wrapper {
-    background-color: rgba(105, 105, 105, 0.1);
-    border-color: #696969;
-    color: #a9a9a9;
-}
-
-.theme-west .token-display-wrapper {
-    position: absolute;
-    right: 10px;
-    bottom: 19%;
-}
-
-.theme-chinese .token-count {
-    color: #ffd700;
-}
-
-.theme-west .token-count {
-    color: #dcdcd2;
-}
+/* Theme-specific token display styles are in theme.css */
 
 /* Warning state when approaching limit */
 .token-display-wrapper.warning {
