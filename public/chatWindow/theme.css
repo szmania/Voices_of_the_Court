@@ -104,9 +104,9 @@ body.theme-chinese .chat-box {
 /* East UI主题 - 显示建议按钮样式 */
 .theme-chinese .suggestions-button-wrapper {
     position: absolute;
-    left: 15%;
+    left: 70%;
     transform: translateX(-50%);
-    bottom: -18px;
+    bottom: 80px;
     z-index: 150;
 }
 
@@ -489,9 +489,9 @@ body.theme-west .chat-box {
 /* WestUI主题 - 调整建议按钮工具提示位置 */
 .theme-west .suggestions-button-wrapper {
     position: absolute;
-    left: 20%;
+    left: 60%;
     transform: translateX(-50%);
-    bottom: -15px;
+    bottom: 75px;
     z-index: 150;
 }
 
