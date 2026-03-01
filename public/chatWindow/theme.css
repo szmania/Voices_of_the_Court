@@ -47,7 +47,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .undo-button {
-    left: 30%;
+    left: 35%;
 }
 
 .theme-chinese .regenerate-button {
@@ -55,7 +55,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .leave-button {
-    left: 70%;
+    left: 65%;
 }
 
 .theme-chinese .undo-button:hover,
@@ -104,9 +104,9 @@ body.theme-chinese .chat-box {
 /* East UI主题 - 显示建议按钮样式 */
 .theme-chinese .suggestions-button-wrapper {
     position: absolute;
-    left: 30%;
+    left: 35%;
     transform: translateX(-50%);
-    bottom: 50px;
+    bottom: 60px;
     z-index: 150;
 }
 
@@ -136,9 +136,9 @@ body.theme-chinese .chat-box {
 /* East UI主题 - 调整tokenizer位置到左侧并向下移动 */
 .theme-chinese .token-display-wrapper {
     position: absolute;
-    left: 50%;
+    left: 35%;
     transform: translateX(-50%);
-    bottom: 60px;
+    bottom: 50px;
     z-index: 160;
     color: #d4af37;
 }
@@ -403,7 +403,7 @@ body.theme-west .chat-box {
 }
 
 .theme-west .undo-button {
-    left: 30%;
+    left: 35%;
 }
 
 .theme-west .regenerate-button {
@@ -411,7 +411,7 @@ body.theme-west .chat-box {
 }
 
 .theme-west .leave-button {
-    left: 70%;
+    left: 65%;
 }
 
 .theme-west .undo-button:hover,
@@ -489,9 +489,9 @@ body.theme-west .chat-box {
 /* WestUI主题 - 调整建议按钮工具提示位置 */
 .theme-west .suggestions-button-wrapper {
     position: absolute;
-    left: 30%;
+    left: 35%;
     transform: translateX(-50%);
-    bottom: 25px;
+    bottom: 35px;
     z-index: 150;
 }
 
@@ -521,9 +521,9 @@ body.theme-west .chat-box {
 /* WestUI主题 - 调整tokenizer位置到左侧并向下移动 */
 .theme-west .token-display-wrapper {
     position: absolute;
-    left: 50%;
+    left: 35%;
     transform: translateX(-50%);
-    bottom: 35px; /* Positioned above the leave button */
+    bottom: 25px; /* Positioned above the leave button */
     z-index: 160;
     color: #a9a9a9;
 }
