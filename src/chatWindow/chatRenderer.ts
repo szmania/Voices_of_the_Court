@@ -837,10 +837,12 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
         config = await ipcRenderer.invoke('get-config');
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
         autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
+        showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
     } catch (error) {
         console.error('Error getting config:', error);
         showSuggestionsButton = true; // 默认显示
         autoSendSuggestion = false; // 默认不自动发送建议
+        showTokenizerDisplay = false; // 默认不显示分词器
     }
     
     // 应用当前语言翻译
