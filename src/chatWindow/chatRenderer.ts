@@ -800,7 +800,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         const characterDiv = document.createElement('div');
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-        characterDiv.textContent = `Characters: ${currentGameData.characters.map(c => c.shortName).join(', ')}`;
+        characterDiv.textContent = `Characters: ${Array.from(currentGameData.characters.values()).map(c => c.shortName).join(', ')}`;
         chatMessages.append(characterDiv);
     }
 
