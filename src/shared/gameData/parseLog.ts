@@ -104,11 +104,11 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
            continue;
         }
 
-        if(line.includes("VOTC:IN") || line.includes("VOTC:FAMILY")){
-            //0: VOTC:IN or VOTC:FAMILY, 1: dataType, 3: rootID 4...: data
+        if(line.includes("VOTC:IN")){
+            //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
             let data = line.split("/;/")
 
-            const dataType = line.includes("VOTC:FAMILY") ? "family" : data[1];
+            const dataType = data[1];
             console.log(`Parsing data type: ${dataType}`);
 
             data.splice(0,2)
