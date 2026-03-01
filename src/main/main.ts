@@ -867,10 +867,11 @@ ipcMain.handle('calculate-tokens', async (event, text: string) => {
 ipcMain.handle('get-context-limit', async () => {
     try {
         const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
+        const parameters = config?.textGenerationApiConnectionConfig?.parameters;
         if (connectionConfig) {
             // Prioritize manual overwrite if it exists and is valid
-            if (connectionConfig.context && connectionConfig.context > 0) {
-                return connectionConfig.context;
+            if (connectionConfig.overwriteContext && parameters && parameters.context > 0) {
+                return parameters.context;
             }
             // Fallback to API-detected context
             const { ApiConnection } = await import('../shared/apiConnection.js');
