@@ -9,7 +9,8 @@
     "prompts": "Prompts",
     "settings": "Settings",
     "system": "System",
-    "help": "Help"
+    "help": "Help",
+    "language_tooltip": "Select application language"
   },
   "connection": {
     "ck3_path": "CK3 user folder path",
