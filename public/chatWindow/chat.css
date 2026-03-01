@@ -439,7 +439,9 @@ html{
 }
 
 .suggestions-button-wrapper {
-    position: relative;
+    position: absolute;
+    left: 25%;
+    transform: translateX(-50%);
 }
 
 .suggestions-button-wrapper::after {
@@ -508,11 +510,12 @@ html{
 /* Token Display Styles */
 .input-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     width: 100%;
     margin-top: 8px;
-    margin-bottom: 5px;
+    margin-bottom: 15px; /* Increased for padding */
+    position: relative;
+    height: 34px; /* Set height for absolute positioning context */
 }
 
 .token-display-wrapper {

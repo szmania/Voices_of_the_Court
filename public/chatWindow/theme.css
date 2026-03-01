@@ -138,7 +138,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 55px;
+    bottom: 65px;
     z-index: 160;
     color: #d4af37;
 }
@@ -523,7 +523,7 @@ body.theme-west .chat-box {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 32px; /* Positioned above the leave button */
+    bottom: 42px; /* Positioned above the leave button */
     z-index: 160;
     color: #a9a9a9;
 }
