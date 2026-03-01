@@ -475,6 +475,7 @@ html{
 
 .suggestions-button-wrapper {
     position: relative;
+    left: 10%;
 }
 
 .suggestions-button-wrapper::after {
@@ -529,7 +530,7 @@ html{
     display: flex;
     align-items: center;
     position: absolute;
-    left: 50%;
+    left: 10%;
     transform: translateX(-50%);
 }
 
