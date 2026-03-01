@@ -533,6 +533,7 @@ html{
     position: absolute;
     left: 10%;
     transform: translateX(-50%);
+    bottom: 5px;
 }
 
 .token-display-wrapper::after {
