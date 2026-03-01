@@ -815,7 +815,6 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
     currentGameData = gameData; // Store game data for scene/location and character list
     
     document.body.style.display = '';
-    initChat();
 
     // Capture initial state if not already captured
     // This represents the "default" position and size
@@ -857,6 +856,8 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
 
     // 初始化建议容器样式
     updateSuggestionsContainerStyle();
+
+    initChat();
     
     // Auto-scroll to bottom after chat window opens
     setTimeout(() => {
