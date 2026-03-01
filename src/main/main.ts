@@ -381,7 +381,8 @@ app.on('ready',  async () => {
         type: 'info' as const,
         buttons: [t('dialog.join_discord'), t('dialog.view_steam'), t('dialog.later')],
         title: t('dialog.announcement_title'),
-        message: t('dialog.announcement_message')
+        message: t('dialog.announcement_message'),
+        cancelId: 2 // Set "Later" as the cancel action
     };
 
     dialog.showMessageBox(announcementOpts).then((returnValue) => {
