@@ -106,7 +106,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 35%;
     transform: translateX(-50%);
-    bottom: 60px;
+    bottom: -5px;
     z-index: 150;
 }
 
@@ -398,7 +398,7 @@ body.theme-west .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -63px;
+    bottom: -50px;
     transform: translateX(-50%);
 }
 
@@ -491,7 +491,7 @@ body.theme-west .chat-box {
     position: absolute;
     left: 35%;
     transform: translateX(-50%);
-    bottom: 35px;
+    bottom: -15px;
     z-index: 150;
 }
 
