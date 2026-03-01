@@ -869,8 +869,8 @@ ipcMain.handle('get-context-limit', async () => {
         const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
         if (connectionConfig) {
             // Prioritize manual overwrite if it exists and is valid
-            if (connectionConfig.overwriteContextSize && connectionConfig.overwriteContextSize > 0) {
-                return connectionConfig.overwriteContextSize;
+            if (connectionConfig.context && connectionConfig.context > 0) {
+                return connectionConfig.context;
             }
             // Fallback to API-detected context
             const { ApiConnection } = await import('../shared/apiConnection.js');
