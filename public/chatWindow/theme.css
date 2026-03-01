@@ -42,12 +42,12 @@ body.theme-chinese .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -45px;
+    bottom: -40px;
     transform: translateX(-50%);
 }
 
 .theme-chinese .undo-button {
-    left: 35%;
+    left: 38%;
 }
 
 .theme-chinese .regenerate-button {
@@ -55,7 +55,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .leave-button {
-    left: 65%;
+    left: 62%;
 }
 
 .theme-chinese .undo-button:hover,
@@ -106,7 +106,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 35%;
     transform: translateX(-50%);
-    bottom: -5px;
+    bottom: -15px;
     z-index: 150;
 }
 
@@ -138,7 +138,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 35%;
     transform: translateX(-50%);
-    bottom: 50px;
+    bottom: 40px;
     z-index: 160;
     color: #d4af37;
 }
