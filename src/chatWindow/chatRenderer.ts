@@ -768,11 +768,11 @@ ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [numbe
     let headerText = 'Current Conversation:';
     if (currentGameData) {
         headerText += ` | Date: ${currentGameData.date}`;
-        if (currentGameData.scene && currentGameData.scene.trim()) {
-            headerText += ` | Scene: ${currentGameData.scene}`;
-        }
         if (currentGameData.location && currentGameData.location.trim()) {
             headerText += ` | Location: ${currentGameData.location}`;
+        }
+        if (currentGameData.scene && currentGameData.scene.trim()) {
+            headerText += ` | Scene: ${currentGameData.scene}`;
         }
     }
     currentHeader.textContent = headerText;
