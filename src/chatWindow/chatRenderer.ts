@@ -41,6 +41,8 @@ let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
 let loadingDots: any;
 
+let contextLimit: number = 0;
+
 let playerName: string;
 let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
@@ -216,26 +218,21 @@ function updateTokenCount(text: string) {
     ipcRenderer.invoke('calculate-tokens', text).then((tokenCount: number) => {
         tokenCountElement.textContent = `Tokens: ${tokenCount}`;
 
-        // Get context limit if available
-        ipcRenderer.invoke('get-context-limit').then((contextLimit: number) => {
-            if (contextLimit > 0) {
-                contextLimitElement.textContent = `/${contextLimit}`;
+        if (contextLimit > 0) {
+            contextLimitElement.textContent = `/${contextLimit}`;
 
-                // Add warning/critical classes based on usage percentage
-                const usagePercentage = (tokenCount / contextLimit) * 100;
-                tokenDisplayWrapper.classList.remove('warning', 'critical');
+            // Add warning/critical classes based on usage percentage
+            const usagePercentage = (tokenCount / contextLimit) * 100;
+            tokenDisplayWrapper.classList.remove('warning', 'critical');
 
-                if (usagePercentage > 90) {
-                    tokenDisplayWrapper.classList.add('critical');
-                } else if (usagePercentage > 75) {
-                    tokenDisplayWrapper.classList.add('warning');
-                }
-            } else {
-                contextLimitElement.textContent = '/0';
+            if (usagePercentage > 90) {
+                tokenDisplayWrapper.classList.add('critical');
+            } else if (usagePercentage > 75) {
+                tokenDisplayWrapper.classList.add('warning');
             }
-        }).catch(() => {
+        } else {
             contextLimitElement.textContent = '/0';
-        });
+        }
     }).catch((error) => {
         console.error('Error calculating tokens:', error);
         tokenCountElement.textContent = 'Tokens: Error';
@@ -718,6 +715,23 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Initialize chat UI elements (this clears the display)
     initChat();
     updateSuggestionsContainerStyle();
+
+    // Get context limit once per chat session
+    ipcRenderer.invoke('get-context-limit').then((limit: number) => {
+        if (limit > 0) {
+            contextLimit = limit;
+        } else if (config && config.contextSize > 0) {
+            // Fallback to overwrite value from config
+            contextLimit = config.contextSize;
+        } else {
+            contextLimit = 0;
+        }
+        
+        // Initial update for tokenizer if visible
+        if (showTokenizerDisplay) {
+            updateTokenCount(chatInput.value);
+        }
+    });
 
     // Render historical conversations if they exist
     if (messages && messages.length > 0) {
