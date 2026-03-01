@@ -497,15 +497,16 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
-        chatWindow.window.webContents.send('chat-start', conversation.gameData);
-        
-        // Send loaded history if any
-        if (conversation.messages.length > 0) {
-            console.log(`Sending ${conversation.messages.length} historical messages to chat window.`);
-            // Send historical conversation metadata along with messages
-            const historicalMetadata = conversation.historicalConversations || [];
-            chatWindow.window.webContents.send('chat-history', conversation.messages, Array.from(conversation.narratives.entries()), historicalMetadata);
-        }
+
+        // Consolidate chat-start and chat-history into a single event to prevent race conditions
+        const historicalMetadata = conversation.historicalConversations || [];
+        const payload = {
+            gameData: conversation.gameData,
+            messages: conversation.messages,
+            narratives: Array.from(conversation.narratives.entries()),
+            historicalMetadata: historicalMetadata
+        };
+        chatWindow.window.webContents.send('chat-start', payload);
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");
@@ -865,11 +866,16 @@ ipcMain.handle('calculate-tokens', async (event, text: string) => {
 
 ipcMain.handle('get-context-limit', async () => {
     try {
-        if (config?.textGenerationApiConnectionConfig?.connection) {
-            // Import ApiConnection dynamically to avoid circular dependencies
+        const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
+        if (connectionConfig) {
+            // Prioritize manual overwrite if it exists and is valid
+            if (connectionConfig.overwriteContextSize && connectionConfig.overwriteContextSize > 0) {
+                return connectionConfig.overwriteContextSize;
+            }
+            // Fallback to API-detected context
             const { ApiConnection } = await import('../shared/apiConnection.js');
             const apiConnection = new ApiConnection(
-                config.textGenerationApiConnectionConfig.connection,
+                connectionConfig,
                 config.textGenerationApiConnectionConfig.parameters
             );
             return apiConnection.context || 0;

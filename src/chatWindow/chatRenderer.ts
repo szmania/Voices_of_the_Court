@@ -670,154 +670,16 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-history', async (e, messages: Message[], narratives: [number, string[]][], historicalMetadata: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>) => {
-    console.log(`Received ${messages.length} historical messages with ${historicalMetadata?.length || 0} conversation files.`);
-    console.log('Historical metadata:', historicalMetadata);
-    console.log('Messages:', messages);
-    const narrativeMap = new Map(narratives);
-    
-    // Add separation line before historical conversations
-    const separator = document.createElement('div');
-    separator.classList.add('historical-separator');
-    separator.innerHTML = '<hr>';
-    chatMessages.append(separator);
-    
-    // Add historical conversations header
-    const header = document.createElement('div');
-    header.classList.add('historical-header');
-    header.classList.add('message');
-    header.textContent = 'Previous Conversations:';
-    chatMessages.append(header);
-    
-    // Track current message index for grouping messages by conversation file
-    let messageIndex = 0;
-    
-    // Display each historical conversation with its date and location
-    if (historicalMetadata && historicalMetadata.length > 0) {
-        for (const conv of historicalMetadata) {
-            // Add conversation header with date, location, and character list
-            const convHeader = document.createElement('div');
-            convHeader.classList.add('historical-conversation-header');
-            convHeader.classList.add('message');
-            
-            let headerText = `Date: ${conv.date}`;
-            if (conv.location && conv.location.trim()) {
-                headerText += ` | Location: ${conv.location}`;
-            }
-            if (conv.scene && conv.scene.trim()) {
-                headerText += ` | Scene: ${conv.scene}`;
-            }
-            convHeader.textContent = headerText;
-            
-            // Add character list after the scene/location
-            if (conv.characters && conv.characters.length > 0) {
-                const characterDiv = document.createElement('div');
-                characterDiv.classList.add('historical-characters');
-                characterDiv.classList.add('message');
-                characterDiv.style.fontSize = '0.9rem';
-                characterDiv.style.color = '#a18c61';
-                characterDiv.style.marginTop = '2px';
-                characterDiv.style.marginBottom = '5px';
-                characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
-                chatMessages.append(characterDiv);
-            }
-            chatMessages.append(convHeader);
-            
-            // Display messages for this conversation
-            for (let i = 0; i < conv.messages.length; i++) {
-                const msg = conv.messages[i];
-                await displayMessage(msg, true); // Pass true for isHistorical parameter
-                
-                const msgNarratives = narrativeMap.get(messageIndex);
-                if (msgNarratives) {
-                    msgNarratives.forEach(n => displayNarrative(n));
-                }
-                messageIndex++;
-            }
-            
-            // Add separation between conversation files
-            const convSeparator = document.createElement('div');
-            convSeparator.classList.add('historical-conversation-separator');
-            convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
-            chatMessages.append(convSeparator);
-        }
-    } else {
-        // Fallback: display all messages without grouping if no metadata
-        for (let i = 0; i < messages.length; i++) {
-            const msg = messages[i];
-            await displayMessage(msg, true); // Pass true for isHistorical parameter
-            
-            const msgNarratives = narrativeMap.get(i);
-            if (msgNarratives) {
-                msgNarratives.forEach(n => displayNarrative(n));
-            }
-        }
-    }
-    
-    // Add separation line between historical and current conversation
-    const currentSeparator = document.createElement('div');
-    currentSeparator.classList.add('current-conversation-separator');
-    currentSeparator.innerHTML = '<hr>';
-    chatMessages.append(currentSeparator);
-    
-    // Add current conversation header with scene/location and character list
-    const currentHeader = document.createElement('div');
-    currentHeader.classList.add('current-conversation-header');
-    currentHeader.classList.add('message');
-    
-    let headerText = 'Current Conversation:';
-    if (currentGameData) {
-        headerText += ` | Date: ${currentGameData.date}`;
-        if (currentGameData.location && currentGameData.location.trim()) {
-            headerText += ` | Location: ${currentGameData.location}`;
-        }
-        if (currentGameData.scene && currentGameData.scene.trim()) {
-            headerText += ` | Scene: ${currentGameData.scene}`;
-        }
-    }
-    currentHeader.textContent = headerText;
-    chatMessages.append(currentHeader);
-    
-    // Add character list for current conversation
-    if (currentGameData) {
-        const characterDiv = document.createElement('div');
-        characterDiv.classList.add('current-characters');
-        characterDiv.classList.add('message');
-        characterDiv.style.fontSize = '0.9rem';
-        characterDiv.style.color = '#a18c61';
-        characterDiv.style.marginTop = '2px';
-        characterDiv.style.marginBottom = '5px';
-        
-        // Get all character names from the game data
-        const characterNames: string[] = [];
-        currentGameData.characters.forEach((character) => {
-            characterNames.push(character.shortName);
-        });
-        
-        characterDiv.textContent = `Characters: ${characterNames.join(', ')}`;
-        chatMessages.append(characterDiv);
-    }
-    
-    // Show clear history button if there are messages
-    if (messages.length > 0 && clearHistoryButton) {
-        clearHistoryButton.style.display = 'flex';
-    }
-    
-    // Auto-scroll to bottom after historical conversations are loaded
-    setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 100);
-});
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[] }) => {
+    const { gameData, messages, narratives, historicalMetadata } = payload;
 
-ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{   
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
-    currentGameData = gameData; // Store game data for scene/location and character list
-    
+    currentGameData = gameData;
+
     document.body.style.display = '';
 
-    // Capture initial state if not already captured
-    // This represents the "default" position and size
+    // Capture initial state
     const chatBox = document.querySelector('.chat-box') as HTMLElement;
     if (chatBox && !initialWindowState.width) {
         const computedStyle = window.getComputedStyle(chatBox);
@@ -827,11 +689,10 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
             top: chatBox.offsetTop + 'px',
             left: chatBox.offsetLeft + 'px'
         };
-        console.log('Captured initial window state:', initialWindowState);
     }
-    
+
+    // Load config and apply settings
     let config;
-    // 应用当前语言翻译
     try {
         config = await ipcRenderer.invoke('get-config');
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
@@ -839,12 +700,12 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
         showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
     } catch (error) {
         console.error('Error getting config:', error);
-        showSuggestionsButton = true; // 默认显示
-        autoSendSuggestion = false; // 默认不自动发送建议
-        showTokenizerDisplay = false; // 默认不显示分词器
+        showSuggestionsButton = true;
+        autoSendSuggestion = false;
+        showTokenizerDisplay = false;
     }
-    
-    // 应用当前语言翻译
+
+    // Apply translations
     // @ts-ignore
     if (window.LocalizationManager && config) {
         // @ts-ignore
@@ -854,16 +715,103 @@ ipcRenderer.on('chat-start', async (e, gameData: GameData) =>{
         });
     }
 
-    // 初始化建议容器样式
+    // Initialize chat UI elements (this clears the display)
+    initChat();
     updateSuggestionsContainerStyle();
 
-    initChat();
-    
-    // Auto-scroll to bottom after chat window opens
+    // Render historical conversations if they exist
+    if (messages && messages.length > 0) {
+        const narrativeMap = new Map(narratives);
+        
+        const separator = document.createElement('div');
+        separator.classList.add('historical-separator');
+        separator.innerHTML = '<hr>';
+        chatMessages.append(separator);
+
+        const header = document.createElement('div');
+        header.classList.add('historical-header');
+        header.classList.add('message');
+        header.textContent = 'Previous Conversations:';
+        chatMessages.append(header);
+
+        let messageIndex = 0;
+        if (historicalMetadata && historicalMetadata.length > 0) {
+            for (const conv of historicalMetadata) {
+                const convHeader = document.createElement('div');
+                convHeader.classList.add('historical-conversation-header');
+                convHeader.classList.add('message');
+                
+                let headerText = `Date: ${conv.date}`;
+                if (conv.location) headerText += ` | Location: ${conv.location}`;
+                if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
+                convHeader.textContent = headerText;
+                chatMessages.append(convHeader);
+
+                if (conv.characters && conv.characters.length > 0) {
+                    const characterDiv = document.createElement('div');
+                    characterDiv.classList.add('historical-characters', 'message');
+                    characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+                    characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
+                    chatMessages.append(characterDiv);
+                }
+
+                for (const msg of conv.messages) {
+                    await displayMessage(msg, true);
+                    const msgNarratives = narrativeMap.get(messageIndex);
+                    if (msgNarratives) {
+                        msgNarratives.forEach(n => displayNarrative(n));
+                    }
+                    messageIndex++;
+                }
+                const convSeparator = document.createElement('div');
+                convSeparator.classList.add('historical-conversation-separator');
+                convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
+                chatMessages.append(convSeparator);
+            }
+        } else {
+            for (let i = 0; i < messages.length; i++) {
+                await displayMessage(messages[i], true);
+                const msgNarratives = narrativeMap.get(i);
+                if (msgNarratives) {
+                    msgNarratives.forEach(n => displayNarrative(n));
+                }
+            }
+        }
+    }
+
+    // Render current conversation header
+    const currentSeparator = document.createElement('div');
+    currentSeparator.classList.add('current-conversation-separator');
+    currentSeparator.innerHTML = '<hr>';
+    chatMessages.append(currentSeparator);
+
+    const currentHeader = document.createElement('div');
+    currentHeader.classList.add('current-conversation-header', 'message');
+    let currentHeaderText = 'Current Conversation:';
+    if (currentGameData) {
+        currentHeaderText += ` | Date: ${currentGameData.date}`;
+        if (currentGameData.location) currentHeaderText += ` | Location: ${currentGameData.location}`;
+        if (currentGameData.scene) currentHeaderText += ` | Scene: ${currentGameData.scene}`;
+    }
+    currentHeader.textContent = currentHeaderText;
+    chatMessages.append(currentHeader);
+
+    if (currentGameData?.characters) {
+        const characterDiv = document.createElement('div');
+        characterDiv.classList.add('current-characters', 'message');
+        characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+        characterDiv.textContent = `Characters: ${currentGameData.characters.map(c => c.shortName).join(', ')}`;
+        chatMessages.append(characterDiv);
+    }
+
+    if (messages.length > 0 && clearHistoryButton) {
+        clearHistoryButton.style.display = 'flex';
+    }
+
     setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
-})
+});
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
     await displayMessage(message);
