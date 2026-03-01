@@ -528,7 +528,9 @@ html{
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    position: relative;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .token-display-wrapper::after {

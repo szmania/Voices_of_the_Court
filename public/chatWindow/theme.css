@@ -47,7 +47,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .undo-button {
-    left: 25%;
+    left: 27%;
 }
 
 .theme-chinese .regenerate-button {
@@ -55,7 +55,7 @@ body.theme-chinese .chat-box {
 }
 
 .theme-chinese .leave-button {
-    left: 75%;
+    left: 73%;
 }
 
 .theme-chinese .undo-button:hover,
@@ -403,7 +403,7 @@ body.theme-west .chat-box {
 }
 
 .theme-west .undo-button {
-    left: 25%;
+    left: 27%;
 }
 
 .theme-west .regenerate-button {
@@ -411,7 +411,7 @@ body.theme-west .chat-box {
 }
 
 .theme-west .leave-button {
-    left: 75%;
+    left: 73%;
 }
 
 .theme-west .undo-button:hover,
