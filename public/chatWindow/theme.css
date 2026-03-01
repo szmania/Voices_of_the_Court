@@ -42,7 +42,7 @@ body.theme-chinese .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -35px;
+    bottom: -30px;
     transform: translateX(-50%);
 }
 
