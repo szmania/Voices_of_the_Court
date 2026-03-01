@@ -177,18 +177,34 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 break;
                 case "new_relations":
                     if (!gameData) continue;
-                    var tmpTargetId = Number(data[1])
-                    if(line.split('#')[1] !== ''){
-
-                        gameData!.characters.get(rootID)!.relationsToCharacters.push({id: tmpTargetId, relations: [removeTooltip(line.split('#')[1])]})
-                        //gameData!.characters.get(rootID)!.relationsToPlayer = [removeTooltip(line.split('#')[1])]
+                    const characterA_ID = rootID;
+                    const characterB_ID = Number(data[1]);
+                    
+                    let relationship = "";
+                    const parts = line.split('#');
+                    if (parts.length > 1) {
+                        relationship = removeTooltip(parts[1]);
                     }
 
-                    if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToCharacters.find(x => x.id == tmpTargetId)!.relations
-                        isWaitingForMultiLine = true;
-                        multiLineType = "new_relations";
-                        console.debug(`Starting multi-line parse for "new_relations" for character ID ${rootID} to target ID ${tmpTargetId}.`);
+                    if (relationship) {
+                        const characterA = gameData.characters.get(characterA_ID);
+                        const characterB = gameData.characters.get(characterB_ID);
+
+                        if (characterA && characterB) {
+                            // Avoid adding duplicates
+                            const exists = characterA.familyMembers.some(member => member.id === characterB_ID && member.relationship === relationship);
+                            if (!exists) {
+                                characterA.familyMembers.push({
+                                    id: characterB_ID,
+                                    name: characterB.fullName,
+                                    relationship: relationship
+                                });
+                                console.log(`Parsed family for character ${characterA_ID} (${characterA.fullName}): ${relationship} ${characterB.fullName} (ID: ${characterB_ID})`);
+                            }
+                        } else {
+                            if (!characterA) console.warn(`Character with ID ${characterA_ID} not found when parsing family data`);
+                            if (!characterB) console.warn(`Character with ID ${characterB_ID} not found when parsing family data`);
+                        }
                     }
                     break;
 
@@ -202,35 +218,6 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
                         console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
-                    }
-                    break;
-                case "family":
-                    if (!gameData) continue;
-                    const characterId = rootID;
-                    const relationshipType = data[1]; // e.g., "Child"
-                    const familyMemberId = Number(data[2]);
-                    
-                    // Extract name from tooltip - it's in data[3] after the splice
-                    let familyMemberName = "";
-                    if (data.length > 3 && data[3] !== '') {
-                        familyMemberName = removeTooltip(data[3]);
-                        console.log(`Family parsing - raw data[3]: "${data[3]}"`);
-                        console.log(`Family parsing - cleaned name: "${familyMemberName}"`);
-                    } else {
-                        console.log(`Family parsing - no tooltip data found in data[3]`);
-                    }
-                    
-                    const character = gameData.characters.get(characterId);
-                    if (character) {
-                        character.familyMembers.push({
-                            id: familyMemberId,
-                            name: familyMemberName,
-                            relationship: relationshipType
-                        });
-                        console.log(`Parsed family for character ${characterId}: ${relationshipType} ${familyMemberName} (ID: ${familyMemberId})`);
-                        console.log(`Character ${characterId} (${character.fullName}) now has ${character.familyMembers.length} family members`);
-                    } else {
-                        console.warn(`Character with ID ${characterId} not found when parsing family data`);
                     }
                     break;
             }
