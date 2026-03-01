@@ -529,7 +529,7 @@ html{
     display: flex;
     align-items: center;
     position: absolute;
-    left: 50%;
+    left: 37.5%;
     transform: translateX(-50%);
 }
 
