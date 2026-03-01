@@ -106,7 +106,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 30%;
     transform: translateX(-50%);
-    bottom: 55px;
+    bottom: 50px;
     z-index: 150;
 }
 
@@ -138,7 +138,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 65px;
+    bottom: 60px;
     z-index: 160;
     color: #d4af37;
 }
@@ -491,7 +491,7 @@ body.theme-west .chat-box {
     position: absolute;
     left: 30%;
     transform: translateX(-50%);
-    bottom: 32px;
+    bottom: 25px;
     z-index: 150;
 }
 
@@ -523,7 +523,7 @@ body.theme-west .chat-box {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 42px; /* Positioned above the leave button */
+    bottom: 35px; /* Positioned above the leave button */
     z-index: 160;
     color: #a9a9a9;
 }
