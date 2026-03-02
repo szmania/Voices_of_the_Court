@@ -10,6 +10,7 @@
     "settings": "설정",
     "system": "시스템",
     "help": "도움말",
+    "language_tooltip": "애플리케이션 언어 선택",
     "discord_tooltip": "Discord에 참여하세요",
     "website_tooltip": "저희 웹사이트를 방문하세요"
   },

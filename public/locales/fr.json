@@ -10,6 +10,7 @@
     "settings": "Paramètres",
     "system": "Système",
     "help": "Aide",
+    "language_tooltip": "Sélectionner la langue de l'application",
     "discord_tooltip": "Rejoignez notre Discord",
     "website_tooltip": "Visitez notre site web"
   },

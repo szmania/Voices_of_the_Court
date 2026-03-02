@@ -10,6 +10,7 @@
     "settings": "Настройки",
     "system": "Система",
     "help": "Помощь",
+    "language_tooltip": "Выберите язык приложения",
     "discord_tooltip": "Присоединяйтесь к нашему Discord",
     "website_tooltip": "Посетите наш сайт"
   },
