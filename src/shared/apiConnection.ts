@@ -61,11 +61,17 @@ export class ApiConnection{
         }
         
         this.type = connection.type;
-        if(this.type !== 'gemini' && this.type !== 'glm'){
+        if (this.type === 'player2') {
+            this.client = new OpenAI({
+                baseURL: 'http://127.0.0.1:4315/v1',
+                apiKey: 'sk-dummy-key', // Player2 uses a dummy key
+                dangerouslyAllowBrowser: true,
+                defaultHeaders: {
+                    'player2-game-key': '019b93eb-33ae-7e7e-ae21-0a1903c63ebb',
+                },
+            });
+        } else if(this.type !== 'gemini' && this.type !== 'glm'){
             let baseURL = connection.baseUrl;
-            if (this.type === 'player2') {
-                baseURL = "https://api.player2.game/v1";
-            }
 
             this.client = new OpenAI({
                 baseURL: baseURL,
