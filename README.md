@@ -298,4 +298,36 @@ Fix for Electron version issues:
 npx electron-rebuild
 ```
 
+Credits & Attribution
+This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
+
+Original Creators and Supporters
+The VOTC Team and community contributors for their contributions to the project.
+
+Continued Development
+Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
+
+Community Edition Maintainers
+The VOTC-CE team and contributors.
+
+Licensing Information
+Some of the original source material for this mod was released under the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license.
+
+In accordance with Section 4(b) of the CC BY-SA 4.0 license, this derivative work is being licensed under a BY-SA Compatible License: the GNU General Public License v3.0 (GPLv3).
+
+For more details on licensing, please see the README files in our repositories: Voices of the Court README and VOTC Mod README.
+
+Original License
+GPLv3 and CC BY-SA 4.0
+
+Current License
+GPLv3
+
+GPLv3 Notice
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
+
 
