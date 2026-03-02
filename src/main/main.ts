@@ -379,16 +379,18 @@ app.on('ready',  async () => {
     // Show announcement popup
     const announcementOpts = {
         type: 'info' as const,
-        buttons: [t('dialog.join_discord'), t('dialog.view_steam'), t('dialog.later')],
+        buttons: [t('dialog.join_discord'), t('dialog.view_website'), t('dialog.view_steam'), t('dialog.later')],
         title: t('dialog.announcement_title'),
         message: t('dialog.announcement_message'),
-        cancelId: 2 // Set "Later" as the cancel action
+        cancelId: 3 // Set "Later" as the cancel action
     };
 
     dialog.showMessageBox(announcementOpts).then((returnValue) => {
         if (returnValue.response === 0) {
             shell.openExternal('https://discord.gg/UQpE4mJSqZ');
         } else if (returnValue.response === 1) {
+            shell.openExternal('https://votc-ce.vercel.app/');
+        } else if (returnValue.response === 2) {
             shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
         }
     });
