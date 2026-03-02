@@ -90,3 +90,36 @@ Maintenance de l'application et liens communautaires.
 
 ### 📄 Licence
 Ce projet est sous licence [GPL-3.0](LICENSE).
+
+## Licence et Attribution
+
+### Informations sur le Mod
+- **Nom du Mod**: Voices of the Court - Community Edition (VOTC-CE)
+- **Licence**: GNU General Public License v3.0 (GPLv3)
+- **Version de CK3 supportée**: 1.18 "Crane"
+
+### Crédits & Attribution
+Ce projet est une œuvre dérivée basée sur VOTC / AliChat. Nous tenons à exprimer notre profonde gratitude aux développeurs qui ont maintenu ce projet en vie et repoussé les limites de l'IA dans Crusader Kings III :
+
+**Créateurs Originaux**: L'équipe VOTC et les contributeurs de la communauté. Merci à Durond et MrAndroPC.
+
+**Développement Continu**: Un merci spécial à la communauté de développement chinoise, y compris Lisiyuan233, zhaowendao2005, et d'autres qui ont fourni des mises à jour et un soutien essentiels.
+
+**Soutien de la Communauté**: Merci à la communauté élargie pour leurs idées, leurs commentaires et le contexte historique concernant le projet.
+
+**Mainteneurs de l'Édition Communautaire**: L'équipe VOTC-CE et ses contributeurs.
+
+### Informations sur la Licence
+Une partie du matériel source original de ce mod a été publiée sous la licence Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+
+Conformément à la section 4(b) de la licence CC BY-SA 4.0, cette œuvre dérivée est sous licence compatible BY-SA : la GNU General Public License v3.0 (GPLv3).
+
+- **Licence Originale**: CC BY-SA 4.0
+- **Licence Actuelle**: GPLv3
+
+### Avis GPLv3
+Ce programme est un logiciel libre : vous pouvez le redistribuer et/ou le modifier selon les termes de la Licence Publique Générale GNU telle que publiée par la Free Software Foundation, soit la version 3 de la Licence, soit (à votre choix) toute version ultérieure.
+
+Ce programme est distribué dans l'espoir qu'il sera utile, mais SANS AUCUNE GARANTIE ; sans même la garantie implicite de QUALITÉ MARCHANDE ou d'ADÉQUATION À UN USAGE PARTICULIER. Voir la Licence Publique Générale GNU pour plus de détails.
+
+Vous devriez avoir reçu une copie de la Licence Publique Générale GNU avec ce programme. Si ce n'est pas le cas, voir <https://www.gnu.org/licenses/>.
