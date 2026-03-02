@@ -39,6 +39,7 @@ ipcRenderer.on('update-language', async (event, lang) => {
 });
 
 async function init(){
+    addExternalLinks();
     // 应用初始主题
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
