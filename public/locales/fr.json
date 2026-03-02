@@ -448,9 +448,10 @@
     "yes": "Oui",
     "no": "Non",
     "announcement_title": "Nouvelles ressources communautaires !",
-    "announcement_message": "Nous avons un nouveau serveur Discord et un nouveau mod Steam !\n\nDiscord : Rejoignez notre communauté pour du soutien et des discussions.\nSteam : Découvrez 'Voices of the Court - Community Edition' sur le Steam Workshop.",
+    "announcement_message": "Nous avons un nouveau serveur Discord, un nouveau mod Steam et un site web !\n\nDiscord : Rejoignez notre communauté pour du soutien et des discussions.\nSteam : Découvrez 'Voices of the Court - Community Edition' sur le Steam Workshop.\nSite web : Visitez notre nouveau site web pour la documentation et plus encore.",
     "join_discord": "Rejoindre Discord",
-    "view_steam": "Voir le mod Steam"
+    "view_steam": "Voir le mod Steam",
+    "view_website": "Visiter le site web"
   },
   "tray": {
     "open_config": "Ouvrir la fenêtre de configuration",

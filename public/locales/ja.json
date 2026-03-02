@@ -447,9 +447,10 @@
     "yes": "はい",
     "no": "いいえ",
     "announcement_title": "新しいコミュニティリソース！",
-    "announcement_message": "新しい Discord サーバーと新しい Steam モッドができました！\n\nDiscord：サポートと議論のためにコミュニティに参加してください。\nSteam：Steam ワークショップで「Voices of the Court - Community Edition」をチェックしてください。",
+    "announcement_message": "新しい Discord サーバー、新しい Steam モッド、そしてウェブサイトができました！\n\nDiscord：サポートと議論のためにコミュニティに参加してください。\nSteam：Steam ワークショップで「Voices of the Court - Community Edition」をチェックしてください。\nウェブサイト：ドキュメントなどの詳細については、新しいウェブサイトをご覧ください。",
     "join_discord": "Discord に参加",
-    "view_steam": "Steam モッドを表示"
+    "view_steam": "Steam モッドを表示",
+    "view_website": "ウェブサイトを訪問"
   },
   "tray": {
     "open_config": "設定ウィンドウを開く",

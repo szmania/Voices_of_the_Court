@@ -447,9 +447,10 @@
     "yes": "예",
     "no": "아니요",
     "announcement_title": "새로운 커뮤니티 리소스!",
-    "announcement_message": "새로운 Discord 서버와 새로운 Steam 모드가 생겼습니다!\n\nDiscord: 지원 및 토론을 위해 커뮤니티에 가입하세요.\nSteam: Steam 창작마당에서 'Voices of the Court - Community Edition'을 확인하세요.",
+    "announcement_message": "새로운 Discord 서버, 새로운 Steam 모드, 그리고 웹사이트가 생겼습니다!\n\nDiscord: 지원 및 토론을 위해 커뮤니티에 가입하세요.\nSteam: Steam 창작마당에서 'Voices of the Court - Community Edition'을 확인하세요.\n웹사이트: 문서 등을 보려면 새 웹사이트를 방문하세요.",
     "join_discord": "Discord 가입",
-    "view_steam": "Steam 모드 보기"
+    "view_steam": "Steam 모드 보기",
+    "view_website": "웹사이트 방문"
   },
   "tray": {
     "open_config": "설정 창 열기",
