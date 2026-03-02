@@ -297,36 +297,3 @@ Fix für Electron-Versionsprobleme:
 ```
 npx electron-rebuild
 ```
-
-## Lizenz und Namensnennung
-
-### Mod-Informationen
-- **Mod-Name**: Voices of the Court - Community Edition (VOTC-CE)
-- **Lizenz**: GNU General Public License v3.0 (GPLv3)
-- **Unterstützte CK3-Version**: 1.18 "Crane"
-
-### Danksagung & Namensnennung
-Dieses Projekt ist ein abgeleitetes Werk, das auf VOTC / AliChat basiert. Wir möchten den Entwicklern, die dieses Projekt am Leben erhalten und die Grenzen der KI in Crusader Kings III erweitert haben, unseren tiefen Dank aussprechen:
-
-**Ursprüngliche Schöpfer**: Das VOTC-Team und Community-Mitwirkende. Dank an Durond und MrAndroPC.
-
-**Weiterentwicklung**: Besonderer Dank gilt der chinesischen Entwicklergemeinschaft, einschließlich Lisiyuan233, zhaowendao2005 und anderen, die wichtige Updates und Unterstützung bereitgestellt haben.
-
-**Community-Unterstützung**: Dank an die breitere Community für ihre Einblicke, ihr Feedback und den historischen Kontext des Projekts.
-
-**Betreuer der Community Edition**: Das VOTC-CE-Team und Mitwirkende.
-
-### Lizenzinformationen
-Ein Teil des ursprünglichen Quellmaterials für diesen Mod wurde unter der Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) Lizenz veröffentlicht.
-
-In Übereinstimmung mit Abschnitt 4(b) der CC BY-SA 4.0-Lizenz wird dieses abgeleitete Werk unter einer BY-SA-kompatiblen Lizenz lizenziert: der GNU General Public License v3.0 (GPLv3).
-
-- **Ursprüngliche Lizenz**: CC BY-SA 4.0
-- **Aktuelle Lizenz**: GPLv3
-
-### GPLv3-Hinweis
-Dieses Programm ist freie Software: Sie können es unter den Bedingungen der GNU General Public License, wie von der Free Software Foundation veröffentlicht, weiterverbreiten und/oder modifizieren, entweder Version 3 der Lizenz oder (nach Ihrer Wahl) jede spätere Version.
-
-Dieses Programm wird in der Hoffnung vertrieben, dass es nützlich sein wird, aber OHNE JEGLICHE GEWÄHRLEISTUNG; ohne auch nur die stillschweigende Gewährleistung der MARKTGÄNGIGKEIT oder EIGNUNG FÜR EINEN BESTIMMTEN ZWECK. Siehe die GNU General Public License für weitere Details.
-
-Sie sollten eine Kopie der GNU General Public License zusammen mit diesem Programm erhalten haben. Wenn nicht, siehe <https://www.gnu.org/licenses/>.
