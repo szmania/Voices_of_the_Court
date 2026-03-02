@@ -6,7 +6,9 @@
     "prompts": "Prompts",
     "settings": "Ajustes",
     "system": "Sistema",
-    "help": "Ayuda"
+    "help": "Ayuda",
+    "discord_tooltip": "Únete a nuestro Discord",
+    "website_tooltip": "Visita nuestra página web"
   },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",

@@ -9,7 +9,9 @@
     "prompts": "Prompts",
     "settings": "Einstellungen",
     "system": "System",
-    "help": "Hilfe"
+    "help": "Hilfe",
+    "discord_tooltip": "Tritt unserem Discord bei",
+    "website_tooltip": "Besuche unsere Webseite"
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",

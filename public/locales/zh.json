@@ -9,7 +9,9 @@
     "prompts": "提示词",
     "settings": "设置",
     "system": "系统",
-    "help": "帮助"
+    "help": "帮助",
+    "discord_tooltip": "加入我们的Discord",
+    "website_tooltip": "访问我们的网站"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",

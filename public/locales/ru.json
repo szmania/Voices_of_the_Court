@@ -9,7 +9,9 @@
     "prompts": "Промпты",
     "settings": "Настройки",
     "system": "Система",
-    "help": "Помощь"
+    "help": "Помощь",
+    "discord_tooltip": "Присоединяйтесь к нашему Discord",
+    "website_tooltip": "Посетите наш сайт"
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",

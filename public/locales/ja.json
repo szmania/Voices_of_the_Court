@@ -9,7 +9,9 @@
     "prompts": "プロンプト",
     "settings": "設定",
     "system": "システム",
-    "help": "ヘルプ"
+    "help": "ヘルプ",
+    "discord_tooltip": "Discordに参加",
+    "website_tooltip": "ウェブサイトにアクセス"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",

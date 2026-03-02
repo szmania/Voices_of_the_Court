@@ -10,7 +10,9 @@
     "settings": "Settings",
     "system": "System",
     "help": "Help",
-    "language_tooltip": "Select application language"
+    "language_tooltip": "Select application language",
+    "discord_tooltip": "Join our Discord",
+    "website_tooltip": "Visit our Website"
   },
   "connection": {
     "ck3_path": "CK3 user folder path",
@@ -480,9 +482,8 @@
     "yes": "Yes",
     "no": "No",
     "announcement_title": "New Community Resources!",
-    "announcement_message": "We have a new Discord server, website, and a new Steam mod!\n\nDiscord: Join our community for support and discussion.\nWebsite: Check out our official website.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.",
+    "announcement_message": "We have a new Discord server and a new Steam mod!\n\nDiscord: Join our community for support and discussion.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.",
     "join_discord": "Join Discord",
-    "view_website": "View Website",
     "view_steam": "View Steam Mod"
   },
   "tray": {
