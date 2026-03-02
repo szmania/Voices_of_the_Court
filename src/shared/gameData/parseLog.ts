@@ -262,14 +262,18 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         line = line.replace(/ *\([^)]*\) */g, "");
 
         let splits = line.split(": ");
+        const reason = removeTooltip(splits[0]);
+        
+        // Join the rest back in case the reason contained a colon
+        const valueStr = splits.slice(1).join(': ');
 
-        for(let i=0;i<splits.length;i++){
-            splits[i] = removeTooltip(splits[i])
-        }
+        // Use regex to find the number, handles positive/negative values
+        const match = valueStr.match(/[+-]?\d+/);
+        const value = match ? Number(match[0]) : 0;
 
         return {
-            reason: splits[0],
-            value: Number(splits[1])
+            reason: reason,
+            value: value
         }
     }
 
