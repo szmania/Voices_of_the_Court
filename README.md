@@ -282,6 +282,18 @@ Contributions to the project are welcome via:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+### 🛠️ Local Development Setup
+
+1. Clone the repo
+2. Install dependencies with `npm i`
+3. Start dev mode with `npm run start`
+4. Package app with `npm run make`
+
+Fix for Electron version issues:
+```
+npx electron-rebuild
+```
+
 ## Credits & Attribution
 
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
@@ -314,18 +326,6 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-### 🛠️ Local Development Setup
-
-1. Clone the repo
-2. Install dependencies with `npm i`
-3. Start dev mode with `npm run start`
-4. Package app with `npm run make`
-
-Fix for Electron version issues:
-```
-npx electron-rebuild
-```
 
 
 

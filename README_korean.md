@@ -282,6 +282,18 @@ Discord 참여:
 4. 브랜치에 푸시(`git push origin feature/AmazingFeature`)
 5. 풀 리퀘스트 생성
 
+### 🛠️ 로컬 개발 설정
+
+1. 저장소 클론
+2. `npm i`로 종속성 설치
+3. `npm run start`로 개발 모드 시작
+4. `npm run make`로 앱 패키징
+
+Electron 버전 문제 해결:
+```
+npx electron-rebuild
+```
+
 ## Credits & Attribution
 
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
@@ -314,17 +326,5 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-### 🛠️ 로컬 개발 설정
-
-1. 저장소 클론
-2. `npm i`로 종속성 설치
-3. `npm run start`로 개발 모드 시작
-4. `npm run make`로 앱 패키징
-
-Electron 버전 문제 해결:
-```
-npx electron-rebuild
-```
 
 

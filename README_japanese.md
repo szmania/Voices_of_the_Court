@@ -282,6 +282,18 @@ Discord に参加:
 4. ブランチにプッシュする (`git push origin feature/AmazingFeature`)
 5. プルリクエストを作成する
 
+### 🛠️ ローカル開発セットアップ
+
+1. リポジトリをクローン
+2. `npm i` で依存関係をインストール
+3. `npm run start` で開発モードを開始
+4. `npm run make` でアプリをパッケージ化
+
+Electron のバージョン問題の修正：
+```
+npx electron-rebuild
+```
+
 ## Credits & Attribution
 
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
@@ -314,17 +326,5 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-### 🛠️ ローカル開発セットアップ
-
-1. リポジトリをクローン
-2. `npm i` で依存関係をインストール
-3. `npm run start` で開発モードを開始
-4. `npm run make` でアプリをパッケージ化
-
-Electron のバージョン問題の修正：
-```
-npx electron-rebuild
-```
 
 
