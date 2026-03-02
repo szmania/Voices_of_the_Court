@@ -1300,6 +1300,7 @@ ${character.fullName}的发言：`
      */
     private async generateInitialSceneDescription(): Promise<void> {
         console.log('Starting initial scene description generation.');
+        console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
         
         // Send loading event to chat window
         this.chatWindow.window.webContents.send('scene-description-loading', true);
