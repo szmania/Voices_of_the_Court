@@ -42,6 +42,7 @@ export class Conversation{
     
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
         console.log('Conversation initialized.');
+        console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
