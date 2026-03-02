@@ -389,9 +389,9 @@ app.on('ready',  async () => {
         if (returnValue.response === 0) {
             shell.openExternal('https://discord.gg/UQpE4mJSqZ');
         } else if (returnValue.response === 1) {
-            shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
-        } else if (returnValue.response === 2) {
             shell.openExternal('https://votc-ce.vercel.app/');
+        } else if (returnValue.response === 2) {
+            shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
         }
     });
 
