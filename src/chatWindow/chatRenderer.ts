@@ -265,6 +265,9 @@ async function replaceLastMessage(message: Message){
 }
 
 function showLoadingDots(){  //and disable chat
+    if (loadingDots) {
+        return;
+    }
     console.log('showLoadingDots() called');
     loadingDots = document.createElement('div');
     loadingDots.classList.add('loading');
@@ -277,8 +280,12 @@ function showLoadingDots(){  //and disable chat
 }
 
 function removeLoadingDots(){
+    if (!loadingDots) {
+        return;
+    }
     console.log('removeLoadingDots() called');
-    loadingDots?.remove();
+    loadingDots.remove();
+    loadingDots = null;
     chatInput.disabled = false;
     
     updateRegenerateButtonState();

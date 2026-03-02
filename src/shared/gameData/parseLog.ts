@@ -125,6 +125,9 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
+                    if (gameData) {
+                        console.log(`[parseLog] GameData initialized with scene: '${gameData.scene}' and location: '${gameData.location}'`);
+                    }
                 break;
                 case "character": 
                     if (!gameData) continue;
