@@ -26,7 +26,8 @@
     "connection_valid": "¡Conexión válida!",
     "connection_valid_warning": "¡Conexión válida! Advertencia: no se pudo detectar el tamaño del contexto, ¡se usará el tamaño de contexto sobrescrito! (¡incluso si está desactivado!)",
     "path_placeholder": "Introduzca la ruta de la carpeta de usuario de CK3...",
-    "player2_info": "Descarga Player2 desde este enlace: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> y ejecuta Player2 en segundo plano."
+    "player2_info": "Descarga Player2 desde este enlace: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> y ejecuta Player2 en segundo plano.",
+    "player2_connection_failed": "Falló la conexión con Player2. Por favor, descarga la aplicación Player2 desde player2.game, asegúrate de que se está ejecutando en segundo plano y vuelve a intentarlo. No es necesaria una cuenta."
   },
   "api": {
     "openrouter": "OpenRouter",

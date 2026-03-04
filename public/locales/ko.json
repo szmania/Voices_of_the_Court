@@ -29,7 +29,8 @@
     "connection_valid": "연결 유효!",
     "connection_valid_warning": "연결 유효! 경고: 컨텍스트 크기를 감지할 수 없습니다. 덮어쓰기 컨텍스트 크기가 사용됩니다! (비활성화된 경우에도!)",
     "path_placeholder": "CK3 사용자 폴더 경로 입력...",
-    "player2_info": "이 링크에서 Player2를 다운로드하세요: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> 백그라운드에서 Player2를 실행하세요."
+    "player2_info": "이 링크에서 Player2를 다운로드하세요: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> 백그라운드에서 Player2를 실행하세요.",
+    "player2_connection_failed": "Player2 연결에 실패했습니다. player2.game에서 Player2 앱을 다운로드하고 백그라운드에서 실행 중인지 확인한 후 다시 시도하십시오. 계정은 필요하지 않습니다."
   },
   "api": {
     "openrouter": "OpenRouter",

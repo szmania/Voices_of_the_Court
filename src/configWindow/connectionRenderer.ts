@@ -53,6 +53,15 @@ async function init(){
 
     console.log(config)
 
+    // Manually set innerHTML for player2_info to render the link
+    const player2InfoElement = document.querySelector('[data-i18n="connection.player2_info"]');
+    // @ts-ignore
+    if (player2InfoElement && window.LocalizationManager) {
+        // @ts-ignore
+        const translatedText = window.LocalizationManager.getTranslation('connection.player2_info');
+        player2InfoElement.innerHTML = translatedText;
+    }
+
     // Add event listener for test connection button
     const testConnectionBtn = document.getElementById('test-connection-btn');
     if (testConnectionBtn) {
@@ -62,7 +71,9 @@ async function init(){
                 // Check if Player2 is running by testing the connection
                 const result = await ipcRenderer.invoke('test-connection');
                 if (!result.success) {
-                    alert('Connection failed. Please ensure Player2 is running in the background.');
+                    // @ts-ignore
+                    const alertMessage = window.LocalizationManager.getTranslation('connection.player2_connection_failed');
+                    alert(alertMessage || 'Connection failed. Please download the Player2 app from player2.game, ensure it is running in the background, and try again. No account is necessary.');
                 }
             }
         });

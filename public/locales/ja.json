@@ -29,7 +29,8 @@
     "connection_valid": "接続は有効です！",
     "connection_valid_warning": "接続は有効です！警告：コンテキストサイズを検出できませんでした。上書きされたコンテキストサイズが使用されます！（無効に設定されていても使用されます）",
     "path_placeholder": "CK3 ユーザーフォルダのパスを入力...",
-    "player2_info": "このリンクからPlayer2をダウンロードしてください：<a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> そして、Player2をバックグラウンドで実行してください。"
+    "player2_info": "このリンクからPlayer2をダウンロードしてください：<a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> そして、Player2をバックグラウンドで実行してください。",
+    "player2_connection_failed": "Player2の接続に失敗しました。player2.gameからPlayer2アプリをダウンロードし、バックグラウンドで実行されていることを確認してから、もう一度お試しください。アカウントは必要ありません。"
   },
   "api": {
     "openrouter": "OpenRouter",

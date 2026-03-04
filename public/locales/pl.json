@@ -29,7 +29,8 @@
     "connection_valid": "Połączenie prawidłowe!",
     "connection_valid_warning": "Połączenie prawidłowe! Ostrzeżenie: nie można wykryć rozmiaru kontekstu, zostanie użyty nadpisany rozmiar! (nawet jeśli jest wyłączony!)",
     "path_placeholder": "Wprowadź ścieżkę folderu użytkownika CK3...",
-    "player2_info": "Pobierz Player2 z tego linku: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> i uruchom Player2 w tle."
+    "player2_info": "Pobierz Player2 z tego linku: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> i uruchom Player2 w tle.",
+    "player2_connection_failed": "Połączenie z Player2 nie powiodło się. Pobierz aplikację Player2 ze strony player2.game, upewnij się, że działa w tle, i spróbuj ponownie. Konto nie jest wymagane."
   },
   "api": {
     "openrouter": "OpenRouter",
