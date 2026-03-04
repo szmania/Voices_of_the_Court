@@ -14,7 +14,8 @@ module.exports = {
         {
             name: "council_position",
             type: "string",
-            desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。请注意！您只能从以下选项中选择一个：掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官"
+            options: ["掌玺大臣", "财政总管", "间谍首脑", "军事统帅", "长史", "司户", "司马", "察事", "宰相", "大司库", "大将军", "大监察官"],
+            desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。"
         }   
     ],
     description: {

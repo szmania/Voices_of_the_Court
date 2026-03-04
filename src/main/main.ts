@@ -773,6 +773,44 @@ ipcMain.on('undo-message', () => {
     }
 });
 
+ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
+    console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
+    if (conversation) {
+        const action = conversation.actions.find(a => a.signature === signature);
+        if (action) {
+            try {
+                // Run the action's effect
+                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, args);
+
+                // Generate the chat message if it exists
+                if (action.chatMessage) {
+                    let chatMessage = action.chatMessage(args);
+                    if (typeof chatMessage === 'object' && chatMessage !== null) {
+                        chatMessage = chatMessage[conversation.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
+                    }
+
+                    if (chatMessage) {
+                        const { parseVariables } = require('./parseVariables.js');
+                        const response: ActionResponse = {
+                            actionName: action.signature,
+                            chatMessage: parseVariables(chatMessage, conversation.gameData),
+                            chatMessageClass: action.chatMessageClass
+                        };
+                        // Send the single action response back to be displayed
+                        event.sender.send('actions-receive', [response], ""); // Send as an array
+                    }
+                }
+            } catch (e) {
+                const errMsg = `Action error: failure in run function for action: ${action.signature}; details: ` + e;
+                console.error(errMsg);
+                event.sender.send('error-message', errMsg);
+            }
+        } else {
+            console.warn(`Execute-action warning: Action "${signature}" not found.`);
+        }
+    }
+});
+
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');

@@ -7,7 +7,8 @@ module.exports = {
         {
             name: "injuryType",
             type: "string",
-            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injure, remove_eye, blind if it last eye, cut_leg, cut_balls, disfigured"
+            options: ["injured", "remove_eye", "blind", "cut_leg", "cut_balls", "disfigured"],
+            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}."
         }
     ],
     description: {

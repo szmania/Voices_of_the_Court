@@ -7,7 +7,8 @@ module.exports = {
         {
             name: "prisonType",
             type: "string",
-            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon`,
+            options: ["default", "house_arrest", "dungeon"],
+            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type).`,
         }
     ],
     description: {

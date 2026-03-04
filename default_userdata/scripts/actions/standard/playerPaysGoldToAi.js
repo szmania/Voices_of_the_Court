@@ -7,6 +7,7 @@ module.exports = {
         {
             name: "amount",
             type: "number",
+            min: 0,
             desc: "the amount of gold {{playerName}} pays to {{aiName}}"
         }
     ],

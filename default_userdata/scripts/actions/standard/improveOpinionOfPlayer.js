@@ -7,7 +7,9 @@ module.exports = {
         {
             name: "opinion",
             type: "number",
-            desc: "the number of opinion values the relation improves with. Can be between 1 and 5."
+            min: 1,
+            max: 5,
+            desc: "the number of opinion values the relation improves with."
         }
     ],
     description: {

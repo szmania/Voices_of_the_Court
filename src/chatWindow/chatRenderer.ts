@@ -804,10 +804,35 @@ function showActionModal(action: any) {
             const label = document.createElement('label');
             label.innerHTML = `${arg.name} <span class="arg-type">(${arg.type})</span>`;
 
-            const input = document.createElement('input');
-            input.type = arg.type === 'number' ? 'number' : 'text';
-            input.dataset.argName = arg.name;
-            input.id = `action-arg-${index}`;
+            let inputElement: HTMLInputElement | HTMLSelectElement;
+
+            // Check for enum options to create a dropdown
+            if (arg.options && Array.isArray(arg.options)) {
+                inputElement = document.createElement('select');
+                arg.options.forEach((option: string) => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    inputElement.appendChild(optionElement);
+                });
+            } else { // Otherwise, create a standard input
+                inputElement = document.createElement('input');
+                if (arg.type === 'number') {
+                    inputElement.type = 'number';
+                    // Add min/max validation if specified
+                    if (arg.min !== undefined) {
+                        inputElement.min = arg.min;
+                    }
+                    if (arg.max !== undefined) {
+                        inputElement.max = arg.max;
+                    }
+                } else {
+                    inputElement.type = 'text';
+                }
+            }
+            
+            inputElement.dataset.argName = arg.name;
+            inputElement.id = `action-arg-${index}`;
 
             const desc = document.createElement('div');
             desc.classList.add('arg-desc');
@@ -817,7 +842,7 @@ function showActionModal(action: any) {
             desc.textContent = argDesc;
 
             argDiv.appendChild(label);
-            argDiv.appendChild(input);
+            argDiv.appendChild(inputElement);
             argDiv.appendChild(desc);
             actionModalArgs.appendChild(argDiv);
         });
@@ -833,9 +858,9 @@ function showActionModal(action: any) {
 
     actionModalExecute.onclick = () => {
         const args: string[] = [];
-        const inputs = actionModalArgs.querySelectorAll('input');
+        const inputs = actionModalArgs.querySelectorAll('input, select');
         inputs.forEach(input => {
-            args.push((input as HTMLInputElement).value);
+            args.push((input as HTMLInputElement | HTMLSelectElement).value);
         });
         ipcRenderer.send('execute-action', action.signature, args);
         hideActionModal();
