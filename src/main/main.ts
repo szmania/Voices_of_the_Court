@@ -13,7 +13,7 @@ import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { parseSummaryIdsFromLog, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
-import { Message} from "./ts/conversation_interfaces.js";
+import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
 import fs from 'fs';
 import { checkUserData } from "./userDataCheck.js";
