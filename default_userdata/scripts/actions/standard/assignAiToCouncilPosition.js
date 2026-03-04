@@ -14,7 +14,20 @@ module.exports = {
         {
             name: "council_position",
             type: "string",
-            options: ["掌玺大臣", "财政总管", "间谍首脑", "军事统帅", "长史", "司户", "司马", "察事", "宰相", "大司库", "大将军", "大监察官"],
+            options: [
+                { value: 'chancellor', display: { en: 'Chancellor', zh: '掌玺大臣', ru: 'Канцлер', fr: 'Chancelier', es: 'Canciller', de: 'Kanzler', ja: '宰相', ko: '수상', pl: 'Kanclerz' }},
+                { value: 'steward', display: { en: 'Steward', zh: '财政总管', ru: 'Управляющий', fr: 'Intendant', es: 'Mayordomo', de: 'Verwalter', ja: '家令', ko: '재상', pl: 'Zarządca' }},
+                { value: 'spymaster', display: { en: 'Spymaster', zh: '间谍首脑', ru: 'Мастер шпионов', fr: 'Maître-espion', es: 'Maestro de espías', de: 'Spionagemeister', ja: '密偵頭', ko: '첩보관', pl: 'Mistrz szpiegów' }},
+                { value: 'marshal', display: { en: 'Marshal', zh: '军事统帅', ru: 'Маршал', fr: 'Maréchal', es: 'Mariscal', de: 'Marschall', ja: '元帥', ko: '원수', pl: 'Marszałek' }},
+                { value: 'chancellor', display: { en: 'Chief of Staff', zh: '长史' }},
+                { value: 'steward', display: { en: 'Household Manager', zh: '司户' }},
+                { value: 'marshal', display: { en: 'Master of Horse', zh: '司马' }},
+                { value: 'spymaster', display: { en: 'Investigator', zh: '察事' }},
+                { value: 'chancellor', display: { en: 'Prime Minister', zh: '宰相' }},
+                { value: 'steward', display: { en: 'Grand Treasurer', zh: '大司库' }},
+                { value: 'marshal', display: { en: 'Grand General', zh: '大将军' }},
+                { value: 'spymaster', display: { en: 'Grand Censor', zh: '大监察官' }}
+            ],
             desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。"
         }   
     ],
@@ -45,9 +58,7 @@ module.exports = {
     run: (gameData, runGameEffect, args) => {
         const council_position = args[0];
         switch (council_position) {
-            case "长史":
-            case "宰相":
-            case "掌玺大臣":
+            case "chancellor":
                 runGameEffect(`
                     if = {
                         limit = {
@@ -68,9 +79,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "财政总管":
-            case "司户":
-            case "大司库":
+            case "steward":
                 runGameEffect(`
                     if = {
                         limit = {
@@ -90,9 +99,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "军事统帅":
-            case "司马":
-            case "大将军":
+            case "marshal":
                 runGameEffect(`
                     if = {
                         limit = {
@@ -113,9 +120,7 @@ module.exports = {
                     }
                 `);
                 break;
-            case "大监察官":
-            case "察事":
-            case "间谍首脑":
+            case "spymaster":
                 runGameEffect(`
                     if = {
                         limit = {

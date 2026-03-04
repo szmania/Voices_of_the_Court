@@ -809,10 +809,18 @@ function showActionModal(action: any) {
             // Check for enum options to create a dropdown
             if (arg.options && Array.isArray(arg.options)) {
                 inputElement = document.createElement('select');
-                arg.options.forEach((option: string) => {
+                const lang = (window as any).LocalizationManager?.language || 'en';
+
+                arg.options.forEach((option: any) => {
                     const optionElement = document.createElement('option');
-                    optionElement.value = option;
-                    optionElement.textContent = option;
+                    if (typeof option === 'object' && option.value && option.display) {
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.display[lang] || option.display['en'] || option.value;
+                    } else {
+                        // Fallback for simple string array
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                    }
                     inputElement.appendChild(optionElement);
                 });
             } else { // Otherwise, create a standard input

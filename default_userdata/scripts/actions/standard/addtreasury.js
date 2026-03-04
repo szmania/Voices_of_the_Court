@@ -7,6 +7,7 @@ module.exports = {
         {
             name: "amount",
             type: "number",
+            min: 1,
             desc: "the amount of gold {{playerName}}'treasury gets, should be always positive"
         }
     ],

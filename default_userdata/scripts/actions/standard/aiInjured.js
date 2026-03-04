@@ -7,7 +7,14 @@ module.exports = {
         {
             name: "injuryType",
             type: "string",
-            options: ["injured", "remove_eye", "blind", "cut_leg", "cut_balls", "disfigured"],
+            options: [
+                { value: 'injured', display: { en: 'Injured', zh: '受伤', ru: 'Ранен', fr: 'Blessé', es: 'Herido', de: 'Verletzt' }},
+                { value: 'remove_eye', display: { en: 'Remove Eye', zh: '摘除眼睛', ru: 'Удалить глаз', fr: 'Retirer un œil', es: 'Quitar un ojo', de: 'Auge entfernen' }},
+                { value: 'blind', display: { en: 'Blind', zh: '失明', ru: 'Ослепить', fr: 'Aveugler', es: 'Cegar', de: 'Blenden' }},
+                { value: 'cut_leg', display: { en: 'Cut Leg', zh: '断腿', ru: 'Отрубить ногу', fr: 'Couper la jambe', es: 'Cortar la pierna', de: 'Bein abschneiden' }},
+                { value: 'cut_balls', display: { en: 'Castrate', zh: '阉割', ru: 'Кастрировать', fr: 'Castrer', es: 'Castrar', de: 'Kastrieren' }},
+                { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen' }}
+            ],
             desc: "Type of injury inflicted on {{aiName}} by {{playerName}}."
         }
     ],

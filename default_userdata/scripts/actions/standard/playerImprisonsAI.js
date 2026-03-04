@@ -7,7 +7,11 @@ module.exports = {
         {
             name: "prisonType",
             type: "string",
-            options: ["default", "house_arrest", "dungeon"],
+            options: [
+                { value: 'default', display: { en: 'Default Prison', zh: '默认监狱', ru: 'Обычная тюрьма', fr: 'Prison par défaut', es: 'Prisión por defecto', de: 'Standardgefängnis' }},
+                { value: 'house_arrest', display: { en: 'House Arrest', zh: '软禁', ru: 'Домашний арест', fr: 'Assignation à résidence', es: 'Arresto domiciliario', de: 'Hausarrest' }},
+                { value: 'dungeon', display: { en: 'Dungeon', zh: '地牢', ru: 'Темница', fr: 'Donjon', es: 'Calabozo', de: 'Kerker' }}
+            ],
             desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type).`,
         }
     ],

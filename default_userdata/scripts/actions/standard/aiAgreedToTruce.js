@@ -7,6 +7,7 @@ module.exports = {
         {
             name: "years",
             type: "number",
+            min: 1,
             desc: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided."
         }
     ],

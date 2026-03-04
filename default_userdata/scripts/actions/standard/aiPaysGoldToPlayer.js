@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "amount",
             type: "number",
-            min: 0,
+            min: 1,
             desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
         }
     ],
