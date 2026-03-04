@@ -53,6 +53,20 @@ async function init(){
 
     console.log(config)
 
+    // Add event listener for test connection button
+    const testConnectionBtn = document.getElementById('test-connection-btn');
+    if (testConnectionBtn) {
+        testConnectionBtn.addEventListener('click', async () => {
+            const apiSelect = document.getElementById('api-select') as HTMLSelectElement;
+            if (apiSelect && apiSelect.value === 'player2') {
+                // Check if Player2 is running by testing the connection
+                const result = await ipcRenderer.invoke('test-connection');
+                if (!result.success) {
+                    alert('Connection failed. Please ensure Player2 is running in the background.');
+                }
+            }
+        });
+    }
 }
 
 function addExternalLinks() {
