@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{playerName}} injures {{aiName}} in various ways based on the injuryType parameter.`,
         zh: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
         ru: `Выполняется, когда {{playerName}} наносит увечья {{aiName}} различными способами в зависимости от параметра injuryType.`,
-        fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`
+    fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`,
+    es: `Ejecutado cuando {{playerName}} hiere a {{aiName}} de diversas maneras según el parámetro injuryType.`,
+    de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
+    ja: `{{playerName}}がinjuryTypeパラメータに基づいて様々な方法で{{aiName}}を傷つけたときに実行されます。`,
+    ko: `{{playerName}}가 injuryType 매개변수에 따라 다양한 방법으로 {{aiName}}를 다칠 때 실행됩니다.`,
+    pl: `Wykonywane, gdy {{playerName}} rani {{aiName}} na różne sposoby w zależności od parametru injuryType.`
     },
     
     check: (gameData) => {
@@ -223,42 +228,72 @@ module.exports = {
 					en: `You gouged out one of {{aiName}}'s eyes.`,
 					zh: `你挖去了{{aiName}}的一只眼睛。`,
 					ru: `Вы выкололи один из глаз {{aiName}}.`,
-					fr: `Vous avez crevé l'un des yeux de {{aiName}}.`
+    fr: `Vous avez crevé l'un des yeux de {{aiName}}.`,
+    es: `Le sacaste un ojo a {{aiName}}.`,
+    de: `Du hast {{aiName}} ein Auge ausgestochen.`,
+    ja: `あなたは{{aiName}}の片目をえぐり出しました。`,
+    ko: `당신은 {{aiName}}의 한쪽 눈을 도려냈습니다.`,
+    pl: `Wydłubałeś jedno z oczu {{aiName}}.`
 				};
 			case 'blind':
 				return {
 					en: `You blinded {{aiName}}.`,
 					zh: `你使{{aiName}}失明了。`,
 					ru: `Вы ослепили {{aiName}}.`,
-					fr: `Vous avez aveuglé {{aiName}}.`
+    fr: `Vous avez aveuglé {{aiName}}.`,
+    es: `Cegaste a {{aiName}}.`,
+    de: `Du hast {{aiName}} geblendet.`,
+    ja: `あなたは{{aiName}}を盲目にしました。`,
+    ko: `당신은 {{aiName}}를 실명시켰습니다.`,
+    pl: `Oślepiłeś {{aiName}}.`
 				};
 			case 'cut_leg':
 				return {
 					en: `You cut off {{aiName}}'s leg.`,
 					zh: `你砍断了{{aiName}}的腿。`,
 					ru: `Вы отрубили ногу {{aiName}}.`,
-					fr: `Vous avez coupé la jambe de {{aiName}}.`
+    fr: `Vous avez coupé la jambe de {{aiName}}.`,
+    es: `Le cortaste la pierna a {{aiName}}.`,
+    de: `Du hast {{aiName}} das Bein abgeschnitten.`,
+    ja: `あなたは{{aiName}}の足を切断しました。`,
+    ko: `당신은 {{aiName}}의 다리를 잘랐습니다.`,
+    pl: `Odciąłeś nogę {{aiName}}.`
 				};
 			case 'cut_balls':
 				return {
 					en: `You castrated {{aiName}}.`,
 					zh: `你阉割了{{aiName}}。`,
 					ru: `Вы кастрировали {{aiName}}.`,
-					fr: `Vous avez castré {{aiName}}.`
+    fr: `Vous avez castré {{aiName}}.`,
+    es: `Castriste a {{aiName}}.`,
+    de: `Du hast {{aiName}} kastriert.`,
+    ja: `あなたは{{aiName}}を去勢しました。`,
+    ko: `당신은 {{aiName}}를 거세했습니다.`,
+    pl: `Skastrowałeś {{aiName}}.`
 				};
 			case 'disfigured':
 				return {
 					en: `You disfigured {{aiName}}.`,
 					zh: `你毁容了{{aiName}}。`,
 					ru: `Вы изуродовали {{aiName}}.`,
-					fr: `Vous avez défiguré {{aiName}}.`
+    fr: `Vous avez défiguré {{aiName}}.`,
+    es: `Desfiguraste a {{aiName}}.`,
+    de: `Du hast {{aiName}} entstellt.`,
+    ja: `あなたは{{aiName}}の顔を傷つけました。`,
+    ko: `당신은 {{aiName}}의 얼굴을 훼손했습니다.`,
+    pl: `Zniekształciłeś {{aiName}}.`
 				};
 			default:
 				return {
 					en: `You injured {{aiName}}.`,
 					zh: `你伤害了{{aiName}}。`,
 					ru: `Вы ранили {{aiName}}.`,
-					fr: `Vous avez blessé {{aiName}}.`
+    fr: `Vous avez blessé {{aiName}}.`,
+    es: `Heriste a {{aiName}}.`,
+    de: `Du hast {{aiName}} verletzt.`,
+    ja: `あなたは{{aiName}}を傷つけました。`,
+    ko: `당신은 {{aiName}}를 다쳤습니다.`,
+    pl: `Raniłeś {{aiName}}.`
 				};
 		}
 	},

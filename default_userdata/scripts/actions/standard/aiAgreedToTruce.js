@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{aiName}} and {{playerName}} agree to a mutual truce for a certain number of years.`,
         zh: `当{{aiName}}和{{playerName}}同意达成一定年限的相互休战协议时执行。`,
         ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются на взаимное перемирие на определенное количество лет.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent d'une trêve mutuelle pour un certain nombre d'années.`
+    fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent d'une trêve mutuelle pour un certain nombre d'années.`,
+    es: `Ejecutado cuando {{aiName}} y {{playerName}} acuerdan una tregua mutua por un cierto número de años.`,
+    de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} sich auf einen gegenseitigen Waffenstillstand für eine bestimmte Anzahl von Jahren einigen.`,
+    ja: `{{aiName}}と{{playerName}}が一定年数の相互休戦に同意したときに実行されます。`,
+    ko: `{{aiName}}와 {{playerName}}가 특정 년수 동안의 상호 휴전에 동의할 때 실행됩니다.`,
+    pl: `Wykonywane, gdy {{aiName}} i {{playerName}} zgadzają się na wzajemne zawieszenie broni na określoną liczbę lat.`
     },
     
     /**
@@ -79,7 +84,12 @@ module.exports = {
             en: `{{aiName}} and {{playerName}} agreed to a ${truceYears}-year truce.`,
             zh: `{{aiName}}和{{playerName}}同意了${truceYears}年的休战协议。`,
             ru: `{{aiName}} и {{playerName}} согласились на перемирие на ${truceYears} года.`,
-            fr: `{{aiName}} et {{playerName}} ont convenu d'une trêve de ${truceYears} ans.`
+    fr: `{{aiName}} et {{playerName}} ont convenu d'une trêve de ${truceYears} ans.`,
+    es: `{{aiName}} y {{playerName}} acordaron una tregua de ${truceYears} años.`,
+    de: `{{aiName}} und {{playerName}} haben sich auf einen Waffenstillstand von ${truceYears} Jahren geeinigt.`,
+    ja: `{{aiName}}と{{playerName}}は${truceYears}年間の休戦に同意しました。`,
+    ko: `{{aiName}}와 {{playerName}}가 ${truceYears}년간의 휴전에 동의했습니다.`,
+    pl: `{{aiName}} i {{playerName}} zgodzili się na zawieszenie broni na ${truceYears} lat.`
         };
     },
     

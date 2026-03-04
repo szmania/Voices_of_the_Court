@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{aiName}} converts to {{playerName}}'s religion, either willingly or forcefully.`,
         zh: `当{{aiName}}自愿或被迫改变信仰，皈依{{playerName}}的宗教时执行`,
         ru: `Выполняется, когда {{aiName}} переходит в религию {{playerName}}, добровольно или принудительно.`,
-        fr: `Exécuté lorsque {{aiName}} se convertit à la religion de {{playerName}}, de plein gré ou par la force.`
+    fr: `Exécuté lorsque {{aiName}} se convertit à la religion de {{playerName}}, de plein gré ou par la force.`,
+    es: `Ejecutado cuando {{aiName}} se convierte a la religión de {{playerName}}, voluntariamente o por la fuerza.`,
+    de: `Wird ausgeführt, wenn {{aiName}} zur Religion von {{playerName}} konvertiert, freiwillig oder gewaltsam.`,
+    ja: `{{aiName}}が{{playerName}}の宗教に改宗したときに実行されます。自発的または強制的に。`,
+    ko: `{{aiName}}가 {{playerName}}의 종교로 개종할 때 실행됩니다. 자발적이거나 강제로.`,
+    pl: `Wykonywane, gdy {{aiName}} konwertuje na religię {{playerName}}, dobrowolnie lub siłą.`
     },
 
 	
@@ -87,7 +92,12 @@ module.exports = {
             en: `{{aiName}} converted to your religion.`,
             zh: `{{aiName}}皈依了你的宗教`,
             ru: `{{aiName}} перешел в вашу религию.`,
-            fr: `{{aiName}} s'est converti à votre religion.`
+    fr: `{{aiName}} s'est converti à votre religion.`,
+    es: `{{aiName}} se convirtió a tu religión.`,
+    de: `{{aiName}} hat sich zu deiner Religion bekehrt.`,
+    ja: `{{aiName}}はあなたの宗教に改宗しました。`,
+    ko: `{{aiName}}가 당신의 종교로 개종했습니다.`,
+    pl: `{{aiName}} przeszedł na twoją religię.`
         }
     },
     chatMessageClass: "neutral-action-message"

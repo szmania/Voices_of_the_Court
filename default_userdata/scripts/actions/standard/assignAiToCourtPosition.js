@@ -21,7 +21,12 @@ module.exports = {
         en: `Executed when {{playerName}} appoints {{aiName}} to a court position in their court.`,
         zh: `当{{playerName}}决定将{{aiName}}分配到{{playerName}}宫廷的宫廷职位时执行。`,
         ru: `Выполняется, когда {{playerName}} назначает {{aiName}} на придворную должность в своем дворе.`,
-        fr: `Exécuté lorsque {{playerName}} nomme {{aiName}} à une charge curiale dans sa cour.`
+    fr: `Exécuté lorsque {{playerName}} nomme {{aiName}} à une charge curiale dans sa cour.`,
+    es: `Ejecutado cuando {{playerName}} nombra a {{aiName}} para un puesto en su corte.`,
+    de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} zu einer Hofposition ernennt.`,
+    ja: `{{playerName}}が{{aiName}}を宮廷のポストに任命したときに実行されます。`,
+    ko: `{{playerName}}가 {{aiName}}를 궁정 직책에 임명했을 때 실행됩니다.`,
+    pl: `Wykonywane, gdy {{playerName}} mianuje {{aiName}} na stanowisko dworskie.`
     },
 
     /**
@@ -337,7 +342,12 @@ module.exports = {
             en: `You appointed {{aiName}} to the position of ${args[0]}.`,
             zh: `你任命{{aiName}}为${args[0]}职位`,
             ru: `Вы назначили {{aiName}} на должность ${args[0]}.`,
-            fr: `Vous avez nommé {{aiName}} au poste de ${args[0]}.`
+    fr: `Vous avez nommé {{aiName}} au poste de ${args[0]}.`,
+    es: `Nombraste a {{aiName}} al puesto de ${args[0]}.`,
+    de: `Du hast {{aiName}} zum ${args[0]} ernannt.`,
+    ja: `あなたは{{aiName}}を${args[0]}のポストに任命しました。`,
+    ko: `당신은 {{aiName}}를 ${args[0]} 직책에 임명했습니다.`,
+    pl: `Mianowałeś {{aiName}} na stanowisko ${args[0]}.`
         }
     },
     chatMessageClass: "neutral-action-message"
