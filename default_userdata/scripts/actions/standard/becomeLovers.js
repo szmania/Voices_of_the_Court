@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{playerName}} and {{aiName}} become lovers after a sexual encounter.`,
         zh: `当{{playerName}}和{{aiName}}发生良好、出色或惊人的性关系并成为恋人时执行。`,
         ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся любовниками после сексуальной связи.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent amants après une relation sexuelle.`
+        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent amants après une relation sexuelle.`,
+        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en amantes después de un encuentro sexual.`,
+        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} nach einer sexuellen Begegnung zu Liebhabern werden.`,
+        ja: `{{playerName}}と{{aiName}}が性的な出会いの後に恋人同士になったときに実行されます。`,
+        ko: `{{playerName}}와 {{aiName}}가 성적인 만남 후에 연인이 될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się kochankami po stosunku seksualnym.`
     },
 
     /**
@@ -47,7 +52,12 @@ module.exports = {
             en: `{{aiName}} became your lover.`,
             zh: `{{aiName}}成为了你的恋人。`,
             ru: `{{aiName}} стал вашим любовником.`,
-            fr: `{{aiName}} est devenu votre amant.`
+            fr: `{{aiName}} est devenu votre amant.`,
+            es: `{{aiName}} se convirtió en tu amante.`,
+            de: `{{aiName}} ist dein Liebhaber geworden.`,
+            ja: `{{aiName}}はあなたの恋人になりました。`,
+            ko: `{{aiName}}가 당신의 연인이 되었습니다.`,
+            pl: `{{aiName}} stał się twoim kochankiem.`
         }
     },
     chatMessageClass: "positive-action-message"
