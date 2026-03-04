@@ -5,8 +5,8 @@ import { GameData } from '../shared/gameData/GameData.js';
 const DOMPurify = require('dompurify');
 
 const sanitizeConfig = {
-    ALLOWED_TAGS: ['em', 'strong'], 
-    KEEP_CONTENT: true, 
+    ALLOWED_TAGS: ['em', 'strong'],
+    KEEP_CONTENT: true,
   };
 
 hideChat();
@@ -83,22 +83,23 @@ let initialWindowState = {
 
 
 async function initChat(){
-    
+
     chatMessages.innerHTML = '';
     chatInput.innerHTML = '';
     chatInput.disabled = false;
-    
+
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
         suggestionsButton.style.display = showSuggestionsButton ? 'block' : 'none';
     }
-    
+
     // 根据配置显示或隐藏分词器显示
     if (tokenDisplayWrapper) {
         tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
 
+    console.log('Calling get actions list.');
     ipcRenderer.send('get-actions-list');
 }
 
@@ -110,11 +111,11 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
-    
+
     if (isHistorical) {
         messageDiv.classList.add('historical-message');
     }
-    
+
     switch (message.role){
         case 'user':
             messageDiv.classList.add('player-message');
@@ -132,7 +133,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
 
             break;
-    };   
+    };
     chatMessages.append(messageDiv);
     // Auto-scroll to bottom after adding message
     setTimeout(() => {
@@ -146,16 +147,16 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
 function displayNarrative(narrative: string) {
     if (!narrative) return;
-    
+
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add('narrative-message');
     messageDiv.classList.add('action-message'); // Narratives are tied to actions/state changes
-    
+
     const narrativeSpan = document.createElement('span');
     narrativeSpan.innerText = narrative;
     messageDiv.appendChild(narrativeSpan);
-    
+
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -166,16 +167,16 @@ function displayActions(actions: ActionResponse[]){
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add('action-message');
-    
+
     for(const action of actions){
         const ActionSpan = document.createElement('span');
         ActionSpan.innerText = action.chatMessage+"\n";
         ActionSpan.classList.add(action.chatMessageClass);
         messageDiv.appendChild(ActionSpan);
     }
-    
+
     chatMessages.append(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight; 
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function displayErrorMessage(error: string){
@@ -187,7 +188,7 @@ function displayErrorMessage(error: string){
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     updateRegenerateButtonState();
 }
 
@@ -197,21 +198,21 @@ function displayLoadingIndicator(message: string = "Loading historical conversat
     loadingDiv.classList.add('message');
     loadingDiv.classList.add('loading-indicator');
     loadingDiv.id = 'historical-loading-indicator';
-    
+
     const loadingSpan = document.createElement('span');
     loadingSpan.innerText = message;
     loadingSpan.classList.add('loading-text');
-    
+
     const dotsSpan = document.createElement('span');
     dotsSpan.classList.add('loading-dots');
     dotsSpan.innerText = '...';
-    
+
     loadingDiv.appendChild(loadingSpan);
     loadingDiv.appendChild(dotsSpan);
-    
+
     chatMessages.append(loadingDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     console.log('Displayed loading indicator for historical conversations');
     return loadingDiv;
 }
@@ -304,7 +305,7 @@ chatInput.addEventListener('keydown', async function(e) {
         e.preventDefault();
         const messageText = chatInput.value.trim();
         if (!messageText) return;
-        
+
         chatInput.value = '';
 
         let message: Message = {
@@ -334,7 +335,7 @@ function showLoadingDots(){  //and disable chat
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     chatInput.disabled = true;
-    
+
     updateRegenerateButtonState();
     updateInputTooltip();
 }
@@ -347,7 +348,7 @@ function removeLoadingDots(){
     loadingDots.remove();
     loadingDots = null;
     chatInput.disabled = false;
-    
+
     updateRegenerateButtonState();
     updateInputTooltip();
 }
@@ -437,7 +438,7 @@ function updateRegenerateButtonState() {
 function displaySuggestions(suggestions: string[]) {
     // 清空之前的推荐
     suggestionsList.innerHTML = ''
-    
+
     // 如果没有推荐，显示提示信息
     if (suggestions.length === 0) {
         const noSuggestionsItem = document.createElement('div')
@@ -456,7 +457,7 @@ function displaySuggestions(suggestions: string[]) {
             const suggestionItem = document.createElement('div')
             suggestionItem.className = 'suggestion-item'
             suggestionItem.textContent = suggestion
-            
+
             // 点击推荐语句时，将其填入输入框
             suggestionItem.addEventListener('click', async () => {
                 // 处理建议文本：移除引号、前面的序号以及结尾的括号内容
@@ -466,10 +467,10 @@ function displaySuggestions(suggestions: string[]) {
                     .replace(/\([^)]*\)$/, '') // 移除结尾的英文括号及其内容
                     .replace(/^[""]/g, '') // 移除开头的引号
                     .replace(/[""]$/g, ''); // 移除结尾的引号
-                
+
                 chatInput.value = processedText
                 suggestionsContainer.style.display = 'none'
-                
+
                 // 如果启用了自动发送建议功能，直接发送消息
                 if (autoSendSuggestion) {
                     console.log('Auto-sending suggestion:', processedText);
@@ -490,11 +491,11 @@ function displaySuggestions(suggestions: string[]) {
                     chatInput.focus()
                 }
             })
-            
+
             suggestionsList.appendChild(suggestionItem)
         })
     }
-    
+
     // 显示推荐容器
     suggestionsContainer.style.display = 'block'
 }
@@ -567,7 +568,7 @@ regenerateButton.addEventListener('click', () => {
 function updateSuggestionsContainerStyle() {
     const isChineseTheme = document.body.classList.contains('theme-chinese');
     const isWestTheme = document.body.classList.contains('theme-west');
-    
+
     if ((isChineseTheme || isWestTheme) && autoSendSuggestion) {
         document.body.classList.add('auto-send-suggestions');
     } else {
@@ -580,7 +581,7 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
     document.body.classList.remove('theme-original', 'theme-chinese', 'theme-west');
     document.body.classList.add(`theme-${theme}`);
     localStorage.setItem('selectedTheme', theme);
-    
+
     // 更新建议容器样式
     updateSuggestionsContainerStyle();
 });
@@ -620,7 +621,7 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.trim();
         const messages = chatMessages.querySelectorAll('.message');
-        
+
         // 首先清除所有现有的高亮
         messages.forEach((msg: any) => {
             // 恢复原始文本（移除 span.search-highlight）
@@ -643,7 +644,7 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
             // 深度遍历文本节点进行替换，避免破坏 HTML 结构
             const walker = document.createTreeWalker(msg, NodeFilter.SHOW_TEXT, null);
             const nodesToReplace: {node: Text, matches: RegExpMatchArray}[] = [];
-            
+
             let node;
             while (node = walker.nextNode()) {
                 const matches = node.nodeValue?.match(regex);
@@ -656,23 +657,23 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
                 const fragment = document.createDocumentFragment();
                 let lastIndex = 0;
                 const text = node.nodeValue || "";
-                
+
                 text.replace(regex, (match, p1, offset) => {
                     // 添加匹配前的文本
                     fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
-                    
+
                     // 添加高亮元素
                     const span = document.createElement('span');
                     span.className = 'search-highlight';
                     span.textContent = match;
                     fragment.appendChild(span);
-                    
+
                     if (!firstMatch) firstMatch = span;
-                    
+
                     lastIndex = offset + match.length;
                     return match;
                 });
-                
+
                 // 添加剩余文本
                 fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
                 node.parentNode?.replaceChild(fragment, node);
@@ -730,7 +731,7 @@ function showSlashCommands(filter = '') {
     console.log(`showSlashCommands called with filter: "${filter}". availableActions count: ${availableActions.length}`);
     const filteredActions = availableActions.filter(action => action.signature.toLowerCase().includes(filter.toLowerCase()));
     console.log(`Found ${filteredActions.length} filtered actions.`);
-    
+
     if (filteredActions.length === 0) {
         hideSlashCommands();
         return;
@@ -741,13 +742,13 @@ function showSlashCommands(filter = '') {
         const item = document.createElement('div');
         item.classList.add('slash-command-item');
         item.dataset.signature = action.signature;
-        
+
         const signatureSpan = document.createElement('span');
         signatureSpan.textContent = `/${action.signature}`;
-        
+
         const descriptionSpan = document.createElement('span');
         descriptionSpan.classList.add('description');
-        const desc = (typeof action.description === 'object') 
+        const desc = (typeof action.description === 'object')
             ? (action.description[(window as any).LocalizationManager?.language || 'en'] || action.description['en'])
             : action.description;
         descriptionSpan.textContent = desc.split('.')[0]; // Show first sentence of description
@@ -805,7 +806,7 @@ function showActionModal(action: any) {
 
             const label = document.createElement('label');
             label.innerHTML = `${arg.name} <span class="arg-type">(${arg.type})</span>`;
-            
+
             const input = document.createElement('input');
             input.type = arg.type === 'number' ? 'number' : 'text';
             input.dataset.argName = arg.name;
@@ -813,7 +814,7 @@ function showActionModal(action: any) {
 
             const desc = document.createElement('div');
             desc.classList.add('arg-desc');
-            const argDesc = (typeof arg.desc === 'object') 
+            const argDesc = (typeof arg.desc === 'object')
                 ? (arg.desc[(window as any).LocalizationManager?.language || 'en'] || arg.desc['en'])
                 : arg.desc;
             desc.textContent = argDesc;
@@ -917,7 +918,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         } else {
             contextLimit = 0;
         }
-        
+
         // Initial update for tokenizer if visible
         if (showTokenizerDisplay) {
             updateTokenCount(chatInput.value);
@@ -927,7 +928,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Render historical conversations if they exist
     if (messages && messages.length > 0) {
         const narrativeMap = new Map(narratives);
-        
+
         const separator = document.createElement('div');
         separator.classList.add('historical-separator');
         separator.innerHTML = '<hr>';
@@ -945,7 +946,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
                 const convHeader = document.createElement('div');
                 convHeader.classList.add('historical-conversation-header');
                 convHeader.classList.add('message');
-                
+
                 let headerText = `Date: ${conv.date}`;
                 if (conv.location) headerText += ` | Location: ${conv.location}`;
                 if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
@@ -1027,19 +1028,19 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     if (message.role === "assistant" && !waitForActions) {
         removeLoadingDots();
     }
-    
+
     // Always keep loading dots visible until actions are received
     // Don't remove loading dots here - wait for actions-receive event
     if(waitForActions){
         showLoadingDots();
     }
-    
+
     // Show clear history button after first message
     if (clearHistoryButton && clearHistoryButton.style.display === 'none') {
         clearHistoryButton.style.display = 'flex';
     }
 
-    
+
 })
 
 ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrative: string) =>{
@@ -1085,14 +1086,14 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message');
         messageDiv.classList.add('scene-description-message');
-        
+
         // 创建场景描述内容
         const sceneDescSpan = document.createElement('span');
         sceneDescSpan.innerText = sceneDescription;
         sceneDescSpan.classList.add('scene-description-text');
-        
+
         messageDiv.appendChild(sceneDescSpan);
-        
+
         // 尝试将场景描述插入到当前对话部分的正确位置
         // 首先查找当前角色列表元素
         const currentCharacters = chatMessages.querySelector('.current-characters');
@@ -1113,12 +1114,12 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
                 console.log(`Scene description inserted at beginning (fallback): ${sceneDescription.substring(0, 50)}...`);
             }
         }
-        
+
         // Auto-scroll to bottom after scene description is inserted
         setTimeout(() => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 10);
-        
+
         // Clear loading state AFTER scene description is inserted into DOM
         removeLoadingDots();
     } else {
