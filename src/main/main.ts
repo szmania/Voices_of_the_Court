@@ -518,6 +518,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             historicalMetadata: historicalMetadata,
             actions: sanitizedActions // Pass sanitized actions
         };
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
         chatWindow.window.webContents.send('chat-start', payload);
         
     }catch(err){
