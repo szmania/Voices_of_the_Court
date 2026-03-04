@@ -3,7 +3,6 @@ import { ipcRenderer } from 'electron';
 declare global {
     interface Window {
         LocalizationManager: any;
-        summariesAPI: any;
     }
 }
 
@@ -151,7 +150,7 @@ function setupEventListeners() {
 async function loadSummaryData() {
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
-        const { playerId: pId } = await window.summariesAPI.parsePlayerIdFromLog();
+        const { playerId: pId } = await ipcRenderer.invoke('get-summary-ids');
         if (!pId) {
             throw new Error(window.LocalizationManager.getTranslation('summary_manager.error_parsing_player_id', 'Could not parse player ID from game log'));
         }
@@ -159,7 +158,7 @@ async function loadSummaryData() {
         playerIdInput.value = playerId;
         const summaryFilePath = `${userDataPath}/conversation_summaries/${playerId}/`;
         summaryPathInput.value = summaryFilePath;
-        allSummaries = await window.summariesAPI.listAllSummaries(playerId);
+        allSummaries = await ipcRenderer.invoke('read-summary-file', playerId);
         populateCharacterSelect();
         filterSummariesByCharacter();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
@@ -274,7 +273,6 @@ async function updateCurrentSummary() {
     if (originalIndex !== -1) {
         allSummaries[originalIndex].date = summaryDateInput.value;
         allSummaries[originalIndex].content = summaryContentInput.value;
-        await window.summariesAPI.updateSummary(playerId, allSummaries[originalIndex].characterId, originalIndex, allSummaries[originalIndex]);
     }
     filterSummariesByCharacter();
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
@@ -290,7 +288,6 @@ async function deleteCurrentSummary() {
         const summary = filteredSummaries[currentSummaryIndex];
         const originalIndex = allSummaries.findIndex(s => s === summary);
         if (originalIndex !== -1) {
-            await window.summariesAPI.deleteSummary(playerId, allSummaries[originalIndex].characterId, originalIndex);
             allSummaries.splice(originalIndex, 1);
         }
         filterSummariesByCharacter();
@@ -310,7 +307,7 @@ function resetEditor() {
 async function saveSummaries() {
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
-        await window.summariesAPI.saveAllSummaries(playerId, allSummaries);
+        await ipcRenderer.invoke('save-summary-file', playerId, allSummaries);
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
     } catch (error: any) {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');
