@@ -33,7 +33,61 @@
         <h2 data-i18n="summarization.parameters">Parameters</h2>
         <parameters-box confID="summarizationApiConnectionConfig" tempDefault="0.2" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
+        <br>
+        <div id="summary-manager-container" class="border">
+            <h2 data-i18n="summary_manager.header">Summary Manager</h2>
+            <div class="header-controls">
+                <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh">Refresh</button>
+                <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save">Save</button>
+            </div>
         
+            <div class="info-panel">
+                <div class="info-item">
+                    <label for="summary-manager-playerId" data-i18n="summary_manager.player_id">Player ID:</label>
+                    <input type="text" id="summary-manager-playerId" readonly>
+                </div>
+                <div class="info-item">
+                    <label for="summary-manager-characterSelect" data-i18n="summary_manager.select_character">Select Character:</label>
+                    <select id="summary-manager-characterSelect">
+                        <option value="all" data-i18n="summary_manager.all_characters">All Characters</option>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <label for="summary-manager-summaryPath" data-i18n="summary_manager.file_path">Summary File Path:</label>
+                    <input type="text" id="summary-manager-summaryPath" readonly>
+                </div>
+            </div>
+        
+            <div class="summary-list-container">
+                <h3 data-i18n="summary_manager.list_header">Summary List</h3>
+                <div id="summary-manager-summaryList" class="summary-list">
+                    <!-- Summary items will be dynamically generated here -->
+                </div>
+                <div class="list-controls">
+                    <button id="summary-manager-addSummaryBtn" class="btn" data-i18n="summary_manager.add_new">Add New Summary</button>
+                </div>
+            </div>
+        
+            <div class="summary-editor">
+                <h3 data-i18n="summary_manager.edit_header">Edit Summary</h3>
+                <div class="editor-form">
+                    <div class="form-group">
+                        <label for="summary-manager-summaryDate" data-i18n="summary_manager.date_label">Date:</label>
+                        <input type="text" id="summary-manager-summaryDate" data-i18n-placeholder="summary_manager.date_placeholder" placeholder="e.g., 1179-03-21">
+                    </div>
+                    <div class="form-group">
+                        <label for="summary-manager-summaryContent" data-i18n="summary_manager.content_label">Content:</label>
+                        <textarea id="summary-manager-summaryContent" rows="5" data-i18n-placeholder="summary_manager.content_placeholder" placeholder="Enter summary content..."></textarea>
+                    </div>
+                    <div class="editor-controls">
+                        <button id="summary-manager-updateSummaryBtn" class="btn btn-success" data-i18n="summary_manager.update_btn">Update Summary</button>
+                        <button id="summary-manager-deleteSummaryBtn" class="btn btn-danger" data-i18n="summary_manager.delete_btn">Delete Summary</button>
+                        <button id="summary-manager-newSummaryBtn" class="btn" data-i18n="summary_manager.new_btn">New Summary</button>
+                    </div>
+                </div>
+            </div>
+            <div id="summary-manager-statusMessage" class="status-message"></div>
+        </div>
              
     </div>
 

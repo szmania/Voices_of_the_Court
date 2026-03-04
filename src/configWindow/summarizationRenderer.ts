@@ -1,17 +1,39 @@
-import { ipcRenderer} from 'electron';
+import { ipcRenderer } from 'electron';
 
-//@ts-ignore
-let useConnectionAPI: HTMLElement = document.querySelector("#use-connection-api")!.checkbox;
+// Main page elements
+const useConnectionAPI: HTMLInputElement = document.querySelector<HTMLInputElement>("#use-connection-api")!;
+const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
 
-let apiSelector: HTMLElement = document.querySelector("#api-selector")!;
+// Summary Manager Elements
+const playerIdInput = document.getElementById('summary-manager-playerId') as HTMLInputElement;
+const characterSelect = document.getElementById('summary-manager-characterSelect') as HTMLSelectElement;
+const summaryPathInput = document.getElementById('summary-manager-summaryPath') as HTMLInputElement;
+const summaryList = document.getElementById('summary-manager-summaryList') as HTMLDivElement;
+const summaryDateInput = document.getElementById('summary-manager-summaryDate') as HTMLInputElement;
+const summaryContentInput = document.getElementById('summary-manager-summaryContent') as HTMLTextAreaElement;
+const statusMessage = document.getElementById('summary-manager-statusMessage') as HTMLDivElement;
 
+// Summary Manager Buttons
+const refreshBtn = document.getElementById('summary-manager-refreshBtn') as HTMLButtonElement;
+const saveBtn = document.getElementById('summary-manager-saveBtn') as HTMLButtonElement;
+const addSummaryBtn = document.getElementById('summary-manager-addSummaryBtn') as HTMLButtonElement;
+const updateSummaryBtn = document.getElementById('summary-manager-updateSummaryBtn') as HTMLButtonElement;
+const deleteSummaryBtn = document.getElementById('summary-manager-deleteSummaryBtn') as HTMLButtonElement;
+const newSummaryBtn = document.getElementById('summary-manager-newSummaryBtn') as HTMLButtonElement;
+
+// State variables
+let allSummaries: any[] = [];
+let filteredSummaries: any[] = [];
+let currentSummaryIndex = -1;
+let playerId = '';
+let selectedCharacterId = 'all';
+let userDataPath = '';
 
 //init
 document.getElementById("container")!.style.display = "block";
-
 init();
 
-// 应用主题函数
+// Apply theme function
 function applyTheme(theme: string) {
     const body = document.querySelector('body');
     if (body) {
@@ -20,13 +42,13 @@ function applyTheme(theme: string) {
     }
 }
 
-// 监听主题更新
+// Listen for theme updates
 ipcRenderer.on('update-theme', (event, theme) => {
     applyTheme(theme);
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
+// Listen for language updates
 ipcRenderer.on('update-language', async (event, lang) => {
     // @ts-ignore
     if (window.LocalizationManager) {
@@ -34,18 +56,24 @@ ipcRenderer.on('update-language', async (event, lang) => {
         await window.LocalizationManager.loadTranslations(lang);
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
+        if (characterSelect) {
+            populateCharacterSelect();
+        }
+        if (summaryList) {
+            renderSummaryList();
+        }
     }
 });
 
-async function init(){
+async function init() {
     addExternalLinks();
-    // 应用初始主题
+    // Apply initial theme
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
 
-    let config = await ipcRenderer.invoke('get-config');
+    const config = await ipcRenderer.invoke('get-config');
 
-    // 初始化语言
+    // Initialize language
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -56,22 +84,19 @@ async function init(){
 
     toggleApiSelector();
 
-    useConnectionAPI.addEventListener('change', () =>{
-        
+    useConnectionAPI.addEventListener('change', () => {
         toggleApiSelector();
-    })
+    });
+
+    initSummaryManager();
 }
 
-
-
-
-function toggleApiSelector(){
+function toggleApiSelector() {
     //@ts-ignore
-    if(useConnectionAPI.checked){
+    if (useConnectionAPI.checked) {
         apiSelector.style.opacity = "0.5";
         apiSelector.style.pointerEvents = "none";
-    }
-    else{
+    } else {
         apiSelector.style.opacity = "1";
         apiSelector.style.pointerEvents = "auto";
     }
@@ -91,4 +116,206 @@ function addExternalLinks() {
         `;
         navbar.prepend(socialLinks);
     }
+}
+
+// Summary Manager Logic
+async function initSummaryManager() {
+    try {
+        userDataPath = await ipcRenderer.invoke('get-userdata-path');
+        await loadSummaryData();
+        setupEventListeners();
+    } catch (error: any) {
+        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail') : 'Initialization failed: ';
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Initialization error:', error);
+    }
+}
+
+function setupEventListeners() {
+    refreshBtn.addEventListener('click', loadSummaryData);
+    saveBtn.addEventListener('click', saveSummaries);
+    addSummaryBtn.addEventListener('click', addNewSummary);
+    updateSummaryBtn.addEventListener('click', updateCurrentSummary);
+    deleteSummaryBtn.addEventListener('click', deleteCurrentSummary);
+    newSummaryBtn.addEventListener('click', resetEditor);
+    characterSelect.addEventListener('change', filterSummariesByCharacter);
+}
+
+async function loadSummaryData() {
+    try {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
+        const { playerId: pId } = await window.summariesAPI.parsePlayerIdFromLog();
+        if (!pId) {
+            throw new Error(window.LocalizationManager.getTranslation('summary_manager.error_parsing_player_id', 'Could not parse player ID from game log'));
+        }
+        playerId = pId;
+        playerIdInput.value = playerId;
+        const summaryFilePath = `${userDataPath}/conversation_summaries/${playerId}/`;
+        summaryPathInput.value = summaryFilePath;
+        allSummaries = await window.summariesAPI.listAllSummaries(playerId);
+        populateCharacterSelect();
+        filterSummariesByCharacter();
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
+    } catch (error: any) {
+        const errorMsg = window.LocalizationManager.getTranslation('summary_manager.load_fail_generic', 'Failed to load summary data: ');
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Error loading summary data:', error);
+    }
+}
+
+function populateCharacterSelect() {
+    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters') : 'All Characters';
+    characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
+    const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || 'Unknown'))];
+    characterIds.forEach(characterId => {
+        const option = document.createElement('option');
+        option.value = characterId;
+        option.textContent = characterId;
+        characterSelect.appendChild(option);
+    });
+    characterSelect.value = selectedCharacterId;
+}
+
+function filterSummariesByCharacter() {
+    selectedCharacterId = characterSelect.value;
+    if (selectedCharacterId === 'all') {
+        filteredSummaries = [...allSummaries];
+    } else {
+        filteredSummaries = allSummaries.filter(summary => (summary.characterId || 'Unknown') === selectedCharacterId);
+    }
+    filteredSummaries.sort((a, b) => {
+        const extractDate = (dateStr: string) => {
+            const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
+            if (match) {
+                return { year: parseInt(match[1]), month: parseInt(match[2]), day: parseInt(match[3]) };
+            }
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() };
+            }
+            return { year: 0, month: 1, day: 1 };
+        };
+        const dateA = extractDate(a.date);
+        const dateB = extractDate(b.date);
+        if (dateB.year !== dateA.year) return dateB.year - dateA.year;
+        if (dateB.month !== dateA.month) return dateB.month - a.month;
+        return dateB.day - dateA.day;
+    });
+    currentSummaryIndex = -1;
+    resetEditor();
+    renderSummaryList();
+}
+
+function renderSummaryList() {
+    summaryList.innerHTML = '';
+    if (!filteredSummaries || filteredSummaries.length === 0) {
+        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data') : 'No summary data';
+        summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
+        return;
+    }
+    filteredSummaries.forEach((summary, index) => {
+        const summaryItem = document.createElement('div');
+        summaryItem.className = 'summary-item';
+        if (index === currentSummaryIndex) {
+            summaryItem.classList.add('selected');
+        }
+        const characterId = summary.characterId || 'Unknown';
+        const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
+        summaryItem.innerHTML = `
+            <div class="summary-date">${summary.date} - ${characterText}: ${characterId}</div>
+            <div class="summary-content">${summary.content}</div>
+        `;
+        summaryItem.addEventListener('click', () => selectSummary(index));
+        summaryList.appendChild(summaryItem);
+    });
+}
+
+function selectSummary(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
+    currentSummaryIndex = index;
+    const summary = filteredSummaries[index];
+    summaryDateInput.value = summary.date;
+    summaryContentInput.value = summary.content;
+    document.querySelectorAll('.summary-item').forEach((item, i) => {
+        if (i === index) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+function addNewSummary() {
+    const characterId = selectedCharacterId === 'all' ? 'Default Character' : selectedCharacterId;
+    const newSummary = {
+        date: 'New Date',
+        content: 'New summary content',
+        characterId: characterId
+    };
+    allSummaries.unshift(newSummary);
+    filterSummariesByCharacter();
+    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
+}
+
+async function updateCurrentSummary() {
+    if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_to_update_error', 'Please select a summary to update first'), 'error');
+        return;
+    }
+    const summary = filteredSummaries[currentSummaryIndex];
+    const originalIndex = allSummaries.findIndex(s => s === summary);
+    if (originalIndex !== -1) {
+        allSummaries[originalIndex].date = summaryDateInput.value;
+        allSummaries[originalIndex].content = summaryContentInput.value;
+        await window.summariesAPI.updateSummary(playerId, allSummaries[originalIndex].characterId, originalIndex, allSummaries[originalIndex]);
+    }
+    filterSummariesByCharacter();
+    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
+}
+
+async function deleteCurrentSummary() {
+    if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_to_delete_error', 'Please select a summary to delete first'), 'error');
+        return;
+    }
+    const confirmDeleteMsg = window.LocalizationManager.getTranslation('summary_manager.confirm_delete', 'Are you sure you want to delete this summary?');
+    if (confirm(confirmDeleteMsg)) {
+        const summary = filteredSummaries[currentSummaryIndex];
+        const originalIndex = allSummaries.findIndex(s => s === summary);
+        if (originalIndex !== -1) {
+            await window.summariesAPI.deleteSummary(playerId, allSummaries[originalIndex].characterId, originalIndex);
+            allSummaries.splice(originalIndex, 1);
+        }
+        filterSummariesByCharacter();
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Summary deleted'), 'success');
+    }
+}
+
+function resetEditor() {
+    currentSummaryIndex = -1;
+    summaryDateInput.value = '';
+    summaryContentInput.value = '';
+    document.querySelectorAll('.summary-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+}
+
+async function saveSummaries() {
+    try {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
+        await window.summariesAPI.saveAllSummaries(playerId, allSummaries);
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
+    } catch (error: any) {
+        const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Error saving summaries:', error);
+    }
+}
+
+function showStatusMessage(message: string, type = 'info') {
+    statusMessage.textContent = message;
+    statusMessage.className = `status-message ${type} show`;
+    setTimeout(() => {
+        statusMessage.classList.remove('show');
+    }, 3000);
 }
