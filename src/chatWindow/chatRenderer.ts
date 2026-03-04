@@ -20,6 +20,7 @@ function initTheme() {
 // 页面加载时初始化主题
 initTheme();
 
+const chatBox: HTMLDivElement = document.querySelector('.chat-box')!;
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
 let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
@@ -875,6 +876,7 @@ function showInlineActionForm(action: any) {
 
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Cancel';
+    cancelButton.classList.add('action-cancel-button');
     cancelButton.addEventListener('click', () => {
         if (formContainer.parentNode) {
             formContainer.parentNode.removeChild(formContainer);
@@ -883,6 +885,7 @@ function showInlineActionForm(action: any) {
 
     const executeButton = document.createElement('button');
     executeButton.textContent = 'Execute';
+    executeButton.classList.add('action-execute-button');
     executeButton.addEventListener('click', () => {
         const args: string[] = [];
         const inputs = formContainer.querySelectorAll('input, select');
@@ -900,7 +903,7 @@ function showInlineActionForm(action: any) {
     formContainer.appendChild(buttonsContainer);
 
     // Add to chat messages
-    chatMessages.appendChild(formContainer);
+    chatBox.appendChild(formContainer);
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     // Focus the first input if it exists
