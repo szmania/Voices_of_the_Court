@@ -19,6 +19,7 @@ import { ChatWindow } from '../windows/ChatWindow.js';
 import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 
 const userDataPath = path.join(app.getPath('userData'), 'votc_data');
+const defaultDataPath = path.join(app.getAppPath(), 'default_userdata');
 
 export class Conversation{
     chatWindow: ChatWindow;
@@ -1220,7 +1221,7 @@ ${character.fullName}的发言：`
         this.description = "";
 
         const descriptionScriptFileName = this.config.selectedDescScript;
-        const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+        const descriptionPath = path.join(defaultDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
         try{
             delete require.cache[require.resolve(descriptionPath)];
             this.description = require(descriptionPath)(this.gameData); 
@@ -1263,7 +1264,7 @@ ${character.fullName}的发言：`
         console.log('Loading actions from scripts.');
         this.actions = [];
 
-        const actionsPath = path.join(userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(defaultDataPath, 'scripts', 'actions');
         let standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
         let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 

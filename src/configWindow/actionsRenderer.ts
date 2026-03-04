@@ -78,9 +78,7 @@ async function init(){
         loadactions();
     })
 
-    let userDataPath = await ipcRenderer.invoke('get-userdata-path');
-    
-    actionsPath = path.join(userDataPath, 'scripts', 'actions');
+    actionsPath = await ipcRenderer.invoke('get-default-actions-path');
 
 
         //init
