@@ -903,7 +903,7 @@ function showInlineActionForm(action: any) {
     formContainer.appendChild(buttonsContainer);
 
     // Add to chat messages
-    chatBox.appendChild(formContainer);
+    chatMessages.appendChild(formContainer);
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
     // Focus the first input if it exists
