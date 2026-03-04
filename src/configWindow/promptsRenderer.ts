@@ -291,6 +291,13 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
     deletePromptPresetBtn.disabled = (selectedPresetName === 'Default');
+    if (deletePromptPresetBtn.disabled) {
+        deletePromptPresetBtn.style.opacity = '0.5';
+        deletePromptPresetBtn.style.cursor = 'not-allowed';
+    } else {
+        deletePromptPresetBtn.style.opacity = '1';
+        deletePromptPresetBtn.style.cursor = 'pointer';
+    }
 }
 
 async function saveCurrentPreset() {
