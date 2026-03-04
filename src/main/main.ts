@@ -11,7 +11,7 @@ import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { parseSummaryIdsFromLog, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
+import { getPlayerId, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message} from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -792,36 +792,7 @@ ipcMain.handle('get-summary-ids', async () => {
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const playerSummariesPath = path.join(userDataPath, 'conversation_summaries', playerId);
-        if (!fs.existsSync(playerSummariesPath)) {
-            console.log(`No summary directory found for player ${playerId}.`);
-            return [];
-        }
-
-        const files = fs.readdirSync(playerSummariesPath).filter(f => f.endsWith('.json'));
-        let allSummaries: any[] = [];
-
-        for (const file of files) {
-            const characterId = path.basename(file, '.json');
-            const filePath = path.join(playerSummariesPath, file);
-            
-            try {
-                const fileContent = fs.readFileSync(filePath, 'utf-8');
-                let summaries = JSON.parse(fileContent);
-
-                if (Array.isArray(summaries)) {
-                    summaries.forEach(summary => {
-                        if (!summary.characterId) {
-                            summary.characterId = characterId;
-                        }
-                    });
-                    allSummaries.push(...summaries);
-                }
-            } catch (err) {
-                console.error(`Error processing summary file ${file}:`, err);
-            }
-        }
-        return allSummaries;
+        return await readSummaryFile(userDataPath, playerId);
     } catch (error) {
         console.error('Error reading summary file:', error);
         return [];
@@ -831,7 +802,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
 ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
     console.log(`IPC: Received save-summary-file event for player: ${playerId}`);
     try {
-        await saveSummaryFile(playerId, summaryData);
+        await saveSummaryFile(userDataPath, playerId, summaryData);
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
