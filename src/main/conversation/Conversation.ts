@@ -1159,7 +1159,7 @@ ${character.fullName}的发言：`
 
         this.gameData.characters.forEach((character) => {
             if (character.id !== this.gameData.playerID) {
-                const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
 
                 // 暂停文件监控，避免保存时触发重新加载

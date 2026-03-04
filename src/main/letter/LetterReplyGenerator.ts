@@ -11,6 +11,7 @@ export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
     private userDataPath: string;
+    private userDataPath: string;
 
     constructor(config: Config, userDataPath: string) {
         this.config = config;
