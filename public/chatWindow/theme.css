@@ -1,5 +1,12 @@
 /* 主题样式定义 */
 
+/* Config window styles */
+.info-panel {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
 /* 字体定义 */
 @font-face {
     font-family: 'SiYuanSongTiRegular';
