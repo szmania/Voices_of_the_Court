@@ -792,8 +792,44 @@ ipcMain.handle('get-summary-ids', async () => {
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaryData = await readSummaryFile(playerId);
-        return summaryData;
+        const playerSummariesPath = path.join(userDataPath, 'conversation_summaries', playerId);
+        if (!fs.existsSync(playerSummariesPath)) {
+            console.log(`No summary directory found for player ${playerId}.`);
+            return [];
+        }
+
+        const files = fs.readdirSync(playerSummariesPath).filter(f => f.endsWith('.json'));
+        let allSummaries: any[] = [];
+
+        for (const file of files) {
+            const characterId = path.basename(file, '.json');
+            const filePath = path.join(playerSummariesPath, file);
+            
+            try {
+                const fileContent = fs.readFileSync(filePath, 'utf-8');
+                let summaries = JSON.parse(fileContent);
+                let fileModified = false;
+
+                if (Array.isArray(summaries)) {
+                    summaries.forEach(summary => {
+                        if (!summary.characterId) {
+                            summary.characterId = characterId;
+                            fileModified = true;
+                        }
+                    });
+
+                    if (fileModified) {
+                        console.log(`Migrating summary file for character ${characterId}...`);
+                        fs.writeFileSync(filePath, JSON.stringify(summaries, null, '\t'));
+                        console.log(`Migration successful for ${characterId}.`);
+                    }
+                    allSummaries.push(...summaries);
+                }
+            } catch (err) {
+                console.error(`Error processing summary file ${file}:`, err);
+            }
+        }
+        return allSummaries;
     } catch (error) {
         console.error('Error reading summary file:', error);
         return [];

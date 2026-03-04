@@ -11,6 +11,19 @@
         gap: 20px; /* Adds space between the items */
         align-items: center; /* Vertically aligns the items in the middle */
       }
+      .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
     
   </head>
@@ -42,6 +55,7 @@
 
         <br>
         <div id="summary-manager-container" class="border">
+            <div id="summary-manager-loader" class="loader" style="display: none;"></div>
             <h2 data-i18n="summary_manager.header">Summary Manager</h2>
             <div class="header-controls">
                 <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh">Refresh</button>

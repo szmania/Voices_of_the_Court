@@ -18,6 +18,7 @@ const summaryList = document.getElementById('summary-manager-summaryList') as HT
 const summaryDateInput = document.getElementById('summary-manager-summaryDate') as HTMLInputElement;
 const summaryContentInput = document.getElementById('summary-manager-summaryContent') as HTMLTextAreaElement;
 const statusMessage = document.getElementById('summary-manager-statusMessage') as HTMLDivElement;
+const summaryLoader = document.getElementById('summary-manager-loader') as HTMLDivElement;
 
 // Summary Manager Buttons
 const refreshBtn = document.getElementById('summary-manager-refreshBtn') as HTMLButtonElement;
@@ -148,6 +149,8 @@ function setupEventListeners() {
 }
 
 async function loadSummaryData() {
+    summaryLoader.style.display = 'block';
+    summaryList.innerHTML = '';
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
         const { playerId: pId } = await ipcRenderer.invoke('get-summary-ids');
@@ -166,6 +169,8 @@ async function loadSummaryData() {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.load_fail_generic', 'Failed to load summary data: ');
         showStatusMessage(errorMsg + error.message, 'error');
         console.error('Error loading summary data:', error);
+    } finally {
+        summaryLoader.style.display = 'none';
     }
 }
 
@@ -252,7 +257,11 @@ function selectSummary(index: number) {
 }
 
 function addNewSummary() {
-    const characterId = selectedCharacterId === 'all' ? 'Default Character' : selectedCharacterId;
+    if (selectedCharacterId === 'all') {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_character_to_add_error', 'Please select a character before adding a new summary.'), 'error');
+        return;
+    }
+    const characterId = selectedCharacterId;
     const newSummary = {
         date: 'New Date',
         content: 'New summary content',
@@ -260,6 +269,7 @@ function addNewSummary() {
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter();
+    selectSummary(0);
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
 }
 
