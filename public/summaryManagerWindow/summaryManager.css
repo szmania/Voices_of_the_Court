@@ -1,4 +1,4 @@
-/* 全局样式 */
+/* Global Styles */
 @font-face {
     font-family: Paradox;
     src: url("../assets/Paradox_King_Script.otf");
@@ -33,7 +33,7 @@ body {
     padding: 20px;
 }
 
-/* 头部样式 */
+/* Header Styles */
 .header {
     display: flex;
     justify-content: space-between;
@@ -60,7 +60,7 @@ body {
     gap: 10px;
 }
 
-/* 按钮样式 */
+/* Button Styles */
 .btn {
     padding: 8px 16px;
     border: 1px solid #8c2b2b;
@@ -105,7 +105,7 @@ body {
     border-color: #5a4a35;
 }
 
-/* 主内容区域 */
+/* Main Content Area */
 .main-content {
     display: flex;
     flex-direction: column;
@@ -114,7 +114,7 @@ body {
     overflow: hidden;
 }
 
-/* 信息面板 */
+/* Info Panel */
 .info-panel {
     display: flex;
     gap: 15px;
@@ -152,7 +152,7 @@ body {
     box-shadow: 0 0 5px rgba(204, 164, 59, 0.3);
 }
 
-/* 总结列表容器 */
+/* Summary List Container */
 .summary-list-container {
     display: flex;
     flex-direction: column;
@@ -226,7 +226,7 @@ body {
     justify-content: flex-end;
 }
 
-/* 总结编辑器 */
+/* Summary Editor */
 .summary-editor {
     display: flex;
     flex-direction: column;
@@ -287,7 +287,7 @@ body {
     justify-content: flex-end;
 }
 
-/* 状态消息 */
+/* Status Message */
 .status-message {
     position: fixed;
     bottom: 20px;
@@ -317,7 +317,7 @@ body {
     opacity: 1;
 }
 
-/* 滚动条样式 */
+/* Scrollbar Styles */
 ::-webkit-scrollbar {
     width: 10px;
 }

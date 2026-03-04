@@ -1,6 +1,6 @@
 const { ipcRenderer } = require('electron');
 
-// DOM 元素
+// DOM Elements
 const playerIdInput = document.getElementById('playerId');
 const characterSelect = document.getElementById('characterSelect');
 const summaryPathInput = document.getElementById('summaryPath');
@@ -9,7 +9,7 @@ const summaryDateInput = document.getElementById('summaryDate');
 const summaryContentInput = document.getElementById('summaryContent');
 const statusMessage = document.getElementById('statusMessage');
 
-// 按钮
+// Buttons
 const refreshBtn = document.getElementById('refreshBtn');
 const saveBtn = document.getElementById('saveBtn');
 const closeBtn = document.getElementById('closeBtn');
@@ -18,44 +18,44 @@ const updateSummaryBtn = document.getElementById('updateSummaryBtn');
 const deleteSummaryBtn = document.getElementById('deleteSummaryBtn');
 const newSummaryBtn = document.getElementById('newSummaryBtn');
 
-// 状态变量
-let allSummaries = []; // 存储所有角色的总结
-let filteredSummaries = []; // 当前显示的总结（根据角色筛选）
+// State variables
+let allSummaries = []; // Stores summaries for all characters
+let filteredSummaries = []; // Currently displayed summaries (filtered by character)
 let currentSummaryIndex = -1;
 let playerId = '';
-let selectedCharacterId = 'all'; // 当前选择的角色ID
+let selectedCharacterId = 'all'; // Currently selected character ID
 let userDataPath = '';
 
-// 初始化
+// Initialization
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // 应用主题
+        // Apply theme
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
 
-        // 初始化语言
+        // Initialize language
         const config = await ipcRenderer.invoke('get-config');
         if (window.LocalizationManager) {
             await window.LocalizationManager.loadTranslations(config.language || 'en');
             window.LocalizationManager.applyTranslations();
         }
 
-        // 获取用户数据路径
+        // Get user data path
         userDataPath = await ipcRenderer.invoke('get-userdata-path');
         
-        // 初始加载数据
+        // Initial data load
         await loadSummaryData();
         
-        // 设置事件监听器
+        // Set up event listeners
         setupEventListeners();
     } catch (error) {
-        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail') : '初始化失败: ';
+        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail') : 'Initialization failed: ';
         showStatusMessage(errorMsg + error.message, 'error');
-        console.error('初始化错误:', error);
+        console.error('Initialization error:', error);
     }
 });
 
-// 应用主题函数
+// Apply theme function
 function applyTheme(theme) {
     const body = document.querySelector('body');
     if (body) {
@@ -64,25 +64,25 @@ function applyTheme(theme) {
     }
 }
 
-// 监听主题更新
+// Listen for theme updates
 ipcRenderer.on('update-theme', (event, theme) => {
     applyTheme(theme);
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
+// Listen for language updates
 ipcRenderer.on('update-language', async (event, lang) => {
     if (window.LocalizationManager) {
         await window.LocalizationManager.loadTranslations(lang);
         window.LocalizationManager.applyTranslations();
-        // 重新填充下拉框以更新"所有角色"文本
+        // Repopulate dropdown to update "All Characters" text
         populateCharacterSelect();
-        // 重新渲染列表以更新"暂无数据"文本
+        // Rerender list to update "No data" text
         renderSummaryList();
     }
 });
 
-// 设置事件监听器
+// Set up event listeners
 function setupEventListeners() {
     refreshBtn.addEventListener('click', loadSummaryData);
     saveBtn.addEventListener('click', saveSummaries);
@@ -92,56 +92,57 @@ function setupEventListeners() {
     deleteSummaryBtn.addEventListener('click', deleteCurrentSummary);
     newSummaryBtn.addEventListener('click', resetEditor);
     
-    // 角色选择下拉框变化事件
+    // Character select dropdown change event
     characterSelect.addEventListener('change', filterSummariesByCharacter);
 }
 
-// 加载总结数据
+// Load summary data
 async function loadSummaryData() {
     try {
-        showStatusMessage('正在加载总结数据...', 'info');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
         
-        // 从debuglog解析玩家ID
+        // Parse player ID from debug log
         const { playerId: pId } = await ipcRenderer.invoke('get-summary-ids');
         
         if (!pId) {
-            throw new Error('无法从游戏日志中解析玩家ID');
+            throw new Error(window.LocalizationManager.getTranslation('summary_manager.error_parsing_player_id', 'Could not parse player ID from game log'));
         }
         
         playerId = pId;
         
-        // 更新UI显示
+        // Update UI display
         playerIdInput.value = playerId;
         
         const summaryFilePath = `${userDataPath}/conversation_summaries/${playerId}/`;
         summaryPathInput.value = summaryFilePath;
         
-        // 读取总结文件
+        // Read summary file
         allSummaries = await ipcRenderer.invoke('read-summary-file', playerId);
         
-        // 获取所有角色ID并填充下拉框
+        // Get all character IDs and populate dropdown
         populateCharacterSelect();
         
-        // 筛选并显示总结
+        // Filter and display summaries
         filterSummariesByCharacter();
         
-        showStatusMessage('总结数据加载成功', 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
     } catch (error) {
-        showStatusMessage('加载总结数据失败: ' + error.message, 'error');
-        console.error('加载总结数据错误:', error);
+        const errorMsg = window.LocalizationManager.getTranslation('summary_manager.load_fail_generic', 'Failed to load summary data: ');
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Error loading summary data:', error);
     }
 }
 
-// 填充角色选择下拉框
+// Populate character select dropdown
 function populateCharacterSelect() {
-    // 清空现有选项（保留"所有角色"）
-    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters') : '所有角色';
+    // Clear existing options (keeping "All Characters")
+    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
     
-    // 获取所有不重复的角色ID
-    const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || '未知'))];
+    // Get all unique character IDs
+    const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || 'Unknown'))];
     
-    // 添加角色选项
+    // Add character options
     characterIds.forEach(characterId => {
         const option = document.createElement('option');
         option.value = characterId;
@@ -149,11 +150,11 @@ function populateCharacterSelect() {
         characterSelect.appendChild(option);
     });
     
-    // 恢复之前的选择
+    // Restore previous selection
     characterSelect.value = selectedCharacterId;
 }
 
-// 根据选择的角色筛选总结
+// Filter summaries by selected character
 function filterSummariesByCharacter() {
     selectedCharacterId = characterSelect.value;
     
@@ -161,15 +162,15 @@ function filterSummariesByCharacter() {
         filteredSummaries = [...allSummaries];
     } else {
         filteredSummaries = allSummaries.filter(summary => 
-            (summary.characterId || '未知') === selectedCharacterId
+            (summary.characterId || 'Unknown') === selectedCharacterId
         );
     }
     
-    // 按日期降序排序（最新的在前面）
+    // Sort by date descending (newest first)
     filteredSummaries.sort((a, b) => {
-        // 处理中文日期格式，例如 "1128年2月7日"
-        // 提取年、月、日数字
+        // Handle different date formats
         const extractDate = (dateStr) => {
+            // Try parsing Chinese format first: "1128年2月7日"
             const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
             if (match) {
                 return {
@@ -178,7 +179,7 @@ function filterSummariesByCharacter() {
                     day: parseInt(match[3])
                 };
             }
-            // 如果不是中文格式，尝试解析为标准日期
+            // If not in Chinese format, try parsing as a standard date
             const date = new Date(dateStr);
             if (!isNaN(date.getTime())) {
                 return {
@@ -187,39 +188,39 @@ function filterSummariesByCharacter() {
                     day: date.getDate()
                 };
             }
-            // 默认返回一个很早的日期
+            // Return a very early date by default if parsing fails
             return { year: 0, month: 1, day: 1 };
         };
         
         const dateA = extractDate(a.date);
         const dateB = extractDate(b.date);
         
-        // 比较年份
+        // Compare years
         if (dateB.year !== dateA.year) {
             return dateB.year - dateA.year;
         }
-        // 年份相同，比较月份
+        // Years are the same, compare months
         if (dateB.month !== dateA.month) {
             return dateB.month - dateA.month;
         }
-        // 月份相同，比较日期
+        // Months are the same, compare days
         return dateB.day - dateA.day;
     });
     
-    // 重置当前选中的总结
+    // Reset currently selected summary
     currentSummaryIndex = -1;
     resetEditor();
     
-    // 渲染总结列表
+    // Render summary list
     renderSummaryList();
 }
 
-// 渲染总结列表
+// Render summary list
 function renderSummaryList() {
     summaryList.innerHTML = '';
     
     if (!filteredSummaries || filteredSummaries.length === 0) {
-        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data') : '暂无总结数据';
+        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data') : 'No summary data';
         summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
         return;
     }
@@ -231,9 +232,10 @@ function renderSummaryList() {
             summaryItem.classList.add('selected');
         }
         
-        const characterId = summary.characterId || '未知';
+        const characterId = summary.characterId || 'Unknown';
+        const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
         summaryItem.innerHTML = `
-            <div class="summary-date">${summary.date} - 角色: ${characterId}</div>
+            <div class="summary-date">${summary.date} - ${characterText}: ${characterId}</div>
             <div class="summary-content">${summary.content}</div>
         `;
         
@@ -242,7 +244,7 @@ function renderSummaryList() {
     });
 }
 
-// 选择总结
+// Select summary
 function selectSummary(index) {
     if (index < 0 || index >= filteredSummaries.length) return;
     
@@ -252,7 +254,7 @@ function selectSummary(index) {
     summaryDateInput.value = summary.date;
     summaryContentInput.value = summary.content;
     
-    // 更新选中状态
+    // Update selected state
     document.querySelectorAll('.summary-item').forEach((item, i) => {
         if (i === index) {
             item.classList.add('selected');
@@ -262,74 +264,75 @@ function selectSummary(index) {
     });
 }
 
-// 添加新总结
+// Add new summary
 function addNewSummary() {
-    // 获取当前选择的角色ID
-    const characterId = selectedCharacterId === 'all' ? '默认角色' : selectedCharacterId;
+    // Get currently selected character ID
+    const characterId = selectedCharacterId === 'all' ? 'Default Character' : selectedCharacterId;
     
     const newSummary = {
-        date: '新日期',
-        content: '新总结内容',
+        date: 'New Date',
+        content: 'New summary content',
         characterId: characterId
     };
     
-    // 添加到所有总结列表
+    // Add to all summaries list
     allSummaries.unshift(newSummary);
     
-    // 重新筛选和显示
+    // Re-filter and display
     filterSummariesByCharacter();
     
-    showStatusMessage('已添加新总结', 'success');
+    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
 }
 
-// 更新当前总结
+// Update current summary
 function updateCurrentSummary() {
     if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
-        showStatusMessage('请先选择要更新的总结', 'error');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_to_update_error', 'Please select a summary to update first'), 'error');
         return;
     }
     
-    // 获取原始总结对象
+    // Get original summary object
     const summary = filteredSummaries[currentSummaryIndex];
     
-    // 在allSummaries中找到并更新
+    // Find and update in allSummaries
     const originalIndex = allSummaries.findIndex(s => s === summary);
     if (originalIndex !== -1) {
         allSummaries[originalIndex].date = summaryDateInput.value;
         allSummaries[originalIndex].content = summaryContentInput.value;
     }
     
-    // 重新筛选和显示
+    // Re-filter and display
     filterSummariesByCharacter();
     
-    showStatusMessage('总结已更新', 'success');
+    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
 }
 
-// 删除当前总结
+// Delete current summary
 function deleteCurrentSummary() {
     if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
-        showStatusMessage('请先选择要删除的总结', 'error');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_to_delete_error', 'Please select a summary to delete first'), 'error');
         return;
     }
     
-    if (confirm('确定要删除这个总结吗？')) {
-        // 获取原始总结对象
+    const confirmDeleteMsg = window.LocalizationManager.getTranslation('summary_manager.confirm_delete', 'Are you sure you want to delete this summary?');
+    if (confirm(confirmDeleteMsg)) {
+        // Get original summary object
         const summary = filteredSummaries[currentSummaryIndex];
         
-        // 在allSummaries中找到并删除
+        // Find and delete in allSummaries
         const originalIndex = allSummaries.findIndex(s => s === summary);
         if (originalIndex !== -1) {
             allSummaries.splice(originalIndex, 1);
         }
         
-        // 重新筛选和显示
+        // Re-filter and display
         filterSummariesByCharacter();
         
-        showStatusMessage('总结已删除', 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Summary deleted'), 'success');
     }
 }
 
-// 重置编辑器
+// Reset editor
 function resetEditor() {
     currentSummaryIndex = -1;
     summaryDateInput.value = '';
@@ -340,21 +343,22 @@ function resetEditor() {
     });
 }
 
-// 保存总结
+// Save summaries
 async function saveSummaries() {
     try {
-        showStatusMessage('正在保存总结...', 'info');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
         
         await ipcRenderer.invoke('save-summary-file', playerId, allSummaries);
         
-        showStatusMessage('总结保存成功', 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
     } catch (error) {
-        showStatusMessage('保存总结失败: ' + error.message, 'error');
-        console.error('保存总结错误:', error);
+        const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Error saving summaries:', error);
     }
 }
 
-// 显示状态消息
+// Show status message
 function showStatusMessage(message, type = 'info') {
     statusMessage.textContent = message;
     statusMessage.className = `status-message ${type} show`;
