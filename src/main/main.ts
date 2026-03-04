@@ -506,7 +506,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             gameData: conversation.gameData,
             messages: conversation.messages,
             narratives: Array.from(conversation.narratives.entries()),
-            historicalMetadata: historicalMetadata
+            historicalMetadata: historicalMetadata,
+            actions: conversation.actions // Pass actions directly
         };
         chatWindow.window.webContents.send('chat-start', payload);
         
@@ -638,13 +639,6 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     
     
     
-});
-
-ipcMain.on('get-actions-list', (event) => {
-    console.log('IPC: Received get-actions-list event.');
-    if (conversation) {
-      event.sender.send('actions-list-receive', conversation.actions);
-    }
 });
 
     // 处理获取推荐输入语句的请求

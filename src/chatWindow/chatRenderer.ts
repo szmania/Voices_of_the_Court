@@ -98,9 +98,6 @@ async function initChat(){
         tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
-
-    console.log('Calling get actions list.');
-    ipcRenderer.send('get-actions-list');
 }
 
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
@@ -859,8 +856,10 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[] }) => {
-    const { gameData, messages, narratives, historicalMetadata } = payload;
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
+    const { gameData, messages, narratives, historicalMetadata, actions } = payload;
+    availableActions = actions;
+    console.log(`Received ${availableActions.length} available actions from chat-start payload.`);
 
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
@@ -1069,11 +1068,6 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrative: string) =
     displayNarrative(narrative);
     removeLoadingDots();
 })
-
-ipcRenderer.on('actions-list-receive', (e, actions) => {
-    availableActions = actions;
-    console.log(`Received ${availableActions.length} available actions.`);
-});
 
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
