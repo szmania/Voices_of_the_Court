@@ -12,6 +12,7 @@
     "help": "帮助",
     "language_tooltip": "选择应用程序语言",
     "discord_tooltip": "加入我们的Discord",
+    "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站"
   },
   "connection": {
