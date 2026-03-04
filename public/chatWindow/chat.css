@@ -1017,3 +1017,44 @@ em{
     width: 22px;
     height: 22px;
 }
+
+/* Custom Select Dropdown */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-value {
+    width: 100%;
+    padding: 8px;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    color: #e0e0e0;
+    border-radius: 2px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.custom-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    border-top: none;
+    border-radius: 0 0 2px 2px;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.custom-select-option {
+    padding: 8px;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.custom-select-option:hover {
+    background-color: #4a4a4a;
+}

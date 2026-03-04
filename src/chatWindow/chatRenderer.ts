@@ -818,23 +818,76 @@ function showInlineActionForm(action: any) {
 
             let inputElement: HTMLInputElement | HTMLSelectElement;
 
+            const desc = document.createElement('div');
+            desc.classList.add('arg-desc');
+            const argDesc = (typeof arg.desc === 'object')
+                ? (arg.desc[(window as any).LocalizationManager?.language || 'en'] || arg.desc['en'])
+                : arg.desc;
+            desc.textContent = argDesc;
+
             // Check for enum options to create a dropdown
             if (arg.options && Array.isArray(arg.options)) {
-                inputElement = document.createElement('select');
+                // Create a custom select dropdown
+                const customSelectContainer = document.createElement('div');
+                customSelectContainer.classList.add('custom-select-container');
+
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.dataset.argName = arg.name;
+                hiddenInput.id = `action-arg-${index}`;
+
+                const selectValue = document.createElement('div');
+                selectValue.classList.add('custom-select-value');
+
+                const optionsList = document.createElement('div');
+                optionsList.classList.add('custom-select-options');
+                optionsList.style.display = 'none';
+
                 const lang = (window as any).LocalizationManager?.language || 'en';
 
-                arg.options.forEach((option: any) => {
-                    const optionElement = document.createElement('option');
+                arg.options.forEach((option: any, optionIndex: number) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.classList.add('custom-select-option');
+                    
+                    let value: string;
+                    let display: string;
+
                     if (typeof option === 'object' && option.value && option.display) {
-                        optionElement.value = option.value;
-                        optionElement.textContent = option.display[lang] || option.display['en'] || option.value;
+                        value = option.value;
+                        display = option.display[lang] || option.display['en'] || option.value;
                     } else {
-                        // Fallback for simple string array
-                        optionElement.value = option;
-                        optionElement.textContent = option;
+                        value = option;
+                        display = option;
                     }
-                    inputElement.appendChild(optionElement);
+                    optionElement.dataset.value = value;
+                    optionElement.textContent = display;
+
+                    optionElement.addEventListener('click', () => {
+                        selectValue.textContent = display;
+                        hiddenInput.value = value;
+                        optionsList.style.display = 'none';
+                    });
+
+                    optionsList.appendChild(optionElement);
+
+                    if (optionIndex === 0) {
+                        selectValue.textContent = display;
+                        hiddenInput.value = value;
+                    }
                 });
+
+                selectValue.addEventListener('click', () => {
+                    optionsList.style.display = optionsList.style.display === 'none' ? 'block' : 'none';
+                });
+
+                customSelectContainer.appendChild(hiddenInput);
+                customSelectContainer.appendChild(selectValue);
+                customSelectContainer.appendChild(optionsList);
+
+                argDiv.appendChild(label);
+                argDiv.appendChild(customSelectContainer);
+                argDiv.appendChild(desc);
+
             } else { // Otherwise, create a standard input
                 inputElement = document.createElement('input');
                 if (arg.type === 'number') {
@@ -849,21 +902,13 @@ function showInlineActionForm(action: any) {
                 } else {
                     inputElement.type = 'text';
                 }
+                inputElement.dataset.argName = arg.name;
+                inputElement.id = `action-arg-${index}`;
+                argDiv.appendChild(label);
+                argDiv.appendChild(inputElement);
+                argDiv.appendChild(desc);
             }
             
-            inputElement.dataset.argName = arg.name;
-            inputElement.id = `action-arg-${index}`;
-
-            const desc = document.createElement('div');
-            desc.classList.add('arg-desc');
-            const argDesc = (typeof arg.desc === 'object')
-                ? (arg.desc[(window as any).LocalizationManager?.language || 'en'] || arg.desc['en'])
-                : arg.desc;
-            desc.textContent = argDesc;
-
-            argDiv.appendChild(label);
-            argDiv.appendChild(inputElement);
-            argDiv.appendChild(desc);
             argsContainer.appendChild(argDiv);
         });
     }
