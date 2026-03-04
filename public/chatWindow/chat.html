@@ -63,6 +63,18 @@
         <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
       </div>
     </div>
+    <div id="slash-command-container" class="slash-command-container" style="display: none;"></div>
+  </div>
+
+  <div id="action-modal" class="action-modal" style="display: none;">
+    <div class="action-modal-content">
+        <h3 id="action-modal-title"></h3>
+        <div id="action-modal-args"></div>
+        <div class="action-modal-buttons">
+            <button id="action-modal-cancel">Cancel</button>
+            <button id="action-modal-execute">Execute</button>
+        </div>
+    </div>
   </div>
   
   <script>require("../../dist/shared/LocalizationManager.js")</script>
