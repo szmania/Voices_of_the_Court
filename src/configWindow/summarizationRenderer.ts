@@ -132,7 +132,7 @@ async function initSummaryManager() {
         await loadSummaryData();
         setupEventListeners();
     } catch (error: any) {
-        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail') : 'Initialization failed: ';
+        const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail', 'Initialization failed: ') : 'Initialization failed: ';
         showStatusMessage(errorMsg + error.message, 'error');
         console.error('Initialization error:', error);
     }
@@ -175,7 +175,7 @@ async function loadSummaryData() {
 }
 
 function populateCharacterSelect() {
-    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters') : 'All Characters';
+    const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
     const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || 'Unknown'))];
     characterIds.forEach(characterId => {
@@ -220,7 +220,7 @@ function filterSummariesByCharacter() {
 function renderSummaryList() {
     summaryList.innerHTML = '';
     if (!filteredSummaries || filteredSummaries.length === 0) {
-        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data') : 'No summary data';
+        const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data', 'No summary data') : 'No summary data';
         summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
         return;
     }
