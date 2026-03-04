@@ -502,12 +502,21 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
+        
+        // Sanitize actions to remove non-serializable functions
+        const sanitizedActions = conversation.actions.map(action => ({
+            signature: action.signature,
+            args: action.args,
+            description: action.description,
+            creator: action.creator
+        }));
+
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
             narratives: Array.from(conversation.narratives.entries()),
             historicalMetadata: historicalMetadata,
-            actions: conversation.actions // Pass actions directly
+            actions: sanitizedActions // Pass sanitized actions
         };
         chatWindow.window.webContents.send('chat-start', payload);
         
