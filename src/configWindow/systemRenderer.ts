@@ -1,9 +1,14 @@
 import { ipcRenderer} from 'electron';
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
 
 let appVersionSpan: HTMLElement = document.querySelector("#app-version")!;
 let updateButton: HTMLElement = document.querySelector("#update-button")!;
 let clearSummariesButton: HTMLElement = document.querySelector("#clear-summaries")!;
 let themeSelector: HTMLSelectElement = document.querySelector("#theme-selector")!;
+let runPathButton: HTMLSelectElement = document.querySelector("#run-path-button")!;
+let runPathInput: HTMLSelectElement = document.querySelector("#run-path-input")!;
 
 
 document.getElementById("container")!.style.display = "block";
@@ -63,6 +68,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyTheme(savedTheme);
     
     const config = await ipcRenderer.invoke('get-config');
+
+    let userFolderPath = config!.userFolderPath;
+
+    if(userFolderPath){
+        runPathInput.value = userFolderPath;
+    }
+    else{
+        let defaultPath = path.join(os.homedir(), 'Documents', 'Paradox Interactive', 'Crusader Kings III');
+
+        if (fs.existsSync(defaultPath)) {
+            runPathInput.value = defaultPath;
+            config!.userFolderPath = defaultPath;
+            ipcRenderer.send('config-change', "userFolderPath", runPathInput.value);
+        }
+        
+    }
+
+    runPathInput.addEventListener("change", (e: any) => {
+        ipcRenderer.send('config-change', "userFolderPath", runPathInput.value);
+    });
+
+    runPathButton.addEventListener("click", async ()=>{
+        ipcRenderer.send('select-user-folder');
+    })
+
+    ipcRenderer.on('select-user-folder-success', (event, path) =>{
+        if(!path || path == "") return;
+
+        runPathInput.value = path;
+        ipcRenderer.send('config-change', "userFolderPath", runPathInput.value);
+    })
+    
     const lang = config.language || 'en';
     
     // @ts-ignore

@@ -9,7 +9,12 @@ module.exports = {
         en: `Executed when {{aiName}} and {{playerName}} agree to form an alliance.`,
         zh: `当{{aiName}}和{{playerName}}同意结成联盟时执行。`,
         ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются заключить союз.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent de former une alliance.`
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent de former une alliance.`,
+        es: `Ejecutado cuando {{aiName}} y {{playerName}} acuerdan formar una alianza.`,
+        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} sich einigen, ein Bündnis zu bilden.`,
+        ja: `{{aiName}}と{{playerName}}が同盟を結ぶことに同意したときに実行されます。`,
+        ko: `{{aiName}}와 {{playerName}}가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} zgadzają się na zawarcie sojuszu.`
     },
 	
 
@@ -62,7 +67,12 @@ module.exports = {
             en: `{{aiName}} and {{playerName}} formed an alliance.`,
             zh: `{{aiName}}和{{playerName}}结为同盟。`,
             ru: `{{aiName}} и {{playerName}} заключили союз.`,
-            fr: `{{aiName}} et {{playerName}} ont formé une alliance.`
+            fr: `{{aiName}} et {{playerName}} ont formé une alliance.`,
+            es: `{{aiName}} y {{playerName}} formaron una alianza.`,
+            de: `{{aiName}} und {{playerName}} haben ein Bündnis gebildet.`,
+            ja: `{{aiName}}と{{playerName}}は同盟を結びました。`,
+            ko: `{{aiName}}와 {{playerName}}가 동맹을 형성했습니다.`,
+            pl: `{{aiName}} i {{playerName}} zawarli sojusz.`
         };
     },
     chatMessageClass: "positive-action-message"

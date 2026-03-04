@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{aiName}} is explicitly imprisoned by {{playerName}}.`,
         zh: `当{{aiName}}被{{playerName}}明确监禁时执行`,
         ru: `Выполняется, когда {{aiName}} явно заключен в тюрьму {{playerName}}.`,
-        fr: `Exécuté lorsque {{aiName}} est explicitement emprisonné par {{playerName}}.`
+        fr: `Exécuté lorsque {{aiName}} est explicitement emprisonné par {{playerName}}.`,
+        es: `Ejecutado cuando {{aiName}} es explícitamente encarcelado por {{playerName}}.`,
+        de: `Wird ausgeführt, wenn {{aiName}} ausdrücklich von {{playerName}} eingekerkert wird.`,
+        ja: `{{aiName}}が{{playerName}}によって明示的に投獄されたときに実行されます。`,
+        ko: `{{aiName}}가 {{playerName}}에 의해 명시적으로 투옥되었을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} jest wyraźnie uwięziony przez {{playerName}}.`
     },
     
     check: (gameData) => {
@@ -112,21 +117,36 @@ module.exports = {
                     en: `{{aiName}} is under house arrest.`,
                     zh: `{{aiName}}被软禁。`,
                     ru: `{{aiName}} под домашним арестом.`,
-                    fr: `{{aiName}} est aux arrêts domiciliaires.`
+                    fr: `{{aiName}} est aux arrêts domiciliaires.`,
+                    es: `{{aiName}} está bajo arresto domiciliario.`,
+                    de: `{{aiName}} steht unter Hausarrest.`,
+                    ja: `{{aiName}}は自宅軟禁されています。`,
+                    ko: `{{aiName}}가 가택 연금 중입니다.`,
+                    pl: `{{aiName}} jest w areszcie domowym.`
                 };
             case 'dungeon':
                 return {
                     en: `{{aiName}} is thrown into the dungeon.`,
                     zh: `{{aiName}}被关进地牢。`,
                     ru: `{{aiName}} брошен в темницу.`,
-                    fr: `{{aiName}} est jeté au cachot.`
+                    fr: `{{aiName}} est jeté au cachot.`,
+                    es: `{{aiName}} es arrojado al calabozo.`,
+                    de: `{{aiName}} wurde in den Kerker geworfen.`,
+                    ja: `{{aiName}}は地下牢に投げ込まれました。`,
+                    ko: `{{aiName}}가 지하감옥에 던져졌습니다.`,
+                    pl: `{{aiName}} został rzucony do lochu.`
                 };
             default:
                 return {
                     en: `{{aiName}} is imprisoned.`,
                     zh: `{{aiName}}被监禁。`,
                     ru: `{{aiName}} заключен в тюрьму.`,
-                    fr: `{{aiName}} est emprisonné.`
+                    fr: `{{aiName}} est emprisonné.`,
+                    es: `{{aiName}} está encarcelado.`,
+                    de: `{{aiName}} ist eingekerkert.`,
+                    ja: `{{aiName}}は投獄されています。`,
+                    ko: `{{aiName}}가 투옥되었습니다.`,
+                    pl: `{{aiName}} jest uwięziony.`
                 };
         }
     },
