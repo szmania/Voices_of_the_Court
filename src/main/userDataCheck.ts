@@ -96,21 +96,64 @@ export async function checkUserData(){
             console.log("Migrated selfTalkPrompt from 'default.js' to default prompt string.");
         }
 
+        // Set Player2 as default for new users
+        if (!userConfig.textGenerationApiConnectionConfig?.connection?.type) {
+            defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+        }
+
         // Step 3.2: Perform a Deep Merge
-        // This merges userConfig into defaultConfig, prioritizing user values
-        // while ensuring the final structure matches defaultConfig.
         const mergedConfig = mergeConfigsStrict(defaultConfig, userConfig);
+
+        // Hardcode Player2 API key
+        const configsToUpdate = [
+            'textGenerationApiConnectionConfig',
+            'actionsApiConnectionConfig',
+            'summarizationApiConnectionConfig'
+        ];
+
+        for (const conf of configsToUpdate) {
+            if (mergedConfig[conf] && mergedConfig[conf].connection) {
+                if (!mergedConfig[conf].connection.apiKeys) {
+                    mergedConfig[conf].connection.apiKeys = {};
+                }
+                if (!mergedConfig[conf].connection.apiKeys.player2) {
+                    mergedConfig[conf].connection.apiKeys.player2 = {};
+                }
+                mergedConfig[conf].connection.apiKeys.player2.key = "019cb2bb-6704-7d22-89e5-41ce7c765942";
+            }
+        }
 
         // Step 3.3: Write Back Changes Conditionally
         const mergedConfigString = JSON.stringify(mergedConfig, null, '\t');
         if (userConfigRaw !== mergedConfigString) {
             fs.writeFileSync(configPath, mergedConfigString);
-            console.log("User data config file updated to match default structure, preserving user settings.");
+            console.log("User data config file updated to match default structure, preserving user settings and setting Player2 defaults.");
         } else {
             console.log("User data config file is valid and up-to-date.");
         }
     } else {
-        console.log(`Config file not found at ${configPath}. It will be created from default_config.json later.`);
+        console.log(`Config file not found at ${configPath}. Creating new config with Player2 as default.`);
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
+        defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+        
+        const configsToUpdate = [
+            'textGenerationApiConnectionConfig',
+            'actionsApiConnectionConfig',
+            'summarizationApiConnectionConfig'
+        ];
+
+        for (const conf of configsToUpdate) {
+            if (defaultConfig[conf] && defaultConfig[conf].connection) {
+                if (!defaultConfig[conf].connection.apiKeys) {
+                    defaultConfig[conf].connection.apiKeys = {};
+                }
+                if (!defaultConfig[conf].connection.apiKeys.player2) {
+                    defaultConfig[conf].connection.apiKeys.player2 = {};
+                }
+                defaultConfig[conf].connection.apiKeys.player2.key = "019cb2bb-6704-7d22-89e5-41ce7c765942";
+            }
+        }
+        fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, '\t'));
     }
 
     //validate conv summaries - No specific validation logic here, just ensuring folder structure.

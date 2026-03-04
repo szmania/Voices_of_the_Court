@@ -28,7 +28,8 @@
     "test_connection": "测试连接",
     "connection_valid": "连接有效！",
     "connection_valid_warning": "连接有效！警告：无法检测到上下文大小，将使用覆盖上下文大小！（即使已禁用！）",
-    "path_placeholder": "输入CK3用户文件夹路径..."
+    "path_placeholder": "输入CK3用户文件夹路径...",
+    "player2_info": "请从此链接下载Player2：<a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> 并在后台运行Player2。"
   },
   "api": {
     "openrouter": "OpenRouter",

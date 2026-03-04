@@ -28,7 +28,8 @@
     "test_connection": "Test Connection",
     "connection_valid": "Connection valid!",
     "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)",
-    "path_placeholder": "Enter CK3 user folder path..."
+    "path_placeholder": "Enter CK3 user folder path...",
+    "player2_info": "Download Player2 from this link: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> and run Player2 in the background."
   },
   "api": {
     "openrouter": "OpenRouter",
