@@ -8,7 +8,17 @@ module.exports = {
             name: "years",
             type: "number",
             min: 1,
-            desc: { en: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided.", zh: "必需参数。指定休战持续的年数。如果未提供，则默认为3年。" }
+            desc: { 
+                en: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided.",
+                zh: "必需参数。指定休战持续的年数。如果未提供，则默认为3年。",
+                ru: "Обязательный аргумент. Указывает количество лет, в течение которых действует перемирие. По умолчанию устанавливается 3 года, если не указано.",
+                fr: "Argument requis. Spécifie le nombre d'années pendant lesquelles la trêve dure. Par défaut, 3 ans si non fourni.",
+                es: "Argumento requerido. Especifica el número de años que dura la tregua. Por defecto, 3 años si no se proporciona.",
+                de: "Erforderliches Argument. Gibt die Anzahl der Jahre an, die der Waffenstillstand dauert. Standardmäßig 3 Jahre, wenn nicht angegeben.",
+                ja: "必須引数。休戦が続く年数を指定します。指定されない場合はデフォルトで3年になります。",
+                ko: "필수 인수. 휴전이 지속되는 년수를 지정합니다. 제공되지 않으면 기본값은 3년입니다.",
+                pl: "Wymagany argument. Określa liczbę lat, przez które trwa zawieszenie broni. Domyślnie 3 lata, jeśli nie podano."
+            }
         }
     ],
     description: {

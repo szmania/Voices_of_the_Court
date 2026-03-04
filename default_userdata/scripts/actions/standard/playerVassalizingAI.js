@@ -9,7 +9,17 @@ module.exports = {
             type: "number",
             min: -10,
             max: 10,
-            desc: { en: "Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}.", zh: "指定{{aiName}}对{{playerName}}的封臣化接受程度。正值表示{{aiName}}倾向于接受，负值表示倾向于拒绝。" }
+            desc: { 
+                en: "Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}.",
+                zh: "指定{{aiName}}对{{playerName}}的封臣化接受程度。正值表示{{aiName}}倾向于接受，负值表示倾向于拒绝。",
+                ru: "Определяет принятие вассализации {{aiName}} со стороны {{playerName}}. Положительные значения означают, что {{aiName}} склонен принимать вассализацию от {{playerName}}. Отрицательные значения означают, что {{aiName}} склонен отвергать вассализацию от {{playerName}}.",
+                fr: "Spécifie l'acceptation de la vassalisation de {{aiName}} par {{playerName}}. Les valeurs positives signifient que {{aiName}} tend à accepter la vassalisation par {{playerName}}. Les valeurs négatives signifient que {{aiName}} tend à rejeter la vassalisation par {{playerName}}.",
+                es: "Especifica la aceptación de la vasallización de {{aiName}} por {{playerName}}. Los valores positivos significan que {{aiName}} tiende a aceptar la vasallización por {{playerName}}. Los valores negativos significan que {{aiName}} tiende a rechazar la vasallización por {{playerName}}.",
+                de: "Gibt die Akzeptanz der Vasallisierung von {{aiName}} durch {{playerName}} an. Positive Werte bedeuten, dass {{aiName}} dazu neigt, die Vasallisierung durch {{playerName}} zu akzeptieren. Negative Werte bedeuten, dass {{aiName}} dazu neigt, die Vasallisierung durch {{playerName}} abzulehnen.",
+                ja: "{{aiName}}の{{playerName}}による封臣化の受容度を指定します。正の値は{{aiName}}が{{playerName}}による封臣化を受け入れる傾向があることを意味し、負の値は拒否する傾向があることを意味します。",
+                ko: "{{aiName}}의 {{playerName}}에 의한 봉신화 수용도를 지정합니다. 양수 값은 {{aiName}}가 {{playerName}}에 의한 봉신화를 수용하는 경향이 있음을 의미하고, 음수 값은 거부하는 경향이 있음을 의미합니다.",
+                pl: "Określa akceptację wasalizacji {{aiName}} przez {{playerName}}. Wartości dodatnie oznaczają, że {{aiName}} ma tendencję do akceptowania wasalizacji przez {{playerName}}. Wartości ujemne oznaczają, że {{aiName}} ma tendencję do odrzucania wasalizacji przez {{playerName}}."
+            }
         }
     ],
     description: {

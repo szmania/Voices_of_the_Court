@@ -7,7 +7,17 @@ module.exports = {
         {
             name: "isWillinglyConverted",
             type: "boolean",
-            desc: { en: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully", zh: "必需参数。如果{{aiName}}自愿皈依，则应为(true)，如果强制皈依，则为(false)" }
+            desc: { 
+                en: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully",
+                zh: "必需参数。如果{{aiName}}自愿皈依，则应为(true)，如果强制皈依，则为(false)",
+                ru: "обязательный аргумент. Должен быть равен (true), если {{aiName}} переходит добровольно, и (false), если принудительно",
+                fr: "argument requis. Doit être égal à (true) si {{aiName}} se convertit volontairement et à (false) si c'est par la force",
+                es: "argumento requerido. Debe ser igual a (true) si {{aiName}} se convierte voluntariamente y a (false) si es por la fuerza",
+                de: "erforderliches Argument. Sollte (true) sein, wenn {{aiName}} freiwillig konvertiert, und (false), wenn gewaltsam",
+                ja: "必須引数。{{aiName}}が自発的に改宗する場合は(true)、強制的な場合は(false)に等しくなければなりません",
+                ko: "필수 인수. {{aiName}}가 자발적으로 개종하면 (true), 강제로면 (false)와 같아야 합니다",
+                pl: "wymagany argument. Powinien być równy (true), jeśli {{aiName}} konwertuje dobrowolnie, i (false), jeśli siłą"
+            }
         }
     ],
     description: {

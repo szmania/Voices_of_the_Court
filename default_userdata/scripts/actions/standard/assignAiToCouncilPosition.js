@@ -19,16 +19,26 @@ module.exports = {
                 { value: 'steward', display: { en: 'Steward', zh: '财政总管', ru: 'Управляющий', fr: 'Intendant', es: 'Mayordomo', de: 'Verwalter', ja: '家令', ko: '재상', pl: 'Zarządca' }},
                 { value: 'spymaster', display: { en: 'Spymaster', zh: '间谍首脑', ru: 'Мастер шпионов', fr: 'Maître-espion', es: 'Maestro de espías', de: 'Spionagemeister', ja: '密偵頭', ko: '첩보관', pl: 'Mistrz szpiegów' }},
                 { value: 'marshal', display: { en: 'Marshal', zh: '军事统帅', ru: 'Маршал', fr: 'Maréchal', es: 'Mariscal', de: 'Marschall', ja: '元帥', ko: '원수', pl: 'Marszałek' }},
-                { value: 'chancellor', display: { en: 'Chief of Staff', zh: '长史' }},
-                { value: 'steward', display: { en: 'Household Manager', zh: '司户' }},
-                { value: 'marshal', display: { en: 'Master of Horse', zh: '司马' }},
-                { value: 'spymaster', display: { en: 'Investigator', zh: '察事' }},
-                { value: 'chancellor', display: { en: 'Prime Minister', zh: '宰相' }},
-                { value: 'steward', display: { en: 'Grand Treasurer', zh: '大司库' }},
-                { value: 'marshal', display: { en: 'Grand General', zh: '大将军' }},
-                { value: 'spymaster', display: { en: 'Grand Censor', zh: '大监察官' }}
+                { value: 'chancellor', display: { en: 'Chief of Staff', zh: '长史', ru: 'Начальник штаба', fr: 'Chef d\'état-major', es: 'Jefe de Estado Mayor', de: 'Stabschef', ja: '参謀長', ko: '참모총장', pl: 'Szef sztabu' }},
+                { value: 'steward', display: { en: 'Household Manager', zh: '司户', ru: 'Управляющий хозяйством', fr: 'Gestionnaire du ménage', es: 'Administrador del hogar', de: 'Haushaltsmanager', ja: '家政管理者', ko: '가정 관리자', pl: 'Zarządca gospodarstwa' }},
+                { value: 'marshal', display: { en: 'Master of Horse', zh: '司马', ru: 'Конюший', fr: 'Maître des chevaux', es: 'Maestro de caballos', de: 'Pferdemeister', ja: '馬術長', ko: '마술장', pl: 'Mistrz koni' }},
+                { value: 'spymaster', display: { en: 'Investigator', zh: '察事', ru: 'Следователь', fr: 'Enquêteur', es: 'Investigador', de: 'Ermittler', ja: '調査官', ko: '수사관', pl: 'Śledczy' }},
+                { value: 'chancellor', display: { en: 'Prime Minister', zh: '宰相', ru: 'Премьер-министр', fr: 'Premier ministre', es: 'Primer ministro', de: 'Premierminister', ja: '首相', ko: '총리', pl: 'Premier' }},
+                { value: 'steward', display: { en: 'Grand Treasurer', zh: '大司库', ru: 'Великий казначей', fr: 'Grand trésorier', es: 'Gran tesorero', de: 'Großschatzmeister', ja: '大蔵卿', ko: '대사고', pl: 'Wielki skarbnik' }},
+                { value: 'marshal', display: { en: 'Grand General', zh: '大将军', ru: 'Великий генерал', fr: 'Grand général', es: 'Gran general', de: 'Großgeneral', ja: '大将軍', ko: '대장군', pl: 'Wielki generał' }},
+                { value: 'spymaster', display: { en: 'Grand Censor', zh: '大监察官', ru: 'Великий цензор', fr: 'Grand censeur', es: 'Gran censor', de: 'Großzensor', ja: '大監察官', ko: '대감찰관', pl: 'Wielki cenzor' }}
             ],
-            desc: { en: "The council position to which {{playerName}} decides to appoint {{aiName}}.", zh: "{{playerName}}决定将{{aiName}}任命到内阁的职位。" }
+            desc: { 
+                en: "The council position to which {{playerName}} decides to appoint {{aiName}}.",
+                zh: "{{playerName}}决定将{{aiName}}任命到内阁的职位。",
+                ru: "Должность в совете, на которую {{playerName}} решает назначить {{aiName}}.",
+                fr: "Le poste au conseil auquel {{playerName}} décide de nommer {{aiName}}.",
+                es: "El puesto en el consejo al que {{playerName}} decide nombrar a {{aiName}}.",
+                de: "Der Ratsposten, zu dem {{playerName}} {{aiName}} ernennt.",
+                ja: "{{playerName}}が{{aiName}}を任命することを決めた評議会のポスト。",
+                ko: "{{playerName}}가 {{aiName}}를 임명하기로 결정한 의회 직책.",
+                pl: "Stanowisko w radzie, na które {{playerName}} decyduje się mianować {{aiName}}."
+            }
         }   
     ],
     description: {

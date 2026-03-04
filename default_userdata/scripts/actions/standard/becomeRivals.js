@@ -7,7 +7,17 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: { en: "the reason (the event) that made them become rivals with eachother. (write it in past tense).", zh: "让他们成为仇人的原因（事件）。（用过去时书写）" }
+            desc: { 
+                en: "the reason (the event) that made them become rivals with eachother. (write it in past tense).",
+                zh: "让他们成为仇人的原因（事件）。（用过去时书写）",
+                ru: "причина (событие), по которой они стали соперниками. (напишите в прошедшем времени).",
+                fr: "la raison (l'événement) qui les a fait devenir rivaux. (écrivez-le au passé).",
+                es: "la razón (el evento) que los hizo rivales. (escríbalo en tiempo pasado).",
+                de: "der Grund (das Ereignis), der sie zu Rivalen gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
+                ja: "彼らがライバルになった理由（出来事）。（過去形で書く）。",
+                ko: "그들이 라이벌이 된 이유(사건). (과거 시제로 작성).",
+                pl: "powód (wydarzenie), który sprawił, że zostali rywalami. (napisz w czasie przeszłym)."
+            }
         }
     ],
     description: {
