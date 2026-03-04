@@ -320,6 +320,7 @@ async function handlePresetChange() {
         deletePromptPresetBtn.style.opacity = '1';
         deletePromptPresetBtn.style.cursor = 'pointer';
     }
+    setSaveButtonState(false); // Reset on preset change
 }
 
 async function saveCurrentPreset() {
