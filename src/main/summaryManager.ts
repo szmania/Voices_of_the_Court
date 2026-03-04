@@ -1,3 +1,26 @@
+/**
+ * Gets all player IDs by scanning summary directories.
+ * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @returns A promise that resolves to an array of player ID strings.
+ */
+export async function getAllPlayerIds(userDataPath: string): Promise<string[]> {
+    try {
+        const summaryDir = path.join(userDataPath, 'conversation_summaries');
+        if (!fs.existsSync(summaryDir)) {
+            return []; // Return empty array if the base directory doesn't exist
+        }
+
+        const playerDirs = fs.readdirSync(summaryDir, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name);
+
+        return playerDirs;
+    } catch (error) {
+        console.error('Error getting all player IDs from summaries:', error);
+        throw error;
+    }
+}
+
 import fs from 'fs';
 import path from 'path';
 

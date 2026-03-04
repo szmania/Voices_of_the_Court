@@ -11,7 +11,7 @@ const useConnectionAPI: HTMLInputElement = document.querySelector<HTMLInputEleme
 const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
 
 // Summary Manager Elements
-const playerIdInput = document.getElementById('summary-manager-playerId') as HTMLInputElement;
+const playerIdSelect = document.getElementById('summary-manager-playerIdSelect') as HTMLSelectElement;
 const characterSelect = document.getElementById('summary-manager-characterSelect') as HTMLSelectElement;
 const summaryPathInput = document.getElementById('summary-manager-summaryPath') as HTMLInputElement;
 const summaryList = document.getElementById('summary-manager-summaryList') as HTMLDivElement;
@@ -32,7 +32,7 @@ const newSummaryBtn = document.getElementById('summary-manager-newSummaryBtn') a
 let allSummaries: any[] = [];
 let filteredSummaries: any[] = [];
 let currentSummaryIndex = -1;
-let playerId = '';
+let selectedPlayerId = '';
 let selectedCharacterId = 'all';
 let userDataPath = '';
 
@@ -129,7 +129,7 @@ function addExternalLinks() {
 async function initSummaryManager() {
     try {
         userDataPath = await ipcRenderer.invoke('get-userdata-path');
-        await loadSummaryData();
+        await loadPlayerIds(); // Load player IDs first
         setupEventListeners();
     } catch (error: any) {
         const errorMsg = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.load_fail', 'Initialization failed: ') : 'Initialization failed: ';
@@ -139,29 +139,65 @@ async function initSummaryManager() {
 }
 
 function setupEventListeners() {
-    refreshBtn.addEventListener('click', loadSummaryData);
+    refreshBtn.addEventListener('click', loadPlayerIds);
     saveBtn.addEventListener('click', saveSummaries);
     addSummaryBtn.addEventListener('click', addNewSummary);
     updateSummaryBtn.addEventListener('click', updateCurrentSummary);
     deleteSummaryBtn.addEventListener('click', deleteCurrentSummary);
     newSummaryBtn.addEventListener('click', resetEditor);
+    playerIdSelect.addEventListener('change', loadSummaryData);
     characterSelect.addEventListener('change', filterSummariesByCharacter);
+}
+
+async function loadPlayerIds() {
+    summaryLoader.style.display = 'block';
+    try {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_players', 'Loading player IDs...'), 'info');
+        const { success, ids, error } = await ipcRenderer.invoke('get-all-summary-player-ids');
+        if (!success) {
+            throw new Error(error || 'Unknown error');
+        }
+        
+        playerIdSelect.innerHTML = '';
+        if (ids && ids.length > 0) {
+            ids.forEach((id: string) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = id;
+                playerIdSelect.appendChild(option);
+            });
+            await loadSummaryData(); // Load data for the first player
+        } else {
+            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_players_found', 'No player summary directories found.'), 'info');
+            summaryList.innerHTML = '';
+            characterSelect.innerHTML = '';
+            allSummaries = [];
+            filteredSummaries = [];
+        }
+    } catch (error: any) {
+        const errorMsg = window.LocalizationManager.getTranslation('summary_manager.load_players_fail', 'Failed to load player IDs: ');
+        showStatusMessage(errorMsg + error.message, 'error');
+        console.error('Error loading player IDs:', error);
+    } finally {
+        summaryLoader.style.display = 'none';
+    }
 }
 
 async function loadSummaryData() {
     summaryLoader.style.display = 'block';
     summaryList.innerHTML = '';
+    selectedPlayerId = playerIdSelect.value;
+
+    if (!selectedPlayerId) {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_player_selected', 'No player selected.'), 'info');
+        summaryLoader.style.display = 'none';
+        return;
+    }
+
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
-        const { playerId: pId } = await ipcRenderer.invoke('get-summary-ids');
-        if (!pId) {
-            throw new Error(window.LocalizationManager.getTranslation('summary_manager.error_parsing_player_id', 'Could not parse player ID from game log'));
-        }
-        playerId = pId;
-        playerIdInput.value = playerId;
-        const summaryFilePath = `${userDataPath}/conversation_summaries/${playerId}/`;
-        summaryPathInput.value = summaryFilePath;
-        allSummaries = await ipcRenderer.invoke('read-summary-file', playerId);
+        
+        allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
         populateCharacterSelect();
         filterSummariesByCharacter();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
@@ -247,6 +283,12 @@ function selectSummary(index: number) {
     const summary = filteredSummaries[index];
     summaryDateInput.value = summary.date;
     summaryContentInput.value = summary.content;
+
+    // Update file path
+    const characterId = summary.characterId || 'Unknown';
+    const summaryFilePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
+    summaryPathInput.value = summaryFilePath.replace(/\\\\/g, '/'); // Normalize path separators
+
     document.querySelectorAll('.summary-item').forEach((item, i) => {
         if (i === index) {
             item.classList.add('selected');
@@ -309,15 +351,20 @@ function resetEditor() {
     currentSummaryIndex = -1;
     summaryDateInput.value = '';
     summaryContentInput.value = '';
+    summaryPathInput.value = ''; // Clear path
     document.querySelectorAll('.summary-item').forEach(item => {
         item.classList.remove('selected');
     });
 }
 
 async function saveSummaries() {
+    if (!selectedPlayerId) {
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_player_selected_save', 'No player selected. Cannot save.'), 'error');
+        return;
+    }
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
-        await ipcRenderer.invoke('save-summary-file', playerId, allSummaries);
+        await ipcRenderer.invoke('save-summary-file', selectedPlayerId, allSummaries);
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
     } catch (error: any) {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');

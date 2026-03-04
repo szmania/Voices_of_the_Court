@@ -11,7 +11,7 @@ import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message} from "./ts/conversation_interfaces.js";
 import path from 'path';
