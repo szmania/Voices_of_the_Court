@@ -1233,7 +1233,6 @@ ipcRenderer.on('historical-conversations-loading', (e, isLoading: boolean) =>{
 })
 
 // Initialize dragging
-const chatBox = document.querySelector('.chat-box') as HTMLElement;
 const dragHandle = document.querySelector('.drag-handle') as HTMLElement;
 if (chatBox && dragHandle) {
     makeDraggable(chatBox, dragHandle);
