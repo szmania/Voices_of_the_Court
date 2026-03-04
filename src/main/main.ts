@@ -789,6 +789,18 @@ ipcMain.handle('get-summary-ids', async () => {
     }
 });
 
+ipcMain.handle('get-all-summary-player-ids', async () => {
+    console.log('IPC: Received get-all-summary-player-ids event.');
+    try {
+        const ids = await getAllPlayerIds(userDataPath);
+        return { success: true, ids: ids };
+    } catch (error) {
+        console.error('Error getting all player IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
