@@ -2,62 +2,62 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 
-// 从debuglog解析玩家ID
+// Parse player ID from debug log
 export async function parseSummaryIdsFromLog(logFilePath: string): Promise<{playerId: string}> {
     try {
         if (!fs.existsSync(logFilePath)) {
-            throw new Error(`日志文件不存在: ${logFilePath}`);
+            throw new Error(`Log file does not exist: ${logFilePath}`);
         }
         
         const logContent = fs.readFileSync(logFilePath, 'utf8');
         const lines = logContent.split('\n').filter(line => line.trim());
         
-        // 查找最后一个包含VOTC:summay_manage的行
+        // Find the last line containing VOTC:summary_manager
         let summaryManageLine = '';
         for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].includes('VOTC:summay_manage')) {
+            if (lines[i].includes('VOTC:summary_manager')) {
                 summaryManageLine = lines[i];
                 break;
             }
         }
         
         if (!summaryManageLine) {
-            throw new Error('在日志中未找到VOTC:summay_manage行');
+            throw new Error('Could not find VOTC:summary_manager line in log');
         }
         
-        // 解析格式: VOTC:summay_manage/;/玩家ID/角色ID
+        // Parse format: VOTC:summary_manager/;/PlayerID/CharacterID
         const parts = summaryManageLine.split('/;/');
         if (parts.length < 2) {
-            throw new Error('VOTC:summay_manage行格式不正确');
+            throw new Error('VOTC:summary_manager line format is incorrect');
         }
         
         const playerId = parts[1].trim();
         
         if (!playerId) {
-            throw new Error('无法从VOTC:summay_manage行解析玩家ID');
+            throw new Error('Unable to parse player ID from VOTC:summary_manager line');
         }
         
         return { playerId };
     } catch (error) {
-        console.error('解析总结ID错误:', error);
+        console.error('Error parsing summary IDs:', error);
         throw error;
     }
 }
 
-// 读取总结文件
+// Read summary file
 export async function readSummaryFile(playerId: string): Promise<any[]> {
     try {
-        // 构建总结目录路径
+        // Build summary directory path
         const userDataPath = path.join(app.getPath("userData"), 'votc_data');
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
-        // 确保目录存在
+        // Ensure directory exists
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
             return [];
         }
         
-        // 读取目录中的所有JSON文件
+        // Read all JSON files in the directory
         const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json'));
         const allSummaries = [];
         
@@ -66,7 +66,7 @@ export async function readSummaryFile(playerId: string): Promise<any[]> {
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const summaries = JSON.parse(content);
-                // 为每个总结添加角色ID信息
+                // Add character ID info to each summary
                 const characterId = path.basename(file, '.json');
                 const summariesWithCharacterId = summaries.map((summary: any) => ({
                     ...summary,
@@ -74,35 +74,35 @@ export async function readSummaryFile(playerId: string): Promise<any[]> {
                 }));
                 allSummaries.push(...summariesWithCharacterId);
             } catch (error) {
-                console.error(`读取文件 ${filePath} 失败:`, error);
+                console.error(`Failed to read file ${filePath}:`, error);
             }
         }
         
-        // 按日期排序
+        // Sort by date
         allSummaries.sort((a, b) => {
             return new Date(b.date).getTime() - new Date(a.date).getTime();
         });
         
         return allSummaries;
     } catch (error) {
-        console.error('读取总结文件错误:', error);
+        console.error('Error reading summary file:', error);
         throw error;
     }
 }
 
-// 保存总结文件
+// Save summary file
 export async function saveSummaryFile(playerId: string, summaries: any[]): Promise<void> {
     try {
-        // 构建总结目录路径
+        // Build summary directory path
         const userDataPath = path.join(app.getPath("userData"), 'votc_data');
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
-        // 确保目录存在
+        // Ensure directory exists
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
         }
         
-        // 按角色ID分组总结
+        // Group summaries by character ID
         const summariesByCharacter: { [key: string]: any[] } = {};
         summaries.forEach(summary => {
             const characterId = summary.characterId || 'default';
@@ -112,21 +112,21 @@ export async function saveSummaryFile(playerId: string, summaries: any[]): Promi
             summariesByCharacter[characterId].push(summary);
         });
         
-        // 为每个角色创建单独的文件
+        // Create a separate file for each character
         for (const [characterId, characterSummaries] of Object.entries(summariesByCharacter)) {
             const summaryFilePath = path.join(summaryDir, `${characterId}.json`);
             
-            // 移除characterId字段，因为它已经体现在文件名中
+            // Remove characterId field as it is already in the filename
             const cleanSummaries = characterSummaries.map((summary: any) => {
                 const { characterId, ...cleanSummary } = summary;
                 return cleanSummary;
             });
             
-            // 写入文件
+            // Write to file
             fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\t'), 'utf8');
         }
     } catch (error) {
-        console.error('保存总结文件错误:', error);
+        console.error('Error saving summary file:', error);
         throw error;
     }
 }
