@@ -13,6 +13,23 @@ let suffixPromptTextarea: any = document.querySelector("#suffix-prompt-textarea"
 
 let restoreDefaultPromptsBtn: HTMLButtonElement = document.querySelector("#restore-default-prompts")!;
 
+// Preset elements
+let promptPresetSelect: HTMLSelectElement = document.querySelector("#prompt-preset-select")!;
+let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-prompt-preset")!;
+let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
+
+const promptKeys = [
+    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
+    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt"
+];
+
+let promptTextareas: { [key: string]: any } = {};
+promptKeys.forEach(key => {
+    promptTextareas[key] = document.querySelector(`config-textarea[confID="${key}"]`);
+});
+
+let promptPresets: any = {};
+
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -55,6 +72,9 @@ async function init(){
         applyTheme(savedTheme);
 
         let config = await ipcRenderer.invoke('get-config');
+        promptPresets = await ipcRenderer.invoke('get-prompt-presets');
+
+        populatePresetSelector(config.activePromptPreset);
         console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
         console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
@@ -106,6 +126,9 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
+        promptPresetSelect.addEventListener('change', handlePresetChange);
+        savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
+        deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
 
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
@@ -124,11 +147,7 @@ async function init(){
         });
 
         // 恢复默认prompts按钮事件
-        restoreDefaultPromptsBtn.addEventListener('click', async () => {
-            if (confirm('确定要将所有Prompt恢复为默认值吗？此操作不可撤销。')) {
-                await restoreDefaultPrompts();
-            }
-        });
+        restoreDefaultPromptsBtn.addEventListener('click', () => restoreDefaultPrompts(true));
     } catch (error) {
         console.error('Error in init:', error);
         alert('初始化配置页面时发生错误，请查看控制台日志。');
@@ -228,11 +247,103 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
     }
 }
 
+function populatePresetSelector(activePreset?: string) {
+    promptPresetSelect.innerHTML = '';
+
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = 'Default';
+    defaultOption.textContent = 'Default';
+    promptPresetSelect.appendChild(defaultOption);
+
+    // Add custom presets
+    for (const presetName in promptPresets) {
+        const option = document.createElement('option');
+        option.value = presetName;
+        option.textContent = presetName;
+        promptPresetSelect.appendChild(option);
+    }
+
+    promptPresetSelect.value = activePreset || 'Default';
+    handlePresetChange();
+}
+
+async function handlePresetChange() {
+    const selectedPresetName = promptPresetSelect.value;
+    console.log(`Preset changed to: ${selectedPresetName}`);
+
+    if (selectedPresetName === 'Default') {
+        await restoreDefaultPrompts(false); // Don't show confirmation
+    } else {
+        const preset = promptPresets[selectedPresetName];
+        if (preset) {
+            for (const key of promptKeys) {
+                if (promptTextareas[key] && preset[key] !== undefined) {
+                    promptTextareas[key].textarea.value = preset[key];
+                    // Manually trigger the input event to notify the component
+                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        }
+    }
+    
+    ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
+    deletePromptPresetBtn.disabled = (selectedPresetName === 'Default');
+}
+
+async function saveCurrentPreset() {
+    const presetName = prompt("Enter a name for the new preset:");
+    if (!presetName || presetName.trim() === "") {
+        return;
+    }
+    if (presetName === 'Default' || promptPresets[presetName]) {
+        alert('Preset name already exists or is reserved. Please choose another name.');
+        return;
+    }
+
+    const newPreset: any = {};
+    for (const key of promptKeys) {
+        newPreset[key] = promptTextareas[key].textarea.value;
+    }
+
+    promptPresets[presetName] = newPreset;
+    await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+    
+    populatePresetSelector(presetName);
+    alert(`Preset "${presetName}" saved successfully!`);
+}
+
+async function deleteSelectedPreset() {
+    const selectedPresetName = promptPresetSelect.value;
+    if (selectedPresetName === 'Default') {
+        alert("Cannot delete the Default preset.");
+        return;
+    }
+
+    if (confirm(`Are you sure you want to delete the preset "${selectedPresetName}"?`)) {
+        delete promptPresets[selectedPresetName];
+        await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+        populatePresetSelector('Default'); // Switch to default after deletion
+        alert(`Preset "${selectedPresetName}" deleted.`);
+    }
+}
+
+
 /**
  * 恢复所有prompt为默认值
  */
-async function restoreDefaultPrompts(): Promise<void> {
+async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
+        if (showConfirmation) {
+            const config = await ipcRenderer.invoke('get-config');
+            const confirmMsg = (config.language === 'zh') 
+                ? '确定要将所有Prompt恢复为默认值吗？此操作不可撤销。' 
+                : 'Are you sure you want to restore all prompts to their default values? This action cannot be undone.';
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        }
+
         console.log('Restoring default prompts...');
         
         const config = await ipcRenderer.invoke('get-config');
@@ -285,18 +396,21 @@ async function restoreDefaultPrompts(): Promise<void> {
         const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
         // 逐个恢复默认prompt
         for (const [key, value] of Object.entries(promptsToApply)) {
-            ipcRenderer.send('config-change', key, value);
-            console.log(`Restored ${key} to default value (${lang})`);
-            // 添加小延迟确保每个配置都能正确保存
-            await new Promise(resolve => setTimeout(resolve, 100));
+            if (promptTextareas[key]) {
+                promptTextareas[key].textarea.value = value;
+                // Manually trigger the input event to notify the component
+                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
         
         console.log('All prompts restored to default values successfully');
-        const successMsg = lang === 'zh' ? '所有Prompt已成功恢复为默认值！' : 'All prompts have been successfully restored to default values!';
-        alert(successMsg);
-        
-        // 刷新页面以显示新的值
-        location.reload();
+
+        if (showConfirmation) {
+            const successMsg = lang === 'zh' ? '所有Prompt已成功恢复为默认值！' : 'All prompts have been successfully restored to default values!';
+            alert(successMsg);
+            // 刷新页面以显示新的值
+            location.reload();
+        }
         
     } catch (error) {
         console.error('Error restoring default prompts:', error);

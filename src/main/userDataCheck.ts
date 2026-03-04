@@ -113,6 +113,14 @@ export async function checkUserData(){
         console.log(`Config file not found at ${configPath}. It will be created from default_config.json later.`);
     }
 
+    // Validate prompt_presets.json
+    const presetsPath = path.join(userPath, "configs", "prompt_presets.json");
+    console.log(`Validating prompt presets file at: ${presetsPath}`);
+    if (!existsSync(presetsPath)) {
+        fs.writeFileSync(presetsPath, JSON.stringify({}, null, '\t'));
+        console.log(`Created empty prompt presets file at: ${presetsPath}`);
+    }
+
     //validate conv summaries - No specific validation logic here, just ensuring folder structure.
     // This section doesn't perform file operations, so no new logs needed beyond existing ones in Conversation.ts
 
