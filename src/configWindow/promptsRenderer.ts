@@ -31,6 +31,17 @@ promptKeys.forEach(key => {
 
 let promptPresets: any = {};
 
+function setSaveButtonState(enabled: boolean) {
+    savePromptPresetBtn.disabled = !enabled;
+    if (savePromptPresetBtn.disabled) {
+        savePromptPresetBtn.style.opacity = '0.5';
+        savePromptPresetBtn.style.cursor = 'not-allowed';
+    } else {
+        savePromptPresetBtn.style.opacity = '1';
+        savePromptPresetBtn.style.cursor = 'pointer';
+    }
+}
+
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -68,6 +79,17 @@ ipcRenderer.on('update-language', async (event, lang) => {
 async function init(){
     try {
         addExternalLinks();
+        setSaveButtonState(false); // Initially disabled
+
+        const handleInputChange = () => setSaveButtonState(true);
+
+        promptPresetNameInput.addEventListener('input', handleInputChange);
+        promptKeys.forEach(key => {
+            if (promptTextareas[key] && promptTextareas[key].textarea) {
+                promptTextareas[key].textarea.addEventListener('input', handleInputChange);
+            }
+        });
+        
         // 应用初始主题
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
@@ -327,6 +349,7 @@ async function saveCurrentPreset() {
     
     populatePresetSelector(presetName);
     alert(`Preset "${presetName}" saved successfully!`);
+    setSaveButtonState(false);
 }
 
 async function deleteSelectedPreset() {
