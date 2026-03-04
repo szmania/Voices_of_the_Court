@@ -727,7 +727,9 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 //IPC Events
 
 function showSlashCommands(filter = '') {
+    console.log(`showSlashCommands called with filter: "${filter}". availableActions count: ${availableActions.length}`);
     const filteredActions = availableActions.filter(action => action.signature.toLowerCase().includes(filter.toLowerCase()));
+    console.log(`Found ${filteredActions.length} filtered actions.`);
     
     if (filteredActions.length === 0) {
         hideSlashCommands();
