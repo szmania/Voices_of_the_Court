@@ -39,9 +39,18 @@ let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
 let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display-wrapper')!;
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
+let slashCommandContainer: HTMLDivElement = document.querySelector('#slash-command-container')!;
+let actionModal: HTMLDivElement = document.querySelector('#action-modal')!;
+let actionModalTitle: HTMLElement = document.querySelector('#action-modal-title')!;
+let actionModalArgs: HTMLDivElement = document.querySelector('#action-modal-args')!;
+let actionModalExecute: HTMLButtonElement = document.querySelector('#action-modal-execute')!;
+let actionModalCancel: HTMLButtonElement = document.querySelector('#action-modal-cancel')!;
 let loadingDots: any;
 
 let contextLimit: number = 0;
+let availableActions: any[] = [];
+let currentSlashCommand = '';
+let selectedSlashCommandIndex = -1;
 
 let playerName: string;
 let aiName: string;
@@ -50,8 +59,16 @@ let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
+    const text = chatInput.value;
+    if (text.startsWith('/')) {
+        currentSlashCommand = text.substring(1);
+        showSlashCommands(currentSlashCommand);
+    } else {
+        hideSlashCommands();
+    }
+
     if (showTokenizerDisplay) {
-        updateTokenCount(chatInput.value);
+        updateTokenCount(text);
     }
 });
 let currentGameData: GameData | null = null; // Store current game data for scene/location and character list
@@ -81,6 +98,8 @@ async function initChat(){
         tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
+
+    ipcRenderer.send('get-actions-list');
 }
 
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
@@ -239,7 +258,48 @@ function updateTokenCount(text: string) {
         contextLimitElement.textContent = '/0';
     });
 }
-chatInput.addEventListener('keydown', async function(e) {    
+chatInput.addEventListener('keydown', async function(e) {
+    // Handle slash command navigation
+    if (slashCommandContainer.style.display === 'block') {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const items = slashCommandContainer.querySelectorAll('.slash-command-item');
+            if (selectedSlashCommandIndex < items.length - 1) {
+                selectedSlashCommandIndex++;
+                updateSelectedSlashCommand();
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (selectedSlashCommandIndex > 0) {
+                selectedSlashCommandIndex--;
+                updateSelectedSlashCommand();
+            }
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+            e.preventDefault();
+            const selectedItem = slashCommandContainer.querySelector('.slash-command-item.selected');
+            if (selectedItem) {
+                const signature = (selectedItem as HTMLElement).dataset.signature;
+                const action = availableActions.find(a => a.signature === signature);
+                if (action) {
+                    selectSlashCommand(action);
+                }
+            } else { // If no item is selected, select the first one
+                const firstItem = slashCommandContainer.querySelector('.slash-command-item');
+                if (firstItem) {
+                    const signature = (firstItem as HTMLElement).dataset.signature;
+                    const action = availableActions.find(a => a.signature === signature);
+                    if (action) {
+                        selectSlashCommand(action);
+                    }
+                }
+            }
+            return; // Prevent sending message
+        } else if (e.key === 'Escape') {
+            hideSlashCommands();
+            return;
+        }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const messageText = chatInput.value.trim();
@@ -666,6 +726,128 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
 //IPC Events
 
+function showSlashCommands(filter = '') {
+    const filteredActions = availableActions.filter(action => action.signature.toLowerCase().includes(filter.toLowerCase()));
+    
+    if (filteredActions.length === 0) {
+        hideSlashCommands();
+        return;
+    }
+
+    slashCommandContainer.innerHTML = '';
+    filteredActions.forEach((action, index) => {
+        const item = document.createElement('div');
+        item.classList.add('slash-command-item');
+        item.dataset.signature = action.signature;
+        
+        const signatureSpan = document.createElement('span');
+        signatureSpan.textContent = `/${action.signature}`;
+        
+        const descriptionSpan = document.createElement('span');
+        descriptionSpan.classList.add('description');
+        const desc = (typeof action.description === 'object') 
+            ? (action.description[(window as any).LocalizationManager?.language || 'en'] || action.description['en'])
+            : action.description;
+        descriptionSpan.textContent = desc.split('.')[0]; // Show first sentence of description
+
+        item.appendChild(signatureSpan);
+        item.appendChild(descriptionSpan);
+
+        item.addEventListener('click', () => {
+            selectSlashCommand(action);
+        });
+        slashCommandContainer.appendChild(item);
+    });
+
+    selectedSlashCommandIndex = -1;
+    slashCommandContainer.style.display = 'block';
+    updateSelectedSlashCommand();
+}
+
+function hideSlashCommands() {
+    slashCommandContainer.style.display = 'none';
+    currentSlashCommand = '';
+    selectedSlashCommandIndex = -1;
+}
+
+function updateSelectedSlashCommand() {
+    const items = slashCommandContainer.querySelectorAll('.slash-command-item');
+    items.forEach((item, index) => {
+        if (index === selectedSlashCommandIndex) {
+            item.classList.add('selected');
+            item.scrollIntoView({ block: 'nearest' });
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+function selectSlashCommand(action: any) {
+    hideSlashCommands();
+    chatInput.value = ''; // Clear the input
+    showActionModal(action);
+}
+
+function showActionModal(action: any) {
+    actionModalTitle.textContent = `/${action.signature}`;
+    actionModalArgs.innerHTML = '';
+
+    if (action.args.length === 0) {
+        const noArgsLabel = document.createElement('p');
+        noArgsLabel.textContent = 'This action takes no arguments.';
+        actionModalArgs.appendChild(noArgsLabel);
+    } else {
+        action.args.forEach((arg: any, index: number) => {
+            const argDiv = document.createElement('div');
+            argDiv.classList.add('action-modal-arg');
+
+            const label = document.createElement('label');
+            label.innerHTML = `${arg.name} <span class="arg-type">(${arg.type})</span>`;
+            
+            const input = document.createElement('input');
+            input.type = arg.type === 'number' ? 'number' : 'text';
+            input.dataset.argName = arg.name;
+            input.id = `action-arg-${index}`;
+
+            const desc = document.createElement('div');
+            desc.classList.add('arg-desc');
+            const argDesc = (typeof arg.desc === 'object') 
+                ? (arg.desc[(window as any).LocalizationManager?.language || 'en'] || arg.desc['en'])
+                : arg.desc;
+            desc.textContent = argDesc;
+
+            argDiv.appendChild(label);
+            argDiv.appendChild(input);
+            argDiv.appendChild(desc);
+            actionModalArgs.appendChild(argDiv);
+        });
+    }
+
+    actionModal.style.display = 'flex';
+
+    // Focus the first input if it exists
+    const firstInput = actionModalArgs.querySelector('input');
+    if (firstInput) {
+        firstInput.focus();
+    }
+
+    actionModalExecute.onclick = () => {
+        const args: string[] = [];
+        const inputs = actionModalArgs.querySelectorAll('input');
+        inputs.forEach(input => {
+            args.push((input as HTMLInputElement).value);
+        });
+        ipcRenderer.send('execute-action', action.signature, args);
+        hideActionModal();
+    };
+}
+
+function hideActionModal() {
+    actionModal.style.display = 'none';
+}
+
+actionModalCancel.onclick = hideActionModal;
+
 ipcRenderer.on('chat-show', () =>{
     document.body.style.display = '';
 })
@@ -884,6 +1066,11 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrative: string) =
     displayNarrative(narrative);
     removeLoadingDots();
 })
+
+ipcRenderer.on('actions-list-receive', (e, actions) => {
+    availableActions = actions;
+    console.log(`Received ${availableActions.length} available actions.`);
+});
 
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
