@@ -920,6 +920,13 @@ em{
     color: #cca43b;
 }
 
+.action-description {
+    font-size: 0.9rem;
+    color: #b0b0b0;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
 .inline-action-form .action-arg {
     margin-bottom: 10px;
 }

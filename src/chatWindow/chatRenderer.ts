@@ -800,6 +800,14 @@ function showInlineActionForm(action: any) {
     title.textContent = `/${action.signature}`;
     formContainer.appendChild(title);
 
+    const descriptionDiv = document.createElement('div');
+    descriptionDiv.classList.add('action-description');
+    const actionDesc = (typeof action.description === 'object')
+        ? (action.description[(window as any).LocalizationManager?.language || 'en'] || action.description['en'])
+        : action.description;
+    descriptionDiv.textContent = actionDesc;
+    formContainer.appendChild(descriptionDiv);
+
     // Add arguments
     const argsContainer = document.createElement('div');
     argsContainer.classList.add('action-args-container');
