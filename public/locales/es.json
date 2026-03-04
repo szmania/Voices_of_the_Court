@@ -71,6 +71,7 @@
     "select_preset": "Preajuste activo:",
     "save_preset_tooltip": "Guardar los prompts actuales como un nuevo preajuste",
     "delete_preset_tooltip": "Eliminar el preajuste seleccionado",
+    "preset_name_placeholder": "Nombre del preajuste...",
     "scripts_header": "Scripts",
     "scripts_tooltip": "Algunos prompts son demasiado avanzados para ser creados con textos estáticos; requieren archivos de script que escriban dinámicamente los prompts basados en las variables del juego.",
     "char_desc_script": "Script de descripción de personaje",

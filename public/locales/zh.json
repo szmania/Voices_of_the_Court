@@ -75,6 +75,7 @@
     "select_preset": "当前预设:",
     "save_preset_tooltip": "将当前提示词另存为新预设",
     "delete_preset_tooltip": "删除选定的预设",
+    "preset_name_placeholder": "预设名称...",
     "scripts_header": "脚本",
     "scripts_tooltip": "某些提示词过于先进，无法由静态文本组成，它们需要根据游戏内变量动态编写提示词的脚本文件。",
     "char_desc_script": "角色描述脚本",

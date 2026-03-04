@@ -73,6 +73,7 @@
     "select_preset": "Aktywny preset:",
     "save_preset_tooltip": "Zapisz bieżące prompty jako nowy preset",
     "delete_preset_tooltip": "Usuń wybrany preset",
+    "preset_name_placeholder": "Nazwa presetu...",
     "scripts_header": "Skrypty",
     "scripts_tooltip": "Niektóre prompty są zbyt zaawansowane dla tekstów statycznych; wymagają plików skryptów, które dynamicznie tworzą prompty na podstawie zmiennych w grze.",
     "char_desc_script": "Skrypt opisu postaci",

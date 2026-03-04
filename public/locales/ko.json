@@ -75,6 +75,7 @@
     "select_preset": "활성 프리셋:",
     "save_preset_tooltip": "현재 프롬프트를 새 프리셋으로 저장",
     "delete_preset_tooltip": "선택한 프리셋 삭제",
+    "preset_name_placeholder": "프리셋 이름...",
     "scripts_header": "스크립트",
     "scripts_tooltip": "일부 프롬프트는 정적 텍스트로 만들기에는 너무 고급이므로 게임 내 변수에 따라 프롬프트를 동적으로 작성하는 스크립트 파일이 필요합니다.",
     "char_desc_script": "캐릭터 설명 스크립트",

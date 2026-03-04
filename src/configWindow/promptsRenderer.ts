@@ -15,6 +15,7 @@ let restoreDefaultPromptsBtn: HTMLButtonElement = document.querySelector("#resto
 
 // Preset elements
 let promptPresetSelect: HTMLSelectElement = document.querySelector("#prompt-preset-select")!;
+let promptPresetNameInput: HTMLInputElement = document.querySelector("#prompt-preset-name-input")!;
 let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-prompt-preset")!;
 let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
 
@@ -271,10 +272,13 @@ function populatePresetSelector(activePreset?: string) {
 async function handlePresetChange() {
     const selectedPresetName = promptPresetSelect.value;
     console.log(`Preset changed to: ${selectedPresetName}`);
+    promptPresetNameInput.value = selectedPresetName;
 
     if (selectedPresetName === 'Default') {
+        promptPresetNameInput.disabled = true;
         await restoreDefaultPrompts(false); // Don't show confirmation
     } else {
+        promptPresetNameInput.disabled = false;
         const preset = promptPresets[selectedPresetName];
         if (preset) {
             for (const key of promptKeys) {
@@ -292,13 +296,20 @@ async function handlePresetChange() {
 }
 
 async function saveCurrentPreset() {
-    const presetName = prompt("Enter a name for the new preset:");
-    if (!presetName || presetName.trim() === "") {
+    const presetName = promptPresetNameInput.value.trim();
+    if (!presetName) {
+        alert("Preset name cannot be empty.");
         return;
     }
-    if (presetName === 'Default' || promptPresets[presetName]) {
-        alert('Preset name already exists or is reserved. Please choose another name.');
+    if (presetName === 'Default') {
+        alert('Cannot save with the name "Default". Please choose another name.');
         return;
+    }
+
+    if (promptPresets[presetName]) {
+        if (!confirm(`A preset named "${presetName}" already exists. Do you want to overwrite it?`)) {
+            return;
+        }
     }
 
     const newPreset: any = {};

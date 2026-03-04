@@ -75,6 +75,7 @@
     "select_preset": "アクティブなプリセット:",
     "save_preset_tooltip": "現在のプロンプトを新しいプリセットとして保存",
     "delete_preset_tooltip": "選択したプリセットを削除",
+    "preset_name_placeholder": "プリセット名...",
     "scripts_header": "スクリプト",
     "scripts_tooltip": "一部のプロンプトは静的なテキストで作成するには高度すぎるため、ゲーム内の変数に基づいてプロンプトを動的に書き込むスクリプトファイルが必要です。",
     "char_desc_script": "キャラクター説明スクリプト",

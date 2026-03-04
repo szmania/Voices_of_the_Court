@@ -75,6 +75,7 @@
     "select_preset": "Aktive Voreinstellung:",
     "save_preset_tooltip": "Aktuelle Prompts als neue Voreinstellung speichern",
     "delete_preset_tooltip": "Ausgewählte Voreinstellung löschen",
+    "preset_name_placeholder": "Voreinstellungsname...",
     "scripts_header": "Skripte",
     "scripts_tooltip": "Einige Prompts sind zu fortgeschritten für statische Texte; sie erfordern Skriptdateien, die die Prompts dynamisch basierend auf den Variablen im Spiel schreiben.",
     "char_desc_script": "Charakterbeschreibungs-Skript",
