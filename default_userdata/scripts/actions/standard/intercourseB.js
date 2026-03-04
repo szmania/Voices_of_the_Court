@@ -9,12 +9,12 @@ module.exports = {
         en: `Executed after two characters (other than {{playerName}}) have sexual intercourse. Can be consensual or forced.`,
         zh: `仅在除了{{playerName}}之外的{{character1Name}}和{{character2Name}}两人发生性关系后执行。行为可以是双方自愿的或强奸。`,
         ru: `Выполняется после того, как два персонажа (кроме {{playerName}}) вступают в половую связь. Может быть по обоюдному согласию или принудительно.`,
-    fr: `Exécuté après que deux personnages (autres que {{playerName}}) ont eu des rapports sexuels. Peut être consensuel ou forcé.`,
-    es: `Ejecutado después de que dos personajes (que no sean {{playerName}}) tengan relaciones sexuales. Puede ser consensual o forzado.`,
-    de: `Wird ausgeführt, nachdem zwei Charaktere (außer {{playerName}}) Geschlechtsverkehr hatten. Kann einvernehmlich oder gewaltsam sein.`,
-    ja: `{{playerName}}以外の2人のキャラクターが性的な交渉を持った後に実行されます。合意の上か強制的かもしれません。`,
-    ko: `{{playerName}} 이외의 두 캐릭터가 성관계를 가진 후에 실행됩니다. 합의하거나 강제일 수 있습니다.`,
-    pl: `Wykonywane po tym, jak dwie postacie (inne niż {{playerName}}) odbyły stosunek seksualny. Może być dobrowolny lub wymuszony.`
+        fr: `Exécuté après que deux personnages (autres que {{playerName}}) ont eu des rapports sexuels. Peut être consensuel ou forcé.`,
+        es: `Ejecutado después de que dos personajes (que no sean {{playerName}}) tengan relaciones sexuales. Puede ser consensual o forzado.`,
+        de: `Wird ausgeführt, nachdem zwei Charaktere (außer {{playerName}}) Geschlechtsverkehr hatten. Kann einvernehmlich oder gewaltsam sein.`,
+        ja: `{{playerName}}以外の2人のキャラクターが性的な交渉を持った後に実行されます。合意の上か強制的かもしれません。`,
+        ko: `{{playerName}} 이외의 두 캐릭터가 성관계를 가진 후에 실행됩니다. 합의하거나 강제일 수 있습니다.`,
+        pl: `Wykonywane po tym, jak dwie postacie (inne niż {{playerName}}) odbyły stosunek seksualny. Może być dobrowolny lub wymuszony.`
     },
 
     /**
