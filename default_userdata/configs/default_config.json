@@ -1,6 +1,7 @@
 {
 	"userFolderPath": "",
 	"language": "en",
+	"activePromptPreset": "Default",
 	"stream": false,
 	"maxTokens": 5000,
 	"maxMemoryTokens": 600,
