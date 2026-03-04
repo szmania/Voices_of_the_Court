@@ -209,7 +209,7 @@ function filterSummariesByCharacter() {
         const dateA = extractDate(a.date);
         const dateB = extractDate(b.date);
         if (dateB.year !== dateA.year) return dateB.year - dateA.year;
-        if (dateB.month !== dateA.month) return dateB.month - a.month;
+        if (dateB.month !== dateA.month) return dateB.month - dateA.month;
         return dateB.day - dateA.day;
     });
     currentSummaryIndex = -1;

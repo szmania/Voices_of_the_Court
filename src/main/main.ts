@@ -808,21 +808,13 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
             try {
                 const fileContent = fs.readFileSync(filePath, 'utf-8');
                 let summaries = JSON.parse(fileContent);
-                let fileModified = false;
 
                 if (Array.isArray(summaries)) {
                     summaries.forEach(summary => {
                         if (!summary.characterId) {
                             summary.characterId = characterId;
-                            fileModified = true;
                         }
                     });
-
-                    if (fileModified) {
-                        console.log(`Migrating summary file for character ${characterId}...`);
-                        fs.writeFileSync(filePath, JSON.stringify(summaries, null, '\t'));
-                        console.log(`Migration successful for ${characterId}.`);
-                    }
                     allSummaries.push(...summaries);
                 }
             } catch (err) {
