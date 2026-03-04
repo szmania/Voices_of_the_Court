@@ -9,11 +9,11 @@ module.exports = {
         zh: `当{{aiName}}自愿或被迫脱去衣服时执行。`,
         ru: `Выполняется, когда {{aiName}} раздевается, добровольно или принудительно.`,
         fr: `Exécuté lorsque {{aiName}} se déshabille, de plein gré ou par la force.`,
- es: `Ejecutado cuando {{aiName}} se desviste, voluntariamente o por la fuerza.`,
- de: `Wird ausgeführt, wenn {{aiName}} sich auszieht, freiwillig oder gewaltsam.`,
- ja: `{{aiName}}が服を脱いだときに実行されます。自発的または強制的に。`,
- ko: `{{aiName}}가 옷을 벗을 때 실행됩니다. 자발적이거나 강제로.`,
- pl: `Wykonywane, gdy {{aiName}} rozbiera się, dobrowolnie lub siłą.`,
+        es: `Ejecutado cuando {{aiName}} se desviste, voluntariamente o por la fuerza.`,
+        de: `Wird ausgeführt, wenn {{aiName}} sich auszieht, freiwillig oder gewaltsam.`,
+        ja: `{{aiName}}が服を脱いだときに実行されます。自発的または強制的に。`,
+        ko: `{{aiName}}가 옷을 벗을 때 실행됩니다. 자발적이거나 강제로.`,
+        pl: `Wykonywane, gdy {{aiName}} rozbiera się, dobrowolnie lub siłą.`,
     },
 
     /**
