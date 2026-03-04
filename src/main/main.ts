@@ -677,11 +677,6 @@ ipcMain.handle('get-userdata-path', () => {
     return path.join(app.getPath("userData"), 'votc_data')
 });
 
-ipcMain.handle('get-default-actions-path', () => {
-    console.log('IPC: Received get-default-actions-path event.');
-    return path.join(app.getAppPath(), 'default_userdata', 'scripts', 'actions');
-});
-
 
 const promptKeys = [
     'mainPrompt', 
