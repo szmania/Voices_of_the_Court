@@ -1,54 +1,55 @@
 import fs from 'fs';
 import path from 'path';
-import { app } from 'electron';
 
-// Parse player ID from debug log
-export async function parseSummaryIdsFromLog(logFilePath: string): Promise<{playerId: string}> {
+/**
+ * Gets the most recent player ID by scanning summary directories.
+ * This is determined by finding the most recently modified player directory.
+ * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @returns A promise that resolves to an object containing the player ID.
+ */
+export async function getPlayerId(userDataPath: string): Promise<{playerId: string}> {
     try {
-        if (!fs.existsSync(logFilePath)) {
-            throw new Error(`Log file does not exist: ${logFilePath}`);
+        const summaryDir = path.join(userDataPath, 'conversation_summaries');
+        if (!fs.existsSync(summaryDir)) {
+            throw new Error(`Conversation summaries directory not found at: ${summaryDir}`);
+        }
+
+        const playerDirs = fs.readdirSync(summaryDir, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => {
+                return {
+                    name: dirent.name,
+                    time: fs.statSync(path.join(summaryDir, dirent.name)).mtimeMs,
+                };
+            });
+
+        if (playerDirs.length === 0) {
+            throw new Error('No player summary directories found.');
+        }
+
+        // Sort by most recent modification time
+        playerDirs.sort((a, b) => b.time - a.time);
+        
+        const recentPlayerId = playerDirs[0].name;
+        if (!recentPlayerId) {
+            throw new Error('Could not determine the most recent player ID.');
         }
         
-        const logContent = fs.readFileSync(logFilePath, 'utf8');
-        const lines = logContent.split('\n').filter(line => line.trim());
-        
-        // Find the last line containing VOTC:summary_manager
-        let summaryManageLine = '';
-        for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].includes('VOTC:summary_manager')) {
-                summaryManageLine = lines[i];
-                break;
-            }
-        }
-        
-        if (!summaryManageLine) {
-            throw new Error('Could not find VOTC:summary_manager line in log');
-        }
-        
-        // Parse format: VOTC:summary_manager/;/PlayerID/CharacterID
-        const parts = summaryManageLine.split('/;/');
-        if (parts.length < 2) {
-            throw new Error('VOTC:summary_manager line format is incorrect');
-        }
-        
-        const playerId = parts[1].trim();
-        
-        if (!playerId) {
-            throw new Error('Unable to parse player ID from VOTC:summary_manager line');
-        }
-        
-        return { playerId };
+        return { playerId: recentPlayerId };
     } catch (error) {
-        console.error('Error parsing summary IDs:', error);
+        console.error('Error getting player ID from summaries:', error);
         throw error;
     }
 }
 
-// Read summary file
-export async function readSummaryFile(playerId: string): Promise<any[]> {
+/**
+ * Reads all summary files for a given player.
+ * @param userDataPath The path to the user data directory.
+ * @param playerId The ID of the player whose summaries to read.
+ * @returns A promise that resolves to an array of all summaries.
+ */
+export async function readSummaryFile(userDataPath: string, playerId: string): Promise<any[]> {
     try {
-        // Build summary directory path
-        const userDataPath = path.join(app.getPath("userData"), 'votc_data');
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
         // Ensure directory exists
@@ -90,11 +91,14 @@ export async function readSummaryFile(playerId: string): Promise<any[]> {
     }
 }
 
-// Save summary file
-export async function saveSummaryFile(playerId: string, summaries: any[]): Promise<void> {
+/**
+ * Saves summaries to their respective character files for a given player.
+ * @param userDataPath The path to the user data directory.
+ * @param playerId The ID of the player.
+ * @param summaries An array of all summaries to save.
+ */
+export async function saveSummaryFile(userDataPath: string, playerId: string, summaries: any[]): Promise<void> {
     try {
-        // Build summary directory path
-        const userDataPath = path.join(app.getPath("userData"), 'votc_data');
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
         // Ensure directory exists

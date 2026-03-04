@@ -780,12 +780,12 @@ ipcMain.on("open-folder", (event, path) => {
 ipcMain.handle('get-summary-ids', async () => {
     console.log('IPC: Received get-summary-ids event.');
     try {
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        const ids = await parseSummaryIdsFromLog(logFilePath);
+        const ids = await getPlayerId(userDataPath);
         return ids;
     } catch (error) {
         console.error('Error getting summary IDs:', error);
-        return { playerId: null };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { playerId: null, error: errorMessage };
     }
 });
 
