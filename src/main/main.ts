@@ -640,6 +640,13 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     
 });
 
+ipcMain.on('get-actions-list', (event) => {
+    console.log('IPC: Received get-actions-list event.');
+    if (conversation) {
+      event.sender.send('actions-list-receive', conversation.actions);
+    }
+});
+
     // 处理获取推荐输入语句的请求
     ipcMain.on('get-suggestions', async (event) => {
         if (conversation) {
@@ -665,6 +672,11 @@ ipcMain.handle('get-config', () => {
 ipcMain.handle('get-userdata-path', () => {
     console.log('IPC: Received get-userdata-path event.');
     return path.join(app.getPath("userData"), 'votc_data')
+});
+
+ipcMain.handle('get-default-actions-path', () => {
+    console.log('IPC: Received get-default-actions-path event.');
+    return path.join(app.getAppPath(), 'default_userdata', 'scripts', 'actions');
 });
 
 
