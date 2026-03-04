@@ -50,12 +50,12 @@ module.exports = {
             en: `{{aiName}} became your friend.`,
             zh: `{{aiName}}成为了你的朋友。`,
             ru: `{{aiName}} стал вашим другом.`,
-    fr: `{{aiName}} est devenu votre ami.`,
-    es: `{{aiName}} se convirtió en tu amigo.`,
-    de: `{{aiName}} ist dein Freund geworden.`,
-    ja: `{{aiName}}はあなたの友達になりました。`,
-    ko: `{{aiName}}가 당신의 친구가 되었습니다.`,
-    pl: `{{aiName}} stał się twoim przyjacielem.`
+            fr: `{{aiName}} est devenu votre ami.`,
+            es: `{{aiName}} se convirtió en tu amigo.`,
+            de: `{{aiName}} ist dein Freund geworden.`,
+            ja: `{{aiName}}はあなたの友達になりました。`,
+            ko: `{{aiName}}가 당신의 친구가 되었습니다.`,
+            pl: `{{aiName}} stał się twoim przyjacielem.`
         }
     },
     chatMessageClass: "positive-action-message"

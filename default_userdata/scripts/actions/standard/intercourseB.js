@@ -52,12 +52,12 @@ module.exports = {
             en: `{{character1Name}} and {{character2Name}} had intercourse.`,
             zh: `{{character1Name}}和{{character2Name}}共赴巫山`,
             ru: `{{character1Name}} и {{character2Name}} вступили в половую связь.`,
-    fr: `{{character1Name}} et {{character2Name}} ont eu des rapports sexuels.`,
-    es: `{{character1Name}} y {{character2Name}} tuvieron relaciones sexuales.`,
-    de: `{{character1Name}} und {{character2Name}} hatten Geschlechtsverkehr.`,
-    ja: `{{character1Name}}と{{character2Name}}は性的な交渉を持ちました。`,
-    ko: `{{character1Name}}와 {{character2Name}}가 성관계를 가졌습니다.`,
-    pl: `{{character1Name}} i {{character2Name}} odbyli stosunek seksualny.`
+            fr: `{{character1Name}} et {{character2Name}} ont eu des rapports sexuels.`,
+            es: `{{character1Name}} y {{character2Name}} tuvieron relaciones sexuales.`,
+            de: `{{character1Name}} und {{character2Name}} hatten Geschlechtsverkehr.`,
+            ja: `{{character1Name}}と{{character2Name}}は性的な交渉を持ちました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 성관계를 가졌습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} odbyli stosunek seksualny.`
         }
     },
     chatMessageClass: "neutral-action-message"

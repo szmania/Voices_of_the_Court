@@ -14,12 +14,12 @@ module.exports = {
         en: `Executed when {{aiName}} pays gold to {{playerName}}, willingly or forcefully, only if {{aiName}} has enough gold.`,
         zh: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
         ru: `Выполняется, когда {{aiName}} платит золото {{playerName}}, добровольно или принудительно, только если у {{aiName}} достаточно золота.`,
-    fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`,
-    es: `Ejecutado cuando {{aiName}} paga oro a {{playerName}}, voluntariamente o por la fuerza, solo si {{aiName}} tiene suficiente oro.`,
-    de: `Wird ausgeführt, wenn {{aiName}} {{playerName}} Gold zahlt, freiwillig oder gewaltsam, nur wenn {{aiName}} genug Gold hat.`,
-    ja: `{{aiName}}が{{playerName}}にゴールドを支払うときに実行されます。自発的または強制的に。{{aiName}}に十分なゴールドがある場合のみ。`,
-    ko: `{{aiName}}가 {{playerName}}에게 골드를 지불할 때 실행됩니다. 자발적이거나 강제로. {{aiName}}에게 충분한 골드가 있는 경우에만.`,
-    pl: `Wykonywane, gdy {{aiName}} płaci złoto {{playerName}}, dobrowolnie lub siłą, tylko jeśli {{aiName}} ma wystarczająco złota.`
+        fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`,
+        es: `Ejecutado cuando {{aiName}} paga oro a {{playerName}}, voluntariamente o por la fuerza, solo si {{aiName}} tiene suficiente oro.`,
+        de: `Wird ausgeführt, wenn {{aiName}} {{playerName}} Gold zahlt, freiwillig oder gewaltsam, nur wenn {{aiName}} genug Gold hat.`,
+        ja: `{{aiName}}が{{playerName}}にゴールドを支払うときに実行されます。自発的または強制的に。{{aiName}}に十分なゴールドがある場合のみ。`,
+        ko: `{{aiName}}가 {{playerName}}에게 골드를 지불할 때 실행됩니다. 자발적이거나 강제로. {{aiName}}에게 충분한 골드가 있는 경우에만.`,
+        pl: `Wykonywane, gdy {{aiName}} płaci złoto {{playerName}}, dobrowolnie lub siłą, tylko jeśli {{aiName}} ma wystarczająco złota.`
     },
     
     /**

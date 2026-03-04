@@ -8,12 +8,12 @@ module.exports = {
         en: `Executed when {{aiName}} feels sad.`,
         zh: `当{{aiName}}感到悲伤时执行。`,
         ru: `Выполняется, когда {{aiName}} чувствует грусть.`,
-    fr: `Exécuté lorsque {{aiName}} se sent triste.`,
-    es: `Ejecutado cuando {{aiName}} se siente triste.`,
-    de: `Wird ausgeführt, wenn {{aiName}} sich traurig fühlt.`,
-    ja: `{{aiName}}が悲しいと感じたときに実行されます。`,
-    ko: `{{aiName}}가 슬픔을 느낄 때 실행됩니다.`,
-    pl: `Wykonywane, gdy {{aiName}} czuje się smutny.`
+        fr: `Exécuté lorsque {{aiName}} se sent triste.`,
+        es: `Ejecutado cuando {{aiName}} se siente triste.`,
+        de: `Wird ausgeführt, wenn {{aiName}} sich traurig fühlt.`,
+        ja: `{{aiName}}が悲しいと感じたときに実行されます。`,
+        ko: `{{aiName}}가 슬픔을 느낄 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} czuje się smutny.`
     },
 
     /**

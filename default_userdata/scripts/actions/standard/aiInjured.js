@@ -14,12 +14,12 @@ module.exports = {
         en: `Executed when {{playerName}} injures {{aiName}} in various ways based on the injuryType parameter.`,
         zh: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
         ru: `Выполняется, когда {{playerName}} наносит увечья {{aiName}} различными способами в зависимости от параметра injuryType.`,
-    fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`,
-    es: `Ejecutado cuando {{playerName}} hiere a {{aiName}} de diversas maneras según el parámetro injuryType.`,
-    de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
-    ja: `{{playerName}}がinjuryTypeパラメータに基づいて様々な方法で{{aiName}}を傷つけたときに実行されます。`,
-    ko: `{{playerName}}가 injuryType 매개변수에 따라 다양한 방법으로 {{aiName}}를 다칠 때 실행됩니다.`,
-    pl: `Wykonywane, gdy {{playerName}} rani {{aiName}} na różne sposoby w zależności od parametru injuryType.`
+        fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`,
+        es: `Ejecutado cuando {{playerName}} hiere a {{aiName}} de diversas maneras según el parámetro injuryType.`,
+        de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
+        ja: `{{playerName}}がinjuryTypeパラメータに基づいて様々な方法で{{aiName}}を傷つけたときに実行されます。`,
+        ko: `{{playerName}}가 injuryType 매개변수에 따라 다양한 방법으로 {{aiName}}를 다칠 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{playerName}} rani {{aiName}} na różne sposoby w zależności od parametru injuryType.`
     },
     
     check: (gameData) => {

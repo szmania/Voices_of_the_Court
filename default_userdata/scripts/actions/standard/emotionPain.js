@@ -8,12 +8,12 @@ module.exports = {
         en: `Executed when {{aiName}} feels pain or is hurt.`,
         zh: `当{{aiName}}感到痛苦或受伤时执行。`,
         ru: `Выполняется, когда {{aiName}} чувствует боль или ранен.`,
-    fr: `Exécuté lorsque {{aiName}} ressent de la douleur ou est blessé.`,
-    es: `Ejecutado cuando {{aiName}} siente dolor o está herido.`,
-    de: `Wird ausgeführt, wenn {{aiName}} Schmerzen empfindet oder verletzt ist.`,
-    ja: `{{aiName}}が痛みを感じたり、傷ついたときに実行されます。`,
-    ko: `{{aiName}}가 고통을 느끼거나 다쳤을 때 실행됩니다.`,
-    pl: `Wykonywane, gdy {{aiName}} czuje ból lub jest ranny.`
+        fr: `Exécuté lorsque {{aiName}} ressent de la douleur ou est blessé.`,
+        es: `Ejecutado cuando {{aiName}} siente dolor o está herido.`,
+        de: `Wird ausgeführt, wenn {{aiName}} Schmerzen empfindet oder verletzt ist.`,
+        ja: `{{aiName}}が痛みを感じたり、傷ついたときに実行されます。`,
+        ko: `{{aiName}}가 고통을 느끼거나 다쳤을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} czuje ból lub jest ranny.`
     },
 
     /**

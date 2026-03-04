@@ -43,7 +43,12 @@ module.exports = {
             en: `{{aiName}} undressed.`,
             zh: `{{aiName}}脱去了衣服`,
             ru: `{{aiName}} разделся.`,
-            fr: `{{aiName}} s'est déshabillé.`
+            fr: `{{aiName}} s'est déshabillé.`,
+            es: `{{aiName}} se desvistió.`,
+            de: `{{aiName}} hat sich ausgezogen.`,
+            ja: `{{aiName}}は服を脱ぎました。`,
+            ko: `{{aiName}}가 옷을 벗었습니다.`,
+            pl: `{{aiName}} rozebrał się.`,
         }
     },
     chatMessageClass: "neutral-action-message"

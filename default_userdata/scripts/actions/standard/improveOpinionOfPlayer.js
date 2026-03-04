@@ -83,12 +83,12 @@ module.exports = {
             en: `{{aiName}}'s opinion of you increased by ${args[0]}.`,
             zh: `{{aiName}}对你的好感度提高了${args[0]}。`,
             ru: `Мнение {{aiName}} о вас улучшилось на ${args[0]}.`,
-    fr: `L'opinion de {{aiName}} à votre égard a augmenté de ${args[0]}.`,
-    es: `La opinión de {{aiName}} sobre ti aumentó en ${args[0]}.`,
-    de: `Die Meinung von {{aiName}} über dich hat sich um ${args[0]} verbessert.`,
-    ja: `{{aiName}}のあなたに対する評価が${args[0]}上昇しました。`,
-    ko: `{{aiName}}의 당신에 대한 평가가 ${args[0]} 상승했습니다.`,
-    pl: `Opinia {{aiName}} o tobie wzrosła o ${args[0]}.`
+            fr: `L'opinion de {{aiName}} à votre égard a augmenté de ${args[0]}.`,
+            es: `La opinión de {{aiName}} sobre ti aumentó en ${args[0]}.`,
+            de: `Die Meinung von {{aiName}} über dich hat sich um ${args[0]} verbessert.`,
+            ja: `{{aiName}}のあなたに対する評価が${args[0]}上昇しました。`,
+            ko: `{{aiName}}의 당신에 대한 평가가 ${args[0]} 상승했습니다.`,
+            pl: `Opinia {{aiName}} o tobie wzrosła o ${args[0]}.`
         }
     },
     chatMessageClass: "positive-action-message"

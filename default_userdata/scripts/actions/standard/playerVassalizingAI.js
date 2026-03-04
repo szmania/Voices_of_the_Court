@@ -14,7 +14,12 @@ module.exports = {
         en: `Executed when {{aiName}} and {{playerName}} discuss vassalization or its terms.`,
         zh: `当{{aiName}}和{{playerName}}讨论{{playerName}}将{{aiName}}封臣化或其条款时执行。`,
         ru: `Выполняется, когда {{aiName}} и {{playerName}} обсуждают вассализацию или ее условия.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} discutent de la vassalisation ou de ses conditions.`
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} discutent de la vassalisation ou de ses conditions.`,
+        es: `Ejecutado cuando {{aiName}} y {{playerName}} discuten la vasallización o sus términos.`,
+        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} die Vasallisierung oder ihre Bedingungen diskutieren.`,
+        ja: `{{aiName}}と{{playerName}}が封臣化またはその条件について議論するときに実行されます。`,
+        ko: `{{aiName}}와 {{playerName}}가 봉신화 또는 그 조건에 대해 논의할 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} dyskutują o wasalizacji lub jej warunkach.`,
     },
     
     /**
@@ -113,7 +118,12 @@ module.exports = {
                 en: `{{aiName}} agreed to become {{playerName}}'s vassal.`,
                 zh: `{{aiName}}同意成为{{playerName}}的封臣。`,
                 ru: `{{aiName}} согласился стать вассалом {{playerName}}.`,
-                fr: `{{aiName}} a accepté de devenir le vassal de {{playerName}}.`
+                fr: `{{aiName}} a accepté de devenir le vassal de {{playerName}}.`,
+                es: `{{aiName}} acordó convertirse en vasallo de {{playerName}}.`,
+                de: `{{aiName}} hat zugestimmt, Vasall von {{playerName}} zu werden.`,
+                ja: `{{aiName}}は{{playerName}}の封臣になることに同意しました。`,
+                ko: `{{aiName}}가 {{playerName}}의 봉신이 되는 데 동의했습니다.`,
+                pl: `{{aiName}} zgodził się zostać wasalem {{playerName}}.`,
             };
         } else {
             console.log(`PVAIchat: else`)
@@ -121,7 +131,12 @@ module.exports = {
                 en: `Acceptance score: ${aiScore} | Vassalization if >30, breakdown if <-20`,
                 zh: `接受分数：${aiScore} | 如果分数>30则封臣化，如果分数<-20则谈判破裂`,
                 ru: `Очки принятия: ${aiScore} | Вассализация если >30, провал если <-20`,
-                fr: `Score d'acceptation : ${aiScore} | Vassalisation si >30, rupture si <-20`
+                fr: `Score d'acceptation : ${aiScore} | Vassalisation si >30, rupture si <-20`,
+                es: `Puntuación de aceptación: ${aiScore} | Vasallización si >30, ruptura si <-20`,
+                de: `Akzeptanzwert: ${aiScore} | Vasallisierung wenn >30, Abbruch wenn <-20`,
+                ja: `受容スコア: ${aiScore} | 封臣化は>30の場合、交渉決裂は<-20の場合`,
+                ko: `수용 점수: ${aiScore} | 봉신화는 >30일 경우, 협상 결렬은 <-20일 경우`,
+                pl: `Wynik akceptacji: ${aiScore} | Wasalizacja jeśli >30, załamanie jeśli <-20`,
             };
         }
     },
