@@ -86,6 +86,8 @@ async function init(){
         promptPresetNameInput.addEventListener('input', handleInputChange);
         promptKeys.forEach(key => {
             if (promptTextareas[key] && promptTextareas[key].textarea) {
+                // Ensure all prompt textareas are editable
+                promptTextareas[key].textarea.disabled = false;
                 promptTextareas[key].textarea.addEventListener('input', handleInputChange);
             }
         });
