@@ -275,10 +275,8 @@ async function handlePresetChange() {
     promptPresetNameInput.value = selectedPresetName;
 
     if (selectedPresetName === 'Default') {
-        promptPresetNameInput.disabled = true;
         await restoreDefaultPrompts(false); // Don't show confirmation
     } else {
-        promptPresetNameInput.disabled = false;
         const preset = promptPresets[selectedPresetName];
         if (preset) {
             for (const key of promptKeys) {
@@ -306,7 +304,7 @@ async function saveCurrentPreset() {
         return;
     }
 
-    if (promptPresets[presetName]) {
+    if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
         if (!confirm(`A preset named "${presetName}" already exists. Do you want to overwrite it?`)) {
             return;
         }
