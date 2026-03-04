@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "isWillinglyConverted",
             type: "boolean",
-            desc: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully"
+            desc: { en: "required argument. Should be equal to (true) if {{aiName}} converts willingly and to (false) if forcefully", zh: "必需参数。如果{{aiName}}自愿皈依，则应为(true)，如果强制皈依，则为(false)" }
         }
     ],
     description: {

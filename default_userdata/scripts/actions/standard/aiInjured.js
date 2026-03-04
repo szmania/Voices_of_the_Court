@@ -15,7 +15,7 @@ module.exports = {
                 { value: 'cut_balls', display: { en: 'Castrate', zh: '阉割', ru: 'Кастрировать', fr: 'Castrer', es: 'Castrar', de: 'Kastrieren' }},
                 { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen' }}
             ],
-            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}."
+            desc: { en: "Type of injury inflicted on {{aiName}} by {{playerName}}.", zh: "{{playerName}}对{{aiName}}造成的伤害类型。" }
         }
     ],
     description: {

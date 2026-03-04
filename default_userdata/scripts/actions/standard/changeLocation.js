@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "location",
             type: "string",
-            desc: "the new location where {{aiName}} moves to"
+            desc: { en: "the new location where {{aiName}} moves to", zh: "{{aiName}}移动到的新位置" }
         }
     ],
     description: {

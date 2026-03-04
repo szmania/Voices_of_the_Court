@@ -8,7 +8,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: "the amount of gold {{playerName}}'treasury gets, should be always positive"
+            desc: { en: "the amount of gold {{playerName}}'s treasury gets, should be always positive", zh: "{{playerName}}的国库获得的金币数量，应始终为正数" }
         }
     ],
     description: {

@@ -28,7 +28,7 @@ module.exports = {
                 { value: 'marshal', display: { en: 'Grand General', zh: '大将军' }},
                 { value: 'spymaster', display: { en: 'Grand Censor', zh: '大监察官' }}
             ],
-            desc: "{{playerName}}决定将{{aiName}}任命到内阁的职位。"
+            desc: { en: "The council position to which {{playerName}} decides to appoint {{aiName}}.", zh: "{{playerName}}决定将{{aiName}}任命到内阁的职位。" }
         }   
     ],
     description: {

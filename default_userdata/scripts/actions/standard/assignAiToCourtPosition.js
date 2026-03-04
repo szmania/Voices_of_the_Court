@@ -15,7 +15,7 @@ module.exports = {
             name: "court_position",
             type: "string",
             options: ["御医", "天鹅官", "旅行领队", "马厩总管", "宫廷小丑", "狩猎主管", "大施赈官", "执杯官", "总管", "古物收藏家", "导师", "建筑师", "宫廷诗人", "侍卫", "宫廷冠军", "音乐家", "试食官", "侍女", "首席太监", "宫廷园丁", "大法官", "乳母", "侍从官"],
-            desc: "{{playerName}}决定将{{aiName}}分配到宫廷的职位。"
+            desc: { en: "The court position to which {{playerName}} decides to assign {{aiName}}.", zh: "{{playerName}}决定将{{aiName}}分配到宫廷的职位。" }
         } 
     ],
     description: {

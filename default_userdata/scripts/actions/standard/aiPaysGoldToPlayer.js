@@ -8,7 +8,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
+            desc: { en: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive", zh: "{{aiName}}支付给{{playerName}}的金币数量，应始终为正数" }
         }
     ],
     description: {

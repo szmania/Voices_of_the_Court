@@ -874,17 +874,13 @@ em{
 
 /* Slash Command Autocomplete */
 .slash-command-container {
-    position: absolute;
-    bottom: 130px; /* Adjust based on input height */
-    left: 15px;
-    width: calc(100% - 30px);
+    background: #222;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    margin: 10px;
+    padding: 5px;
     max-height: 200px;
     overflow-y: auto;
-    background: #2b2b2b;
-    border: 1px solid #cca43b;
-    border-radius: 2px;
-    z-index: 400;
-    box-shadow: 0 -4px 8px rgba(0,0,0,0.5);
 }
 
 .slash-command-item {
@@ -910,103 +906,51 @@ em{
     margin-left: 10px;
 }
 
-/* Action Modal */
-.action-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.action-modal-content {
-    background: #1a1a1a;
-    padding: 20px;
+/* Inline Action Form */
+.inline-action-form {
+    background-color: rgba(10, 10, 10, 0.5);
+    border: 1px solid #cca43b;
     border-radius: 4px;
-    border: 2px solid #5a4a35;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    padding: 15px;
+    margin: 10px;
 }
 
-.action-modal-content h3 {
+.inline-action-form h3 {
     margin-top: 0;
     color: #cca43b;
-    font-family: 'Gitan', sans-serif;
 }
 
-.action-modal-arg {
-    margin-bottom: 15px;
+.inline-action-form .action-arg {
+    margin-bottom: 10px;
 }
 
-.action-modal-arg label {
+.inline-action-form label {
     display: block;
     margin-bottom: 5px;
-    color: #e0e0e0;
-    font-family: 'Gitan', sans-serif;
 }
 
-.action-modal-arg label .arg-type {
-    font-style: italic;
-    color: #a0a0a0;
-    font-size: 0.9rem;
-}
-
-.action-modal-arg input {
+.inline-action-form input, .inline-action-form select {
     width: 100%;
     padding: 8px;
     background: #2b2b2b;
     border: 1px solid #5a4a35;
     color: #e0e0e0;
     border-radius: 2px;
-    box-sizing: border-box;
 }
 
-.action-modal-arg .arg-desc {
+.inline-action-form .arg-desc {
     font-size: 0.8rem;
     color: #a0a0a0;
-    margin-top: 5px;
+    margin-top: 3px;
 }
 
-.action-modal-buttons {
+.inline-action-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
-.action-modal-buttons button {
-    padding: 8px 15px;
-    border-radius: 2px;
-    cursor: pointer;
-    font-family: 'Gitan', sans-serif;
-    transition: all 0.2s;
-}
-
-#action-modal-execute {
-    background: #523e1a;
-    color: #e0e0e0;
-    border: 1px solid #706b2a;
-}
-
-#action-modal-execute:hover {
-    background: #6a5022;
-}
-
-#action-modal-cancel {
-    background: #4a4a4a;
-    color: #e0e0e0;
-    border: 1px solid #666;
-}
-
-#action-modal-cancel:hover {
-    background: #5a5a5a;
-}
 
 /* External links in config window navbar */
 .social-links {

@@ -12,7 +12,7 @@ module.exports = {
                 { value: 'house_arrest', display: { en: 'House Arrest', zh: '软禁', ru: 'Домашний арест', fr: 'Assignation à résidence', es: 'Arresto domiciliario', de: 'Hausarrest' }},
                 { value: 'dungeon', display: { en: 'Dungeon', zh: '地牢', ru: 'Темница', fr: 'Donjon', es: 'Calabozo', de: 'Kerker' }}
             ],
-            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type).`,
+            desc: { en: "type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type).", zh: "{{playerName}}将{{aiName}}送往的监狱类型（必须明确提及类型）。" },
         }
     ],
     description: {

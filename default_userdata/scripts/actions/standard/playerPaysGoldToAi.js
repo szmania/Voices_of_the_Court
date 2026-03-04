@@ -8,7 +8,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: "the amount of gold {{playerName}} pays to {{aiName}}"
+            desc: { en: "the amount of gold {{playerName}} pays to {{aiName}}", zh: "{{playerName}}支付给{{aiName}}的金币数量" }
         }
     ],
     description: {

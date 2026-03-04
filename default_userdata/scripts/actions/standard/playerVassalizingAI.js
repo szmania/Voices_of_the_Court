@@ -9,7 +9,7 @@ module.exports = {
             type: "number",
             min: -10,
             max: 10,
-            desc: "Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}."
+            desc: { en: "Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}.", zh: "指定{{aiName}}对{{playerName}}的封臣化接受程度。正值表示{{aiName}}倾向于接受，负值表示倾向于拒绝。" }
         }
     ],
     description: {

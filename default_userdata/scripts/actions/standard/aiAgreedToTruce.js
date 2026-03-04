@@ -8,7 +8,7 @@ module.exports = {
             name: "years",
             type: "number",
             min: 1,
-            desc: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided."
+            desc: { en: "Required argument. Specifies the number of years the truce lasts. Set 3 years as default if not provided.", zh: "必需参数。指定休战持续的年数。如果未提供，则默认为3年。" }
         }
     ],
     description: {

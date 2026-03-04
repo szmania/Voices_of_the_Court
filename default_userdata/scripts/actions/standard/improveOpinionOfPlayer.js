@@ -9,7 +9,7 @@ module.exports = {
             type: "number",
             min: 1,
             max: 5,
-            desc: "the number of opinion values the relation improves with."
+            desc: { en: "the number of opinion values the relation improves with.", zh: "关系改善的意见值数量。" }
         }
     ],
     description: {

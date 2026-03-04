@@ -7,7 +7,7 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become rivals with eachother. (write it in past tense)."
+            desc: { en: "the reason (the event) that made them become rivals with eachother. (write it in past tense).", zh: "让他们成为仇人的原因（事件）。（用过去时书写）" }
         }
     ],
     description: {

@@ -40,11 +40,6 @@ let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
 let slashCommandContainer: HTMLDivElement = document.querySelector('#slash-command-container')!;
-let actionModal: HTMLDivElement = document.querySelector('#action-modal')!;
-let actionModalTitle: HTMLElement = document.querySelector('#action-modal-title')!;
-let actionModalArgs: HTMLDivElement = document.querySelector('#action-modal-args')!;
-let actionModalExecute: HTMLButtonElement = document.querySelector('#action-modal-execute')!;
-let actionModalCancel: HTMLButtonElement = document.querySelector('#action-modal-cancel')!;
 let loadingDots: any;
 
 let contextLimit: number = 0;
@@ -761,10 +756,15 @@ function showSlashCommands(filter = '') {
 
     selectedSlashCommandIndex = -1;
     slashCommandContainer.style.display = 'block';
+    chatMessages.appendChild(slashCommandContainer);
+    slashCommandContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
     updateSelectedSlashCommand();
 }
 
 function hideSlashCommands() {
+    if (slashCommandContainer.parentNode === chatMessages) {
+        chatMessages.removeChild(slashCommandContainer);
+    }
     slashCommandContainer.style.display = 'none';
     currentSlashCommand = '';
     selectedSlashCommandIndex = -1;
@@ -785,21 +785,32 @@ function updateSelectedSlashCommand() {
 function selectSlashCommand(action: any) {
     hideSlashCommands();
     chatInput.value = ''; // Clear the input
-    showActionModal(action);
+    showInlineActionForm(action);
 }
 
-function showActionModal(action: any) {
-    actionModalTitle.textContent = `/${action.signature}`;
-    actionModalArgs.innerHTML = '';
+function showInlineActionForm(action: any) {
+    // Create form container
+    const formContainer = document.createElement('div');
+    formContainer.classList.add('inline-action-form');
+    formContainer.dataset.signature = action.signature;
+
+    // Add title
+    const title = document.createElement('h3');
+    title.textContent = `/${action.signature}`;
+    formContainer.appendChild(title);
+
+    // Add arguments
+    const argsContainer = document.createElement('div');
+    argsContainer.classList.add('action-args-container');
 
     if (action.args.length === 0) {
         const noArgsLabel = document.createElement('p');
         noArgsLabel.textContent = 'This action takes no arguments.';
-        actionModalArgs.appendChild(noArgsLabel);
+        argsContainer.appendChild(noArgsLabel);
     } else {
         action.args.forEach((arg: any, index: number) => {
             const argDiv = document.createElement('div');
-            argDiv.classList.add('action-modal-arg');
+            argDiv.classList.add('action-arg');
 
             const label = document.createElement('label');
             label.innerHTML = `${arg.name} <span class="arg-type">(${arg.type})</span>`;
@@ -852,34 +863,52 @@ function showActionModal(action: any) {
             argDiv.appendChild(label);
             argDiv.appendChild(inputElement);
             argDiv.appendChild(desc);
-            actionModalArgs.appendChild(argDiv);
+            argsContainer.appendChild(argDiv);
         });
     }
 
-    actionModal.style.display = 'flex';
+    formContainer.appendChild(argsContainer);
 
-    // Focus the first input if it exists
-    const firstInput = actionModalArgs.querySelector('input');
-    if (firstInput) {
-        firstInput.focus();
-    }
+    // Add buttons
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.classList.add('inline-action-buttons');
 
-    actionModalExecute.onclick = () => {
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', () => {
+        if (formContainer.parentNode) {
+            formContainer.parentNode.removeChild(formContainer);
+        }
+    });
+
+    const executeButton = document.createElement('button');
+    executeButton.textContent = 'Execute';
+    executeButton.addEventListener('click', () => {
         const args: string[] = [];
-        const inputs = actionModalArgs.querySelectorAll('input, select');
+        const inputs = formContainer.querySelectorAll('input, select');
         inputs.forEach(input => {
             args.push((input as HTMLInputElement | HTMLSelectElement).value);
         });
         ipcRenderer.send('execute-action', action.signature, args);
-        hideActionModal();
-    };
-}
+        if (formContainer.parentNode) {
+            formContainer.parentNode.removeChild(formContainer);
+        }
+    });
 
-function hideActionModal() {
-    actionModal.style.display = 'none';
-}
+    buttonsContainer.appendChild(cancelButton);
+    buttonsContainer.appendChild(executeButton);
+    formContainer.appendChild(buttonsContainer);
 
-actionModalCancel.onclick = hideActionModal;
+    // Add to chat messages
+    chatMessages.appendChild(formContainer);
+    formContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    // Focus the first input if it exists
+    const firstInput = formContainer.querySelector('input');
+    if (firstInput) {
+        firstInput.focus();
+    }
+}
 
 ipcRenderer.on('chat-show', () =>{
     document.body.style.display = '';
