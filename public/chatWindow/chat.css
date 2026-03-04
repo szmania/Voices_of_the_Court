@@ -249,7 +249,7 @@ html{
 }
 
 .messages-container{
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     width: 100%;
     height: calc(100% - 280px); /* 动态计算高度，为输入区域和按钮留出空间 */
@@ -949,6 +949,40 @@ em{
     justify-content: flex-end;
     gap: 10px;
     margin-top: 15px;
+}
+
+.inline-action-buttons button {
+    color: white;
+    border: solid 2px rgb(39, 33, 0);
+    font-size: 0.9rem;
+    background-image: url("../assets/button.png");
+    background-size: cover;
+    font-family: 'Gitan', sans-serif;
+    cursor: url("../assets/cursor.png"), auto;
+    transition: all 0.2s;
+    padding: 6px 12px;
+    border-radius: 2px;
+}
+
+.inline-action-buttons button:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
+}
+
+.inline-action-buttons .action-execute-button {
+    background-color: #1e5a1e; /* Dark green */
+}
+
+.inline-action-buttons .action-execute-button:hover {
+    background-color: #2e7a2e; /* Lighter green */
+}
+
+.inline-action-buttons .action-cancel-button {
+    background-color: #5a1e1e; /* Dark red */
+}
+
+.inline-action-buttons .action-cancel-button:hover {
+    background-color: #7a2e2e; /* Lighter red */
 }
 
 
