@@ -498,7 +498,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         }
 
         console.log("New conversation started!");
-        conversation = new Conversation(gameData, config, chatWindow);
+        conversation = new Conversation(gameData, config, chatWindow, userDataPath);
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
@@ -607,7 +607,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         // 创建信件回复生成器
-        const letterReplyGenerator = new LetterReplyGenerator(config);
+        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
         
         // 生成回信并写入文件（新方法会自动处理letterId）
         const replyContent = await letterReplyGenerator.generateLetterReply(gameData, debugLogPath, config.userFolderPath);

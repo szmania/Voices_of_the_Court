@@ -81,7 +81,23 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
         
         // Sort by date
         allSummaries.sort((a, b) => {
-            return new Date(b.date).getTime() - new Date(a.date).getTime();
+            const extractDate = (dateStr: string) => {
+                if (!dateStr) return { year: 0, month: 1, day: 1 };
+                const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
+                if (match) {
+                    return { year: parseInt(match[1]), month: parseInt(match[2]), day: parseInt(match[3]) };
+                }
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() };
+                }
+                return { year: 0, month: 1, day: 1 };
+            };
+            const dateA = extractDate(a.date);
+            const dateB = extractDate(b.date);
+            if (dateB.year !== dateA.year) return dateB.year - dateA.year;
+            if (dateB.month !== dateA.month) return dateB.month - dateA.month;
+            return dateB.day - dateA.day;
         });
         
         return allSummaries;
