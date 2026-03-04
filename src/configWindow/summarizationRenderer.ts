@@ -1,5 +1,12 @@
 import { ipcRenderer } from 'electron';
 
+declare global {
+    interface Window {
+        LocalizationManager: any;
+        summariesAPI: any;
+    }
+}
+
 // Main page elements
 const useConnectionAPI: HTMLInputElement = document.querySelector<HTMLInputElement>("#use-connection-api")!;
 const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
