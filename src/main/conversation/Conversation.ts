@@ -1294,6 +1294,7 @@ ${character.fullName}的发言：`
             console.log(`Loaded custom action: ${file}`);
         }
         console.log(`Finished loading actions. Total actions loaded: ${this.actions.length}`);
+        console.log(`Loaded action signatures: ${this.actions.map(a => a.signature).join(', ')}`);
     }
 
     /**
