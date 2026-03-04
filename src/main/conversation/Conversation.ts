@@ -1259,7 +1259,7 @@ ${character.fullName}的发言：`
         return [textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection];
     }
 
-    async loadActions(){
+    loadActions(){
         console.log('Loading actions from scripts.');
         this.actions = [];
 
