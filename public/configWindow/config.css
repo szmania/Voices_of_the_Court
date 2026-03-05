@@ -584,8 +584,8 @@ language-selector {
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     padding: 15px;
     margin-bottom: 15px;
-    max-height: 300px;
-    overflow: hidden;
+    flex: 1; /* Allow container to grow */
+    min-height: 0; /* Prevent flexbox overflow issues */
 }
 
 #summary-manager-container .summary-list-container h3 {

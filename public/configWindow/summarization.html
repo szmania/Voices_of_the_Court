@@ -74,13 +74,11 @@
         background-color: orange;
       }
       .summary-list {
-        height: 700px; /* Make the list very tall */
+        flex-grow: 1; /* Let the list fill available space */
         min-height: 200px;
-        resize: vertical;
         overflow: auto;
         border: 1px solid #ccc;
         padding: 5px;
-        margin-bottom: 10px; /* Add space for buttons below */
       }
       .summary-item {
         padding: 25px; /* Even more padding for taller items */
