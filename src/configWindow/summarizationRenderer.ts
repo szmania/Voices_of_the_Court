@@ -19,6 +19,7 @@ const summaryDateInput = document.getElementById('summary-manager-summaryDate') 
 const summaryContentInput = document.getElementById('summary-manager-summaryContent') as HTMLTextAreaElement;
 const statusMessage = document.getElementById('summary-manager-statusMessage') as HTMLDivElement;
 const summaryLoader = document.getElementById('summary-manager-loader') as HTMLDivElement;
+const summarySearchInput = document.getElementById('summary-manager-search') as HTMLInputElement;
 
 // Summary Manager Buttons
 const refreshBtn = document.getElementById('summary-manager-refreshBtn') as HTMLButtonElement;
@@ -147,6 +148,7 @@ function setupEventListeners() {
     newSummaryBtn.addEventListener('click', resetEditor);
     playerIdSelect.addEventListener('change', loadSummaryData);
     characterSelect.addEventListener('change', filterSummariesByCharacter);
+    summarySearchInput.addEventListener('input', renderSummaryList);
 }
 
 async function loadPlayerIds() {
@@ -251,28 +253,52 @@ function filterSummariesByCharacter() {
     currentSummaryIndex = -1;
     resetEditor();
     renderSummaryList();
+
+    if (selectedCharacterId !== 'all') {
+        const summaryFilePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${selectedCharacterId}.json`;
+        summaryPathInput.value = summaryFilePath.replace(/\\\\/g, '/');
+    } else {
+        summaryPathInput.value = '';
+    }
 }
 
 function renderSummaryList() {
+    const searchTerm = summarySearchInput.value.toLowerCase();
     summaryList.innerHTML = '';
-    if (!filteredSummaries || filteredSummaries.length === 0) {
+
+    const summariesToRender = searchTerm
+        ? filteredSummaries.filter(summary => {
+            const content = summary.content || '';
+            const date = summary.date || '';
+            const characterId = summary.characterId || 'Unknown';
+            return content.toLowerCase().includes(searchTerm) ||
+                   date.toLowerCase().includes(searchTerm) ||
+                   characterId.toLowerCase().includes(searchTerm);
+        })
+        : filteredSummaries;
+
+    if (!summariesToRender || summariesToRender.length === 0) {
         const noDataText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.no_data', 'No summary data') : 'No summary data';
         summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
         return;
     }
-    filteredSummaries.forEach((summary, index) => {
+
+    summariesToRender.forEach(summary => {
         const summaryItem = document.createElement('div');
         summaryItem.className = 'summary-item';
-        if (index === currentSummaryIndex) {
+
+        const originalIndex = filteredSummaries.indexOf(summary);
+        if (originalIndex === currentSummaryIndex) {
             summaryItem.classList.add('selected');
         }
+
         const characterId = summary.characterId || 'Unknown';
         const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
         summaryItem.innerHTML = `
             <div class="summary-date">${summary.date} - ${characterText}: ${characterId}</div>
             <div class="summary-content">${summary.content}</div>
         `;
-        summaryItem.addEventListener('click', () => selectSummary(index));
+        summaryItem.addEventListener('click', () => selectSummary(originalIndex));
         summaryList.appendChild(summaryItem);
     });
 }

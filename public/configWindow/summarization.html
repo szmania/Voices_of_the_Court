@@ -24,6 +24,25 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+      /* New styles for layout fixes and search */
+      .summary-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #summary-manager-search {
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+      #summary-manager-summaryPath, #summary-manager-summaryContent {
+        width: 100%;
+        box-sizing: border-box; /* Prevents overflow */
+      }
+      .info-item {
+        flex: 1; /* Allow path input to grow */
+        min-width: 0; /* Prevent overflow in flex item */
+      }
     </style>
     
   </head>
@@ -80,7 +99,10 @@
             </div>
         
             <div class="summary-list-container">
-                <h3 data-i18n="summary_manager.list_header">Summary List</h3>
+                <div class="summary-list-header">
+                  <h3 data-i18n="summary_manager.list_header">Summary List</h3>
+                  <input type="search" id="summary-manager-search" data-i18n-placeholder="summary_manager.search_placeholder" placeholder="Search summaries...">
+                </div>
                 <div id="summary-manager-summaryList" class="summary-list">
                     <!-- Summary items will be dynamically generated here -->
                 </div>
@@ -94,7 +116,7 @@
                 <div class="editor-form">
                     <div class="form-group">
                         <label for="summary-manager-summaryDate" data-i18n="summary_manager.date_label">Date:</label>
-                        <input type="text" id="summary-manager-summaryDate" data-i18n-placeholder="summary_manager.date_placeholder" placeholder="e.g., 1179-03-21">
+                        <input type="date" id="summary-manager-summaryDate" data-i18n-placeholder="summary_manager.date_placeholder" placeholder="e.g., 1179-03-21">
                     </div>
                     <div class="form-group">
                         <label for="summary-manager-summaryContent" data-i18n="summary_manager.content_label">Content:</label>
