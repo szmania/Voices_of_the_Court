@@ -36,6 +36,8 @@ let currentSummaryIndex = -1;
 let selectedPlayerId = '';
 let selectedCharacterId = 'all';
 let userDataPath = '';
+let currentHighlightIndex = -1;
+let allHighlightMarks: HTMLElement[] = [];
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -148,11 +150,18 @@ function setupEventListeners() {
     newSummaryBtn.addEventListener('click', resetEditor);
     playerIdSelect.addEventListener('change', loadSummaryData);
     characterSelect.addEventListener('change', filterSummariesByCharacter);
-    summarySearchInput.addEventListener('input', renderSummaryList);
+    summarySearchInput.addEventListener('input', () => {
+        currentHighlightIndex = -1; // Reset highlight on new search
+        renderSummaryList();
+    });
+    summarySearchInput.addEventListener('keydown', handleSearchKeydown);
+    summaryDateInput.addEventListener('input', handleEditorInputChange);
+    summaryContentInput.addEventListener('input', handleEditorInputChange);
 }
 
 async function loadPlayerIds() {
     summaryLoader.style.display = 'block';
+    updateSummaryBtn.disabled = true;
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_players', 'Loading player IDs...'), 'info');
         const { success, ids, error } = await ipcRenderer.invoke('get-all-summary-player-ids');
@@ -263,17 +272,19 @@ function filterSummariesByCharacter() {
 }
 
 function renderSummaryList() {
-    const searchTerm = summarySearchInput.value.toLowerCase();
+    const searchTerm = summarySearchInput.value;
     summaryList.innerHTML = '';
+    allHighlightMarks = []; // Clear previous marks
 
     const summariesToRender = searchTerm
         ? filteredSummaries.filter(summary => {
             const content = summary.content || '';
             const date = summary.date || '';
             const characterId = summary.characterId || 'Unknown';
-            return content.toLowerCase().includes(searchTerm) ||
-                   date.toLowerCase().includes(searchTerm) ||
-                   characterId.toLowerCase().includes(searchTerm);
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            return content.toLowerCase().includes(lowerCaseSearchTerm) ||
+                   date.toLowerCase().includes(lowerCaseSearchTerm) ||
+                   characterId.toLowerCase().includes(lowerCaseSearchTerm);
         })
         : filteredSummaries;
 
@@ -282,6 +293,8 @@ function renderSummaryList() {
         summaryList.innerHTML = `<div class="no-summaries">${noDataText}</div>`;
         return;
     }
+
+    const highlightRegex = searchTerm ? new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi') : null;
 
     summariesToRender.forEach(summary => {
         const summaryItem = document.createElement('div');
@@ -294,34 +307,37 @@ function renderSummaryList() {
 
         const characterId = summary.characterId || 'Unknown';
         const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
+        
+        const headerText = `${summary.date} - ${characterText}: ${characterId}`;
+        const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
+        const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
+
         summaryItem.innerHTML = `
-            <div class="summary-date">${summary.date} - ${characterText}: ${characterId}</div>
-            <div class="summary-content">${summary.content}</div>
+            <div class="summary-date">${headerHTML}</div>
+            <div class="summary-content">${contentHTML}</div>
         `;
         summaryItem.addEventListener('click', () => selectSummary(originalIndex));
         summaryList.appendChild(summaryItem);
     });
+
+    // After rendering, collect all mark elements for 'Enter' key navigation
+    allHighlightMarks = Array.from(summaryList.querySelectorAll('mark'));
 }
 
 function selectSummary(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
     currentSummaryIndex = index;
     const summary = filteredSummaries[index];
-    summaryDateInput.value = summary.date;
+    summaryDateInput.value = formatDateForInput(summary.date);
     summaryContentInput.value = summary.content;
+    updateSummaryBtn.disabled = true; // Disable button on new selection
 
     // Update file path
     const characterId = summary.characterId || 'Unknown';
     const summaryFilePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
     summaryPathInput.value = summaryFilePath.replace(/\\\\/g, '/'); // Normalize path separators
 
-    document.querySelectorAll('.summary-item').forEach((item, i) => {
-        if (i === index) {
-            item.classList.add('selected');
-        } else {
-            item.classList.remove('selected');
-        }
-    });
+    renderSummaryList(); // Re-render to update selection highlight
 }
 
 function addNewSummary() {
@@ -331,13 +347,14 @@ function addNewSummary() {
     }
     const characterId = selectedCharacterId;
     const newSummary = {
-        date: 'New Date',
+        date: new Date().toISOString().split('T')[0], // Default to today
         content: 'New summary content',
         characterId: characterId
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter();
     selectSummary(0);
+    updateSummaryBtn.disabled = false; // Enable for new summary
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
 }
 
@@ -352,6 +369,7 @@ async function updateCurrentSummary() {
         allSummaries[originalIndex].date = summaryDateInput.value;
         allSummaries[originalIndex].content = summaryContentInput.value;
     }
+    updateSummaryBtn.disabled = true;
     filterSummariesByCharacter();
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
 }
@@ -378,9 +396,8 @@ function resetEditor() {
     summaryDateInput.value = '';
     summaryContentInput.value = '';
     summaryPathInput.value = ''; // Clear path
-    document.querySelectorAll('.summary-item').forEach(item => {
-        item.classList.remove('selected');
-    });
+    updateSummaryBtn.disabled = true;
+    renderSummaryList();
 }
 
 async function saveSummaries() {
@@ -405,4 +422,71 @@ function showStatusMessage(message: string, type = 'info') {
     setTimeout(() => {
         statusMessage.classList.remove('show');
     }, 3000);
+}
+
+function formatDateForInput(dateStr: string): string {
+    if (!dateStr) return '';
+    // Attempt to handle YYYY年MM月DD日 format
+    const match = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+    if (match) {
+        const year = match[1];
+        const month = match[2].padStart(2, '0');
+        const day = match[3].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    // Attempt to parse with Date constructor for other formats like YYYY-MM-DD
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+        // Check if the original string was just a year, which Date might misinterpret
+        if (/^\d{4}$/.test(dateStr.trim())) {
+             return '';
+        }
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    return ''; // Return empty if parsing fails
+}
+
+function handleEditorInputChange() {
+    if (currentSummaryIndex < 0) {
+        updateSummaryBtn.disabled = !summaryContentInput.value.trim() || !summaryDateInput.value;
+        return;
+    }
+
+    const summary = filteredSummaries[currentSummaryIndex];
+    if (!summary) {
+        updateSummaryBtn.disabled = true;
+        return;
+    }
+
+    const dateChanged = formatDateForInput(summary.date) !== summaryDateInput.value;
+    const contentChanged = summary.content !== summaryContentInput.value;
+
+    updateSummaryBtn.disabled = !(dateChanged || contentChanged);
+}
+
+function handleSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (allHighlightMarks.length === 0) return;
+
+        if (currentHighlightIndex !== -1) {
+            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
+        }
+
+        currentHighlightIndex++;
+        if (currentHighlightIndex >= allHighlightMarks.length) {
+            currentHighlightIndex = 0;
+        }
+
+        const currentMark = allHighlightMarks[currentHighlightIndex];
+        currentMark.classList.add('current-highlight');
+        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
