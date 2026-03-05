@@ -833,8 +833,8 @@ function showInlineActionForm(action: any) {
                 : arg.desc;
             desc.textContent = argDesc;
 
-            // Check for enum options to create a dropdown
-            if (arg.options && Array.isArray(arg.options)) {
+            // Check for enum options or boolean type to create a dropdown
+            if ((arg.options && Array.isArray(arg.options)) || arg.type === 'boolean') {
                 // Create a custom select dropdown
                 const customSelectContainer = document.createElement('div');
                 customSelectContainer.classList.add('custom-select-container');
@@ -853,7 +853,12 @@ function showInlineActionForm(action: any) {
 
                 const lang = (window as any).LocalizationManager?.language || 'en';
 
-                arg.options.forEach((option: any, optionIndex: number) => {
+                let optionsSource = arg.options;
+                if (arg.type === 'boolean') {
+                    optionsSource = ['true', 'false'];
+                }
+
+                optionsSource.forEach((option: any, optionIndex: number) => {
                     const optionElement = document.createElement('div');
                     optionElement.classList.add('custom-select-option');
                     
