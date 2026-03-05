@@ -44,22 +44,22 @@ export class ApiConnection{
     context: number;
     overwriteWarning: boolean;
     config: Connection; // 保存原始配置对象，包括apiKeys
-    
+
 
     constructor(connection: Connection, parameters: Parameters){
         console.debug("--- API CONNECTION: Constructor ---");
         const redactedConnection = { ...connection, key: '[REDACTED]' };
         console.debug("Received connection:", redactedConnection);
         console.debug("Received parameters:", parameters);
-        
+
         // 保存原始配置对象，包括apiKeys
         this.config = connection;
-        
+
         // 如果apiKeys存在，确保所有API类型的配置都被加载
         if (connection.apiKeys) {
             console.log('Loading API keys from config:', Object.keys(connection.apiKeys));
         }
-        
+
         this.type = connection.type;
         if (this.type === 'player2') {
             this.client = new OpenAI({
@@ -67,7 +67,7 @@ export class ApiConnection{
                 apiKey: 'sk-dummy-key', // Player2 uses a dummy key
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    'player2-game-key': '019b93eb-33ae-7e7e-ae21-0a1903c63ebb',
+                    'player2-game-key': '019cb2bb-6704-7d22-89e5-41ce7c765942',
                 },
             });
         } else if(this.type !== 'gemini' && this.type !== 'glm'){
@@ -91,7 +91,7 @@ export class ApiConnection{
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
         this.parameters = parameters;
-        
+
 
         let modelName = this.model
         if(modelName && modelName.includes("/")){
@@ -137,7 +137,7 @@ export class ApiConnection{
             console.debug("isChat() is returning false");
             return false;
         }
-    
+
     }
 
     async complete(
@@ -151,17 +151,17 @@ export class ApiConnection{
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
-        
+
         // Helper function for delaying execution
         const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    
+
         let retries = 0;
-    
+
         while (retries < MAX_RETRIES) {
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
             try {
                 if (this.type === 'gemini') {
-                    const url = stream 
+                    const url = stream
                         ? `${this.client.baseURL}/models/${this.model}:streamGenerateContent?key=${this.client.apiKey}&alt=sse`
                         : `${this.client.baseURL}/models/${this.model}:generateContent?key=${this.client.apiKey}`;
 
@@ -266,10 +266,10 @@ export class ApiConnection{
                         }
                     }
                 }
-                
+
                 if (this.type === 'glm') {
                     // GLM API uses OpenAI-compatible format but requires custom headers
-                    const url = stream 
+                    const url = stream
                         ? `${this.client.baseURL}/chat/completions`
                         : `${this.client.baseURL}/chat/completions`;
 
@@ -307,7 +307,7 @@ export class ApiConnection{
 
                     const res = await fetch(url, {
                         method: 'POST',
-                        headers: { 
+                        headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${this.client.apiKey}`
                         },
@@ -372,14 +372,14 @@ export class ApiConnection{
                         if (prompt[i].name) {
                             //@ts-ignore
                             prompt[i].content = prompt[i].name + ": " + prompt[i].content;
-    
+
                             //@ts-ignore
                             delete prompt[i].name;
                         }
                     }
                 }
                 console.debug("Prompt before sending to API:", prompt);
-    
+
                 if (this.isChat()) {
                     const requestBody = {
                         model: this.model,
@@ -390,16 +390,16 @@ export class ApiConnection{
                     };
                     console.debug("Making chat completion request with body:", requestBody);
                     let completion = await this.client.chat.completions.create(requestBody as any);
-    
+
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
-    
+
                     //@ts-ignore
                     if (completion["error"]) {
                         //@ts-ignore
                         throw new Error(completion.error.message);
                     }
-    
+
                     if (stream) {
                         // @ts-ignore
                         for await (const chunk of completion) {
@@ -417,7 +417,7 @@ export class ApiConnection{
                             response = choice.message?.content ?? choice.text ?? "";
                         }
                     }
-    
+
                     if (!response) {
                         console.error("Empty response parsed from chat completion:", JSON.stringify(completion, null, 2));
                     }
@@ -425,7 +425,7 @@ export class ApiConnection{
                     return response;
                 } else {
                     let completion;
-        
+
                     if (this.type === "openrouter") {
                         // Backcompat: use legacy 'prompt' key for OpenRouter sentiment engines
                         const requestBody = {
@@ -500,7 +500,7 @@ export class ApiConnection{
                         code: number;
                         error?: { message: string };
                     };
-            
+
                     if (
                         typedError.code === 429 &&
                         typedError.error?.message.includes("Provider returned error")
@@ -532,14 +532,14 @@ export class ApiConnection{
                     throw error; // If it's not an object or doesn't have the expected properties
                 }
             }
-            
+
         }
-    
+
         console.debug(`Failed after ${MAX_RETRIES} retries.`);
         //throw new Error(`Unable to complete request after ${MAX_RETRIES} retries.`);
         return ""
     }
-    
+
     async testConnection(): Promise<apiConnectionTestResult>{
         console.debug("--- API CONNECTION: testConnection() ---");
         if (this.type === 'gemini') {
@@ -566,7 +566,7 @@ export class ApiConnection{
                 return { success: false, overwriteWarning: false, errorMessage: String(err) };
             }
         }
-        
+
         if (this.type === 'glm') {
             const url = `${this.client.baseURL}/chat/completions`;
             const body = {
@@ -580,7 +580,7 @@ export class ApiConnection{
             try {
                 const response = await fetch(url, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${this.client.apiKey}`
                     },
@@ -599,7 +599,7 @@ export class ApiConnection{
                 return { success: false, overwriteWarning: false, errorMessage: String(err) };
             }
         }
-        
+
         let prompt: string | Message[];
         if(this.isChat()){
             prompt = [
@@ -646,7 +646,7 @@ export class ApiConnection{
         return sum;
     }
 
-    calculateTokensFromChat(chat: Message[]): number{        
+    calculateTokensFromChat(chat: Message[]): number{
         let sum=0;
         for(let msg of chat){
            sum += this.calculateTokensFromMessage(msg);
@@ -655,5 +655,5 @@ export class ApiConnection{
         return sum;
     }
 
-   
+
 }
