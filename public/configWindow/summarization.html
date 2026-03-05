@@ -33,6 +33,11 @@
         animation: blink-border 1.5s infinite;
         border-radius: 5px; /* Ensure the shadow follows the button shape */
       }
+      #summary-manager-container {
+        display: flex;
+        flex-direction: column;
+        height: 80vh; /* Make it tall, responsive to viewport */
+      }
       /* New styles for layout fixes and search */
       .summary-list-header {
         display: flex;
@@ -42,7 +47,8 @@
       .summary-list-container {
         display: flex;
         flex-direction: column;
-        height: 700px;
+        flex-grow: 1; /* Allow this container to grow */
+        min-height: 0; /* Important for flex-grow in some browsers */
       }
       #summary-manager-search {
         padding: 4px;
