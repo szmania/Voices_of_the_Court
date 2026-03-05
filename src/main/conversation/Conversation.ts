@@ -360,7 +360,7 @@ export class Conversation{
         }
 
         this.fillNpcQueue();
-
+        this.npcQueue = await this.determineResponseOrder();
         await this.processQueue();
         
         this.chatWindow.window.webContents.send('actions-receive', []);
