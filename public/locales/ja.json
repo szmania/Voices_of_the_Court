@@ -139,7 +139,8 @@
     "clear_summaries_desc": "これにより、すべてのキャラクターの以前の会話の要約が削除されます",
     "clear_button": "要約を消去",
     "open_summaries": "会話の要約フォルダを開く",
-    "roleplay_instruction": "あなたのタスクはキャラクター {characterName} としてロールプレイすることです。このキャラクターの返信のみを書いてください。あなたは {characterName} を演じていることを忘れないでください。他のキャラクターの返信は書かないでください。"
+    "roleplay_instruction": "あなたのタスクはキャラクター {characterName} としてロールプレイすることです。このキャラクターの返信のみを書いてください。あなたは {characterName} を演じていることを忘れないでください。他のキャラクターの返信は書かないでください。",
+    "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
   "chat": {
     "leave_button": "会話を終了",

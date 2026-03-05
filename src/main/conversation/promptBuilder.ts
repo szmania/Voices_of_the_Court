@@ -209,11 +209,13 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         });
         console.log('Added self-talk main prompt from config.');
     } else {
+        const startWritingTemplate = translations.system.start_writing_reply || "Now start writing {characterName}'s reply:";
+        const startWriting = startWritingTemplate.replace(/{characterName}/g, character.fullName);
         chatPrompt.push({
             role: "system",
-            content: parseVariables(conv.config.mainPrompt, conv.gameData)
+            content: parseVariables(conv.config.mainPrompt, conv.gameData) + "\n" + startWriting
         });
-        console.log('Added standard main prompt.');
+        console.log('Added standard main prompt with start writing instruction.');
     }
 
 
