@@ -580,7 +580,6 @@ function enterEditMode(index: number) {
     // Disable delete button during edit
     if (deleteItemBtn) deleteItemBtn.disabled = true;
     
-    // The dynamically created save button will be disabled by default.
     
     renderSummaryList();
 }
@@ -607,7 +606,6 @@ function saveInPlaceEdit(index: number) {
     const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
     
-    // The save button is part of the edit item which will be removed from the DOM on re-render.
     
     // Enable delete button
     if (deleteItemBtn) {
