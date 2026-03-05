@@ -432,7 +432,7 @@ function formatDateForInput(dateStr: string): string {
         'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
     };
     
-    const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{4})$/i);
+    const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{1,4})$/i);
     if (dmyMatch) {
         const day = dmyMatch[1].padStart(2, '0');
         const monthStr = dmyMatch[2].toLowerCase();
@@ -441,30 +441,30 @@ function formatDateForInput(dateStr: string): string {
         
         if (month !== undefined) {
             const monthFormatted = (month + 1).toString().padStart(2, '0');
-            return `${year}-${monthFormatted}-${day}`;
+            return `${year.padStart(4, '0')}-${monthFormatted}-${day}`;
         }
     }
     
     // Attempt to handle YYYY年MM月DD日 format
-    const match = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+    const match = dateStr.match(/(\d{1,4})年(\d{1,2})月(\d{1,2})日/);
     if (match) {
         const year = match[1];
         const month = match[2].padStart(2, '0');
         const day = match[3].padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return `${year.padStart(4, '0')}-${month}-${day}`;
     }
     
     // Attempt to parse with Date constructor for other formats like YYYY-MM-DD
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
         // Check if the original string was just a year, which Date might misinterpret
-        if (/^\d{4}$/.test(dateStr.trim())) {
+        if (/^\d{1,4}$/.test(dateStr.trim())) {
              return '';
         }
-        const year = date.getFullYear();
+        const year = date.getFullYear().toString();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return `${year.padStart(4, '0')}-${month}-${day}`;
     }
     return ''; // Return empty if parsing fails
 }
