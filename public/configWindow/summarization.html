@@ -51,6 +51,33 @@
       mark.current-highlight {
         background-color: orange;
       }
+      /* In-place editing styles */
+      .summary-item-edit {
+        border: 2px solid #3498db;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f8f9fa;
+      }
+      .summary-item-edit input[type="date"] {
+        width: 100%;
+        padding: 4px;
+        margin-bottom: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .summary-item-edit textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        resize: vertical;
+        min-height: 80px;
+        font-family: inherit;
+        font-size: inherit;
+      }
     </style>
     
   </head>
@@ -115,6 +142,7 @@
                     <!-- Summary items will be dynamically generated here -->
                 </div>
                 <div class="list-controls">
+                    <button id="summary-manager-saveItemBtn" class="btn btn-success" data-i18n="summary_manager.save_item" disabled>Save Item</button>
                     <button id="summary-manager-addSummaryBtn" class="btn" data-i18n="summary_manager.add_new">Add New Summary</button>
                 </div>
             </div>

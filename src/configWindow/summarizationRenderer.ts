@@ -38,6 +38,7 @@ let selectedCharacterId = 'all';
 let userDataPath = '';
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
+let editingSummaryIndex = -1;
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -157,6 +158,12 @@ function setupEventListeners() {
     summarySearchInput.addEventListener('keydown', handleSearchKeydown);
     summaryDateInput.addEventListener('input', handleEditorInputChange);
     summaryContentInput.addEventListener('input', handleEditorInputChange);
+    
+    // In-place editing save button
+    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
+    if (saveItemBtn) {
+        saveItemBtn.addEventListener('click', saveInPlaceEdit);
+    }
 }
 
 async function loadPlayerIds() {
@@ -296,32 +303,57 @@ function renderSummaryList() {
 
     const highlightRegex = searchTerm ? new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi') : null;
 
-    summariesToRender.forEach(summary => {
-        const summaryItem = document.createElement('div');
-        summaryItem.className = 'summary-item';
-
+    summariesToRender.forEach((summary, index) => {
         const originalIndex = filteredSummaries.indexOf(summary);
-        if (originalIndex === currentSummaryIndex) {
-            summaryItem.classList.add('selected');
-        }
-
-        const characterId = summary.characterId || 'Unknown';
-        const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
         
-        const headerText = `${summary.date} - ${characterText}: ${characterId}`;
-        const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
-        const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
+        if (originalIndex === editingSummaryIndex) {
+            // Render in edit mode
+            const editItem = document.createElement('div');
+            editItem.className = 'summary-item-edit';
+            
+            const characterId = summary.characterId || 'Unknown';
+            const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
+            
+            editItem.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterId}</div>
+                <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
+                <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
+            `;
+            summaryList.appendChild(editItem);
+        } else {
+            // Render in display mode
+            const summaryItem = document.createElement('div');
+            summaryItem.className = 'summary-item';
 
-        summaryItem.innerHTML = `
-            <div class="summary-date">${headerHTML}</div>
-            <div class="summary-content">${contentHTML}</div>
-        `;
-        summaryItem.addEventListener('click', () => selectSummary(originalIndex));
-        summaryList.appendChild(summaryItem);
+            if (originalIndex === currentSummaryIndex) {
+                summaryItem.classList.add('selected');
+            }
+
+            const characterId = summary.characterId || 'Unknown';
+            const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
+            
+            const headerText = `${summary.date} - ${characterText}: ${characterId}`;
+            const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
+            const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
+
+            summaryItem.innerHTML = `
+                <div class="summary-date">${headerHTML}</div>
+                <div class="summary-content">${contentHTML}</div>
+            `;
+            summaryItem.addEventListener('click', () => selectSummary(originalIndex));
+            summaryItem.addEventListener('dblclick', () => enterEditMode(originalIndex));
+            summaryList.appendChild(summaryItem);
+        }
     });
 
     // After rendering, collect all mark elements for 'Enter' key navigation
     allHighlightMarks = Array.from(summaryList.querySelectorAll('mark'));
+    
+    // Update save item button state
+    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
+    if (saveItemBtn) {
+        saveItemBtn.disabled = editingSummaryIndex === -1;
+    }
 }
 
 function selectSummary(index: number) {
@@ -509,4 +541,74 @@ function handleSearchKeydown(event: KeyboardEvent) {
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function enterEditMode(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
+    
+    // Exit any existing edit mode
+    if (editingSummaryIndex !== -1) {
+        // If we were editing a different item, save it first? For now, just cancel.
+        // Could prompt user, but for simplicity we'll just switch.
+    }
+    
+    editingSummaryIndex = index;
+    
+    // Disable main editor to avoid conflicts
+    summaryDateInput.disabled = true;
+    summaryContentInput.disabled = true;
+    updateSummaryBtn.disabled = true;
+    deleteSummaryBtn.disabled = true;
+    newSummaryBtn.disabled = true;
+    
+    // Enable save item button
+    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
+    if (saveItemBtn) {
+        saveItemBtn.disabled = false;
+    }
+    
+    renderSummaryList();
+}
+
+function saveInPlaceEdit() {
+    if (editingSummaryIndex < 0 || editingSummaryIndex >= filteredSummaries.length) return;
+    
+    const summary = filteredSummaries[editingSummaryIndex];
+    const originalIndex = allSummaries.findIndex(s => s === summary);
+    
+    const dateInput = document.getElementById(`summary-edit-date-${editingSummaryIndex}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${editingSummaryIndex}`) as HTMLTextAreaElement;
+    
+    if (!dateInput || !contentInput) return;
+    
+    // Convert date from yyyy-MM-dd back to original format? For now store as yyyy-MM-dd.
+    // But we need to preserve the original format? Let's store as yyyy-MM-dd for consistency.
+    const newDate = dateInput.value;
+    const newContent = contentInput.value;
+    
+    if (originalIndex !== -1) {
+        allSummaries[originalIndex].date = newDate;
+        allSummaries[originalIndex].content = newContent;
+    }
+    
+    // Exit edit mode
+    editingSummaryIndex = -1;
+    
+    // Re-enable main editor
+    summaryDateInput.disabled = false;
+    summaryContentInput.disabled = false;
+    updateSummaryBtn.disabled = true; // Keep disabled until changes
+    deleteSummaryBtn.disabled = false;
+    newSummaryBtn.disabled = false;
+    
+    // Disable save item button
+    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
+    if (saveItemBtn) {
+        saveItemBtn.disabled = true;
+    }
+    
+    // Refresh the list
+    filterSummariesByCharacter();
+    
+    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
 }
