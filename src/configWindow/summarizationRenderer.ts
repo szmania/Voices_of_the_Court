@@ -38,6 +38,8 @@ let selectedCharacterId = 'all';
 let userDataPath = '';
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
+let currentHighlightIndex = -1;
+let allHighlightMarks: HTMLElement[] = [];
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -426,6 +428,25 @@ function showStatusMessage(message: string, type = 'info') {
 
 function formatDateForInput(dateStr: string): string {
     if (!dateStr) return '';
+    // Handle "DD MMM YYYY" format (e.g., "14 Oct 867")
+    const months: { [key: string]: number } = {
+        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+    };
+    
+    const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{4})$/i);
+    if (dmyMatch) {
+        const day = dmyMatch[1].padStart(2, '0');
+        const monthStr = dmyMatch[2].toLowerCase();
+        const month = months[monthStr];
+        const year = dmyMatch[3];
+        
+        if (month !== undefined) {
+            const monthFormatted = (month + 1).toString().padStart(2, '0');
+            return `${year}-${monthFormatted}-${day}`;
+        }
+    }
+    
     // Attempt to handle YYYY年MM月DD日 format
     const match = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
     if (match) {
@@ -434,6 +455,7 @@ function formatDateForInput(dateStr: string): string {
         const day = match[3].padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
+    
     // Attempt to parse with Date constructor for other formats like YYYY-MM-DD
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
@@ -465,6 +487,30 @@ function handleEditorInputChange() {
     const contentChanged = summary.content !== summaryContentInput.value;
 
     updateSummaryBtn.disabled = !(dateChanged || contentChanged);
+}
+
+function handleSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (allHighlightMarks.length === 0) return;
+
+        if (currentHighlightIndex !== -1) {
+            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
+        }
+
+        currentHighlightIndex++;
+        if (currentHighlightIndex >= allHighlightMarks.length) {
+            currentHighlightIndex = 0;
+        }
+
+        const currentMark = allHighlightMarks[currentHighlightIndex];
+        currentMark.classList.add('current-highlight');
+        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
