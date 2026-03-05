@@ -678,6 +678,34 @@ ipcMain.handle('get-userdata-path', () => {
     return path.join(app.getPath("userData"), 'votc_data')
 });
 
+ipcMain.handle('get-prompt-presets', async () => {
+    console.log('IPC: Received get-prompt-presets event.');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    if (fs.existsSync(presetsPath)) {
+        try {
+            const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
+            return JSON.parse(presetsRaw);
+        } catch (error) {
+            console.error('Error reading prompt presets file:', error);
+            return {};
+        }
+    }
+    return {};
+});
+
+ipcMain.handle('save-prompt-presets', async (event, presets) => {
+    console.log('IPC: Received save-prompt-presets event.');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    try {
+        await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving prompt presets file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
 
 const promptKeys = [
     'mainPrompt', 
