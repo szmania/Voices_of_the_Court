@@ -38,6 +38,11 @@ export class Conversation{
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
+    npcQueue: Character[];
+    customQueue: Character[] | null;
+    isPaused: boolean;
+    persistCustomQueue: boolean;
+
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
@@ -72,6 +77,11 @@ export class Conversation{
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
         
+        this.npcQueue = [];
+        this.customQueue = null;
+        this.isPaused = false;
+        this.persistCustomQueue = false;
+
         const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
             fs.mkdirSync(summariesBasePath);

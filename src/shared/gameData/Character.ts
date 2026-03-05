@@ -41,6 +41,8 @@ export class Character {
     opinionBreakdownToPlayer: OpinionModifier[];
     opinions: { id: number, opinon: number}[];
     familyMembers: FamilyMember[];
+    // TODO: Use a proper Summary type once it's available in a shared location.
+    conversationSummaries: any[];
 
     constructor(data: string[]){
         this.id = Number(data[0]),
@@ -78,6 +80,7 @@ export class Character {
             this.opinionBreakdownToPlayer = []
             this.opinions = [];
             this.familyMembers = [];
+            this.conversationSummaries = [];
     }
 
     /**
