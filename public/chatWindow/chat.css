@@ -1044,13 +1044,13 @@ em{
 
 .custom-select-options {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     right: 0;
     background: #2b2b2b;
     border: 1px solid #5a4a35;
-    border-top: none;
-    border-radius: 0 0 2px 2px;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
     z-index: 1000;
     max-height: 150px;
     overflow-y: auto;
