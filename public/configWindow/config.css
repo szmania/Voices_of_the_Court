@@ -438,7 +438,7 @@ language-selector {
   flex-grow: 0;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 0 0 10px;
 }
 
 .social-links-li a {
@@ -464,6 +464,11 @@ language-selector {
 
 .social-links-li a.steam-link:hover {
   color: #66c0f4; /* Steam hover blue */
+}
+
+.social-links-li a.website-link {
+  position: relative;
+  top: -2px;
 }
 
 .social-links-li a:hover {
