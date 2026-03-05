@@ -463,12 +463,12 @@ function formatDateForDisplay(dateStr: string): string {
         return dateStr;
     }
     
-    // Try to parse as YYYY-MM-DD
+    // Try to parse as YYYY-MM-DD, treating it as UTC to avoid timezone shifts
     const date = new Date(dateStr);
-    if (!isNaN(date.getTime())) {
-        const day = date.getDate();
-        const monthIndex = date.getMonth();
-        const year = date.getFullYear();
+    if (!isNaN(date.getTime()) && dateStr.includes('-')) {
+        const day = date.getUTCDate();
+        const monthIndex = date.getUTCMonth();
+        const year = date.getUTCFullYear();
         return `${day} ${monthNames[monthIndex]} ${year}`;
     }
     
@@ -513,9 +513,10 @@ function formatDateForInput(dateStr: string): string {
         if (/^\d{1,4}$/.test(dateStr.trim())) {
              return '';
         }
-        const year = date.getFullYear().toString();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
+        // Use UTC methods to avoid timezone-related shifts
+        const year = date.getUTCFullYear().toString();
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = date.getUTCDate().toString().padStart(2, '0');
         return `${year.padStart(4, '0')}-${month}-${day}`;
     }
     return ''; // Return empty if parsing fails
