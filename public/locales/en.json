@@ -155,6 +155,8 @@
     "leave_tooltip": "End the current conversation and save the summary.",
     "waiting_tooltip": "Waiting for response...",
     "action_tooltip": "Cannot regenerate a response that includes actions.",
+    "execute_tooltip": "Execute this action.",
+    "cancel_tooltip": "Cancel this action.",
     "scene_description": "Scene Description",
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet",

@@ -7,7 +7,17 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become soulmates of eachother. (write it in past tense)."
+            desc: { 
+                en: "the reason (the event) that made them become passionate soulmates of eachother. (write it in past tense).",
+                zh: "让他们成为激情灵魂伴侣的原因（事件）。（用过去时书写）",
+                ru: "причина (событие), по которой они стали страстными родственными душами. (напишите в прошедшем времени).",
+                fr: "la raison (l'événement) qui les a fait devenir des âmes sœurs passionnées. (écrivez-le au passé).",
+                es: "la razón (el evento) que los hizo almas gemelas apasionadas. (escríbalo en tiempo pasado).",
+                de: "der Grund (das Ereignis), der sie zu leidenschaftlichen Seelenverwandten gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
+                ja: "彼らが情熱的な魂の伴侶になった理由（出来事）。（過去形で書く）。",
+                ko: "그들이 열정적인 영혼의 동반자가 된 이유(사건). (과거 시제로 작성).",
+                pl: "powód (wydarzenie), który sprawił, że zostali namiętnymi bratnimi duszami. (napisz w czasie przeszłym)."
+            }
         }
     ],
     description: {

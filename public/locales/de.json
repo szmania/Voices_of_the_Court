@@ -155,6 +155,8 @@
     "leave_tooltip": "Beendet das aktuelle Gespräch und speichert die Zusammenfassung.",
     "waiting_tooltip": "Warte auf Antwort...",
     "action_tooltip": "Eine Antwort, die Aktionen enthält, kann nicht neu generiert werden.",
+    "execute_tooltip": "Diese Aktion ausführen.",
+    "cancel_tooltip": "Diese Aktion abbrechen.",
     "scene_description": "Szenenbeschreibung",
     "narrative": "Erzählung",
     "not_spoken": "Hat noch nicht gesprochen",

@@ -7,7 +7,18 @@ module.exports = {
         {
             name: "amount",
             type: "number",
-            desc: "the amount of gold {{playerName}}'treasury gets, should be always positive"
+            min: 1,
+            desc: { 
+                en: "the amount of gold {{playerName}}'s treasury gets, should be always positive",
+                zh: "{{playerName}}的国库获得的金币数量，应始终为正数",
+                ru: "количество золота, которое получает казна {{playerName}}, всегда должно быть положительным",
+                fr: "le montant d'or que le trésor de {{playerName}} reçoit, doit toujours être positif",
+                es: "la cantidad de oro que recibe el tesoro de {{playerName}}, siempre debe ser positiva",
+                de: "die Menge Gold, die die Schatzkammer von {{playerName}} erhält, sollte immer positiv sein",
+                ja: "{{playerName}}の財政が受け取るゴールドの量は常に正数である必要があります",
+                ko: "{{playerName}}의 국고가 받는 골드의 양은 항상 양수여야 합니다",
+                pl: "ilość złota, którą otrzymuje skarbiec {{playerName}}, powinna być zawsze dodatnia"
+            }
         }
     ],
     description: {
