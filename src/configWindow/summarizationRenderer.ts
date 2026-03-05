@@ -325,7 +325,7 @@ function renderSummaryList() {
             if (dateInput && contentInput && saveButton) {
                 dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
                 contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-                saveButton.addEventListener('click', saveInPlaceEdit);
+                saveButton.addEventListener('click', () => saveInPlaceEdit());
             }
             summaryList.appendChild(editItem);
         } else {
@@ -584,25 +584,25 @@ function enterEditMode(index: number) {
     renderSummaryList();
 }
 
-function saveInPlaceEdit(index: number) {
-    if (index < 0 || index >= filteredSummaries.length) return;
-    
-    const summary = filteredSummaries[index];
+function saveInPlaceEdit() {
+    if (editingSummaryIndex < 0 || editingSummaryIndex >= filteredSummaries.length) return;
+
+    const summary = filteredSummaries[editingSummaryIndex];
     const originalIndex = allSummaries.findIndex(s => s === summary);
-    
-    const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
-    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
-    
+
+    const dateInput = document.getElementById(`summary-edit-date-${editingSummaryIndex}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${editingSummaryIndex}`) as HTMLTextAreaElement;
+
     if (!dateInput || !contentInput) return;
-    
+
     const newDate = dateInput.value;
     const newContent = contentInput.value;
-    
+
     if (originalIndex !== -1) {
         allSummaries[originalIndex].date = newDate;
         allSummaries[originalIndex].content = newContent;
     }
-    
+
     const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
     
