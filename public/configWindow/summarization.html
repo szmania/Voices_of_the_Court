@@ -24,13 +24,14 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      @keyframes blink {
-        50% {
-          opacity: 0.5;
-        }
+      @keyframes blink-border {
+        0% { box-shadow: 0 0 2px 0px #fff; }
+        50% { box-shadow: 0 0 8px 2px #00aaff; }
+        100% { box-shadow: 0 0 2px 0px #fff; }
       }
       .blinking {
-        animation: blink 1s linear infinite;
+        animation: blink-border 1.5s infinite;
+        border-radius: 5px; /* Ensure the shadow follows the button shape */
       }
       /* New styles for layout fixes and search */
       .summary-list-header {
@@ -68,9 +69,10 @@
         overflow: auto;
         border: 1px solid #ccc;
         padding: 5px;
+        margin-bottom: 10px; /* Add space for buttons below */
       }
       .summary-item {
-        padding: 10px;
+        padding: 15px; /* Increased padding for more height */
         border-bottom: 1px solid #444;
         cursor: pointer;
       }
@@ -88,7 +90,7 @@
       .summary-content {
         white-space: pre-wrap; /* Allow wrapping */
         word-break: break-word; /* Break long words */
-        line-height: 1.4;
+        line-height: 1.6; /* Increased line height for better readability */
       }
       /* In-place editing styles */
       .summary-item-edit {
