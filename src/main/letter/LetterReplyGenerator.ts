@@ -2,7 +2,6 @@ import { ApiConnection } from "../../shared/apiConnection";
 import { GameData } from "../../shared/gameData/GameData";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
-import { app } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
@@ -11,9 +10,11 @@ import { createMemoryString } from '../conversation/promptBuilder';
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
+    private userDataPath: string;
 
-    constructor(config: Config) {
+    constructor(config: Config, userDataPath: string) {
         this.config = config;
+        this.userDataPath = userDataPath;
         
         // Create API connection
         this.apiConnection = new ApiConnection(
@@ -80,7 +81,7 @@ export class LetterReplyGenerator {
         // Read conversation summary
         let conversationSummary = '';
         try {
-            const summaries = await readSummaryFile(String(gameData.playerID));
+            const summaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(gameData.aiID));
             
             if (aiSummaries.length > 0) {
@@ -216,8 +217,13 @@ export class LetterReplyGenerator {
      */
     private saveLetterHistory(playerId: string, aiId: string, letterContent: { language: string; content: string; letterId: string }, replyContent: string, userFolderPath: string, gameData: GameData): void {
         try {
+<<<<<<< HEAD
             // Get VOTC data folder path
             const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
+=======
+            // 获取VOTC数据文件夹路径
+            const votcDataPath = this.userDataPath;
+>>>>>>> votc-78-add-summary-manager
             
             // Get character names for logging
             const aiCharacter = gameData.characters.get(Number(aiId));
@@ -325,7 +331,7 @@ export class LetterReplyGenerator {
             // Read existing summary file
             let existingSummaries = [];
             try {
-                existingSummaries = await readSummaryFile(String(gameData.playerID));
+                existingSummaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             } catch (error) {
                 console.log('No existing summaries found, creating new summary file');
             }
@@ -344,8 +350,13 @@ export class LetterReplyGenerator {
             // Merge all summaries (current AI's summaries first, then others)
             const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
 
+<<<<<<< HEAD
             // Save the updated summaries
             await saveSummaryFile(String(gameData.playerID), updatedSummaries);
+=======
+            // 保存更新后的总结
+            await saveSummaryFile(this.userDataPath, String(gameData.playerID), updatedSummaries);
+>>>>>>> votc-78-add-summary-manager
             console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
 
         } catch (error) {

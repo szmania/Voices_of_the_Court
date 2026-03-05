@@ -83,4 +83,10 @@ export class LocalizationManager {
         if (!key) return null;
         return key.split('.').reduce((obj, i) => (obj ? obj[i] : null), this.translations);
     }
+
+    public static getTranslation(key: string, defaultText: string | null = null) {
+        if (!key) return defaultText;
+        const translation = this.getNestedTranslation(key);
+        return translation || defaultText;
+    }
 }

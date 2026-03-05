@@ -11,7 +11,7 @@ import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { parseSummaryIdsFromLog, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -498,7 +498,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         }
 
         console.log("New conversation started!");
-        conversation = new Conversation(gameData, config, chatWindow);
+        conversation = new Conversation(gameData, config, chatWindow, userDataPath);
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
@@ -618,7 +618,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         // 创建信件回复生成器
-        const letterReplyGenerator = new LetterReplyGenerator(config);
+        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
         
         // 生成回信并写入文件（新方法会自动处理letterId）
         const replyContent = await letterReplyGenerator.generateLetterReply(gameData, debugLogPath, config.userFolderPath);
@@ -857,20 +857,31 @@ ipcMain.on("open-folder", (event, path) => {
 ipcMain.handle('get-summary-ids', async () => {
     console.log('IPC: Received get-summary-ids event.');
     try {
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        const ids = await parseSummaryIdsFromLog(logFilePath);
+        const ids = await getPlayerId(userDataPath);
         return ids;
     } catch (error) {
         console.error('Error getting summary IDs:', error);
-        return { playerId: null };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { playerId: null, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-all-summary-player-ids', async () => {
+    console.log('IPC: Received get-all-summary-player-ids event.');
+    try {
+        const ids = await getAllPlayerIds(userDataPath);
+        return { success: true, ids: ids };
+    } catch (error) {
+        console.error('Error getting all player IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
     }
 });
 
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaryData = await readSummaryFile(playerId);
-        return summaryData;
+        return await readSummaryFile(userDataPath, playerId);
     } catch (error) {
         console.error('Error reading summary file:', error);
         return [];
@@ -880,7 +891,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
 ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
     console.log(`IPC: Received save-summary-file event for player: ${playerId}`);
     try {
-        await saveSummaryFile(playerId, summaryData);
+        await saveSummaryFile(userDataPath, playerId, summaryData);
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);

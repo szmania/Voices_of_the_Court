@@ -7,8 +7,8 @@ module.exports = {
         {
             name: "location",
             type: "string",
-            desc: { 
-                en: "the new location where {{aiName}} moves to", 
+            desc: {
+                en: "the new location where {{aiName}} moves to",
                 zh: "{{aiName}}移动到的新位置",
                 ru: "новое место, куда переезжает {{aiName}}",
                 fr: "le nouvel endroit où {{aiName}} déménage",
@@ -33,16 +33,16 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      */
     check: (gameData) => {
         return true;
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      */
     run: (gameData, runGameEffect, args) => {
         runGameEffect(`

@@ -1,5 +1,4 @@
 
-import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
@@ -20,9 +19,8 @@ import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { LetterManager } from '../letter/LetterManager.js';
 import { Letter as ILetter } from '../letter/letterInterfaces.js';
 
-const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-
 export class Conversation{
+    userDataPath: string;
     chatWindow: ChatWindow;
     isOpen: boolean;
     gameData: GameData;
@@ -44,9 +42,10 @@ export class Conversation{
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow){
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
+        this.userDataPath = userDataPath;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -79,7 +78,7 @@ export class Conversation{
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
         
-        const summariesBasePath = path.join(userDataPath, 'conversation_summaries');
+        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
             fs.mkdirSync(summariesBasePath);
             console.log('Created conversation_summaries directory.');
@@ -162,7 +161,7 @@ export class Conversation{
         
         console.log('Attempting to load historical conversation history.');
         console.log('showPreviousConversations config value:', this.config.showPreviousConversations);
-        const historyDir = path.join(userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        const historyDir = path.join(this.userDataPath, 'conversation_history', this.gameData.playerID.toString());
         console.log('Looking for historical conversations in:', historyDir);
         
         if (!fs.existsSync(historyDir)) {
@@ -1100,7 +1099,7 @@ ${character.fullName}的发言：`
         }, 500);
 
         // Ensure the conversation_history directory exists
-        const historyDir = path.join(userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+        const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
 
         if (!fs.existsSync(historyDir)) {
           fs.mkdirSync(historyDir, { recursive: true });
@@ -1146,7 +1145,7 @@ ${character.fullName}的发言：`
 
         // Store the message text for generating summaries in txt format
         const historyFile = path.join(
-          userDataPath,
+          this.userDataPath,
           'conversation_history',
           this.gameData.playerID.toString(),
           `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.txt`
@@ -1170,7 +1169,7 @@ ${character.fullName}的发言：`
 
         this.gameData.characters.forEach((character) => {
             if (character.id !== this.gameData.playerID) {
-                const summaryDir = path.join(userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
 
                 // 暂停文件监控，避免保存时触发重新加载
@@ -1230,7 +1229,7 @@ ${character.fullName}的发言：`
         this.description = "";
 
         const descriptionScriptFileName = this.config.selectedDescScript;
-        const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+        const descriptionPath = path.join(this.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
         try{
             delete require.cache[require.resolve(descriptionPath)];
             this.description = require(descriptionPath)(this.gameData); 
@@ -1273,7 +1272,7 @@ ${character.fullName}的发言：`
         console.log('Loading actions from scripts.');
         this.actions = [];
 
-        const actionsPath = path.join(userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(this.userDataPath, 'scripts', 'actions');
         let standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
         let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 
