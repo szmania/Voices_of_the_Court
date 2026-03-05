@@ -29,7 +29,8 @@
     "connection_valid": "Connection valid!",
     "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)",
     "path_placeholder": "Enter CK3 user folder path...",
-    "player2_info": "Download Player2 from this link: <a href=\"https://player2.game/\" target=\"_blank\">https://player2.game/</a> and run Player2 in the background.",
+    "player2_info": "Download Player2 and run it in the background.",
+    "player2_download_button": "Download Player2",
     "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from player2.game, ensure it is running in the background, and try again. No account is necessary."
   },
   "api": {

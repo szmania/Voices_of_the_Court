@@ -165,6 +165,7 @@ function defineTemplate(label: string){
             </div>
             <div class="input-group">
                 <p data-i18n="connection.player2_info"></p>
+                <button type="button" id="player2-download-button" data-i18n="connection.player2_download_button"></button>
             </div>
         </div>
 
@@ -487,6 +488,12 @@ class ApiSelector extends HTMLElement{
             this.saveGrokConfig();
         })
 
+        this.player2Div.addEventListener("click", (e:any) =>{
+            if (e.target.id === 'player2-download-button') {
+                window.open('https://player2.game/', '_blank');
+            }
+        });
+
         this.player2Div.addEventListener("change", (e:any) =>{
             this.savePlayer2Config();
         })
@@ -530,6 +537,11 @@ class ApiSelector extends HTMLElement{
                 else{
                     this.testConnectionSpan.innerText = result.errorMessage!;
                     this.testConnectionSpan.style.color = "red";
+                    if (this.typeSelector.value === 'player2') {
+                        // @ts-ignore
+                        const alertMessage = window.LocalizationManager.getTranslation('connection.player2_connection_failed');
+                        alert(alertMessage);
+                    }
                 }
                 
             });
