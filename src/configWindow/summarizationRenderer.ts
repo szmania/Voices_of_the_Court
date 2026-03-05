@@ -15,8 +15,6 @@ const playerIdSelect = document.getElementById('summary-manager-playerIdSelect')
 const characterSelect = document.getElementById('summary-manager-characterSelect') as HTMLSelectElement;
 const summaryPathInput = document.getElementById('summary-manager-summaryPath') as HTMLInputElement;
 const summaryList = document.getElementById('summary-manager-summaryList') as HTMLDivElement;
-const summaryDateInput = document.getElementById('summary-manager-summaryDate') as HTMLInputElement;
-const summaryContentInput = document.getElementById('summary-manager-summaryContent') as HTMLTextAreaElement;
 const statusMessage = document.getElementById('summary-manager-statusMessage') as HTMLDivElement;
 const summaryLoader = document.getElementById('summary-manager-loader') as HTMLDivElement;
 const summarySearchInput = document.getElementById('summary-manager-search') as HTMLInputElement;
@@ -25,11 +23,11 @@ const summarySearchInput = document.getElementById('summary-manager-search') as 
 const refreshBtn = document.getElementById('summary-manager-refreshBtn') as HTMLButtonElement;
 const saveBtn = document.getElementById('summary-manager-saveBtn') as HTMLButtonElement;
 const addSummaryBtn = document.getElementById('summary-manager-addSummaryBtn') as HTMLButtonElement;
-const updateSummaryBtn = document.getElementById('summary-manager-updateSummaryBtn') as HTMLButtonElement;
-const deleteSummaryBtn = document.getElementById('summary-manager-deleteSummaryBtn') as HTMLButtonElement;
-const newSummaryBtn = document.getElementById('summary-manager-newSummaryBtn') as HTMLButtonElement;
 const saveSummaryBtn = document.getElementById('summary-manager-saveSummaryBtn') as HTMLButtonElement;
 const deleteItemBtn = document.getElementById('summary-manager-deleteItemBtn') as HTMLButtonElement;
+
+// Month names for date formatting
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // State variables
 let allSummaries: any[] = [];
@@ -148,9 +146,6 @@ function setupEventListeners() {
     refreshBtn.addEventListener('click', loadPlayerIds);
     saveBtn.addEventListener('click', saveSummaries);
     addSummaryBtn.addEventListener('click', addNewSummary);
-    updateSummaryBtn.addEventListener('click', updateCurrentSummary);
-    deleteSummaryBtn.addEventListener('click', deleteCurrentSummary);
-    newSummaryBtn.addEventListener('click', resetEditor);
     playerIdSelect.addEventListener('change', loadSummaryData);
     characterSelect.addEventListener('change', filterSummariesByCharacter);
     summarySearchInput.addEventListener('input', () => {
@@ -158,8 +153,6 @@ function setupEventListeners() {
         renderSummaryList();
     });
     summarySearchInput.addEventListener('keydown', handleSearchKeydown);
-    summaryDateInput.addEventListener('input', handleEditorInputChange);
-    summaryContentInput.addEventListener('input', handleEditorInputChange);
     
     // In-place editing buttons
     if (saveSummaryBtn) {
@@ -172,7 +165,6 @@ function setupEventListeners() {
 
 async function loadPlayerIds() {
     summaryLoader.style.display = 'block';
-    updateSummaryBtn.disabled = true;
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_players', 'Loading player IDs...'), 'info');
         const { success, ids, error } = await ipcRenderer.invoke('get-all-summary-player-ids');
@@ -323,6 +315,16 @@ function renderSummaryList() {
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
                 <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
             `;
+            
+            // Add event listeners for input changes
+            const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
+            const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
+            
+            if (dateInput && contentInput) {
+                dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+                contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            }
+            
             summaryList.appendChild(editItem);
         } else {
             // Render in display mode
@@ -336,7 +338,9 @@ function renderSummaryList() {
             const characterId = summary.characterId || 'Unknown';
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
             
-            const headerText = `${summary.date} - ${characterText}: ${characterId}`;
+            // Format date for display
+            const displayDate = formatDateForDisplay(summary.date);
+            const headerText = `${displayDate} - ${characterText}: ${characterId}`;
             const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
             const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
 
@@ -364,17 +368,19 @@ function renderSummaryList() {
 
 function selectSummary(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
+    
+    // Don't allow selection while editing
+    if (editingSummaryIndex !== -1) return;
+    
     currentSummaryIndex = index;
     const summary = filteredSummaries[index];
-    summaryDateInput.value = formatDateForInput(summary.date);
-    summaryContentInput.value = summary.content;
-    updateSummaryBtn.disabled = true; // Disable button on new selection
-    if (deleteItemBtn) deleteItemBtn.disabled = false; // Enable delete button
-
+    
     // Update file path
     const characterId = summary.characterId || 'Unknown';
     const summaryFilePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
     summaryPathInput.value = summaryFilePath.replace(/\\\\/g, '/'); // Normalize path separators
+
+    if (deleteItemBtn) deleteItemBtn.disabled = false; // Enable delete button
 
     renderSummaryList(); // Re-render to update selection highlight
 }
@@ -386,32 +392,19 @@ function addNewSummary() {
     }
     const characterId = selectedCharacterId;
     const newSummary = {
-        date: new Date().toISOString().split('T')[0], // Default to today
+        date: new Date().toISOString().split('T')[0], // Default to today in YYYY-MM-DD format
         content: 'New summary content',
         characterId: characterId
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter();
-    selectSummary(0);
-    updateSummaryBtn.disabled = false; // Enable for new summary
+    
+    // Enter edit mode for the new summary
+    enterEditMode(0);
+    
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
 }
 
-async function updateCurrentSummary() {
-    if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
-        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_to_update_error', 'Please select a summary to update first'), 'error');
-        return;
-    }
-    const summary = filteredSummaries[currentSummaryIndex];
-    const originalIndex = allSummaries.findIndex(s => s === summary);
-    if (originalIndex !== -1) {
-        allSummaries[originalIndex].date = summaryDateInput.value;
-        allSummaries[originalIndex].content = summaryContentInput.value;
-    }
-    updateSummaryBtn.disabled = true;
-    filterSummariesByCharacter();
-    showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
-}
 
 async function deleteCurrentSummary() {
     if (currentSummaryIndex < 0 || currentSummaryIndex >= filteredSummaries.length) {
@@ -432,10 +425,7 @@ async function deleteCurrentSummary() {
 
 function resetEditor() {
     currentSummaryIndex = -1;
-    summaryDateInput.value = '';
-    summaryContentInput.value = '';
     summaryPathInput.value = ''; // Clear path
-    updateSummaryBtn.disabled = true;
     if (deleteItemBtn) deleteItemBtn.disabled = true; // Disable delete button
     renderSummaryList();
 }
@@ -462,6 +452,28 @@ function showStatusMessage(message: string, type = 'info') {
     setTimeout(() => {
         statusMessage.classList.remove('show');
     }, 3000);
+}
+
+function formatDateForDisplay(dateStr: string): string {
+    if (!dateStr) return '';
+    
+    // If already in DD MMM YYYY format, return as is
+    const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{1,4})$/i);
+    if (dmyMatch) {
+        return dateStr;
+    }
+    
+    // Try to parse as YYYY-MM-DD
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+        const day = date.getDate();
+        const monthIndex = date.getMonth();
+        const year = date.getFullYear();
+        return `${day} ${monthNames[monthIndex]} ${year}`;
+    }
+    
+    // Return original if parsing fails
+    return dateStr;
 }
 
 function formatDateForInput(dateStr: string): string {
@@ -509,22 +521,25 @@ function formatDateForInput(dateStr: string): string {
     return ''; // Return empty if parsing fails
 }
 
-function handleEditorInputChange() {
-    if (currentSummaryIndex < 0) {
-        updateSummaryBtn.disabled = !summaryContentInput.value.trim() || !summaryDateInput.value;
-        return;
+function handleInPlaceInputChange(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
+    
+    const summary = filteredSummaries[index];
+    const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
+    
+    if (!dateInput || !contentInput || !summary) return;
+    
+    const originalDate = formatDateForInput(summary.date);
+    const originalContent = summary.content || '';
+    
+    const dateChanged = originalDate !== dateInput.value;
+    const contentChanged = originalContent !== contentInput.value;
+    
+    // Enable save button only if changes were made
+    if (saveSummaryBtn) {
+        saveSummaryBtn.disabled = !(dateChanged || contentChanged);
     }
-
-    const summary = filteredSummaries[currentSummaryIndex];
-    if (!summary) {
-        updateSummaryBtn.disabled = true;
-        return;
-    }
-
-    const dateChanged = formatDateForInput(summary.date) !== summaryDateInput.value;
-    const contentChanged = summary.content !== summaryContentInput.value;
-
-    updateSummaryBtn.disabled = !(dateChanged || contentChanged);
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
@@ -554,21 +569,15 @@ function escapeRegExp(string: string) {
 function enterEditMode(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
     
-    // Exit any existing edit mode
+    // Exit any existing edit mode without saving
     if (editingSummaryIndex !== -1) {
-        // If we were editing a different item, save it first? For now, just cancel.
-        // Could prompt user, but for simplicity we'll just switch.
+        // Just cancel the previous edit
     }
     
     editingSummaryIndex = index;
     
-    // Disable main editor to avoid conflicts
-    summaryDateInput.disabled = true;
-    summaryContentInput.disabled = true;
-    updateSummaryBtn.disabled = true;
-    deleteSummaryBtn.disabled = true;
-    newSummaryBtn.disabled = true;
-    if (deleteItemBtn) deleteItemBtn.disabled = true; // Disable delete during edit
+    // Disable delete button during edit
+    if (deleteItemBtn) deleteItemBtn.disabled = true;
     
     // Enable save summary button
     if (saveSummaryBtn) {
@@ -600,16 +609,14 @@ function saveInPlaceEdit() {
     const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
     
-    // Re-enable main editor
-    summaryDateInput.disabled = false;
-    summaryContentInput.disabled = false;
-    updateSummaryBtn.disabled = true; // Keep disabled until changes
-    deleteSummaryBtn.disabled = false;
-    newSummaryBtn.disabled = false;
-    
     // Disable save summary button
     if (saveSummaryBtn) {
         saveSummaryBtn.disabled = true;
+    }
+    
+    // Enable delete button
+    if (deleteItemBtn) {
+        deleteItemBtn.disabled = false;
     }
     
     // Refresh the list
