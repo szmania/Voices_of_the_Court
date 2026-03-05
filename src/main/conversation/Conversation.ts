@@ -359,31 +359,9 @@ export class Conversation{
             return; // Exit after self-talk message
         }
 
-        // 根据配置选择角色排序方式
-        let characters = Array.from(this.gameData.characters.values());
-        
-        if (this.config.dynamicCharacterSelection) {
-            console.log('Using dynamic character selection for message generation.');
-            await this.generateAIsMessagesDynamic();
-        } else {
-            // 根据配置决定是否打乱角色顺序
-            if (this.config.shuffleCharacterOrder) {
-                characters = characters.sort(() => Math.random() - 0.5);
-                console.log('Character order shuffled for message generation.');
-            } else {
-                console.log('Using default character order for message generation.');
-            }
-            
-            for (const character of characters) {
-                if (character.id !== this.gameData.playerID) { // Only generate for non-player characters
-                    if (this.config.validateCharacterIdentity) {
-                        await this.generateNewAIMessageWithValidation(character);
-                    } else {
-                        await this.generateNewAIMessage(character);
-                    }
-                }
-            }
-        }
+        this.fillNpcQueue();
+
+        await this.processQueue();
         
         this.chatWindow.window.webContents.send('actions-receive', []);
         console.log('Finished generating AI messages for all characters.');
@@ -394,133 +372,72 @@ export class Conversation{
         }
     }
 
-    /**
-     * 动态角色选择生成消息的方法
-     * 通过LLM分析最新对话内容，从角色池中选择下一个回复的角色
-     */
-    async generateAIsMessagesDynamic() {
-        console.log('Starting dynamic character selection for AI messages.');
-        
-        // 获取所有非玩家角色
-        const allCharacters = Array.from(this.gameData.characters.values())
-            .filter(character => character.id !== this.gameData.playerID);
-        
-        // 创建角色池，包含所有尚未发言的角色
-        let characterPool = [...allCharacters];
-        let roundCount = 0;
-        const maxRounds = 3; // 最多进行3轮，防止无限循环
-        
-        // 当角色池不为空且未达到最大轮数时，继续循环
-        while (characterPool.length > 0 && roundCount < maxRounds) {
-            roundCount++;
-            console.log(`Starting round ${roundCount} of dynamic character selection.`);
-            
-            // 使用LLM分析对话内容，选择下一个回复的角色
-            const selectedCharacter = await this.selectNextCharacter(characterPool);
-            
-            if (selectedCharacter) {
-                console.log(`Selected character: ${selectedCharacter.fullName} for next response.`);
-                
-                // 为选中的角色生成消息，根据配置决定是否进行身份验证
-                if (this.config.validateCharacterIdentity) {
-                    await this.generateNewAIMessageWithValidation(selectedCharacter);
-                } else {
-                    await this.generateNewAIMessage(selectedCharacter);
-                }
-                
-                // 从角色池中移除已发言的角色
-                characterPool = characterPool.filter(char => char.id !== selectedCharacter.id);
-            } else {
-                console.log('No character was selected by the LLM. Ending dynamic selection.');
-                break;
-            }
-        }
-        
-        // 如果还有角色未发言，使用默认顺序生成消息
-        if (characterPool.length > 0) {
-            console.log(`${characterPool.length} characters haven't spoken yet. Generating messages in default order.`);
-            for (const character of characterPool) {
-                // 根据配置决定是否进行身份验证
-                if (this.config.validateCharacterIdentity) {
-                    await this.generateNewAIMessageWithValidation(character);
-                } else {
-                    await this.generateNewAIMessage(character);
-                }
-            }
-        }
-        
-        console.log(`Completed ${roundCount} rounds of dynamic character selection.`);
-    }
-
-    /**
-     * 使用LLM分析对话内容，从角色池中选择下一个回复的角色
-     * @param characterPool - 可选择的角色池
-     * @returns 选中的角色，如果LLM无法选择则返回null
-     */
-    async selectNextCharacter(characterPool: Character[]): Promise<Character | null> {
-        console.log('Asking LLM to select the next character for response.');
-        
-        // 如果角色池中只有一个角色，直接返回该角色，不需要调用LLM
-        if (characterPool.length === 1) {
-            console.log(`Only one character in pool: ${characterPool[0].fullName}. Returning directly without LLM analysis.`);
-            return characterPool[0];
-        }
-        
-        // 构建角色池描述
-        const characterPoolDescription = characterPool.map(char => 
-            `${char.id}: ${char.fullName} - ${char.primaryTitle}`
-        ).join('\n');
-        
-        // 构建最近对话内容摘要
-        const recentMessages = this.messages.slice(-5); // 获取最近5条消息
-        const conversationSummary = recentMessages.map(msg => 
-            `${msg.name}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`
-        ).join('\n');
-        
-        // 构建LLM提示
-        const prompt: Message[] = [
-            {
-                role: "system",
-                content: `你是一个智能对话分析助手，需要根据当前对话内容，从角色池中选择最适合下一个发言的角色。
-
-角色池：
-${characterPoolDescription}
-
-最近对话内容：
-${conversationSummary}
-
-请分析对话内容和角色关系，选择最适合下一个发言的角色。只需要返回角色ID，不需要其他解释。`
-            }
-        ];
-        
-        try {
-            // 调用LLM API
-            const response = await this.textGenApiConnection.complete(prompt, false, {
-                max_tokens: 10,
-                temperature: 0.3
-            });
-            
-            // 解析LLM返回的角色ID
-            const selectedId = parseInt(response.trim());
-            
-            // 验证返回的ID是否在角色池中
-            const selectedCharacter = characterPool.find(char => char.id === selectedId);
-            
-            if (selectedCharacter) {
-                console.log(`LLM selected character ID ${selectedId}: ${selectedCharacter.fullName}`);
-                return selectedCharacter;
-            } else {
-                console.warn(`LLM returned invalid character ID: ${selectedId}. Falling back to random selection.`);
-                // 如果LLM返回了无效ID，随机选择一个角色
-                return characterPool[Math.floor(Math.random() * characterPool.length)];
-            }
-        } catch (error) {
-            console.error(`Error during LLM character selection: ${error}. Falling back to random selection.`);
-            // 如果LLM调用失败，随机选择一个角色
-            return characterPool[Math.floor(Math.random() * characterPool.length)];
-        }
-    }
     
+    fillNpcQueue(): void {
+        this.npcQueue = Array.from(this.gameData.characters.values()).filter(
+            (character) => character.id !== this.gameData.playerID
+        );
+        console.log(`NPC queue filled with ${this.npcQueue.length} characters.`);
+    }
+
+    async determineResponseOrder(): Promise<Character[]> {
+        console.log('Determining response order...');
+        if (this.messages.length === 0) {
+            console.log('No messages in conversation, returning empty response order.');
+            return [];
+        }
+        const lastMessage = this.messages[this.messages.length - 1];
+        if (lastMessage.role !== 'user') {
+            console.log('Last message not from user, returning empty response order.');
+            return [];
+        }
+
+        const potentialTargets: Character[] = [];
+        const remainingCharacters: Character[] = [...this.npcQueue];
+
+        // Simple name matching in the last message
+        for (const character of this.npcQueue) {
+            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+            for (const name of names) {
+                if (lastMessage.content.includes(name)) {
+                    const index = remainingCharacters.findIndex(c => c.id === character.id);
+                    if (index > -1) {
+                        potentialTargets.push(character);
+                        remainingCharacters.splice(index, 1);
+                        break; // Move to next character once found
+                    }
+                }
+            }
+        }
+
+        if (potentialTargets.length > 0) {
+            console.log(`Potential target characters found: ${potentialTargets.map(c => c.shortName).join(', ')}`);
+            const orderedNpcs = [...potentialTargets, ...remainingCharacters.sort(() => Math.random() - 0.5)]; // Shuffle remaining
+            console.log(`Response order determined: ${orderedNpcs.map(c => c.shortName).join(', ')}`);
+            return orderedNpcs;
+        } else {
+            console.log('No specific character targeted. Using shuffled order.');
+            const shuffled = [...this.npcQueue].sort(() => Math.random() - 0.5);
+            console.log(`Response order determined (shuffled): ${shuffled.map(c => c.shortName).join(', ')}`);
+            return shuffled;
+        }
+    }
+
+    async processQueue(): Promise<void> {
+        const orderedNpcs = await this.determineResponseOrder();
+        this.npcQueue = orderedNpcs;
+
+        console.log(`Processing queue with order: ${this.npcQueue.map(c => c.shortName).join(', ')}`);
+
+        for (const character of this.npcQueue) {
+            if (this.config.validateCharacterIdentity) {
+                await this.generateNewAIMessageWithValidation(character);
+            } else {
+                await this.generateNewAIMessage(character);
+            }
+        }
+    }
+
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true): Promise<Message | null> {
         console.log(`Generating AI message for character: ${character.fullName}`);
         
