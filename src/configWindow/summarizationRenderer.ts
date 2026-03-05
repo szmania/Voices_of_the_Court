@@ -579,11 +579,7 @@ function enterEditMode(index: number) {
     // Disable delete button during edit
     if (deleteItemBtn) deleteItemBtn.disabled = true;
     
-    // The save button should be disabled initially on entering edit mode.
-    // It will be enabled by handleInPlaceInputChange once the user makes a change.
-    if (saveSummaryBtn) {
-        saveSummaryBtn.disabled = true;
-    }
+    // The dynamically created save button will be disabled by default.
     
     renderSummaryList();
 }
@@ -610,10 +606,7 @@ function saveInPlaceEdit() {
     const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
     
-    // Disable save summary button
-    if (saveSummaryBtn) {
-        saveSummaryBtn.disabled = true;
-    }
+    // The save button is part of the edit item which will be removed from the DOM on re-render.
     
     // Enable delete button
     if (deleteItemBtn) {
