@@ -195,6 +195,130 @@ export async function checkUserData(){
         fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, '\t'));
     }
 
+    // Validate prompt_presets.json
+    const presetsPath = path.join(userPath, "configs", "prompt_presets.json");
+    console.log(`Validating prompt presets file at: ${presetsPath}`);
+    if (!existsSync(presetsPath)) {
+        fs.writeFileSync(presetsPath, JSON.stringify({}, null, '\t'));
+        console.log(`Created empty prompt presets file at: ${presetsPath}`);
+    }
+
+    //validate conv summaries - No specific validation logic here, just ensuring folder structure.
+    // This section doesn't perform file operations, so no new logs needed beyond existing ones in Conversation.ts
+
+    //validate script files
+    console.log('Validating script files...');
+    const defaultScriptsPath = path.join(__dirname, "..", "..", "default_userdata", "scripts");
+    const userDataScriptsPath= path.join(userPath, "scripts");
+
+    //actions
+    console.log('Updating action scripts...');
+    const standardActionsPath = path.join(userDataScriptsPath, 'actions', 'standard');
+    const sourceActionsPath = path.join(defaultScriptsPath, 'actions', 'standard');
+    if (fs.existsSync(sourceActionsPath)) {
+        // Ensure parent directory exists
+        const parentDir = path.dirname(standardActionsPath);
+        if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log(`Created parent directory: ${parentDir}`);
+        }
+        if (fs.existsSync(standardActionsPath)) {
+            fs.rmSync(standardActionsPath, { recursive: true, force: true });
+            console.log(`Removed old standard actions directory: ${standardActionsPath}`);
+        }
+        fs.cpSync(sourceActionsPath, standardActionsPath, { recursive: true });
+        console.log(`Copied standard actions to: ${standardActionsPath}`);
+    } else {
+        console.warn(`Source actions folder not found: ${sourceActionsPath}`);
+    }
+
+    //description
+    console.log('Updating description scripts...');
+    const standardDescriptionPath = path.join(userDataScriptsPath, 'prompts', 'description', 'standard');
+    const sourceDescriptionPath = path.join(defaultScriptsPath, 'prompts', 'description', 'standard');
+    if (fs.existsSync(sourceDescriptionPath)) {
+        // Ensure parent directory exists
+        const parentDir = path.dirname(standardDescriptionPath);
+        if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log(`Created parent directory: ${parentDir}`);
+        }
+        if (fs.existsSync(standardDescriptionPath)) {
+            fs.rmSync(standardDescriptionPath, { recursive: true, force: true });
+            console.log(`Removed old standard description directory: ${standardDescriptionPath}`);
+        }
+        fs.cpSync(sourceDescriptionPath, standardDescriptionPath, { recursive: true });
+        console.log(`Copied standard description to: ${standardDescriptionPath}`);
+    } else {
+        console.warn(`Source description folder not found: ${sourceDescriptionPath}`);
+    }
+
+    // Check and create custom description folder if it doesn't exist
+    const customDescriptionPath = path.join(userDataScriptsPath, 'prompts', 'description', 'custom');
+    if (!fs.existsSync(customDescriptionPath)){
+        fs.mkdirSync(customDescriptionPath, {recursive: true});
+        console.log(`Created custom description directory: ${customDescriptionPath}`);
+    }
+    // Copy any files from workspace custom folder to userdata custom folder if they exist
+    const workspaceCustomDescriptionPath = path.join(defaultScriptsPath, 'prompts', 'description', 'custom');
+    if (fs.existsSync(workspaceCustomDescriptionPath)) {
+        try {
+            fs.cpSync(workspaceCustomDescriptionPath, customDescriptionPath, {recursive: true, force: false});
+            console.log(`Copied custom description files to: ${customDescriptionPath}`);
+        } catch (err) {
+            console.error(`Error copying custom description files: ${err}`);
+        }
+    }
+
+    //example messages
+    console.log('Updating example messages scripts...');
+    const standardExampleMessagesPath = path.join(userDataScriptsPath, 'prompts', 'example messages', 'standard');
+    const sourceExampleMessagesPath = path.join(defaultScriptsPath, 'prompts', 'example messages', 'standard');
+    if (fs.existsSync(sourceExampleMessagesPath)) {
+        // Ensure parent directory exists
+        const parentDir = path.dirname(standardExampleMessagesPath);
+        if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log(`Created parent directory: ${parentDir}`);
+        }
+        if (fs.existsSync(standardExampleMessagesPath)) {
+            fs.rmSync(standardExampleMessagesPath, { recursive: true, force: true });
+            console.log(`Removed old standard example messages directory: ${standardExampleMessagesPath}`);
+        }
+        fs.cpSync(sourceExampleMessagesPath, standardExampleMessagesPath, { recursive: true });
+        console.log(`Copied standard example messages to: ${standardExampleMessagesPath}`);
+    } else {
+        console.warn(`Source example messages folder not found: ${sourceExampleMessagesPath}`);
+    }
+
+    //copy typedefs
+    console.log('Updating gamedata_typedefs.js...');
+    const typedefsSourcePath = path.join(defaultScriptsPath, 'gamedata_typedefs.js');
+    const typedefsDestPath = path.join(userDataScriptsPath, 'gamedata_typedefs.js');
+    fs.cpSync(typedefsSourcePath, typedefsDestPath);
+    console.log(`Copied gamedata_typedefs.js from ${typedefsSourcePath} to ${typedefsDestPath}`);
+
+    //bookmarks
+    console.log('Updating bookmarks...');
+    const standardBookmarksPath = path.join(userDataScriptsPath, 'bookmarks', 'standard');
+    const sourceBookmarksPath = path.join(defaultScriptsPath, 'bookmarks', 'standard');
+    if (fs.existsSync(sourceBookmarksPath)) {
+        // Ensure parent directory exists
+        const parentDir = path.dirname(standardBookmarksPath);
+        if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+            console.log(`Created parent directory: ${parentDir}`);
+        }
+        if (fs.existsSync(standardBookmarksPath)) {
+            fs.rmSync(standardBookmarksPath, { recursive: true, force: true });
+            console.log(`Removed old standard bookmarks directory: ${standardBookmarksPath}`);
+        }
+        fs.cpSync(sourceBookmarksPath, standardBookmarksPath, { recursive: true });
+        console.log(`Copied standard bookmarks to: ${standardBookmarksPath}`);
+    } else {
+        console.warn(`Source bookmarks folder not found: ${sourceBookmarksPath}`);
+    }
+
     console.log('User data check and synchronization completed successfully.');
     return true;
 }

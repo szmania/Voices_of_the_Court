@@ -13,6 +13,35 @@ let suffixPromptTextarea: any = document.querySelector("#suffix-prompt-textarea"
 
 let restoreDefaultPromptsBtn: HTMLButtonElement = document.querySelector("#restore-default-prompts")!;
 
+// Preset elements
+let promptPresetSelect: HTMLSelectElement = document.querySelector("#prompt-preset-select")!;
+let promptPresetNameInput: HTMLInputElement = document.querySelector("#prompt-preset-name-input")!;
+let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-prompt-preset")!;
+let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
+
+const promptKeys = [
+    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
+    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt"
+];
+
+let promptTextareas: { [key: string]: any } = {};
+promptKeys.forEach(key => {
+    promptTextareas[key] = document.querySelector(`config-textarea[confID="${key}"]`);
+});
+
+let promptPresets: any = {};
+
+function setSaveButtonState(enabled: boolean) {
+    savePromptPresetBtn.disabled = !enabled;
+    if (savePromptPresetBtn.disabled) {
+        savePromptPresetBtn.style.opacity = '0.5';
+        savePromptPresetBtn.style.cursor = 'not-allowed';
+    } else {
+        savePromptPresetBtn.style.opacity = '1';
+        savePromptPresetBtn.style.cursor = 'pointer';
+    }
+}
+
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -50,11 +79,27 @@ ipcRenderer.on('update-language', async (event, lang) => {
 async function init(){
     try {
         addExternalLinks();
+        setSaveButtonState(false); // Initially disabled
+
+        const handleInputChange = () => setSaveButtonState(true);
+
+        promptPresetNameInput.addEventListener('input', handleInputChange);
+        promptKeys.forEach(key => {
+            if (promptTextareas[key] && promptTextareas[key].textarea) {
+                // Ensure all prompt textareas are editable
+                promptTextareas[key].textarea.disabled = false;
+                promptTextareas[key].textarea.addEventListener('input', handleInputChange);
+            }
+        });
+        
         // 应用初始主题
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';
         applyTheme(savedTheme);
 
         let config = await ipcRenderer.invoke('get-config');
+        promptPresets = await ipcRenderer.invoke('get-prompt-presets');
+
+        populatePresetSelector(config.activePromptPreset);
         console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
         console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
@@ -106,6 +151,9 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
+        promptPresetSelect.addEventListener('change', handlePresetChange);
+        savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
+        deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
 
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
@@ -124,11 +172,7 @@ async function init(){
         });
 
         // 恢复默认prompts按钮事件
-        restoreDefaultPromptsBtn.addEventListener('click', async () => {
-            if (confirm('确定要将所有Prompt恢复为默认值吗？此操作不可撤销。')) {
-                await restoreDefaultPrompts();
-            }
-        });
+        restoreDefaultPromptsBtn.addEventListener('click', () => restoreDefaultPrompts(true));
     } catch (error) {
         console.error('Error in init:', error);
         alert('初始化配置页面时发生错误，请查看控制台日志。');
@@ -228,11 +272,120 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
     }
 }
 
+function populatePresetSelector(activePreset?: string) {
+    promptPresetSelect.innerHTML = '';
+
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = 'Default';
+    defaultOption.textContent = 'Default';
+    promptPresetSelect.appendChild(defaultOption);
+
+    // Add custom presets
+    for (const presetName in promptPresets) {
+        const option = document.createElement('option');
+        option.value = presetName;
+        option.textContent = presetName;
+        promptPresetSelect.appendChild(option);
+    }
+
+    promptPresetSelect.value = activePreset || 'Default';
+    handlePresetChange();
+}
+
+async function handlePresetChange() {
+    const selectedPresetName = promptPresetSelect.value;
+    console.log(`Preset changed to: ${selectedPresetName}`);
+    promptPresetNameInput.value = selectedPresetName;
+
+    if (selectedPresetName === 'Default') {
+        await restoreDefaultPrompts(false); // Don't show confirmation
+    } else {
+        const preset = promptPresets[selectedPresetName];
+        if (preset) {
+            for (const key of promptKeys) {
+                if (promptTextareas[key] && preset[key] !== undefined) {
+                    promptTextareas[key].textarea.value = preset[key];
+                    // Manually trigger the input event to notify the component
+                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        }
+    }
+    
+    ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
+    deletePromptPresetBtn.disabled = (selectedPresetName === 'Default');
+    if (deletePromptPresetBtn.disabled) {
+        deletePromptPresetBtn.style.opacity = '0.5';
+        deletePromptPresetBtn.style.cursor = 'not-allowed';
+    } else {
+        deletePromptPresetBtn.style.opacity = '1';
+        deletePromptPresetBtn.style.cursor = 'pointer';
+    }
+    setSaveButtonState(false); // Reset on preset change
+}
+
+async function saveCurrentPreset() {
+    const presetName = promptPresetNameInput.value.trim();
+    if (!presetName) {
+        alert("Preset name cannot be empty.");
+        return;
+    }
+    if (presetName === 'Default') {
+        alert('Cannot save with the name "Default". Please choose another name.');
+        return;
+    }
+
+    if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
+        if (!confirm(`A preset named "${presetName}" already exists. Do you want to overwrite it?`)) {
+            return;
+        }
+    }
+
+    const newPreset: any = {};
+    for (const key of promptKeys) {
+        newPreset[key] = promptTextareas[key].textarea.value;
+    }
+
+    promptPresets[presetName] = newPreset;
+    await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+    
+    populatePresetSelector(presetName);
+    alert(`Preset "${presetName}" saved successfully!`);
+    setSaveButtonState(false);
+}
+
+async function deleteSelectedPreset() {
+    const selectedPresetName = promptPresetSelect.value;
+    if (selectedPresetName === 'Default') {
+        alert("Cannot delete the Default preset.");
+        return;
+    }
+
+    if (confirm(`Are you sure you want to delete the preset "${selectedPresetName}"?`)) {
+        delete promptPresets[selectedPresetName];
+        await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+        populatePresetSelector('Default'); // Switch to default after deletion
+        alert(`Preset "${selectedPresetName}" deleted.`);
+    }
+}
+
+
 /**
  * 恢复所有prompt为默认值
  */
-async function restoreDefaultPrompts(): Promise<void> {
+async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
+        if (showConfirmation) {
+            const config = await ipcRenderer.invoke('get-config');
+            const confirmMsg = (config.language === 'zh') 
+                ? '确定要将所有Prompt恢复为默认值吗？此操作不可撤销。' 
+                : 'Are you sure you want to restore all prompts to their default values? This action cannot be undone.';
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        }
+
         console.log('Restoring default prompts...');
         
         const config = await ipcRenderer.invoke('get-config');
@@ -285,18 +438,21 @@ async function restoreDefaultPrompts(): Promise<void> {
         const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
         // 逐个恢复默认prompt
         for (const [key, value] of Object.entries(promptsToApply)) {
-            ipcRenderer.send('config-change', key, value);
-            console.log(`Restored ${key} to default value (${lang})`);
-            // 添加小延迟确保每个配置都能正确保存
-            await new Promise(resolve => setTimeout(resolve, 100));
+            if (promptTextareas[key]) {
+                promptTextareas[key].textarea.value = value;
+                // Manually trigger the input event to notify the component
+                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         }
         
         console.log('All prompts restored to default values successfully');
-        const successMsg = lang === 'zh' ? '所有Prompt已成功恢复为默认值！' : 'All prompts have been successfully restored to default values!';
-        alert(successMsg);
-        
-        // 刷新页面以显示新的值
-        location.reload();
+
+        if (showConfirmation) {
+            const successMsg = lang === 'zh' ? '所有Prompt已成功恢复为默认值！' : 'All prompts have been successfully restored to default values!';
+            alert(successMsg);
+            // 刷新页面以显示新的值
+            location.reload();
+        }
         
     } catch (error) {
         console.error('Error restoring default prompts:', error);
@@ -305,17 +461,20 @@ async function restoreDefaultPrompts(): Promise<void> {
 }
 
 function addExternalLinks() {
-    const navbar = document.querySelector('.navbar');
-    if (navbar) {
-        if (navbar.querySelector('.social-links')) return;
-        const socialLinks = document.createElement('div');
-        socialLinks.className = 'social-links';
-        socialLinks.innerHTML = `
-            <a href="https://discord.gg/UQpE4mJSqZ" target="_blank" class="social-link" data-i18n-title="nav.discord_tooltip">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 512 512" fill="currentColor"><path d="m386 137c-24-11-49.5-19-76.3-23.7c-.5 0-1 0-1.2.6c-3.3 5.9-7 13.5-9.5 19.5c-29-4.3-57.5-4.3-85.7 0c-2.6-6.2-6.3-13.7-10-19.5c-.3-.4-.7-.7-1.2-.6c-23 4.6-52.4 13-76 23.7c-.2 0-.4.2-.5.4c-49 73-62 143-55 213c0 .3.2.7.5 1c32 23.6 63 38 93.6 47.3c.5 0 1 0 1.3-.4c7.2-9.8 13.6-20.2 19.2-31.2c.3-.6 0-1.4-.7-1.6c-10-4-20-8.6-29.3-14c-.7-.4-.8-1.5 0-2c2-1.5 4-3 5.8-4.5c.3-.3.8-.3 1.2-.2c61.4 28 128 28 188 0c.4-.2.9-.1 1.2.1c1.9 1.6 3.8 3.1 5.8 4.6c.7.5.6 1.6 0 2c-9.3 5.5-19 10-29.3 14c-.7.3-1 1-.6 1.7c5.6 11 12.1 21.3 19 31c.3.4.8.6 1.3.4c30.6-9.5 61.7-23.8 93.8-47.3c.3-.2.5-.5.5-1c7.8-80.9-13.1-151-55.4-213c0-.2-.3-.4-.5-.4Zm-192 171c-19 0-34-17-34-38c0-21 15-38 34-38c19 0 34 17 34 38c0 21-15 38-34 38zm125 0c-19 0-34-17-34-38c0-21 15-38 34-38c19 0 34 17 34 38c0 21-15 38-34 38z"/></svg>
+    const navbarUl = document.querySelector('.navbar ul');
+    if (navbarUl) {
+        if (navbarUl.querySelector('.social-links-li')) return;
+        const socialLinksLi = document.createElement('li');
+        socialLinksLi.className = 'social-links-li';
+        socialLinksLi.innerHTML = `
+            <a href="https://discord.gg/UQpE4mJSqZ" target="_blank" class="social-link discord-link" data-i18n-title="nav.discord_tooltip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 512 512" fill="currentColor"><path d="m386 137c-24-11-49.5-19-76.3-23.7c-.5 0-1 0-1.2.6c-3.3 5.9-7 13.5-9.5 19.5c-29-4.3-57.5-4.3-85.7 0c-2.6-6.2-6.3-13.7-10-19.5c-.3-.4-.7-.7-1.2-.6c-23 4.6-52.4 13-76 23.7c-.2 0-.4.2-.5.4c-49 73-62 143-55 213c0 .3.2.7.5 1c32 23.6 63 38 93.6 47.3c.5 0 1 0 1.3-.4c7.2-9.8 13.6-20.2 19.2-31.2c.3-.6 0-1.4-.7-1.6c-10-4-20-8.6-29.3-14c-.7-.4-.8-1.5 0-2c2-1.5 4-3 5.8-4.5c.3-.3.8-.3 1.2-.2c61.4 28 128 28 188 0c.4-.2.9-.1 1.2.1c1.9 1.6 3.8 3.1 5.8 4.6c.7.5.6 1.6 0 2c-9.3 5.5-19 10-29.3 14c-.7.3-1 1-.6 1.7c5.6 11 12.1 21.3 19 31c.3.4.8.6 1.3.4c30.6-9.5 61.7-23.8 93.8-47.3c.3-.2.5-.5.5-1c7.8-80.9-13.1-151-55.4-213c0-.2-.3-.4-.5-.4Zm-192 171c-19 0-34-17-34-38c0-21 15-38 34-38c19 0 34 17 34 38c0 21-15 38-34 38zm125 0c-19 0-34-17-34-38c0-21 15-38 34-38c19 0 34 17 34 38c0 21-15 38-34 38z"/></svg>
             </a>
-            <a href="https://votc-ce.vercel.app/" target="_blank" class="social-link" data-i18n-title="nav.website_tooltip">🌐</a>
+            <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139" target="_blank" class="social-link steam-link" data-i18n-title="nav.steam_tooltip">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M8.15,8.15L11.85,9.5L11.25,11.25L10.5,11.5L9.6,10.65L8.15,11.4L9,12.25L8.25,13.05L6,12.25V11.5L8.15,8.15M14.5,9.5A2.5,2.5 0 0,1 17,12A2.5,2.5 0 0,1 14.5,14.5A2.5,2.5 0 0,1 12,12A2.5,2.5 0 0,1 14.5,9.5M14.5,11A1,1 0 0,0 13.5,12A1,1 0 0,0 14.5,13A1,1 0 0,0 15.5,12A1,1 0 0,0 14.5,11Z" /></svg>
+            </a>
+            <a href="https://votc-ce.vercel.app/" target="_blank" class="social-link website-link" data-i18n-title="nav.website_tooltip">🌐</a>
         `;
-        navbar.prepend(socialLinks);
+        navbarUl.prepend(socialLinksLi);
     }
 }
