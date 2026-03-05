@@ -386,6 +386,7 @@ function selectSummary(index: number) {
 }
 
 function addNewSummary() {
+    if (editingSummaryIndex !== -1) return; // Don't allow adding while another item is being edited.
     if (selectedCharacterId === 'all') {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.select_character_to_add_error', 'Please select a character before adding a new summary.'), 'error');
         return;
@@ -397,10 +398,14 @@ function addNewSummary() {
         characterId: characterId
     };
     allSummaries.unshift(newSummary);
-    filterSummariesByCharacter();
+    filterSummariesByCharacter(); // This will filter, sort, and render the list
     
-    // Enter edit mode for the new summary
-    enterEditMode(0);
+    // Find the index of the new summary in the filtered list after sorting
+    const newIndex = filteredSummaries.findIndex(s => s === newSummary);
+
+    if (newIndex !== -1) {
+        enterEditMode(newIndex);
+    }
     
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
 }
@@ -427,7 +432,6 @@ function resetEditor() {
     currentSummaryIndex = -1;
     summaryPathInput.value = ''; // Clear path
     if (deleteItemBtn) deleteItemBtn.disabled = true; // Disable delete button
-    renderSummaryList();
 }
 
 async function saveSummaries() {
