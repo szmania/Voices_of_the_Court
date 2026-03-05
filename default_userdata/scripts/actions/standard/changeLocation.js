@@ -7,7 +7,17 @@ module.exports = {
         {
             name: "location",
             type: "string",
-            desc: { en: "the new location where {{aiName}} moves to", zh: "{{aiName}}移动到的新位置" }
+            desc: { 
+                en: "the new location where {{aiName}} moves to", 
+                zh: "{{aiName}}移动到的新位置",
+                ru: "новое место, куда переезжает {{aiName}}",
+                fr: "le nouvel endroit où {{aiName}} déménage",
+                es: "la nueva ubicación a la que se muda {{aiName}}",
+                de: "der neue Ort, an den {{aiName}} umzieht",
+                ja: "{{aiName}}が移動する新しい場所",
+                ko: "{{aiName}}가 이동하는 새로운 위치",
+                pl: "nowa lokalizacja, do której przenosi się {{aiName}}"
+            }
         }
     ],
     description: {
