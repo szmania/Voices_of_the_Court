@@ -13,10 +13,12 @@ import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
-import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
+import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse}from '../ts/conversation_interfaces.js';
 import { RunFileManager } from '../RunFileManager.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 import { SummaryFileWatcher } from './SummaryFileWatcher.js';
+import { LetterManager } from '../letter/LetterManager.js';
+import { Letter as ILetter } from '../letter/letterInterfaces.js';
 
 const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
@@ -36,6 +38,8 @@ export class Conversation{
     currentSummary: string;
     narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
+    letterManager: LetterManager;
+    letters: Map<number, ILetter[]>;
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
@@ -69,6 +73,8 @@ export class Conversation{
 
         this.summaries = new Map<number, Summary[]>();
         this.summaryFileWatcher = new SummaryFileWatcher(); // 初始化文件监控器
+        this.letterManager = LetterManager.getInstance();
+        this.letters = new Map<number, ILetter[]>();
         this.consecutiveActionsCount = 0; // Initialize consecutive actions counter
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
@@ -109,6 +115,10 @@ export class Conversation{
                     this.summaries.set(character.id, updatedSummaries);
                     console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
                 });
+
+                const characterLetters = this.letterManager.getLetters(String(this.gameData.playerID), String(character.id));
+                this.letters.set(character.id, characterLetters);
+                console.log(`Loaded ${characterLetters.length} letters for AI ID ${character.id}.`);
             }
         });
 

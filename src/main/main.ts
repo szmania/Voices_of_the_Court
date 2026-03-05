@@ -896,6 +896,32 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
     }
 });
 
+// Letter IPC Handlers
+ipcMain.on('get-letters', (event) => {
+    console.log('IPC: Received get-letters event.');
+    if (conversation) {
+        const letters = conversation.letterManager.getLetters(String(conversation.gameData.playerID), String(conversation.gameData.aiID));
+        event.sender.send('letters-data', letters);
+    } else {
+        console.log('IPC: No active conversation, sending empty letter array.');
+        event.sender.send('letters-data', []);
+    }
+});
+
+ipcMain.on('mark-letter-as-read', (event, letterId: string) => {
+    console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId}`);
+    if (conversation) {
+        conversation.letterManager.markAsRead(
+            String(conversation.gameData.playerID),
+            String(conversation.gameData.aiID),
+            letterId
+        );
+        console.log(`Letter ${letterId} marked as read.`);
+    } else {
+        console.warn('IPC: Cannot mark letter as read, no active conversation.');
+    }
+});
+
 // Tokenizer IPC handlers
 ipcMain.handle('calculate-tokens', async (event, text: string) => {
     try {
