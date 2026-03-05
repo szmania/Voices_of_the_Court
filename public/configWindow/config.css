@@ -638,9 +638,7 @@ language-selector {
     font-size: 14px;
     color: #b0b0b0;
     white-space: pre-wrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: 60px;
+    word-break: break-word; /* Ensure long words wrap */
 }
 
 #summary-manager-container .list-controls {
