@@ -28,6 +28,8 @@ const addSummaryBtn = document.getElementById('summary-manager-addSummaryBtn') a
 const updateSummaryBtn = document.getElementById('summary-manager-updateSummaryBtn') as HTMLButtonElement;
 const deleteSummaryBtn = document.getElementById('summary-manager-deleteSummaryBtn') as HTMLButtonElement;
 const newSummaryBtn = document.getElementById('summary-manager-newSummaryBtn') as HTMLButtonElement;
+const saveSummaryBtn = document.getElementById('summary-manager-saveSummaryBtn') as HTMLButtonElement;
+const deleteItemBtn = document.getElementById('summary-manager-deleteItemBtn') as HTMLButtonElement;
 
 // State variables
 let allSummaries: any[] = [];
@@ -159,10 +161,12 @@ function setupEventListeners() {
     summaryDateInput.addEventListener('input', handleEditorInputChange);
     summaryContentInput.addEventListener('input', handleEditorInputChange);
     
-    // In-place editing save button
-    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
-    if (saveItemBtn) {
-        saveItemBtn.addEventListener('click', saveInPlaceEdit);
+    // In-place editing buttons
+    if (saveSummaryBtn) {
+        saveSummaryBtn.addEventListener('click', saveInPlaceEdit);
+    }
+    if (deleteItemBtn) {
+        deleteItemBtn.addEventListener('click', deleteCurrentSummary);
     }
 }
 
@@ -350,9 +354,11 @@ function renderSummaryList() {
     allHighlightMarks = Array.from(summaryList.querySelectorAll('mark'));
     
     // Update save item button state
-    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
-    if (saveItemBtn) {
-        saveItemBtn.disabled = editingSummaryIndex === -1;
+    if (saveSummaryBtn) {
+        saveSummaryBtn.disabled = editingSummaryIndex === -1;
+    }
+    if (deleteItemBtn) {
+        deleteItemBtn.disabled = currentSummaryIndex === -1 || editingSummaryIndex !== -1;
     }
 }
 
@@ -363,6 +369,7 @@ function selectSummary(index: number) {
     summaryDateInput.value = formatDateForInput(summary.date);
     summaryContentInput.value = summary.content;
     updateSummaryBtn.disabled = true; // Disable button on new selection
+    if (deleteItemBtn) deleteItemBtn.disabled = false; // Enable delete button
 
     // Update file path
     const characterId = summary.characterId || 'Unknown';
@@ -429,6 +436,7 @@ function resetEditor() {
     summaryContentInput.value = '';
     summaryPathInput.value = ''; // Clear path
     updateSummaryBtn.disabled = true;
+    if (deleteItemBtn) deleteItemBtn.disabled = true; // Disable delete button
     renderSummaryList();
 }
 
@@ -560,11 +568,11 @@ function enterEditMode(index: number) {
     updateSummaryBtn.disabled = true;
     deleteSummaryBtn.disabled = true;
     newSummaryBtn.disabled = true;
+    if (deleteItemBtn) deleteItemBtn.disabled = true; // Disable delete during edit
     
-    // Enable save item button
-    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
-    if (saveItemBtn) {
-        saveItemBtn.disabled = false;
+    // Enable save summary button
+    if (saveSummaryBtn) {
+        saveSummaryBtn.disabled = false;
     }
     
     renderSummaryList();
@@ -581,8 +589,6 @@ function saveInPlaceEdit() {
     
     if (!dateInput || !contentInput) return;
     
-    // Convert date from yyyy-MM-dd back to original format? For now store as yyyy-MM-dd.
-    // But we need to preserve the original format? Let's store as yyyy-MM-dd for consistency.
     const newDate = dateInput.value;
     const newContent = contentInput.value;
     
@@ -591,7 +597,7 @@ function saveInPlaceEdit() {
         allSummaries[originalIndex].content = newContent;
     }
     
-    // Exit edit mode
+    const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
     
     // Re-enable main editor
@@ -601,14 +607,16 @@ function saveInPlaceEdit() {
     deleteSummaryBtn.disabled = false;
     newSummaryBtn.disabled = false;
     
-    // Disable save item button
-    const saveItemBtn = document.getElementById('summary-manager-saveItemBtn') as HTMLButtonElement;
-    if (saveItemBtn) {
-        saveItemBtn.disabled = true;
+    // Disable save summary button
+    if (saveSummaryBtn) {
+        saveSummaryBtn.disabled = true;
     }
     
     // Refresh the list
     filterSummariesByCharacter();
+    
+    // Re-select the item that was just edited
+    selectSummary(justEditedIndex);
     
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
 }
