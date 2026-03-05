@@ -613,7 +613,7 @@ export class ApiConnection{
         }
         console.debug("Test prompt:", prompt);
 
-        return this.complete(prompt, false, {max_tokens: 1}).then( (resp) =>{
+        return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
