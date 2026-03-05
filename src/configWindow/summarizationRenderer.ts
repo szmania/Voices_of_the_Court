@@ -23,7 +23,6 @@ const summarySearchInput = document.getElementById('summary-manager-search') as 
 const refreshBtn = document.getElementById('summary-manager-refreshBtn') as HTMLButtonElement;
 const saveBtn = document.getElementById('summary-manager-saveBtn') as HTMLButtonElement;
 const addSummaryBtn = document.getElementById('summary-manager-addSummaryBtn') as HTMLButtonElement;
-const saveSummaryBtn = document.getElementById('summary-manager-saveSummaryBtn') as HTMLButtonElement;
 const deleteItemBtn = document.getElementById('summary-manager-deleteItemBtn') as HTMLButtonElement;
 
 // Month names for date formatting
@@ -154,10 +153,6 @@ function setupEventListeners() {
     });
     summarySearchInput.addEventListener('keydown', handleSearchKeydown);
     
-    // In-place editing buttons
-    if (saveSummaryBtn) {
-        saveSummaryBtn.addEventListener('click', saveInPlaceEdit);
-    }
     if (deleteItemBtn) {
         deleteItemBtn.addEventListener('click', deleteCurrentSummary);
     }
@@ -314,17 +309,21 @@ function renderSummaryList() {
                 <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterId}</div>
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
                 <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
+                <div class="edit-controls">
+                    <button class="btn btn-success save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
+                </div>
             `;
             
             // Add event listeners for input changes
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
+            const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
             
-            if (dateInput && contentInput) {
+            if (dateInput && contentInput && saveButton) {
                 dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
                 contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+                saveButton.addEventListener('click', saveInPlaceEdit);
             }
-            
             summaryList.appendChild(editItem);
         } else {
             // Render in display mode
