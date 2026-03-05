@@ -579,9 +579,10 @@ function enterEditMode(index: number) {
     // Disable delete button during edit
     if (deleteItemBtn) deleteItemBtn.disabled = true;
     
-    // Enable save summary button
+    // The save button should be disabled initially on entering edit mode.
+    // It will be enabled by handleInPlaceInputChange once the user makes a change.
     if (saveSummaryBtn) {
-        saveSummaryBtn.disabled = false;
+        saveSummaryBtn.disabled = true;
     }
     
     renderSummaryList();
