@@ -585,14 +585,14 @@ function enterEditMode(index: number) {
     renderSummaryList();
 }
 
-function saveInPlaceEdit() {
-    if (editingSummaryIndex < 0 || editingSummaryIndex >= filteredSummaries.length) return;
+function saveInPlaceEdit(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
     
-    const summary = filteredSummaries[editingSummaryIndex];
+    const summary = filteredSummaries[index];
     const originalIndex = allSummaries.findIndex(s => s === summary);
     
-    const dateInput = document.getElementById(`summary-edit-date-${editingSummaryIndex}`) as HTMLInputElement;
-    const contentInput = document.getElementById(`summary-edit-content-${editingSummaryIndex}`) as HTMLTextAreaElement;
+    const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
     
     if (!dateInput || !contentInput) return;
     
