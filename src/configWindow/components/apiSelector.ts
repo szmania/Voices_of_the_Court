@@ -539,7 +539,8 @@ class ApiSelector extends HTMLElement{
                     this.testConnectionSpan.style.color = "red";
                     if (this.typeSelector.value === 'player2') {
                         // @ts-ignore
-                        const alertMessage = window.LocalizationManager.getTranslation('connection.player2_connection_failed');
+                        // @ts-ignore
+                        const alertMessage = window.LocalizationManager.getNestedTranslation('connection.player2_connection_failed');
                         alert(alertMessage);
                     }
                 }
