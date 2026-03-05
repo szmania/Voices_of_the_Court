@@ -7,7 +7,18 @@ module.exports = {
         {
             name: "amount",
             type: "number",
-            desc: "the amount of gold {{playerName}} pays to {{aiName}}"
+            min: 1,
+            desc: { 
+                en: "the amount of gold {{playerName}} pays to {{aiName}}",
+                zh: "{{playerName}}支付给{{aiName}}的金币数量",
+                ru: "количество золота, которое {{playerName}} платит {{aiName}}",
+                fr: "le montant d'or que {{playerName}} paie à {{aiName}}",
+                es: "la cantidad de oro que {{playerName}} paga a {{aiName}}",
+                de: "die Menge Gold, die {{playerName}} an {{aiName}} zahlt",
+                ja: "{{playerName}}が{{aiName}}に支払うゴールドの量",
+                ko: "{{playerName}}가 {{aiName}}에게 지불하는 골드의 양",
+                pl: "ilość złota, którą {{playerName}} płaci {{aiName}}"
+            }
         }
     ],
     description: {

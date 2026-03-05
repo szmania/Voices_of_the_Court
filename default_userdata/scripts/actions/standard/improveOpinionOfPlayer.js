@@ -7,7 +7,19 @@ module.exports = {
         {
             name: "opinion",
             type: "number",
-            desc: "the number of opinion values the relation improves with. Can be between 1 and 5."
+            min: 1,
+            max: 5,
+            desc: { 
+                en: "the number of opinion values the relation improves with.",
+                zh: "关系改善的意见值数量。",
+                ru: "количество значений мнения, на которое улучшаются отношения.",
+                fr: "le nombre de valeurs d'opinion par lesquelles la relation s'améliore.",
+                es: "el número de valores de opinión con los que mejora la relación.",
+                de: "die Anzahl der Meinungswerte, um die sich die Beziehung verbessert.",
+                ja: "関係が改善する意見値の数。",
+                ko: "관계가 개선되는 평가 값의 수.",
+                pl: "liczba wartości opinii, o które poprawia się relacja."
+            }
         }
     ],
     description: {

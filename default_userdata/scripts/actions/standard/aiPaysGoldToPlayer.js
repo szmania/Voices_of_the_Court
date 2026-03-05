@@ -7,7 +7,18 @@ module.exports = {
         {
             name: "amount",
             type: "number",
-            desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
+            min: 1,
+            desc: { 
+                en: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive",
+                zh: "{{aiName}}支付给{{playerName}}的金币数量，应始终为正数",
+                ru: "количество золота, которое {{aiName}} платит {{playerName}}, всегда должно быть положительным",
+                fr: "le montant d'or que {{aiName}} paie à {{playerName}}, doit toujours être positif",
+                es: "la cantidad de oro que {{aiName}} paga a {{playerName}}, siempre debe ser positiva",
+                de: "die Menge Gold, die {{aiName}} an {{playerName}} zahlt, sollte immer positiv sein",
+                ja: "{{aiName}}が{{playerName}}に支払うゴールドの量は常に正数である必要があります",
+                ko: "{{aiName}}가 {{playerName}}에게 지불하는 골드의 양은 항상 양수여야 합니다",
+                pl: "ilość złota, którą {{aiName}} płaci {{playerName}}, powinna być zawsze dodatnia"
+            }
         }
     ],
     description: {

@@ -4,6 +4,49 @@ import { app} from "electron";
 import path from 'path';
 import { existsSync } from "original-fs";
 import fs from 'fs';
+import crypto from 'crypto';
+
+// Helper function to calculate file hash
+function getFileHash(filePath: string): string {
+    try {
+        const fileBuffer = fs.readFileSync(filePath);
+        const hashSum = crypto.createHash('sha256');
+        hashSum.update(fileBuffer);
+        return hashSum.digest('hex');
+    } catch (error) {
+        console.error(`Error getting hash for file ${filePath}:`, error);
+        return '';
+    }
+}
+
+// Recursive function to synchronize directories
+function synchronizeDirectory(sourceDir: string, destDir: string) {
+    if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+        console.log(`Created directory: ${destDir}`);
+    }
+
+    const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const sourcePath = path.join(sourceDir, entry.name);
+        const destPath = path.join(destDir, entry.name);
+
+        if (entry.isDirectory()) {
+            synchronizeDirectory(sourcePath, destPath);
+        } else {
+            // Do not overwrite user's main config file, just the default one.
+            if (path.basename(sourcePath) === 'config.json') {
+                continue;
+            }
+            if (!fs.existsSync(destPath) || getFileHash(sourcePath) !== getFileHash(destPath)) {
+                fs.copyFileSync(sourcePath, destPath);
+                console.log(`Synchronized file: ${destPath}`);
+            }
+        }
+    }
+}
+
 
 // Helper function for deep merging configurations, prioritizing user settings
 // and strictly adhering to the default configuration's structure.
@@ -47,6 +90,7 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
 export async function checkUserData(){
     console.log('Starting user data check...');
     const userPath = path.join(app.getPath('userData'), "votc_data");
+    const defaultUserdataPath = path.join(__dirname, "..", "..", "default_userdata");
     console.log(`User data path: ${userPath}`);
 
     if(!existsSync(userPath)){
@@ -57,31 +101,26 @@ export async function checkUserData(){
             try {
                 fs.cpSync(legacyPath, userPath, { recursive: true });
                 console.log('Migration from legacy folder completed successfully!');
-                return;
+                // After migration, still run sync to get latest updates
             } catch (err) {
                 console.error(`Migration failed: ${err}. Falling back to default initialization.`);
             }
+        } else {
+            console.log('User data votc folder not found! Creating default folder.');
+            fs.cpSync(defaultUserdataPath, userPath, {recursive: true});
+            console.log('User data votc default folder created!');
+            return; // First time creation, no need to sync further
         }
-
-        console.log('User data votc folder not found! Creating default folder.');
-        fs.cpSync(path.join(__dirname, "..", "..", "default_userdata"), userPath, {recursive: true});
-        console.log('User data votc default folder created!');
-
-        return;
     }
 
-    console.log('User data votc folder already exists. Validating contents.');
+    console.log('User data votc folder already exists. Synchronizing contents.');
 
-    //folder already exist:
+    // Synchronize all default files to the user data directory
+    synchronizeDirectory(defaultUserdataPath, userPath);
 
-    // Copy default_config.json to ensure it's always present for validation
-    const defaultConfigSourcePath = path.join(__dirname, "..", "..", "default_userdata", 'configs', 'default_config.json');
-    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
-    fs.cpSync(defaultConfigSourcePath, defaultConfigDestPath);
-    console.log(`Copied default_config.json from ${defaultConfigSourcePath} to ${defaultConfigDestPath}`);
-
-    //validate config
+    // The old validation logic for config can still be useful
     const configPath = path.join(userPath, "configs", "config.json");
+    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
     console.log(`Validating config file at: ${configPath}`);
     
     if(existsSync(configPath)){
@@ -97,8 +136,6 @@ export async function checkUserData(){
         }
 
         // Step 3.2: Perform a Deep Merge
-        // This merges userConfig into defaultConfig, prioritizing user values
-        // while ensuring the final structure matches defaultConfig.
         const mergedConfig = mergeConfigsStrict(defaultConfig, userConfig);
 
         // Step 3.3: Write Back Changes Conditionally
@@ -237,6 +274,6 @@ export async function checkUserData(){
         console.warn(`Source bookmarks folder not found: ${sourceBookmarksPath}`);
     }
 
-    console.log('User data check completed successfully.');
+    console.log('User data check and synchronization completed successfully.');
     return true;
 }

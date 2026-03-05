@@ -249,7 +249,7 @@ html{
 }
 
 .messages-container{
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     width: 100%;
     height: calc(100% - 280px); /* 动态计算高度，为输入区域和按钮留出空间 */
@@ -872,6 +872,127 @@ em{
       margin: 5px 20px;
   }
 
+/* Slash Command Autocomplete */
+.slash-command-container {
+    background: #222;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    margin: 10px;
+    padding: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.slash-command-item {
+    padding: 8px 12px;
+    color: #e0e0e0;
+    cursor: pointer;
+    font-family: 'Gitan', sans-serif;
+    border-bottom: 1px solid #3d2e1e;
+}
+
+.slash-command-item:last-child {
+    border-bottom: none;
+}
+
+.slash-command-item:hover, .slash-command-item.selected {
+    background-color: #4a4a4a;
+    color: #fff;
+}
+
+.slash-command-item .description {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    margin-left: 10px;
+}
+
+/* Inline Action Form */
+.inline-action-form {
+    background-color: rgba(10, 10, 10, 0.5);
+    border: 1px solid #cca43b;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px;
+}
+
+.inline-action-form h3 {
+    margin-top: 0;
+    color: #cca43b;
+}
+
+.action-description {
+    font-size: 0.9rem;
+    color: #b0b0b0;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.inline-action-form .action-arg {
+    margin-bottom: 10px;
+}
+
+.inline-action-form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.inline-action-form input, .inline-action-form select {
+    width: 100%;
+    padding: 8px;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    color: #e0e0e0;
+    border-radius: 2px;
+}
+
+.inline-action-form .arg-desc {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    margin-top: 3px;
+}
+
+.inline-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.inline-action-buttons button {
+    color: white;
+    border: solid 2px rgb(39, 33, 0);
+    font-size: 0.9rem;
+    background-image: url("../assets/button.png");
+    background-size: cover;
+    font-family: 'Gitan', sans-serif;
+    cursor: url("../assets/cursor.png"), auto;
+    transition: all 0.2s;
+    padding: 6px 12px;
+    border-radius: 2px;
+}
+
+.inline-action-buttons button:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
+}
+
+.inline-action-buttons .action-execute-button {
+    background-color: #1e5a1e; /* Dark green */
+}
+
+.inline-action-buttons .action-execute-button:hover {
+    background-color: #2e7a2e; /* Lighter green */
+}
+
+.inline-action-buttons .action-cancel-button {
+    background-color: #5a1e1e; /* Dark red */
+}
+
+.inline-action-buttons .action-cancel-button:hover {
+    background-color: #7a2e2e; /* Lighter red */
+}
+
+
 /* External links in config window navbar */
 .social-links {
     position: absolute;
@@ -902,4 +1023,78 @@ em{
 .social-link svg {
     width: 22px;
     height: 22px;
+}
+
+/* Custom Select Dropdown */
+.custom-select-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-value {
+    width: 100%;
+    padding: 8px;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    color: #e0e0e0;
+    border-radius: 2px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.custom-select-options {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.custom-select-option {
+    padding: 8px;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.custom-select-option:hover {
+    background-color: #4a4a4a;
+}
+
+.inline-action-buttons button {
+    position: relative; /* for tooltip positioning */
+}
+
+.inline-action-buttons button::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.inline-action-buttons button:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
 }

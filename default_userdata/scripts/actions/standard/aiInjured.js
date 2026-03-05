@@ -7,7 +7,25 @@ module.exports = {
         {
             name: "injuryType",
             type: "string",
-            desc: "Type of injury inflicted on {{aiName}} by {{playerName}}. Possible values: injured if simple injure, remove_eye, blind if it last eye, cut_leg, cut_balls, disfigured"
+            options: [
+                { value: 'injured', display: { en: 'Injured', zh: '受伤', ru: 'Ранен', fr: 'Blessé', es: 'Herido', de: 'Verletzt', ja: '負傷', ko: '부상', pl: 'Ranny' }},
+                { value: 'remove_eye', display: { en: 'Remove Eye', zh: '摘除眼睛', ru: 'Удалить глаз', fr: 'Retirer un œil', es: 'Quitar un ojo', de: 'Auge entfernen', ja: '目を摘出', ko: '눈 제거', pl: 'Usunąć oko' }},
+                { value: 'blind', display: { en: 'Blind', zh: '失明', ru: 'Ослепить', fr: 'Aveugler', es: 'Cegar', de: 'Blenden', ja: '盲目', ko: '실명', pl: 'Oślepić' }},
+                { value: 'cut_leg', display: { en: 'Cut Leg', zh: '断腿', ru: 'Отрубить ногу', fr: 'Couper la jambe', es: 'Cortar la pierna', de: 'Bein abschneiden', ja: '足切断', ko: '다리 절단', pl: 'Odciąć nogę' }},
+                { value: 'cut_balls', display: { en: 'Castrate', zh: '阉割', ru: 'Кастрировать', fr: 'Castrer', es: 'Castrar', de: 'Kastrieren', ja: '去勢', ko: '거세', pl: 'Kastrować' }},
+                { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen', ja: '顔面損傷', ko: '얼굴 훼손', pl: 'Zniekształcić' }}
+            ],
+            desc: { 
+                en: "Type of injury inflicted on {{aiName}} by {{playerName}}.",
+                zh: "{{playerName}}对{{aiName}}造成的伤害类型。",
+                ru: "Тип травмы, нанесенной {{playerName}} {{aiName}}.",
+                fr: "Type de blessure infligée à {{aiName}} par {{playerName}}.",
+                es: "Tipo de lesión infligida a {{aiName}} por {{playerName}}.",
+                de: "Art der Verletzung, die {{playerName}} {{aiName}} zufügt.",
+                ja: "{{playerName}}が{{aiName}}に与える傷害の種類。",
+                ko: "{{playerName}}가 {{aiName}}에게 가하는 부상 유형.",
+                pl: "Rodzaj obrażeń zadanych {{aiName}} przez {{playerName}}."
+            }
         }
     ],
     description: {

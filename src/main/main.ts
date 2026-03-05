@@ -13,7 +13,7 @@ import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { parseSummaryIdsFromLog, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
-import { Message} from "./ts/conversation_interfaces.js";
+import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
 import fs from 'fs';
 import { checkUserData } from "./userDataCheck.js";
@@ -502,12 +502,23 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
+        
+        // Sanitize actions to remove non-serializable functions
+        const sanitizedActions = conversation.actions.map(action => ({
+            signature: action.signature,
+            args: action.args,
+            description: action.description,
+            creator: action.creator
+        }));
+
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
             narratives: Array.from(conversation.narratives.entries()),
-            historicalMetadata: historicalMetadata
+            historicalMetadata: historicalMetadata,
+            actions: sanitizedActions // Pass sanitized actions
         };
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
         chatWindow.window.webContents.send('chat-start', payload);
         
     }catch(err){
@@ -783,6 +794,44 @@ ipcMain.on('undo-message', () => {
     console.log('IPC: Received undo-message event.');
     if (conversation) {
         conversation.undo();
+    }
+});
+
+ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
+    console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
+    if (conversation) {
+        const action = conversation.actions.find(a => a.signature === signature);
+        if (action) {
+            try {
+                // Run the action's effect
+                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, args);
+
+                // Generate the chat message if it exists
+                if (action.chatMessage) {
+                    let chatMessage = action.chatMessage(args);
+                    if (typeof chatMessage === 'object' && chatMessage !== null) {
+                        chatMessage = chatMessage[conversation.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
+                    }
+
+                    if (chatMessage) {
+                        const { parseVariables } = require('./parseVariables.js');
+                        const response: ActionResponse = {
+                            actionName: action.signature,
+                            chatMessage: parseVariables(chatMessage, conversation.gameData),
+                            chatMessageClass: action.chatMessageClass
+                        };
+                        // Send the single action response back to be displayed
+                        event.sender.send('actions-receive', [response], ""); // Send as an array
+                    }
+                }
+            } catch (e) {
+                const errMsg = `Action error: failure in run function for action: ${action.signature}; details: ` + e;
+                console.error(errMsg);
+                event.sender.send('error-message', errMsg);
+            }
+        } else {
+            console.warn(`Execute-action warning: Action "${signature}" not found.`);
+        }
     }
 });
 

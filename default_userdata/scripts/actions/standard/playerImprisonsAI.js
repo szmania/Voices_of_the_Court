@@ -7,7 +7,22 @@ module.exports = {
         {
             name: "prisonType",
             type: "string",
-            desc: `type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type). Possible values: default if not specified, house_arrest, dungeon`,
+            options: [
+                { value: 'default', display: { en: 'Default Prison', zh: '默认监狱', ru: 'Обычная тюрьма', fr: 'Prison par défaut', es: 'Prisión por defecto', de: 'Standardgefängnis', ja: 'デフォルト刑務所', ko: '기본 감옥', pl: 'Domyślne więzienie' }},
+                { value: 'house_arrest', display: { en: 'House Arrest', zh: '软禁', ru: 'Домашний арест', fr: 'Assignation à résidence', es: 'Arresto domiciliario', de: 'Hausarrest', ja: '自宅軟禁', ko: '가택 연금', pl: 'Areszt domowy' }},
+                { value: 'dungeon', display: { en: 'Dungeon', zh: '地牢', ru: 'Темница', fr: 'Donjon', es: 'Calabozo', de: 'Kerker', ja: '地下牢', ko: '지하감옥', pl: 'Loch' }}
+            ],
+            desc: { 
+                en: "type of prison {{aiName}} is sent to by {{playerName}} (Must explicitly mention type).",
+                zh: "{{playerName}}将{{aiName}}送往的监狱类型（必须明确提及类型）。",
+                ru: "тип тюрьмы, в которую {{playerName}} отправляет {{aiName}} (должен явно упоминать тип).",
+                fr: "type de prison où {{playerName}} envoie {{aiName}} (doit mentionner explicitement le type).",
+                es: "tipo de prisión a la que {{playerName}} envía a {{aiName}} (debe mencionar explícitamente el tipo).",
+                de: "Art des Gefängnisses, in das {{playerName}} {{aiName}} schickt (muss den Typ explizit erwähnen).",
+                ja: "{{playerName}}が{{aiName}}を送る刑務所の種類（種類を明示的に言及する必要があります）。",
+                ko: "{{playerName}}가 {{aiName}}를 보내는 감옥 유형(유형을 명시적으로 언급해야 함).",
+                pl: "rodzaj więzienia, do którego {{playerName}} wysyła {{aiName}} (musi wyraźnie wspomnieć typ)."
+            },
         }
     ],
     description: {
