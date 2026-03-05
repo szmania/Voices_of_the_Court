@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title data-i18n="app.title">Voices of the Court - Community Edition</title>
+    <link rel="stylesheet" href="config.css" />
+    <link rel="stylesheet" href="../chatWindow/theme.css" />
+    <link rel="stylesheet" href="../letterWindow/letter.css" />
+</head>
+<body>
+    <div class="navbar">
+        <ul>
+            <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+            <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+            <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
+            <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+            <li class="active"><a href="letter.html" data-i18n="nav.letters">Letters</a></li>
+            <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+            <li><a href="system.html" data-i18n="nav.system">System</a></li>
+            <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+            <language-selector></language-selector>
+        </ul> 
+    </div>
+
+    <div class="container">
+        <div class="letter-list-container">
+            <h2 data-i18n="letters.inbox">Inbox</h2>
+            <ul id="letter-list">
+                <!-- Letter items will be dynamically inserted here -->
+            </ul>
+        </div>
+        <div class="letter-view-container">
+            <div id="letter-content">
+                <p data-i18n="letters.select">Select a letter to read.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/letterRenderer.js")</script>
+    <script>
+      // 添加帮助菜单点击事件
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
+</body>
+</html>
