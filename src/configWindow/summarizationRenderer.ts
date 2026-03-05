@@ -121,6 +121,14 @@ function updateSaveButtonState() {
     }
 }
 
+function updateSaveButtonState() {
+    if (hasUnsavedChanges) {
+        saveBtn.classList.add('blinking');
+    } else {
+        saveBtn.classList.remove('blinking');
+    }
+}
+
 function addExternalLinks() {
     const navbarUl = document.querySelector('.navbar ul');
     if (navbarUl) {
