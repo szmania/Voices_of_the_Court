@@ -217,13 +217,10 @@ export class LetterReplyGenerator {
      */
     private saveLetterHistory(playerId: string, aiId: string, letterContent: { language: string; content: string; letterId: string }, replyContent: string, userFolderPath: string, gameData: GameData): void {
         try {
-<<<<<<< HEAD
-            // Get VOTC data folder path
-            const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
-=======
+            // // Get VOTC data folder path
+            // const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
             // 获取VOTC数据文件夹路径
             const votcDataPath = this.userDataPath;
->>>>>>> votc-78-add-summary-manager
             
             // Get character names for logging
             const aiCharacter = gameData.characters.get(Number(aiId));
@@ -350,13 +347,8 @@ export class LetterReplyGenerator {
             // Merge all summaries (current AI's summaries first, then others)
             const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
 
-<<<<<<< HEAD
             // Save the updated summaries
             await saveSummaryFile(String(gameData.playerID), updatedSummaries);
-=======
-            // 保存更新后的总结
-            await saveSummaryFile(this.userDataPath, String(gameData.playerID), updatedSummaries);
->>>>>>> votc-78-add-summary-manager
             console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
 
         } catch (error) {

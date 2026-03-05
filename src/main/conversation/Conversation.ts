@@ -13,11 +13,6 @@ import fs from 'fs';
 import path from 'path';
 
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse}from '../ts/conversation_interfaces.js';
-import { RunFileManager } from '../RunFileManager.js';
-import { ChatWindow } from '../windows/ChatWindow.js';
-import { SummaryFileWatcher } from './SummaryFileWatcher.js';
-import { LetterManager } from '../letter/LetterManager.js';
-import { Letter as ILetter } from '../letter/letterInterfaces.js';
 
 export class Conversation{
     userDataPath: string;
