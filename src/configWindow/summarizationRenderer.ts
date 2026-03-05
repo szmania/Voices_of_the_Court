@@ -38,8 +38,6 @@ let selectedCharacterId = 'all';
 let userDataPath = '';
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
-let currentHighlightIndex = -1;
-let allHighlightMarks: HTMLElement[] = [];
 
 //init
 document.getElementById("container")!.style.display = "block";
