@@ -927,9 +927,14 @@ function showInlineActionForm(action: any) {
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('inline-action-buttons');
 
+    // @ts-ignore
+    const lm = window.LocalizationManager;
+
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'Cancel';
     cancelButton.classList.add('action-cancel-button');
+    const cancelTooltip = (lm ? lm.getNestedTranslation('chat.cancel_tooltip') : null) || "Cancel this action.";
+    cancelButton.setAttribute('data-tooltip', cancelTooltip);
     cancelButton.addEventListener('click', () => {
         if (formContainer.parentNode) {
             formContainer.parentNode.removeChild(formContainer);
@@ -939,6 +944,8 @@ function showInlineActionForm(action: any) {
     const executeButton = document.createElement('button');
     executeButton.textContent = 'Execute';
     executeButton.classList.add('action-execute-button');
+    const executeTooltip = (lm ? lm.getNestedTranslation('chat.execute_tooltip') : null) || "Execute this action.";
+    executeButton.setAttribute('data-tooltip', executeTooltip);
     executeButton.addEventListener('click', () => {
         const args: string[] = [];
         const inputs = formContainer.querySelectorAll('input, select');

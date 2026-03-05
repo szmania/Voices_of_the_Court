@@ -147,6 +147,8 @@
     "regenerate_button": "重新生成",
     "regenerate_tooltip": "只有在AI最后发言时才能重新生成响应。",
     "leave_tooltip": "结束当前对话并保存总结。",
+    "execute_tooltip": "执行此操作。",
+    "cancel_tooltip": "取消此操作。",
     "scene_description": "场景描述",
     "narrative": "旁白",
     "not_spoken": "尚未发言",

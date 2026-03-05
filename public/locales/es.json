@@ -143,6 +143,8 @@
     "regenerate_button": "REGENERAR",
     "regenerate_tooltip": "Solo puedes regenerar una respuesta si la IA fue la última en hablar.",
     "leave_tooltip": "Termina la conversación actual y guarda el resumen.",
+    "execute_tooltip": "Ejecutar esta acción.",
+    "cancel_tooltip": "Cancelar esta acción.",
     "scene_description": "Descripción de la escena",
     "narrative": "Narrativa",
     "not_spoken": "No ha hablado todavía",
