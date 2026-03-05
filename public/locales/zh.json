@@ -138,7 +138,8 @@
     "clear_summaries": "清除对话总结",
     "clear_summaries_desc": "这将删除所有角色的先前对话总结",
     "clear_button": "清除总结",
-    "open_summaries": "打开对话总结文件夹"
+    "open_summaries": "打开对话总结文件夹",
+    "roleplay_instruction": "你的任务是扮演角色 {characterName}。只为该角色撰写回复。记住，你扮演的是 {characterName}，不要为任何其他角色撰写回复。"
   },
   "chat": {
     "leave_button": "结束对话",

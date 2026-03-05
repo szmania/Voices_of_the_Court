@@ -138,7 +138,8 @@
     "clear_summaries": "Effacer les résumés de conversation",
     "clear_summaries_desc": "Ceci supprimera les résumés des conversations précédentes de tous les personnages",
     "clear_button": "Effacer les résumés",
-    "open_summaries": "Ouvrir le dossier des résumés de conversation"
+    "open_summaries": "Ouvrir le dossier des résumés de conversation",
+    "roleplay_instruction": "Votre tâche est d'incarner le personnage {characterName}. Écrivez une réponse uniquement pour ce personnage. N'oubliez pas, vous jouez le rôle de {characterName}, n'écrivez pas de réponses pour d'autres personnages."
   },
   "chat": {
     "leave_button": "QUITTER LA CONVERSATION",

@@ -138,7 +138,8 @@
     "clear_summaries": "대화 요약 지우기",
     "clear_summaries_desc": "모든 캐릭터의 이전 대화 요약을 삭제합니다.",
     "clear_button": "요약 지우기",
-    "open_summaries": "대화 요약 폴더 열기"
+    "open_summaries": "대화 요약 폴더 열기",
+    "roleplay_instruction": "당신의 임무는 {characterName} 캐릭터를 연기하는 것입니다. 이 캐릭터에 대한 답장만 작성하십시오. 당신은 {characterName}을 연기하고 있다는 것을 기억하고 다른 캐릭터에 대한 답장은 쓰지 마십시오."
   },
   "chat": {
     "leave_button": "대화 종료",

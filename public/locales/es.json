@@ -135,7 +135,8 @@
     "clear_summaries": "Borrar resúmenes de conversación",
     "clear_summaries_desc": "Esto eliminará los resúmenes de las conversaciones anteriores de todos los personajes",
     "clear_button": "Borrar resúmenes",
-    "open_summaries": "Abrir carpeta de resúmenes de conversación"
+    "open_summaries": "Abrir carpeta de resúmenes de conversación",
+    "roleplay_instruction": "Tu tarea es interpretar al personaje {characterName}. Escribe una respuesta solo para este personaje. Recuerda, estás interpretando a {characterName}, no escribas respuestas para ningún otro personaje."
   },
   "chat": {
     "leave_button": "TERMINAR CONVERSACIÓN",

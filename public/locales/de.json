@@ -138,7 +138,8 @@
     "clear_summaries": "Gesprächszusammenfassungen löschen",
     "clear_summaries_desc": "Dies löscht die Zusammenfassungen früherer Gespräche aller Charaktere",
     "clear_button": "Zusammenfassungen löschen",
-    "open_summaries": "Ordner für Gesprächszusammenfassungen öffnen"
+    "open_summaries": "Ordner für Gesprächszusammenfassungen öffnen",
+    "roleplay_instruction": "Deine Aufgabe ist es, die Rolle des Charakters {characterName} zu spielen. Schreibe nur eine Antwort für diesen Charakter. Denke daran, du spielst als {characterName}, schreibe keine Antworten für andere Charaktere."
   },
   "chat": {
     "leave_button": "GESPRÄCH BEENDEN",

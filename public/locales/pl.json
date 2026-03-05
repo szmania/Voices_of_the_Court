@@ -138,7 +138,8 @@
     "clear_summaries": "Wyczyść podsumowania rozmów",
     "clear_summaries_desc": "To usunie podsumowania poprzednich rozmów wszystkich postaci",
     "clear_button": "Wyczyść podsumowania",
-    "open_summaries": "Otwórz folder podsumowań rozmów"
+    "open_summaries": "Otwórz folder podsumowań rozmów",
+    "roleplay_instruction": "Twoim zadaniem jest odgrywanie roli postaci {characterName}. Napisz odpowiedź tylko dla tej postaci. Pamiętaj, że grasz jako {characterName}, nie pisz odpowiedzi dla żadnej innej postaci."
   },
   "chat": {
     "leave_button": "ZAKOŃCZ ROZMOWĘ",

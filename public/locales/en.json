@@ -138,7 +138,8 @@
     "clear_summaries": "Clear conversation summaries",
     "clear_summaries_desc": "This will delete the summaries of previous conversations of all characters",
     "clear_button": "Clear Summaries",
-    "open_summaries": "Open conversation summaries folder"
+    "open_summaries": "Open conversation summaries folder",
+    "roleplay_instruction": "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Remember, you are playing as {characterName}, do not write replies for any other character."
   },
   "chat": {
     "leave_button": "END CONVERSATION",
