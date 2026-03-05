@@ -424,18 +424,40 @@ export class Conversation{
     }
 
     async processQueue(): Promise<void> {
-        const orderedNpcs = await this.determineResponseOrder();
-        this.npcQueue = orderedNpcs;
-
         console.log(`Processing queue with order: ${this.npcQueue.map(c => c.shortName).join(', ')}`);
 
-        for (const character of this.npcQueue) {
+        while (this.npcQueue.length > 0) {
+            if (this.isPaused) {
+                console.log('Conversation paused. Queue processing will stop.');
+                return; // Exit if paused
+            }
+            
+            const character = this.npcQueue.shift(); // Get and remove character from front of queue
+            if (!character) continue;
+
+            console.log(`Processing character: ${character.shortName}`);
             if (this.config.validateCharacterIdentity) {
                 await this.generateNewAIMessageWithValidation(character);
             } else {
                 await this.generateNewAIMessage(character);
             }
         }
+        console.log('Finished processing NPC queue.');
+    }
+
+    pause(): void {
+        this.isPaused = true;
+        console.log('Conversation has been paused.');
+    }
+
+    resume(): void {
+        if (!this.isPaused) {
+            console.log('Conversation is not paused.');
+            return;
+        }
+        this.isPaused = false;
+        console.log('Conversation is resuming. Processing will continue.');
+        this.processQueue(); // Continue processing the queue
     }
 
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true): Promise<Message | null> {
