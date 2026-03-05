@@ -13,7 +13,7 @@ import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { parseSummaryIdsFromLog, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
-import { Message} from "./ts/conversation_interfaces.js";
+import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
 import fs from 'fs';
 import { checkUserData } from "./userDataCheck.js";
@@ -379,15 +379,18 @@ app.on('ready',  async () => {
     // Show announcement popup
     const announcementOpts = {
         type: 'info' as const,
-        buttons: [t('dialog.join_discord'), t('dialog.view_steam'), t('dialog.later')],
+        buttons: [t('dialog.join_discord'), t('dialog.view_website'), t('dialog.view_steam'), t('dialog.later')],
         title: t('dialog.announcement_title'),
-        message: t('dialog.announcement_message')
+        message: t('dialog.announcement_message'),
+        cancelId: 3 // Set "Later" as the cancel action
     };
 
     dialog.showMessageBox(announcementOpts).then((returnValue) => {
         if (returnValue.response === 0) {
             shell.openExternal('https://discord.gg/UQpE4mJSqZ');
         } else if (returnValue.response === 1) {
+            shell.openExternal('https://votc-ce.vercel.app/');
+        } else if (returnValue.response === 2) {
             shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
         }
     });
@@ -496,15 +499,27 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow);
-        chatWindow.window.webContents.send('chat-start', conversation.gameData);
+
+        // Consolidate chat-start and chat-history into a single event to prevent race conditions
+        const historicalMetadata = conversation.historicalConversations || [];
         
-        // Send loaded history if any
-        if (conversation.messages.length > 0) {
-            console.log(`Sending ${conversation.messages.length} historical messages to chat window.`);
-            // Send historical conversation metadata along with messages
-            const historicalMetadata = conversation.historicalConversations || [];
-            chatWindow.window.webContents.send('chat-history', conversation.messages, Array.from(conversation.narratives.entries()), historicalMetadata);
-        }
+        // Sanitize actions to remove non-serializable functions
+        const sanitizedActions = conversation.actions.map(action => ({
+            signature: action.signature,
+            args: action.args,
+            description: action.description,
+            creator: action.creator
+        }));
+
+        const payload = {
+            gameData: conversation.gameData,
+            messages: conversation.messages,
+            narratives: Array.from(conversation.narratives.entries()),
+            historicalMetadata: historicalMetadata,
+            actions: sanitizedActions // Pass sanitized actions
+        };
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
+        chatWindow.window.webContents.send('chat-start', payload);
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");
@@ -754,6 +769,44 @@ ipcMain.on('undo-message', () => {
     }
 });
 
+ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
+    console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
+    if (conversation) {
+        const action = conversation.actions.find(a => a.signature === signature);
+        if (action) {
+            try {
+                // Run the action's effect
+                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, args);
+
+                // Generate the chat message if it exists
+                if (action.chatMessage) {
+                    let chatMessage = action.chatMessage(args);
+                    if (typeof chatMessage === 'object' && chatMessage !== null) {
+                        chatMessage = chatMessage[conversation.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
+                    }
+
+                    if (chatMessage) {
+                        const { parseVariables } = require('./parseVariables.js');
+                        const response: ActionResponse = {
+                            actionName: action.signature,
+                            chatMessage: parseVariables(chatMessage, conversation.gameData),
+                            chatMessageClass: action.chatMessageClass
+                        };
+                        // Send the single action response back to be displayed
+                        event.sender.send('actions-receive', [response], ""); // Send as an array
+                    }
+                }
+            } catch (e) {
+                const errMsg = `Action error: failure in run function for action: ${action.signature}; details: ` + e;
+                console.error(errMsg);
+                event.sender.send('error-message', errMsg);
+            }
+        } else {
+            console.warn(`Execute-action warning: Action "${signature}" not found.`);
+        }
+    }
+});
+
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');
@@ -841,6 +894,74 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
         console.error('Error reading conversation history file:', error);
         return '';
     }
+});
+
+// Letter IPC Handlers
+ipcMain.on('get-letters', (event) => {
+    console.log('IPC: Received get-letters event.');
+    if (conversation) {
+        const letters = conversation.letterManager.getLetters(String(conversation.gameData.playerID), String(conversation.gameData.aiID));
+        event.sender.send('letters-data', letters);
+    } else {
+        console.log('IPC: No active conversation, sending empty letter array.');
+        event.sender.send('letters-data', []);
+    }
+});
+
+ipcMain.on('mark-letter-as-read', (event, letterId: string) => {
+    console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId}`);
+    if (conversation) {
+        conversation.letterManager.markAsRead(
+            String(conversation.gameData.playerID),
+            String(conversation.gameData.aiID),
+            letterId
+        );
+        console.log(`Letter ${letterId} marked as read.`);
+    } else {
+        console.warn('IPC: Cannot mark letter as read, no active conversation.');
+    }
+});
+
+// Tokenizer IPC handlers
+ipcMain.handle('calculate-tokens', async (event, text: string) => {
+    try {
+        if (config?.textGenerationApiConnectionConfig?.connection) {
+            // Import ApiConnection dynamically to avoid circular dependencies
+            const { ApiConnection } = await import('../shared/apiConnection.js');
+            const apiConnection = new ApiConnection(
+                config.textGenerationApiConnectionConfig.connection,
+                config.textGenerationApiConnectionConfig.parameters
+            );
+            return apiConnection.calculateTokensFromText(text);
+        }
+    } catch (error) {
+        console.error('Error calculating tokens in main:', error);
+    }
+    // Fallback: simple token estimation (rough approximation)
+    return Math.ceil((text || "").length / 4);
+});
+
+ipcMain.handle('get-context-limit', async () => {
+    try {
+        const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
+        const parameters = config?.textGenerationApiConnectionConfig?.parameters;
+        if (connectionConfig) {
+            // Prioritize manual overwrite if it exists and is valid
+            if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
+                return connectionConfig.customContext;
+            }
+            // Fallback to API-detected context
+            const { ApiConnection } = await import('../shared/apiConnection.js');
+            const apiConnection = new ApiConnection(
+                connectionConfig,
+                config.textGenerationApiConnectionConfig.parameters
+            );
+            return apiConnection.context || 0;
+        }
+    } catch (error) {
+        console.error('Error getting context limit in main:', error);
+    }
+    return 0;
 });
 
 // 处理API配置更改事件
