@@ -145,6 +145,9 @@
     "clear_summaries_desc": "这将删除所有角色的先前对话总结",
     "clear_button": "清除总结",
     "open_summaries": "打开对话总结文件夹",
+    "roaming_data": "漫游数据文件夹",
+    "roaming_data_desc": "此文件夹包含您的个人配置、脚本和摘要。",
+    "open_roaming_data": "打开漫游数据文件夹",
     "roleplay_instruction": "你的任务是扮演角色 {characterName}。只为该角色撰写回复。记住，你扮演的是 {characterName}，不要为任何其他角色撰写回复。",
     "start_writing_reply": "现在开始写{characterName}的回复："
   },

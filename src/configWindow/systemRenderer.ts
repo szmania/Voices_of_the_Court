@@ -9,6 +9,7 @@ let clearSummariesButton: HTMLElement = document.querySelector("#clear-summaries
 let themeSelector: HTMLSelectElement = document.querySelector("#theme-selector")!;
 let runPathButton: HTMLSelectElement = document.querySelector("#run-path-button")!;
 let runPathInput: HTMLSelectElement = document.querySelector("#run-path-input")!;
+let openRoamingDataButton: HTMLElement = document.querySelector("#open-roaming-data-button")!;
 
 
 document.getElementById("container")!.style.display = "block";
@@ -23,6 +24,10 @@ updateButton.addEventListener('click', ()=>{
 clearSummariesButton.addEventListener('click', ()=>{
     ipcRenderer.send('clear-summaries');
 })
+
+openRoamingDataButton.addEventListener('click', () => {
+    ipcRenderer.send('open-roaming-data-folder');
+});
 
 // 主题选择功能
 themeSelector.addEventListener('change', (event) => {

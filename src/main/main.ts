@@ -853,6 +853,13 @@ ipcMain.on("open-folder", (event, path) => {
     dialog.showSaveDialog(configWindow.window, { defaultPath: path, properties: []});
 });
 
+ipcMain.on('open-roaming-data-folder', () => {
+    console.log('IPC: Received open-roaming-data-folder event.');
+    const roamingPath = path.join(app.getPath('userData'), 'votc_data');
+    console.log(`Opening roaming data folder at: ${roamingPath}`);
+    shell.openPath(roamingPath);
+});
+
 // Summary Manager IPC handlers
 ipcMain.handle('get-summary-ids', async () => {
     console.log('IPC: Received get-summary-ids event.');
