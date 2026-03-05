@@ -14,10 +14,10 @@
     "outputSequence": "[/INST]",
 	"textGenerationApiConnectionConfig": {
 		"connection": {
-			"type": "openrouter",
-			"baseUrl": "https://openrouter.ai/api/v1",
+			"type": "player2",
+			"baseUrl": "https://api.player2.game/v1",
 			"key": "",
-			"model": "",
+			"model": "gpt-3.5-turbo",
 			"forceInstruct": false,
 			"overwriteContext": false,
 			"customContext": 90000
@@ -32,10 +32,10 @@
 	},
 	"summarizationApiConnectionConfig": {
 		"connection": {
-			"type": "openrouter",
-			"baseUrl": "https://openrouter.ai/api/v1",
+			"type": "player2",
+			"baseUrl": "https://api.player2.game/v1",
 			"key": "",
-			"model": "",
+			"model": "gpt-3.5-turbo",
 			"forceInstruct": false,
 			"overwriteContext": false,
 			"customContext": 90000
@@ -49,10 +49,10 @@
 	},
 	"actionsApiConnectionConfig": {
 		"connection": {
-			"type": "openrouter",
-		"baseUrl": "https://openrouter.ai/api/v1",
+			"type": "player2",
+		"baseUrl": "https://api.player2.game/v1",
 		"key": "",
-		"model": "",
+		"model": "gpt-3.5-turbo",
 		"forceInstruct": false,
 		"overwriteContext": false,
     	"customContext": 90000

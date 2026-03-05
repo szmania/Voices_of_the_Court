@@ -151,17 +151,21 @@ function defineTemplate(label: string){
 
         <div id="player2-menu">
             <h2 data-i18n="api.player2">Player2</h2>
-            <div class="input-group">
-            <label for="api-key" data-i18n="connection.api_key">API Key</label>
-            <br>
-            <input type="password" id="player2-key">
+            <div class="input-group" style="display: none;">
+                <label for="api-key" data-i18n="connection.api_key">API Key</label>
+                <br>
+                <input type="password" id="player2-key">
             </div>
             <div class="input-group" style="display: none;">
-            <label for="player2-model-select" data-i18n="connection.model">Model</label>
-            <select id="player2-model-select">
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="gpt-4o">GPT-4o</option>
-            </select>
+                <label for="player2-model-select" data-i18n="connection.model">Model</label>
+                <select id="player2-model-select">
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <p data-i18n="connection.player2_info"></p>
+                <button type="button" id="player2-download-button" data-i18n="connection.player2_download_button" data-i18n-title="connection.player2_download_tooltip"></button>
             </div>
         </div>
 
@@ -484,6 +488,12 @@ class ApiSelector extends HTMLElement{
             this.saveGrokConfig();
         })
 
+        this.player2Div.addEventListener("click", (e:any) =>{
+            if (e.target.id === 'player2-download-button') {
+                window.open('https://player2.game/', '_blank');
+            }
+        });
+
         this.player2Div.addEventListener("change", (e:any) =>{
             this.savePlayer2Config();
         })
@@ -527,6 +537,12 @@ class ApiSelector extends HTMLElement{
                 else{
                     this.testConnectionSpan.innerText = result.errorMessage!;
                     this.testConnectionSpan.style.color = "red";
+                    if (this.typeSelector.value === 'player2') {
+                        // @ts-ignore
+                        // @ts-ignore
+                        const alertMessage = window.LocalizationManager.getNestedTranslation('connection.player2_connection_failed');
+                        alert(alertMessage);
+                    }
                 }
                 
             });
