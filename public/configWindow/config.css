@@ -432,3 +432,51 @@ language-selector {
 .dropdown:hover .dropdown-content {
   display: block;
 }
+
+.social-links-li {
+  order: 0; /* Prepend */
+  flex-grow: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 10px;
+}
+
+.social-links-li a {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent !important;
+  border: none !important;
+  color: #b8860b;
+  font-size: 22px; /* For the globe icon */
+  text-decoration: none;
+}
+
+.social-links-li a.discord-link {
+  color: #5865F2; /* Discord purple */
+  font-size: 24px; /* Slightly bigger */
+}
+
+.social-links-li a.steam-link {
+  color: #c7d5e0; /* Steam light blue */
+}
+
+.social-links-li a.steam-link:hover {
+  color: #66c0f4; /* Steam hover blue */
+}
+
+.social-links-li a.website-link {
+  position: relative;
+  top: -2px;
+}
+
+.social-links-li a:hover {
+  background-color: #3d2e1e !important;
+  color: #ffd700;
+  border-radius: 4px;
+}
+
+.social-links-li a svg {
+  fill: currentColor;
+}

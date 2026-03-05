@@ -12,6 +12,7 @@
     "help": "帮助",
     "language_tooltip": "选择应用程序语言",
     "discord_tooltip": "加入我们的Discord",
+    "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站"
   },
   "connection": {
@@ -71,6 +72,11 @@
     "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
+    "presets_header": "提示词预设",
+    "select_preset": "当前预设:",
+    "save_preset_tooltip": "将当前提示词另存为新预设",
+    "delete_preset_tooltip": "删除选定的预设",
+    "preset_name_placeholder": "预设名称...",
     "scripts_header": "脚本",
     "scripts_tooltip": "某些提示词过于先进，无法由静态文本组成，它们需要根据游戏内变量动态编写提示词的脚本文件。",
     "char_desc_script": "角色描述脚本",
