@@ -457,68 +457,65 @@ function showStatusMessage(message: string, type = 'info') {
 function formatDateForDisplay(dateStr: string): string {
     if (!dateStr) return '';
     
-    // If already in DD MMM YYYY format, return as is
-    const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{1,4})$/i);
-    if (dmyMatch) {
-        return dateStr;
+    // The input is expected to be YYYY-MM-DD from the input field or storage.
+    const ymdMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (ymdMatch) {
+        const year = parseInt(ymdMatch[1], 10);
+        const monthIndex = parseInt(ymdMatch[2], 10) - 1;
+        const day = parseInt(ymdMatch[3], 10);
+        if (monthIndex >= 0 && monthIndex < 12) {
+            return `${day} ${monthNames[monthIndex]} ${year}`;
+        }
     }
     
-    // Try to parse as YYYY-MM-DD, treating it as UTC to avoid timezone shifts
-    const date = new Date(dateStr);
-    if (!isNaN(date.getTime()) && dateStr.includes('-')) {
-        const day = date.getUTCDate();
-        const monthIndex = date.getUTCMonth();
-        const year = date.getUTCFullYear();
-        return `${day} ${monthNames[monthIndex]} ${year}`;
-    }
-    
-    // Return original if parsing fails
+    // If it's not in YYYY-MM-DD, it might be one of the other formats, just return it as is.
     return dateStr;
 }
 
 function formatDateForInput(dateStr: string): string {
     if (!dateStr) return '';
-    // Handle "DD MMM YYYY" format (e.g., "14 Oct 867")
+
+    // If it's already in YYYY-MM-DD, just return it.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+
+    // For any other format, we must parse it into components and build a YYYY-MM-DD string.
+    // This avoids timezone issues from `new Date()`.
     const months: { [key: string]: number } = {
         'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
         'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
     };
     
+    // Handle "DD MMM YYYY" format
     const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{1,4})$/i);
     if (dmyMatch) {
-        const day = dmyMatch[1].padStart(2, '0');
+        const day = parseInt(dmyMatch[1], 10);
         const monthStr = dmyMatch[2].toLowerCase();
         const month = months[monthStr];
-        const year = dmyMatch[3];
+        const year = parseInt(dmyMatch[3], 10);
         
         if (month !== undefined) {
-            const monthFormatted = (month + 1).toString().padStart(2, '0');
-            return `${year.padStart(4, '0')}-${monthFormatted}-${day}`;
+            return `${year.toString().padStart(4, '0')}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         }
     }
     
     // Attempt to handle YYYY年MM月DD日 format
-    const match = dateStr.match(/(\d{1,4})年(\d{1,2})月(\d{1,2})日/);
-    if (match) {
-        const year = match[1];
-        const month = match[2].padStart(2, '0');
-        const day = match[3].padStart(2, '0');
-        return `${year.padStart(4, '0')}-${month}-${day}`;
+    const cjkMatch = dateStr.match(/(\d{1,4})年(\d{1,2})月(\d{1,2})日/);
+    if (cjkMatch) {
+        return `${cjkMatch[1].padStart(4, '0')}-${cjkMatch[2].padStart(2, '0')}-${cjkMatch[3].padStart(2, '0')}`;
     }
     
-    // Attempt to parse with Date constructor for other formats like YYYY-MM-DD
+    // As a last resort, try new Date(), but it's risky.
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
-        // Check if the original string was just a year, which Date might misinterpret
-        if (/^\d{1,4}$/.test(dateStr.trim())) {
-             return '';
-        }
-        // Use UTC methods to avoid timezone-related shifts
-        const year = date.getUTCFullYear().toString();
-        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-        const day = date.getUTCDate().toString().padStart(2, '0');
-        return `${year.padStart(4, '0')}-${month}-${day}`;
+        // This will use the local timezone's year, month, day, which might be what we want if the string is ambiguous.
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     }
+
     return ''; // Return empty if parsing fails
 }
 
