@@ -15,7 +15,7 @@ export class LetterReplyGenerator {
     constructor(config: Config) {
         this.config = config;
         
-        // 创建API连接
+        // Create API connection
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
             config.textGenerationApiConnectionConfig.parameters
@@ -23,9 +23,9 @@ export class LetterReplyGenerator {
     }
 
     /**
-     * 从debug.log中提取玩家信件内容
-     * @param debugLogPath debug.log文件路径
-     * @returns 提取到的信件内容，如果未找到则返回null
+     * Extracts player letter content from debug.log
+     * @param debugLogPath Path to debug.log file
+     * @returns Extracted letter content, or null if not found
      */
     private extractLetterContent(debugLogPath: string): { language: string; content: string; letterId: string } | null {
         try {
@@ -36,7 +36,7 @@ export class LetterReplyGenerator {
 
             const fileContent = fs.readFileSync(debugLogPath, 'utf8');
             
-            // 查找最后一条VOTC:LETTER记录，包含letter_id参数
+            // Find the last VOTC:LETTER record, including the letter_id parameter
             const letterPattern = /VOTC:LETTER\/;\/([^\/]+)\/;\/([^\/]+)\/;\/([^\/]+)/g;
             const matches = [...fileContent.matchAll(letterPattern)];
             
@@ -45,7 +45,7 @@ export class LetterReplyGenerator {
                 return null;
             }
 
-            // 获取最后一条匹配的记录
+            // Get the last matched record
             const lastMatch = matches[matches.length - 1];
             const language = lastMatch[1].trim();
             const content = lastMatch[2].trim();
@@ -60,10 +60,10 @@ export class LetterReplyGenerator {
     }
 
     /**
-     * 构建信件回复的prompt
-     * @param gameData 游戏数据
-     * @param letterContent 信件内容
-     * @returns 构建的prompt
+     * Builds the prompt for the letter reply
+     * @param gameData Game data
+     * @param letterContent Letter content
+     * @returns The constructed prompt
      */
     private async buildLetterPrompt(gameData: GameData, letterContent: { language: string; content: string; letterId: string }): Promise<string> {
         const player = gameData.characters.get(gameData.playerID);
@@ -73,23 +73,23 @@ export class LetterReplyGenerator {
             throw new Error('Player or AI character data not found in gameData');
         }
 
-        // 使用pListLetter.js构建角色描述
+        // Use pListLetter.js to build character description
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
         const characterDescription = pListLetter(gameData);
 
-        // 读取对话总结
+        // Read conversation summary
         let conversationSummary = '';
         try {
             const summaries = await readSummaryFile(String(gameData.playerID));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(gameData.aiID));
             
             if (aiSummaries.length > 0) {
-                // 读取该角色的所有总结，按时间顺序排列（最新的在前）
+                // Read all summaries for this character, sorted by date (most recent first)
                 const allSummaries = aiSummaries.map((summary, index) => 
                     `${index + 1}. ${summary.date}: ${summary.content}`
                 ).join('\n');
                 
-                conversationSummary = `以下是之前与${player.fullName}的对话总结：\n${allSummaries}\n\n`;
+                conversationSummary = `Summaries of previous conversations with ${player.fullName}:\n${allSummaries}\n\n`;
                 console.log(`Loaded ${aiSummaries.length} conversation summaries for AI ID ${gameData.aiID}`);
             } else {
                 console.log(`No conversation summary found for AI ID ${gameData.aiID}`);
@@ -98,14 +98,14 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load conversation summary: ${error}`);
         }
 
-        // 读取记忆内容
+        // Read memory content
         let memoryContent = '';
         try {
-            // 创建临时的conversation对象来获取记忆内容
+            // Create a temporary conversation object to get memory content
             const tempConversation = {
                 gameData: gameData,
                 config: {
-                    memoriesPrompt: "相关记忆：",
+                    memoriesPrompt: "Relevant memories:",
                     maxMemoryTokens: 1000
                 },
                 textGenApiConnection: this.apiConnection
@@ -122,58 +122,53 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        const prompt = `你正在扮演${ai.fullName}。
+        let prompt = this.config.prompts[this.config.language]?.letterPrompt || this.config.prompts['en'].letterPrompt;
 
-${characterDescription}
-
-${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}的信件，内容如下：
-"${letterContent.content}"
-
-信件要求使用${letterContent.language}进行回复。
-
-请根据你的角色性格、背景、与写信人的关系、相关记忆内容，以及当前的游戏情境，写一封合适的回信。回信应该：
-1. 使用${letterContent.language}书写
-2. 体现你的角色性格和立场
-3. 回应信件中的主要内容
-4. 语气要符合你的身份和与写信人的关系
-5. 长度适中，表达清晰
-6. 适当参考相关记忆内容，使回信更加贴合角色背景
-
-请直接写出回信内容，不要添加任何解释或说明。`;
+        prompt = prompt.replace('{{aiName}}', ai.fullName)
+                       .replace('{{characterDescription}}', characterDescription)
+                       .replace('{{conversationSummary}}', conversationSummary)
+                       .replace('{{memoryContent}}', memoryContent)
+                       .replace('{{playerName}}', player.fullName)
+                       .replace('{{letterContent}}', letterContent.content)
+                       .replace(/{{language}}/g, letterContent.language);
 
         return prompt;
     }
 
     /**
-     * 转义模型回复中的引号，将普通引号替换为中文引号
-     * @param text 原始文本
-     * @returns 转义后的文本
+     * Escapes quotes in the model's reply, replacing standard quotes with Chinese quotes for 'zh' language.
+     * @param text The original text
+     * @param language The language of the reply
+     * @returns The escaped text
      */
-    private escapeQuotes(text: string): string {
-        return text.replace(/"/g, '“').replace(/'/g, '’');
+    private escapeQuotes(text: string, language: string): string {
+        if (language === 'zh') {
+            return text.replace(/"/g, '“').replace(/'/g, '’');
+        }
+        return text;
     }
 
     /**
-     * 生成信件回复并写入文件
-     * @param gameData 游戏数据
-     * @param debugLogPath debug.log文件路径
-     * @param userFolderPath 用户文件夹路径
-     * @returns 生成的回信内容，如果失败则返回null
+     * Generates a letter reply and writes it to a file.
+     * @param gameData Game data
+     * @param debugLogPath Path to debug.log file
+     * @param userFolderPath User folder path
+     * @returns The generated reply content, or null on failure
      */
     public async generateLetterReply(gameData: GameData, debugLogPath: string, userFolderPath: string): Promise<string | null> {
         try {
-            // 提取信件内容
+            // Extract letter content
             const letterContent = this.extractLetterContent(debugLogPath);
             if (!letterContent) {
                 console.error('Failed to extract letter content');
                 return null;
             }
 
-            // 构建prompt
+            // Build prompt
             const promptText = await this.buildLetterPrompt(gameData, letterContent);
             console.log(`Generated letter prompt: ${promptText.substring(0, 200)}...`);
 
-            // 将prompt转换为Message数组格式
+            // Convert prompt to Message array format
             const messages: Message[] = [
                 {
                     role: "user",
@@ -181,7 +176,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
                 }
             ];
 
-            // 调用LLM生成回复
+            // Call LLM to generate reply
             const response = await this.apiConnection.complete(messages, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
@@ -192,15 +187,15 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
                 return null;
             }
 
-            // 转义回复中的引号
-            const escapedResponse = this.escapeQuotes(response.trim());
+            // Escape quotes in the reply
+            const escapedResponse = this.escapeQuotes(response.trim(), letterContent.language);
             
             console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
-            // 将回信写入对应的文件并保存历史
+            // Write the reply to the corresponding file and save history
             this.writeLetterReply(escapedResponse, userFolderPath, letterContent, gameData);
             
-            // 生成信件总结并保存
+            // Generate and save a summary of the letter
             await this.generateAndSaveLetterSummary(gameData, letterContent, escapedResponse);
             
             return escapedResponse;
@@ -211,37 +206,36 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
     }
 
     /**
-     * 保存往来信件到本地文件
-     * @param playerId 玩家ID
-     * @param aiId 角色ID
-     * @param letterContent 玩家信件内容
-     * @param replyContent AI回信内容
-     * @param letterId 信件ID
-     * @param userFolderPath 用户文件夹路径
-     * @param gameData 游戏数据（用于获取角色名字）
+     * Saves the letter exchange to a local file.
+     * @param playerId Player ID
+     * @param aiId Character ID
+     * @param letterContent Player's letter content
+     * @param replyContent AI's reply content
+     * @param userFolderPath User folder path
+     * @param gameData Game data (for character names)
      */
     private saveLetterHistory(playerId: string, aiId: string, letterContent: { language: string; content: string; letterId: string }, replyContent: string, userFolderPath: string, gameData: GameData): void {
         try {
-            // 获取VOTC数据文件夹路径
+            // Get VOTC data folder path
             const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
             
-            // 获取角色名字用于记录
+            // Get character names for logging
             const aiCharacter = gameData.characters.get(Number(aiId));
             const aiName = aiCharacter ? aiCharacter.shortName : `character_${aiId}`;
             const playerCharacter = gameData.characters.get(Number(playerId));
             const playerName = playerCharacter ? playerCharacter.shortName : `player_${playerId}`;
             
-            // 构建玩家文件夹路径：votc_data/letter_history/playerId/
+            // Build player folder path: votc_data/letter_history/playerId/
             const playerFolderPath = path.join(votcDataPath, "letter_history", `player_${playerId}`);
             if (!fs.existsSync(playerFolderPath)) {
                 fs.mkdirSync(playerFolderPath, { recursive: true });
                 console.log(`Created player letter history folder: ${playerFolderPath}`);
             }
 
-            // 构建characterId.json文件路径
+            // Build characterId.json file path
             const letterHistoryFilePath = path.join(playerFolderPath, `character_${aiId}.json`);
             
-            // 读取现有的信件历史（如果存在）
+            // Read existing letter history (if it exists)
             let letterHistory = [];
             if (fs.existsSync(letterHistoryFilePath)) {
                 try {
@@ -256,7 +250,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
                 }
             }
 
-            // 添加新的信件记录
+            // Add new letter record
             const newLetterRecord = {
                 playerName: playerName,
                 aiName: aiName,
@@ -266,7 +260,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
 
             letterHistory.push(newLetterRecord);
 
-            // 写入更新后的信件历史
+            // Write updated letter history
             fs.writeFileSync(letterHistoryFilePath, JSON.stringify(letterHistory, null, 2), 'utf8');
             console.log(`Letter history saved to: ${letterHistoryFilePath}`);
             
@@ -276,10 +270,10 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
     }
 
     /**
-     * 生成信件往来的总结并保存到总结文件中
-     * @param gameData 游戏数据
-     * @param letterContent 玩家信件内容
-     * @param replyContent AI回信内容
+     * Generates a summary of the letter exchange and saves it to the summary file.
+     * @param gameData Game data
+     * @param letterContent Player's letter content
+     * @param replyContent AI's reply content
      */
     private async generateAndSaveLetterSummary(gameData: GameData, letterContent: { language: string; content: string; letterId: string }, replyContent: string): Promise<void> {
         try {
@@ -291,23 +285,15 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
                 return;
             }
 
-            // 构建总结生成prompt
-            const summaryPrompt = `请根据以下信件往来内容生成一个简洁的总结：
+            // Build summary generation prompt
+            let summaryPrompt = this.config.prompts[this.config.language]?.letterSummaryPrompt || this.config.prompts['en'].letterSummaryPrompt;
 
-玩家${player.fullName}的来信：
-"${letterContent.content}"
+            summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
+                                         .replace('{{playerLetterContent}}', letterContent.content)
+                                         .replace('{{aiName}}', ai.fullName)
+                                         .replace('{{aiReplyContent}}', replyContent);
 
-角色${ai.fullName}的回信：
-"${replyContent}"
-
-请生成一个简洁的总结，描述这次信件往来的主要内容。总结应该：
-1. 简洁明了，不超过100字
-2. 突出信件往来的核心内容
-3. 体现角色之间的关系和互动特点
-
-请直接写出总结内容，不要添加任何解释或说明。`;
-
-            // 使用LLM生成总结
+            // Use LLM to generate summary
             const summaryMessages: Message[] = [
                 {
                     role: "user",
@@ -317,7 +303,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
 
             const summaryContent = await this.apiConnection.complete(summaryMessages, false, {
                 max_tokens: 150,
-                temperature: 0.3 // 使用较低的温度以获得更稳定的总结
+                temperature: 0.3 // Use a lower temperature for more stable summaries
             });
 
             if (!summaryContent || summaryContent.trim() === '') {
@@ -327,16 +313,16 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
 
             console.log(`Generated letter summary: ${summaryContent.trim()}`);
 
-            // 直接使用游戏数据中的日期
-            const chineseDate = gameData.date;
+            // Use the date directly from gameData
+            const letterDate = gameData.date;
 
-            // 构建新的总结对象
+            // Build new summary object
             const newSummary = {
-                date: chineseDate,
+                date: letterDate,
                 content: summaryContent.trim()
             };
 
-            // 读取现有的总结文件
+            // Read existing summary file
             let existingSummaries = [];
             try {
                 existingSummaries = await readSummaryFile(String(gameData.playerID));
@@ -344,21 +330,21 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
                 console.log('No existing summaries found, creating new summary file');
             }
 
-            // 获取当前AI角色的现有总结
+            // Get existing summaries for the current AI character
             const aiCharacterId = String(gameData.aiID);
             const aiCharacterSummaries = existingSummaries.filter(summary => summary.characterId === aiCharacterId);
             const otherSummaries = existingSummaries.filter(summary => summary.characterId !== aiCharacterId);
             
-            // 添加新的总结到当前AI角色的总结列表中（放在最前面，最新的在前）
+            // Add the new summary to the list for the current AI character (at the beginning, most recent first)
             const updatedAiSummaries = [{
                 ...newSummary,
                 characterId: aiCharacterId
             }, ...aiCharacterSummaries];
             
-            // 合并所有总结（当前AI角色的总结在前，其他角色的总结在后）
+            // Merge all summaries (current AI's summaries first, then others)
             const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
 
-            // 保存更新后的总结
+            // Save the updated summaries
             await saveSummaryFile(String(gameData.playerID), updatedSummaries);
             console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
 
@@ -368,50 +354,44 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
     }
 
     /**
-     * 将回信写入对应的letter文件，并保存信件历史
-     * @param replyContent 回信内容
-     * @param userFolderPath 用户文件夹路径
-     * @param letterContent 原始信件内容（包含玩家信件信息）
-     * @param gameData 游戏数据（用于获取玩家ID和角色ID）
+     * Writes the reply to the corresponding letter file and saves the letter history.
+     * @param replyContent The reply content
+     * @param userFolderPath User folder path
+     * @param letterContent Original letter content (contains player letter info)
+     * @param gameData Game data (to get player and character IDs)
      */
     public writeLetterReply(replyContent: string, userFolderPath: string, letterContent: { language: string; content: string; letterId: string }, gameData: GameData): void {
         try {
             const letterId = letterContent.letterId;
             
-            // 从letterId中提取数字后缀（如letter_1 -> 1）
+            // Extract numeric suffix from letterId (e.g., letter_1 -> 1)
             const letterNumber = letterId.replace('letter_', '');
             const letterFileName = `letter${letterNumber}.txt`;
             const letterFilePath = path.join(userFolderPath, "run", letterFileName);
             
-            // 确保run文件夹存在
+            // Ensure the run folder exists
             const runFolderPath = path.join(userFolderPath, "run");
             if (!fs.existsSync(runFolderPath)) {
                 fs.mkdirSync(runFolderPath, { recursive: true });
                 console.log(`Created run folder at: ${runFolderPath}`);
             }
 
-            // 构建游戏命令格式用于弹出信件回复和生成信件宝物，根据letterId动态生成
-            const gameCommand = `send_interface_message = { 
-    type = votc_message_popup 
-    title = votc_huixin_title${letterNumber} 
-    desc = "${replyContent}"
-    #left_icon = global_var:message_second_scope_${letterId} 
-}
-	remove_global_variable ?= votc_${letterId}
-    create_artifact = {
-	name = votc_huixin_title${letterNumber}
-	description = "${replyContent}"
-	type = journal
-	visuals = scroll
-	creator = global_var:message_second_scope_${letterId}
-	modifier = artifact_monthly_minor_prestige_1_modifier
-	}`;
+            // Select template based on event
+            const commandTemplates = require("../../../default_userdata/scripts/letters/command_templates.js");
+            const eventType = gameData.recentEvent?.type;
+            const template = commandTemplates[eventType] || commandTemplates.default;
 
-            // 写入文件
+            // Populate the template
+            const gameCommand = template
+                .replace(/{{letterNumber}}/g, letterNumber)
+                .replace(/{{replyContent}}/g, replyContent)
+                .replace(/{{letterId}}/g, letterId);
+
+            // Write to file
             fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
             console.log(`Letter reply written to: ${letterFilePath} for ${letterId}`);
 
-            // 保存信件历史
+            // Save letter history
             const playerId = String(gameData.playerID);
             const aiId = String(gameData.aiID);
             this.saveLetterHistory(playerId, aiId, letterContent, replyContent, userFolderPath, gameData);

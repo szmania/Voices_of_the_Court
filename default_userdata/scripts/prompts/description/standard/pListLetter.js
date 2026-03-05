@@ -106,31 +106,29 @@ module.exports = (gameData) =>{
     output+= `\n[${player.shortName}'（user）的角色信息: ${playerPersonaItems.join("; ")}]`;
     output+=`\n[${ai.shortName}'的角色信息: ${aiPersonaItems.join("; ")}]`;
     
-    if (gameData.characters.size > 2){
-        gameData.characters.forEach((value, key) => {
-            if(key !== gameData.playerID && key !== gameData.aiID)
-            {
-                let secondaryAiItems = [
-                    `id(${value.id})`,
-                    `姓名：${value.firstName}`,
-                    mainPosition(value), 
-                    courtAndCouncilPositions(value), 
-                    listRelationsToPlayer(value), 
-                    listRelationsToCharacters(value),
-                    houseAndStatus(value), 
-                    opinion(value),
-                    personalityTraits(value), 
-                    otherTraits(value), 
-                    greedines(value), 
-                    describeProwess(value),
-                    marriage(value),  
-                    goldStatus(value),
-                    age(value), 
-                    describeProwess(value),
-                    `信仰：${value.faith}`, 
-                    `民族：${value.culture}`]
-                output+=`\n[${value.shortName}'的角色信息: ${secondaryAiItems.join("; ")}]`;
-            }
+    const otherCharacters = gameData.getOtherCharacters();
+    if (otherCharacters.length > 0){
+        otherCharacters.forEach(char => {
+            let secondaryAiItems = [
+                `id(${char.id})`,
+                `姓名：${char.firstName}`,
+                mainPosition(char), 
+                courtAndCouncilPositions(char), 
+                listRelationsToPlayer(char), 
+                listRelationsToCharacters(char),
+                houseAndStatus(char), 
+                opinion(char),
+                personalityTraits(char), 
+                otherTraits(char), 
+                greedines(char), 
+                describeProwess(char),
+                marriage(char),  
+                goldStatus(char),
+                age(char), 
+                describeProwess(char),
+                `信仰：${char.faith}`, 
+                `民族：${char.culture}`]
+            output+=`\n[${char.shortName}'的角色信息: ${secondaryAiItems.join("; ")}]`;
         })
     }
 
