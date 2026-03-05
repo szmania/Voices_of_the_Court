@@ -38,6 +38,7 @@ let userDataPath = '';
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let editingSummaryIndex = -1;
+let hasUnsavedChanges = false;
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -109,6 +110,14 @@ function toggleApiSelector() {
     } else {
         apiSelector.style.opacity = "1";
         apiSelector.style.pointerEvents = "auto";
+    }
+}
+
+function updateSaveButtonState() {
+    if (hasUnsavedChanges) {
+        saveBtn.classList.add('blinking');
+    } else {
+        saveBtn.classList.remove('blinking');
     }
 }
 
@@ -213,6 +222,8 @@ async function loadSummaryData() {
         populateCharacterSelect();
         filterSummariesByCharacter();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
+        hasUnsavedChanges = false;
+        updateSaveButtonState();
     } catch (error: any) {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.load_fail_generic', 'Failed to load summary data: ');
         showStatusMessage(errorMsg + error.message, 'error');
@@ -407,6 +418,8 @@ function addNewSummary() {
     }
     
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
+    hasUnsavedChanges = true;
+    updateSaveButtonState();
 }
 
 
@@ -424,6 +437,8 @@ async function deleteCurrentSummary() {
         }
         filterSummariesByCharacter();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Summary deleted'), 'success');
+        hasUnsavedChanges = true;
+        updateSaveButtonState();
     }
 }
 
@@ -442,6 +457,8 @@ async function saveSummaries() {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
         await ipcRenderer.invoke('save-summary-file', selectedPlayerId, allSummaries);
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
+        hasUnsavedChanges = false;
+        updateSaveButtonState();
     } catch (error: any) {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');
         showStatusMessage(errorMsg + error.message, 'error');
@@ -619,4 +636,6 @@ function saveInPlaceEdit() {
     selectSummary(justEditedIndex);
     
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
+    hasUnsavedChanges = true;
+    updateSaveButtonState();
 }

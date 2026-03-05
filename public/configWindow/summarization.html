@@ -24,6 +24,14 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
+      @keyframes blink {
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .blinking {
+        animation: blink 1s linear infinite;
+      }
       /* New styles for layout fixes and search */
       .summary-list-header {
         display: flex;
@@ -54,28 +62,33 @@
         background-color: orange;
       }
       .summary-list {
-        height: 200px;
-        min-height: 100px;
+        height: 400px;
+        min-height: 200px;
         resize: vertical;
         overflow: auto;
         border: 1px solid #ccc;
         padding: 5px;
       }
-      .summary-list {
-        height: 200px;
-        min-height: 100px;
-        resize: vertical;
-        overflow: auto;
-        border: 1px solid #ccc;
-        padding: 5px;
+      .summary-item {
+        padding: 10px;
+        border-bottom: 1px solid #444;
+        cursor: pointer;
       }
-      .summary-list {
-        height: 200px;
-        min-height: 100px;
-        resize: vertical;
-        overflow: auto;
-        border: 1px solid #ccc;
-        padding: 5px;
+      .summary-item:hover {
+        background-color: #3a3a3a;
+      }
+      .summary-item.selected {
+        background-color: #007bff;
+        color: white;
+      }
+      .summary-date {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+      .summary-content {
+        white-space: pre-wrap; /* Allow wrapping */
+        word-break: break-word; /* Break long words */
+        line-height: 1.4;
       }
       /* In-place editing styles */
       .summary-item-edit {
@@ -145,38 +158,38 @@
             <div id="summary-manager-loader" class="loader" style="display: none;"></div>
             <h2 data-i18n="summary_manager.header">Summary Manager</h2>
             <div class="header-controls">
-                <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh">Refresh</button>
-                <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save">Save</button>
+                <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh" data-i18n-title="summary_manager.tooltip_refresh">Refresh</button>
+                <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save_all" data-i18n-title="summary_manager.tooltip_save_all">Save All Summaries</button>
             </div>
         
             <div class="info-panel">
                 <div class="info-item">
                     <label for="summary-manager-playerIdSelect" data-i18n="summary_manager.player_id">Player ID:</label>
-                    <select id="summary-manager-playerIdSelect"></select>
+                    <select id="summary-manager-playerIdSelect" data-i18n-title="summary_manager.tooltip_player_id"></select>
                 </div>
                 <div class="info-item">
                     <label for="summary-manager-characterSelect" data-i18n="summary_manager.select_character">Select Character:</label>
-                    <select id="summary-manager-characterSelect">
+                    <select id="summary-manager-characterSelect" data-i18n-title="summary_manager.tooltip_character">
                         <option value="all" data-i18n="summary_manager.all_characters">All Characters</option>
                     </select>
                 </div>
                 <div class="info-item">
                     <label for="summary-manager-summaryPath" data-i18n="summary_manager.file_path">Summary File Path:</label>
-                    <input type="text" id="summary-manager-summaryPath" readonly>
+                    <input type="text" id="summary-manager-summaryPath" readonly data-i18n-title="summary_manager.tooltip_summary_path">
                 </div>
             </div>
         
             <div class="summary-list-container">
                 <div class="summary-list-header">
                   <h3 data-i18n="summary_manager.list_header">Summary List</h3>
-                  <input type="search" id="summary-manager-search" data-i18n-placeholder="summary_manager.search_placeholder" placeholder="Search summaries...">
+                  <input type="search" id="summary-manager-search" data-i18n-placeholder="summary_manager.search_placeholder" placeholder="Search summaries..." data-i18n-title="summary_manager.tooltip_search">
                 </div>
                 <div id="summary-manager-summaryList" class="summary-list">
                     <!-- Summary items will be dynamically generated here -->
                 </div>
                 <div class="list-controls">
-                    <button id="summary-manager-deleteItemBtn" class="btn btn-danger" data-i18n="summary_manager.delete_btn" disabled>Delete</button>
-                    <button id="summary-manager-addSummaryBtn" class="btn" data-i18n="summary_manager.add_new">Add</button>
+                    <button id="summary-manager-deleteItemBtn" class="btn btn-danger" data-i18n="summary_manager.delete_btn" disabled data-i18n-title="summary_manager.tooltip_delete">Delete</button>
+                    <button id="summary-manager-addSummaryBtn" class="btn" data-i18n="summary_manager.add_new" data-i18n-title="summary_manager.tooltip_add">Add</button>
                 </div>
             </div>
         
