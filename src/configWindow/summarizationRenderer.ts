@@ -556,8 +556,14 @@ function handleInPlaceInputChange(index: number) {
     const dateChanged = originalDate !== dateInput.value;
     const contentChanged = originalContent !== contentInput.value;
     
-    // Enable save button only if changes were made
-    saveButton.disabled = !(dateChanged || contentChanged);
+    const hasChanges = dateChanged || contentChanged;
+    saveButton.disabled = !hasChanges;
+
+    if (hasChanges) {
+        saveButton.classList.add('blinking');
+    } else {
+        saveButton.classList.remove('blinking');
+    }
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
