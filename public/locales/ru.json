@@ -31,6 +31,7 @@
     "path_placeholder": "Enter CK3 user folder path...",
     "player2_info": "Скачайте Player2 и запустите его в фоновом режиме.",
     "player2_download_button": "Скачать Player2",
+    "player2_download_tooltip": "Скачать приложение Player2",
     "player2_connection_failed": "Сбой подключения к Player2. Загрузите приложение Player2 с player2.game, убедитесь, что оно запущено в фоновом режиме, и повторите попытку. Учетная запись не требуется."
   },
   "api": {

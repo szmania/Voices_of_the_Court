@@ -31,6 +31,7 @@
     "path_placeholder": "CK3 사용자 폴더 경로 입력...",
     "player2_info": "Player2를 다운로드하여 백그라운드에서 실행하세요.",
     "player2_download_button": "Player2 다운로드",
+    "player2_download_tooltip": "Player2 애플리케이션 다운로드",
     "player2_connection_failed": "Player2 연결에 실패했습니다. player2.game에서 Player2 앱을 다운로드하고 백그라운드에서 실행 중인지 확인한 후 다시 시도하십시오. 계정은 필요하지 않습니다."
   },
   "api": {

@@ -31,6 +31,7 @@
     "path_placeholder": "CK3 ユーザーフォルダのパスを入力...",
     "player2_info": "Player2をダウンロードしてバックグラウンドで実行してください。",
     "player2_download_button": "Player2をダウンロード",
+    "player2_download_tooltip": "Player2アプリケーションをダウンロード",
     "player2_connection_failed": "Player2の接続に失敗しました。player2.gameからPlayer2アプリをダウンロードし、バックグラウンドで実行されていることを確認してから、もう一度お試しください。アカウントは必要ありません。"
   },
   "api": {

@@ -31,6 +31,7 @@
     "path_placeholder": "CK3-Benutzerordnerpfad eingeben...",
     "player2_info": "Laden Sie Player2 herunter und führen Sie es im Hintergrund aus.",
     "player2_download_button": "Player2 herunterladen",
+    "player2_download_tooltip": "Laden Sie die Player2-Anwendung herunter",
     "player2_connection_failed": "Player2-Verbindung fehlgeschlagen. Bitte laden Sie die Player2-App von player2.game herunter, stellen Sie sicher, dass sie im Hintergrund läuft, und versuchen Sie es erneut. Es ist kein Konto erforderlich."
   },
   "api": {

@@ -28,6 +28,7 @@
     "path_placeholder": "Introduzca la ruta de la carpeta de usuario de CK3...",
     "player2_info": "Descarga Player2 y ejecútalo en segundo plano.",
     "player2_download_button": "Descargar Player2",
+    "player2_download_tooltip": "Descargar la aplicación Player2",
     "player2_connection_failed": "Falló la conexión con Player2. Por favor, descarga la aplicación Player2 desde player2.game, asegúrate de que se está ejecutando en segundo plano y vuelve a intentarlo. No es necesaria una cuenta."
   },
   "api": {

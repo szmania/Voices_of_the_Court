@@ -165,7 +165,7 @@ function defineTemplate(label: string){
             </div>
             <div class="input-group">
                 <p data-i18n="connection.player2_info"></p>
-                <button type="button" id="player2-download-button" data-i18n="connection.player2_download_button"></button>
+                <button type="button" id="player2-download-button" data-i18n="connection.player2_download_button" data-i18n-title="connection.player2_download_tooltip"></button>
             </div>
         </div>
 
