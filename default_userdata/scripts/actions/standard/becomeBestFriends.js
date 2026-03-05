@@ -7,7 +7,17 @@ module.exports = {
         {
             name: "reason",
             type: "string",
-            desc: "the reason (the event) that made them become best friends. (write it in past tense)."
+            desc: {
+                en: "the reason (the event) that made them become best friends. (write it in past tense).",
+                zh: "让他们成为最好朋友的原因（事件）。（用过去时书写）",
+                ru: "причина (событие), по которой они стали лучшими друзьями. (напишите в прошедшем времени).",
+                fr: "la raison (l'événement) qui les a fait devenir meilleurs amis. (écrivez-le au passé).",
+                es: "la razón (el evento) que los hizo mejores amigos. (escríbalo en tiempo pasado).",
+                de: "der Grund (das Ereignis), der sie zu besten Freunden gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
+                ja: "彼らが親友になった理由（出来事）。（過去形で書く）。",
+                ko: "그들이 가장 친한 친구가 된 이유(사건). (과거 시제로 작성).",
+                pl: "powód (wydarzenie), który sprawił, że zostali najlepszymi przyjaciółmi. (napisz w czasie przeszłym)."
+            }
         }
     ],
     description: {

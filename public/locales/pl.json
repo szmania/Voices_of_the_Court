@@ -145,10 +145,11 @@
     "regenerate_button": "REGENERUJ",
     "regenerate_tooltip": "Możesz zregenerować odpowiedź tylko jeśli AI mówiło jako ostatnie.",
     "leave_tooltip": "Zakończ bieżącą rozmowę i zapisz podsumowanie.",
+    "execute_tooltip": "Wykonaj tę akcję.",
+    "cancel_tooltip": "Anuluj tę akcję.",
     "scene_description": "Opis sceny",
     "narrative": "Narracja",
     "not_spoken": "Jeszcze nie mówił(a)",
-    "scene_description": "Opis sceny",
     "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI."
   },
   "suggestions": {

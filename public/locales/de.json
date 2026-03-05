@@ -147,6 +147,8 @@
     "regenerate_button": "NEU GENERIEREN",
     "regenerate_tooltip": "Sie können eine Antwort nur neu generieren, wenn die KI zuletzt gesprochen hat.",
     "leave_tooltip": "Beendet das aktuelle Gespräch und speichert die Zusammenfassung.",
+    "execute_tooltip": "Diese Aktion ausführen.",
+    "cancel_tooltip": "Diese Aktion abbrechen.",
     "scene_description": "Szenenbeschreibung",
     "narrative": "Erzählung",
     "not_spoken": "Hat noch nicht gesprochen",
