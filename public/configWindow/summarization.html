@@ -39,6 +39,11 @@
         justify-content: space-between;
         align-items: center;
       }
+      .summary-list-container {
+        display: flex;
+        flex-direction: column;
+        height: 700px;
+      }
       #summary-manager-search {
         padding: 4px;
         border-radius: 4px;
@@ -63,13 +68,12 @@
         background-color: orange;
       }
       .summary-list {
-        height: 600px;
+        flex-grow: 1;
         min-height: 200px;
         resize: vertical;
         overflow: auto;
         border: 1px solid #ccc;
         padding: 5px;
-        margin-bottom: 20px; /* Add more space for buttons below */
       }
       .summary-item {
         padding: 20px; /* Further increased padding for more height */
@@ -124,6 +128,8 @@
       }
       .list-controls {
         text-align: right;
+        flex-shrink: 0;
+        padding-top: 10px;
       }
       .summary-item-edit .edit-controls {
         text-align: right;
