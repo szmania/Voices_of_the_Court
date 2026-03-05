@@ -357,10 +357,7 @@ function renderSummaryList() {
     // After rendering, collect all mark elements for 'Enter' key navigation
     allHighlightMarks = Array.from(summaryList.querySelectorAll('mark'));
     
-    // Update save item button state
-    if (saveSummaryBtn) {
-        saveSummaryBtn.disabled = editingSummaryIndex === -1;
-    }
+    // Update delete item button state
     if (deleteItemBtn) {
         deleteItemBtn.disabled = currentSummaryIndex === -1 || editingSummaryIndex !== -1;
     }
@@ -531,8 +528,10 @@ function handleInPlaceInputChange(index: number) {
     const summary = filteredSummaries[index];
     const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
     const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
+    const editItem = dateInput.closest('.summary-item-edit');
+    const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
     
-    if (!dateInput || !contentInput || !summary) return;
+    if (!dateInput || !contentInput || !summary || !saveButton) return;
     
     const originalDate = formatDateForInput(summary.date);
     const originalContent = summary.content || '';
@@ -541,9 +540,7 @@ function handleInPlaceInputChange(index: number) {
     const contentChanged = originalContent !== contentInput.value;
     
     // Enable save button only if changes were made
-    if (saveSummaryBtn) {
-        saveSummaryBtn.disabled = !(dateChanged || contentChanged);
-    }
+    saveButton.disabled = !(dateChanged || contentChanged);
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
