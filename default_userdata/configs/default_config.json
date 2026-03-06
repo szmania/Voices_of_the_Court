@@ -85,7 +85,7 @@
 	"checkForUpdatesOnStartup": true,
 	"shuffleCharacterOrder": false,
 	"nonTargetedCharacterResponseChance": 15,
-	"aiToAiChatChance": 15,
+	"aiToAiChatChance": 10,
 	"dynamicCharacterSelection": false,
 	"validateCharacterIdentity": false,
 	"showSuggestionsButton": true,
