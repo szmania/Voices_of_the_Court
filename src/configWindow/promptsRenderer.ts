@@ -123,11 +123,7 @@ async function init(){
         });
 
         // 恢复默认prompts按钮事件
-        restoreDefaultPromptsBtn.addEventListener('click', async () => {
-            if (confirm('确定要将所有Prompt恢复为默认值吗？此操作不可撤销。')) {
-                await restoreDefaultPrompts();
-            }
-        });
+        restoreDefaultPromptsBtn.addEventListener('click', () => restoreDefaultPrompts(true));
     } catch (error) {
         console.error('Error in init:', error);
         // @ts-ignore
