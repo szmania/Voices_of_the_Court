@@ -167,8 +167,10 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
         case 'assistant':
             removeLoadingDots();
             // Color-code AI character messages
-            const character = Array.from(currentGameData.characters.values()).find(c => c.shortName === message.name || c.fullName === message.name);
-            if (character) messageDiv.style.color = getCharacterColor(character.id);
+            if (currentGameData) {
+                const character = Array.from(currentGameData.characters.values()).find(c => c.shortName === message.name || c.fullName === message.name);
+                if (character) messageDiv.style.color = getCharacterColor(character.id);
+            }
             
             messageDiv.classList.add('ai-message');
             if (isHistorical) {
