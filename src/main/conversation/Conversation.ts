@@ -348,26 +348,57 @@ export class Conversation{
         if (this.gameData.playerID === this.gameData.aiID) {
             console.log('Self-talk session detected. Generating internal monologue for player character.');
             const playerCharacter = this.gameData.getPlayer();
-            
-            if (this.config.validateCharacterIdentity) {
-                await this.generateNewAIMessageWithValidation(playerCharacter);
-            } else {
-                await this.generateNewAIMessage(playerCharacter);
-            }
-            
+        
+            await this.processCharacterList([playerCharacter]);
+        
             this.chatWindow.window.webContents.send('actions-receive', []); // No actions in self-talk
             console.log('Finished generating self-talk message.');
             return; // Exit after self-talk message
         }
 
         this.fillNpcQueue();
-        this.npcQueue = await this.determineResponseOrder();
-        await this.processQueue();
+    
+        // Step 1: Get and process targeted characters
+        const targetedCharacters = await this.determineTargetedCharacters();
+    
+        let charactersHaveResponded = false;
+
+        if (targetedCharacters.length > 0) {
+            console.log(`Processing ${targetedCharacters.length} targeted characters.`);
+            await this.processCharacterList(targetedCharacters);
+            charactersHaveResponded = true;
+        } else {
+            // If no one is targeted, one random character responds to keep conversation flowing.
+            console.log('No specific targets. Processing one random character from the queue.');
+            const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
+            if (shuffledQueue.length > 0) {
+                await this.processCharacterList([shuffledQueue[0]]);
+                charactersHaveResponded = true;
+            }
+        }
+
+        // Step 2: Get and process non-targeted characters who decide to chime in, but only if someone has already responded.
+        if (charactersHaveResponded) {
+            // Get a fresh list of who hasn't responded yet.
+            const respondedIds = new Set(targetedCharacters.map(c => c.id));
+            const nonTargetedCharacters = this.npcQueue.filter(c => !respondedIds.has(c.id));
         
+            const respondingCharacters = nonTargetedCharacters.filter(char => {
+                const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
+                if (willRespond) console.log(`Non-targeted character ${char.shortName} will respond based on chance.`);
+                return willRespond;
+            }).sort(() => Math.random() - 0.5);
+
+            if (respondingCharacters.length > 0) {
+                console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
+                await this.processCharacterList(respondingCharacters);
+            }
+        }
+    
         this.chatWindow.window.webContents.send('actions-receive', []);
         console.log('Finished generating AI messages for all characters.');
-        
-        // 如果启用了自动生成建议功能，在对话结束时生成建议
+    
+        // If suggestions are enabled, generate them now.
         if (this.config.autoGenerateSuggestions) {
             await this.generateInitialSuggestions();
         }
@@ -381,13 +412,14 @@ export class Conversation{
         console.log(`NPC queue filled with ${this.npcQueue.length} characters.`);
     }
 
-    async determineResponseOrder(): Promise<Character[]> {
-        console.log('Determining response order...');
+    async determineTargetedCharacters(): Promise<Character[]> {
+        console.log('Determining targeted characters...');
         const lastMessage = this.messages[this.messages.length - 1];
+        // Only check for targets if the last message was from the user
         if (!lastMessage || lastMessage.role !== 'user') {
             return [];
         }
-    
+
         const explicitTargets = new Set<Character>();
 
         // 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
@@ -400,9 +432,11 @@ export class Conversation{
                 }
             });
             console.log(`UI targeted characters identified: ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
+            // If there's a UI target, we don't need to parse text
+            return Array.from(explicitTargets);
         }
 
-        // 2. Add targets from @mentions and name mentions in text
+        // 2. If no UI target, check for @mentions and name/title mentions in text
         for (const character of this.npcQueue) {
             const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
             if (character.primaryTitle) {
@@ -417,7 +451,7 @@ export class Conversation{
                 }
             }
             const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
-            
+        
             // Create a regex for whole word matching for each name to avoid partial matches
             const namePatterns = names.map(name => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
 
@@ -428,66 +462,39 @@ export class Conversation{
                 }
             }
         }
-
-        const targetedCharacters = Array.from(explicitTargets);
-
-        if (targetedCharacters.length > 0) {
-            const otherCharacters = this.npcQueue.filter(c => !explicitTargets.has(c));
-
-            // Filter other characters based on response chance
-            const respondingCharacters = otherCharacters.filter(char => {
-                const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
-                if (willRespond) {
-                    console.log(`Character ${char.shortName} will respond based on chance.`);
-                } else {
-                    console.log(`Character ${char.shortName} will NOT respond based on chance.`);
-                }
-                return willRespond;
-            });
-
-            // Targeted characters respond first (in a random order), then the others.
-            const finalOrder = [
-                ...targetedCharacters.sort(() => Math.random() - 0.5),
-                ...respondingCharacters.sort(() => Math.random() - 0.5)
-            ];
-            console.log(`Response order determined: ${finalOrder.map(c => c.shortName).join(', ')}`);
-            return finalOrder;
-        } else {
-            console.log('No specific character targeted. Using shuffled order.');
-            const shuffled = [...this.npcQueue].sort(() => Math.random() - 0.5);
-            console.log(`Response order determined (shuffled): ${shuffled.map(c => c.shortName).join(', ')}`);
-            return shuffled;
+    
+        const targeted = Array.from(explicitTargets);
+        if (targeted.length > 0) {
+            console.log(`Targeted characters determined by text: ${targeted.map(c => c.shortName).join(', ')}`);
+            return targeted.sort(() => Math.random() - 0.5); // Shuffle if multiple targets
         }
+
+        console.log('No specific character targeted.');
+        return [];
     }
 
-    async processQueue(): Promise<void> {
-        console.log(`Processing queue with order: ${this.npcQueue.map(c => c.shortName).join(', ')}`);
-
-        while (this.npcQueue.length > 0) {
+    async processCharacterList(characterList: Character[]) {
+        for (const character of characterList) {
             if (this.isPaused) {
                 console.log('Conversation paused. Queue processing will stop.');
-                this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
-                return; // Exit if paused
+                break;
             }
-            
-            const character = this.npcQueue.shift(); // Get and remove character from front of queue
-            if (!character) continue;
 
-            // Send queue update to renderer
-            const queueUpdate = this.npcQueue.map(c => ({ name: c.shortName, id: c.id }));
+            // Update UI to show who is speaking
+            const queueUpdate = characterList.filter(c => c.id !== character.id).map(c => ({ name: c.shortName, id: c.id }));
             const speakerUpdate = { name: character.shortName, id: character.id };
             this.chatWindow.window.webContents.send('queue-update', queueUpdate, speakerUpdate);
 
             console.log(`Processing character: ${character.shortName}`);
-            
-            // Generate the character's response to the player (or another AI)
+        
+            // Generate and send the message
             if (this.config.validateCharacterIdentity) {
                 await this.generateNewAIMessageWithValidation(character);
             } else {
                 await this.generateNewAIMessage(character);
             }
 
-            // After responding, check if this AI should talk to another AI
+            // AI-to-AI chat logic
             const shouldTalkToAi = Math.random() < (this.config.aiToAiChatChance / 100);
             if (this.aiToAiTurnLimit < 2 && shouldTalkToAi) {
                 const otherAIs = Array.from(this.gameData.characters.values()).filter(
@@ -503,12 +510,10 @@ export class Conversation{
                     if (aiMessage) {
                         this.pushMessage(aiMessage);
                         this.chatWindow.window.webContents.send('message-receive', aiMessage, false);
-                        this.npcQueue.unshift(targetAI); // Add target to the front of the queue to respond next
                     }
                 }
             }
         }
-        console.log('Finished processing NPC queue.');
         this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
     }
 
@@ -523,8 +528,7 @@ export class Conversation{
             return;
         }
         this.isPaused = false;
-        console.log('Conversation is resuming. Processing will continue.');
-        this.processQueue(); // Continue processing the queue
+        console.log('Conversation is resuming. Next user message will trigger AI responses.');
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
