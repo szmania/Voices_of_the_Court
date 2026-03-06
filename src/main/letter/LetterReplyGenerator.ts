@@ -6,6 +6,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder';
+import { LetterManager } from "./LetterManager.js";
+import { Letter } from "./Letter.js";
+import { LetterType } from "./letterInterfaces.js";
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -28,7 +31,7 @@ export class LetterReplyGenerator {
      * @param debugLogPath Path to debug.log file
      * @returns Extracted letter content, or null if not found
      */
-    private extractLetterContent(debugLogPath: string): { language: string; content: string; letterId: string } | null {
+    private extractLetterContent(debugLogPath: string): { content: string; subject: string; senderId: string; recipientId: string; } | null {
         try {
             if (!fs.existsSync(debugLogPath)) {
                 console.error(`Debug log file not found at: ${debugLogPath}`);
@@ -36,24 +39,30 @@ export class LetterReplyGenerator {
             }
 
             const fileContent = fs.readFileSync(debugLogPath, 'utf8');
+            const lines = fileContent.split(/\r?\n/);
             
-            // Find the last VOTC:LETTER record, including the letter_id parameter
-            const letterPattern = /VOTC:LETTER\/;\/([^\/]+)\/;\/([^\/]+)\/;\/([^\/]+)/g;
-            const matches = [...fileContent.matchAll(letterPattern)];
-            
-            if (matches.length === 0) {
+            let lastMatchParts: string[] | null = null;
+            for (const line of lines) {
+                if (line.includes("VOTC:LETTER")) {
+                    const parts = line.split('/;/');
+                    if (parts.length >= 5) {
+                        lastMatchParts = parts;
+                    }
+                }
+            }
+
+            if (!lastMatchParts) {
                 console.log('No VOTC:LETTER entries found in debug.log');
                 return null;
             }
 
-            // Get the last matched record
-            const lastMatch = matches[matches.length - 1];
-            const language = lastMatch[1].trim();
-            const content = lastMatch[2].trim();
-            const letterId = lastMatch[3].trim();
+            const content = lastMatchParts[1].trim();
+            const subject = lastMatchParts[2].trim();
+            const recipientId = lastMatchParts[3].trim();
+            const senderId = lastMatchParts[4].trim();
 
-            console.log(`Extracted letter - Language: ${language}, Content: ${content}, Letter ID: ${letterId}`);
-            return { language, content, letterId };
+            console.log(`Extracted letter - Sender: ${senderId}, Recipient: ${recipientId}, Subject: ${subject}, Content: ${content}`);
+            return { content, subject, senderId, recipientId };
         } catch (error) {
             console.error(`Error extracting letter content: ${error}`);
             return null;
@@ -66,7 +75,7 @@ export class LetterReplyGenerator {
      * @param letterContent Letter content
      * @returns The constructed prompt
      */
-    private async buildLetterPrompt(gameData: GameData, letterContent: { language: string; content: string; letterId: string }): Promise<string> {
+    private async buildLetterPrompt(gameData: GameData, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }): Promise<string> {
         const player = gameData.characters.get(gameData.playerID);
         const ai = gameData.characters.get(gameData.aiID);
 
@@ -131,7 +140,7 @@ export class LetterReplyGenerator {
                        .replace('{{memoryContent}}', memoryContent)
                        .replace('{{playerName}}', player.fullName)
                        .replace('{{letterContent}}', letterContent.content)
-                       .replace(/{{language}}/g, letterContent.language);
+                       .replace(/{{language}}/g, this.config.language);
 
         return prompt;
     }
@@ -189,12 +198,12 @@ export class LetterReplyGenerator {
             }
 
             // Escape quotes in the reply
-            const escapedResponse = this.escapeQuotes(response.trim(), letterContent.language);
+            const escapedResponse = this.escapeQuotes(response.trim(), this.config.language);
             
             console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
             // Write the reply to the corresponding file and save history
-            this.writeLetterReply(escapedResponse, userFolderPath, letterContent, gameData);
+            await this.writeLetterReply(escapedResponse, userFolderPath, letterContent, gameData);
             
             // Generate and save a summary of the letter
             await this.generateAndSaveLetterSummary(gameData, letterContent, escapedResponse);
@@ -215,58 +224,35 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private saveLetterHistory(playerId: string, aiId: string, letterContent: { language: string; content: string; letterId: string }, replyContent: string, userFolderPath: string, gameData: GameData): void {
+    private async saveLetterHistory(playerId: string, aiId: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string, gameData: GameData): Promise<void> {
         try {
-            // // Get VOTC data folder path
-            // const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
-            // 获取VOTC数据文件夹路径
-            const votcDataPath = this.userDataPath;
-            
-            // Get character names for logging
-            const aiCharacter = gameData.characters.get(Number(aiId));
-            const aiName = aiCharacter ? aiCharacter.shortName : `character_${aiId}`;
-            const playerCharacter = gameData.characters.get(Number(playerId));
-            const playerName = playerCharacter ? playerCharacter.shortName : `player_${playerId}`;
-            
-            // Build player folder path: votc_data/letter_history/playerId/
-            const playerFolderPath = path.join(votcDataPath, "letter_history", `player_${playerId}`);
-            if (!fs.existsSync(playerFolderPath)) {
-                fs.mkdirSync(playerFolderPath, { recursive: true });
-                console.log(`Created player letter history folder: ${playerFolderPath}`);
+            const { v4: uuidv4 } = await import('uuid');
+            const letterManager = LetterManager.getInstance();
+
+            const player = gameData.characters.get(Number(playerId));
+            const ai = gameData.characters.get(Number(aiId));
+
+            if (!player || !ai) {
+                console.error("Could not find player or AI character to save letter history.");
+                return;
             }
 
-            // Build characterId.json file path
-            const letterHistoryFilePath = path.join(playerFolderPath, `character_${aiId}.json`);
-            
-            // Read existing letter history (if it exists)
-            let letterHistory = [];
-            if (fs.existsSync(letterHistoryFilePath)) {
-                try {
-                    const existingData = fs.readFileSync(letterHistoryFilePath, 'utf8');
-                    letterHistory = JSON.parse(existingData);
-                    if (!Array.isArray(letterHistory)) {
-                        letterHistory = [];
-                    }
-                } catch (error) {
-                    console.warn(`Failed to read existing letter history: ${error}`);
-                    letterHistory = [];
-                }
-            }
+            // The player's letter is parsed and saved by `importLettersFromLog`.
+            // Here, we just save the AI's reply.
+            const replyLetter = new Letter(
+                uuidv4(),
+                ai, // sender is the AI
+                player, // recipient is the player
+                `Re: ${letterContent.subject}`,
+                replyContent,
+                LetterType.PERSONAL, // Or some other appropriate type
+                new Date(),
+                false // It's a new letter, so not read by the player yet
+            );
 
-            // Add new letter record
-            const newLetterRecord = {
-                playerName: playerName,
-                aiName: aiName,
-                playerLetter: letterContent.content,
-                aiReply: replyContent,
-            };
+            letterManager.saveLetter(replyLetter, playerId);
+            console.log(`AI reply saved to letter history for player ${playerId} and character ${aiId}`);
 
-            letterHistory.push(newLetterRecord);
-
-            // Write updated letter history
-            fs.writeFileSync(letterHistoryFilePath, JSON.stringify(letterHistory, null, 2), 'utf8');
-            console.log(`Letter history saved to: ${letterHistoryFilePath}`);
-            
         } catch (error) {
             console.error(`Error saving letter history: ${error}`);
         }
@@ -278,7 +264,7 @@ export class LetterReplyGenerator {
      * @param letterContent Player's letter content
      * @param replyContent AI's reply content
      */
-    private async generateAndSaveLetterSummary(gameData: GameData, letterContent: { language: string; content: string; letterId: string }, replyContent: string): Promise<void> {
+    private async generateAndSaveLetterSummary(gameData: GameData, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string): Promise<void> {
         try {
             const player = gameData.getPlayer();
             const ai = gameData.getAi();
@@ -363,9 +349,9 @@ export class LetterReplyGenerator {
      * @param letterContent Original letter content (contains player letter info)
      * @param gameData Game data (to get player and character IDs)
      */
-    public writeLetterReply(replyContent: string, userFolderPath: string, letterContent: { language: string; content: string; letterId: string }, gameData: GameData): void {
+    public async writeLetterReply(replyContent: string, userFolderPath: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, gameData: GameData): Promise<void> {
         try {
-            const letterId = letterContent.letterId;
+            const letterId = letterContent.subject;
             
             // Extract numeric suffix from letterId (e.g., letter_1 -> 1)
             const letterNumber = letterId.replace('letter_', '');
@@ -397,7 +383,7 @@ export class LetterReplyGenerator {
             // Save letter history
             const playerId = String(gameData.playerID);
             const aiId = String(gameData.aiID);
-            this.saveLetterHistory(playerId, aiId, letterContent, replyContent, userFolderPath, gameData);
+            await this.saveLetterHistory(playerId, aiId, letterContent, replyContent, gameData);
             
         } catch (error) {
             console.error(`Error writing letter reply file: ${error}`);

@@ -1,19 +1,11 @@
 const { ipcRenderer } = require('electron');
-const { LocalizationManager } = require('../../src/shared/LocalizationManager.js');
-
 function initLocalization() {
-    const lm = new LocalizationManager();
-    lm.loadTranslations().then(() => {
-        document.querySelectorAll('[data-localize]').forEach(element => {
-            const key = element.getAttribute('data-localize');
-            if (key) {
-                const translation = lm.getTranslation(key);
-                if (translation) {
-                    element.innerHTML = translation;
-                }
-            }
+    const { LocalizationManager } = window;
+    if (LocalizationManager) {
+        LocalizationManager.instance.loadTranslations().then(() => {
+            LocalizationManager.instance.applyLocalization();
         });
-    });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,13 +32,13 @@ ipcRenderer.on('letters-data', (event, letters) => {
 
         li.innerHTML = `
             <div class="letter-header">
-                <p><strong>From:</strong> ${letter.sender.fullName} (${letter.sender.id})</p>
-                <p><strong>To:</strong> ${letter.recipient.fullName} (${letter.recipient.id})</p>
-                <p><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</p>
+                <span><strong>From:</strong> ${letter.sender.fullName}</span>
+                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+                <span class="letter-date"><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
             </div>
             <div class="letter-body">
-                <h4>${letter.subject}</h4>
-                <p>${letter.content}</p>
+                <p><strong>Subject:</strong> ${letter.subject}</p>
+                <p>${letter.content.replace(/\n/g, '<br>')}</p>
             </div>
         `;
 
