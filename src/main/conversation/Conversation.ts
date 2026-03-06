@@ -54,6 +54,10 @@ export class Conversation{
         this.currentSummary = "";
         this.narratives = new Map<number, string[]>(); // 初始化旁白存储
 
+        this.runFileManager = new RunFileManager(this.config.userFolderPath);
+        this.description = "";
+        this.actions = [];
+
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
