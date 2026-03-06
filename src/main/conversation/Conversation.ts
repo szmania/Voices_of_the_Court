@@ -4,7 +4,7 @@ import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
-import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, buildAiToAiPrompt} from './promptBuilder.js';
+import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
@@ -540,7 +540,11 @@ export class Conversation{
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
-        const prompt = buildAiToAiPrompt(this, source, target);
+        const prompt = buildChatPrompt(this, source);
+        prompt.push({
+            role: 'system',
+            content: `Your next response should be directed at ${target.fullName}.`
+        });
         
         const content = await this.textGenApiConnection.complete(prompt, false, {
             max_tokens: this.config.maxTokens,
