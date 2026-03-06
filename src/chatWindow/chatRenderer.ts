@@ -150,7 +150,8 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             if (isHistorical) {
                 messageDiv.classList.add('historical-player-message');
             }
-            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            const displayName = `${message.name} (You)`;
+            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${displayName}:** ${message.content}`), sanitizeConfig);
     
             // Add visual indicator for targeted message
             const targetId = (message as any).targetCharacterId;
@@ -1424,7 +1425,13 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         const characterDiv = document.createElement('div');
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-        characterDiv.textContent = `Characters: ${Array.from(currentGameData.characters.values()).map(c => c.shortName).join(', ')}`;
+        const characterNames = Array.from(currentGameData.characters.values()).map(c => {
+            if (c.id === currentGameData.playerID) {
+                return `${c.shortName} (You)`;
+            }
+            return c.shortName;
+        }).join(', ');
+        characterDiv.textContent = `Characters: ${characterNames}`;
         chatMessages.append(characterDiv);
     }
 

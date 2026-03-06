@@ -404,7 +404,17 @@ export class Conversation{
 
         // 2. Add targets from @mentions and name mentions in text
         for (const character of this.npcQueue) {
-            const names = [character.fullName, character.shortName, character.firstName, character.primaryTitle].filter(Boolean);
+            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+            if (character.primaryTitle) {
+                names.push(character.primaryTitle);
+                const titleWords = character.primaryTitle.split(' ');
+                const commonWords = ['the', 'a', 'an', 'of'];
+                for (const word of titleWords) {
+                    if (!commonWords.includes(word.toLowerCase())) {
+                        names.push(word.replace(/,/g, ''));
+                    }
+                }
+            }
             const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
             
             // Create a regex for whole word matching for each name to avoid partial matches
