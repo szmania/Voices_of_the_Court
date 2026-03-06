@@ -404,7 +404,7 @@ export class Conversation{
 
         // 2. Add targets from @mentions and name mentions in text
         for (const character of this.npcQueue) {
-            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+            const names = [character.fullName, character.shortName, character.firstName, character.primaryTitle].filter(Boolean);
             const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
             if (mentionPattern.test(lastMessage.content) || names.some(name => lastMessage.content.includes(name))) {
                 if (!explicitTargets.has(character)) {
