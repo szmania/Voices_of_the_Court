@@ -614,6 +614,13 @@ function setupCharacterTargeting(gameData: GameData) {
             optionsDiv.style.display = isVisible ? 'none' : 'block';
         });
 
+        // Manually set the tooltip since the element might have been hidden during initial localization
+        // @ts-ignore
+        const tooltipText = window.LocalizationManager.getNestedTranslation('chat.target_tooltip');
+        if (tooltipText) {
+            wrapper.setAttribute('data-tooltip', tooltipText);
+        }
+
         wrapper.style.display = 'flex';
     } else {
         wrapper.style.display = 'none';
