@@ -100,6 +100,8 @@ export class Config{
     get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
     get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
     get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
+    get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
+    get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
 
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
