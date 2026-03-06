@@ -6,6 +6,7 @@
     "connection": "Connection",
     "actions": "Actions",
     "summarization": "Summarization",
+    "diaries": "Diaries",
     "prompts": "Prompts",
     "settings": "Settings",
     "system": "System",
@@ -15,6 +16,11 @@
     "steam_tooltip": "View on Steam Workshop",
     "website_tooltip": "Visit our Website"
   },
+,
+  "diaries": {
+    "header": "Diaries",
+    "description": "Manage diary entries for characters."
+  }
   "connection": {
     "ck3_path": "CK3 user folder path",
     "select_folder": "Select Folder",
@@ -120,6 +126,9 @@
     "desc_depth": "Char desc insert depth",
     "ai_start": "AI can start conversation",
     "ai_start_chance": "AI start chance (%)",
+,
+    "enable_diary": "Enable Diary Generation",
+    "diary_chance": "Diary Generation Chance (%)"
     "instruct_header": "Instruct settings",
     "input_seq": "Input sequence",
     "output_seq": "output sequence",
