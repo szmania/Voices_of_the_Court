@@ -7,7 +7,7 @@ import { DiaryEntry } from '../ts/diary_interfaces';
 import { Character } from '../../shared/gameData/Character';
 
 // @ts-ignore
-import { jest } from '@jest/globals';
+import { describe, it, beforeEach, expect, jest } from '@jest/globals';
 
 jest.mock('../../shared/apiConnection');
 
