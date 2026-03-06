@@ -1,6 +1,6 @@
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export class Letter implements ILetter {
     id: string;
@@ -59,7 +59,7 @@ export class Letter implements ILetter {
             const timestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
 
             return new Letter(
-                uuidv4(),
+                randomUUID(),
                 sender,
                 recipient,
                 subject,
