@@ -70,11 +70,6 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Remember, you are playing as {characterName}, do not write replies for any other character.";
     const roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
 
-    chatPrompt.push({
-        role: "system",
-        content: roleplayInstruction + "\n"
-    })
-
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
@@ -245,6 +240,11 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         })
         console.log('Added suffix prompt.');
     }
+
+    chatPrompt.push({
+        role: "system",
+        content: roleplayInstruction
+    });
 
     console.log(`Final chat prompt message count: ${chatPrompt.length}`);
     return chatPrompt;
