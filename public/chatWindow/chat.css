@@ -718,7 +718,7 @@ html{
 
 
 .ai-message em {
-    color: #b1b1b1; /* Lighter gray for narrative actions */
+    color: #ad9a78; /* Muted gold for narrative actions */
 }
 
 .player-message{
