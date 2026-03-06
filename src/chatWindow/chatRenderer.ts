@@ -1421,12 +1421,13 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     currentHeader.textContent = currentHeaderText;
     chatMessages.append(currentHeader);
 
-    if (currentGameData?.characters) {
+    if (currentGameData && currentGameData.characters) {
         const characterDiv = document.createElement('div');
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+        const playerID = currentGameData.playerID;
         const characterNames = Array.from(currentGameData.characters.values()).map(c => {
-            if (c.id === currentGameData.playerID) {
+            if (c.id === playerID) {
                 return `${c.shortName} (You)`;
             }
             return c.shortName;
