@@ -12,7 +12,7 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
     const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
     const lines = fileContent.split(/\r?\n/);
     
-    const letters: Letter[] = [];
+    const letterPromises: Promise<Letter | null>[] = [];
 
     for (const line of lines) {
         if (line.includes('VOTC:LETTER')) {
@@ -25,14 +25,14 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                 const senderId = parts[4].trim();
 
                 if(content && subject && recipientId && senderId) {
-                    const letter = Letter.fromLog(senderId, recipientId, subject, content, characterNameMap);
-                    if (letter) {
-                        letters.push(letter);
-                    }
+                    letterPromises.push(Letter.fromLog(senderId, recipientId, subject, content, characterNameMap));
                 }
             }
         }
     }
+
+    const resolvedLetters = await Promise.all(letterPromises);
+    const letters = resolvedLetters.filter((l): l is Letter => l !== null);
     
     console.log(`Parsed ${letters.length} letters from log.`);
     return letters;

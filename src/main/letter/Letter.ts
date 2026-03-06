@@ -1,6 +1,5 @@
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
-import { v4 as uuidv4 } from 'uuid';
 
 export class Letter implements ILetter {
     id: string;
@@ -32,14 +31,15 @@ export class Letter implements ILetter {
         this.letterType = letterType;
     }
 
-    public static fromLog(
+    public static async fromLog(
         senderId: string,
         recipientId: string,
         subject: string,
         content: string,
         characterNameMap: Map<string, string>
-    ): Letter | null {
+    ): Promise<Letter | null> {
         try {
+            const { v4: uuidv4 } = await import('uuid');
             const senderName = characterNameMap.get(senderId) || `Character ${senderId}`;
             const recipientName = characterNameMap.get(recipientId) || `Character ${recipientId}`;
 
