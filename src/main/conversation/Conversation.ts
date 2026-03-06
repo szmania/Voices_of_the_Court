@@ -45,9 +45,7 @@ export class Conversation{
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
-        [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
-        
-        this.loadConfig();
+        this.config = config;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -116,13 +114,6 @@ export class Conversation{
                 });
             }
         });
-
-        this.config = config;
-
-        //TODO: wtf
-        this.runFileManager = new RunFileManager(config.userFolderPath);
-        this.description = "";
-        this.actions = [];
 
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
