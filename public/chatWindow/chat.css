@@ -1103,8 +1103,8 @@ em{
     display: none; /* Controlled by JS */
     justify-content: center;
     width: 100%;
-    margin-top: -10px; /* Move it up */
-    margin-bottom: 15px; /* Add some space below it */
+    margin-top: -20px; /* Move it up more */
+    margin-bottom: 10px; /* Reduce space below */
     position: relative;
     z-index: 200; /* Ensure it's above button container */
 }

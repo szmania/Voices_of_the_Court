@@ -11,9 +11,12 @@ const sanitizeConfig = {
 
 hideChat();
 
-document.addEventListener('click', () => {
-    const optionsDiv = document.getElementById('character-target-options') as HTMLDivElement;
-    if (optionsDiv && optionsDiv.style.display === 'block') {
+document.addEventListener('click', (event) => {
+    const container = document.getElementById('character-target-select-container');
+    const optionsDiv = document.getElementById('character-target-options');
+    
+    // If the click is outside the custom select container, close the options
+    if (container && optionsDiv && !container.contains(event.target as Node)) {
         optionsDiv.style.display = 'none';
     }
 });
@@ -571,7 +574,6 @@ function setupCharacterTargeting(gameData: GameData) {
 
         // Toggle dropdown
         valueDiv.addEventListener('click', (e) => {
-            e.stopPropagation();
             optionsDiv.style.display = optionsDiv.style.display === 'none' ? 'block' : 'none';
         });
 
