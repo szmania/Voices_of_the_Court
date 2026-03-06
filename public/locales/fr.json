@@ -152,7 +152,7 @@
     "roaming_data": "Dossier de données d'itinérance",
     "roaming_data_desc": "Ce dossier contient votre configuration personnelle, vos scripts et vos résumés.",
     "open_roaming_data": "Ouvrir le dossier de données d'itinérance",
-    "roleplay_instruction": "Votre tâche est d'incarner le personnage {characterName}. Écrivez une réponse uniquement pour ce personnage. N'oubliez pas, vous jouez le rôle de {characterName}, n'écrivez pas de réponses pour d'autres personnages.",
+    "roleplay_instruction": "Votre tâche est d'incarner le personnage {characterName}. Écrivez une réponse uniquement pour ce personnage. N'oubliez pas, vous jouez le rôle de {characterName}, n'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.",
     "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:"
   },
   "chat": {

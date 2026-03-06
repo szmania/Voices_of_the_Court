@@ -153,7 +153,7 @@
     "roaming_data": "Roaming Data Folder",
     "roaming_data_desc": "This folder contains your personal configuration, scripts, and summaries.",
     "open_roaming_data": "Open Roaming Data Folder",
-    "roleplay_instruction": "[System instruction: Your task is to roleplay as {characterName}. Write a reply for this character only. Do not write as any other character.]"
+    "roleplay_instruction": "[System instruction: Your task is to roleplay as {characterName}. Write a reply for this character only. Do not write as any other character. Use markdown for actions, like *this*.]"
   },
   "chat": {
     "target_label": "Target Character:",
