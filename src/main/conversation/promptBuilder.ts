@@ -96,7 +96,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     if (exampleMessagesPath && fs.existsSync(exampleMessagesPath)) {
         try {
             delete require.cache[require.resolve(exampleMessagesPath)];
-            let exampleMessages = require(exampleMessagesPath)(conv.gameData, character.id);
+            let exampleMessages = require(exampleMessagesPath)(conv.gameData, character);
             
             // 只有当example messages不为空时才添加占位符和实际消息
             if (exampleMessages && exampleMessages.length > 0) {
