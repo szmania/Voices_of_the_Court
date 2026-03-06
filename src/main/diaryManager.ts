@@ -78,3 +78,14 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
     await fs.promises.writeFile(filePath, JSON.stringify(diaryData, null, '\t'));
 }
 
+export async function getAllDiaryPlayerIds(userDataPath: string): Promise<string[]> {
+    const diariesRootPath = path.join(userDataPath, 'diaries');
+    if (!fs.existsSync(diariesRootPath)) {
+        return [];
+    }
+    const playerDirs = await fs.promises.readdir(diariesRootPath, { withFileTypes: true });
+    return playerDirs
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+}
+

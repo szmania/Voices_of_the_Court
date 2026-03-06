@@ -23,14 +23,47 @@
     </div>
 
     <div class="container" id="container">
-      <div class="row">
-        <div class="column">
-          <div class="border">
-            <h2 data-i18n="diaries.header">Diaries</h2>
-            <p data-i18n="diaries.description">Manage diary entries for characters.</p>
-          </div>
+      <div id="diary-manager-container" class="border">
+        <div id="diary-manager-loader" class="loader" style="display: none;"></div>
+        <h2 data-i18n="diary_manager.header">Diary Manager</h2>
+        <div class="header-controls">
+            <button id="diary-manager-refreshBtn" class="btn" data-i18n="diary_manager.refresh" data-i18n-title="diary_manager.tooltip_refresh">Refresh</button>
+            <button id="diary-manager-saveBtn" class="btn btn-success" data-i18n="diary_manager.save_all" data-i18n-title="diary_manager.tooltip_save_all">Save All Diaries</button>
         </div>
-      </div>
+    
+        <div class="info-panel">
+            <div class="info-item">
+                <label for="diary-manager-playerIdSelect" data-i18n="diary_manager.player_id">Player ID:</label>
+                <select id="diary-manager-playerIdSelect" data-i18n-title="diary_manager.tooltip_player_id"></select>
+            </div>
+            <div class="info-item">
+                <label for="diary-manager-characterSelect" data-i18n="diary_manager.select_character">Select Character:</label>
+                <select id="diary-manager-characterSelect" data-i18n-title="diary_manager.tooltip_character">
+                    <option value="all" data-i18n="diary_manager.all_characters">All Characters</option>
+                </select>
+            </div>
+            <div class="info-item">
+                <label for="diary-manager-diaryPath" data-i18n="diary_manager.file_path">Diary File Path:</label>
+                <input type="text" id="diary-manager-diaryPath" readonly data-i18n-title="diary_manager.tooltip_diary_path">
+            </div>
+        </div>
+    
+        <div class="summary-list-container">
+            <div class="summary-list-header">
+              <h3 data-i18n="diary_manager.list_header">Diary List</h3>
+              <input type="search" id="diary-manager-search" data-i18n-placeholder="diary_manager.search_placeholder" placeholder="Search diaries..." data-i18n-title="diary_manager.tooltip_search">
+            </div>
+            <div id="diary-manager-diaryList" class="summary-list">
+                <!-- Diary items will be dynamically generated here -->
+            </div>
+            <div class="list-controls">
+                <button id="diary-manager-deleteItemBtn" class="btn btn-danger" data-i18n="diary_manager.delete_btn" disabled data-i18n-title="diary_manager.tooltip_delete">Delete</button>
+                <button id="diary-manager-addDiaryBtn" class="btn" data-i18n="diary_manager.add_new" data-i18n-title="diary_manager.tooltip_add">Add</button>
+            </div>
+        </div>
+    
+        <div id="diary-manager-statusMessage" class="status-message"></div>
+    </div>
     </div>
 
     <script>require("../../dist/shared/LocalizationManager.js")</script>
@@ -39,6 +72,7 @@
       window.LocalizationManager = LocalizationManager;
     </script>
     <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/diariesRenderer.js")</script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const openReadmeBtn = document.getElementById('open-readme');
