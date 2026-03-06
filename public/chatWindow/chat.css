@@ -1099,6 +1099,44 @@ em{
     transition-delay: 0.1s;
 }
 
+.inline-action-form .custom-select-container {
+    position: relative;
+}
+
+.inline-action-form .custom-select-value {
+    background-color: #2b2b2b;
+    color: #e0e0e0;
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.inline-action-form .custom-select-options {
+    position: absolute;
+    top: 100%; /* Open downwards */
+    left: 0;
+    right: 0;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    border-top: none;
+    border-radius: 0 0 2px 2px;
+    z-index: 1001; /* Above other form elements */
+    max-height: 150px;
+    overflow-y: auto;
+    display: none;
+}
+
+.inline-action-form .custom-select-option {
+    padding: 8px;
+    color: #e0e0e0;
+    cursor: pointer;
+}
+
+.inline-action-form .custom-select-option:hover {
+    background-color: #4a4a4a;
+}
+
 #character-target-wrapper {
     display: none; /* Controlled by JS */
     justify-content: center;

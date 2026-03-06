@@ -12,13 +12,12 @@ const sanitizeConfig = {
 hideChat();
 
 document.addEventListener('click', (event) => {
-    const container = document.getElementById('character-target-select-container');
-    const optionsDiv = document.getElementById('character-target-options');
-    
-    // If the click is outside the custom select container, close the options
-    if (container && optionsDiv && !container.contains(event.target as Node)) {
-        optionsDiv.style.display = 'none';
-    }
+    document.querySelectorAll('.custom-select-options').forEach(optionsDiv => {
+        const container = (optionsDiv as HTMLElement).closest('.custom-select-container');
+        if (container && !container.contains(event.target as Node)) {
+            (optionsDiv as HTMLElement).style.display = 'none';
+        }
+    });
 });
 
 // 初始化主题
@@ -574,6 +573,7 @@ function setupCharacterTargeting(gameData: GameData) {
 
         // Toggle dropdown
         valueDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
             optionsDiv.style.display = optionsDiv.style.display === 'none' ? 'block' : 'none';
         });
 
@@ -917,19 +917,48 @@ function showInlineActionForm(action: any) {
     sourceSelectDiv.classList.add('action-character-select');
     const sourceLabel = document.createElement('label');
     sourceLabel.textContent = 'Source Character';
-    const sourceSelect = document.createElement('select');
-    sourceSelect.id = 'action-source-char';
+    
+    const sourceCustomSelect = document.createElement('div');
+    sourceCustomSelect.className = 'custom-select-container';
+    
+    const sourceHiddenInput = document.createElement('input');
+    sourceHiddenInput.type = 'hidden';
+    sourceHiddenInput.id = 'action-source-char-hidden';
+
+    const sourceValueDiv = document.createElement('div');
+    sourceValueDiv.className = 'custom-select-value';
+
+    const sourceOptionsDiv = document.createElement('div');
+    sourceOptionsDiv.className = 'custom-select-options';
+
     allCharacters.forEach(char => {
-        const option = document.createElement('option');
-        option.value = char.id.toString();
-        option.textContent = char.shortName;
+        const optionElement = document.createElement('div');
+        optionElement.className = 'custom-select-option';
+        optionElement.dataset.value = char.id.toString();
+        optionElement.textContent = char.shortName;
+        optionElement.addEventListener('click', () => {
+            sourceValueDiv.textContent = char.shortName;
+            sourceHiddenInput.value = char.id.toString();
+            sourceOptionsDiv.style.display = 'none';
+        });
+        sourceOptionsDiv.appendChild(optionElement);
         if (char.id === currentGameData!.playerID) {
-            option.selected = true; // Default to player
+            sourceValueDiv.textContent = char.shortName;
+            sourceHiddenInput.value = char.id.toString();
         }
-        sourceSelect.appendChild(option);
     });
+
+    sourceValueDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sourceOptionsDiv.style.display = sourceOptionsDiv.style.display === 'none' ? 'block' : 'none';
+    });
+
+    sourceCustomSelect.appendChild(sourceHiddenInput);
+    sourceCustomSelect.appendChild(sourceValueDiv);
+    sourceCustomSelect.appendChild(sourceOptionsDiv);
+
     sourceSelectDiv.appendChild(sourceLabel);
-    sourceSelectDiv.appendChild(sourceSelect);
+    sourceSelectDiv.appendChild(sourceCustomSelect);
     characterSelectorsContainer.appendChild(sourceSelectDiv);
 
     // Target selector
@@ -937,16 +966,50 @@ function showInlineActionForm(action: any) {
     targetSelectDiv.classList.add('action-character-select');
     const targetLabel = document.createElement('label');
     targetLabel.textContent = 'Target Character';
-    const targetSelect = document.createElement('select');
-    targetSelect.id = 'action-target-char';
+
+    const targetCustomSelect = document.createElement('div');
+    targetCustomSelect.className = 'custom-select-container';
+
+    const targetHiddenInput = document.createElement('input');
+    targetHiddenInput.type = 'hidden';
+    targetHiddenInput.id = 'action-target-char-hidden';
+
+    const targetValueDiv = document.createElement('div');
+    targetValueDiv.className = 'custom-select-value';
+
+    const targetOptionsDiv = document.createElement('div');
+    targetOptionsDiv.className = 'custom-select-options';
+
+    let defaultTargetSet = false;
     allCharacters.forEach(char => {
-        const option = document.createElement('option');
-        option.value = char.id.toString();
-        option.textContent = char.shortName;
-        targetSelect.appendChild(option);
+        const optionElement = document.createElement('div');
+        optionElement.className = 'custom-select-option';
+        optionElement.dataset.value = char.id.toString();
+        optionElement.textContent = char.shortName;
+        optionElement.addEventListener('click', () => {
+            targetValueDiv.textContent = char.shortName;
+            targetHiddenInput.value = char.id.toString();
+            targetOptionsDiv.style.display = 'none';
+        });
+        targetOptionsDiv.appendChild(optionElement);
+        if (!defaultTargetSet) {
+            targetValueDiv.textContent = char.shortName;
+            targetHiddenInput.value = char.id.toString();
+            defaultTargetSet = true;
+        }
     });
+
+    targetValueDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        targetOptionsDiv.style.display = targetOptionsDiv.style.display === 'none' ? 'block' : 'none';
+    });
+
+    targetCustomSelect.appendChild(targetHiddenInput);
+    targetCustomSelect.appendChild(targetValueDiv);
+    targetCustomSelect.appendChild(targetOptionsDiv);
+
     targetSelectDiv.appendChild(targetLabel);
-    targetSelectDiv.appendChild(targetSelect);
+    targetSelectDiv.appendChild(targetCustomSelect);
     characterSelectorsContainer.appendChild(targetSelectDiv);
 
     formContainer.appendChild(characterSelectorsContainer);
@@ -1103,8 +1166,8 @@ function showInlineActionForm(action: any) {
     const executeTooltip = (lm ? lm.getNestedTranslation('chat.execute_tooltip') : null) || "Execute this action.";
     executeButton.setAttribute('data-tooltip', executeTooltip);
     executeButton.addEventListener('click', () => {
-        const sourceId = (formContainer.querySelector('#action-source-char') as HTMLSelectElement).value;
-        const targetId = (formContainer.querySelector('#action-target-char') as HTMLSelectElement).value;
+        const sourceId = (formContainer.querySelector('#action-source-char-hidden') as HTMLInputElement).value;
+        const targetId = (formContainer.querySelector('#action-target-char-hidden') as HTMLInputElement).value;
         
         const args: any[] = [sourceId, targetId];
         const inputs = formContainer.querySelectorAll('.action-arg input, .action-arg select, .action-arg input[type=hidden]');
