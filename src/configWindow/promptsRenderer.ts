@@ -32,9 +32,6 @@ promptKeys.forEach(key => {
 // Add diary prompt key
 promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
 
-// Add diary prompt key
-promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
-
 let promptPresets: any = {};
 
 function setSaveButtonState(enabled: boolean) {
