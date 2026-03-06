@@ -69,6 +69,49 @@ export class LetterManager {
         allLetters.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         return allLetters;
     }
+
+    public getAllPlayerIdsWithLetters(): string[] {
+        const playerFolderPath = this.letterHistoryPath;
+        if (!fs.existsSync(playerFolderPath)) {
+            return [];
+        }
+
+        const playerDirs = fs.readdirSync(playerFolderPath, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => {
+                return {
+                    name: dirent.name,
+                    time: fs.statSync(path.join(playerFolderPath, dirent.name)).mtimeMs,
+                };
+            });
+
+        if (playerDirs.length === 0) {
+            return [];
+        }
+
+        // Sort by most recent modification time
+        playerDirs.sort((a, b) => b.time - a.time);
+        
+        return playerDirs.map(dir => dir.name);
+    }
+
+    public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
+        const allLetters = this.getAllLetters(playerId);
+        const characterInfo = new Map<string, string>();
+        
+        const playerNumericId = Number(playerId);
+
+        allLetters.forEach(letter => {
+            if (letter.sender.id !== playerNumericId) {
+                characterInfo.set(String(letter.sender.id), letter.sender.fullName);
+            }
+            if (letter.recipient.id !== playerNumericId) {
+                characterInfo.set(String(letter.recipient.id), letter.recipient.fullName);
+            }
+        });
+        
+        return Array.from(characterInfo.entries()).map(([id, name]) => ({ id, name }));
+    }
     
     public saveLetter(letter: ILetter, playerId: string): void {
         // Letters are stored based on the conversation between player and another character.

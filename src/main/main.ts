@@ -955,6 +955,46 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 });
 
 // Letter IPC Handlers
+ipcMain.handle('get-letter-players', async () => {
+    console.log('IPC: Received get-letter-players event.');
+    const letterManager = LetterManager.getInstance();
+    const playerIds = letterManager.getAllPlayerIdsWithLetters();
+    const playerInfo = new Map<string, string>();
+
+    for (const pId of playerIds) {
+        const lettersForPlayer = letterManager.getAllLetters(pId);
+        if (lettersForPlayer.length > 0) {
+            const playerAsSender = lettersForPlayer.find(l => String(l.sender.id) === pId);
+            if (playerAsSender) {
+                playerInfo.set(pId, playerAsSender.sender.fullName);
+                continue;
+            }
+            const playerAsRecipient = lettersForPlayer.find(l => String(l.recipient.id) === pId);
+            if (playerAsRecipient) {
+                playerInfo.set(pId, playerAsRecipient.recipient.fullName);
+            } else {
+                playerInfo.set(pId, `Player ${pId}`); // Fallback
+            }
+        }
+    }
+    return Array.from(playerInfo.entries()).map(([id, name]) => ({ id, name }));
+});
+
+ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {
+    console.log(`IPC: Received get-corresponded-characters event for player: ${playerId}`);
+    const letterManager = LetterManager.getInstance();
+    return letterManager.getCorrespondedCharacters(playerId);
+});
+
+ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
+    if (playerId) {
+        const letterManager = LetterManager.getInstance();
+        return letterManager.getAllLetters(playerId);
+    }
+    return [];
+});
+
 ipcMain.on('get-letters', (event) => {
     console.log('IPC: Received get-letters event.');
     if (conversation) {
@@ -968,18 +1008,11 @@ ipcMain.on('get-letters', (event) => {
     }
 });
 
-ipcMain.on('mark-letter-as-read', (event, letterId: string) => {
-    console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId}`);
-    if (conversation) {
-        conversation.letterManager.markAsRead(
-            String(conversation.gameData.playerID),
-            String(conversation.gameData.aiID),
-            letterId
-        );
-        console.log(`Letter ${letterId} marked as read.`);
-    } else {
-        console.warn('IPC: Cannot mark letter as read, no active conversation.');
-    }
+ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: { playerId: string, characterId: string, letterId: string }) => {
+    console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId} for player ${playerId} and character ${characterId}`);
+    const letterManager = LetterManager.getInstance();
+    letterManager.markAsRead(playerId, characterId, letterId);
+    console.log(`Letter ${letterId} marked as read.`);
 });
 
 // Tokenizer IPC handlers
