@@ -744,7 +744,19 @@ body.theme-west .chat-box {
 }
 
 .theme-chinese #character-target-wrapper {
-    margin-top: -25px;
+    margin-top: -60px;
+}
+
+.theme-chinese .queue-status {
+    /* Override default top-center positioning */
+    top: auto;
+    left: auto;
+    bottom: 10px;
+    right: 10px;
+    transform: none;
+    align-items: flex-end;
+    text-align: right;
+    z-index: 10;
 }
 
 /* East UI Theme for Character Target Dropdown */
