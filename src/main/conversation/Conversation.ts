@@ -8,7 +8,6 @@ import { convertChatToText, buildChatPrompt, buildResummarizeChatPrompt, convert
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
-import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -16,6 +15,7 @@ import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} fr
 import { RunFileManager } from '../RunFileManager.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 import { SummaryFileWatcher } from './SummaryFileWatcher.js';
+import { parseGameDate } from '../../shared/dateUtils.js';
 
 export class Conversation{
     userDataPath: string;
@@ -28,7 +28,6 @@ export class Conversation{
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
     actionsApiConnection: ApiConnection;
-    description: string;
     actions: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
@@ -125,13 +124,13 @@ export class Conversation{
 
         //TODO: wtf
         this.runFileManager = new RunFileManager(config.userFolderPath);
-        this.description = "";
         this.actions = [];
 
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
         this.loadConfig();
         this.loadHistory();
+        this.checkForSummariesFromOtherPlayers();
         this.initialize();
     }
 
@@ -395,16 +394,52 @@ export class Conversation{
         const potentialTargets: Character[] = [];
         const remainingCharacters: Character[] = [...this.npcQueue];
 
-        // Simple name matching in the last message
-        for (const character of this.npcQueue) {
-            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-            for (const name of names) {
-                if (lastMessage.content.includes(name)) {
-                    const index = remainingCharacters.findIndex(c => c.id === character.id);
-                    if (index > -1) {
-                        potentialTargets.push(character);
-                        remainingCharacters.splice(index, 1);
-                        break; // Move to next character once found
+        // 1. Check for explicit target from UI
+        const targetId = (lastMessage as any).targetCharacterId;
+        if (targetId) {
+            const targetCharacter = this.npcQueue.find(c => c.id === targetId);
+            if (targetCharacter) {
+                console.log(`Explicit target found from UI: ${targetCharacter.shortName}`);
+                potentialTargets.push(targetCharacter);
+                const index = remainingCharacters.findIndex(c => c.id === targetId);
+                if (index > -1) {
+                    remainingCharacters.splice(index, 1);
+                }
+            }
+        }
+
+        // 2. Check for @mentions if no explicit target
+        if (potentialTargets.length === 0) {
+            for (const character of this.npcQueue) {
+                const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+                for (const name of names) {
+                    // More specific check for @mention
+                    const mentionPattern = new RegExp(`@${name}\\b`, 'i');
+                    if (mentionPattern.test(lastMessage.content)) {
+                        const index = remainingCharacters.findIndex(c => c.id === character.id);
+                        if (index > -1) {
+                            console.log(`Found @mention for ${character.shortName}`);
+                            potentialTargets.push(character);
+                            remainingCharacters.splice(index, 1);
+                            break; // Move to next character
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Fallback to simple name matching if still no target
+        if (potentialTargets.length === 0) {
+            for (const character of this.npcQueue) {
+                const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+                for (const name of names) {
+                    if (lastMessage.content.includes(name)) {
+                        const index = remainingCharacters.findIndex(c => c.id === character.id);
+                        if (index > -1) {
+                            potentialTargets.push(character);
+                            remainingCharacters.splice(index, 1);
+                            break; // Move to next character once found
+                        }
                     }
                 }
             }
@@ -429,11 +464,17 @@ export class Conversation{
         while (this.npcQueue.length > 0) {
             if (this.isPaused) {
                 console.log('Conversation paused. Queue processing will stop.');
+                this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
                 return; // Exit if paused
             }
             
             const character = this.npcQueue.shift(); // Get and remove character from front of queue
             if (!character) continue;
+
+            // Send queue update to renderer
+            const queueUpdate = this.npcQueue.map(c => ({ name: c.shortName, id: c.id }));
+            const speakerUpdate = { name: character.shortName, id: character.id };
+            this.chatWindow.window.webContents.send('queue-update', queueUpdate, speakerUpdate);
 
             console.log(`Processing character: ${character.shortName}`);
             if (this.config.validateCharacterIdentity) {
@@ -443,6 +484,7 @@ export class Conversation{
             }
         }
         console.log('Finished processing NPC queue.');
+        this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
     }
 
     pause(): void {
@@ -1098,41 +1140,56 @@ ${character.fullName}的发言：`
             return;
         }
 
-        // Generate a new summary (by calling the summarize utility function)
-        const newSummary: Summary = {
-            date: this.gameData.date,  // Current in-game date
-            content: await summarize(this)  // Asynchronously generate summary content
-        };
-        console.log(`Generated new summary for conversation: ${newSummary.content.substring(0, 100)}...`);
-
-
-        this.gameData.characters.forEach((character) => {
-            if (character.id !== this.gameData.playerID) {
-                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-                const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
-
-                // 暂停文件监控，避免保存时触发重新加载
-                this.summaryFileWatcher.pauseWatcher(summaryFile);
-
-                // Get existing summaries from the map, or start with an empty array
-                const existingSummaries = this.summaries.get(character.id) || [];
-                
-                // Add the new summary to the end of the list ONLY if its content is not empty
-                if (newSummary.content.trim()) {
-                    existingSummaries.unshift(newSummary); // Changed from .push to .unshift
-                    
-                    // Persist the updated summaries for the specific character
-                    fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-                    console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
-                } else {
-                    console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
-                }
-
-                // 恢复文件监控
-                this.summaryFileWatcher.resumeWatcher(summaryFile);
+        const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+        const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
+        let characterMap: {[key: number]: string} = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error('Error reading existing character map:', e);
             }
-        });
+        }
+        for (const char of this.gameData.characters.values()) {
+            if (!characterMap[char.id]) {
+                characterMap[char.id] = char.shortName;
+            }
+        }
+        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Updated character map at: ${characterMapPath}`);
 
+        for (const character of this.gameData.characters.values()) {
+            if (character.id === this.gameData.playerID) continue;
+
+            // Build a character-specific prompt
+            const prompt = buildSummarizeChatPrompt(this, character);
+            
+            // Generate summary from this character's perspective
+            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
+
+            const newSummary: Summary = {
+                date: this.gameData.date,
+                content: summaryContent
+            };
+            console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+
+            const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+            const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
+
+            this.summaryFileWatcher.pauseWatcher(summaryFile);
+
+            const existingSummaries = this.summaries.get(character.id) || [];
+            
+            if (newSummary.content.trim()) {
+                existingSummaries.unshift(newSummary);
+                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+            } else {
+                console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
+            }
+
+            this.summaryFileWatcher.resumeWatcher(summaryFile);
+        }
     }
 
     // 生成推荐输入语句
@@ -1164,21 +1221,6 @@ ${character.fullName}的发言：`
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.runFileManager.clear();
-
-        this.description = "";
-
-        const descriptionScriptFileName = this.config.selectedDescScript;
-        const descriptionPath = path.join(this.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
-        try{
-            delete require.cache[require.resolve(descriptionPath)];
-            this.description = require(descriptionPath)(this.gameData); 
-            console.log(`Description script '${descriptionScriptFileName}' loaded successfully.`);
-            console.log(`Generated description length: ${this.description.length} characters`);
-            console.log(`Description preview: ${this.description.substring(0, 200)}...`);
-        }catch(err){
-            console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
-            throw new Error("description script error, your used description script file is not valid! error message:\n"+err);
-        }
     
         this.loadActions();
     }
@@ -1355,6 +1397,57 @@ ${character.fullName}的发言：`
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
+        }
+    }
+
+    private async checkForSummariesFromOtherPlayers(): Promise<void> {
+        console.log('Checking for summaries from other players...');
+        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
+        if (!fs.existsSync(summariesBasePath)) return;
+
+        const playerDirs = fs.readdirSync(summariesBasePath, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name);
+
+        const otherPlayerIds = playerDirs.filter(id => id !== this.gameData.playerID.toString());
+
+        if (otherPlayerIds.length === 0) {
+            console.log('No other player summaries found.');
+            return;
+        }
+
+        console.log(`Found summaries from other players: ${otherPlayerIds.join(', ')}`);
+
+        for (const character of this.gameData.characters.values()) {
+            if (character.id === this.gameData.playerID) continue;
+
+            let characterSummaries = this.summaries.get(character.id) || [];
+
+            for (const playerId of otherPlayerIds) {
+                const summaryFilePath = path.join(summariesBasePath, playerId, `${character.id.toString()}.json`);
+                if (fs.existsSync(summaryFilePath)) {
+                    try {
+                        const foreignSummaries: Summary[] = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
+                        const summariesToImport = foreignSummaries.map(s => ({
+                            ...s,
+                            fromPlayerId: playerId // Add the player ID
+                        }));
+                        characterSummaries.push(...summariesToImport);
+                        console.log(`Imported ${summariesToImport.length} summaries for character ${character.id} from player ${playerId}.`);
+                    } catch (e) {
+                        console.error(`Error reading or parsing summary file ${summaryFilePath}:`, e);
+                    }
+                }
+            }
+
+            // Re-sort all summaries by date
+            characterSummaries.sort((a: any, b: any) => {
+                const dateA = parseGameDate(a.date) || new Date(0);
+                const dateB = parseGameDate(b.date) || new Date(0);
+                return dateB.getTime() - dateA.getTime();
+            });
+            
+            this.summaries.set(character.id, characterSummaries);
         }
     }
 
