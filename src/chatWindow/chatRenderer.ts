@@ -9,6 +9,27 @@ const sanitizeConfig = {
     KEEP_CONTENT: true,
   };
 
+const characterColorPalette = [
+    '#a1b8c3', // Light Slate Blue
+    '#b3a1c3', // Light Lavender
+    '#a1c3b1', // Light Sea Green
+    '#c3b8a1', // Light Tan
+    '#c3a1a1', // Light Rosy Brown
+    '#b8c3a1', // Light Olive
+    '#a1c3c3', // Light Teal
+];
+const characterColorMap = new Map<number, string>();
+let nextColorIndex = 0;
+
+function getCharacterColor(characterId: number): string {
+    if (!characterColorMap.has(characterId)) {
+        const color = characterColorPalette[nextColorIndex % characterColorPalette.length];
+        characterColorMap.set(characterId, color);
+        nextColorIndex++;
+    }
+    return characterColorMap.get(characterId)!;
+}
+
 hideChat();
 
 document.addEventListener('click', (event) => {
@@ -145,6 +166,10 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             break;
         case 'assistant':
             removeLoadingDots();
+            // Color-code AI character messages
+            const character = Array.from(currentGameData.characters.values()).find(c => c.shortName === message.name || c.fullName === message.name);
+            if (character) messageDiv.style.color = getCharacterColor(character.id);
+            
             messageDiv.classList.add('ai-message');
             if (isHistorical) {
                 messageDiv.classList.add('historical-ai-message');
@@ -1243,6 +1268,10 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
     currentGameData = gameData;
+
+    // Reset character color mapping for new conversation
+    characterColorMap.clear();
+    nextColorIndex = 0;
 
     setupCharacterTargeting(gameData);
 
