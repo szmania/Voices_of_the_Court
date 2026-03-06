@@ -542,6 +542,16 @@ clipboardListener.on('VOTC:EFFECT_ACCEPTED', async () =>{
     
 })
 
+clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
+    console.log('ClipboardListener: VOTC:LETTER_ACCEPTED event detected.');
+    if(conversation){
+        conversation.runFileManager.clear();
+        console.log('Conversation active, run file manager cleared for letter.');
+    } else {
+        console.warn('VOTC:LETTER_ACCEPTED received but no active conversation.');
+    }
+})
+
 clipboardListener.on('VOTC:BOOKMARK', async () => {
     console.log('ClipboardListener: VOTC:BOOKMARK event detected.');
     try {
