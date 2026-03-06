@@ -358,12 +358,11 @@ chatInput.addEventListener('keydown', async function(e) {
             content: messageText
         };
 
+        // Add multiple target character IDs if selected
         const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
         const wrapper = document.getElementById('character-target-wrapper') as HTMLDivElement;
-
-        // Add target character if selected
-        if (wrapper.style.display === 'flex' && hiddenInput.value !== 'auto') {
-            (message as any).targetCharacterId = parseInt(hiddenInput.value, 10);
+        if (wrapper.style.display === 'flex' && hiddenInput.value) {
+            (message as any).targetCharacterIds = hiddenInput.value.split(',').filter(Boolean).map(Number);
         }
 
         await displayMessage(message);

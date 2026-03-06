@@ -1061,13 +1061,20 @@ em{
 }
 
 .custom-select-option {
-    padding: 8px;
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
     color: #e0e0e0;
     cursor: pointer;
 }
 
 .custom-select-option:hover {
     background-color: #4a4a4a;
+}
+
+.custom-select-option input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: #cca43b;
 }
 
 .inline-action-buttons button {
