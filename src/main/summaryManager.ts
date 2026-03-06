@@ -82,7 +82,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
         }
         
         // Read all JSON files in the directory
-        const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json'));
+        const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
         const allSummaries = [];
         
         for (const file of files) {

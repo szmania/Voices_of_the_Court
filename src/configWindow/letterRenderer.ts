@@ -4,7 +4,9 @@ import { Letter } from '../main/letter/letterInterfaces.js';
 const initLocalization = () => {
     const { LocalizationManager } = window as any;
     if (LocalizationManager) {
-        LocalizationManager.instance.applyLocalization();
+        LocalizationManager.instance.loadTranslations().then(() => {
+            LocalizationManager.instance.applyLocalization();
+        });
     }
 };
 
