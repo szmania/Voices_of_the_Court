@@ -228,25 +228,25 @@ export class LetterReplyGenerator {
     private async saveLetterHistory(playerId: string, aiId: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string, gameData: GameData): Promise<void> {
         try {
             const letterManager = LetterManager.getInstance();
-
+    
             const player = gameData.characters.get(Number(playerId));
             const ai = gameData.characters.get(Number(aiId));
-
+    
             if (!player || !ai) {
                 console.error("Could not find player or AI character to save letter history.");
                 return;
             }
-
+    
             // Get characters for the original letter
             const originalSender = gameData.getCharacter(Number(letterContent.senderId));
             const originalRecipient = gameData.getCharacter(Number(letterContent.recipientId));
-
+    
             if (!originalSender || !originalRecipient) {
                 console.error(`Could not find original sender (${letterContent.senderId}) or recipient (${letterContent.recipientId}) to save letter history.`);
                 return;
             }
-
-            // Save the original letter sent by the player
+    
+            // Create both letter objects
             const originalLetter = new Letter(
                 randomUUID(),
                 originalSender,
@@ -257,25 +257,42 @@ export class LetterReplyGenerator {
                 new Date(gameData.date.replace(/\./g, '-')),
                 true // The player sent it, so it's "read" by them.
             );
-            letterManager.saveLetter(originalLetter, playerId);
-            console.log(`Player's original letter saved to letter history for player ${playerId} and character ${aiId}`);
-
-
-            // The AI's reply.
+    
             const replyLetter = new Letter(
                 randomUUID(),
                 ai, // sender is the AI
                 player, // recipient is the player
                 `Re: ${letterContent.subject}`,
                 replyContent,
-                LetterType.PERSONAL, // Or some other appropriate type
-                new Date(gameData.date.replace(/\./g, '-')), // Use game date
+                LetterType.PERSONAL,
+                new Date(gameData.date.replace(/\./g, '-')),
                 false // It's a new letter, so not read by the player yet
             );
-
-            letterManager.saveLetter(replyLetter, playerId);
-            console.log(`AI reply saved to letter history for player ${playerId} and character ${aiId}`);
-
+    
+            // Atomically update the history file
+            const otherCharacterId = aiId; // The file is named after the non-player character
+            const filePath = letterManager.getLetterFilePath(playerId, otherCharacterId);
+    
+            let history: ILetter[] = [];
+            if (fs.existsSync(filePath)) {
+                history = letterManager.getLetters(playerId, otherCharacterId);
+            }
+    
+            // Add original letter if not present
+            if (!history.find(l => l.id === originalLetter.id)) {
+                history.push(originalLetter);
+            }
+            // Add reply letter if not present
+            if (!history.find(l => l.id === replyLetter.id)) {
+                history.push(replyLetter);
+            }
+            
+            history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+            fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf8');
+            
+            console.log(`Saved original letter and AI reply to letter history for player ${playerId} and character ${aiId}`);
+    
         } catch (error) {
             console.error(`Error saving letter history: ${error}`);
         }

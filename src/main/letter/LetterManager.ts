@@ -24,7 +24,7 @@ export class LetterManager {
         return LetterManager.instance;
     }
 
-    private getLetterFilePath(playerId: string, characterId: string): string {
+    public getLetterFilePath(playerId: string, characterId: string): string {
         const playerFolderPath = path.join(this.letterHistoryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             fs.mkdirSync(playerFolderPath, { recursive: true });
