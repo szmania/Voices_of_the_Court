@@ -85,4 +85,25 @@ export class LetterManager {
             }
         }
     }
+
+    public clearLettersFile(): void {
+        const ck3Folder = this.config.userFolderPath;
+        console.log(`LetterManager.clearLettersFile: CK3 user path: ${ck3Folder}`);
+        
+        if (!ck3Folder) {
+          console.warn("LetterManager.clearLettersFile: CK3 user folder is not configured; cannot clear letters file.");
+          return;
+        }
+    
+        const runFolder = path.join(ck3Folder, "run");
+        const letterFilePath = path.join(runFolder, "letters.txt");
+        console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
+    
+        if (fs.existsSync(letterFilePath)) {
+          fs.writeFileSync(letterFilePath, "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
+          console.log("Cleared letters.txt file");
+        } else {
+          console.log("letters.txt file does not exist, nothing to clear");
+        }
+    }
 }
