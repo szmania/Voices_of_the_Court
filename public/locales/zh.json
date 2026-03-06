@@ -121,6 +121,7 @@
     "memories_depth": "记忆插入深度",
     "desc_depth": "角色描述插入深度",
     "ai_start": "AI 可以发起对话",
+    "ai_start_tooltip": "允许AI发起对话。概率由下方的百分比字段决定。",
     "ai_start_chance": "AI 发起概率 (%)",
     "aiToAiChatChance": "AI间对话概率 (%)",
     "aiToAiChatChance_tooltip": "AI角色在回应玩家后，继续向另一个AI角色发送消息的概率。",

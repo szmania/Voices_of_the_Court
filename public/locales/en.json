@@ -121,6 +121,7 @@
     "memories_depth": "Memories insert depth",
     "desc_depth": "Char desc insert depth",
     "ai_start": "AI can start conversation",
+    "ai_start_tooltip": "Allows the AI to initiate the conversation. The chance is determined by the percentage field below.",
     "ai_start_chance": "AI start chance (%)",
     "aiToAiChatChance": "AI to AI chat chance (%)",
     "aiToAiChatChance_tooltip": "The chance that an AI character, after responding to the player, will also send a message to another AI character.",
