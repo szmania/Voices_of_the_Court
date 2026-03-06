@@ -172,7 +172,8 @@
     "scene_description": "场景描述",
     "narrative": "旁白",
     "not_spoken": "尚未发言",
-    "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。"
+    "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。",
+    "target_tooltip": "选择一个特定角色来定向您的消息。默认为“自动检测”。"
   },
   "suggestions": {
     "header": "推荐输入语句",

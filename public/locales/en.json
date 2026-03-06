@@ -172,7 +172,8 @@
     "scene_description": "Scene Description",
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet",
-    "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI."
+    "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI.",
+    "target_tooltip": "Select a specific character to direct your message to. Default is 'Automatically Detected'."
   },
   "suggestions": {
     "header": "Recommended Input",
