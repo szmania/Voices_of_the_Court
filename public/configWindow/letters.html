@@ -22,13 +22,28 @@
 </div>
 
 <div class="container" id="container" style="display: flex; flex-direction: column; height: 100vh;">
-    <!-- Controls will be inserted here by JS -->
+    <div id="letter-controls">
+        <div class="control-group">
+            <label for="player-select" data-i18n="letters.player">Player:</label>
+            <select id="player-select"></select>
+        </div>
+        <div class="control-group">
+            <label for="character-select" data-i18n="letters.character">Character:</label>
+            <select id="character-select"></select>
+        </div>
+        <div id="letter-view-tabs">
+            <button id="inbox-btn" class="active" data-i18n="letters.inbox">Inbox</button>
+            <button id="outbox-btn" data-i18n="letters.outbox">Outbox</button>
+        </div>
+    </div>
     <div class="letter-main-content">
         <div id="letter-list-container">
-            <!-- Letter list will be inserted here -->
+            <ul id="letter-list">
+                <!-- Letter items will be dynamically inserted here -->
+            </ul>
         </div>
         <div id="letter-view-container">
-            <!-- Selected letter content will be shown here -->
+            <p data-i18n="letters.select">Select a letter to read.</p>
         </div>
     </div>
 </div>

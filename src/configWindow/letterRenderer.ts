@@ -15,41 +15,6 @@ const initLocalization = () => {
     }
 };
 
-function createControls() {
-    const container = document.getElementById('container');
-    if (!container) return;
-
-    const controls = document.createElement('div');
-    controls.id = 'letter-controls';
-    controls.innerHTML = `
-        <div class="control-group">
-            <label for="player-select" data-i18n="letters.player">Player:</label>
-            <select id="player-select"></select>
-        </div>
-        <div class="control-group">
-            <label for="character-select" data-i18n="letters.character">Character:</label>
-            <select id="character-select"></select>
-        </div>
-        <div id="letter-view-tabs">
-            <button id="inbox-btn" class="active" data-i18n="letters.inbox">Inbox</button>
-            <button id="outbox-btn" data-i18n="letters.outbox">Outbox</button>
-        </div>
-    `;
-    
-    container.insertBefore(controls, container.firstChild);
-
-    const letterListContainer = document.getElementById('letter-list-container');
-    if (letterListContainer) {
-        const letterList = document.createElement('ul');
-        letterList.id = 'letter-list';
-        letterListContainer.appendChild(letterList);
-    }
-
-    const letterViewContainer = document.getElementById('letter-view-container');
-    if (letterViewContainer) {
-        letterViewContainer.innerHTML = `<p data-i18n="letters.select">Select a letter to read.</p>`;
-    }
-}
 
 function renderLetters() {
     const letterList = document.getElementById('letter-list');
@@ -206,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initLocalization();
-    createControls();
 
     const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
