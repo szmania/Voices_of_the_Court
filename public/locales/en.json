@@ -148,10 +148,11 @@
     "roaming_data": "Roaming Data Folder",
     "roaming_data_desc": "This folder contains your personal configuration, scripts, and summaries.",
     "open_roaming_data": "Open Roaming Data Folder",
-    "roleplay_instruction": "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Remember, you are playing as {characterName}, do not write replies for any other character.",
-    "start_writing_reply": "Now start writing {characterName}'s reply:"
+    "roleplay_instruction": "[System instruction: Your task is to roleplay as {characterName}. Write a reply for this character only. Do not write as any other character.]"
   },
   "chat": {
+    "target_label": "Target:",
+    "target_auto": "Automatically Detected",
     "leave_button": "END CONVERSATION",
     "input_placeholder": "Write a message...",
     "search_title": "Search messages",

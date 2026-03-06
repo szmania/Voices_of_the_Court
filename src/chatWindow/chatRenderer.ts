@@ -41,6 +41,9 @@ let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
 let slashCommandContainer: HTMLDivElement = document.querySelector('#slash-command-container')!;
+let queueStatusDiv: HTMLDivElement = document.querySelector('.queue-status')!;
+let characterTargetContainer: HTMLDivElement = document.querySelector('#character-target-container')!;
+let characterTargetSelect: HTMLSelectElement = document.querySelector('#character-target-select')!;
 let loadingDots: any;
 
 let contextLimit: number = 0;
@@ -116,6 +119,18 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
                 messageDiv.classList.add('historical-player-message');
             }
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+    
+            // Add visual indicator for targeted message
+            const targetId = (message as any).targetCharacterId;
+            if (targetId && currentGameData) {
+                const targetChar = currentGameData.characters.get(targetId);
+                if (targetChar) {
+                    const targetIndicator = document.createElement('div');
+                    targetIndicator.classList.add('target-indicator');
+                    targetIndicator.textContent = `(To: ${targetChar.shortName})`;
+                    messageDiv.appendChild(targetIndicator);
+                }
+            }
             break;
         case 'assistant':
             removeLoadingDots();
@@ -157,18 +172,16 @@ function displayNarrative(narrative: string) {
 function displayActions(actions: ActionResponse[]){
     if (!actions || actions.length === 0) return;
 
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add('action-message');
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.classList.add('action-feedback');
+    
+    const messages = actions.map(action => {
+        return action.chatMessage;
+    }).join('\n');
 
-    for(const action of actions){
-        const ActionSpan = document.createElement('span');
-        ActionSpan.innerText = action.chatMessage+"\n";
-        ActionSpan.classList.add(action.chatMessageClass);
-        messageDiv.appendChild(ActionSpan);
-    }
+    feedbackDiv.innerText = messages;
 
-    chatMessages.append(messageDiv);
+    chatMessages.append(feedbackDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -306,6 +319,11 @@ chatInput.addEventListener('keydown', async function(e) {
             name: playerName,
             content: messageText
         };
+
+        // Add target character if selected
+        if (characterTargetContainer.style.display === 'block' && characterTargetSelect.value !== 'auto') {
+            (message as any).targetCharacterId = parseInt(characterTargetSelect.value, 10);
+        }
 
         await displayMessage(message);
         showLoadingDots();
@@ -495,6 +513,52 @@ function displaySuggestions(suggestions: string[]) {
 
 function hideChat(){
     document.body.style.display = 'none';
+}
+
+function setupCharacterTargeting(gameData: GameData) {
+    if (!characterTargetContainer || !characterTargetSelect) return;
+
+    const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
+
+    if (aiCharacters.length > 1) {
+        characterTargetSelect.innerHTML = '';
+        
+        const autoOption = document.createElement('option');
+        autoOption.value = 'auto';
+        autoOption.textContent = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+        characterTargetSelect.appendChild(autoOption);
+
+        aiCharacters.forEach(char => {
+            const charOption = document.createElement('option');
+            charOption.value = char.id.toString();
+            charOption.textContent = char.shortName;
+            characterTargetSelect.appendChild(charOption);
+        });
+
+        characterTargetContainer.style.display = 'flex';
+    } else {
+        characterTargetContainer.style.display = 'none';
+    }
+}
+
+function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: {name: string, id: number} | null) {
+    if (!queueStatusDiv) return;
+
+    if (!currentSpeaker && queue.length === 0) {
+        queueStatusDiv.innerHTML = '';
+        return;
+    }
+
+    let statusHTML = '';
+    if (currentSpeaker) {
+        statusHTML += `<div><span class="current-speaker">Speaking:</span> ${currentSpeaker.name}</div>`;
+    }
+
+    if (queue.length > 0) {
+        statusHTML += `<div><span class="next-up">Next:</span> ${queue.map(c => c.name).join(', ')}</div>`;
+    }
+    
+    queueStatusDiv.innerHTML = statusHTML;
 }
 
 leaveButton.addEventListener("click", ()=>{
@@ -800,6 +864,51 @@ function showInlineActionForm(action: any) {
     title.textContent = `/${action.signature}`;
     formContainer.appendChild(title);
 
+    // Add source and target character selectors
+    const characterSelectorsContainer = document.createElement('div');
+    characterSelectorsContainer.classList.add('action-character-selectors');
+
+    const allCharacters = Array.from(currentGameData!.characters.values());
+
+    // Source selector
+    const sourceSelectDiv = document.createElement('div');
+    sourceSelectDiv.classList.add('action-character-select');
+    const sourceLabel = document.createElement('label');
+    sourceLabel.textContent = 'Source Character';
+    const sourceSelect = document.createElement('select');
+    sourceSelect.id = 'action-source-char';
+    allCharacters.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char.id.toString();
+        option.textContent = char.shortName;
+        if (char.id === currentGameData!.playerID) {
+            option.selected = true; // Default to player
+        }
+        sourceSelect.appendChild(option);
+    });
+    sourceSelectDiv.appendChild(sourceLabel);
+    sourceSelectDiv.appendChild(sourceSelect);
+    characterSelectorsContainer.appendChild(sourceSelectDiv);
+
+    // Target selector
+    const targetSelectDiv = document.createElement('div');
+    targetSelectDiv.classList.add('action-character-select');
+    const targetLabel = document.createElement('label');
+    targetLabel.textContent = 'Target Character';
+    const targetSelect = document.createElement('select');
+    targetSelect.id = 'action-target-char';
+    allCharacters.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char.id.toString();
+        option.textContent = char.shortName;
+        targetSelect.appendChild(option);
+    });
+    targetSelectDiv.appendChild(targetLabel);
+    targetSelectDiv.appendChild(targetSelect);
+    characterSelectorsContainer.appendChild(targetSelectDiv);
+
+    formContainer.appendChild(characterSelectorsContainer);
+
     const descriptionDiv = document.createElement('div');
     descriptionDiv.classList.add('action-description');
     const actionDesc = (typeof action.description === 'object')
@@ -952,11 +1061,16 @@ function showInlineActionForm(action: any) {
     const executeTooltip = (lm ? lm.getNestedTranslation('chat.execute_tooltip') : null) || "Execute this action.";
     executeButton.setAttribute('data-tooltip', executeTooltip);
     executeButton.addEventListener('click', () => {
-        const args: string[] = [];
-        const inputs = formContainer.querySelectorAll('input, select');
+        const sourceId = (formContainer.querySelector('#action-source-char') as HTMLSelectElement).value;
+        const targetId = (formContainer.querySelector('#action-target-char') as HTMLSelectElement).value;
+        
+        const args: any[] = [sourceId, targetId];
+        const inputs = formContainer.querySelectorAll('.action-arg input, .action-arg select, .action-arg input[type=hidden]');
+        
         inputs.forEach(input => {
             args.push((input as HTMLInputElement | HTMLSelectElement).value);
         });
+
         ipcRenderer.send('execute-action', action.signature, args);
         if (formContainer.parentNode) {
             formContainer.parentNode.removeChild(formContainer);
@@ -982,6 +1096,10 @@ ipcRenderer.on('chat-show', () =>{
     document.body.style.display = '';
 })
 
+ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
+    updateQueueStatus(queue, currentSpeaker);
+});
+
 ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
@@ -994,6 +1112,8 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     playerName = gameData.playerName.replace(/\s+/g, '');
     aiName = gameData.aiName;
     currentGameData = gameData;
+
+    setupCharacterTargeting(gameData);
 
     document.body.style.display = '';
 

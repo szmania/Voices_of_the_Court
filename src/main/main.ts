@@ -797,18 +797,50 @@ ipcMain.on('undo-message', () => {
     }
 });
 
+ipcMain.on('pause-conversation', () => {
+    console.log('IPC: Received pause-conversation event.');
+    if (conversation) {
+        conversation.pause();
+    }
+});
+
+ipcMain.on('resume-conversation', () => {
+    console.log('IPC: Received resume-conversation event.');
+    if (conversation) {
+        conversation.resume();
+    }
+});
+
 ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
     if (conversation) {
         const action = conversation.actions.find(a => a.signature === signature);
         if (action) {
+            const originalPlayerId = conversation.gameData.playerID;
+            const originalAiId = conversation.gameData.aiID;
             try {
+                const sourceId = parseInt(args[0], 10);
+                const targetId = parseInt(args[1], 10);
+                const actionArgs = args.slice(2);
+
+                if (isNaN(sourceId) || isNaN(targetId)) {
+                    throw new Error('Invalid source or target character ID.');
+                }
+
+                if (!conversation.gameData.characters.has(sourceId) || !conversation.gameData.characters.has(targetId)) {
+                    throw new Error('Source or target character not found in conversation.');
+                }
+
+                // Temporarily set gameData context for the action
+                conversation.gameData.playerID = sourceId;
+                conversation.gameData.aiID = targetId;
+
                 // Run the action's effect
-                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, args);
+                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, actionArgs);
 
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
-                    let chatMessage = action.chatMessage(args);
+                    let chatMessage = action.chatMessage(actionArgs);
                     if (typeof chatMessage === 'object' && chatMessage !== null) {
                         chatMessage = chatMessage[conversation.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
                     }
@@ -828,6 +860,10 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 const errMsg = `Action error: failure in run function for action: ${action.signature}; details: ` + e;
                 console.error(errMsg);
                 event.sender.send('error-message', errMsg);
+            } finally {
+                // Restore original gameData context
+                conversation.gameData.playerID = originalPlayerId;
+                conversation.gameData.aiID = originalAiId;
             }
         } else {
             console.warn(`Execute-action warning: Action "${signature}" not found.`);
@@ -888,7 +924,24 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        return await readSummaryFile(userDataPath, playerId);
+        const summaries = await readSummaryFile(userDataPath, playerId);
+
+        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        let characterMap: {[key: string]: string} = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error('Error reading character map:', e);
+            }
+        }
+        
+        const augmentedSummaries = summaries.map(summary => {
+            const characterName = characterMap[summary.characterId] || summary.characterId;
+            return { ...summary, characterName };
+        });
+
+        return augmentedSummaries;
     } catch (error) {
         console.error('Error reading summary file:', error);
         return [];

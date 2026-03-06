@@ -4,7 +4,7 @@ import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
-import { convertChatToText, buildChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames} from './promptBuilder.js';
+import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';

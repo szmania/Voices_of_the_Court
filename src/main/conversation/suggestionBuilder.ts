@@ -1,144 +1,13 @@
 import { Conversation } from "./Conversation";
 import { Message } from "../ts/conversation_interfaces";
 import { Character } from "../../shared/gameData/Character";
+import { createMemoryString } from "./promptBuilder";
+import { parseGameDate, getDateDifference } from "../../shared/dateUtils";
 import { parseVariables } from "../parseVariables";
 import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
 
-// 从promptBuilder.ts导入需要的函数
-function createMemoryString(conv: Conversation): string {
-    let allMemories: any[] = [];
-
-    conv.gameData.characters.forEach((value, key) => {
-        allMemories = allMemories.concat(value!.memories);
-    });
-
-    allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
-    allMemories.reverse();
-
-    let output ="";
-    if(allMemories.length>0){
-        output = conv.config.memoriesPrompt;
-    }
-
-    let tokenCount = 0;
-    while(allMemories.length>0){
-        const memory = allMemories.pop()!;
-
-        let memoryLine = `${memory.creationDate}: ${memory.desc}`;
-        let memoryLineTokenCount = conv.textGenApiConnection.calculateTokensFromText(memoryLine);
-
-        if(tokenCount + memoryLineTokenCount > conv.config.maxMemoryTokens){
-            break;
-        }
-        else{
-            output+="\n"+memoryLine;
-            tokenCount+=memoryLineTokenCount;
-        }
-    }
-
-    return output;
-}
-
-function parseGameDate(dateStr: string): Date | null {
-    if (!dateStr || !(dateStr.trim())) return null;
-
-    const str = dateStr.trim();
-
-    // Handle purely numeric strings, assuming they are a year.
-    if (/^\d+$/.test(str)) {
-        const year = parseInt(str);
-        const date = new Date();
-        date.setFullYear(year, 0, 1);
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-
-    // Handle Chinese date format with optional prefix (e.g., "伊耿历82年1月22日" or "82年1月22日")
-    const chineseDateMatch = str.match(/^.*?(\d+)年(\d+)月(\d+)日$/);
-    if (chineseDateMatch) {
-        const year = parseInt(chineseDateMatch[1]);
-        const month = parseInt(chineseDateMatch[2]) - 1; // JavaScript months are 0-indexed
-        const day = parseInt(chineseDateMatch[3]);
-        const date = new Date();
-        date.setFullYear(year, month, day);
-        date.setHours(0, 0, 0, 0);
-        return date;
-    }
-
-    // Handle "Moon" format dates (e.g., "14th Third Moon, 172 A.C.")
-    const moonDateMatch = str.match(/^(\d+)(?:st|nd|rd|th)\s+(\w+)\s+Moon,\s+(\d+)\s*(?:A\.C\.|AC)?$/);
-    if (moonDateMatch) {
-        const day = parseInt(moonDateMatch[1]);
-        const moonName = moonDateMatch[2].toLowerCase();
-        const year = parseInt(moonDateMatch[3]);
-        
-        // Map moon names to month numbers
-        const moonToMonth: { [key: string]: number } = {
-            'first': 0,     // January
-            'second': 1,    // February
-            'third': 2,     // March
-            'fourth': 3,    // April
-            'fifth': 4,     // May
-            'sixth': 5,     // June
-            'seventh': 6,   // July
-            'eighth': 7,    // August
-            'ninth': 8,     // September
-            'tenth': 9,     // October
-            'eleventh': 10, // November
-            'twelfth': 11   // December
-        };
-        
-        const month = moonToMonth[moonName];
-        if (month !== undefined) {
-            const date = new Date();
-            date.setFullYear(year, month, day);
-            date.setHours(0, 0, 0, 0);
-            return date;
-        }
-    }
-
-    // Attempt to parse with the native constructor for standard/English formats.
-    const date = new Date(str);
-
-    // Return the date object if it's valid, otherwise return null.
-    if (!isNaN(date.getTime())) {
-        return date;
-    }
-
-    console.warn(`Could not parse date string: "${str}". It will be included in the prompt by default.`);
-    return null;
-}
-
-function getDateDifference(pastDate: string, todayDate: string, isZh: boolean = false): string{
-    const pastDateObj = parseGameDate(pastDate);
-    const todayDateObj = parseGameDate(todayDate);
-
-    // If either date can't be parsed, return a default string
-    if (!pastDateObj || !todayDateObj) {
-        return isZh ? "未知时间前" : "unknown time ago";
-    }
-
-    // Calculate the difference in days
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const totalDays = Math.floor((todayDateObj.getTime() - pastDateObj.getTime()) / msPerDay);
-
-    if(totalDays > 365){
-        const years = Math.round(totalDays/365);
-        return isZh ? `${years}年前` : years + " years ago";
-    }
-    else if(totalDays >= 30){
-        const months = Math.round(totalDays/30);
-        return isZh ? `${months}个月前` : months + " months ago";
-    }
-    else if(totalDays > 0){
-        return isZh ? `${totalDays}天前` : totalDays + " days ago";
-    }
-    else{
-        return isZh ? "今天" : "today";
-    }
-}
 
 /**
  * 构建建议提示词
@@ -192,7 +61,7 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
             
             // Include summary if its date is unknown OR if it's in the past/present.
             if(!summaryDate || (currentGameDate && summaryDate <= currentGameDate)){
-                const timeAgo = getDateDifference(summary.date, conv.gameData.date, isZh);
+                const timeAgo = getDateDifference(summary.date, conv.gameData.date);
                 summaryString += `${summary.date} (${timeAgo}): ${summary.content}\n`;
             }
         }

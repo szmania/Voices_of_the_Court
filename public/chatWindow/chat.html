@@ -7,11 +7,73 @@
   <link rel="stylesheet" href="chat.css"/>
   <link rel="stylesheet" href="user.css"/>
   <link rel="stylesheet" href="theme.css"/>
+  <style>
+    .target-indicator {
+        font-size: 0.8em;
+        color: #888;
+        margin-left: 10px;
+        font-style: italic;
+    }
+    .action-character-select {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    }
+    .action-character-select label {
+        margin-bottom: 5px;
+        color: #cca43b;
+    }
+    .action-feedback {
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 3px solid #2ecc71;
+        background-color: rgba(46, 204, 113, 0.1);
+        color: #d0e0d0;
+        font-style: italic;
+        border-radius: 3px;
+    }
+    #character-target-container {
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+    }
+    #character-target-container label {
+        margin-right: 5px;
+        font-size: 0.9em;
+    }
+    .queue-status {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.8em;
+        color: #a18c61;
+        background: rgba(0,0,0,0.3);
+        padding: 2px 8px;
+        border-radius: 5px;
+        z-index: 1;
+    }
+    .queue-status div {
+        white-space: nowrap;
+    }
+    .current-speaker {
+        font-weight: bold;
+        color: #cca43b;
+    }
+    .next-up {
+        font-weight: bold;
+        color: #b8860b;
+    }
+  </style>
 </head>
 <body>
   <div class="chat-box">
   <div class="drag-handle"></div>
     <div class="chat-header">
+      <div class="queue-status"></div>
       <div class="search-container" data-tooltip="Search messages">
         <div class="search-icon">🔍</div>
         <div class="search-dropdown">
@@ -38,6 +100,10 @@
         </div>
       </div>
       <div class="input-footer">
+        <div id="character-target-container" style="display: none;">
+            <label for="character-target-select" data-i18n="chat.target_label">Target:</label>
+            <select id="character-target-select"></select>
+        </div>
         <div class="suggestions-button-wrapper" data-i18n-title="suggestions.tooltip">
           <button class="suggestions-button" data-i18n="suggestions.button">Suggestions</button>
         </div>

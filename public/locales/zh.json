@@ -148,10 +148,11 @@
     "roaming_data": "漫游数据文件夹",
     "roaming_data_desc": "此文件夹包含您的个人配置、脚本和摘要。",
     "open_roaming_data": "打开漫游数据文件夹",
-    "roleplay_instruction": "你的任务是扮演角色 {characterName}。只为该角色撰写回复。记住，你扮演的是 {characterName}，不要为任何其他角色撰写回复。",
-    "start_writing_reply": "现在开始写{characterName}的回复："
+    "roleplay_instruction": "[系统指令：你的任务是扮演角色 {characterName}。只为该角色撰写回复。不要以任何其他角色的身份写作。]"
   },
   "chat": {
+    "target_label": "目标：",
+    "target_auto": "自动检测",
     "leave_button": "结束对话",
     "input_placeholder": "输入消息...",
     "search_title": "搜索消息",

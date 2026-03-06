@@ -236,13 +236,21 @@ async function loadSummaryData() {
 function populateCharacterSelect() {
     const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
-    const characterIds = [...new Set(allSummaries.map(summary => summary.characterId || 'Unknown'))];
-    characterIds.forEach(characterId => {
+    
+    const characterMap = new Map<string, string>();
+    allSummaries.forEach(summary => {
+        if (summary.characterId) {
+            characterMap.set(summary.characterId, summary.characterName || summary.characterId);
+        }
+    });
+
+    characterMap.forEach((characterName, characterId) => {
         const option = document.createElement('option');
         option.value = characterId;
-        option.textContent = characterId;
+        option.textContent = characterName;
         characterSelect.appendChild(option);
     });
+
     characterSelect.value = selectedCharacterId;
 }
 
@@ -293,10 +301,12 @@ function renderSummaryList() {
             const content = summary.content || '';
             const date = summary.date || '';
             const characterId = summary.characterId || 'Unknown';
+            const characterName = summary.characterName || '';
             const lowerCaseSearchTerm = searchTerm.toLowerCase();
             return content.toLowerCase().includes(lowerCaseSearchTerm) ||
                    date.toLowerCase().includes(lowerCaseSearchTerm) ||
-                   characterId.toLowerCase().includes(lowerCaseSearchTerm);
+                   characterId.toLowerCase().includes(lowerCaseSearchTerm) ||
+                   characterName.toLowerCase().includes(lowerCaseSearchTerm);
         })
         : filteredSummaries;
 
@@ -317,10 +327,11 @@ function renderSummaryList() {
             editItem.className = 'summary-item-edit';
             
             const characterId = summary.characterId || 'Unknown';
+            const characterName = summary.characterName || characterId;
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
             
             editItem.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterId}</div>
+                <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterName}</div>
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
                 <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
                 <div class="edit-controls">
@@ -349,11 +360,12 @@ function renderSummaryList() {
             }
 
             const characterId = summary.characterId || 'Unknown';
+            const characterName = summary.characterName || characterId;
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
             
             // Format date for display
             const displayDate = formatDateForDisplay(summary.date);
-            const headerText = `${displayDate} - ${characterText}: ${characterId}`;
+            const headerText = `${displayDate} - ${characterText}: ${characterName}`;
             const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
             const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
 
@@ -402,10 +414,12 @@ function addNewSummary() {
         return;
     }
     const characterId = selectedCharacterId;
+    const characterName = characterSelect.options[characterSelect.selectedIndex].text;
     const newSummary = {
         date: new Date().toISOString().split('T')[0], // Default to today in YYYY-MM-DD format
         content: 'New summary content',
-        characterId: characterId
+        characterId: characterId,
+        characterName: characterName
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter(); // This will filter, sort, and render the list

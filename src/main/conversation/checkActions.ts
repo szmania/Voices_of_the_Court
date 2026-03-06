@@ -1,10 +1,10 @@
 import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
 import { convertMessagesToString } from "./promptBuilder";
+import path from 'path';
 import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
-import path from 'path';
 
 export async function checkActions(conv: Conversation): Promise<{actions: ActionResponse[], narrative: string}>{
     console.log('Starting action check.');
