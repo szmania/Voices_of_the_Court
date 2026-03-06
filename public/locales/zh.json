@@ -7,6 +7,7 @@
     "actions": "动作",
     "summarization": "总结",
     "diaries": "日记",
+    "letters": "信件",
     "prompts": "提示词",
     "settings": "设置",
     "system": "系统",
@@ -16,7 +17,6 @@
     "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站"
   },
-,
   "diaries": {
     "header": "日记",
     "description": "管理角色的日记条目。"
@@ -126,7 +126,6 @@
     "desc_depth": "角色描述插入深度",
     "ai_start": "AI 可以发起对话",
     "ai_start_chance": "AI 发起概率 (%)",
-,
     "enable_diary": "启用日记生成",
     "diary_chance": "日记生成概率 (%)"
     "instruct_header": "指令设置",

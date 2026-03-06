@@ -29,7 +29,7 @@ export class Conversation{
     runFileManager: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
-    diaryGenerator: DiaryGenerator;
+    diaryGenerator!: DiaryGenerator;
     actionsApiConnection: ApiConnection;
     description: string;
     actions: Action[];
@@ -129,6 +129,9 @@ export class Conversation{
         this.loadConfig();
         this.loadHistory();
         this.initialize();
+        
+        // Initialize diary generator
+        this.diaryGenerator = new DiaryGenerator(this.config);
     }
 
     private async initialize(): Promise<void> {
@@ -1097,8 +1100,7 @@ ${character.fullName}的发言：`
                 if (Math.random() < this.config.diaryGenerationChance) {
                     const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
                     if (diaryEntry) {
-                        // Fix: saveDiaryFile expects 4 arguments: userDataPath, playerId, characterId, diaryData
-                        await saveDiaryFile(this.userDataPath, this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
+                        await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
                     }
                 }
             }
