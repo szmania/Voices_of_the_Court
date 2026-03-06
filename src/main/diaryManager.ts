@@ -78,32 +78,3 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
     await fs.promises.writeFile(filePath, JSON.stringify(diaryData, null, '\t'));
 }
 
-// Similar to getConversationHistoryFiles, but for diaries
-export async function getDiaryFiles(playerId: string): Promise<string[]> {
-    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
-    if (!fs.existsSync(diaryPath)) {
-        return [];
-    }
-    const files = await fs.promises.readdir(diaryPath);
-    return files.filter(file => file.endsWith('.json'));
-}
-
-// Similar to readConversationHistoryFile, but for diaries
-export async function readDiaryFile(playerId: string, characterId: string): Promise<any> {
-    const filePath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId, `${characterId}.json`);
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
-    const fileContent = await fs.promises.readFile(filePath, 'utf-8');
-    return JSON.parse(fileContent);
-}
-
-// Similar to saveSummaryFile, but for diaries
-export async function saveDiaryFile(playerId: string, characterId: string, diaryData: any): Promise<void> {
-    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
-    if (!fs.existsSync(diaryPath)) {
-        fs.mkdirSync(diaryPath, { recursive: true });
-    }
-    const filePath = path.join(diaryPath, `${characterId}.json`);
-    await fs.promises.writeFile(filePath, JSON.stringify(diaryData, null, '\t'));
-}
