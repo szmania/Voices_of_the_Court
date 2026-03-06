@@ -9,7 +9,7 @@ import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
 import { LetterType } from "./letterInterfaces.js";
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -240,7 +240,7 @@ export class LetterReplyGenerator {
             // The player's letter is parsed and saved by `importLettersFromLog`.
             // Here, we just save the AI's reply.
             const replyLetter = new Letter(
-                uuidv4(),
+                randomUUID(),
                 ai, // sender is the AI
                 player, // recipient is the player
                 `Re: ${letterContent.subject}`,
