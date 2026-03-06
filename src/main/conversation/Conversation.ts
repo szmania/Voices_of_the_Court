@@ -3,7 +3,7 @@ import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 import { RunFileManager } from '../RunFileManager.js';
-import { SummaryFileWatcher } from '../SummaryFileWatcher.js';
+import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { LetterManager } from '../letter/LetterManager.js';
 import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
