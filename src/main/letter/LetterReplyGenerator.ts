@@ -2,7 +2,6 @@ import { ApiConnection } from "../../shared/apiConnection";
 import { GameData } from "../../shared/gameData/GameData";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
-import { app } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
@@ -11,9 +10,11 @@ import { createMemoryString } from '../conversation/promptBuilder';
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
+    private userDataPath: string;
 
-    constructor(config: Config) {
+    constructor(config: Config, userDataPath: string) {
         this.config = config;
+        this.userDataPath = userDataPath;
         
         // 创建API连接
         this.apiConnection = new ApiConnection(
@@ -80,7 +81,7 @@ export class LetterReplyGenerator {
         // 读取对话总结
         let conversationSummary = '';
         try {
-            const summaries = await readSummaryFile(String(gameData.playerID));
+            const summaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(gameData.aiID));
             
             if (aiSummaries.length > 0) {
@@ -223,7 +224,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
     private saveLetterHistory(playerId: string, aiId: string, letterContent: { language: string; content: string; letterId: string }, replyContent: string, userFolderPath: string, gameData: GameData): void {
         try {
             // 获取VOTC数据文件夹路径
-            const votcDataPath = path.join(app.getPath('userData'), 'votc_data');
+            const votcDataPath = this.userDataPath;
             
             // 获取角色名字用于记录
             const aiCharacter = gameData.characters.get(Number(aiId));
@@ -339,7 +340,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
             // 读取现有的总结文件
             let existingSummaries = [];
             try {
-                existingSummaries = await readSummaryFile(String(gameData.playerID));
+                existingSummaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             } catch (error) {
                 console.log('No existing summaries found, creating new summary file');
             }
@@ -359,7 +360,7 @@ ${conversationSummary}${memoryContent}你收到了一封来自${player.fullName}
             const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
 
             // 保存更新后的总结
-            await saveSummaryFile(String(gameData.playerID), updatedSummaries);
+            await saveSummaryFile(this.userDataPath, String(gameData.playerID), updatedSummaries);
             console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
 
         } catch (error) {

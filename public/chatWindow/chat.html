@@ -37,8 +37,16 @@
         <div class="suggestions-list">
         </div>
       </div>
-      <div class="suggestions-button-wrapper" data-i18n-title="suggestions.tooltip">
-        <button class="suggestions-button" data-i18n="suggestions.button">Suggestions</button>
+      <div class="input-footer">
+        <div class="suggestions-button-wrapper" data-i18n-title="suggestions.tooltip">
+          <button class="suggestions-button" data-i18n="suggestions.button">Suggestions</button>
+        </div>
+        <div class="token-display-wrapper" data-i18n-title="chat.tokenizer_tooltip" style="display: none;">
+          <div class="token-display">
+            <span class="token-count">Tokens: 0</span>
+            <span class="context-limit">/ 0</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="button-container">
@@ -55,8 +63,9 @@
         <button class="leave-button" data-i18n="chat.leave_button">END CONVERSATION</button>
       </div>
     </div>
+    <div id="slash-command-container" class="slash-command-container" style="display: none;"></div>
   </div>
-  
+
   <script>require("../../dist/shared/LocalizationManager.js")</script>
   <script>
     const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");

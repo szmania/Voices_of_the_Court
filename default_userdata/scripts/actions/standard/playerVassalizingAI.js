@@ -7,14 +7,31 @@ module.exports = {
         {
             name: "changePoliticalScore",
             type: "number",
-            desc: "Required argument, range (-10, 10). Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}."
+            min: -10,
+            max: 10,
+            desc: { 
+                en: "Specifies {{aiName}} vassalization acceptance by {{playerName}}. Positive values mean that {{aiName}} tends to accept vassalization by {{playerName}}. Negative values mean that {{aiName}} tends to reject vassalization by {{playerName}}.",
+                zh: "指定{{aiName}}对{{playerName}}的封臣化接受程度。正值表示{{aiName}}倾向于接受，负值表示倾向于拒绝。",
+                ru: "Определяет принятие вассализации {{aiName}} со стороны {{playerName}}. Положительные значения означают, что {{aiName}} склонен принимать вассализацию от {{playerName}}. Отрицательные значения означают, что {{aiName}} склонен отвергать вассализацию от {{playerName}}.",
+                fr: "Spécifie l'acceptation de la vassalisation de {{aiName}} par {{playerName}}. Les valeurs positives signifient que {{aiName}} tend à accepter la vassalisation par {{playerName}}. Les valeurs négatives signifient que {{aiName}} tend à rejeter la vassalisation par {{playerName}}.",
+                es: "Especifica la aceptación de la vasallización de {{aiName}} por {{playerName}}. Los valores positivos significan que {{aiName}} tiende a aceptar la vasallización por {{playerName}}. Los valores negativos significan que {{aiName}} tiende a rechazar la vasallización por {{playerName}}.",
+                de: "Gibt die Akzeptanz der Vasallisierung von {{aiName}} durch {{playerName}} an. Positive Werte bedeuten, dass {{aiName}} dazu neigt, die Vasallisierung durch {{playerName}} zu akzeptieren. Negative Werte bedeuten, dass {{aiName}} dazu neigt, die Vasallisierung durch {{playerName}} abzulehnen.",
+                ja: "{{aiName}}の{{playerName}}による封臣化の受容度を指定します。正の値は{{aiName}}が{{playerName}}による封臣化を受け入れる傾向があることを意味し、負の値は拒否する傾向があることを意味します。",
+                ko: "{{aiName}}의 {{playerName}}에 의한 봉신화 수용도를 지정합니다. 양수 값은 {{aiName}}가 {{playerName}}에 의한 봉신화를 수용하는 경향이 있음을 의미하고, 음수 값은 거부하는 경향이 있음을 의미합니다.",
+                pl: "Określa akceptację wasalizacji {{aiName}} przez {{playerName}}. Wartości dodatnie oznaczają, że {{aiName}} ma tendencję do akceptowania wasalizacji przez {{playerName}}. Wartości ujemne oznaczają, że {{aiName}} ma tendencję do odrzucania wasalizacji przez {{playerName}}."
+            }
         }
     ],
     description: {
         en: `Executed when {{aiName}} and {{playerName}} discuss vassalization or its terms.`,
         zh: `当{{aiName}}和{{playerName}}讨论{{playerName}}将{{aiName}}封臣化或其条款时执行。`,
         ru: `Выполняется, когда {{aiName}} и {{playerName}} обсуждают вассализацию или ее условия.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} discutent de la vassalisation ou de ses conditions.`
+        fr: `Exécuté lorsque {{aiName}} et {{playerName}} discutent de la vassalisation ou de ses conditions.`,
+        es: `Ejecutado cuando {{aiName}} y {{playerName}} discuten la vasallización o sus términos.`,
+        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} die Vasallisierung oder ihre Bedingungen diskutieren.`,
+        ja: `{{aiName}}と{{playerName}}が封臣化またはその条件について議論するときに実行されます。`,
+        ko: `{{aiName}}와 {{playerName}}가 봉신화 또는 그 조건에 대해 논의할 때 실행됩니다.`,
+        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} dyskutują o wasalizacji lub jej warunkach.`,
     },
     
     /**
@@ -113,7 +130,12 @@ module.exports = {
                 en: `{{aiName}} agreed to become {{playerName}}'s vassal.`,
                 zh: `{{aiName}}同意成为{{playerName}}的封臣。`,
                 ru: `{{aiName}} согласился стать вассалом {{playerName}}.`,
-                fr: `{{aiName}} a accepté de devenir le vassal de {{playerName}}.`
+                fr: `{{aiName}} a accepté de devenir le vassal de {{playerName}}.`,
+                es: `{{aiName}} acordó convertirse en vasallo de {{playerName}}.`,
+                de: `{{aiName}} hat zugestimmt, Vasall von {{playerName}} zu werden.`,
+                ja: `{{aiName}}は{{playerName}}の封臣になることに同意しました。`,
+                ko: `{{aiName}}가 {{playerName}}의 봉신이 되는 데 동의했습니다.`,
+                pl: `{{aiName}} zgodził się zostać wasalem {{playerName}}.`,
             };
         } else {
             console.log(`PVAIchat: else`)
@@ -121,7 +143,12 @@ module.exports = {
                 en: `Acceptance score: ${aiScore} | Vassalization if >30, breakdown if <-20`,
                 zh: `接受分数：${aiScore} | 如果分数>30则封臣化，如果分数<-20则谈判破裂`,
                 ru: `Очки принятия: ${aiScore} | Вассализация если >30, провал если <-20`,
-                fr: `Score d'acceptation : ${aiScore} | Vassalisation si >30, rupture si <-20`
+                fr: `Score d'acceptation : ${aiScore} | Vassalisation si >30, rupture si <-20`,
+                es: `Puntuación de aceptación: ${aiScore} | Vasallización si >30, ruptura si <-20`,
+                de: `Akzeptanzwert: ${aiScore} | Vasallisierung wenn >30, Abbruch wenn <-20`,
+                ja: `受容スコア: ${aiScore} | 封臣化は>30の場合、交渉決裂は<-20の場合`,
+                ko: `수용 점수: ${aiScore} | 봉신화는 >30일 경우, 협상 결렬은 <-20일 경우`,
+                pl: `Wynik akceptacji: ${aiScore} | Wasalizacja jeśli >30, załamanie jeśli <-20`,
             };
         }
     },

@@ -7,14 +7,30 @@ module.exports = {
         {
             name: "amount",
             type: "number",
-            desc: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive"
+            min: 1,
+            desc: { 
+                en: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive",
+                zh: "{{aiName}}支付给{{playerName}}的金币数量，应始终为正数",
+                ru: "количество золота, которое {{aiName}} платит {{playerName}}, всегда должно быть положительным",
+                fr: "le montant d'or que {{aiName}} paie à {{playerName}}, doit toujours être positif",
+                es: "la cantidad de oro que {{aiName}} paga a {{playerName}}, siempre debe ser positiva",
+                de: "die Menge Gold, die {{aiName}} an {{playerName}} zahlt, sollte immer positiv sein",
+                ja: "{{aiName}}が{{playerName}}に支払うゴールドの量は常に正数である必要があります",
+                ko: "{{aiName}}가 {{playerName}}에게 지불하는 골드의 양은 항상 양수여야 합니다",
+                pl: "ilość złota, którą {{aiName}} płaci {{playerName}}, powinna być zawsze dodatnia"
+            }
         }
     ],
     description: {
         en: `Executed when {{aiName}} pays gold to {{playerName}}, willingly or forcefully, only if {{aiName}} has enough gold.`,
         zh: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
         ru: `Выполняется, когда {{aiName}} платит золото {{playerName}}, добровольно или принудительно, только если у {{aiName}} достаточно золота.`,
-        fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`
+        fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`,
+        es: `Ejecutado cuando {{aiName}} paga oro a {{playerName}}, voluntariamente o por la fuerza, solo si {{aiName}} tiene suficiente oro.`,
+        de: `Wird ausgeführt, wenn {{aiName}} {{playerName}} Gold zahlt, freiwillig oder gewaltsam, nur wenn {{aiName}} genug Gold hat.`,
+        ja: `{{aiName}}が{{playerName}}にゴールドを支払うときに実行されます。自発的または強制的に。{{aiName}}に十分なゴールドがある場合のみ。`,
+        ko: `{{aiName}}가 {{playerName}}에게 골드를 지불할 때 실행됩니다. 자발적이거나 강제로. {{aiName}}에게 충분한 골드가 있는 경우에만.`,
+        pl: `Wykonywane, gdy {{aiName}} płaci złoto {{playerName}}, dobrowolnie lub siłą, tylko jeśli {{aiName}} ma wystarczająco złota.`
     },
     
     /**
@@ -51,14 +67,24 @@ module.exports = {
                 en: `{{aiName}} paid you ${args[0]} gold.`,
                 zh: `{{aiName}}向你支付了${args[0]}金币`,
                 ru: `{{aiName}} заплатил вам ${args[0]} золота.`,
-                fr: `{{aiName}} vous a payé ${args[0]} pièces d'or.`
+    fr: `{{aiName}} vous a payé ${args[0]} pièces d'or.`,
+    es: `{{aiName}} te pagó ${args[0]} monedas de oro.`,
+    de: `{{aiName}} hat dir ${args[0]} Goldmünzen gezahlt.`,
+    ja: `{{aiName}}はあなたに${args[0]}ゴールドを支払いました。`,
+    ko: `{{aiName}}가 당신에게 ${args[0]} 골드를 지불했습니다.`,
+    pl: `{{aiName}} zapłacił ci ${args[0]} sztuk złota.`
             }
         } else {
             return {
                 en: `{{aiName}} does not have enough gold to pay.`,
                 zh: `{{aiName}}没有足够的金币支付`,
                 ru: `У {{aiName}} недостаточно золота для оплаты.`,
-                fr: `{{aiName}} n'a pas assez d'or pour payer.`
+    fr: `{{aiName}} n'a pas assez d'or pour payer.`,
+    es: `{{aiName}} no tiene suficiente oro para pagar.`,
+    de: `{{aiName}} hat nicht genug Gold, um zu zahlen.`,
+    ja: `{{aiName}}には支払うための十分なゴールドがありません。`,
+    ko: `{{aiName}}에게 지불할 충분한 골드가 없습니다.`,
+    pl: `{{aiName}} nie ma wystarczająco złota, aby zapłacić.`
             }
         }
     },

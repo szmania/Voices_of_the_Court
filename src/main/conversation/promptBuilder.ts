@@ -54,18 +54,32 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
 
+    const lang = conv.config.language || 'en';
+    const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+    let translations;
+    try {
+        translations = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+    } catch (error) {
+        console.error(`Could not load translation file for language: ${lang}. Falling back to en.`, error);
+        const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
+        translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+    }
+
+    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Remember, you are playing as {characterName}, do not write replies for any other character.";
+    const roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
+
     chatPrompt.push({
         role: "system",
-        content: "你的任务是扮演角色 " + character.fullName + "，为该角色写一条回复，只要写该角色的回复，注意你扮演的是" + character.fullName + "，不要写其他任何角色的回复。" + "\n"
+        content: roleplayInstruction + "\n"
     })
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
-        exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
+        exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
-        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
-        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
+        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'standard', exampleMessagesScriptFileName);
+        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
 
         if (fs.existsSync(standardPath)) {
             exampleMessagesPath = standardPath;
@@ -195,11 +209,13 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         });
         console.log('Added self-talk main prompt from config.');
     } else {
+        const startWritingTemplate = translations.system.start_writing_reply || "Now start writing {characterName}'s reply:";
+        const startWriting = startWritingTemplate.replace(/{characterName}/g, character.fullName);
         chatPrompt.push({
             role: "system",
-            content: "你的任务是扮演角色 " + character.fullName + "，为该角色写一条回复，只要写该角色的回复，注意你扮演的是" + character.fullName + "，不要写其他任何角色的回复。"+ "\n" + parseVariables(conv.config.mainPrompt, conv.gameData) + "现在开始写" +character.fullName +"的回复："
+            content: parseVariables(conv.config.mainPrompt, conv.gameData) + "\n" + startWriting
         });
-        console.log('Added standard main prompt.');
+        console.log('Added standard main prompt with start writing instruction.');
     }
 
 
