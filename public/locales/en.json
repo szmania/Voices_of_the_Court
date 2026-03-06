@@ -122,6 +122,8 @@
     "desc_depth": "Char desc insert depth",
     "ai_start": "AI can start conversation",
     "ai_start_chance": "AI start chance (%)",
+    "aiToAiChatChance": "AI to AI chat chance (%)",
+    "aiToAiChatChance_tooltip": "The chance that an AI character, after responding to the player, will also send a message to another AI character.",
     "instruct_header": "Instruct settings",
     "input_seq": "Input sequence",
     "output_seq": "output sequence",

@@ -4,7 +4,7 @@ import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
-import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames} from './promptBuilder.js';
+import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, buildAiToAiPrompt} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
@@ -40,6 +40,7 @@ export class Conversation{
     npcQueue: Character[];
     customQueue: Character[] | null;
     isPaused: boolean;
+    aiToAiTurnLimit: number = 0;
     persistCustomQueue: boolean;
 
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
@@ -340,6 +341,7 @@ export class Conversation{
     }
 
     async generateAIsMessages() {
+        this.aiToAiTurnLimit = 0;
         console.log('Starting generation of AI messages for all characters.');
 
         // Special case for self-talk (player character is the AI character)
@@ -462,10 +464,33 @@ export class Conversation{
             this.chatWindow.window.webContents.send('queue-update', queueUpdate, speakerUpdate);
 
             console.log(`Processing character: ${character.shortName}`);
+            
+            // Generate the character's response to the player (or another AI)
             if (this.config.validateCharacterIdentity) {
                 await this.generateNewAIMessageWithValidation(character);
             } else {
                 await this.generateNewAIMessage(character);
+            }
+
+            // After responding, check if this AI should talk to another AI
+            const shouldTalkToAi = Math.random() < (this.config.aiToAiChatChance / 100);
+            if (this.aiToAiTurnLimit < 2 && shouldTalkToAi) {
+                const otherAIs = Array.from(this.gameData.characters.values()).filter(
+                    c => c.id !== this.gameData.playerID && c.id !== character.id
+                );
+
+                if (otherAIs.length > 0) {
+                    this.aiToAiTurnLimit++;
+                    const targetAI = otherAIs[Math.floor(Math.random() * otherAIs.length)];
+                    console.log(`AI-to-AI turn: ${character.shortName} will now talk to ${targetAI.shortName}.`);
+
+                    const aiMessage = await this.generateAiToAiMessage(character, targetAI);
+                    if (aiMessage) {
+                        this.pushMessage(aiMessage);
+                        this.chatWindow.window.webContents.send('message-receive', aiMessage, false);
+                        this.npcQueue.unshift(targetAI); // Add target to the front of the queue to respond next
+                    }
+                }
             }
         }
         console.log('Finished processing NPC queue.');
@@ -485,6 +510,26 @@ export class Conversation{
         this.isPaused = false;
         console.log('Conversation is resuming. Processing will continue.');
         this.processQueue(); // Continue processing the queue
+    }
+
+    async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
+        const prompt = buildAiToAiPrompt(this, source, target);
+        
+        const content = await this.textGenApiConnection.complete(prompt, false, {
+            max_tokens: this.config.maxTokens,
+        });
+
+        if (content) {
+            const message: Message = {
+                role: 'assistant',
+                name: source.shortName,
+                content: content.trim()
+            };
+            // Add target information for the UI
+            (message as any).targetCharacterIds = [target.id];
+            return message;
+        }
+        return null;
     }
 
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true): Promise<Message | null> {

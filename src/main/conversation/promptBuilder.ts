@@ -306,6 +306,28 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     return prompt;
 }
 
+export function buildAiToAiPrompt(conv: Conversation, source: Character, target: Character): Message[] {
+    const recentMessages = conv.messages.slice(-6).map(m => {
+        let prefix = `${m.name}:`;
+        if ((m as any).targetCharacterIds && (m as any).targetCharacterIds.length > 0) {
+            const targetChar = conv.gameData.characters.get((m as any).targetCharacterIds[0]);
+            if (targetChar) {
+                prefix += ` (To ${targetChar.shortName})`;
+            }
+        }
+        return `${prefix} ${m.content}`;
+    }).join('\n');
+
+    const promptContent = `You are roleplaying as ${source.fullName}. Based on the recent conversation, write a short, in-character message directed specifically at ${target.fullName}. Do not respond to the player.
+
+Recent Conversation:
+${recentMessages}
+
+Your message to ${target.fullName}:`;
+
+    return [{ role: 'user', content: promptContent }];
+}
+
 
 
 //help functions 
