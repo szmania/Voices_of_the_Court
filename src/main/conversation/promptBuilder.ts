@@ -67,7 +67,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
     }
 
-    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Remember, you are playing as {characterName}, do not write replies for any other character.";
+    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
     const roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
 
     if (isSelfTalk) {

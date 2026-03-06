@@ -63,7 +63,7 @@ export class Conversation{
                     const emptyMessage: Message = {
                         role: "assistant",
                         name: character.shortName,
-                        content: "尚未发言"
+                        content: "Has not spoken yet"
                     };
                     this.messages.push(emptyMessage);
                     console.log(`Created empty message for character: ${character.shortName}`);

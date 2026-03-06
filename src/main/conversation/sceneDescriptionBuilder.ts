@@ -26,40 +26,22 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
     }
 
-    // 获取之前的总结信息
-    const previousSummaries: string[] = [];
-    
-    // 从所有角色的摘要中获取最近的总结
-    for (const [characterId, summaries] of conv.summaries) {
-        if (summaries && summaries.length > 0) {
-            // 获取最新的总结（数组第一个元素，因为已经按时间倒序排列）
-            const latestSummary = summaries[0];
-            if (latestSummary && latestSummary.content) {
-                previousSummaries.push(latestSummary.content);
-            }
-        }
-    }
-
-    // 构建提示词，包含当前对话描述和之前的总结
+    // 构建提示词，只包含当前对话描述
     const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt || 
         (conv.config.language === 'zh' 
             ? "请生成一个引人入胜的场景描述，为角色们的对话提供背景和氛围。"
             : "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
     
     const instruction = conv.config.language === 'zh' 
-        ? "根据以下信息，生成一个简短的角色扮演场景描述（50-100字）："
-        : "Based on the following information, generate a brief role-playing scene description (50-100 words):";
+        ? "根据以下信息，生成一个简短、大气的第三人称场景描述（50-100字）。不要包含角色思想或对话。只描述场景和氛围："
+        : "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:";
     
-    const descriptionLabel = conv.config.language === 'zh' ? "当前对话描述：" : "Current conversation description:";
-    const summariesLabel = conv.config.language === 'zh' ? "之前的对话总结：" : "Previous conversation summaries:";
-    const noSummariesText = conv.config.language === 'zh' ? "暂无之前的对话总结" : "No previous conversation summaries";
+    const descriptionLabel = conv.config.language === 'zh' ? "当前对话信息：" : "Current conversation information:";
     
     const prompt = `${instruction}
 
-${descriptionLabel}${description}
-
-${summariesLabel}
-${previousSummaries.length > 0 ? previousSummaries.map(summary => `- ${summary}`).join('\n') : noSummariesText}
+${descriptionLabel}
+${description}
 
 ${sceneDescriptionPrompt}`;
 
