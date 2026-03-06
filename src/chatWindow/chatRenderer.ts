@@ -577,11 +577,13 @@ function setupCharacterTargeting(gameData: GameData) {
         valueDiv.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent the global listener from closing it immediately
             const isVisible = optionsDiv.style.display === 'block';
-            // Close all other dropdowns first
+            // Close all other dropdowns
             document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
-                (otherOptions as HTMLElement).style.display = 'none';
+                if (otherOptions !== optionsDiv) {
+                    (otherOptions as HTMLElement).style.display = 'none';
+                }
             });
-            // Then toggle the current one
+            // Toggle the current one
             optionsDiv.style.display = isVisible ? 'none' : 'block';
         });
 
@@ -959,9 +961,13 @@ function showInlineActionForm(action: any) {
     sourceValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         const isVisible = sourceOptionsDiv.style.display === 'block';
+        // Close all other dropdowns
         document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
-            (otherOptions as HTMLElement).style.display = 'none';
+            if (otherOptions !== sourceOptionsDiv) {
+                (otherOptions as HTMLElement).style.display = 'none';
+            }
         });
+        // Toggle the current one
         sourceOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 
@@ -1014,9 +1020,13 @@ function showInlineActionForm(action: any) {
     targetValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
         const isVisible = targetOptionsDiv.style.display === 'block';
+        // Close all other dropdowns
         document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
-            (otherOptions as HTMLElement).style.display = 'none';
+            if (otherOptions !== targetOptionsDiv) {
+                (otherOptions as HTMLElement).style.display = 'none';
+            }
         });
+        // Toggle the current one
         targetOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 

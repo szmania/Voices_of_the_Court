@@ -718,7 +718,7 @@ em{
 }
 
 .player-message{
-    color: rgb(209, 209, 209);
+    color: #f5f5dc; /* Beige */
 }
 
 .ai-message{ 
