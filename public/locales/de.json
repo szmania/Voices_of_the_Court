@@ -8,6 +8,7 @@
     "summarization": "Zusammenfassung",
     "prompts": "Prompts",
     "letters": "Briefe",
+    "letters": "Briefe",
     "settings": "Einstellungen",
     "system": "System",
     "help": "Hilfe",
@@ -527,6 +528,16 @@
     "presence_penalty": "Präsenzstrafe",
     "top_p": "Top P",
     "reset": "Zurücksetzen"
+  },
+  "letters": {
+    "player": "Spieler",
+    "character": "Charakter",
+    "all_characters": "Alle Charaktere",
+    "inbox": "Posteingang",
+    "outbox": "Postausgang",
+    "no_player": "Wählen Sie einen Spieler aus, um Briefe anzuzeigen.",
+    "no_letters": "Keine Briefe gefunden.",
+    "select": "Wählen Sie einen Brief zum Lesen aus."
   },
   "letters": {
     "player": "Spieler",

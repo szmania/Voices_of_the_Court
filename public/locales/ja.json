@@ -8,6 +8,7 @@
     "summarization": "要約",
     "prompts": "プロンプト",
     "letters": "手紙",
+    "letters": "手紙",
     "settings": "設定",
     "system": "システム",
     "help": "ヘルプ",
@@ -527,6 +528,16 @@
     "presence_penalty": "存在ペナルティ",
     "top_p": "Top P",
     "reset": "リセット"
+  },
+  "letters": {
+    "player": "プレイヤー",
+    "character": "キャラクター",
+    "all_characters": "すべてのキャラクター",
+    "inbox": "受信トレイ",
+    "outbox": "送信トレイ",
+    "no_player": "手紙を表示するプレイヤーを選択してください。",
+    "no_letters": "手紙が見つかりません。",
+    "select": "読む手紙を選択してください。"
   },
   "letters": {
     "player": "プレイヤー",

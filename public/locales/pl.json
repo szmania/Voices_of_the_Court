@@ -8,6 +8,7 @@
     "summarization": "Podsumowanie",
     "prompts": "Prompty",
     "letters": "Listy",
+    "letters": "Listy",
     "settings": "Ustawienia",
     "system": "System",
     "help": "Pomoc",
@@ -527,6 +528,16 @@
     "presence_penalty": "Kara za obecność",
     "top_p": "Top P",
     "reset": "Resetuj"
+  },
+  "letters": {
+    "player": "Gracz",
+    "character": "Postać",
+    "all_characters": "Wszystkie postacie",
+    "inbox": "Skrzynka odbiorcza",
+    "outbox": "Skrzynka nadawcza",
+    "no_player": "Wybierz gracza, aby wyświetlić listy.",
+    "no_letters": "Nie znaleziono listów.",
+    "select": "Wybierz list do przeczytania."
   },
   "letters": {
     "player": "Gracz",

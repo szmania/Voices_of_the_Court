@@ -8,6 +8,7 @@
     "summarization": "Сводка",
     "prompts": "Промпты",
     "letters": "Письма",
+    "letters": "Письма",
     "settings": "Настройки",
     "system": "Система",
     "help": "Помощь",
@@ -527,6 +528,16 @@
     "presence_penalty": "Штраф за присутствие",
     "top_p": "Top P",
     "reset": "Сброс"
+  },
+  "letters": {
+    "player": "Игрок",
+    "character": "Персонаж",
+    "all_characters": "Все персонажи",
+    "inbox": "Входящие",
+    "outbox": "Исходящие",
+    "no_player": "Выберите игрока для просмотра писем.",
+    "no_letters": "Писем не найдено.",
+    "select": "Выберите письмо для чтения."
   },
   "letters": {
     "player": "Игрок",
