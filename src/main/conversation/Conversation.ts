@@ -407,11 +407,12 @@ export class Conversation{
             const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
             if (character.primaryTitle) {
                 names.push(character.primaryTitle);
-                const titleWords = character.primaryTitle.split(' ');
+                // Split title into words, removing punctuation and common articles
+                const titleWords = character.primaryTitle.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/);
                 const commonWords = ['the', 'a', 'an', 'of'];
                 for (const word of titleWords) {
-                    if (!commonWords.includes(word.toLowerCase())) {
-                        names.push(word.replace(/,/g, ''));
+                    if (word && !commonWords.includes(word)) {
+                        names.push(word);
                     }
                 }
             }
