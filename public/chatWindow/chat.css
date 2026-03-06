@@ -703,7 +703,8 @@ html{
     pointer-events: none;
 }
 
-.button-wrapper:hover::after {
+.button-wrapper:hover::after,
+#character-target-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s; /* Small delay before hiding */
@@ -1116,13 +1117,13 @@ em{
 
 .inline-action-form .custom-select-options {
     position: absolute;
-    top: 100%; /* Open downwards */
+    bottom: 100%; /* Open upwards */
     left: 0;
     right: 0;
     background: #2b2b2b;
     border: 1px solid #5a4a35;
-    border-top: none;
-    border-radius: 0 0 2px 2px;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
     z-index: 1001; /* Above other form elements */
     max-height: 150px;
     overflow-y: auto;
