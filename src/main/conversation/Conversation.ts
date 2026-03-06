@@ -406,7 +406,11 @@ export class Conversation{
         for (const character of this.npcQueue) {
             const names = [character.fullName, character.shortName, character.firstName, character.primaryTitle].filter(Boolean);
             const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
-            if (mentionPattern.test(lastMessage.content) || names.some(name => lastMessage.content.includes(name))) {
+            
+            // Create a regex for whole word matching for each name to avoid partial matches
+            const namePatterns = names.map(name => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
+
+            if (mentionPattern.test(lastMessage.content) || namePatterns.some(pattern => pattern.test(lastMessage.content))) {
                 if (!explicitTargets.has(character)) {
                     explicitTargets.add(character);
                     console.log(`Text mention character identified: ${character.shortName}`);
