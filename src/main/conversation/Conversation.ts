@@ -16,6 +16,7 @@ import { RunFileManager } from '../RunFileManager.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
 import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
+import { getSimilarity } from '../../shared/stringUtils.js';
 
 export class Conversation{
     userDataPath: string;
@@ -420,73 +421,95 @@ export class Conversation{
             return [];
         }
 
-        const explicitTargets = new Set<Character>();
-
         // 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
         const targetIds = (lastMessage as any).targetCharacterIds as number[] | undefined;
         if (targetIds && targetIds.length > 0) {
+            const explicitTargets = new Set<Character>();
             targetIds.forEach(id => {
                 const char = this.npcQueue.find(c => c.id === id);
                 if (char) {
                     explicitTargets.add(char);
                 }
             });
-            console.log(`UI targeted characters identified: ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
-            // If there's a UI target, we don't need to parse text
-            return Array.from(explicitTargets);
+            if (explicitTargets.size > 0) {
+                console.log(`UI targeted characters identified: ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
+                return Array.from(explicitTargets);
+            }
         }
 
-        // 2. If no UI target, check for @mentions and name/title mentions in text
-        for (const character of this.npcQueue) {
-            const namesToTest = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-            
-            // Create regex for whole word matching for names
-            const namePatterns = namesToTest.map(name => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
-    
-            // Create regex for @mentions
-            const mentionPattern = new RegExp(`@(${namesToTest.join('|')})\\b`, 'i');
-    
-            if (mentionPattern.test(lastMessage.content) || namePatterns.some(pattern => pattern.test(lastMessage.content))) {
-                if (!explicitTargets.has(character)) {
-                    explicitTargets.add(character);
-                    console.log(`Text mention character identified by name: ${character.shortName}`);
-                    continue; // Found a match, go to next character
-                }
-            }
-    
-            // Test for titles if no name match was found for this character yet
-            if (!explicitTargets.has(character) && (character.primaryTitle || character.titleRankConcept)) {
-                const content = lastMessage.content.toLowerCase();
-                
-                const titles = [
-                    character.primaryTitle,
-                    character.titleRankConcept
-                ].filter(Boolean).map(t => t!.toLowerCase());
+        // 2. If no UI target, perform fuzzy matching on names, titles, and relationships
+        const messageContent = lastMessage.content.toLowerCase();
+        const words = messageContent.split(/\s+/).filter(w => w.length > 2); // Split message into words for matching, ignore short words
 
-                let found = false;
-                for (const title of titles) {
-                    const commonWords = ['the', 'a', 'an', 'of'];
-                    const significantWords = title.replace(/[,.-]/g, ' ').split(/\s+/).filter(w => w && !commonWords.includes(w));
-                    
-                    // If any significant word from the title is in the user's message as a whole word, it's a match.
-                    if (significantWords.some(w => new RegExp(`\\b${w}\\b`, 'i').test(content))) {
-                        found = true;
-                        break;
+        const potentialTargets = new Map<Character, number>(); // Map of Character to confidence score
+        const FUZZY_MATCH_THRESHOLD = 0.8;
+
+        for (const character of this.npcQueue) {
+            let highestConfidence = 0;
+
+            // A. Check names (fuzzy)
+            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean).map(n => n.toLowerCase());
+            for (const name of names) {
+                for (const word of words) {
+                    const confidence = getSimilarity(name, word);
+                    if (confidence > highestConfidence) {
+                        highestConfidence = confidence;
                     }
                 }
+            }
 
-                if (found) {
-                    explicitTargets.add(character);
-                    console.log(`Text mention character identified by title: ${character.shortName}`);
-                    continue; // Found a match, go to next character
+            // B. Check titles (fuzzy)
+            const titles = [character.primaryTitle, character.titleRankConcept].filter(Boolean).map(t => t!.toLowerCase());
+            for (const title of titles) {
+                const titleWords = title.split(/\s+/);
+                for (const titleWord of titleWords) {
+                    if (titleWord.length < 3) continue; // Ignore short title words like 'of'
+                    for (const word of words) {
+                        const confidence = getSimilarity(titleWord, word);
+                        if (confidence > highestConfidence) {
+                            highestConfidence = confidence;
+                        }
+                    }
+                }
+            }
+
+            // C. Check relationships (fuzzy)
+            const player = this.gameData.getPlayer();
+            if (player && player.familyMembers) {
+                const relationshipToPlayer = player.familyMembers.find(m => m.id === character.id);
+                if (relationshipToPlayer && relationshipToPlayer.relationship) {
+                    const relationship = relationshipToPlayer.relationship.toLowerCase();
+                    for (const word of words) {
+                        const confidence = getSimilarity(relationship, word);
+                        if (confidence > highestConfidence) {
+                            highestConfidence = confidence;
+                        }
+                    }
+                }
+            }
+
+            if (highestConfidence > FUZZY_MATCH_THRESHOLD) {
+                // If a new character has higher confidence, replace. If same, add.
+                const existingConfidence = potentialTargets.get(character) || 0;
+                if (highestConfidence > existingConfidence) {
+                    potentialTargets.set(character, highestConfidence);
                 }
             }
         }
-    
-        const targeted = Array.from(explicitTargets);
-        if (targeted.length > 0) {
-            console.log(`Targeted characters determined by text: ${targeted.map(c => c.shortName).join(', ')}`);
-            return targeted.sort(() => Math.random() - 0.5); // Shuffle if multiple targets
+
+        if (potentialTargets.size > 0) {
+            const sortedTargets = [...potentialTargets.entries()].sort((a, b) => b[1] - a[1]);
+            const topConfidence = sortedTargets[0][1];
+            
+            // Return all targets with a confidence score close to the top score
+            const highConfidenceTargets = sortedTargets
+                .filter(t => t[1] >= topConfidence - 0.05) // Allow for small confidence differences
+                .map(t => t[0]);
+
+            if (highConfidenceTargets.length > 0) {
+                console.log(`Targeted characters determined by fuzzy match: ${highConfidenceTargets.map(c => `${c.shortName} (${potentialTargets.get(c)})`).join(', ')}`);
+                return highConfidenceTargets;
+            }
         }
 
         console.log('No specific character targeted.');
