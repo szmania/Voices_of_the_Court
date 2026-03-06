@@ -8,6 +8,8 @@ import { convertChatToText, buildChatPrompt, buildResummarizeChatPrompt, convert
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
+import { DiaryGenerator } from '../diary/DiaryGenerator.js';
+import { saveDiaryFile } from '../diaryManager.js';
 import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
@@ -27,6 +29,7 @@ export class Conversation{
     runFileManager: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
+    diaryGenerator: DiaryGenerator;
     actionsApiConnection: ApiConnection;
     description: string;
     actions: Action[];
@@ -42,6 +45,7 @@ export class Conversation{
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
+        this.diaryGenerator = new DiaryGenerator(this.config);
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -1082,6 +1086,18 @@ ${character.fullName}的发言：`
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
         // Write a trigger event to the game (e.g., trigger conversation end event)
+
+        // Generate and save diary entries for each character
+        if (this.config.enableDiaryGeneration) {
+            for (const character of this.gameData.characters.values()) {
+                if (Math.random() < this.config.diaryGenerationChance) {
+                    const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                    if (diaryEntry) {
+                        await saveDiaryFile(this.userDataPath, this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
+                    }
+                }
+            }
+        }
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
