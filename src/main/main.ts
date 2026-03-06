@@ -966,17 +966,19 @@ ipcMain.handle('get-letter-players', async () => {
     for (const pId of playerIds) {
         const lettersForPlayer = letterManager.getAllLetters(pId);
         if (lettersForPlayer.length > 0) {
-            const playerAsSender = lettersForPlayer.find(l => String(l.sender.id) === pId);
-            if (playerAsSender) {
-                playerInfo.set(pId, playerAsSender.sender.fullName);
-                continue;
+            let playerName: string | undefined;
+            // Try to find the player's name from any letter
+            for (const letter of lettersForPlayer) {
+                if (String(letter.sender.id) === pId && letter.sender.fullName) {
+                    playerName = letter.sender.fullName;
+                    break;
+                }
+                if (String(letter.recipient.id) === pId && letter.recipient.fullName) {
+                    playerName = letter.recipient.fullName;
+                    break;
+                }
             }
-            const playerAsRecipient = lettersForPlayer.find(l => String(l.recipient.id) === pId);
-            if (playerAsRecipient) {
-                playerInfo.set(pId, playerAsRecipient.recipient.fullName);
-            } else {
-                playerInfo.set(pId, `Player ${pId}`); // Fallback
-            }
+            playerInfo.set(pId, playerName || `Player ${pId}`);
         }
     }
     return Array.from(playerInfo.entries()).map(([id, name]) => ({ id, name }));
