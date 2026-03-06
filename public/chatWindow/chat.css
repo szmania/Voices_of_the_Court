@@ -717,8 +717,8 @@ html{
 }
 
 
-em{
-    color:#91918f;
+.ai-message em {
+    color: #b1b1b1; /* Lighter gray for narrative actions */
 }
 
 .player-message{
