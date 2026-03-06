@@ -26,12 +26,12 @@ export class Conversation{
     gameData: GameData;
     messages: Message[];
     config: Config;
-    runFileManager: RunFileManager;
+    runFileManager!: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
     actionsApiConnection: ApiConnection;
-    description: string;
-    actions: Action[];
+    description!: string;
+    actions!: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
     narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
@@ -122,11 +122,6 @@ export class Conversation{
         });
 
         this.config = config;
-
-        //TODO: wtf
-        this.runFileManager = new RunFileManager(config.userFolderPath);
-        this.description = "";
-        this.actions = [];
 
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
