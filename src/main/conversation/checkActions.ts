@@ -4,6 +4,7 @@ import { convertMessagesToString } from "./promptBuilder";
 import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
+import path from 'path';
 
 export async function checkActions(conv: Conversation): Promise<{actions: ActionResponse[], narrative: string}>{
     console.log('Starting action check.');
@@ -290,6 +291,17 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
 
 function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]{
     let output: Message[] = [];
+
+    const descriptionScriptFileName = conv.config.selectedDescScript;
+    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    let description = "";
+    try{
+        delete require.cache[require.resolve(descriptionPath)];
+        description = require(descriptionPath)(conv.gameData); 
+    }catch(err){
+        console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
+        conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
+    }
     
     let listOfActions = `List of actions:`;
 
@@ -333,7 +345,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         role: "user",
         content: `Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
 "Prior dialogue:\n"+ ${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
-${conv.description}
+${description}
 "Given these replies:\n${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
 })

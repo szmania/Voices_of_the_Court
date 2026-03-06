@@ -147,6 +147,17 @@ function getDateDifference(pastDate: string, todayDate: string, isZh: boolean = 
  */
 export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Building suggestion prompt...');
+
+    const descriptionScriptFileName = conv.config.selectedDescScript;
+    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    let description = "";
+    try{
+        delete require.cache[require.resolve(descriptionPath)];
+        description = require(descriptionPath)(conv.gameData); 
+    }catch(err){
+        console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
+        conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
+    }
     
     // 获取玩家和AI角色信息
     const playerCharacter = conv.gameData.getPlayer();
@@ -195,7 +206,7 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
 3. 简洁自然
 4. 每条建议不超过15个词
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -211,7 +222,7 @@ ${conversationContext}
 3. Be concise and natural
 4. Each suggestion should not exceed 15 words
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 

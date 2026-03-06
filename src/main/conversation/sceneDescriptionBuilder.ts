@@ -5,6 +5,7 @@
 
 import { Conversation } from "./Conversation";
 import { Message } from "../ts/conversation_interfaces";
+import path from 'path';
 
 /**
  * 构建用于生成场景描述的提示词
@@ -13,6 +14,17 @@ import { Message } from "../ts/conversation_interfaces";
  */
 export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     console.log('Building scene description prompt...');
+
+    const descriptionScriptFileName = conv.config.selectedDescScript;
+    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    let description = "";
+    try{
+        delete require.cache[require.resolve(descriptionPath)];
+        description = require(descriptionPath)(conv.gameData); 
+    }catch(err){
+        console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
+        conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
+    }
 
     // 获取之前的总结信息
     const previousSummaries: string[] = [];
@@ -44,7 +56,7 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     
     const prompt = `${instruction}
 
-${descriptionLabel}${conv.description}
+${descriptionLabel}${description}
 
 ${summariesLabel}
 ${previousSummaries.length > 0 ? previousSummaries.map(summary => `- ${summary}`).join('\n') : noSummariesText}
