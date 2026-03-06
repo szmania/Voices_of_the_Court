@@ -62,6 +62,8 @@
     "narrative_tooltip": "Este prompt se utiliza para generar descripciones narrativas de IA después de que se activan las acciones. La narrativa proporciona descripciones atmosféricas de los eventos en el juego.",
     "scene_description_prompt": "Prompt de descripción de escena",
     "scene_description_tooltip": "Este prompt se utiliza para generar la descripción inicial de la escena al comienzo de la conversación. Proporciona contexto y atmósfera para las interacciones de los personajes.",
+    "letter_prompt": "Prompt de carta",
+    "letter_summary_prompt": "Prompt de resumen de carta",
     "restore_defaults": "Restaurar prompts predeterminados",
     "restore_tooltip": "Haz clic en este botón para restaurar todos los prompts a sus valores predeterminados",
     "scripts_header": "Scripts",
