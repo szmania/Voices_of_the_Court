@@ -506,7 +506,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         gameData.characters.forEach(char => {
             characterNameMap.set(String(char.id), char.fullName);
         });
-        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID));
+        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID), gameData.date);
 
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions

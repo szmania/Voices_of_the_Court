@@ -2,10 +2,9 @@ import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
 
 const initLocalization = () => {
-    const { LocalizationManager } = window as any;
-    if (LocalizationManager) {
-        LocalizationManager.instance.loadTranslations().then(() => {
-            LocalizationManager.instance.applyLocalization();
+    if (window.LocalizationManager) {
+        window.LocalizationManager.instance.loadTranslations().then(() => {
+            window.LocalizationManager.instance.applyLocalization();
         });
     }
 };
@@ -26,7 +25,9 @@ ipcRenderer.on('letters-data', (event, letters: Letter[]) => {
         noLettersItem.setAttribute('data-i18n', 'letters.no_letters');
         noLettersItem.textContent = 'No letters found.'; // Fallback text
         letterList.appendChild(noLettersItem);
-        initLocalization(); // Apply localization to the new element
+        if (window.LocalizationManager) {
+            window.LocalizationManager.instance.applyLocalization();
+        }
         return;
     }
 
@@ -39,8 +40,8 @@ ipcRenderer.on('letters-data', (event, letters: Letter[]) => {
 
         li.innerHTML = `
             <div class="letter-header">
-                <span><strong>From:</strong> ${letter.sender.fullName}</span>
-                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+                <span><strong>From:</strong> ${letter.sender.fullName} (${letter.sender.id})</span>
+                <span><strong>To:</strong> ${letter.recipient.fullName} (${letter.recipient.id})</span>
                 <span class="letter-date"><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
             </div>
             <div class="letter-body">

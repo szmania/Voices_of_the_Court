@@ -1,9 +1,8 @@
 const { ipcRenderer } = require('electron');
 function initLocalization() {
-    const { LocalizationManager } = window;
-    if (LocalizationManager) {
-        LocalizationManager.instance.loadTranslations().then(() => {
-            LocalizationManager.instance.applyLocalization();
+    if (window.LocalizationManager) {
+        window.LocalizationManager.instance.loadTranslations().then(() => {
+            window.LocalizationManager.instance.applyLocalization();
         });
     }
 }
@@ -32,8 +31,8 @@ ipcRenderer.on('letters-data', (event, letters) => {
 
         li.innerHTML = `
             <div class="letter-header">
-                <span><strong>From:</strong> ${letter.sender.fullName}</span>
-                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+                <span><strong>From:</strong> ${letter.sender.fullName} (${letter.sender.id})</span>
+                <span><strong>To:</strong> ${letter.recipient.fullName} (${letter.recipient.id})</span>
                 <span class="letter-date"><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
             </div>
             <div class="letter-body">

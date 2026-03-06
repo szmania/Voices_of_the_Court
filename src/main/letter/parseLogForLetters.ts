@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { Letter } from './Letter.js';
 
-export async function parseLettersFromLog(debugLogPath: string, characterNameMap: Map<string, string>): Promise<Letter[]> {
+export async function parseLettersFromLog(debugLogPath: string, characterNameMap: Map<string, string>, gameDate: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
     
     if (!fs.existsSync(debugLogPath)) {
@@ -12,7 +12,7 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
     const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
     const lines = fileContent.split(/\r?\n/);
     
-    const letterPromises: Promise<Letter | null>[] = [];
+    const letters: Letter[] = [];
 
     for (const line of lines) {
         if (line.includes('VOTC:LETTER')) {
@@ -25,14 +25,14 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                 const senderId = parts[4].trim();
 
                 if(content && subject && recipientId && senderId) {
-                    letterPromises.push(Letter.fromLog(senderId, recipientId, subject, content, characterNameMap));
+                    const letter = Letter.fromLog(senderId, recipientId, subject, content, characterNameMap, gameDate);
+                    if (letter) {
+                        letters.push(letter);
+                    }
                 }
             }
         }
     }
-
-    const resolvedLetters = await Promise.all(letterPromises);
-    const letters = resolvedLetters.filter((l): l is Letter => l !== null);
     
     console.log(`Parsed ${letters.length} letters from log.`);
     return letters;

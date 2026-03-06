@@ -5,10 +5,11 @@ import { Message } from "../ts/conversation_interfaces";
 import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
-import { createMemoryString } from '../conversation/promptBuilder';
+import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
 import { LetterType } from "./letterInterfaces.js";
+import { v4 as uuidv4 } from 'uuid';
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -226,7 +227,6 @@ export class LetterReplyGenerator {
      */
     private async saveLetterHistory(playerId: string, aiId: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string, gameData: GameData): Promise<void> {
         try {
-            const { v4: uuidv4 } = await import('uuid');
             const letterManager = LetterManager.getInstance();
 
             const player = gameData.characters.get(Number(playerId));
@@ -246,7 +246,7 @@ export class LetterReplyGenerator {
                 `Re: ${letterContent.subject}`,
                 replyContent,
                 LetterType.PERSONAL, // Or some other appropriate type
-                new Date(),
+                new Date(gameData.date.replace(/\./g, '-')), // Use game date
                 false // It's a new letter, so not read by the player yet
             );
 

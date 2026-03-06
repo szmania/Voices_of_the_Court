@@ -1,5 +1,6 @@
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
+import { v4 as uuidv4 } from 'uuid';
 
 export class Letter implements ILetter {
     id: string;
@@ -31,15 +32,15 @@ export class Letter implements ILetter {
         this.letterType = letterType;
     }
 
-    public static async fromLog(
+    public static fromLog(
         senderId: string,
         recipientId: string,
         subject: string,
         content: string,
-        characterNameMap: Map<string, string>
-    ): Promise<Letter | null> {
+        characterNameMap: Map<string, string>,
+        gameDate?: string
+    ): Letter | null {
         try {
-            const { v4: uuidv4 } = await import('uuid');
             const senderName = characterNameMap.get(senderId) || `Character ${senderId}`;
             const recipientName = characterNameMap.get(recipientId) || `Character ${recipientId}`;
 
@@ -55,13 +56,16 @@ export class Letter implements ILetter {
             const sender = createCharacter(senderId, senderName);
             const recipient = createCharacter(recipientId, recipientName);
 
+            const timestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
+
             return new Letter(
                 uuidv4(),
                 sender,
                 recipient,
                 subject,
                 content,
-                LetterType.UNKNOWN
+                LetterType.UNKNOWN,
+                timestamp
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);
