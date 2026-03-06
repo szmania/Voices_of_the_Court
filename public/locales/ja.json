@@ -12,6 +12,7 @@
     "help": "ヘルプ",
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
+    "steam_tooltip": "Steamワークショップで表示",
     "website_tooltip": "ウェブサイトにアクセス"
   },
   "connection": {
@@ -100,6 +101,8 @@
     "shuffle_tooltip": "複数キャラクターの会話でキャラクターがメッセージを生成する順序をランダム化します。注：有効にすると、各キャラクターの話し順がランダムになり、LLM の出力キャラクターのアイデンティティに混乱が生じる可能性があります。",
     "dynamic_selection": "動的なキャラクター選択",
     "dynamic_tooltip": "LLM を使用して会話を分析し、次に話すキャラクターを選択します。LLM は、現在のラウンドでまだ話していないキャラクターのプールから選択します。",
+    "nonTargetedCharacterResponseChance": "非ターゲットキャラクターの応答確率 (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "複数キャラクターの会話で、ターゲットキャラクターが話した後に非ターゲットキャラクターが応答する確率（0-100%）。",
     "validate_identity": "キャラクターのアイデンティティを検証",
     "validate_tooltip": "ストリーミングが無効で、キャラクターが 2 人より多い場合、生成されたメッセージがキャラクターのアイデンティティと一致するかどうかを検証します。検証に失敗した場合は、最大 3 回まで再生成します。",
     "show_suggestions": "提案ボタンを表示",
@@ -119,6 +122,8 @@
     "desc_depth": "キャラクター説明の挿入深度",
     "ai_start": "AI が会話を開始できる",
     "ai_start_chance": "AI 開始確率 (%)",
+    "aiToAiChatChance": "AI同士のチャット確率 (%)",
+    "aiToAiChatChance_tooltip": "AIキャラクターがプレイヤーに応答した後、別のAIキャラクターにもメッセージを送信する確率。",
     "instruct_header": "Instruct 設定",
     "input_seq": "入力シーケンス",
     "output_seq": "出力シーケンス",
@@ -144,10 +149,15 @@
     "clear_summaries_desc": "これにより、すべてのキャラクターの以前の会話の要約が削除されます",
     "clear_button": "要約を消去",
     "open_summaries": "会話の要約フォルダを開く",
+    "roaming_data": "ローミングデータフォルダ",
+    "roaming_data_desc": "このフォルダには、個人設定、スクリプト、要約が含まれています。",
+    "open_roaming_data": "ローミングデータフォルダを開く",
     "roleplay_instruction": "あなたのタスクはキャラクター {characterName} としてロールプレイすることです。このキャラクターの返信のみを書いてください。あなたは {characterName} を演じていることを忘れないでください。他のキャラクターの返信は書かないでください。",
     "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
   "chat": {
+    "target_label": "ターゲットキャラクター：",
+    "target_auto": "自動検出",
     "leave_button": "会話を終了",
     "input_placeholder": "メッセージを書いてください...",
     "search_title": "メッセージを検索",
@@ -167,7 +177,8 @@
     "scene_description": "シーン説明",
     "narrative": "ナラティブ",
     "not_spoken": "まだ話していません",
-    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
+    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。",
+    "target_tooltip": "メッセージを送信する特定のキャラクターを選択します。デフォルトは「自動検出」です。"
   },
   "suggestions": {
     "header": "推奨入力",

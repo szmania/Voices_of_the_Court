@@ -12,6 +12,7 @@
     "help": "Aide",
     "language_tooltip": "Sélectionner la langue de l'application",
     "discord_tooltip": "Rejoignez notre Discord",
+    "steam_tooltip": "Voir sur le Steam Workshop",
     "website_tooltip": "Visitez notre site web"
   },
   "connection": {
@@ -100,6 +101,8 @@
     "shuffle_tooltip": "Aléatise l'ordre dans lequel les personnages génèrent des messages dans les conversations multi-personnages. Note : si activé, l'ordre de parole sera aléatoire, ce qui peut prêter à confusion sur l'identité des personnages.",
     "dynamic_selection": "sélection dynamique de personnage",
     "dynamic_tooltip": "Utilise l'IA pour analyser la conversation et sélectionner le prochain personnage à parler parmi ceux qui n'ont pas encore parlé dans le tour actuel.",
+    "nonTargetedCharacterResponseChance": "Chance de réponse du personnage non ciblé (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "La chance (0-100%) qu'un personnage non ciblé réponde dans une conversation à plusieurs personnages après que le personnage ciblé a parlé.",
     "validate_identity": "valider l'identité du personnage",
     "validate_tooltip": "Lorsque le flux est désactivé et qu'il y a plus de 2 personnages, valide que le message généré correspond à l'identité du personnage. En cas d'échec, régénère jusqu'à 3 fois.",
     "show_suggestions": "afficher le bouton de suggestions",
@@ -119,6 +122,8 @@
     "desc_depth": "Profondeur d'insertion de la desc. perso",
     "ai_start": "L'IA peut démarrer la conversation",
     "ai_start_chance": "Chance de démarrage par l'IA (%)",
+    "aiToAiChatChance": "Chance de discussion IA à IA (%)",
+    "aiToAiChatChance_tooltip": "La chance qu'un personnage IA, après avoir répondu au joueur, envoie également un message à un autre personnage IA.",
     "instruct_header": "Paramètres d'instruction",
     "input_seq": "Séquence d'entrée",
     "output_seq": "Séquence de sortie",
@@ -144,10 +149,15 @@
     "clear_summaries_desc": "Ceci supprimera les résumés des conversations précédentes de tous les personnages",
     "clear_button": "Effacer les résumés",
     "open_summaries": "Ouvrir le dossier des résumés de conversation",
+    "roaming_data": "Dossier de données d'itinérance",
+    "roaming_data_desc": "Ce dossier contient votre configuration personnelle, vos scripts et vos résumés.",
+    "open_roaming_data": "Ouvrir le dossier de données d'itinérance",
     "roleplay_instruction": "Votre tâche est d'incarner le personnage {characterName}. Écrivez une réponse uniquement pour ce personnage. N'oubliez pas, vous jouez le rôle de {characterName}, n'écrivez pas de réponses pour d'autres personnages.",
     "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:"
   },
   "chat": {
+    "target_label": "Personnage cible :",
+    "target_auto": "Détecté automatiquement",
     "leave_button": "QUITTER LA CONVERSATION",
     "input_placeholder": "Écrire un message...",
     "search_title": "Rechercher des messages",
@@ -167,7 +177,8 @@
     "scene_description": "Description de la scène",
     "narrative": "Narration",
     "not_spoken": "N'a pas encore parlé",
-    "tokenizer_tooltip": "Comptage de tokens en temps réel pour le message actuel. Les tokens sont les unités de texte de base utilisées par l'IA."
+    "tokenizer_tooltip": "Comptage de tokens en temps réel pour le message actuel. Les tokens sont les unités de texte de base utilisées par l'IA.",
+    "target_tooltip": "Sélectionnez un personnage spécifique à qui adresser votre message. La valeur par défaut est 'Détecté automatiquement'."
   },
   "suggestions": {
     "header": "Entrées recommandées",

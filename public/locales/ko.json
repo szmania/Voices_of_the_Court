@@ -12,6 +12,7 @@
     "help": "도움말",
     "language_tooltip": "애플리케이션 언어 선택",
     "discord_tooltip": "Discord에 참여하세요",
+    "steam_tooltip": "Steam 창작마당에서 보기",
     "website_tooltip": "저희 웹사이트를 방문하세요"
   },
   "connection": {
@@ -100,6 +101,8 @@
     "shuffle_tooltip": "다중 캐릭터 대화에서 캐릭터가 메시지를 생성하는 순서를 무작위로 지정합니다. 참고: 활성화하면 각 캐릭터의 발언 순서가 무작위가 되어 LLM의 출력 캐릭터 정체성에 혼란을 줄 수 있습니다.",
     "dynamic_selection": "동적 캐릭터 선택",
     "dynamic_tooltip": "LLM을 사용하여 대화를 분석하고 다음에 말할 캐릭터를 선택합니다. LLM은 현재 라운드에서 아직 말하지 않은 캐릭터 풀 중에서 선택합니다.",
+    "nonTargetedCharacterResponseChance": "비대상 캐릭터 응답 확률 (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "다중 캐릭터 대화에서 대상 캐릭터가 말한 후 비대상 캐릭터가 응답할 확률(0-100%).",
     "validate_identity": "캐릭터 정체성 검증",
     "validate_tooltip": "스트리밍이 비활성화되어 있고 캐릭터가 2명 이상인 경우 생성된 메시지가 캐릭터의 정체성과 일치하는지 검증합니다. 검증에 실패하면 최대 3번까지 다시 생성합니다.",
     "show_suggestions": "제안 버튼 표시",
@@ -119,6 +122,8 @@
     "desc_depth": "캐릭터 설명 삽입 깊이",
     "ai_start": "AI가 대화를 시작할 수 있음",
     "ai_start_chance": "AI 시작 확률 (%)",
+    "aiToAiChatChance": "AI 간 채팅 확률 (%)",
+    "aiToAiChatChance_tooltip": "AI 캐릭터가 플레이어에게 응답한 후 다른 AI 캐릭터에게도 메시지를 보낼 확률.",
     "instruct_header": "Instruct 설정",
     "input_seq": "입력 시퀀스",
     "output_seq": "출력 시퀀스",
@@ -144,10 +149,15 @@
     "clear_summaries_desc": "모든 캐릭터의 이전 대화 요약을 삭제합니다.",
     "clear_button": "요약 지우기",
     "open_summaries": "대화 요약 폴더 열기",
+    "roaming_data": "로밍 데이터 폴더",
+    "roaming_data_desc": "이 폴더에는 개인 설정, 스크립트 및 요약이 포함되어 있습니다.",
+    "open_roaming_data": "로밍 데이터 폴더 열기",
     "roleplay_instruction": "당신의 임무는 {characterName} 캐릭터를 연기하는 것입니다. 이 캐릭터에 대한 답장만 작성하십시오. 당신은 {characterName}을 연기하고 있다는 것을 기억하고 다른 캐릭터에 대한 답장은 쓰지 마십시오.",
     "start_writing_reply": "이제 {characterName}의 답장을 작성하기 시작하세요:"
   },
   "chat": {
+    "target_label": "대상 캐릭터:",
+    "target_auto": "자동 감지됨",
     "leave_button": "대화 종료",
     "input_placeholder": "메시지를 작성하세요...",
     "search_title": "메시지 검색",
@@ -167,7 +177,8 @@
     "scene_description": "장면 설명",
     "narrative": "내러티브",
     "not_spoken": "아직 말하지 않음",
-    "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다."
+    "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다.",
+    "target_tooltip": "메시지를 보낼 특정 캐릭터를 선택하십시오. 기본값은 '자동 감지됨'입니다."
   },
   "suggestions": {
     "header": "권장 입력",

@@ -12,6 +12,7 @@
     "help": "Hilfe",
     "language_tooltip": "Anwendungssprache auswählen",
     "discord_tooltip": "Tritt unserem Discord bei",
+    "steam_tooltip": "Im Steam Workshop ansehen",
     "website_tooltip": "Besuche unsere Webseite"
   },
   "connection": {
@@ -100,6 +101,8 @@
     "shuffle_tooltip": "Randomisiert die Reihenfolge, in der Charaktere Nachrichten in Gesprächen mit mehreren Personen generieren. Hinweis: Falls aktiviert, ist die Sprechreihenfolge jedes Charakters zufällig, was zu Verwirrung bei der Charakteridentität in der KI-Ausgabe führen kann.",
     "dynamic_selection": "Dynamische Charakterauswahl",
     "dynamic_tooltip": "Verwendet die KI, um das Gespräch zu analysieren und den nächsten Charakter auszuwählen, der spricht. Die KI wählt aus einem Pool von Charakteren aus, die in der aktuellen Runde noch nicht gesprochen haben.",
+    "nonTargetedCharacterResponseChance": "Antwortchance nicht anvisierter Charaktere (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "Die Wahrscheinlichkeit (0-100%), dass ein nicht anvisierter Charakter in einem Gespräch mit mehreren Charakteren antwortet, nachdem der anvisierte Charakter gesprochen hat.",
     "validate_identity": "Charakteridentität validieren",
     "validate_tooltip": "Wenn Streaming deaktiviert ist und mehr als 2 Charaktere vorhanden sind, wird validiert, ob die generierte Nachricht zur Identität des Charakters passt. Falls die Validierung fehlschlägt, wird bis zu 3 Mal neu generiert.",
     "show_suggestions": "Vorschlags-Schaltfläche anzeigen",
@@ -119,6 +122,8 @@
     "desc_depth": "Einfügetiefe für Charakterbeschreibungen",
     "ai_start": "KI kann Gespräch beginnen",
     "ai_start_chance": "KI-Startchance (%)",
+    "aiToAiChatChance": "KI-zu-KI-Gesprächschance (%)",
+    "aiToAiChatChance_tooltip": "Die Wahrscheinlichkeit, dass ein KI-Charakter nach der Antwort an den Spieler auch eine Nachricht an einen anderen KI-Charakter sendet.",
     "instruct_header": "Instruct-Einstellungen",
     "input_seq": "Eingabesequenz",
     "output_seq": "Ausgabesequenz",
@@ -144,10 +149,15 @@
     "clear_summaries_desc": "Dies löscht die Zusammenfassungen früherer Gespräche aller Charaktere",
     "clear_button": "Zusammenfassungen löschen",
     "open_summaries": "Ordner für Gesprächszusammenfassungen öffnen",
+    "roaming_data": "Roaming-Datenordner",
+    "roaming_data_desc": "Dieser Ordner enthält Ihre persönliche Konfiguration, Skripte und Zusammenfassungen.",
+    "open_roaming_data": "Roaming-Datenordner öffnen",
     "roleplay_instruction": "Deine Aufgabe ist es, die Rolle des Charakters {characterName} zu spielen. Schreibe nur eine Antwort für diesen Charakter. Denke daran, du spielst als {characterName}, schreibe keine Antworten für andere Charaktere.",
     "start_writing_reply": "Beginnen Sie jetzt mit dem Schreiben der Antwort von {characterName}:"
   },
   "chat": {
+    "target_label": "Zielcharakter:",
+    "target_auto": "Automatisch erkannt",
     "leave_button": "GESPRÄCH BEENDEN",
     "input_placeholder": "Nachricht schreiben...",
     "search_title": "Nachrichten durchsuchen",
@@ -167,7 +177,8 @@
     "scene_description": "Szenenbeschreibung",
     "narrative": "Erzählung",
     "not_spoken": "Hat noch nicht gesprochen",
-    "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden."
+    "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden.",
+    "target_tooltip": "Wählen Sie einen bestimmten Charakter aus, an den Sie Ihre Nachricht richten möchten. Standard ist 'Automatisch erkannt'."
   },
   "suggestions": {
     "header": "Empfohlene Eingabe",

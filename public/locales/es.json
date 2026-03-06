@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Voices of the Court - Community Edition"
+  },
   "nav": {
     "connection": "Conexión",
     "actions": "Acciones",
@@ -9,6 +12,7 @@
     "help": "Ayuda",
     "language_tooltip": "Seleccionar idioma de la aplicación",
     "discord_tooltip": "Únete a nuestro Discord",
+    "steam_tooltip": "Ver en Steam Workshop",
     "website_tooltip": "Visita nuestra página web"
   },
   "connection": {
@@ -97,6 +101,8 @@
     "shuffle_tooltip": "Aleatoriza el orden en que los personajes generan mensajes en conversaciones de varios personajes. Nota: Si se habilita, el orden de habla de cada personaje será aleatorio, lo que puede llevar a confusión en la identidad del personaje de salida del LLM.",
     "dynamic_selection": "selección dinámica de personajes",
     "dynamic_tooltip": "Usa el LLM para analizar la conversación y seleccionar el siguiente personaje en hablar. El LLM elegirá de un grupo de personajes que aún no han hablado en la ronda actual.",
+    "nonTargetedCharacterResponseChance": "Probabilidad de respuesta de personaje no objetivo (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "La probabilidad (0-100%) de que un personaje no objetivo responda en una conversación con varios personajes después de que el personaje objetivo haya hablado.",
     "validate_identity": "validar identidad del personaje",
     "validate_tooltip": "Cuando el streaming está desactivado y hay más de 2 personajes, valida que el mensaje generado coincida con la identidad del personaje. Si la validación falla, regenera hasta 3 veces.",
     "show_suggestions": "mostrar botón de sugerencias",
@@ -116,6 +122,8 @@
     "desc_depth": "Profundidad de inserción de desc. de personaje",
     "ai_start": "La IA puede iniciar la conversación",
     "ai_start_chance": "Probabilidad de inicio de la IA (%)",
+    "aiToAiChatChance": "Probabilidad de chat de IA a IA (%)",
+    "aiToAiChatChance_tooltip": "La probabilidad de que un personaje de IA, después de responder al jugador, también envíe un mensaje a otro personaje de IA.",
     "instruct_header": "Ajustes de Instruct",
     "input_seq": "Secuencia de entrada",
     "output_seq": "Secuencia de salida",
@@ -141,10 +149,15 @@
     "clear_summaries_desc": "Esto eliminará los resúmenes de las conversaciones anteriores de todos los personajes",
     "clear_button": "Borrar resúmenes",
     "open_summaries": "Abrir carpeta de resúmenes de conversación",
+    "roaming_data": "Carpeta de datos móviles",
+    "roaming_data_desc": "Esta carpeta contiene tu configuración personal, scripts y resúmenes.",
+    "open_roaming_data": "Abrir carpeta de datos móviles",
     "roleplay_instruction": "Tu tarea es interpretar al personaje {characterName}. Escribe una respuesta solo para este personaje. Recuerda, estás interpretando a {characterName}, no escribas respuestas para ningún otro personaje.",
     "start_writing_reply": "Ahora empieza a escribir la respuesta de {characterName}:"
   },
   "chat": {
+    "target_label": "Personaje objetivo:",
+    "target_auto": "Detectado automáticamente",
     "leave_button": "TERMINAR CONVERSACIÓN",
     "input_placeholder": "Escribe un mensaje...",
     "search_title": "Buscar mensajes",
@@ -164,7 +177,8 @@
     "scene_description": "Descripción de la escena",
     "narrative": "Narrativa",
     "not_spoken": "No ha hablado todavía",
-    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA."
+    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA.",
+    "target_tooltip": "Selecciona un personaje específico al que dirigir tu mensaje. El valor predeterminado es 'Detectado automáticamente'."
   },
   "suggestions": {
     "header": "Entrada recomendada",

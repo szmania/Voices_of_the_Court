@@ -12,6 +12,7 @@
     "help": "Pomoc",
     "language_tooltip": "Wybierz język aplikacji",
     "discord_tooltip": "Dołącz do naszego Discorda",
+    "steam_tooltip": "Zobacz w Warsztacie Steam",
     "website_tooltip": "Odwiedź naszą stronę internetową"
   },
   "connection": {
@@ -100,6 +101,8 @@
     "shuffle_tooltip": "Losuje kolejność, w jakiej postacie generują wiadomości w rozmowach wieloosobowych. Uwaga: Jeśli włączone, kolejność mówienia będzie losowa, co może prowadzić do pomyłek w tożsamości postaci w odpowiedziach LLM.",
     "dynamic_selection": "dynamiczny wybór postaci",
     "dynamic_tooltip": "Używa LLM do analizy rozmowy i wyboru kolejnej postaci do wypowiedzi. LLM wybierze z puli postaci, które jeszcze nie mówiły w danej rundzie.",
+    "nonTargetedCharacterResponseChance": "Szansa na odpowiedź postaci niebędącej celem (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "Szansa (0-100%), że postać niebędąca celem odpowie w rozmowie wieloosobowej po wypowiedzi postaci docelowej.",
     "validate_identity": "waliduj tożsamość postaci",
     "validate_tooltip": "Gdy strumieniowanie jest wyłączone i jest więcej niż 2 postacie, sprawdza czy wygenerowana wiadomość pasuje do tożsamości postaci. Jeśli walidacja zawiedzie, regeneruje do 3 razy.",
     "show_suggestions": "pokaż przycisk sugestii",
@@ -119,6 +122,8 @@
     "desc_depth": "Głębokość wstawiania opisu postaci",
     "ai_start": "AI może zacząć rozmowę",
     "ai_start_chance": "Szansa na start AI (%)",
+    "aiToAiChatChance": "Szansa na czat AI z AI (%)",
+    "aiToAiChatChance_tooltip": "Szansa, że postać AI po odpowiedzi graczowi wyśle również wiadomość do innej postaci AI.",
     "instruct_header": "Ustawienia Instruct",
     "input_seq": "Sekwencja wejściowa",
     "output_seq": "Sekwencja wyjściowa",
@@ -144,10 +149,15 @@
     "clear_summaries_desc": "To usunie podsumowania poprzednich rozmów wszystkich postaci",
     "clear_button": "Wyczyść podsumowania",
     "open_summaries": "Otwórz folder podsumowań rozmów",
+    "roaming_data": "Folder danych mobilnych",
+    "roaming_data_desc": "Ten folder zawiera Twoją osobistą konfigurację, skrypty i podsumowania.",
+    "open_roaming_data": "Otwórz folder danych mobilnych",
     "roleplay_instruction": "Twoim zadaniem jest odgrywanie roli postaci {characterName}. Napisz odpowiedź tylko dla tej postaci. Pamiętaj, że grasz jako {characterName}, nie pisz odpowiedzi dla żadnej innej postaci.",
     "start_writing_reply": "Teraz zacznij pisać odpowiedź {characterName}:"
   },
   "chat": {
+    "target_label": "Postać docelowa:",
+    "target_auto": "Wykryto automatycznie",
     "leave_button": "ZAKOŃCZ ROZMOWĘ",
     "input_placeholder": "Napisz wiadomość...",
     "search_title": "Szukaj wiadomości",
@@ -167,7 +177,8 @@
     "scene_description": "Opis sceny",
     "narrative": "Narracja",
     "not_spoken": "Jeszcze nie mówił(a)",
-    "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI."
+    "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI.",
+    "target_tooltip": "Wybierz konkretną postać, do której chcesz skierować wiadomość. Domyślnie jest to 'Wykryto automatycznie'."
   },
   "suggestions": {
     "header": "Rekomendowane wejście",
