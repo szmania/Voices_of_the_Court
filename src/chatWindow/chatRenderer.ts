@@ -12,12 +12,14 @@ const sanitizeConfig = {
 hideChat();
 
 document.addEventListener('click', (event) => {
-    document.querySelectorAll('.custom-select-options').forEach(optionsDiv => {
-        const container = (optionsDiv as HTMLElement).closest('.custom-select-container');
-        if (container && !container.contains(event.target as Node)) {
+    // This global listener closes any dropdown if the click is outside of it.
+    // The stopPropagation in the valueDiv's click handler prevents this from firing when a dropdown is opened.
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-select-container')) {
+        document.querySelectorAll('.custom-select-options').forEach(optionsDiv => {
             (optionsDiv as HTMLElement).style.display = 'none';
-        }
-    });
+        });
+    }
 });
 
 // 初始化主题
@@ -573,8 +575,14 @@ function setupCharacterTargeting(gameData: GameData) {
 
         // Toggle dropdown
         valueDiv.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionsDiv.style.display = optionsDiv.style.display === 'none' ? 'block' : 'none';
+            e.stopPropagation(); // Prevent the global listener from closing it immediately
+            const isVisible = optionsDiv.style.display === 'block';
+            // Close all other dropdowns first
+            document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
+                (otherOptions as HTMLElement).style.display = 'none';
+            });
+            // Then toggle the current one
+            optionsDiv.style.display = isVisible ? 'none' : 'block';
         });
 
         wrapper.style.display = 'flex';
@@ -950,7 +958,11 @@ function showInlineActionForm(action: any) {
 
     sourceValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
-        sourceOptionsDiv.style.display = sourceOptionsDiv.style.display === 'none' ? 'block' : 'none';
+        const isVisible = sourceOptionsDiv.style.display === 'block';
+        document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
+            (otherOptions as HTMLElement).style.display = 'none';
+        });
+        sourceOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 
     sourceCustomSelect.appendChild(sourceHiddenInput);
@@ -1001,7 +1013,11 @@ function showInlineActionForm(action: any) {
 
     targetValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
-        targetOptionsDiv.style.display = targetOptionsDiv.style.display === 'none' ? 'block' : 'none';
+        const isVisible = targetOptionsDiv.style.display === 'block';
+        document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
+            (otherOptions as HTMLElement).style.display = 'none';
+        });
+        targetOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 
     targetCustomSelect.appendChild(targetHiddenInput);
