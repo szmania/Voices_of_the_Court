@@ -810,6 +810,10 @@ body.theme-west .chat-box {
     text-align: center;
 }
 
+.theme-west #character-target-wrapper {
+    margin-top: -60px;
+}
+
 .theme-west #character-target-container .custom-select-options {
     background-color: #2b2b2b;
     border: 1px solid #cca43b;
