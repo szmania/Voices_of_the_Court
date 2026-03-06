@@ -734,7 +734,9 @@ const promptKeys = [
     'selfTalkPrompt', 
     'selfTalkSummarizePrompt', 
     'narrativePrompt', 
-    'sceneDescriptionPrompt'
+    'sceneDescriptionPrompt',
+    'letterPrompt',
+    'letterSummaryPrompt'
 ];
 
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
