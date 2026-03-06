@@ -386,41 +386,36 @@ export class Conversation{
             return [];
         }
     
-        const targetId = (lastMessage as any).targetCharacterId;
-        let targetedCharacter: Character | undefined;
-    
-        // 1. Prioritize explicit target from UI
-        if (targetId) {
-            targetedCharacter = this.npcQueue.find(c => c.id === targetId);
+        const explicitTargets = new Set<Character>();
+
+        // 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
+        const targetIds = (lastMessage as any).targetCharacterIds as number[] | undefined;
+        if (targetIds && targetIds.length > 0) {
+            targetIds.forEach(id => {
+                const char = this.npcQueue.find(c => c.id === id);
+                if (char) {
+                    explicitTargets.add(char);
+                }
+            });
+            console.log(`UI targeted characters identified: ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
         }
-    
-        // 2. If no explicit target, check for @mentions
-        if (!targetedCharacter) {
-            for (const character of this.npcQueue) {
-                const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-                const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
-                if (mentionPattern.test(lastMessage.content)) {
-                    targetedCharacter = character;
-                    break; // Found first mentioned character
+
+        // 2. Add targets from @mentions and name mentions in text
+        for (const character of this.npcQueue) {
+            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+            const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
+            if (mentionPattern.test(lastMessage.content) || names.some(name => lastMessage.content.includes(name))) {
+                if (!explicitTargets.has(character)) {
+                    explicitTargets.add(character);
+                    console.log(`Text mention character identified: ${character.shortName}`);
                 }
             }
         }
-    
-        // 3. If still no target, fallback to simple name matching
-        if (!targetedCharacter) {
-            for (const character of this.npcQueue) {
-                const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-                if (names.some(name => lastMessage.content.includes(name))) {
-                    targetedCharacter = character;
-                    break; // Found first matched character
-                }
-            }
-        }
-    
-        // Now, build the final ordered list
-        if (targetedCharacter) {
-            console.log(`Targeted character identified: ${targetedCharacter.shortName}`);
-            const otherCharacters = this.npcQueue.filter(c => c.id !== targetedCharacter!.id);
+
+        const targetedCharacters = Array.from(explicitTargets);
+
+        if (targetedCharacters.length > 0) {
+            const otherCharacters = this.npcQueue.filter(c => !explicitTargets.has(c));
 
             // Filter other characters based on response chance
             const respondingCharacters = otherCharacters.filter(char => {
@@ -433,7 +428,11 @@ export class Conversation{
                 return willRespond;
             });
 
-            const finalOrder = [targetedCharacter, ...respondingCharacters.sort(() => Math.random() - 0.5)];
+            // Targeted characters respond first (in a random order), then the others.
+            const finalOrder = [
+                ...targetedCharacters.sort(() => Math.random() - 0.5),
+                ...respondingCharacters.sort(() => Math.random() - 0.5)
+            ];
             console.log(`Response order determined: ${finalOrder.map(c => c.shortName).join(', ')}`);
             return finalOrder;
         } else {

@@ -566,51 +566,52 @@ function setupCharacterTargeting(gameData: GameData) {
     const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
 
     if (aiCharacters.length > 1) {
-        optionsDiv.innerHTML = ''; // Clear previous options
+        optionsDiv.innerHTML = '';
 
-        // Add Auto option
-        const autoText = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
-        const autoOption = document.createElement('div');
-        autoOption.className = 'custom-select-option';
-        autoOption.dataset.value = 'auto';
-        autoOption.textContent = autoText;
-        autoOption.addEventListener('click', () => {
-            valueDiv.textContent = autoText;
-            hiddenInput.value = 'auto';
-            optionsDiv.style.display = 'none';
-        });
-        optionsDiv.appendChild(autoOption);
+        const updateSelection = () => {
+            const selectedCheckboxes = Array.from(optionsDiv.querySelectorAll('input[type="checkbox"]:checked')) as HTMLInputElement[];
+            const selectedIds = selectedCheckboxes.map(cb => cb.dataset.id);
+            const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
 
-        // Add character options
+            hiddenInput.value = selectedIds.join(',');
+            valueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+        };
+
         aiCharacters.forEach(char => {
             const charOption = document.createElement('div');
             charOption.className = 'custom-select-option';
-            charOption.dataset.value = char.id.toString();
-            charOption.textContent = char.shortName;
-            charOption.addEventListener('click', () => {
-                valueDiv.textContent = char.shortName;
-                hiddenInput.value = char.id.toString();
-                optionsDiv.style.display = 'none';
-            });
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.id = char.id.toString();
+            checkbox.dataset.name = char.shortName;
+            checkbox.id = `target-char-${char.id}`;
+
+            const label = document.createElement('label');
+            label.htmlFor = `target-char-${char.id}`;
+            label.textContent = char.shortName;
+
+            charOption.appendChild(checkbox);
+            charOption.appendChild(label);
+
+            checkbox.addEventListener('change', updateSelection);
+
             optionsDiv.appendChild(charOption);
         });
 
         // Set default value
-        valueDiv.textContent = autoText;
-        hiddenInput.value = 'auto';
+        valueDiv.textContent = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+        hiddenInput.value = '';
 
         // Toggle dropdown
         valueDiv.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent the global listener from closing it immediately
-            const isVisible = optionsDiv.style.display === 'block';
-            // Close all other dropdowns
-            document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
-                if (otherOptions !== optionsDiv) {
-                    (otherOptions as HTMLElement).style.display = 'none';
-                }
-            });
-            // Toggle the current one
-            optionsDiv.style.display = isVisible ? 'none' : 'block';
+            optionsDiv.style.display = optionsDiv.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Prevent dropdown from closing when clicking inside
+        optionsDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
 
         // Manually set the tooltip since the element might have been hidden during initial localization
