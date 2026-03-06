@@ -153,7 +153,7 @@
     "roleplay_instruction": "[系统指令：你的任务是扮演角色 {characterName}。只为该角色撰写回复。不要以任何其他角色的身份写作。]"
   },
   "chat": {
-    "target_label": "目标：",
+    "target_label": "目标角色：",
     "target_auto": "自动检测",
     "leave_button": "结束对话",
     "input_placeholder": "输入消息...",

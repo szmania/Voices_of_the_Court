@@ -104,7 +104,8 @@
 }
 
 /* Button wrapper tooltips (matching leave button style) */
-.button-wrapper::after {
+.button-wrapper::after,
+#character-target-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 130%; /* Match East UI theme positioning */
@@ -127,7 +128,8 @@
     pointer-events: none;
 }
 
-.button-wrapper:hover::after {
+.button-wrapper:hover::after,
+#character-target-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s; /* Small delay before hiding */
