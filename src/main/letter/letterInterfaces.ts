@@ -3,7 +3,8 @@ import { Character } from "../../shared/gameData/Character.js";
 export enum LetterType {
     DIPLOMATIC = 'diplomatic',
     PERSONAL = 'personal',
-    EVENT = 'event'
+    EVENT = 'event',
+    UNKNOWN = 'unknown'
 }
 
 export interface Letter {

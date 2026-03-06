@@ -2,10 +2,9 @@ import { app } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
-import { Letter as ILetter } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
-import { parseLogForBookmarks } from '../parseLogforbookmarks.js';
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -47,6 +46,28 @@ export class LetterManager {
             }
         }
         return [];
+    }
+
+    public getAllLetters(playerId: string): ILetter[] {
+        const playerFolderPath = path.join(this.letterHistoryPath, `player_${playerId}`);
+        if (!fs.existsSync(playerFolderPath)) {
+            return [];
+        }
+
+        let allLetters: ILetter[] = [];
+        const files = fs.readdirSync(playerFolderPath);
+
+        for (const file of files) {
+            if (file.startsWith('character_') && file.endsWith('.json')) {
+                const characterId = file.replace('character_', '').replace('.json', '');
+                const letters = this.getLetters(playerId, characterId);
+                allLetters.push(...letters);
+            }
+        }
+
+        // Sort all letters by date, most recent first
+        allLetters.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        return allLetters;
     }
     
     public saveLetter(letter: ILetter, playerId: string): void {
@@ -110,7 +131,7 @@ export class LetterManager {
         }
     }
 
-    public async importLettersFromLog(config: Config): Promise<void> {
+    public async importLettersFromLog(config: Config, characterNameMap: Map<string, string>, playerId: string): Promise<void> {
         const ck3Folder = config.userFolderPath;
         if (!ck3Folder) {
             console.warn("LetterManager.importLettersFromLog: CK3 user folder is not configured.");
@@ -118,16 +139,9 @@ export class LetterManager {
         }
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
-        const bookmarkData = await parseLogForBookmarks(debugLogPath);
-        if (!bookmarkData || !bookmarkData.characters_in_bookmark) {
-            console.log("Could not parse bookmark data or no characters found, cannot import letters.");
-            return;
-        }
-
-        const newLetters = await parseLettersFromLog(debugLogPath, bookmarkData.characters_in_bookmark);
+        const newLetters = await parseLettersFromLog(debugLogPath, characterNameMap);
 
         if (newLetters.length > 0) {
-            const playerId = bookmarkData.player.id;
             newLetters.forEach(letter => {
                 this.saveLetter(letter, playerId);
             });

@@ -61,8 +61,7 @@ export class Letter implements ILetter {
                 recipient,
                 subject,
                 content,
-                // @ts-ignore
-                "UNKNOWN" // Assuming UNKNOWN is a valid LetterType. This might need to be changed depending on letterInterfaces.ts
+                LetterType.UNKNOWN
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

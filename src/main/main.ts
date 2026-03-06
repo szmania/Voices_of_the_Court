@@ -8,6 +8,7 @@ import { ClipboardListener } from "./ClipboardListener.js";
 import { Conversation } from "./conversation/Conversation.js";
 import { GameData } from "../shared/gameData/GameData.js";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
+import { LetterManager } from "./letter/LetterManager.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
@@ -500,6 +501,14 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
 
+        // Import letters from log
+        const characterNameMap = new Map<string, string>();
+        gameData.characters.forEach(char => {
+            characterNameMap.set(String(char.id), char.fullName);
+        });
+        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID));
+
+
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
         
@@ -949,9 +958,11 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 ipcMain.on('get-letters', (event) => {
     console.log('IPC: Received get-letters event.');
     if (conversation) {
-        const letters = conversation.letterManager.getLetters(String(conversation.gameData.playerID), String(conversation.gameData.aiID));
+        const letters = conversation.letterManager.getAllLetters(String(conversation.gameData.playerID));
         event.sender.send('letters-data', letters);
     } else {
+        // Fallback for when conversation is not active, maybe check last player ID?
+        // For now, just send empty. A more robust solution could be implemented if needed.
         console.log('IPC: No active conversation, sending empty letter array.');
         event.sender.send('letters-data', []);
     }
