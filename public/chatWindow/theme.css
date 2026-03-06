@@ -743,6 +743,10 @@ body.theme-west .chat-box {
     z-index: 300;
 }
 
+.theme-chinese #character-target-wrapper {
+    margin-top: -25px;
+}
+
 /* East UI Theme for Character Target Dropdown */
 .theme-chinese #character-target-container .custom-select-value {
     background-image: url(../assets/xuanxiang1.png);
