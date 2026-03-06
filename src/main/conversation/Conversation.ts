@@ -421,7 +421,19 @@ export class Conversation{
         if (targetedCharacter) {
             console.log(`Targeted character identified: ${targetedCharacter.shortName}`);
             const otherCharacters = this.npcQueue.filter(c => c.id !== targetedCharacter!.id);
-            const finalOrder = [targetedCharacter, ...otherCharacters.sort(() => Math.random() - 0.5)];
+
+            // Filter other characters based on response chance
+            const respondingCharacters = otherCharacters.filter(char => {
+                const willRespond = Math.random() < this.config.nonTargetedCharacterResponseChance;
+                if (willRespond) {
+                    console.log(`Character ${char.shortName} will respond based on chance.`);
+                } else {
+                    console.log(`Character ${char.shortName} will NOT respond based on chance.`);
+                }
+                return willRespond;
+            });
+
+            const finalOrder = [targetedCharacter, ...respondingCharacters.sort(() => Math.random() - 0.5)];
             console.log(`Response order determined: ${finalOrder.map(c => c.shortName).join(', ')}`);
             return finalOrder;
         } else {

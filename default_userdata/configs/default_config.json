@@ -84,6 +84,7 @@
 	"aiStartConversationChance": 0.25,
 	"checkForUpdatesOnStartup": true,
 	"shuffleCharacterOrder": false,
+	"nonTargetedCharacterResponseChance": 0.15,
 	"dynamicCharacterSelection": false,
 	"validateCharacterIdentity": false,
 	"showSuggestionsButton": true,

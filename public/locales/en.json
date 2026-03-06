@@ -101,6 +101,8 @@
     "shuffle_tooltip": "Randomize the order in which characters generate messages in multi-character conversations. Note: If enabled, the speaking order of each character will be random, which may lead to confusion in the LLM's output character identity.",
     "dynamic_selection": "dynamic character selection",
     "dynamic_tooltip": "Use LLM to analyze conversation and select the next character to speak. The LLM will choose from a pool of characters who haven't spoken yet in the current round.",
+    "nonTargetedCharacterResponseChance": "Non-targeted response chance (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "The chance (0-100%) that a non-targeted character will respond in a multi-character conversation after the targeted character has spoken.",
     "validate_identity": "validate character identity",
     "validate_tooltip": "When streaming is disabled and there are more than 2 characters, validate that the generated message matches the character's identity. If validation fails, regenerate up to 3 times.",
     "show_suggestions": "show suggestions button",

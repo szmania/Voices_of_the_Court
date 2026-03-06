@@ -60,6 +60,7 @@ export class Config{
     aiStartConversationChance!: number;
     shuffleCharacterOrder!: boolean;
     dynamicCharacterSelection!: boolean;
+    nonTargetedCharacterResponseChance!: number;
     validateCharacterIdentity!: boolean;
     showSuggestionsButton!: boolean;
     generateSceneDescription!: boolean;

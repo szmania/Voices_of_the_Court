@@ -101,6 +101,8 @@
     "shuffle_tooltip": "在多角色对话中随机化角色生成消息的顺序。注意：如果启用，每个角色的发言顺序将是随机的，这可能会导致 LLM 输出的角色身份混乱。",
     "dynamic_selection": "动态角色选择",
     "dynamic_tooltip": "使用 LLM 分析对话并选择下一个发言的角色。LLM 将从当前轮次中尚未发言的角色池中进行选择。",
+    "nonTargetedCharacterResponseChance": "非目标角色回应概率 (%)",
+    "nonTargetedCharacterResponseChance_tooltip": "在多角色对话中，目标角色回应后，非目标角色回应的概率（0-100%）。",
     "validate_identity": "验证角色身份",
     "validate_tooltip": "当禁用流式传输且角色超过 2 个时，验证生成的消息是否符合角色的身份。如果验证失败，最多重新生成 3 次。",
     "show_suggestions": "显示建议按钮",
