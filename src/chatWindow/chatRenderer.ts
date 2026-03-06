@@ -960,15 +960,15 @@ function showInlineActionForm(action: any) {
 
     sourceValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isCurrentlyVisible = sourceOptionsDiv.style.display === 'block';
-        // First, close all dropdowns
-        document.querySelectorAll('.custom-select-options').forEach(optionsDiv => {
-            (optionsDiv as HTMLElement).style.display = 'none';
+        const isVisible = sourceOptionsDiv.style.display === 'block';
+        // Close all other dropdowns
+        document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
+            if (otherOptions !== sourceOptionsDiv) {
+                (otherOptions as HTMLElement).style.display = 'none';
+            }
         });
-        // If the one we clicked was not visible, open it.
-        if (!isCurrentlyVisible) {
-            sourceOptionsDiv.style.display = 'block';
-        }
+        // Toggle the current one
+        sourceOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 
     sourceCustomSelect.appendChild(sourceHiddenInput);
@@ -1019,15 +1019,15 @@ function showInlineActionForm(action: any) {
 
     targetValueDiv.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isCurrentlyVisible = targetOptionsDiv.style.display === 'block';
-        // First, close all dropdowns
-        document.querySelectorAll('.custom-select-options').forEach(optionsDiv => {
-            (optionsDiv as HTMLElement).style.display = 'none';
+        const isVisible = targetOptionsDiv.style.display === 'block';
+        // Close all other dropdowns
+        document.querySelectorAll('.custom-select-options').forEach(otherOptions => {
+            if (otherOptions !== targetOptionsDiv) {
+                (otherOptions as HTMLElement).style.display = 'none';
+            }
         });
-        // If the one we clicked was not visible, open it.
-        if (!isCurrentlyVisible) {
-            targetOptionsDiv.style.display = 'block';
-        }
+        // Toggle the current one
+        targetOptionsDiv.style.display = isVisible ? 'none' : 'block';
     });
 
     targetCustomSelect.appendChild(targetHiddenInput);
