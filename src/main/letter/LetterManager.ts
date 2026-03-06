@@ -4,6 +4,8 @@ import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter } from "./letterInterfaces.js";
 import { Config } from '../../shared/Config.js';
+import { parseLettersFromLog } from './parseLogForLetters.js';
+import { parseLogForBookmarks } from '../parseLogforbookmarks.js';
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -105,6 +107,31 @@ export class LetterManager {
           console.log("Cleared letters.txt file");
         } else {
           console.log("letters.txt file does not exist, nothing to clear");
+        }
+    }
+
+    public async importLettersFromLog(config: Config): Promise<void> {
+        const ck3Folder = config.userFolderPath;
+        if (!ck3Folder) {
+            console.warn("LetterManager.importLettersFromLog: CK3 user folder is not configured.");
+            return;
+        }
+        const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
+
+        const bookmarkData = await parseLogForBookmarks(debugLogPath);
+        if (!bookmarkData || !bookmarkData.characters_in_bookmark) {
+            console.log("Could not parse bookmark data or no characters found, cannot import letters.");
+            return;
+        }
+
+        const newLetters = await parseLettersFromLog(debugLogPath, bookmarkData.characters_in_bookmark);
+
+        if (newLetters.length > 0) {
+            const playerId = bookmarkData.player.id;
+            newLetters.forEach(letter => {
+                this.saveLetter(letter, playerId);
+            });
+            console.log(`Imported and saved ${newLetters.length} new letters.`);
         }
     }
 }
