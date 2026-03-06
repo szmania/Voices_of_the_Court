@@ -25,11 +25,11 @@ export class LetterManager {
     }
 
     private getLetterFilePath(playerId: string, characterId: string): string {
-        const playerFolderPath = path.join(this.letterHistoryPath, `player_${playerId}`);
+        const playerFolderPath = path.join(this.letterHistoryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             fs.mkdirSync(playerFolderPath, { recursive: true });
         }
-        return path.join(playerFolderPath, `character_${characterId}.json`);
+        return path.join(playerFolderPath, `${characterId}.json`);
     }
 
     public getLetters(playerId: string, characterId: string): ILetter[] {
@@ -49,7 +49,7 @@ export class LetterManager {
     }
 
     public getAllLetters(playerId: string): ILetter[] {
-        const playerFolderPath = path.join(this.letterHistoryPath, `player_${playerId}`);
+        const playerFolderPath = path.join(this.letterHistoryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             return [];
         }
@@ -58,8 +58,8 @@ export class LetterManager {
         const files = fs.readdirSync(playerFolderPath);
 
         for (const file of files) {
-            if (file.startsWith('character_') && file.endsWith('.json')) {
-                const characterId = file.replace('character_', '').replace('.json', '');
+            if (file.endsWith('.json')) {
+                const characterId = file.replace('.json', '');
                 const letters = this.getLetters(playerId, characterId);
                 allLetters.push(...letters);
             }
