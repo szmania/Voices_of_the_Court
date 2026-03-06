@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     entriesToShow.push({ ...entry, character_id: charId });
                 });
             });
-        } else if (allDiaries[selectedCharacterId]) {
-            entriesToShow = allDiaries[selectedCharacterId].map(entry => ({ ...entry, character_id: selectedCharacterId }));
+        } else if (selectedCharacterId && allDiaries[selectedCharacterId]) {
+            entriesToShow = allDiaries[selectedCharacterId].map((entry: any) => ({ ...entry, character_id: selectedCharacterId }));
         }
 
         entriesToShow = entriesToShow.filter(entry => {
