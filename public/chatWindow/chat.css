@@ -1098,3 +1098,32 @@ em{
     visibility: visible;
     transition-delay: 0.1s;
 }
+
+#character-target-wrapper {
+    display: none; /* Controlled by JS */
+    justify-content: center;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#character-target-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#character-target-container label {
+    font-family: Gitan;
+    color: #cca43b;
+}
+
+#character-target-select {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+    padding: 5px;
+    font-family: 'Gitan', sans-serif;
+    min-width: 200px;
+}

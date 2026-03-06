@@ -742,3 +742,51 @@ body.theme-west .chat-box {
     left: 7%; /* 设置左边距 */
     z-index: 300;
 }
+
+/* East UI Theme for Character Target Dropdown */
+.theme-chinese #character-target-select {
+    background-image: url(../assets/xuanxiang1.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    color: #957c53;
+    border: none;
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    padding: 10px 15px;
+    -webkit-appearance: none; /* Remove default arrow */
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+}
+
+.theme-chinese #character-target-container label {
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    color: #957c53;
+    font-weight: bold;
+}
+
+/* West UI Theme for Character Target Dropdown */
+.theme-west #character-target-select {
+    background-image: url(../assets/xuanxiang_west1.png);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    color: #20201e;
+    border: none;
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    padding: 10px 15px;
+    -webkit-appearance: none; /* Remove default arrow */
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+}
+
+.theme-west #character-target-container label {
+    font-family: 'Gitan', sans-serif;
+    color: #a18c61;
+    font-weight: bold;
+}

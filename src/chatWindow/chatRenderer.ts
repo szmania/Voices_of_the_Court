@@ -516,7 +516,8 @@ function hideChat(){
 }
 
 function setupCharacterTargeting(gameData: GameData) {
-    if (!characterTargetContainer || !characterTargetSelect) return;
+    const wrapper = document.getElementById('character-target-wrapper');
+    if (!wrapper || !characterTargetSelect) return;
 
     const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
 
@@ -535,9 +536,9 @@ function setupCharacterTargeting(gameData: GameData) {
             characterTargetSelect.appendChild(charOption);
         });
 
-        characterTargetContainer.style.display = 'flex';
+        wrapper.style.display = 'flex';
     } else {
-        characterTargetContainer.style.display = 'none';
+        wrapper.style.display = 'none';
     }
 }
 
