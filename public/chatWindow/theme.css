@@ -744,7 +744,7 @@ body.theme-west .chat-box {
 }
 
 /* East UI Theme for Character Target Dropdown */
-.theme-chinese #character-target-select {
+.theme-chinese #character-target-container .custom-select-value {
     background-image: url(../assets/xuanxiang1.png);
     background-size: 100% 100%;
     background-repeat: no-repeat;
@@ -755,10 +755,22 @@ body.theme-west .chat-box {
     font-family: 'SiYuanSongTiRegular', sans-serif;
     font-weight: bold;
     padding: 10px 15px;
-    -webkit-appearance: none; /* Remove default arrow */
-    -moz-appearance: none;
-    appearance: none;
     text-align: center;
+}
+
+.theme-chinese #character-target-container .custom-select-options {
+    background-color: #2b2b2b;
+    border: 1px solid #957c53;
+}
+
+.theme-chinese #character-target-container .custom-select-option {
+    font-family: 'SiYuanSongTiRegular', sans-serif;
+    font-weight: bold;
+    color: #957c53;
+}
+
+.theme-chinese #character-target-container .custom-select-option:hover {
+    background-color: #3a3a3a;
 }
 
 .theme-chinese #character-target-container label {
@@ -768,7 +780,7 @@ body.theme-west .chat-box {
 }
 
 /* West UI Theme for Character Target Dropdown */
-.theme-west #character-target-select {
+.theme-west #character-target-container .custom-select-value {
     background-image: url(../assets/xuanxiang_west1.png);
     background-size: 100% 100%;
     background-repeat: no-repeat;
@@ -779,10 +791,22 @@ body.theme-west .chat-box {
     font-family: 'Gitan', sans-serif;
     font-weight: bold;
     padding: 10px 15px;
-    -webkit-appearance: none; /* Remove default arrow */
-    -moz-appearance: none;
-    appearance: none;
     text-align: center;
+}
+
+.theme-west #character-target-container .custom-select-options {
+    background-color: #2b2b2b;
+    border: 1px solid #cca43b;
+}
+
+.theme-west #character-target-container .custom-select-option {
+    font-family: 'Gitan', sans-serif;
+    font-weight: bold;
+    color: #20201e;
+}
+
+.theme-west #character-target-container .custom-select-option:hover {
+    background-color: #3a3a3a;
 }
 
 .theme-west #character-target-container label {

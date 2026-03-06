@@ -11,6 +11,13 @@ const sanitizeConfig = {
 
 hideChat();
 
+document.addEventListener('click', () => {
+    const optionsDiv = document.getElementById('character-target-options') as HTMLDivElement;
+    if (optionsDiv && optionsDiv.style.display === 'block') {
+        optionsDiv.style.display = 'none';
+    }
+});
+
 // 初始化主题
 function initTheme() {
     const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
@@ -320,9 +327,12 @@ chatInput.addEventListener('keydown', async function(e) {
             content: messageText
         };
 
+        const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+        const wrapper = document.getElementById('character-target-wrapper') as HTMLDivElement;
+
         // Add target character if selected
-        if (characterTargetContainer.style.display === 'block' && characterTargetSelect.value !== 'auto') {
-            (message as any).targetCharacterId = parseInt(characterTargetSelect.value, 10);
+        if (wrapper.style.display === 'flex' && hiddenInput.value !== 'auto') {
+            (message as any).targetCharacterId = parseInt(hiddenInput.value, 10);
         }
 
         await displayMessage(message);
@@ -516,24 +526,53 @@ function hideChat(){
 }
 
 function setupCharacterTargeting(gameData: GameData) {
-    const wrapper = document.getElementById('character-target-wrapper');
-    if (!wrapper || !characterTargetSelect) return;
+    const wrapper = document.getElementById('character-target-wrapper') as HTMLDivElement;
+    const valueDiv = document.getElementById('character-target-value') as HTMLDivElement;
+    const optionsDiv = document.getElementById('character-target-options') as HTMLDivElement;
+    const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+
+    if (!wrapper || !valueDiv || !optionsDiv || !hiddenInput) return;
 
     const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
 
     if (aiCharacters.length > 1) {
-        characterTargetSelect.innerHTML = '';
-        
-        const autoOption = document.createElement('option');
-        autoOption.value = 'auto';
-        autoOption.textContent = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
-        characterTargetSelect.appendChild(autoOption);
+        optionsDiv.innerHTML = ''; // Clear previous options
 
+        // Add Auto option
+        const autoText = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+        const autoOption = document.createElement('div');
+        autoOption.className = 'custom-select-option';
+        autoOption.dataset.value = 'auto';
+        autoOption.textContent = autoText;
+        autoOption.addEventListener('click', () => {
+            valueDiv.textContent = autoText;
+            hiddenInput.value = 'auto';
+            optionsDiv.style.display = 'none';
+        });
+        optionsDiv.appendChild(autoOption);
+
+        // Add character options
         aiCharacters.forEach(char => {
-            const charOption = document.createElement('option');
-            charOption.value = char.id.toString();
+            const charOption = document.createElement('div');
+            charOption.className = 'custom-select-option';
+            charOption.dataset.value = char.id.toString();
             charOption.textContent = char.shortName;
-            characterTargetSelect.appendChild(charOption);
+            charOption.addEventListener('click', () => {
+                valueDiv.textContent = char.shortName;
+                hiddenInput.value = char.id.toString();
+                optionsDiv.style.display = 'none';
+            });
+            optionsDiv.appendChild(charOption);
+        });
+
+        // Set default value
+        valueDiv.textContent = autoText;
+        hiddenInput.value = 'auto';
+
+        // Toggle dropdown
+        valueDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            optionsDiv.style.display = optionsDiv.style.display === 'none' ? 'block' : 'none';
         });
 
         wrapper.style.display = 'flex';

@@ -114,7 +114,11 @@
     <div id="character-target-wrapper" style="display: none;">
         <div id="character-target-container">
             <label for="character-target-select" data-i18n="chat.target_label">Target:</label>
-            <select id="character-target-select"></select>
+            <div class="custom-select-container" id="character-target-select-container">
+                <div class="custom-select-value" id="character-target-value"></div>
+                <div class="custom-select-options" id="character-target-options" style="display: none;"></div>
+                <input type="hidden" id="character-target-hidden-input" value="auto">
+            </div>
         </div>
     </div>
     <div class="button-container">

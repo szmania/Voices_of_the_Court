@@ -1103,8 +1103,10 @@ em{
     display: none; /* Controlled by JS */
     justify-content: center;
     width: 100%;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: -10px; /* Move it up */
+    margin-bottom: 15px; /* Add some space below it */
+    position: relative;
+    z-index: 200; /* Ensure it's above button container */
 }
 
 #character-target-container {
@@ -1118,12 +1120,43 @@ em{
     color: #cca43b;
 }
 
-#character-target-select {
+#character-target-container .custom-select-container {
+    position: relative;
+    min-width: 200px;
+}
+
+#character-target-container .custom-select-value {
     background-color: #1a1a1a;
     color: #e0e0e0;
     border: 1px solid #5a4a35;
     border-radius: 2px;
     padding: 5px;
     font-family: 'Gitan', sans-serif;
-    min-width: 200px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#character-target-container .custom-select-options {
+    position: absolute;
+    bottom: 100%; /* Open upwards */
+    left: 0;
+    right: 0;
+    background: #2b2b2b;
+    border: 1px solid #5a4a35;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+#character-target-container .custom-select-option {
+    padding: 8px;
+    color: #e0e0e0;
+    cursor: pointer;
+    text-align: center;
+}
+
+#character-target-container .custom-select-option:hover {
+    background-color: #4a4a4a;
 }
