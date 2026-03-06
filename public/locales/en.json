@@ -79,6 +79,8 @@
     "narrative_tooltip": "This prompt is used to generate AI narrative descriptions after actions are triggered. The narrative provides atmospheric descriptions of events in the game.",
     "scene_description_prompt": "Scene Description prompt",
     "scene_description_tooltip": "This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.",
+    "diary_prompt": "Diary Prompt",
+    "diary_tooltip": "This prompt is used to generate diary entries for characters after conversations. It helps maintain character consistency and depth.",
     "restore_defaults": "Restore Default Prompts",
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",

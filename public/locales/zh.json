@@ -79,6 +79,8 @@
     "narrative_tooltip": "此提示词用于在触发动作后生成 AI 叙述描述。叙述提供游戏中事件的氛围描述。",
     "scene_description_prompt": "场景描述提示词",
     "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
+    "diary_prompt": "日记提示词",
+    "diary_tooltip": "此提示词用于在对话后为角色生成日记条目。它有助于保持角色的一致性和深度。",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
     "presets_header": "提示词预设",
