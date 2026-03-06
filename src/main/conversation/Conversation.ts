@@ -381,75 +381,49 @@ export class Conversation{
 
     async determineResponseOrder(): Promise<Character[]> {
         console.log('Determining response order...');
-        if (this.messages.length === 0) {
-            console.log('No messages in conversation, returning empty response order.');
-            return [];
-        }
         const lastMessage = this.messages[this.messages.length - 1];
-        if (lastMessage.role !== 'user') {
-            console.log('Last message not from user, returning empty response order.');
+        if (!lastMessage || lastMessage.role !== 'user') {
             return [];
         }
-
-        const potentialTargets: Character[] = [];
-        const remainingCharacters: Character[] = [...this.npcQueue];
-
-        // 1. Check for explicit target from UI
+    
         const targetId = (lastMessage as any).targetCharacterId;
+        let targetedCharacter: Character | undefined;
+    
+        // 1. Prioritize explicit target from UI
         if (targetId) {
-            const targetCharacter = this.npcQueue.find(c => c.id === targetId);
-            if (targetCharacter) {
-                console.log(`Explicit target found from UI: ${targetCharacter.shortName}`);
-                potentialTargets.push(targetCharacter);
-                const index = remainingCharacters.findIndex(c => c.id === targetId);
-                if (index > -1) {
-                    remainingCharacters.splice(index, 1);
-                }
-            }
+            targetedCharacter = this.npcQueue.find(c => c.id === targetId);
         }
-
-        // 2. Check for @mentions if no explicit target
-        if (potentialTargets.length === 0) {
+    
+        // 2. If no explicit target, check for @mentions
+        if (!targetedCharacter) {
             for (const character of this.npcQueue) {
                 const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-                for (const name of names) {
-                    // More specific check for @mention
-                    const mentionPattern = new RegExp(`@${name}\\b`, 'i');
-                    if (mentionPattern.test(lastMessage.content)) {
-                        const index = remainingCharacters.findIndex(c => c.id === character.id);
-                        if (index > -1) {
-                            console.log(`Found @mention for ${character.shortName}`);
-                            potentialTargets.push(character);
-                            remainingCharacters.splice(index, 1);
-                            break; // Move to next character
-                        }
-                    }
+                const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
+                if (mentionPattern.test(lastMessage.content)) {
+                    targetedCharacter = character;
+                    break; // Found first mentioned character
                 }
             }
         }
-
-        // 3. Fallback to simple name matching if still no target
-        if (potentialTargets.length === 0) {
+    
+        // 3. If still no target, fallback to simple name matching
+        if (!targetedCharacter) {
             for (const character of this.npcQueue) {
                 const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-                for (const name of names) {
-                    if (lastMessage.content.includes(name)) {
-                        const index = remainingCharacters.findIndex(c => c.id === character.id);
-                        if (index > -1) {
-                            potentialTargets.push(character);
-                            remainingCharacters.splice(index, 1);
-                            break; // Move to next character once found
-                        }
-                    }
+                if (names.some(name => lastMessage.content.includes(name))) {
+                    targetedCharacter = character;
+                    break; // Found first matched character
                 }
             }
         }
-
-        if (potentialTargets.length > 0) {
-            console.log(`Potential target characters found: ${potentialTargets.map(c => c.shortName).join(', ')}`);
-            const orderedNpcs = [...potentialTargets, ...remainingCharacters.sort(() => Math.random() - 0.5)]; // Shuffle remaining
-            console.log(`Response order determined: ${orderedNpcs.map(c => c.shortName).join(', ')}`);
-            return orderedNpcs;
+    
+        // Now, build the final ordered list
+        if (targetedCharacter) {
+            console.log(`Targeted character identified: ${targetedCharacter.shortName}`);
+            const otherCharacters = this.npcQueue.filter(c => c.id !== targetedCharacter!.id);
+            const finalOrder = [targetedCharacter, ...otherCharacters.sort(() => Math.random() - 0.5)];
+            console.log(`Response order determined: ${finalOrder.map(c => c.shortName).join(', ')}`);
+            return finalOrder;
         } else {
             console.log('No specific character targeted. Using shuffled order.');
             const shuffled = [...this.npcQueue].sort(() => Math.random() - 0.5);
