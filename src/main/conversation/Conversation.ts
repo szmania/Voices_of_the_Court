@@ -438,27 +438,35 @@ export class Conversation{
 
         // 2. If no UI target, check for @mentions and name/title mentions in text
         for (const character of this.npcQueue) {
-            const names = [character.fullName, character.shortName, character.firstName].filter(Boolean);
-            if (character.primaryTitle) {
-                names.push(character.primaryTitle);
-                // Split title into words, removing punctuation and common articles
-                const titleWords = character.primaryTitle.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/);
-                const commonWords = ['the', 'a', 'an', 'of'];
-                for (const word of titleWords) {
-                    if (word && !commonWords.includes(word)) {
-                        names.push(word);
-                    }
-                }
-            }
-            const mentionPattern = new RegExp(`@(${names.join('|')})\\b`, 'i');
-        
-            // Create a regex for whole word matching for each name to avoid partial matches
-            const namePatterns = names.map(name => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
-
+            const namesToTest = [character.fullName, character.shortName, character.firstName].filter(Boolean);
+            
+            // Create regex for whole word matching for names
+            const namePatterns = namesToTest.map(name => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i'));
+    
+            // Create regex for @mentions
+            const mentionPattern = new RegExp(`@(${namesToTest.join('|')})\\b`, 'i');
+    
             if (mentionPattern.test(lastMessage.content) || namePatterns.some(pattern => pattern.test(lastMessage.content))) {
                 if (!explicitTargets.has(character)) {
                     explicitTargets.add(character);
-                    console.log(`Text mention character identified: ${character.shortName}`);
+                    console.log(`Text mention character identified by name: ${character.shortName}`);
+                    continue; // Found a match, go to next character
+                }
+            }
+    
+            // Test for titles if no name match was found for this character yet
+            if (character.primaryTitle && !explicitTargets.has(character)) {
+                const titleWords = character.primaryTitle.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/);
+                const commonWords = ['the', 'a', 'an', 'of'];
+                const significantTitleWords = titleWords.filter(word => word && !commonWords.includes(word));
+                
+                const titlePatterns = significantTitleWords.map(word => new RegExp(`\\b${word}\\b`, 'i'));
+    
+                if (titlePatterns.some(pattern => pattern.test(lastMessage.content))) {
+                     if (!explicitTargets.has(character)) {
+                        explicitTargets.add(character);
+                        console.log(`Text mention character identified by title: ${character.shortName}`);
+                    }
                 }
             }
         }
