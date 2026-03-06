@@ -680,7 +680,8 @@ html{
 
 /* Tooltip bubble for regenerate button */
 
-.button-wrapper::after {
+.button-wrapper::after,
+#character-target-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 130%; /* Match East UI theme positioning */
