@@ -68,6 +68,7 @@
     "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
     "letter_prompt": "信件提示词",
     "letter_summary_prompt": "信件总结提示词",
+    "letter_summary_prompt": "信件总结提示词",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
     "scripts_header": "脚本",

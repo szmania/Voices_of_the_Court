@@ -66,6 +66,7 @@
     "scene_description_tooltip": "Ten prompt służy do generowania początkowego opisu sceny na początku rozmowy. Zapewnia tło i atmosferę dla interakcji postaci.",
     "letter_prompt": "Prompt listu",
     "letter_summary_prompt": "Prompt podsumowania listu",
+    "letter_summary_prompt": "Prompt podsumowania listu",
     "restore_defaults": "Przywróć domyślne prompty",
     "restore_tooltip": "Kliknij ten przycisk, aby przywrócić wszystkie prompty do ich wartości domyślnych",
     "scripts_header": "Skrypty",
