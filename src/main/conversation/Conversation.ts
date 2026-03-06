@@ -455,18 +455,21 @@ export class Conversation{
             }
     
             // Test for titles if no name match was found for this character yet
-            if (character.primaryTitle && !explicitTargets.has(character)) {
-                const titleWords = character.primaryTitle.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/);
+            if (!explicitTargets.has(character) && (character.primaryTitle || character.titleRankConcept)) {
+                const titleWords = [
+                    ...(character.primaryTitle?.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/) || []),
+                    character.titleRankConcept?.toLowerCase()
+                ].filter(Boolean);
+
                 const commonWords = ['the', 'a', 'an', 'of'];
-                const significantTitleWords = titleWords.filter(word => word && !commonWords.includes(word));
+                const significantTitleWords = [...new Set(titleWords.filter(word => word && !commonWords.includes(word)))];
                 
                 const titlePatterns = significantTitleWords.map(word => new RegExp(`\\b${word}\\b`, 'i'));
     
                 if (titlePatterns.some(pattern => pattern.test(lastMessage.content))) {
-                     if (!explicitTargets.has(character)) {
-                        explicitTargets.add(character);
-                        console.log(`Text mention character identified by title: ${character.shortName}`);
-                    }
+                    explicitTargets.add(character);
+                    console.log(`Text mention character identified by title: ${character.shortName}`);
+                    continue; // Found a match, go to next character
                 }
             }
         }
