@@ -4,6 +4,7 @@
     "actions": "Acciones",
     "summarization": "Resumen",
     "prompts": "Prompts",
+    "letters": "Cartas",
     "settings": "Ajustes",
     "system": "Sistema",
     "help": "Ayuda",
@@ -523,6 +524,16 @@
     "presence_penalty": "Penalización de presencia",
     "top_p": "Top P",
     "reset": "Restablecer"
+  },
+  "letters": {
+    "player": "Jugador",
+    "character": "Personaje",
+    "all_characters": "Todos los personajes",
+    "inbox": "Bandeja de entrada",
+    "outbox": "Bandeja de salida",
+    "no_player": "Selecciona un jugador para ver las cartas.",
+    "no_letters": "No se encontraron cartas.",
+    "select": "Selecciona una carta para leer."
   },
   "history": {
     "header": "Visor del historial de conversaciones",

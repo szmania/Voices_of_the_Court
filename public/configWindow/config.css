@@ -481,6 +481,127 @@ language-selector {
 .social-links-li a svg {
   fill: currentColor;
 }
+
+/* Letter Window Styles */
+#container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 50px); /* Adjust based on navbar height */
+}
+
+#letter-controls {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    align-items: center;
+    border-bottom: 1px solid #5a4a35;
+    flex-wrap: wrap;
+    background-color: rgba(26, 26, 26, 0.8);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#letter-view-tabs button {
+    padding: 8px 15px;
+    border: 1px solid #5a4a35;
+    background-color: #2d2d2d;
+    color: #b8860b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#letter-view-tabs button.active {
+    background-color: #3d2e1e;
+    color: #ffd700;
+    border-bottom-color: #3d2e1e;
+}
+
+.letter-main-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#letter-list-container {
+    flex: 0 0 350px; /* Fixed width for the list */
+    border-right: 1px solid #5a4a35;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#letter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.letter-item {
+    padding: 15px;
+    border-bottom: 1px solid #3d2e1e;
+    cursor: pointer;
+}
+
+.letter-item.unread .letter-item-subject {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.letter-item:hover {
+    background-color: #3d2e1e;
+}
+
+.letter-item.selected {
+    background-color: #591919;
+    border-left: 3px solid #cca43b;
+}
+
+.letter-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.letter-item-party {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+#letter-view-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.letter-view-header h3 {
+    margin-top: 0;
+    color: #cca43b;
+}
+
+.letter-view-meta {
+    font-size: 0.9em;
+    color: #aaa;
+    border-bottom: 1px solid #3d2e1e;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.letter-view-meta span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.letter-view-body {
+    line-height: 1.6;
+}
 .social-links-li {
   order: 0; /* Prepend */
   flex-grow: 0;

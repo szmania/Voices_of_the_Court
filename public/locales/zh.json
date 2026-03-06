@@ -7,6 +7,7 @@
     "actions": "动作",
     "summarization": "总结",
     "prompts": "提示词",
+    "letters": "信件",
     "settings": "设置",
     "system": "系统",
     "help": "帮助",
@@ -527,6 +528,16 @@
     "presence_penalty": "存在惩罚 (Presence Penalty)",
     "top_p": "核采样 (Top P)",
     "reset": "重置"
+  },
+  "letters": {
+    "player": "玩家",
+    "character": "角色",
+    "all_characters": "所有角色",
+    "inbox": "收件箱",
+    "outbox": "发件箱",
+    "no_player": "请选择一位玩家以查看信件。",
+    "no_letters": "未找到信件。",
+    "select": "请选择一封信件阅读。"
   },
   "history": {
     "header": "历史对话查看器",

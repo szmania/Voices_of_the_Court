@@ -7,6 +7,7 @@
     "actions": "작업",
     "summarization": "요약",
     "prompts": "프롬프트",
+    "letters": "편지",
     "settings": "설정",
     "system": "시스템",
     "help": "도움말",
@@ -526,6 +527,16 @@
     "presence_penalty": "존재 페널티",
     "top_p": "Top P",
     "reset": "초기화"
+  },
+  "letters": {
+    "player": "플레이어",
+    "character": "캐릭터",
+    "all_characters": "모든 캐릭터",
+    "inbox": "받은 편지함",
+    "outbox": "보낸 편지함",
+    "no_player": "편지를 보려면 플레이어를 선택하세요.",
+    "no_letters": "편지를 찾을 수 없습니다.",
+    "select": "읽을 편지를 선택하세요."
   },
   "history": {
     "header": "대화 기록 뷰어",

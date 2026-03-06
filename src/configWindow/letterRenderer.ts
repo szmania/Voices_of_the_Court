@@ -16,7 +16,9 @@ const initLocalization = () => {
 };
 
 function createControls() {
-    const container = document.body;
+    const container = document.getElementById('container');
+    if (!container) return;
+
     const controls = document.createElement('div');
     controls.id = 'letter-controls';
     controls.innerHTML = `
@@ -34,41 +36,19 @@ function createControls() {
         </div>
     `;
     
-    const letterList = document.createElement('ul');
-    letterList.id = 'letter-list';
-
-    // Insert controls at the top, and list after it
     container.insertBefore(controls, container.firstChild);
-    container.appendChild(letterList);
 
+    const letterListContainer = document.getElementById('letter-list-container');
+    if (letterListContainer) {
+        const letterList = document.createElement('ul');
+        letterList.id = 'letter-list';
+        letterListContainer.appendChild(letterList);
+    }
 
-    const style = document.createElement('style');
-    style.textContent = `
-        #letter-controls {
-            display: flex;
-            gap: 20px;
-            padding: 10px;
-            align-items: center;
-            border-bottom: 1px solid #ccc;
-            flex-wrap: wrap;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        #letter-view-tabs button {
-            padding: 5px 10px;
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            cursor: pointer;
-        }
-        #letter-view-tabs button.active {
-            background-color: #fff;
-            border-bottom-color: #fff;
-        }
-    `;
-    document.head.appendChild(style);
+    const letterViewContainer = document.getElementById('letter-view-container');
+    if (letterViewContainer) {
+        letterViewContainer.innerHTML = `<p data-i18n="letters.select">Select a letter to read.</p>`;
+    }
 }
 
 function renderLetters() {
@@ -117,29 +97,54 @@ function renderLetters() {
     filteredLetters.forEach(letter => {
         const li = document.createElement('li');
         li.dataset.letterId = letter.id;
-        if (!letter.isRead) {
+        li.classList.add('letter-item');
+        if (!letter.isRead && currentView === 'inbox') {
             li.classList.add('unread');
         }
 
+        const otherParty = currentView === 'inbox' ? letter.sender : letter.recipient;
+
         li.innerHTML = `
-            <div class="letter-header">
-                <span><strong>From:</strong> ${letter.sender.fullName} (${letter.sender.id})</span>
-                <span><strong>To:</strong> ${letter.recipient.fullName} (${letter.recipient.id})</span>
-                <span class="letter-date"><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
+            <div class="letter-item-header">
+                <span class="letter-item-party">${otherParty.shortName}</span>
+                <span class="letter-item-date">${new Date(letter.timestamp).toLocaleDateString()}</span>
             </div>
-            <div class="letter-body">
-                <p><strong>Subject:</strong> ${letter.subject}</p>
-                <p>${letter.content.replace(/\n/g, '<br>')}</p>
-            </div>
+            <div class="letter-item-subject">${letter.subject}</div>
         `;
 
         li.addEventListener('click', () => {
-            const otherCharacterId = letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id);
-            ipcRenderer.send('mark-letter-as-read', { playerId: selectedPlayerId, characterId: otherCharacterId, letterId: letter.id });
-            li.classList.remove('unread');
+            renderLetterContent(letter);
+            // Mark as read if it's an inbox letter
+            if (currentView === 'inbox' && !letter.isRead) {
+                ipcRenderer.send('mark-letter-as-read', { playerId: selectedPlayerId, characterId: String(letter.sender.id), letterId: letter.id });
+                letter.isRead = true; // Update local state
+                li.classList.remove('unread');
+            }
+            // Highlight selected
+            document.querySelectorAll('.letter-item.selected').forEach(el => el.classList.remove('selected'));
+            li.classList.add('selected');
         });
         letterList.appendChild(li);
     });
+}
+
+function renderLetterContent(letter: Letter) {
+    const letterViewContainer = document.getElementById('letter-view-container');
+    if (!letterViewContainer) return;
+
+    letterViewContainer.innerHTML = `
+        <div class="letter-view-header">
+            <h3>${letter.subject}</h3>
+            <div class="letter-view-meta">
+                <span><strong>From:</strong> ${letter.sender.fullName}</span>
+                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+                <span><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
+            </div>
+        </div>
+        <div class="letter-view-body">
+            ${letter.content.replace(/\n/g, '<br>')}
+        </div>
+    `;
 }
 
 async function loadPlayers() {
@@ -195,6 +200,11 @@ async function loadLetters(playerId: string) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('container');
+    if (container) {
+        container.style.display = 'flex';
+    }
+
     initLocalization();
     createControls();
 

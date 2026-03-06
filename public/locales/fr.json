@@ -7,6 +7,7 @@
     "actions": "Actions",
     "summarization": "Résumé",
     "prompts": "Prompts",
+    "letters": "Lettres",
     "settings": "Paramètres",
     "system": "Système",
     "help": "Aide",
@@ -526,6 +527,16 @@
     "presence_penalty": "Pénalité de présence",
     "top_p": "Top P",
     "reset": "Réinitialiser"
+  },
+  "letters": {
+    "player": "Joueur",
+    "character": "Personnage",
+    "all_characters": "Tous les personnages",
+    "inbox": "Boîte de réception",
+    "outbox": "Boîte d'envoi",
+    "no_player": "Sélectionnez un joueur pour voir les lettres.",
+    "no_letters": "Aucune lettre trouvée.",
+    "select": "Sélectionnez une lettre à lire."
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

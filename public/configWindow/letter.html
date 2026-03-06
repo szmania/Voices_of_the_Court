@@ -5,7 +5,6 @@
     <title data-i18n="app.title">Voices of the Court - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
-    <link rel="stylesheet" href="../letterWindow/letter.css" />
 </head>
 <body>
     <div class="navbar">
@@ -14,7 +13,7 @@
             <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
             <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
             <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-            <li class="active"><a href="letter.html" data-i18n="nav.letters">Letters</a></li>
+            <li class="active"><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
             <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
             <li><a href="system.html" data-i18n="nav.system">System</a></li>
             <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
@@ -22,16 +21,14 @@
         </ul> 
     </div>
 
-    <div class="container">
-        <div class="letter-list-container">
-            <h2 data-i18n="letters.inbox">Inbox</h2>
-            <ul id="letter-list">
-                <!-- Letter items will be dynamically inserted here -->
-            </ul>
-        </div>
-        <div class="letter-view-container">
-            <div id="letter-content">
-                <p data-i18n="letters.select">Select a letter to read.</p>
+    <div class="container" id="container" style="display: flex; flex-direction: column; height: 100vh;">
+        <!-- Controls will be inserted here by JS -->
+        <div class="letter-main-content">
+            <div id="letter-list-container">
+                 <!-- Letter list will be inserted here -->
+            </div>
+            <div id="letter-view-container">
+                <!-- Selected letter content will be shown here -->
             </div>
         </div>
     </div>
