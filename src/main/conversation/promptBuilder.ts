@@ -125,8 +125,18 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     let description = "";
     try{
         delete require.cache[require.resolve(descriptionPath)];
+
+        // Temporarily set the gameData's AI to the current character
+        // to ensure description scripts generate from the correct perspective.
+        const originalAiId = conv.gameData.aiID;
+        conv.gameData.aiID = character.id;
+
         // Pass character to the script
         description = require(descriptionPath)(conv.gameData, character); 
+        
+        // Restore the original AI ID
+        conv.gameData.aiID = originalAiId;
+        
         console.log(`Description script '${descriptionScriptFileName}' loaded successfully for ${character.fullName}.`);
     }catch(err){
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
