@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter } from "./letterInterfaces.js";
+import { Config } from '../../shared/Config.js';
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -86,8 +87,8 @@ export class LetterManager {
         }
     }
 
-    public clearLettersFile(): void {
-        const ck3Folder = this.config.userFolderPath;
+    public clearLettersFile(config: Config): void {
+        const ck3Folder = config.userFolderPath;
         console.log(`LetterManager.clearLettersFile: CK3 user path: ${ck3Folder}`);
         
         if (!ck3Folder) {

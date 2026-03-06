@@ -1,6 +1,11 @@
 
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
+import { ChatWindow } from '../windows/ChatWindow.js';
+import { RunFileManager } from '../RunFileManager.js';
+import { SummaryFileWatcher } from '../SummaryFileWatcher.js';
+import { LetterManager } from '../letter/LetterManager.js';
+import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
@@ -105,7 +110,7 @@ export class Conversation{
                 this.summaries.set(character.id, characterSummaries);
                 
                 // 设置文件监控，当文件变化时自动重新加载
-                this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries) => {
+                this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries: Summary[]) => {
                     this.summaries.set(character.id, updatedSummaries);
                     console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
                 });

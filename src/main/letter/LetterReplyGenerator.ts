@@ -348,7 +348,7 @@ export class LetterReplyGenerator {
             const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
 
             // Save the updated summaries
-            await saveSummaryFile(String(gameData.playerID), updatedSummaries);
+            await saveSummaryFile(this.userDataPath, String(gameData.playerID), updatedSummaries);
             console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
 
         } catch (error) {
@@ -382,7 +382,7 @@ export class LetterReplyGenerator {
             // Select template based on event
             const commandTemplates = require("../../../default_userdata/scripts/letters/command_templates.js");
             const eventType = gameData.recentEvent?.type;
-            const template = commandTemplates[eventType] || commandTemplates.default;
+            const template = eventType ? commandTemplates[eventType] || commandTemplates.default : commandTemplates.default;
 
             // Populate the template
             const gameCommand = template

@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { Letter } from '../../main/letter/letterInterfaces';
+import { Letter } from '../main/letter/letterInterfaces.js';
 
 const initLocalization = () => {
     const { LocalizationManager } = window as any;
