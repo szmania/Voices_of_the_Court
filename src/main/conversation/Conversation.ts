@@ -424,7 +424,7 @@ export class Conversation{
 
             // Filter other characters based on response chance
             const respondingCharacters = otherCharacters.filter(char => {
-                const willRespond = Math.random() < this.config.nonTargetedCharacterResponseChance;
+                const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
                 if (willRespond) {
                     console.log(`Character ${char.shortName} will respond based on chance.`);
                 } else {
