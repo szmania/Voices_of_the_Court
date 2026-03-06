@@ -456,17 +456,27 @@ export class Conversation{
     
             // Test for titles if no name match was found for this character yet
             if (!explicitTargets.has(character) && (character.primaryTitle || character.titleRankConcept)) {
-                const titleWords = [
-                    ...(character.primaryTitle?.toLowerCase().replace(/[,.-]/g, ' ').split(/\s+/) || []),
-                    character.titleRankConcept?.toLowerCase()
-                ].filter(Boolean);
+                const content = lastMessage.content.toLowerCase();
+                const titles = [
+                    character.primaryTitle,
+                    character.titleRankConcept
+                ].filter(Boolean).map(t => t!.toLowerCase());
 
-                const commonWords = ['the', 'a', 'an', 'of'];
-                const significantTitleWords = [...new Set(titleWords.filter(word => word && !commonWords.includes(word)))];
-                
-                const titlePatterns = significantTitleWords.map(word => new RegExp(`\\b${word}\\b`, 'i'));
-    
-                if (titlePatterns.some(pattern => pattern.test(lastMessage.content))) {
+                let found = false;
+                for (const title of titles) {
+                    if (content.includes(title)) {
+                        found = true;
+                        break;
+                    }
+                    const commonWords = ['the', 'a', 'an', 'of'];
+                    const significantWords = title.replace(/[,.-]/g, ' ').split(/\s+/).filter(w => w && !commonWords.includes(w));
+                    if (significantWords.some(w => content.includes(w))) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
                     explicitTargets.add(character);
                     console.log(`Text mention character identified by title: ${character.shortName}`);
                     continue; // Found a match, go to next character
