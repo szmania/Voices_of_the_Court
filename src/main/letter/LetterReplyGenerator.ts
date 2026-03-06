@@ -237,8 +237,31 @@ export class LetterReplyGenerator {
                 return;
             }
 
-            // The player's letter is parsed and saved by `importLettersFromLog`.
-            // Here, we just save the AI's reply.
+            // Get characters for the original letter
+            const originalSender = gameData.getCharacter(Number(letterContent.senderId));
+            const originalRecipient = gameData.getCharacter(Number(letterContent.recipientId));
+
+            if (!originalSender || !originalRecipient) {
+                console.error(`Could not find original sender (${letterContent.senderId}) or recipient (${letterContent.recipientId}) to save letter history.`);
+                return;
+            }
+
+            // Save the original letter sent by the player
+            const originalLetter = new Letter(
+                randomUUID(),
+                originalSender,
+                originalRecipient,
+                letterContent.subject,
+                letterContent.content,
+                LetterType.PERSONAL,
+                new Date(gameData.date.replace(/\./g, '-')),
+                true // The player sent it, so it's "read" by them.
+            );
+            letterManager.saveLetter(originalLetter, playerId);
+            console.log(`Player's original letter saved to letter history for player ${playerId} and character ${aiId}`);
+
+
+            // The AI's reply.
             const replyLetter = new Letter(
                 randomUUID(),
                 ai, // sender is the AI
