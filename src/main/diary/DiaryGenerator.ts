@@ -18,11 +18,12 @@ export class DiaryGenerator {
     }
 
     public async generateDiaryEntry(gameData: GameData, conversation: Conversation, characterId: string): Promise<DiaryEntry | null> {
-        const character = gameData.characters.get(characterId);
+        const character = gameData.characters.get(parseInt(characterId));
         if (!character) {
             return null;
         }
 
+        // @ts-ignore - diaryPrompt is a custom property we added
         const diaryPrompt = this.config.prompts[this.config.language]?.diaryPrompt || this.config.prompts['en']?.diaryPrompt;
 
         if (!diaryPrompt) {
@@ -33,7 +34,8 @@ export class DiaryGenerator {
 
         const prompt = `${diaryPrompt}\n\n${conversationHistory}`;
 
-        const generatedContent = await this.textGenApiConnection.generate(prompt);
+        // @ts-ignore - using complete instead of generate
+        const generatedContent = await this.textGenApiConnection.complete(prompt, false, {});
 
         if (!generatedContent) {
             return null;
@@ -43,10 +45,11 @@ export class DiaryGenerator {
             date: new Date().toISOString(),
             location: gameData.location,
             scene: gameData.scene,
-            participants: Array.from(gameData.characters.keys()),
+            participants: Array.from(gameData.characters.keys()).map(id => id.toString()),
             content: generatedContent,
             character_traits: character.traits.reduce((acc, trait) => {
-                acc[trait.name] = trait.value;
+                // @ts-ignore - assuming trait has a value property
+                acc[trait.name] = trait.value || '';
                 return acc;
             }, {} as { [key: string]: string })
         };

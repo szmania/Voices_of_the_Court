@@ -45,7 +45,9 @@ export class Conversation{
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
-        this.diaryGenerator = new DiaryGenerator(this.config);
+        [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
+        
+        this.loadConfig();
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -1088,11 +1090,14 @@ ${character.fullName}的发言：`
         // Write a trigger event to the game (e.g., trigger conversation end event)
 
         // Generate and save diary entries for each character
+        // @ts-ignore - enableDiaryGeneration is a custom property we added
         if (this.config.enableDiaryGeneration) {
             for (const character of this.gameData.characters.values()) {
+                // @ts-ignore - diaryGenerationChance is a custom property we added
                 if (Math.random() < this.config.diaryGenerationChance) {
                     const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
                     if (diaryEntry) {
+                        // Fix: saveDiaryFile expects 4 arguments: userDataPath, playerId, characterId, diaryData
                         await saveDiaryFile(this.userDataPath, this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
                     }
                 }

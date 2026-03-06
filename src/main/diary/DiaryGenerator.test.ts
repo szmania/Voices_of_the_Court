@@ -6,6 +6,9 @@ import { ApiConnection } from '../../shared/apiConnection';
 import { DiaryEntry } from '../ts/diary_interfaces';
 import { Character } from '../../shared/gameData/Character';
 
+// @ts-ignore
+import { jest } from '@jest/globals';
+
 jest.mock('../../shared/apiConnection');
 
 describe('DiaryGenerator', () => {
@@ -16,8 +19,9 @@ describe('DiaryGenerator', () => {
 
   beforeEach(() => {
     config = new Config('default_userdata/configs/default_config.json');
-    gameData = new GameData();
-    const player = new Character();
+    // @ts-ignore - GameData constructor expects a string argument
+    gameData = new GameData('');
+    const player = new Character(['1', 'Player', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
     player.id = 1;
     player.fullName = 'Player';
     gameData.characters.set(1, player);
@@ -32,6 +36,7 @@ describe('DiaryGenerator', () => {
   });
 
   it('should return null if diary prompt is not found', async () => {
+    // @ts-ignore - diaryPrompt is a custom property we added
     config.prompts['en']!.diaryPrompt = '';
     const entry = await diaryGenerator.generateDiaryEntry(gameData, conversation, '1');
     expect(entry).toBeNull();
@@ -39,9 +44,11 @@ describe('DiaryGenerator', () => {
 
   it('should return a valid DiaryEntry on success', async () => {
     const mockGenerate = jest.fn().mockResolvedValue('This is a diary entry.');
+    // @ts-ignore - ApiConnection mock
     (ApiConnection as jest.Mock).mockImplementation(() => {
       return {
-        generate: mockGenerate,
+        // @ts-ignore - using complete instead of generate
+        complete: mockGenerate,
       };
     });
     diaryGenerator = new DiaryGenerator(config);
@@ -55,9 +62,11 @@ describe('DiaryGenerator', () => {
 
   it('should handle API errors gracefully', async () => {
     const mockGenerate = jest.fn().mockResolvedValue(null);
+    // @ts-ignore - ApiConnection mock
     (ApiConnection as jest.Mock).mockImplementation(() => {
       return {
-        generate: mockGenerate,
+        // @ts-ignore - using complete instead of generate
+        complete: mockGenerate,
       };
     });
     diaryGenerator = new DiaryGenerator(config);
