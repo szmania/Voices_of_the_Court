@@ -457,6 +457,7 @@ export class Conversation{
             // Test for titles if no name match was found for this character yet
             if (!explicitTargets.has(character) && (character.primaryTitle || character.titleRankConcept)) {
                 const content = lastMessage.content.toLowerCase();
+                
                 const titles = [
                     character.primaryTitle,
                     character.titleRankConcept
@@ -464,13 +465,11 @@ export class Conversation{
 
                 let found = false;
                 for (const title of titles) {
-                    if (content.includes(title)) {
-                        found = true;
-                        break;
-                    }
                     const commonWords = ['the', 'a', 'an', 'of'];
                     const significantWords = title.replace(/[,.-]/g, ' ').split(/\s+/).filter(w => w && !commonWords.includes(w));
-                    if (significantWords.some(w => content.includes(w))) {
+                    
+                    // If any significant word from the title is in the user's message as a whole word, it's a match.
+                    if (significantWords.some(w => new RegExp(`\\b${w}\\b`, 'i').test(content))) {
                         found = true;
                         break;
                     }
