@@ -518,7 +518,8 @@
     "announcement_message": "Mamy nowy serwer Discord, nowy mod na Steam i stronę internetową!\n\nDiscord: Dołącz do naszej społeczności po wsparcie i dyskusje.\nSteam: Sprawdź 'Voices of the Court - Community Edition' w Steam Workshop.\nStrona internetowa: Odwiedź naszą nową stronę internetową, aby uzyskać dokumentację i więcej.",
     "join_discord": "Dołącz do Discord",
     "view_steam": "Zobacz mod na Steam",
-    "view_website": "Odwiedź stronę internetową"
+    "view_website": "Odwiedź stronę internetową",
+    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę."
   },
   "tray": {
     "open_config": "Otwórz okno konfiguracji",
