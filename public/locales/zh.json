@@ -153,7 +153,7 @@
     "roaming_data": "漫游数据文件夹",
     "roaming_data_desc": "此文件夹包含您的个人配置、脚本和摘要。",
     "open_roaming_data": "打开漫游数据文件夹",
-    "roleplay_instruction": "[系统指令：你的任务是扮演角色 {characterName}。只为该角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]"
+    "roleplay_instruction": "[系统指令：你是 {characterName}。请向 {playerName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]"
   },
   "chat": {
     "target_label": "目标角色：",

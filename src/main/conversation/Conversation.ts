@@ -1,4 +1,5 @@
 
+import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
@@ -56,6 +57,19 @@ export class Conversation{
         this.currentSummary = "";
         this.narratives = new Map<number, string[]>(); // 初始化旁白存储
 
+        // Load translations
+        const lang = this.config.language || 'en';
+        const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+        let translations;
+        try {
+            translations = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+        } catch (error) {
+            console.error(`Could not load translation file for language: ${lang}. Falling back to en.`, error);
+            const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
+            translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+        }
+        const notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
+
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
@@ -64,7 +78,8 @@ export class Conversation{
                     const emptyMessage: Message = {
                         role: "assistant",
                         name: character.shortName,
-                        content: "Has not spoken yet"
+                        content: notSpokenYetText,
+                        characterId: character.id
                     };
                     this.messages.push(emptyMessage);
                     console.log(`Created empty message for character: ${character.shortName}`);

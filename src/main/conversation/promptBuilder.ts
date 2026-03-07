@@ -68,7 +68,8 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
     }
 
     const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
-    const roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
+    let roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
+    roleplayInstruction = roleplayInstruction.replace(/{playerName}/g, conv.gameData.getPlayer()!.fullName);
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
