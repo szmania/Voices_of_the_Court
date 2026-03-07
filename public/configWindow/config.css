@@ -743,7 +743,8 @@ language-selector {
     color: #888;
 }
 
-#summary-manager-container .btn-danger {
+#summary-manager-container .btn-danger,
+#diary-manager-container .btn-danger {
     background-color: #8b0000;
     border-color: #ff0000;
 }

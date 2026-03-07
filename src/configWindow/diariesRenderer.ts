@@ -230,6 +230,31 @@ function filterAndRenderDiaries() {
     renderDiaryList();
 }
 
+function handleInPlaceInputChange(index: number) {
+    const entry = filteredDiaries[index];
+    const dateInput = document.getElementById(`diary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
+    const editItem = dateInput.closest('.summary-item-edit');
+    const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
+
+    if (!dateInput || !contentInput || !entry || !saveButton) return;
+
+    const originalDate = formatDateForInput(entry.date);
+    const originalContent = entry.content || '';
+
+    const dateChanged = originalDate !== dateInput.value;
+    const contentChanged = originalContent !== contentInput.value;
+
+    const hasChanges = dateChanged || contentChanged;
+    saveButton.disabled = !hasChanges;
+
+    if (hasChanges) {
+        saveButton.classList.add('blinking');
+    } else {
+        saveButton.classList.remove('blinking');
+    }
+}
+
 function renderDiaryList() {
     if (!diaryList) return;
     diaryList.innerHTML = '';
@@ -252,7 +277,7 @@ function renderDiaryList() {
                 <input type="date" id="diary-edit-date-${index}" value="${formatDateForInput(entry.date)}">
                 <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
                 <div class="edit-controls">
-                    <button class="btn save-inplace-btn">Save</button>
+                    <button class="btn save-inplace-btn" disabled>Save</button>
                     <button class="btn cancel-inplace-btn">Cancel</button>
                 </div>
             `;
@@ -261,6 +286,11 @@ function renderDiaryList() {
 
             editItem.querySelector('.save-inplace-btn')?.addEventListener('click', () => saveInPlaceEdit(index));
             editItem.querySelector('.cancel-inplace-btn')?.addEventListener('click', () => cancelInPlaceEdit());
+
+            const dateInput = editItem.querySelector(`#diary-edit-date-${index}`) as HTMLInputElement;
+            const contentInput = editItem.querySelector(`#diary-edit-content-${index}`) as HTMLTextAreaElement;
+            dateInput?.addEventListener('input', () => handleInPlaceInputChange(index));
+            contentInput?.addEventListener('input', () => handleInPlaceInputChange(index));
 
         } else {
             const item = document.createElement('div');
@@ -382,7 +412,7 @@ async function saveAllDiaries() {
         }, {} as { [key: string]: any[] });
 
         for (const charId in diariesByChar) {
-            diariesByChar[charId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            diariesByChar[charId].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
             const diaryData = { diary_entries: diariesByChar[charId] };
             await ipcRenderer.invoke('save-diary-file', currentPlayerId, charId, diaryData);
         }

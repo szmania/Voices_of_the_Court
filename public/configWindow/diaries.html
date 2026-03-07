@@ -5,6 +5,17 @@
     <title data-i18n="app.title">Voices of the Court - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
+    <style>
+      @keyframes blink-border {
+        0% { box-shadow: 0 0 2px 0px #fff; }
+        50% { box-shadow: 0 0 8px 2px #00aaff; }
+        100% { box-shadow: 0 0 2px 0px #fff; }
+      }
+      .blinking {
+        animation: blink-border 1.5s infinite;
+        border-radius: 5px;
+      }
+    </style>
   </head>
   <body>
     <div class="navbar">
