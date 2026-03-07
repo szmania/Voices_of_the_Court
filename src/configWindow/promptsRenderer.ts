@@ -429,6 +429,51 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     }
 }
 
+async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
+    try {
+        // @ts-ignore
+        const lang = window.LocalizationManager?.language || 'en';
+        if (showConfirmation) {
+            // @ts-ignore
+            const confirmMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_confirm');
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+        }
+
+        console.log('Restoring default prompts...');
+        
+        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+        const defaultPrompts = defaultConfig.prompts;
+        
+        const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
+        
+        for (const [key, value] of Object.entries(promptsToApply)) {
+            if (promptTextareas[key]) {
+                promptTextareas[key].textarea.value = value;
+                // Manually trigger the input event to notify the component
+                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+        
+        console.log('All prompts restored to default values successfully');
+        if (showConfirmation) {
+            // @ts-ignore
+            const successMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_success');
+            alert(successMsg);
+            // 刷新页面以显示新的值
+            location.reload();
+        }
+        
+    } catch (error) {
+        console.error('Error restoring default prompts:', error);
+        // @ts-ignore
+        const errorMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_error', { error: error });
+        alert(errorMsg);
+    }
+}
+
 
 /**
  * 恢复所有prompt为默认值
