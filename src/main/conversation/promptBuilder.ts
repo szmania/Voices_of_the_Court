@@ -73,6 +73,7 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
+        exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
         exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
@@ -134,8 +135,8 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
         conv.gameData.aiID = character.id;
 
         // Pass character to the script
-        description = require(descriptionPath)(conv.gameData, character); 
-        
+        description = require(descriptionPath)(conv.gameData, character);
+
         console.log(`Description script '${descriptionScriptFileName}' loaded successfully for ${character.fullName}.`);
     }catch(err){
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);

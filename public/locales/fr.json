@@ -6,6 +6,7 @@
     "connection": "Connexion",
     "actions": "Actions",
     "summarization": "Résumé",
+    "diaries": "Journaux",
     "prompts": "Prompts",
     "settings": "Paramètres",
     "system": "Système",
@@ -14,6 +15,10 @@
     "discord_tooltip": "Rejoignez notre Discord",
     "steam_tooltip": "Voir sur le Steam Workshop",
     "website_tooltip": "Visitez notre site web"
+  },
+  "diaries": {
+    "header": "Journaux",
+    "description": "Gérer les entrées de journal des personnages."
   },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",
@@ -74,6 +79,8 @@
     "narrative_tooltip": "Ce prompt est utilisé pour générer des descriptions narratives par l'IA après le déclenchement d'actions. La narration fournit des descriptions atmosphériques des événements du jeu.",
     "scene_description_prompt": "Prompt de description de scène",
     "scene_description_tooltip": "Ce prompt est utilisé pour générer la description initiale de la scène au début de la conversation. Il fournit le contexte et l'atmosphère pour les interactions entre personnages.",
+    "diary_prompt": "Prompt de Journal",
+    "diary_tooltip": "Ce prompt est utilisé pour générer des entrées de journal pour les personnages après les conversations. Il aide à maintenir la cohérence et la profondeur du personnage.",
     "letter_prompt": "Prompt de lettre",
     "letter_summary_prompt": "Prompt de résumé de lettre",
     "restore_defaults": "Restaurer les prompts par défaut",
@@ -90,7 +97,17 @@
     "bookmarks": "Signets",
     "char_desc_script_tooltip": "Sélectionnez le script qui génère les descriptions de personnages. Les scripts standard sont fournis par le mod, des scripts personnalisés peuvent être ajoutés par l'utilisateur.",
     "ex_msg_script_tooltip": "Sélectionnez le script qui fournit des exemples de messages pour l'IA. Cela aide l'IA à comprendre le ton et le format souhaités.",
-    "bookmarks_tooltip": "Sélectionnez le script de signet à utiliser pour transformer les événements du jeu en résumés."
+    "bookmarks_tooltip": "Sélectionnez le script de signet à utiliser pour transformer les événements du jeu en résumés.",
+    "save_preset_empty_alert": "Le nom du préréglage ne peut pas être vide.",
+    "save_default_preset_alert": "Impossible d'enregistrer sous le nom \"Default\". Veuillez choisir un autre nom.",
+    "save_preset_overwrite_confirm": "Un préréglage nommé \"{{presetName}}\" existe déjà. Voulez-vous l'écraser ?",
+    "save_preset_success": "Préréglage \"{{presetName}}\" enregistré avec succès !",
+    "delete_default_preset_alert": "Impossible de supprimer le préréglage par défaut.",
+    "delete_preset_confirm": "Êtes-vous sûr de vouloir supprimer le préréglage \"{{presetName}}\" ?",
+    "delete_preset_success": "Préréglage \"{{presetName}}\" supprimé.",
+    "restore_defaults_confirm": "Êtes-vous sûr de vouloir restaurer tous les prompts à leurs valeurs par défaut ? Cette action est irréversible.",
+    "restore_defaults_success": "Tous les prompts ont été restaurés avec succès à leurs valeurs par défaut !",
+    "restore_defaults_error": "Erreur lors de la restauration des prompts par défaut : {{error}}"
   },
   "settings": {
     "header": "Paramètres",
@@ -524,7 +541,8 @@
     "announcement_message": "Nous avons un nouveau serveur Discord, un nouveau mod Steam et un site web !\n\nDiscord : Rejoignez notre communauté pour du soutien et des discussions.\nSteam : Découvrez 'Voices of the Court - Community Edition' sur le Steam Workshop.\nSite web : Visitez notre nouveau site web pour la documentation et plus encore.",
     "join_discord": "Rejoindre Discord",
     "view_steam": "Voir le mod Steam",
-    "view_website": "Visiter le site web"
+    "view_website": "Visiter le site web",
+    "init_error": "Une erreur s'est produite lors de l'initialisation de la page de configuration, veuillez consulter la console."
   },
   "tray": {
     "open_config": "Ouvrir la fenêtre de configuration",

@@ -9,6 +9,9 @@ import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResu
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
+import { DiaryGenerator } from '../diary/DiaryGenerator.js';
+import { saveDiaryFile } from '../diaryManager.js';
+import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,6 +33,7 @@ export class Conversation{
     runFileManager: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
+    diaryGenerator!: DiaryGenerator;
     actionsApiConnection: ApiConnection;
     actions: Action[];
     summaries: Map<number, Summary[]>;
@@ -50,6 +54,7 @@ export class Conversation{
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
+        this.config = config;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -71,6 +76,10 @@ export class Conversation{
             translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
         }
         this.notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
+
+        this.runFileManager = new RunFileManager(this.config.userFolderPath);
+        this.description = "";
+        this.actions = [];
 
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
@@ -99,6 +108,32 @@ export class Conversation{
         this.customQueue = null;
         this.isPaused = false;
         this.persistCustomQueue = false;
+
+        const diariesBasePath = path.join(this.userDataPath, 'diaries');
+        if (!fs.existsSync(diariesBasePath)) {
+            fs.mkdirSync(diariesBasePath, { recursive: true });
+        }
+        const playerDiariesPath = path.join(diariesBasePath, this.gameData.playerID.toString());
+        if (!fs.existsSync(playerDiariesPath)) {
+            fs.mkdirSync(playerDiariesPath, { recursive: true });
+        }
+
+        // Create/Update character map for the current player in the diary folder
+        const characterMapPath = path.join(playerDiariesPath, '_character_map.json');
+        let characterMap: { [key: string]: string } = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error(`Error parsing character map file, it will be overwritten: ${e}`);
+            }
+        }
+        // Add/update all characters from current gameData
+        this.gameData.characters.forEach((character) => {
+            characterMap[character.id.toString()] = character.fullName;
+        });
+        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Character map updated at ${characterMapPath}`);
 
         const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
@@ -130,7 +165,7 @@ export class Conversation{
                     console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
                 }
                 this.summaries.set(character.id, characterSummaries);
-        
+
                 // 设置文件监控，当文件变化时自动重新加载
                 this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries) => {
                     this.summaries.set(character.id, updatedSummaries);
@@ -169,6 +204,9 @@ export class Conversation{
 
         this.checkForSummariesFromOtherPlayers();
         this.initialize();
+
+        // Initialize diary generator
+        this.diaryGenerator = new DiaryGenerator(this.config);
     }
 
     private async initialize(): Promise<void> {
@@ -380,7 +418,7 @@ export class Conversation{
         if (!replacedPlaceholder) {
             this.messages.push(message);
         }
-        
+
         console.log(`Message processed for conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
         
         // Reset consecutive actions counter when player sends a message
@@ -409,7 +447,7 @@ export class Conversation{
     async generateAIsMessages() {
         this.aiToAiTurnLimit = 0;
         console.log('Starting generation of AI messages for all characters.');
-    
+
         // Special case for self-talk (player character is the AI character)
         if (this.gameData.playerID === this.gameData.aiID) {
             console.log('Self-talk session detected. Generating internal monologue for player character.');
@@ -425,15 +463,15 @@ export class Conversation{
             console.log('Finished generating self-talk message.');
             return;
         }
-    
+
         this.fillNpcQueue();
-    
+
         const respondedCharacterIds = new Set<number>();
         const allGeneratedMessages: Message[] = [];
-    
+
         // Step 1: Get and process targeted characters
         const targetedCharacters = await this.determineTargetedCharacters();
-    
+
         if (targetedCharacters.length > 0) {
             console.log(`Processing ${targetedCharacters.length} targeted characters.`);
             const messages = await this.processCharacterList(targetedCharacters);
@@ -458,7 +496,7 @@ export class Conversation{
                 });
             }
         }
-    
+
         // Step 2: Get and process non-targeted characters
         const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
         const respondingCharacters = nonTargetedCharacters.filter(char => {
@@ -466,7 +504,7 @@ export class Conversation{
             if (willRespond) console.log(`Non-targeted character ${char.shortName} will respond based on chance.`);
             return willRespond;
         }).sort(() => Math.random() - 0.5);
-    
+
         if (respondingCharacters.length > 0) {
             console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
             const messages = await this.processCharacterList(respondingCharacters);
@@ -476,30 +514,30 @@ export class Conversation{
                 }
             });
         }
-    
+
         // Step 3: Send all generated messages to the UI and check for actions
         for (const message of allGeneratedMessages) {
             this.pushMessage(message);
             const messageIndex = this.messages.length - 1;
             this.chatWindow.window.webContents.send('message-receive', message, this.config.actionsEnableAll);
-    
+
             if (this.gameData.playerID !== this.gameData.aiID) {
                 let collectedActions: ActionResponse[] = [];
                 let narrative: string = "";
-    
+
                 if (this.config.actionsEnableAll) {
                     if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
                         const actionResult = await checkActions(this);
                         collectedActions = actionResult.actions;
                         narrative = actionResult.narrative;
-    
+
                         if (collectedActions.length > 0) {
                             this.consecutiveActionsCount++;
                             this.lastActionMessageIndex = messageIndex;
                         } else {
                             this.consecutiveActionsCount = 0;
                         }
-    
+
                         if (narrative) {
                             this.addNarrativeToMessage(messageIndex, narrative);
                         }
@@ -514,16 +552,16 @@ export class Conversation{
         if (allGeneratedMessages.length === 0) {
              this.chatWindow.window.webContents.send('actions-receive', [], ""); // Clear loading dots if no one responded
         }
-    
+
         console.log('Finished generating and sending all AI messages.');
-    
+
         // If suggestions are enabled, generate them now.
         if (this.config.autoGenerateSuggestions) {
             await this.generateInitialSuggestions();
         }
     }
 
-    
+
     fillNpcQueue(): void {
         this.npcQueue = Array.from(this.gameData.characters.values()).filter(
             (character) => character.id !== this.gameData.playerID
@@ -629,7 +667,7 @@ export class Conversation{
         if (potentialTargets.size > 0) {
             const sortedTargets = [...potentialTargets.entries()].sort((a, b) => b[1] - a[1]);
             const topConfidence = sortedTargets[0][1];
-            
+
             // Return all targets with a confidence score close to the top score
             const highConfidenceTargets = sortedTargets
                 .filter(t => t[1] >= topConfidence - 0.05) // Allow for small confidence differences
@@ -712,7 +750,7 @@ export class Conversation{
             role: 'system',
             content: `Your next response should be directed at ${target.fullName}.`
         });
-        
+
         const content = await this.textGenApiConnection.complete(prompt, false, {
             max_tokens: this.config.maxTokens,
         });
@@ -1241,6 +1279,17 @@ ${character.fullName}的发言：`
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
         // Write a trigger event to the game (e.g., trigger conversation end event)
+
+        // Generate and save diary entries for each character
+        for (const character of this.gameData.characters.values()) {
+            // @ts-ignore - diaryGenerationChance is a custom property we added
+            if (Math.random() < (this.config.diaryGenerationChance / 100)) {
+                const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                if (newDiaryEntry) {
+                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
+                }
+            }
+        }
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
@@ -1344,7 +1393,7 @@ ${character.fullName}的发言：`
 
             // Build a character-specific prompt
             const prompt = buildSummarizeChatPrompt(this, character);
-            
+
             // Generate summary from this character's perspective
             const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
 
@@ -1360,7 +1409,7 @@ ${character.fullName}的发言：`
             this.summaryFileWatcher.pauseWatcher(summaryFile);
 
             const existingSummaries = this.summaries.get(character.id) || [];
-            
+
             if (newSummary.content.trim()) {
                 existingSummaries.unshift(newSummary);
                 fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
@@ -1406,7 +1455,7 @@ ${character.fullName}的发言：`
         this.loadActions();
     }
 
-    getApiConnections(){
+    getApiConnections() {
         let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
         
         textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
@@ -1627,7 +1676,7 @@ ${character.fullName}的发言：`
                 const dateB = parseGameDate(b.date) || new Date(0);
                 return dateB.getTime() - dateA.getTime();
             });
-            
+
             this.summaries.set(character.id, characterSummaries);
         }
     }

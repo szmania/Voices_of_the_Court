@@ -14,7 +14,8 @@
         <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
         <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
         <li class="active"><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-        <li ><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
         <language-selector></language-selector>
@@ -81,13 +82,18 @@
                         <tooltip-text side="top" data-i18n="prompts.scene_description_tooltip"></tooltip-text>
                         <config-textarea confID="sceneDescriptionPrompt" rows="6"></config-textarea>
                     </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.diary_prompt"></label>
+                        <tooltip-text side="top" data-i18n="prompts.diary_tooltip"></tooltip-text>
+                        <config-textarea confID="diaryPrompt" rows="6"></config-textarea>
+                    </div>
                 </div>
                 
                 <div class="input-group" style="margin-top: 20px;">
                     <button type="button" id="restore-default-prompts" class="btn-warning" data-i18n="prompts.restore_defaults">🔄</button>
                     <tooltip-text side="top" data-i18n="prompts.restore_tooltip"></tooltip-text>
                 </div>
-                
             </div>
             <div class="column">
 

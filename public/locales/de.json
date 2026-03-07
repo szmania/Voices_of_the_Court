@@ -6,6 +6,7 @@
     "connection": "Verbindung",
     "actions": "Aktionen",
     "summarization": "Zusammenfassung",
+    "diaries": "Tagebücher",
     "prompts": "Prompts",
     "settings": "Einstellungen",
     "system": "System",
@@ -14,6 +15,10 @@
     "discord_tooltip": "Tritt unserem Discord bei",
     "steam_tooltip": "Im Steam Workshop ansehen",
     "website_tooltip": "Besuche unsere Webseite"
+  },
+  "diaries": {
+    "header": "Tagebücher",
+    "description": "Tagebucheinträge für Charaktere verwalten."
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",
@@ -74,6 +79,8 @@
     "narrative_tooltip": "Dieser Prompt wird verwendet, um KI-Erzählbeschreibungen zu generieren, nachdem Aktionen ausgelöst wurden. Die Erzählung liefert atmosphärische Beschreibungen von Ereignissen im Spiel.",
     "scene_description_prompt": "Szenenbeschreibungs-Prompt",
     "scene_description_tooltip": "Dieser Prompt wird verwendet, um die anfängliche Szenenbeschreibung zu Beginn des Gesprächs zu generieren. Er liefert Hintergrund und Atmosphäre für Charakterinteraktionen.",
+    "diary_prompt": "Tagebuch-Prompt",
+    "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
     "restore_defaults": "Standard-Prompts wiederherstellen",
     "restore_tooltip": "Klicken Sie auf diese Schaltfläche, um alle Prompts auf ihre Standardwerte zurückzusetzen",
     "presets_header": "Prompt-Voreinstellungen",
@@ -88,7 +95,17 @@
     "bookmarks": "Lesezeichen",
     "char_desc_script_tooltip": "Wählen Sie das Skript aus, das Charakterbeschreibungen generiert. Standard-Skripte werden vom Mod bereitgestellt, benutzerdefinierte Skripte können vom Benutzer hinzugefügt werden.",
     "ex_msg_script_tooltip": "Wählen Sie das Skript aus, das Beispielnachrichten für die KI bereitstellt. Dies hilft der KI, den gewünschten Ton und das Format zu verstehen.",
-    "bookmarks_tooltip": "Wählen Sie das Lesezeichen-Skript aus, das zur Verarbeitung von Spielereignissen in Zusammenfassungen verwendet werden soll."
+    "bookmarks_tooltip": "Wählen Sie das Lesezeichen-Skript aus, das zur Verarbeitung von Spielereignissen in Zusammenfassungen verwendet werden soll.",
+    "save_preset_empty_alert": "Der Name der Voreinstellung darf nicht leer sein.",
+    "save_default_preset_alert": "Speichern unter dem Namen \"Default\" nicht möglich. Bitte wählen Sie einen anderen Namen.",
+    "save_preset_overwrite_confirm": "Eine Voreinstellung mit dem Namen \"{{presetName}}\" existiert bereits. Möchten Sie sie überschreiben?",
+    "save_preset_success": "Voreinstellung \"{{presetName}}\" erfolgreich gespeichert!",
+    "delete_default_preset_alert": "Die Standardvoreinstellung kann nicht gelöscht werden.",
+    "delete_preset_confirm": "Sind Sie sicher, dass Sie die Voreinstellung \"{{presetName}}\" löschen möchten?",
+    "delete_preset_success": "Voreinstellung \"{{presetName}}\" gelöscht.",
+    "restore_defaults_confirm": "Sind Sie sicher, dass Sie alle Prompts auf ihre Standardwerte zurücksetzen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "restore_defaults_success": "Alle Prompts wurden erfolgreich auf ihre Standardwerte zurückgesetzt!",
+    "restore_defaults_error": "Fehler beim Wiederherstellen der Standard-Prompts: {{error}}"
   },
   "settings": {
     "header": "Einstellungen",
@@ -522,7 +539,8 @@
     "announcement_message": "Wir haben einen neuen Discord-Server, einen neuen Steam-Mod und eine Webseite!\n\nDiscord: Treten Sie unserer Community für Support und Diskussionen bei.\nSteam: Schauen Sie sich 'Voices of the Court - Community Edition' im Steam Workshop an.\nWebseite: Besuchen Sie unsere neue Webseite für Dokumentation und mehr.",
     "join_discord": "Discord beitreten",
     "view_steam": "Steam-Mod ansehen",
-    "view_website": "Webseite besuchen"
+    "view_website": "Webseite besuchen",
+    "init_error": "Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole."
   },
   "tray": {
     "open_config": "Konfigurationsfenster öffnen",
