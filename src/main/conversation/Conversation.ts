@@ -1,6 +1,5 @@
 
 import { app } from 'electron';
-import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
@@ -57,6 +56,7 @@ export class Conversation{
         this.messages = [];
         this.currentSummary = "";
         this.narratives = new Map<number, string[]>(); // 初始化旁白存储
+        this.config = config;
 
         // Load translations
         const lang = this.config.language || 'en';
@@ -129,7 +129,7 @@ export class Conversation{
                     console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
                 }
                 this.summaries.set(character.id, characterSummaries);
-                
+        
                 // 设置文件监控，当文件变化时自动重新加载
                 this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries) => {
                     this.summaries.set(character.id, updatedSummaries);
@@ -137,21 +137,6 @@ export class Conversation{
                 });
             }
         });
-
-        this.config = config;
-
-        // Load translations and update placeholder messages
-        const lang = this.config.language || 'en';
-        const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
-        let translations;
-        try {
-            translations = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
-        } catch (error) {
-            console.error(`Could not load translation file for language: ${lang}. Falling back to en.`, error);
-            const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
-            translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
-        }
-        const notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
 
         this.messages.forEach(msg => {
             if (msg.content === "Has not spoken yet") {
