@@ -7,13 +7,19 @@ let selectedPlayerId: string | null = null;
 let selectedCharacterId: string | null = 'all';
 let currentView: 'inbox' | 'outbox' = 'inbox';
 
-const initLocalization = () => {
+const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
         // @ts-ignore
-        window.LocalizationManager.loadTranslations().then(() => {
+        let language = lang;
+        if (!language) {
             // @ts-ignore
-            window.LocalizationManager.applyTranslations();
-        });
+            const config = await ipcRenderer.invoke('get-config');
+            language = config.language || 'en';
+        }
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(language);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
     }
 };
 
