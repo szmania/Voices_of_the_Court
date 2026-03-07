@@ -29,6 +29,8 @@ let unsavedChanges = false;
 let userDataPath = '';
 let currentDiaryIndex = -1;
 let editingDiaryIndex = -1;
+let currentHighlightIndex = -1;
+let allHighlightMarks: HTMLElement[] = [];
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -81,7 +83,11 @@ function setupEventListeners() {
         selectedCharacterId = characterSelect.value;
         filterAndRenderDiaries();
     });
-    searchInput.addEventListener('input', filterAndRenderDiaries);
+    searchInput.addEventListener('input', () => {
+        currentHighlightIndex = -1; // Reset highlight on new search
+        filterAndRenderDiaries();
+    });
+    searchInput.addEventListener('keydown', handleSearchKeydown);
 }
 
 function applyTheme(theme: string) {
@@ -260,6 +266,10 @@ function handleInPlaceInputChange(index: number) {
 function renderDiaryList() {
     if (!diaryList) return;
     diaryList.innerHTML = '';
+    allHighlightMarks = []; // Clear previous marks
+
+    const searchTerm = searchInput.value;
+    const highlightRegex = searchTerm ? new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi') : null;
 
     if (filteredDiaries.length === 0) {
         diaryList.innerHTML = `<div class="no-summaries" data-i18n="diary_manager.no_data">No diary data available</div>`;
@@ -304,10 +314,14 @@ function renderDiaryList() {
             
             const displayDate = formatDateForDisplay(entry.date);
             const headerText = `${displayDate} - Character: ${entry.character_id}`;
+            const contentText = entry.content || 'No Content';
+
+            const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
+            const contentHTML = highlightRegex ? contentText.replace(highlightRegex, '<mark>$1</mark>') : contentText;
             
             item.innerHTML = `
-                <div class="summary-date">${headerText}</div>
-                <div class="summary-content">${entry.content || 'No Content'}</div>
+                <div class="summary-date">${headerHTML}</div>
+                <div class="summary-content">${contentHTML}</div>
             `;
             item.addEventListener('click', () => selectDiary(index));
             item.addEventListener('dblclick', () => enterEditMode(index));
@@ -315,6 +329,9 @@ function renderDiaryList() {
         }
     });
     deleteItemBtn.disabled = currentDiaryIndex === -1;
+
+    // After rendering, collect all mark elements for 'Enter' key navigation
+    allHighlightMarks = Array.from(diaryList.querySelectorAll('mark'));
 }
 
 function selectDiary(index: number) {
@@ -454,6 +471,30 @@ function formatDateForInput(dateStr: string): string {
     } catch (e) {
         return new Date().toISOString().split('T')[0];
     }
+}
+
+function handleSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (allHighlightMarks.length === 0) return;
+
+        if (currentHighlightIndex !== -1) {
+            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
+        }
+
+        currentHighlightIndex++;
+        if (currentHighlightIndex >= allHighlightMarks.length) {
+            currentHighlightIndex = 0;
+        }
+
+        const currentMark = allHighlightMarks[currentHighlightIndex];
+        currentMark.classList.add('current-highlight');
+        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function formatDateForDisplay(dateStr: string): string {

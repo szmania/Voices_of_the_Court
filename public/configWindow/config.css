@@ -481,6 +481,15 @@ language-selector {
 .social-links-li a svg {
   fill: currentColor;
 }
+
+mark {
+  background-color: yellow;
+  color: black;
+  padding: 0;
+}
+mark.current-highlight {
+  background-color: orange;
+}
 .social-links-li {
   order: 0; /* Prepend */
   flex-grow: 0;
