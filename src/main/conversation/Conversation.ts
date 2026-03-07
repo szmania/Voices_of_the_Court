@@ -399,64 +399,113 @@ export class Conversation{
     async generateAIsMessages() {
         this.aiToAiTurnLimit = 0;
         console.log('Starting generation of AI messages for all characters.');
-
+    
         // Special case for self-talk (player character is the AI character)
         if (this.gameData.playerID === this.gameData.aiID) {
             console.log('Self-talk session detected. Generating internal monologue for player character.');
             const playerCharacter = this.gameData.getPlayer();
-        
-            await this.processCharacterList([playerCharacter]);
-        
-            this.chatWindow.window.webContents.send('actions-receive', []); // No actions in self-talk
+            const messages = await this.processCharacterList([playerCharacter]);
+            for (const message of messages) {
+                if (message) {
+                    this.pushMessage(message);
+                    this.chatWindow.window.webContents.send('message-receive', message, false);
+                }
+            }
+            this.chatWindow.window.webContents.send('actions-receive', [], "");
             console.log('Finished generating self-talk message.');
-            return; // Exit after self-talk message
+            return;
         }
-
+    
         this.fillNpcQueue();
     
         const respondedCharacterIds = new Set<number>();
-
+        const allGeneratedMessages: Message[] = [];
+    
         // Step 1: Get and process targeted characters
         const targetedCharacters = await this.determineTargetedCharacters();
     
-        let charactersHaveResponded = false;
-
         if (targetedCharacters.length > 0) {
             console.log(`Processing ${targetedCharacters.length} targeted characters.`);
-            await this.processCharacterList(targetedCharacters);
-            targetedCharacters.forEach(c => respondedCharacterIds.add(c.id));
-            charactersHaveResponded = true;
+            const messages = await this.processCharacterList(targetedCharacters);
+            messages.forEach(msg => {
+                if (msg) {
+                    allGeneratedMessages.push(msg);
+                    respondedCharacterIds.add((msg as any).characterId);
+                }
+            });
         } else {
-            // If no one is targeted, one random character responds to keep conversation flowing.
+            // If no one is targeted, one random character responds
             console.log('No specific targets. Processing one random character from the queue.');
             const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
             if (shuffledQueue.length > 0) {
                 const charToRespond = shuffledQueue[0];
-                await this.processCharacterList([charToRespond]);
-                respondedCharacterIds.add(charToRespond.id);
-                charactersHaveResponded = true;
-            }
-        }
-
-        // Step 2: Get and process non-targeted characters who decide to chime in, but only if someone has already responded.
-        if (charactersHaveResponded) {
-            // Get a fresh list of who hasn't responded yet.
-            const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
-        
-            const respondingCharacters = nonTargetedCharacters.filter(char => {
-                const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
-                if (willRespond) console.log(`Non-targeted character ${char.shortName} will respond based on chance.`);
-                return willRespond;
-            }).sort(() => Math.random() - 0.5);
-
-            if (respondingCharacters.length > 0) {
-                console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
-                await this.processCharacterList(respondingCharacters);
+                const messages = await this.processCharacterList([charToRespond]);
+                messages.forEach(msg => {
+                    if (msg) {
+                        allGeneratedMessages.push(msg);
+                        respondedCharacterIds.add((msg as any).characterId);
+                    }
+                });
             }
         }
     
-        this.chatWindow.window.webContents.send('actions-receive', []);
-        console.log('Finished generating AI messages for all characters.');
+        // Step 2: Get and process non-targeted characters
+        const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
+        const respondingCharacters = nonTargetedCharacters.filter(char => {
+            const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
+            if (willRespond) console.log(`Non-targeted character ${char.shortName} will respond based on chance.`);
+            return willRespond;
+        }).sort(() => Math.random() - 0.5);
+    
+        if (respondingCharacters.length > 0) {
+            console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
+            const messages = await this.processCharacterList(respondingCharacters);
+            messages.forEach(msg => {
+                if (msg) {
+                    allGeneratedMessages.push(msg);
+                }
+            });
+        }
+    
+        // Step 3: Send all generated messages to the UI and check for actions
+        for (const message of allGeneratedMessages) {
+            this.pushMessage(message);
+            const messageIndex = this.messages.length - 1;
+            this.chatWindow.window.webContents.send('message-receive', message, this.config.actionsEnableAll);
+    
+            if (this.gameData.playerID !== this.gameData.aiID) {
+                let collectedActions: ActionResponse[] = [];
+                let narrative: string = "";
+    
+                if (this.config.actionsEnableAll) {
+                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                        const actionResult = await checkActions(this);
+                        collectedActions = actionResult.actions;
+                        narrative = actionResult.narrative;
+    
+                        if (collectedActions.length > 0) {
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = messageIndex;
+                        } else {
+                            this.consecutiveActionsCount = 0;
+                        }
+    
+                        if (narrative) {
+                            this.addNarrativeToMessage(messageIndex, narrative);
+                        }
+                    } else {
+                         console.log(`Skipping action check: consecutive actions limit reached.`);
+                    }
+                }
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
+            }
+        }
+        
+        if (allGeneratedMessages.length === 0) {
+             this.chatWindow.window.webContents.send('actions-receive', [], ""); // Clear loading dots if no one responded
+        }
+    
+        console.log('Finished generating and sending all AI messages.');
     
         // If suggestions are enabled, generate them now.
         if (this.config.autoGenerateSuggestions) {
@@ -585,7 +634,8 @@ export class Conversation{
         return [];
     }
 
-    async processCharacterList(characterList: Character[]) {
+    async processCharacterList(characterList: Character[]): Promise<(Message | null)[]> {
+        const generatedMessages: (Message | null)[] = [];
         for (const character of characterList) {
             if (this.isPaused) {
                 console.log('Conversation paused. Queue processing will stop.');
@@ -599,12 +649,14 @@ export class Conversation{
 
             console.log(`Processing character: ${character.shortName}`);
         
-            // Generate and send the message
+            let message: Message | null = null;
+            // Generate and get the message, but don't send it to the chat yet
             if (this.config.validateCharacterIdentity) {
-                await this.generateNewAIMessageWithValidation(character);
+                message = await this.generateNewAIMessageWithValidation(character);
             } else {
-                await this.generateNewAIMessage(character);
+                message = await this.generateNewAIMessage(character, false);
             }
+            generatedMessages.push(message);
 
             // AI-to-AI chat logic
             const shouldTalkToAi = Math.random() < (this.config.aiToAiChatChance / 100);
@@ -620,13 +672,13 @@ export class Conversation{
 
                     const aiMessage = await this.generateAiToAiMessage(character, targetAI);
                     if (aiMessage) {
-                        this.pushMessage(aiMessage);
-                        this.chatWindow.window.webContents.send('message-receive', aiMessage, false);
+                        generatedMessages.push(aiMessage);
                     }
                 }
             }
         }
         this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
+        return generatedMessages;
     }
 
     pause(): void {
@@ -1002,7 +1054,7 @@ ${conversationHistory}
      * 生成带有身份验证的AI消息
      * @param character - 应该发言的角色
      */
-    async generateNewAIMessageWithValidation(character: Character): Promise<void> {
+    async generateNewAIMessageWithValidation(character: Character): Promise<Message | null> {
         console.log(`Generating AI message with identity validation for character: ${character.fullName}`);
         
         // 检查是否满足身份验证的条件：流式传输关闭且角色数量大于2
@@ -1054,75 +1106,12 @@ ${conversationHistory}
         }
         
         if (validMessageGenerated && validMessage) {
-            // 验证通过，将消息添加到消息数组并发送到聊天窗口
-            this.pushMessage(validMessage);
-            const messageIndex = this.messages.length - 1; // 获取刚添加消息的索引
-            this.chatWindow.window.webContents.send('message-receive', validMessage, this.config.actionsEnableAll);
-            console.log(`Sent validated message for ${character.fullName} to chat window.`);
-            
-            // 检查并执行动作
-            if (this.gameData.playerID !== this.gameData.aiID && character.id === this.gameData.aiID) {
-                let collectedActions: ActionResponse[];
-                let narrative: string = "";
-                
-                if(this.config.actionsEnableAll){
-                    try{
-                        console.log('Actions are enabled. Checking for actions...');
-                        
-                        // Check max consecutive actions limit
-                        if (this.consecutiveActionsCount >= this.config.maxConsecutiveActions) {
-                            console.log(`Skipping action check: consecutive actions limit reached (${this.consecutiveActionsCount}/${this.config.maxConsecutiveActions})`);
-                            collectedActions = [];
-                            narrative = "";
-                        } else {
-                            const actionResult = await checkActions(this);
-                            collectedActions = actionResult.actions;
-                            narrative = actionResult.narrative;
-                            
-                            // Update consecutive actions tracking
-                            if (collectedActions.length > 0) {
-                                this.consecutiveActionsCount++;
-                                this.lastActionMessageIndex = messageIndex;
-                                console.log(`Action triggered. Consecutive actions count: ${this.consecutiveActionsCount}`);
-                            } else {
-                                // Reset counter if no actions were triggered
-                                this.consecutiveActionsCount = 0;
-                                console.log('No actions triggered, resetting consecutive actions count.');
-                            }
-                            
-                            // 将旁白与消息关联
-                            if (narrative) {
-                                this.addNarrativeToMessage(messageIndex, narrative);
-                                console.log(`Associated narrative with message at index ${messageIndex}`);
-                            }
-                        }
-                    }
-                    catch(e){
-                        console.error(`Error during action check: ${e}`);
-                        collectedActions = [];
-                        narrative = "";
-                        // Reset counter on error
-                        this.consecutiveActionsCount = 0;
-                    }
-                }
-                else{
-                    console.log('Actions are disabled in config.');
-                    collectedActions = [];
-                    narrative = "";
-                    // Reset counter when actions are disabled
-                    this.consecutiveActionsCount = 0;
-                }
-
-                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);    
-                console.log(`Sent ${collectedActions.length} actions to chat window.`);
-                if (narrative) {
-                    console.log(`Sent narrative: ${narrative}`);
-                }
-            }
+            return validMessage;
         } else {
             console.warn(`Failed to generate valid message for ${character.fullName} after ${maxAttempts} attempts. Skipping this character.`);
             // 可以选择发送一个通知给用户
             this.chatWindow.window.webContents.send('error-message', ` ${character.fullName} 没有发言。`);
+            return null;
         }
     }
 

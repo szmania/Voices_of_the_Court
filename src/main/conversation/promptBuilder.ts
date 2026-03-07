@@ -67,14 +67,14 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
         translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
     }
 
-    const roleplayInstructionTemplate = translations. xsystem.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
+    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
     let roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
     roleplayInstruction = roleplayInstruction.replace(/{playerName}/g, conv.gameData.getPlayer()!.fullName);
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
-    1} else {
+    } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
         const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'standard', exampleMessagesScriptFileName);
