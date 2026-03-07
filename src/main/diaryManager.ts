@@ -69,13 +69,36 @@ export async function readDiaryFile(playerId: string, characterId: string): Prom
     return JSON.parse(fileContent);
 }
 
-export async function saveDiaryFile(playerId: string, characterId: string, diaryData: any): Promise<void> {
+export async function saveDiaryFile(playerId: string, characterId: string, newDiaryEntry: any): Promise<void> {
     const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
     if (!fs.existsSync(diaryPath)) {
         fs.mkdirSync(diaryPath, { recursive: true });
     }
     const filePath = path.join(diaryPath, `${characterId}.json`);
-    await fs.promises.writeFile(filePath, JSON.stringify(diaryData, null, '\t'));
+
+    let diaryFileContent: { diary_entries: any[] } = { diary_entries: [] };
+
+    if (fs.existsSync(filePath)) {
+        try {
+            const fileContent = await fs.promises.readFile(filePath, 'utf-8');
+            if (fileContent) {
+                const parsedContent = JSON.parse(fileContent);
+                if (parsedContent && Array.isArray(parsedContent.diary_entries)) {
+                    diaryFileContent = parsedContent;
+                } else if (parsedContent && typeof parsedContent === 'object' && !Array.isArray(parsedContent)) {
+                    // Handle case where file contains a single diary entry object from old bug
+                    diaryFileContent.diary_entries.push(parsedContent);
+                }
+            }
+        } catch (e) {
+            console.error(`Error reading or parsing diary file ${filePath}, it will be overwritten.`, e);
+        }
+    }
+
+    // Add new entry to the beginning of the array
+    diaryFileContent.diary_entries.unshift(newDiaryEntry);
+
+    await fs.promises.writeFile(filePath, JSON.stringify(diaryFileContent, null, '\t'));
 }
 
 export async function getAllDiaryPlayerIds(userDataPath: string): Promise<string[]> {
