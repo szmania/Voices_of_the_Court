@@ -1105,11 +1105,11 @@ ipcMain.handle('get-letter-players', async () => {
             let playerName: string | undefined;
             // Try to find the player's name from any letter
             for (const letter of lettersForPlayer) {
-                if (String(letter.sender.id) === pId && letter.sender.fullName) {
+                if (letter.sender && String(letter.sender.id) === pId && letter.sender.fullName) {
                     playerName = letter.sender.fullName;
                     break;
                 }
-                if (String(letter.recipient.id) === pId && letter.recipient.fullName) {
+                if (letter.recipient && String(letter.recipient.id) === pId && letter.recipient.fullName) {
                     playerName = letter.recipient.fullName;
                     break;
                 }
