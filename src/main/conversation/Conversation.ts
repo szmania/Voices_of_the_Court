@@ -1088,15 +1088,12 @@ ${character.fullName}的发言：`
         // Write a trigger event to the game (e.g., trigger conversation end event)
 
         // Generate and save diary entries for each character
-        // @ts-ignore - enableDiaryGeneration is a custom property we added
-        if (this.config.enableDiaryGeneration) {
-            for (const character of this.gameData.characters.values()) {
-                // @ts-ignore - diaryGenerationChance is a custom property we added
-if (Math.random() < (this.config.diaryGenerationChance / 100)) {
-                    const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
-                    if (diaryEntry) {
-                        await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
-                    }
+        for (const character of this.gameData.characters.values()) {
+            // @ts-ignore - diaryGenerationChance is a custom property we added
+            if (Math.random() < (this.config.diaryGenerationChance / 100)) {
+                const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                if (diaryEntry) {
+                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
                 }
             }
         }
@@ -1252,7 +1249,7 @@ if (Math.random() < (this.config.diaryGenerationChance / 100)) {
         this.loadActions();
     }
 
-    getApiConnections(){
+    getApiConnections() {
         let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
         
         textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
