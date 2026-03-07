@@ -1209,3 +1209,26 @@ html{
 #character-target-container .custom-select-option:hover {
     background-color: #4a4a4a;
 }
+
+.queue-status {
+    position: absolute;
+    top: 40px;
+    right: 15px;
+    background: rgba(15, 15, 15, 0.5);
+    border: 1px solid #3d2e1e;
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 299;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    color: #c0c0c0;
+}
+
+.queue-status .current-speaker {
+    color: #cca43b;
+    font-weight: bold;
+}
+
+.queue-status .next-up {
+    color: #a18c61;
+}
