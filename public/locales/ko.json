@@ -80,6 +80,8 @@
     "scene_description_tooltip": "이 프롬프트는 대화 시작 시 초기 장면 설명을 생성하는 데 사용됩니다. 캐릭터 상호 작용을 위한 배경과 분위기를 제공합니다.",
     "diary_prompt": "일기 프롬프트",
     "diary_tooltip": "이 프롬프트는 대화 후 캐릭터의 일기 항목을 생성하는 데 사용됩니다. 캐릭터의 일관성과 깊이를 유지하는 데 도움이 됩니다.",
+    "letter_prompt": "편지 프롬프트",
+    "letter_summary_prompt": "편지 요약 프롬프트",
     "restore_defaults": "기본 프롬프트 복원",
     "restore_tooltip": "모든 프롬프트를 기본값으로 복원하려면 이 버튼을 클릭하세요.",
     "presets_header": "프롬프트 프리셋",
@@ -184,7 +186,8 @@
     "scene_description": "장면 설명",
     "narrative": "내러티브",
     "not_spoken": "아직 말하지 않음",
-    "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다."
+    "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다.",
+    "log_narrative_label": "[내레이션]:"
   },
   "suggestions": {
     "header": "권장 입력",

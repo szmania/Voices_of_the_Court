@@ -80,6 +80,8 @@
     "scene_description_tooltip": "このプロンプトは、会話の開始時に最初のシーン説明を生成するために使用されます。キャラクターの相互作用の背景と雰囲気を提供します。",
     "diary_prompt": "日記プロンプト",
     "diary_tooltip": "このプロンプトは、会話後にキャラクターの日記エントリを生成するために使用されます。キャラクターの一貫性と深みを維持するのに役立ちます。",
+    "letter_prompt": "手紙のプロンプト",
+    "letter_summary_prompt": "手紙の要約プロンプト",
     "restore_defaults": "デフォルトのプロンプトを復元",
     "restore_tooltip": "このボタンをクリックすると、すべてのプロンプトがデフォルト値に復元されます",
     "presets_header": "プロンプトプリセット",
@@ -184,7 +186,8 @@
     "scene_description": "シーン説明",
     "narrative": "ナラティブ",
     "not_spoken": "まだ話していません",
-    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
+    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。",
+    "log_narrative_label": "[ナラティブ]:"
   },
   "suggestions": {
     "header": "推奨入力",

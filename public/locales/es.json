@@ -77,6 +77,8 @@
     "scene_description_tooltip": "Este prompt se utiliza para generar la descripción inicial de la escena al comienzo de la conversación. Proporciona contexto y atmósfera para las interacciones de los personajes.",
     "diary_prompt": "Prompt de Diario",
     "diary_tooltip": "Este prompt se utiliza para generar entradas de diario para los personajes después de las conversaciones. Ayuda a mantener la consistencia y profundidad del personaje.",
+    "letter_prompt": "Prompt de carta",
+    "letter_summary_prompt": "Prompt de resumen de carta",
     "restore_defaults": "Restaurar prompts predeterminados",
     "restore_tooltip": "Haz clic en este botón para restaurar todos los prompts a sus valores predeterminados",
     "presets_header": "Preajustes de prompts",
@@ -181,7 +183,8 @@
     "scene_description": "Descripción de la escena",
     "narrative": "Narrativa",
     "not_spoken": "No ha hablado todavía",
-    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA."
+    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA.",
+    "log_narrative_label": "[Narrativa]:"
   },
   "suggestions": {
     "header": "Entrada recomendada",

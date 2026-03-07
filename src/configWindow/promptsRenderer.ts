@@ -403,7 +403,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         const defaultPrompts = defaultConfig.prompts;
         
         const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
-        
+
         for (const [key, value] of Object.entries(promptsToApply)) {
             if (promptTextareas[key]) {
                 promptTextareas[key].textarea.value = value;
