@@ -12,6 +12,7 @@ import { StoredLetter } from "./letter/letterInterfaces.js";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
 import { LetterManager } from "./letter/LetterManager.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
+import { parseLogForLetters } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
@@ -238,6 +239,111 @@ const createTray = () => {
 
 let clipboardListener = new ClipboardListener();
 let config: Config;
+
+
+let currentTotalDays: number = 0;
+const storedLetters: Map<string, StoredLetter> = new Map();
+
+function deliverLetter(storedLetter: StoredLetter) {
+    const userFolderPath = config.userFolderPath;
+    if (!userFolderPath) {
+        console.error("Cannot deliver letter, user folder path is not set.");
+        return;
+    }
+
+    const letter = storedLetter.letter;
+    const replyContent = storedLetter.reply;
+    const letterId = letter.subject; // The original code uses subject as letterId for the file name.
+
+    const letterNumber = letterId.replace('letter_', '');
+    const letterFileName = `letter${letterNumber}.txt`;
+    const letterFilePath = path.join(userFolderPath, "run", letterFileName);
+
+    const runFolderPath = path.join(userFolderPath, "run");
+    if (!fs.existsSync(runFolderPath)) {
+        fs.mkdirSync(runFolderPath, { recursive: true });
+    }
+
+    const commandTemplates = require("../../default_userdata/scripts/letters/command_templates.js");
+    // This part is tricky. The original LetterReplyGenerator uses gameData.recentEvent.
+    // I don't have gameData here. I'll use the default template.
+    const template = commandTemplates.default;
+
+    const escapedReply = replyContent.replace(/"/g, '\\"');
+    const gameCommand = template
+        .replace(/{{letterNumber}}/g, letterNumber)
+        .replace(/{{replyContent}}/g, escapedReply)
+        .replace(/{{letterId}}/g, letterId);
+
+    fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
+    console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
+}
+
+function checkAndDeliverLetters() {
+    for (const [letterId, storedLetter] of storedLetters.entries()) {
+        if (currentTotalDays >= storedLetter.expectedDeliveryDay) {
+            console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
+            deliverLetter(storedLetter);
+            storedLetters.delete(letterId);
+        }
+    }
+}
+
+function updateCurrentDate(newTotalDays: number) {
+    if (currentTotalDays > 0 && newTotalDays < currentTotalDays) {
+        console.log(`Time travel detected (backwards). Old: ${currentTotalDays}, New: ${newTotalDays}. Not handling this for now.`);
+    }
+    currentTotalDays = newTotalDays;
+    console.log(`Game date updated to: ${currentTotalDays}`);
+    checkAndDeliverLetters();
+}
+
+function processLogLine(line: string) {
+    const dateRegex = /VOTC:DATE\/;\/(\d+)/;
+    const match = line.match(dateRegex);
+    
+    if (match) {
+      const newTotalDays = Number(match[1]);
+      updateCurrentDate(newTotalDays);
+    }
+}
+
+let lastSize = 0;
+function startLogTailing() {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (!config.userFolderPath || !fs.existsSync(debugLogPath)) {
+        console.warn("LetterManager: CK3 debug log path not configured or file not found; cannot start log tailing for date updates.");
+        setTimeout(startLogTailing, 5000); // Retry after 5s if path not set
+        return;
+    }
+    
+    console.log(`Starting to watch debug log for date updates: ${debugLogPath}`);
+    
+    try {
+        lastSize = fs.statSync(debugLogPath).size;
+
+        fs.watchFile(debugLogPath, { interval: 2000 }, (curr, prev) => {
+            if (curr.mtime > prev.mtime && curr.size > lastSize) {
+                const bufferSize = curr.size - lastSize;
+                const buffer = Buffer.alloc(bufferSize);
+                const fd = fs.openSync(debugLogPath, 'r');
+                fs.readSync(fd, buffer, 0, bufferSize, lastSize);
+                fs.closeSync(fd);
+                
+                const newContent = buffer.toString('utf8');
+                newContent.split(/\r?\n/).forEach(line => {
+                    if (line) processLogLine(line);
+                });
+                lastSize = curr.size;
+            } else if (curr.size < lastSize) {
+                // Log file was likely cleared/rotated
+                lastSize = curr.size;
+            }
+        });
+    } catch (error) {
+        console.error("Error starting log tailing:", error);
+    }
+}
 
 
 let currentTotalDays: number = 0;
