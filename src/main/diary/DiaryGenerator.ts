@@ -30,12 +30,16 @@ export class DiaryGenerator {
             return null;
         }
 
+        const replacedPrompt = diaryPrompt.replace(/{{charName}}/g, character.fullName);
+
         const conversationHistory = conversation.getHistory().map(msg => `${msg.name}: ${msg.content}`).join('\n');
 
-        const prompt = `${diaryPrompt}\n\n${conversationHistory}`;
+        const fullPrompt = `${replacedPrompt}\n\n${conversationHistory}`;
+        
+        const promptForApi = [{ role: 'user', content: fullPrompt }];
 
         // @ts-ignore - using complete instead of generate
-        const generatedContent = await this.textGenApiConnection.complete(prompt, false, {});
+        const generatedContent = await this.textGenApiConnection.complete(promptForApi, false, {});
 
         if (!generatedContent) {
             return null;
