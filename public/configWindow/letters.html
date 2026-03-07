@@ -22,7 +22,11 @@
 </div>
 
 <div class="container" id="container" style="display: flex; flex-direction: column; height: 100vh;">
+    <div id="letter-loader" class="loader" style="display: none;"></div>
     <div id="letter-controls">
+        <div class="control-group">
+            <button id="letter-refresh-btn" class="btn" data-i18n="letters.refresh">Refresh</button>
+        </div>
         <div class="control-group">
             <label for="player-select" data-i18n="letters.player">Player:</label>
             <select id="player-select"></select>

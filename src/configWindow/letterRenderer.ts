@@ -1,6 +1,8 @@
 import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
 
+const loader = document.getElementById('letter-loader') as HTMLDivElement;
+
 function formatDate(date: Date): string {
     const day = date.getDate();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -131,28 +133,35 @@ function renderLetterContent(letter: Letter) {
 }
 
 async function loadPlayers() {
-    const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
-    const players = await ipcRenderer.invoke('get-letter-players');
-    
-    playerSelect.innerHTML = '';
-    if (players.length === 0) {
-        const option = document.createElement('option');
-        option.textContent = 'No players found';
-        playerSelect.appendChild(option);
-        renderLetters();
-        return;
+    loader.style.display = 'block';
+    try {
+        const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
+        const players = await ipcRenderer.invoke('get-letter-players');
+        
+        playerSelect.innerHTML = '';
+        if (players.length === 0) {
+            const option = document.createElement('option');
+            option.textContent = 'No players found';
+            playerSelect.appendChild(option);
+            renderLetters();
+            return;
+        }
+
+        players.forEach((player: {id: string, name: string}) => {
+            const option = document.createElement('option');
+            option.value = player.id;
+            option.textContent = `${player.name} (${player.id})`;
+            playerSelect.appendChild(option);
+        });
+
+        selectedPlayerId = playerSelect.value;
+        await loadCharacters(selectedPlayerId);
+        await loadLetters(selectedPlayerId);
+    } catch (error) {
+        console.error("Error loading players:", error);
+    } finally {
+        loader.style.display = 'none';
     }
-
-    players.forEach((player: {id: string, name: string}) => {
-        const option = document.createElement('option');
-        option.value = player.id;
-        option.textContent = `${player.name} (${player.id})`;
-        playerSelect.appendChild(option);
-    });
-
-    selectedPlayerId = playerSelect.value;
-    await loadCharacters(selectedPlayerId);
-    await loadLetters(selectedPlayerId);
 }
 
 async function loadCharacters(playerId: string) {
@@ -194,6 +203,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const inboxBtn = document.getElementById('inbox-btn') as HTMLButtonElement;
     const outboxBtn = document.getElementById('outbox-btn') as HTMLButtonElement;
+    const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
+
+    refreshBtn.addEventListener('click', loadPlayers);
 
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
