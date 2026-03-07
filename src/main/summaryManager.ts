@@ -3,16 +3,32 @@
  * @param userDataPath The path to the user data directory (e.g., .../votc_data).
  * @returns A promise that resolves to an array of player ID strings.
  */
-export async function getAllPlayerIds(userDataPath: string): Promise<string[]> {
+export async function getAllPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
     try {
         const summaryDir = path.join(userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summaryDir)) {
-            return []; // Return empty array if the base directory doesn't exist
+            return [];
         }
 
         const playerDirs = fs.readdirSync(summaryDir, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
-            .map(dirent => dirent.name);
+            .map(dirent => {
+                const playerId = dirent.name;
+                const mapPath = path.join(summaryDir, playerId, '_character_map.json');
+                let playerName = `Player ${playerId}`; // Fallback name
+                if (fs.existsSync(mapPath)) {
+                    try {
+                        const mapContent = fs.readFileSync(mapPath, 'utf8');
+                        const mapData = JSON.parse(mapContent);
+                        if (mapData[playerId]) {
+                            playerName = mapData[playerId];
+                        }
+                    } catch (e) {
+                        console.error(`Error reading character map for player ${playerId}:`, e);
+                    }
+                }
+                return { id: playerId, name: playerName };
+            });
 
         return playerDirs;
     } catch (error) {
@@ -170,6 +186,32 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
         }
     } catch (error) {
         console.error('Error saving summary file:', error);
+        throw error;
+    }
+}
+
+/**
+ * Reads the character map for a given player.
+ * @param userDataPath The path to the user data directory.
+ * @param playerId The ID of the player whose character map to read.
+ * @returns A promise that resolves to a map of character IDs to names.
+ */
+export async function readCharacterMap(userDataPath: string, playerId: string): Promise<Map<string, string>> {
+    try {
+        const mapFilePath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMap = new Map<string, string>();
+
+        if (fs.existsSync(mapFilePath)) {
+            const content = fs.readFileSync(mapFilePath, 'utf8');
+            const mapData = JSON.parse(content);
+            for (const id in mapData) {
+                characterMap.set(id, mapData[id]);
+            }
+        }
+        
+        return characterMap;
+    } catch (error) {
+        console.error('Error reading character map file:', error);
         throw error;
     }
 }

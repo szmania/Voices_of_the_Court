@@ -15,7 +15,7 @@ import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -1052,6 +1052,18 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
+    try {
+        const map = await readCharacterMap(userDataPath, playerId);
+        return { success: true, map: Object.fromEntries(map) };
+    } catch (error) {
+        console.error('Error getting character map:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }

@@ -39,6 +39,7 @@ let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let editingSummaryIndex = -1;
 let hasUnsavedChanges = false;
+let characterMap: { [key: string]: string } = {};
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -181,10 +182,10 @@ async function loadPlayerIds() {
         
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
-            ids.forEach((id: string) => {
+            ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
-                option.value = id;
-                option.textContent = id;
+                option.value = player.id;
+                option.textContent = player.name === `Player ${player.id}` ? player.id : `${player.name} (${player.id})`;
                 playerIdSelect.appendChild(option);
             });
             await loadSummaryData(); // Load data for the first player
@@ -218,6 +219,14 @@ async function loadSummaryData() {
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
         
+        const { success, map, error } = await ipcRenderer.invoke('get-character-map', selectedPlayerId);
+        if (success) {
+            characterMap = map;
+        } else {
+            console.warn('Could not load character map:', error);
+            characterMap = {}; // Reset on failure
+        }
+
         allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
         populateCharacterSelect();
         filterSummariesByCharacter();
@@ -240,7 +249,8 @@ function populateCharacterSelect() {
     characterIds.forEach(characterId => {
         const option = document.createElement('option');
         option.value = characterId;
-        option.textContent = characterId;
+        const characterName = characterMap[characterId];
+        option.textContent = characterName ? `${characterName} (${characterId})` : characterId;
         characterSelect.appendChild(option);
     });
     characterSelect.value = selectedCharacterId;
@@ -317,10 +327,12 @@ function renderSummaryList() {
             editItem.className = 'summary-item-edit';
             
             const characterId = summary.characterId || 'Unknown';
+            const characterName = characterMap[characterId];
+            const characterDisplayText = characterName ? `${characterName} (${characterId})` : characterId;
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
             
             editItem.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterId}</div>
+                <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterDisplayText}</div>
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
                 <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
                 <div class="edit-controls">
@@ -349,11 +361,13 @@ function renderSummaryList() {
             }
 
             const characterId = summary.characterId || 'Unknown';
+            const characterName = characterMap[characterId];
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
-            
+            const characterDisplayText = characterName ? `${characterName} (${characterId})` : characterId;
+
             // Format date for display
             const displayDate = formatDateForDisplay(summary.date);
-            const headerText = `${displayDate} - ${characterText}: ${characterId}`;
+            const headerText = `${displayDate} - ${characterText}: ${characterDisplayText}`;
             const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
             const contentHTML = highlightRegex ? (summary.content || '').replace(highlightRegex, '<mark>$1</mark>') : (summary.content || '');
 
