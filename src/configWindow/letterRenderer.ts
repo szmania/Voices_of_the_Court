@@ -53,6 +53,8 @@ function renderLetters() {
     }
 
     const filteredLetters = allLetters.filter(letter => {
+        if (!letter.recipient || !letter.sender) return false;
+
         const isInbox = letter.recipient.id === Number(selectedPlayerId);
         const isOutbox = letter.sender.id === Number(selectedPlayerId);
 
