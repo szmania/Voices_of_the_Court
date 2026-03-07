@@ -11,8 +11,8 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
     
     // Check minimum messages before any action can trigger
     const totalMessages = conv.messages.length;
-    if (totalMessages < conv.config.minimumMessagesBeforeAction) {
-        console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is ${conv.config.minimumMessagesBeforeAction}`);
+    if (totalMessages < 1) {
+        console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is 1`);
         return { actions: [], narrative: "" };
     }
     
