@@ -214,8 +214,6 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
         console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
-    
-
     if(conv.currentSummary){
         let currentSummaryMessage: Message = {
             role: "system",
