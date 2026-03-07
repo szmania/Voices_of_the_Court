@@ -10,45 +10,62 @@ import { Character } from '../../shared/gameData/Character';
 import { describe, it, beforeEach, expect, jest } from '@jest/globals';
 
 jest.mock('../../shared/apiConnection');
+jest.mock('../conversation/Conversation');
 
 describe('DiaryGenerator', () => {
   let config: Config;
   let gameData: GameData;
-  let conversation: Conversation;
+  let conversation: jest.Mocked<Conversation>;
   let diaryGenerator: DiaryGenerator;
 
   beforeEach(() => {
-    config = new Config('default_userdata/configs/default_config.json');
-    // @ts-ignore - GameData constructor expects a string argument
+    config = {
+        language: 'en',
+        prompts: {
+            en: {
+                diaryPrompt: 'Test Diary Prompt'
+            }
+        },
+        textGenerationApiConnectionConfig: {
+            connection: {},
+            parameters: {}
+        }
+    } as any;
+
+    // @ts-ignore
     gameData = new GameData('');
     const player = new Character(['1', 'Player', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
     player.id = 1;
     player.fullName = 'Player';
+    player.traits = [];
     gameData.characters.set(1, player);
     gameData.playerID = 1;
-    conversation = new Conversation(gameData, config, {} as any, '');
+    
+    conversation = new Conversation(gameData, config, {} as any, '') as jest.Mocked<Conversation>;
     diaryGenerator = new DiaryGenerator(config);
   });
 
   it('should return null if character is not found', async () => {
+    (conversation.getHistory as jest.Mock).mockReturnValue([]);
     const entry = await diaryGenerator.generateDiaryEntry(gameData, conversation, '999');
     expect(entry).toBeNull();
   });
 
   it('should return null if diary prompt is not found', async () => {
-    // @ts-ignore - diaryPrompt is a custom property we added
+    (conversation.getHistory as jest.Mock).mockReturnValue([]);
+    // @ts-ignore
     config.prompts['en']!.diaryPrompt = '';
     const entry = await diaryGenerator.generateDiaryEntry(gameData, conversation, '1');
     expect(entry).toBeNull();
   });
 
   it('should return a valid DiaryEntry on success', async () => {
-    const mockGenerate = jest.fn().mockResolvedValue('This is a diary entry.');
-    // @ts-ignore - ApiConnection mock
+    (conversation.getHistory as jest.Mock).mockReturnValue([]);
+    const mockComplete = jest.fn().mockResolvedValue('This is a diary entry.');
+    // @ts-ignore
     (ApiConnection as jest.Mock).mockImplementation(() => {
       return {
-        // @ts-ignore - using complete instead of generate
-        complete: mockGenerate,
+        complete: mockComplete,
       };
     });
     diaryGenerator = new DiaryGenerator(config);
@@ -61,12 +78,12 @@ describe('DiaryGenerator', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    const mockGenerate = jest.fn().mockResolvedValue(null);
-    // @ts-ignore - ApiConnection mock
+    (conversation.getHistory as jest.Mock).mockReturnValue([]);
+    const mockComplete = jest.fn().mockResolvedValue(null);
+    // @ts-ignore
     (ApiConnection as jest.Mock).mockImplementation(() => {
       return {
-        // @ts-ignore - using complete instead of generate
-        complete: mockGenerate,
+        complete: mockComplete,
       };
     });
     diaryGenerator = new DiaryGenerator(config);
