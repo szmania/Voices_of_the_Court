@@ -328,16 +328,15 @@ function renderSummaryList() {
                 </div>
             `;
             
+            const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
+            saveButton.addEventListener('click', () => saveInPlaceEdit());
             // Add event listeners for input changes
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
-            const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
             
-            if (dateInput && contentInput && saveButton) {
-                dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-                contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-                saveButton.addEventListener('click', () => saveInPlaceEdit());
-            }
+            dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            
             summaryList.appendChild(editItem);
         } else {
             // Render in display mode
@@ -537,6 +536,33 @@ function formatDateForInput(dateStr: string): string {
     }
 
     return ''; // Return empty if parsing fails
+}
+
+function handleInPlaceInputChange(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
+    
+    const summary = filteredSummaries[index];
+    const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
+    const editItem = dateInput.closest('.summary-item-edit');
+    const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
+    
+    if (!dateInput || !contentInput || !summary || !saveButton) return;
+    
+    const originalDate = formatDateForInput(summary.date);
+    const originalContent = summary.content || '';
+    
+    const dateChanged = originalDate !== dateInput.value;
+    const contentChanged = originalContent !== contentInput.value;
+    
+    const hasChanges = dateChanged || contentChanged;
+    saveButton.disabled = !hasChanges;
+
+    if (hasChanges) {
+        saveButton.classList.add('blinking');
+    } else {
+        saveButton.classList.remove('blinking');
+    }
 }
 
 function handleInPlaceInputChange(index: number) {
