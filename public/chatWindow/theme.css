@@ -757,6 +757,7 @@ body.theme-west .chat-box {
     align-items: flex-end;
     text-align: right;
     z-index: 10;
+    background: rgba(0,0,0,0.6);
 }
 
 /* East UI Theme for Character Target Dropdown */
