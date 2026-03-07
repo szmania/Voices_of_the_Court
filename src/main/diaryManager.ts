@@ -69,15 +69,21 @@ export async function readDiaryFile(playerId: string, characterId: string): Prom
     return JSON.parse(fileContent);
 }
 
-export async function saveDiaryFile(playerId: string, characterId: string, newDiaryEntry: any): Promise<void> {
+export async function saveDiaryFile(playerId: string, characterId: string, diaryData: any): Promise<void> {
     const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
     if (!fs.existsSync(diaryPath)) {
         fs.mkdirSync(diaryPath, { recursive: true });
     }
     const filePath = path.join(diaryPath, `${characterId}.json`);
 
-    let diaryFileContent: { diary_entries: any[] } = { diary_entries: [] };
+    // Case 1: diaryData is a complete file structure from the manager UI, so just overwrite.
+    if (diaryData && diaryData.diary_entries && Array.isArray(diaryData.diary_entries)) {
+        await fs.promises.writeFile(filePath, JSON.stringify(diaryData, null, '\t'));
+        return;
+    }
 
+    // Case 2: diaryData is a single new entry from the conversation flow. Read, prepend, and write.
+    let diaryFileContent: { diary_entries: any[] } = { diary_entries: [] };
     if (fs.existsSync(filePath)) {
         try {
             const fileContent = await fs.promises.readFile(filePath, 'utf-8');
@@ -86,7 +92,7 @@ export async function saveDiaryFile(playerId: string, characterId: string, newDi
                 if (parsedContent && Array.isArray(parsedContent.diary_entries)) {
                     diaryFileContent = parsedContent;
                 } else if (parsedContent && typeof parsedContent === 'object' && !Array.isArray(parsedContent)) {
-                    // Handle case where file contains a single diary entry object from old bug
+                    // Handle migration of old single-object format
                     diaryFileContent.diary_entries.push(parsedContent);
                 }
             }
@@ -95,8 +101,8 @@ export async function saveDiaryFile(playerId: string, characterId: string, newDi
         }
     }
 
-    // Add new entry to the beginning of the array
-    diaryFileContent.diary_entries.unshift(newDiaryEntry);
+    // Add the new single entry to the beginning of the array
+    diaryFileContent.diary_entries.unshift(diaryData);
 
     await fs.promises.writeFile(filePath, JSON.stringify(diaryFileContent, null, '\t'));
 }

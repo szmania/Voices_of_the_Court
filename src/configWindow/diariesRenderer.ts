@@ -385,6 +385,8 @@ function addNewDiaryEntry() {
         _isNew: true
     };
     allDiaryEntries.unshift(newEntry);
+    unsavedChanges = true;
+    updateSaveButtonState();
     filterAndRenderDiaries();
     enterEditMode(0);
 }
