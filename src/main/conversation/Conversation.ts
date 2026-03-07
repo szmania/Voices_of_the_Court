@@ -398,6 +398,8 @@ export class Conversation{
 
         this.fillNpcQueue();
     
+        const respondedCharacterIds = new Set<number>();
+
         // Step 1: Get and process targeted characters
         const targetedCharacters = await this.determineTargetedCharacters();
     
@@ -406,13 +408,16 @@ export class Conversation{
         if (targetedCharacters.length > 0) {
             console.log(`Processing ${targetedCharacters.length} targeted characters.`);
             await this.processCharacterList(targetedCharacters);
+            targetedCharacters.forEach(c => respondedCharacterIds.add(c.id));
             charactersHaveResponded = true;
         } else {
             // If no one is targeted, one random character responds to keep conversation flowing.
             console.log('No specific targets. Processing one random character from the queue.');
             const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
             if (shuffledQueue.length > 0) {
-                await this.processCharacterList([shuffledQueue[0]]);
+                const charToRespond = shuffledQueue[0];
+                await this.processCharacterList([charToRespond]);
+                respondedCharacterIds.add(charToRespond.id);
                 charactersHaveResponded = true;
             }
         }
@@ -420,8 +425,7 @@ export class Conversation{
         // Step 2: Get and process non-targeted characters who decide to chime in, but only if someone has already responded.
         if (charactersHaveResponded) {
             // Get a fresh list of who hasn't responded yet.
-            const respondedIds = new Set(targetedCharacters.map(c => c.id));
-            const nonTargetedCharacters = this.npcQueue.filter(c => !respondedIds.has(c.id));
+            const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
         
             const respondingCharacters = nonTargetedCharacters.filter(char => {
                 const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);

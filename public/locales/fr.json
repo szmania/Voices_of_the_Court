@@ -126,6 +126,8 @@
     "ai_start_chance": "Chance de démarrage par l'IA (%)",
     "aiToAiChatChance": "Chance de discussion IA à IA (%)",
     "aiToAiChatChance_tooltip": "La chance qu'un personnage IA, après avoir répondu au joueur, envoie également un message à un autre personnage IA.",
+    "maxConsecutiveActions": "Max d'actions consécutives",
+    "maxConsecutiveActions_tooltip": "Le nombre maximum de tours consécutifs de l'IA pouvant déclencher des actions. Aide à prévenir les boucles d'actions. Mettre à 0 pour aucune limite.",
     "instruct_header": "Paramètres d'instruction",
     "input_seq": "Séquence d'entrée",
     "output_seq": "Séquence de sortie",

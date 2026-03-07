@@ -124,6 +124,8 @@
     "ai_start_chance": "KI-Startchance (%)",
     "aiToAiChatChance": "KI-zu-KI-Gesprächschance (%)",
     "aiToAiChatChance_tooltip": "Die Wahrscheinlichkeit, dass ein KI-Charakter nach der Antwort an den Spieler auch eine Nachricht an einen anderen KI-Charakter sendet.",
+    "maxConsecutiveActions": "Max. aufeinanderfolgende Aktionen",
+    "maxConsecutiveActions_tooltip": "Die maximale Anzahl aufeinanderfolgender KI-Züge, die Aktionen auslösen können. Hilft, Aktionsschleifen zu verhindern. Auf 0 setzen für kein Limit.",
     "instruct_header": "Instruct-Einstellungen",
     "input_seq": "Eingabesequenz",
     "output_seq": "Ausgabesequenz",

@@ -126,6 +126,8 @@
     "ai_start_chance": "AI 開始確率 (%)",
     "aiToAiChatChance": "AI同士のチャット確率 (%)",
     "aiToAiChatChance_tooltip": "AIキャラクターがプレイヤーに応答した後、別のAIキャラクターにもメッセージを送信する確率。",
+    "maxConsecutiveActions": "最大連続アクション数",
+    "maxConsecutiveActions_tooltip": "アクションをトリガーできるAIの連続ターン数の最大値。アクションループを防ぐのに役立ちます。0に設定すると制限なしになります。",
     "instruct_header": "Instruct 設定",
     "input_seq": "入力シーケンス",
     "output_seq": "出力シーケンス",

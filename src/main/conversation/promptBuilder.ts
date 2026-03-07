@@ -124,24 +124,24 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
     const descriptionScriptFileName = conv.config.selectedDescScript;
     const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
+    const originalAiId = conv.gameData.aiID; // Store it before the try block
     try{
         delete require.cache[require.resolve(descriptionPath)];
 
         // Temporarily set the gameData's AI to the current character
         // to ensure description scripts generate from the correct perspective.
-        const originalAiId = conv.gameData.aiID;
         conv.gameData.aiID = character.id;
 
         // Pass character to the script
         description = require(descriptionPath)(conv.gameData, character); 
         
-        // Restore the original AI ID
-        conv.gameData.aiID = originalAiId;
-        
         console.log(`Description script '${descriptionScriptFileName}' loaded successfully for ${character.fullName}.`);
     }catch(err){
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
+    } finally {
+        // Always restore the original AI ID
+        conv.gameData.aiID = originalAiId;
     }
 
     if (description) {

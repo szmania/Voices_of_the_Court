@@ -127,6 +127,8 @@
     "ai_start_chance": "AI start chance (%)",
     "aiToAiChatChance": "AI to AI chat chance (%)",
     "aiToAiChatChance_tooltip": "The chance that an AI character, after responding to the player, will also send a message to another AI character.",
+    "maxConsecutiveActions": "Max Consecutive Actions",
+    "maxConsecutiveActions_tooltip": "The maximum number of consecutive AI turns that can trigger actions. Helps prevent action loops. Set to 0 for no limit.",
     "instruct_header": "Instruct settings",
     "input_seq": "Input sequence",
     "output_seq": "output sequence",

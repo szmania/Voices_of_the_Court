@@ -126,6 +126,8 @@
     "ai_start_chance": "AI 시작 확률 (%)",
     "aiToAiChatChance": "AI 간 채팅 확률 (%)",
     "aiToAiChatChance_tooltip": "AI 캐릭터가 플레이어에게 응답한 후 다른 AI 캐릭터에게도 메시지를 보낼 확률.",
+    "maxConsecutiveActions": "최대 연속 작업 수",
+    "maxConsecutiveActions_tooltip": "작업을 트리거할 수 있는 AI의 최대 연속 턴 수입니다. 작업 루프를 방지하는 데 도움이 됩니다. 제한 없음을 원하면 0으로 설정하십시오.",
     "instruct_header": "Instruct 설정",
     "input_seq": "입력 시퀀스",
     "output_seq": "출력 시퀀스",

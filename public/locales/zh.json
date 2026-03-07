@@ -127,6 +127,8 @@
     "ai_start_chance": "AI 发起概率 (%)",
     "aiToAiChatChance": "AI间对话概率 (%)",
     "aiToAiChatChance_tooltip": "AI角色在回应玩家后，继续向另一个AI角色发送消息的概率。",
+    "maxConsecutiveActions": "最大连续动作数",
+    "maxConsecutiveActions_tooltip": "AI连续触发动作的最大回合数。有助于防止动作循环。设置为0则无限制。",
     "instruct_header": "指令设置",
     "input_seq": "输入序列",
     "output_seq": "输出序列",
