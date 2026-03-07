@@ -168,13 +168,13 @@ async function loadLetters(playerId: string) {
     renderLetters();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('container');
     if (container) {
         container.style.display = 'flex';
     }
 
-    initLocalization();
+    await initLocalization();
 
     const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
@@ -214,5 +214,5 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 });
 
 ipcRenderer.on('update-language', (event, lang) => {
-    initLocalization();
+    initLocalization(lang);
 });
