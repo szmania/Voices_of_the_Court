@@ -166,8 +166,14 @@ async function loadDiaries() {
         const characterIds: string[] = await ipcRenderer.invoke('get-diary-files', currentPlayerId);
         for (const charId of characterIds) {
             const data = await ipcRenderer.invoke('read-diary-file', currentPlayerId, charId);
-            if (data && data.diary_entries) {
-                allDiaries[charId] = data.diary_entries;
+            if (data) {
+                if (data.diary_entries && Array.isArray(data.diary_entries)) {
+                    // Correct format with diary_entries array
+                    allDiaries[charId] = data.diary_entries;
+                } else if (typeof data === 'object' && !Array.isArray(data) && data.date && data.content) {
+                    // Handle old format where the file is a single diary entry object
+                    allDiaries[charId] = [data];
+                }
             }
         }
         await loadCharacters();
