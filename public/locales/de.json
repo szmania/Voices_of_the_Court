@@ -152,7 +152,7 @@
     "roaming_data": "Roaming-Datenordner",
     "roaming_data_desc": "Dieser Ordner enthält Ihre persönliche Konfiguration, Skripte und Zusammenfassungen.",
     "open_roaming_data": "Roaming-Datenordner öffnen",
-    "roleplay_instruction": "Deine Aufgabe ist es, die Rolle des Charakters {characterName} zu spielen. Schreibe nur eine Antwort für diesen Charakter. Denke daran, du spielst als {characterName}, schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.",
+    "roleplay_instruction": "Du bist {characterName}. Schreibe eine Antwort an {playerName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.",
     "start_writing_reply": "Beginnen Sie jetzt mit dem Schreiben der Antwort von {characterName}:"
   },
   "chat": {

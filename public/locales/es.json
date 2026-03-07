@@ -152,7 +152,7 @@
     "roaming_data": "Carpeta de datos móviles",
     "roaming_data_desc": "Esta carpeta contiene tu configuración personal, scripts y resúmenes.",
     "open_roaming_data": "Abrir carpeta de datos móviles",
-    "roleplay_instruction": "Tu tarea es interpretar al personaje {characterName}. Escribe una respuesta solo para este personaje. Recuerda, estás interpretando a {characterName}, no escribas respuestas para ningún otro personaje.",
+    "roleplay_instruction": "Eres {characterName}. Escribe una respuesta a {playerName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.",
     "start_writing_reply": "Ahora empieza a escribir la respuesta de {characterName}:"
   },
   "chat": {
