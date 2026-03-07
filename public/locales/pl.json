@@ -554,5 +554,19 @@
     "content_success": "Treść rozmowy załadowana pomyślnie",
     "content_fail": "Nie udało się załadować treści rozmowy: ",
     "no_player_id": "Nie udało się sparsować ID gracza z logów gry"
+  },
+  "suggestion_builder": {
+    "summary_header": "Oto daty i podsumowania poprzednich rozmów:",
+    "prompt_header": "Na podstawie poniższego kontekstu rozmowy i informacji o postaci, wygeneruj 3-5 krótkich i odpowiednich sugestii odpowiedzi dla postaci gracza {characterName}. Sugestie powinny:",
+    "prompt_rule1": "1. Pasować do osobowości i aktualnej sytuacji postaci",
+    "prompt_rule2": "2. Mieć zróżnicowane tony (np. pytający, zgadzający się, niezgadzający się, neutralny)",
+    "prompt_rule3": "3. Być zwięzłe i naturalne",
+    "prompt_rule4": "4. Każda sugestia nie powinna przekraczać 15 słów",
+    "prompt_context_header": "Kontekst rozmowy:",
+    "prompt_suggestions_header": "Sugestie dla postaci gracza (podaj tylko sugestie, po jednej w wierszu):",
+    "system_message": "Jesteś asystentem odpowiedzialnym za generowanie odpowiednich sugestii odpowiedzi gracza w grze fabularnej.",
+    "default_suggestion1": "Rozumiem.",
+    "default_suggestion2": "Powiedz mi więcej.",
+    "default_suggestion3": "Co masz na myśli?"
   }
 }

@@ -554,5 +554,19 @@
     "content_success": "Contenu de la conversation chargé avec succès",
     "content_fail": "Échec du chargement du contenu de la conversation : ",
     "no_player_id": "Impossible d'analyser l'ID du joueur à partir des logs du jeu"
+  },
+  "suggestion_builder": {
+    "summary_header": "Voici les dates et les résumés des conversations précédentes :",
+    "prompt_header": "En fonction du contexte de conversation et des informations sur le personnage suivants, générez 3 à 5 suggestions de réponse courtes et appropriées pour le personnage joueur {characterName}. Les suggestions doivent :",
+    "prompt_rule1": "1. Correspondre à la personnalité et à la situation actuelle du personnage",
+    "prompt_rule2": "2. Avoir des tons variés (par exemple, interrogatif, d'accord, en désaccord, neutre)",
+    "prompt_rule3": "3. Être concises et naturelles",
+    "prompt_rule4": "4. Chaque suggestion ne doit pas dépasser 15 mots",
+    "prompt_context_header": "Contexte de la conversation :",
+    "prompt_suggestions_header": "Suggestions pour le personnage joueur (fournissez uniquement les suggestions, une par ligne) :",
+    "system_message": "Vous êtes un assistant chargé de générer des suggestions de réponses de joueur appropriées pour un jeu de rôle.",
+    "default_suggestion1": "Je comprends.",
+    "default_suggestion2": "Dites-m'en plus.",
+    "default_suggestion3": "Que voulez-vous dire ?"
   }
 }

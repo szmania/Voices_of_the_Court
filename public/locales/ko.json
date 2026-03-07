@@ -554,5 +554,19 @@
     "content_success": "대화 내용을 성공적으로 로드했습니다.",
     "content_fail": "대화 내용 로드 실패: ",
     "no_player_id": "게임 로그에서 플레이어 ID를 파싱할 수 없습니다."
+  },
+  "suggestion_builder": {
+    "summary_header": "이전 대화의 날짜와 요약은 다음과 같습니다.",
+    "prompt_header": "다음 대화 맥락과 캐릭터 정보를 바탕으로 플레이어 캐릭터 {characterName}에 대한 짧고 적절한 응답 제안 3-5개를 생성하십시오. 제안은 다음과 같아야 합니다.",
+    "prompt_rule1": "1. 캐릭터의 성격과 현재 상황과 일치",
+    "prompt_rule2": "2. 다양한 톤을 가짐(예: 질문, 동의, 반대, 중립)",
+    "prompt_rule3": "3. 간결하고 자연스러움",
+    "prompt_rule4": "4. 각 제안은 15단어를 초과하지 않음",
+    "prompt_context_header": "대화 맥락:",
+    "prompt_suggestions_header": "플레이어 캐릭터 제안(제안만 한 줄에 하나씩 제공):",
+    "system_message": "당신은 롤플레잉 게임에 적합한 플레이어 응답 제안을 생성하는 조수입니다.",
+    "default_suggestion1": "알겠습니다.",
+    "default_suggestion2": "더 자세히 알려주세요.",
+    "default_suggestion3": "무슨 뜻인가요?"
   }
 }

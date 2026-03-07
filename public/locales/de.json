@@ -552,5 +552,19 @@
     "content_success": "Gesprächsinhalt erfolgreich geladen",
     "content_fail": "Laden des Gesprächsinhalts fehlgeschlagen: ",
     "no_player_id": "Spieler-ID konnte nicht aus den Spiel-Logs geparst werden"
+  },
+  "suggestion_builder": {
+    "summary_header": "Hier sind die Daten und Zusammenfassungen früherer Gespräche:",
+    "prompt_header": "Basierend auf dem folgenden Gesprächskontext und den Charakterinformationen, generiere 3-5 kurze und passende Antwortvorschläge für den Spielercharakter {characterName}. Die Vorschläge sollten:",
+    "prompt_rule1": "1. Zur Persönlichkeit und aktuellen Situation des Charakters passen",
+    "prompt_rule2": "2. Verschiedene Töne haben (z.B. fragend, zustimmend, ablehnend, neutral)",
+    "prompt_rule3": "3. Prägnant und natürlich sein",
+    "prompt_rule4": "4. Jeder Vorschlag sollte nicht mehr als 15 Wörter umfassen",
+    "prompt_context_header": "Gesprächskontext:",
+    "prompt_suggestions_header": "Vorschläge für Spielercharakter (nur die Vorschläge angeben, einen pro Zeile):",
+    "system_message": "Sie sind ein Assistent, der für die Generierung geeigneter Spielerantwortvorschläge für ein Rollenspiel verantwortlich ist.",
+    "default_suggestion1": "Ich verstehe.",
+    "default_suggestion2": "Erzählen Sie mir mehr.",
+    "default_suggestion3": "Was meinen Sie?"
   }
 }

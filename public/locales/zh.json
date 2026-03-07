@@ -555,5 +555,19 @@
     "content_success": "对话内容加载成功",
     "content_fail": "加载对话内容失败: ",
     "no_player_id": "无法从游戏日志中解析玩家ID"
+  },
+  "suggestion_builder": {
+    "summary_header": "以下是之前对话的日期与摘要：",
+    "prompt_header": "基于以下对话上下文和角色信息，为玩家角色{characterName}生成3-5个简短且合适的回应建议。建议应该：",
+    "prompt_rule1": "1. 符合角色特点和当前情境",
+    "prompt_rule2": "2. 语气多样（例如：询问、同意、反对、中立）",
+    "prompt_rule3": "3. 简洁自然",
+    "prompt_rule4": "4. 每条建议不超过15个词",
+    "prompt_context_header": "对话上下文：",
+    "prompt_suggestions_header": "玩家角色建议（仅提供建议，每行一条）：",
+    "system_message": "你是一个助手，负责为角色扮演游戏生成合适的玩家回应建议。",
+    "default_suggestion1": "我明白了。",
+    "default_suggestion2": "告诉我更多。",
+    "default_suggestion3": "你是什么意思？"
   }
 }

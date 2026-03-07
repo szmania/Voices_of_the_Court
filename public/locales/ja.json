@@ -554,5 +554,19 @@
     "content_success": "会話内容が正常に読み込まれました",
     "content_fail": "会話内容の読み込みに失敗しました：",
     "no_player_id": "ゲームログからプレイヤー ID を解析できません"
+  },
+  "suggestion_builder": {
+    "summary_header": "過去の会話の日付と要約は次のとおりです：",
+    "prompt_header": "以下の会話の文脈とキャラクター情報に基づいて、プレイヤーキャラクター{characterName}のための短く適切な応答の提案を3〜5個生成してください。提案は次のようになります：",
+    "prompt_rule1": "1. キャラクターの性格と現在の状況に一致する",
+    "prompt_rule2": "2. 多様なトーンを持つ（例：質問、同意、反対、中立）",
+    "prompt_rule3": "3. 簡潔で自然である",
+    "prompt_rule4": "4. 各提案は15語を超えないこと",
+    "prompt_context_header": "会話の文脈：",
+    "prompt_suggestions_header": "プレイヤーキャラクターの提案（提案のみを1行に1つずつ提供）：",
+    "system_message": "あなたはロールプレイングゲームに適したプレイヤーの応答提案を生成するアシスタントです。",
+    "default_suggestion1": "わかりました。",
+    "default_suggestion2": "もっと詳しく教えてください。",
+    "default_suggestion3": "どういう意味ですか？"
   }
 }

@@ -8,6 +8,20 @@ import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
 
+function getTranslations(lang: string): any {
+    const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+    try {
+        if (fs.existsSync(localePath)) {
+            return JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+        }
+    } catch (error) {
+        console.error(`Error reading locale file for ${lang}:`, error);
+    }
+    // Fallback to English
+    const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', 'en.json');
+    return JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+}
+
 
 /**
  * 构建建议提示词
@@ -16,6 +30,9 @@ import fs from 'fs';
  */
 export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Building suggestion prompt...');
+
+    const translations = getTranslations(conv.config.language);
+    const suggestionTranslations = translations.suggestion_builder;
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
     const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
@@ -41,15 +58,12 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     let memoryString = createMemoryString(conv);
     
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
-    const isZh = conv.config.language === 'zh';
-    
-    // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
     let summaryString = "";
     // 获取当前AI角色的摘要，而不是玩家角色的摘要
     const characterSummaries = conv.summaries.get(aiCharacter.id) || [];
     
     if(characterSummaries.length > 0){
-        summaryString = isZh ? "以下是之前对话的日期与摘要：\n" : "Here are the dates and summaries of previous conversations:\n";
+        summaryString = suggestionTranslations.summary_header + "\n";
         
         const summariesToProcess = [...characterSummaries];
         summariesToProcess.reverse();
@@ -68,12 +82,12 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     }
     
     // 构建提示词，请求生成推荐输入语句
-    const prompt = isZh ? 
-        `基于以下对话上下文和角色信息，为玩家角色${playerCharacter.shortName}生成3-5个简短且合适的回应建议。建议应该：
-1. 符合角色特点和当前情境
-2. 语气多样（例如：询问、同意、反对、中立）
-3. 简洁自然
-4. 每条建议不超过15个词
+    const promptHeader = suggestionTranslations.prompt_header.replace('{characterName}', playerCharacter.shortName);
+    const prompt = `${promptHeader}
+${suggestionTranslations.prompt_rule1}
+${suggestionTranslations.prompt_rule2}
+${suggestionTranslations.prompt_rule3}
+${suggestionTranslations.prompt_rule4}
 
 ${description}
 
@@ -81,32 +95,16 @@ ${memoryString ? memoryString + "\n" : ""}
 
 ${summaryString ? summaryString + "\n" : ""}
 
-对话上下文：
+${suggestionTranslations.prompt_context_header}
 ${conversationContext}
 
-玩家角色建议（仅提供建议，每行一条）：` :
-        `Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character ${playerCharacter.shortName}. Suggestions should:
-1. Match the character's personality and current situation
-2. Have diverse tones (e.g., inquiring, agreeing, disagreeing, neutral)
-3. Be concise and natural
-4. Each suggestion should not exceed 15 words
-
-${description}
-
-${memoryString ? memoryString + "\n" : ""}
-
-${summaryString ? summaryString + "\n" : ""}
-
-Conversation Context:
-${conversationContext}
-
-Player Character Suggestions (provide only the suggestions, one per line):`;
+${suggestionTranslations.prompt_suggestions_header}`;
 
     // 构建消息数组，参考promptBuilder.ts中的结构
     const messages: Message[] = [
         {
             role: "system",
-            content: isZh ? "你是一个助手，负责为角色扮演游戏生成合适的玩家回应建议。" : "You are an assistant responsible for generating appropriate player response suggestions for a role-playing game."
+            content: suggestionTranslations.system_message
         },
         {
             role: "user",
@@ -124,10 +122,13 @@ Player Character Suggestions (provide only the suggestions, one per line):`;
  * @returns 建议字符串数组
  */
 export async function generateSuggestions(conv: Conversation): Promise<string[]> {
-    const isZh = conv.config.language === 'zh';
-    const defaultSuggestions = isZh ? 
-        ["我明白了。", "告诉我更多。", "你是什么意思？"] : 
-        ["I understand.", "Tell me more.", "What do you mean?"];
+    const translations = getTranslations(conv.config.language);
+    const suggestionTranslations = translations.suggestion_builder;
+    const defaultSuggestions = [
+        suggestionTranslations.default_suggestion1,
+        suggestionTranslations.default_suggestion2,
+        suggestionTranslations.default_suggestion3
+    ];
 
     try {
         console.log('Starting to generate suggestions...');
