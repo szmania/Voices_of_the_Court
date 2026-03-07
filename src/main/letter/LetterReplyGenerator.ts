@@ -1,14 +1,14 @@
 import { ApiConnection } from "../../shared/apiConnection";
 import { GameData } from "../../shared/gameData/GameData";
 import { Config } from "../../shared/Config";
-import { Message } from "../ts/conversation_interfaces";
+import { Message, Summary } from "../ts/conversation_interfaces";
 import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
-import { ILetter, LetterType } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 
 export class LetterReplyGenerator {
@@ -49,7 +49,7 @@ export class LetterReplyGenerator {
         // Read conversation summary
         let conversationSummary = '';
         try {
-            const summaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
+            const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(gameData.aiID));
             
             if (aiSummaries.length > 0) {
@@ -311,7 +311,7 @@ export class LetterReplyGenerator {
             };
 
             // Read existing summary file
-            let existingSummaries = [];
+            let existingSummaries: Summary[] = [];
             try {
                 existingSummaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
             } catch (error) {
