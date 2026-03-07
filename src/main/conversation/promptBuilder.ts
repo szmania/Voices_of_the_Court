@@ -216,8 +216,6 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
     }
     
 
-    
-
     if(conv.currentSummary){
         let currentSummaryMessage: Message = {
             role: "system",
