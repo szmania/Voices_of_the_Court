@@ -1091,9 +1091,9 @@ ${character.fullName}的发言：`
         for (const character of this.gameData.characters.values()) {
             // @ts-ignore - diaryGenerationChance is a custom property we added
             if (Math.random() < (this.config.diaryGenerationChance / 100)) {
-                const diaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
-                if (diaryEntry) {
-                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), diaryEntry);
+                const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                if (newDiaryEntry) {
+                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
                 }
             }
         }
