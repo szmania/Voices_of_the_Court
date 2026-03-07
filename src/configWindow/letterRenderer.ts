@@ -1,6 +1,14 @@
 import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
 
+function formatDate(date: Date): string {
+    const day = date.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
 // State
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
@@ -82,7 +90,7 @@ function renderLetters() {
         li.innerHTML = `
             <div class="letter-item-header">
                 <span class="letter-item-party">${otherParty.shortName}</span>
-                <span class="letter-item-date">${new Date(letter.timestamp).toLocaleDateString()}</span>
+                <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
             </div>
             <div class="letter-item-subject">${letter.subject}</div>
         `;
@@ -113,7 +121,7 @@ function renderLetterContent(letter: Letter) {
             <div class="letter-view-meta">
                 <span><strong>From:</strong> ${letter.sender.fullName}</span>
                 <span><strong>To:</strong> ${letter.recipient.fullName}</span>
-                <span><strong>Date:</strong> ${new Date(letter.timestamp).toLocaleString()}</span>
+                <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
             </div>
         </div>
         <div class="letter-view-body">
