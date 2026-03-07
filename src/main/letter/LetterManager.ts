@@ -102,10 +102,10 @@ export class LetterManager {
         const playerNumericId = Number(playerId);
 
         allLetters.forEach(letter => {
-            if (letter.sender.id !== playerNumericId) {
+            if (letter.sender && letter.sender.id !== playerNumericId) {
                 characterInfo.set(String(letter.sender.id), letter.sender.fullName);
             }
-            if (letter.recipient.id !== playerNumericId) {
+            if (letter.recipient && letter.recipient.id !== playerNumericId) {
                 characterInfo.set(String(letter.recipient.id), letter.recipient.fullName);
             }
         });
