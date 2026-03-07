@@ -74,6 +74,8 @@
     "narrative_tooltip": "Ten prompt służy do generowania opisów narracyjnych AI po wyzwoleniu akcji. Narracja zapewnia nastrojowe opisy wydarzeń w grze.",
     "scene_description_prompt": "Prompt opisu sceny",
     "scene_description_tooltip": "Ten prompt służy do generowania początkowego opisu sceny na początku rozmowy. Zapewnia tło i atmosferę dla interakcji postaci.",
+    "letter_prompt": "Prompt listu",
+    "letter_summary_prompt": "Prompt podsumowania listu",
     "restore_defaults": "Przywróć domyślne prompty",
     "restore_tooltip": "Kliknij ten przycisk, aby przywrócić wszystkie prompty do ich wartości domyślnych",
     "presets_header": "Presety promptów",
@@ -178,6 +180,7 @@
     "narrative": "Narracja",
     "not_spoken": "Jeszcze nie mówił(a)",
     "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI.",
+    "log_narrative_label": "[Narracja]:",
     "target_tooltip": "Wybierz konkretną postać, do której chcesz skierować wiadomość. Domyślnie jest to 'Wykryto automatycznie'."
   },
   "suggestions": {

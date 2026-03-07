@@ -249,6 +249,20 @@ export class Conversation{
                 let currentMessage: Message | null = null;
                 let messageIndex = -1;
 
+                const narrativeLabels = {
+                    en: "[Narrative]:",
+                    zh: "[旁白]:",
+                    ru: "[Повествование]:",
+                    fr: "[Récit]:",
+                    es: "[Narrativa]:",
+                    de: "[Erzählung]:",
+                    ja: "[ナラティブ]:",
+                    ko: "[내레이션]:",
+                    pl: "[Narracja]:"
+                };
+                const narrativeLabelValues = Object.values(narrativeLabels);
+                const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
+
                 for (let line of lines) {
                     line = line.trim();
                     if (!line) continue;
@@ -274,9 +288,10 @@ export class Conversation{
                         continue;
                     }
 
-                    if (line.startsWith('[旁白]:')) {
+                    const narrativeMatch = line.match(narrativeRegex);
+                    if (narrativeMatch) {
                         if (messageIndex !== -1) {
-                            const narrative = line.replace('[旁白]:', '').trim();
+                            const narrative = line.substring(narrativeMatch[0].length).trim();
                             this.addNarrativeToMessage(this.messages.length + messageIndex, narrative);
                         }
                         continue;
@@ -1233,12 +1248,25 @@ ${character.fullName}的发言：`
         }
         textContent += '\n';
 
+        const narrativeLabels = {
+            en: "[Narrative]:",
+            zh: "[旁白]:",
+            ru: "[Повествование]:",
+            fr: "[Récit]:",
+            es: "[Narrativa]:",
+            de: "[Erzählung]:",
+            ja: "[ナラティブ]:",
+            ko: "[내레이션]:",
+            pl: "[Narracja]:"
+        };
+        const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
+
         processedMessages.forEach((msg, index) => {
           textContent += `${msg.name}: ${msg.content}\n`;
           
           // 添加旁白信息
           if (msg.narratives && msg.narratives.length > 0) {
-            textContent += `[旁白]: ${msg.narratives.join('\n[旁白]: ')}\n`;
+            textContent += `${narrativeLabel} ${msg.narratives.join(`\n${narrativeLabel} `)}\n`;
           }
           
           textContent += '\n';

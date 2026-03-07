@@ -74,6 +74,8 @@
     "narrative_tooltip": "This prompt is used to generate AI narrative descriptions after actions are triggered. The narrative provides atmospheric descriptions of events in the game.",
     "scene_description_prompt": "Scene Description prompt",
     "scene_description_tooltip": "This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.",
+    "letter_prompt": "Letter prompt",
+    "letter_summary_prompt": "Letter Summary prompt",
     "restore_defaults": "Restore Default Prompts",
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
@@ -178,6 +180,7 @@
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet",
     "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI.",
+    "log_narrative_label": "[Narrative]:",
     "target_tooltip": "Select a specific character to direct your message to. Default is 'Automatically Detected'."
   },
   "suggestions": {

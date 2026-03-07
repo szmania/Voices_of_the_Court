@@ -74,6 +74,8 @@
     "narrative_tooltip": "Ce prompt est utilisé pour générer des descriptions narratives par l'IA après le déclenchement d'actions. La narration fournit des descriptions atmosphériques des événements du jeu.",
     "scene_description_prompt": "Prompt de description de scène",
     "scene_description_tooltip": "Ce prompt est utilisé pour générer la description initiale de la scène au début de la conversation. Il fournit le contexte et l'atmosphère pour les interactions entre personnages.",
+    "letter_prompt": "Prompt de lettre",
+    "letter_summary_prompt": "Prompt de résumé de lettre",
     "restore_defaults": "Restaurer les prompts par défaut",
     "restore_tooltip": "Cliquez sur ce bouton pour restaurer tous les prompts à leurs valeurs par défaut",
     "presets_header": "Préréglages de prompts",
@@ -178,6 +180,7 @@
     "narrative": "Narration",
     "not_spoken": "N'a pas encore parlé",
     "tokenizer_tooltip": "Comptage de tokens en temps réel pour le message actuel. Les tokens sont les unités de texte de base utilisées par l'IA.",
+    "log_narrative_label": "[Récit]:",
     "target_tooltip": "Sélectionnez un personnage spécifique à qui adresser votre message. La valeur par défaut est 'Détecté automatiquement'."
   },
   "suggestions": {

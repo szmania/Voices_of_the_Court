@@ -74,6 +74,8 @@
     "narrative_tooltip": "此提示词用于在触发动作后生成 AI 叙述描述。叙述提供游戏中事件的氛围描述。",
     "scene_description_prompt": "场景描述提示词",
     "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
+    "letter_prompt": "信件提示词",
+    "letter_summary_prompt": "信件总结提示词",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
     "presets_header": "提示词预设",
@@ -178,6 +180,7 @@
     "narrative": "旁白",
     "not_spoken": "尚未发言",
     "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。",
+    "log_narrative_label": "[旁白]:",
     "target_tooltip": "选择一个特定角色来定向您的消息。默认为“自动检测”。",
     "target_character": "目标角色"
   },

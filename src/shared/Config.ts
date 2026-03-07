@@ -19,11 +19,13 @@ export interface PromptConfig {
     selfTalkSummarizePrompt: string;
     narrativePrompt: string;
     sceneDescriptionPrompt: string;
+    letterPrompt: string;
+    letterSummaryPrompt: string;
 }
 
 export class Config{
     userFolderPath!: string;
-    language: 'en' | 'zh' | 'ru' | 'fr' | 'es' = 'en';
+    language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' = 'en';
 
     stream!: boolean;
     maxTokens!: number;
@@ -84,6 +86,10 @@ export class Config{
         ru: PromptConfig;
         fr: PromptConfig;
         es: PromptConfig;
+        de: PromptConfig;
+        ja: PromptConfig;
+        ko: PromptConfig;
+        pl: PromptConfig;
     };
 
     get mainPrompt(): string { return this.prompts[this.language].mainPrompt; }
@@ -94,6 +100,8 @@ export class Config{
     get selfTalkSummarizePrompt(): string { return this.prompts[this.language].selfTalkSummarizePrompt; }
     get narrativePrompt(): string { return this.prompts[this.language].narrativePrompt; }
     get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
+    get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
+    get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
 
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;

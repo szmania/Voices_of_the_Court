@@ -178,6 +178,7 @@
     "narrative": "Erzählung",
     "not_spoken": "Hat noch nicht gesprochen",
     "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden.",
+    "log_narrative_label": "[Erzählung]:",
     "target_tooltip": "Wählen Sie einen bestimmten Charakter aus, an den Sie Ihre Nachricht richten möchten. Standard ist 'Automatisch erkannt'."
   },
   "suggestions": {
