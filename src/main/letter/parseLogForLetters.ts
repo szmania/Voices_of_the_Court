@@ -17,15 +17,17 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
     for (const line of lines) {
         if (line.includes('VOTC:LETTER')) {
             const parts = line.split('/;/');
-            if (parts.length >= 5) {
-                // Example: [21:44:13][D][jomini_effect_impl.cpp:450]: file: events/message_events.txt line: 202 (message_event.360:option): VOTC:LETTER/;/hi how are you/;/letter_1/;/316742/;/30/;/
+            if (parts.length >= 7) {
+                // Example: [21:44:13][D][jomini_effect_impl.cpp:450]: file: events/message_events.txt line: 202 (message_event.360:option): VOTC:LETTER/;/hi how are you/;/letter_1/;/316742/;/30/;/5/;/12345/;/
                 const content = parts[1].trim();
                 const subject = parts[2].trim();
                 const recipientId = parts[3].trim();
                 const senderId = parts[4].trim();
+                const delay = parseInt(parts[5].trim(), 10) || 0;
+                const totalDays = parseInt(parts[6].trim(), 10) || 0;
 
                 if(content && subject && recipientId && senderId) {
-                    const letter = Letter.fromLog(senderId, recipientId, subject, content, characterNameMap, gameDate);
+                    const letter = Letter.fromLog(senderId, recipientId, subject, content, characterNameMap, gameDate, delay, totalDays);
                     if (letter) {
                         letters.push(letter);
                     }

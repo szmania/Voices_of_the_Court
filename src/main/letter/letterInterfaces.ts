@@ -16,4 +16,12 @@ export interface Letter {
   timestamp: Date;
   isRead: boolean;
   letterType: LetterType;
+  delay: number;
+  totalDays: number;
+}
+
+export interface StoredLetter {
+    letter: Letter;
+    reply: string;
+    expectedDeliveryDay: number;
 }

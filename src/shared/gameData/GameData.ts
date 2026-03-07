@@ -40,6 +40,7 @@ export type FamilyMember = {
 */
 export class GameData {
     date: string;
+    totalDays: number;
     scene: string;
     location: string;
     locationController: string;
@@ -64,9 +65,10 @@ export class GameData {
             this.aiID = Number(data[2]),
             this.aiName = removeTooltip(data[3]),
             this.date = data[4],
-            this.scene = data[5].substring(11),
-            this.location = data[6],
-            this.locationController = data[7],
+            this.totalDays = Number(data[5]),
+            this.scene = data[6].substring(11),
+            this.location = data[7],
+            this.locationController = data[8],
     
             this.characters = new Map<number,Character>
     }

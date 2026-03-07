@@ -11,6 +11,8 @@ export class Letter implements ILetter {
     timestamp: Date;
     isRead: boolean;
     letterType: LetterType;
+    delay: number;
+    totalDays: number;
 
     constructor(
         id: string,
@@ -20,7 +22,9 @@ export class Letter implements ILetter {
         content: string,
         letterType: LetterType,
         timestamp: Date = new Date(),
-        isRead: boolean = false
+        isRead: boolean = false,
+        delay: number = 0,
+        totalDays: number = 0
     ) {
         this.id = id;
         this.sender = sender;
@@ -30,6 +34,8 @@ export class Letter implements ILetter {
         this.timestamp = timestamp;
         this.isRead = isRead;
         this.letterType = letterType;
+        this.delay = delay;
+        this.totalDays = totalDays;
     }
 
     public static fromLog(
@@ -38,7 +44,9 @@ export class Letter implements ILetter {
         subject: string,
         content: string,
         characterNameMap: Map<string, string>,
-        gameDate?: string
+        gameDate: string,
+        delay: number,
+        totalDays: number
     ): Letter | null {
         try {
             const senderName = characterNameMap.get(senderId) || `Character ${senderId}`;
@@ -65,7 +73,10 @@ export class Letter implements ILetter {
                 subject,
                 content,
                 LetterType.UNKNOWN,
-                timestamp
+                timestamp,
+                false,
+                delay,
+                totalDays
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

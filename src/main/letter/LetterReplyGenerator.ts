@@ -203,12 +203,13 @@ export class LetterReplyGenerator {
             
             console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
-            // Write the reply to the corresponding file and save history
-            await this.writeLetterReply(escapedResponse, userFolderPath, letterContent, gameData);
-            
             // Generate and save a summary of the letter
             await this.generateAndSaveLetterSummary(gameData, letterContent, escapedResponse);
+
+            // Save letter history immediately
+            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letterContent, escapedResponse, gameData);
             
+            // Return the generated reply so it can be queued for delayed delivery
             return escapedResponse;
         } catch (error) {
             console.error(`Error generating letter reply: ${error}`);
@@ -382,51 +383,5 @@ export class LetterReplyGenerator {
         }
     }
 
-    /**
-     * Writes the reply to the corresponding letter file and saves the letter history.
-     * @param replyContent The reply content
-     * @param userFolderPath User folder path
-     * @param letterContent Original letter content (contains player letter info)
-     * @param gameData Game data (to get player and character IDs)
-     */
-    public async writeLetterReply(replyContent: string, userFolderPath: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, gameData: GameData): Promise<void> {
-        try {
-            const letterId = letterContent.subject;
-            
-            // Extract numeric suffix from letterId (e.g., letter_1 -> 1)
-            const letterNumber = letterId.replace('letter_', '');
-            const letterFileName = `letter${letterNumber}.txt`;
-            const letterFilePath = path.join(userFolderPath, "run", letterFileName);
-            
-            // Ensure the run folder exists
-            const runFolderPath = path.join(userFolderPath, "run");
-            if (!fs.existsSync(runFolderPath)) {
-                fs.mkdirSync(runFolderPath, { recursive: true });
-                console.log(`Created run folder at: ${runFolderPath}`);
-            }
-
-            // Select template based on event
-            const commandTemplates = require("../../../default_userdata/scripts/letters/command_templates.js");
-            const eventType = gameData.recentEvent?.type;
-            const template = eventType ? commandTemplates[eventType] || commandTemplates.default : commandTemplates.default;
-
-            // Populate the template
-            const gameCommand = template
-                .replace(/{{letterNumber}}/g, letterNumber)
-                .replace(/{{replyContent}}/g, replyContent)
-                .replace(/{{letterId}}/g, letterId);
-
-            // Write to file
-            fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
-            console.log(`Letter reply written to: ${letterFilePath} for ${letterId}`);
-
-            // Save letter history
-            const playerId = String(gameData.playerID);
-            const aiId = String(gameData.aiID);
-            await this.saveLetterHistory(playerId, aiId, letterContent, replyContent, gameData);
-            
-        } catch (error) {
-            console.error(`Error writing letter reply file: ${error}`);
-        }
-    }
+    // This function is now handled by the delivery mechanism in main.ts to support delays.
 }
