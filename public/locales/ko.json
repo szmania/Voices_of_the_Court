@@ -6,6 +6,7 @@
     "connection": "연결",
     "actions": "작업",
     "summarization": "요약",
+    "diaries": "일기",
     "prompts": "프롬프트",
     "settings": "설정",
     "system": "시스템",
@@ -13,6 +14,10 @@
     "language_tooltip": "애플리케이션 언어 선택",
     "discord_tooltip": "Discord에 참여하세요",
     "website_tooltip": "저희 웹사이트를 방문하세요"
+  },
+  "diaries": {
+    "header": "일기",
+    "description": "캐릭터의 일기 항목을 관리합니다."
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",
@@ -73,6 +78,8 @@
     "narrative_tooltip": "이 프롬프트는 작업이 트리거된 후 AI 내러티브 설명을 생성하는 데 사용됩니다. 내러티브는 게임 내 이벤트의 분위기 있는 설명을 제공합니다.",
     "scene_description_prompt": "장면 설명 프롬프트",
     "scene_description_tooltip": "이 프롬프트는 대화 시작 시 초기 장면 설명을 생성하는 데 사용됩니다. 캐릭터 상호 작용을 위한 배경과 분위기를 제공합니다.",
+    "diary_prompt": "일기 프롬프트",
+    "diary_tooltip": "이 프롬프트는 대화 후 캐릭터의 일기 항목을 생성하는 데 사용됩니다. 캐릭터의 일관성과 깊이를 유지하는 데 도움이 됩니다.",
     "restore_defaults": "기본 프롬프트 복원",
     "restore_tooltip": "모든 프롬프트를 기본값으로 복원하려면 이 버튼을 클릭하세요.",
     "presets_header": "프롬프트 프리셋",

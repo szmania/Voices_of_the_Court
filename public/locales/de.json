@@ -6,6 +6,7 @@
     "connection": "Verbindung",
     "actions": "Aktionen",
     "summarization": "Zusammenfassung",
+    "diaries": "Tagebücher",
     "prompts": "Prompts",
     "settings": "Einstellungen",
     "system": "System",
@@ -13,6 +14,10 @@
     "language_tooltip": "Anwendungssprache auswählen",
     "discord_tooltip": "Tritt unserem Discord bei",
     "website_tooltip": "Besuche unsere Webseite"
+  },
+  "diaries": {
+    "header": "Tagebücher",
+    "description": "Tagebucheinträge für Charaktere verwalten."
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",
@@ -73,6 +78,8 @@
     "narrative_tooltip": "Dieser Prompt wird verwendet, um KI-Erzählbeschreibungen zu generieren, nachdem Aktionen ausgelöst wurden. Die Erzählung liefert atmosphärische Beschreibungen von Ereignissen im Spiel.",
     "scene_description_prompt": "Szenenbeschreibungs-Prompt",
     "scene_description_tooltip": "Dieser Prompt wird verwendet, um die anfängliche Szenenbeschreibung zu Beginn des Gesprächs zu generieren. Er liefert Hintergrund und Atmosphäre für Charakterinteraktionen.",
+    "diary_prompt": "Tagebuch-Prompt",
+    "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
     "restore_defaults": "Standard-Prompts wiederherstellen",
     "restore_tooltip": "Klicken Sie auf diese Schaltfläche, um alle Prompts auf ihre Standardwerte zurückzusetzen",
     "presets_header": "Prompt-Voreinstellungen",

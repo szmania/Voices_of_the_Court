@@ -6,6 +6,7 @@
     "connection": "Connexion",
     "actions": "Actions",
     "summarization": "Résumé",
+    "diaries": "Journaux",
     "prompts": "Prompts",
     "settings": "Paramètres",
     "system": "Système",
@@ -13,6 +14,10 @@
     "language_tooltip": "Sélectionner la langue de l'application",
     "discord_tooltip": "Rejoignez notre Discord",
     "website_tooltip": "Visitez notre site web"
+  },
+  "diaries": {
+    "header": "Journaux",
+    "description": "Gérer les entrées de journal des personnages."
   },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",
@@ -73,6 +78,8 @@
     "narrative_tooltip": "Ce prompt est utilisé pour générer des descriptions narratives par l'IA après le déclenchement d'actions. La narration fournit des descriptions atmosphériques des événements du jeu.",
     "scene_description_prompt": "Prompt de description de scène",
     "scene_description_tooltip": "Ce prompt est utilisé pour générer la description initiale de la scène au début de la conversation. Il fournit le contexte et l'atmosphère pour les interactions entre personnages.",
+    "diary_prompt": "Prompt de Journal",
+    "diary_tooltip": "Ce prompt est utilisé pour générer des entrées de journal pour les personnages après les conversations. Il aide à maintenir la cohérence et la profondeur du personnage.",
     "restore_defaults": "Restaurer les prompts par défaut",
     "restore_tooltip": "Cliquez sur ce bouton pour restaurer tous les prompts à leurs valeurs par défaut",
     "presets_header": "Préréglages de prompts",

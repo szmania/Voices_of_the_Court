@@ -6,6 +6,7 @@
     "connection": "接続",
     "actions": "アクション",
     "summarization": "要約",
+    "diaries": "日記",
     "prompts": "プロンプト",
     "settings": "設定",
     "system": "システム",
@@ -13,6 +14,10 @@
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
     "website_tooltip": "ウェブサイトにアクセス"
+  },
+  "diaries": {
+    "header": "日記",
+    "description": "キャラクターの日記エントリを管理します。"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
@@ -73,6 +78,8 @@
     "narrative_tooltip": "このプロンプトは、アクションがトリガーされた後に AI ナラティブの説明を生成するために使用されます。ナラティブは、ゲーム内のイベントの雰囲気のある説明を提供します。",
     "scene_description_prompt": "シーン説明プロンプト",
     "scene_description_tooltip": "このプロンプトは、会話の開始時に最初のシーン説明を生成するために使用されます。キャラクターの相互作用の背景と雰囲気を提供します。",
+    "diary_prompt": "日記プロンプト",
+    "diary_tooltip": "このプロンプトは、会話後にキャラクターの日記エントリを生成するために使用されます。キャラクターの一貫性と深みを維持するのに役立ちます。",
     "restore_defaults": "デフォルトのプロンプトを復元",
     "restore_tooltip": "このボタンをクリックすると、すべてのプロンプトがデフォルト値に復元されます",
     "presets_header": "プロンプトプリセット",
