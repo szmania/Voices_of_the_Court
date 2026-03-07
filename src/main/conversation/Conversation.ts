@@ -25,6 +25,7 @@ export class Conversation{
     isOpen: boolean;
     gameData: GameData;
     messages: Message[];
+    notSpokenYetText: string;
     config: Config;
     runFileManager: RunFileManager;
     textGenApiConnection: ApiConnection;
@@ -69,7 +70,7 @@ export class Conversation{
             const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
             translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
         }
-        const notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
+        this.notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
 
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
@@ -79,7 +80,7 @@ export class Conversation{
                     const emptyMessage: Message = {
                         role: "assistant",
                         name: character.shortName,
-                        content: notSpokenYetText,
+                        content: this.notSpokenYetText,
                         characterId: character.id
                     };
                     this.messages.push(emptyMessage);
@@ -140,10 +141,10 @@ export class Conversation{
 
         this.messages.forEach(msg => {
             if (msg.content === "Has not spoken yet") {
-                msg.content = notSpokenYetText;
+                msg.content = this.notSpokenYetText;
                 const character = Array.from(this.gameData.characters.values()).find(c => c.shortName === msg.name);
                 if (character) {
-                    msg.characterId = character.id;
+                    (msg as any).characterId = character.id;
                 }
             }
         });
@@ -353,9 +354,27 @@ export class Conversation{
         this.historicalConversations = historicalConversations;
     }
 
-    pushMessage(message: Message): void{           
-        this.messages.push(message);
-        console.log(`Message pushed to conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
+    pushMessage(message: Message): void{
+        let replacedPlaceholder = false;
+        // If this is an AI message, try to replace a placeholder
+        if (message.role === 'assistant' && (message as any).characterId) {
+            const characterId = (message as any).characterId;
+            const placeholderIndex = this.messages.findIndex(
+                msg => (msg as any).characterId === characterId && msg.content === this.notSpokenYetText
+            );
+
+            if (placeholderIndex !== -1) {
+                this.messages[placeholderIndex] = message;
+                console.log(`Replaced placeholder for character ID ${characterId}.`);
+                replacedPlaceholder = true;
+            }
+        }
+
+        if (!replacedPlaceholder) {
+            this.messages.push(message);
+        }
+        
+        console.log(`Message processed for conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
         
         // Reset consecutive actions counter when player sends a message
         if (message.role === "user") {
@@ -675,10 +694,11 @@ export class Conversation{
             await this.resummarize();
         }
 
-        let streamMessage = {
+        let streamMessage: any = {
             role: "assistant",
             name: characterNameForResponse,//this.gameData.aiName,
-            content: ""
+            content: "",
+            characterId: character.id
         }
         let cw = this.chatWindow;
         function streamRelay(msgChunk: MessageChunk): void{
@@ -701,7 +721,8 @@ export class Conversation{
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
                 },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined)
+                this.config.stream && sendMessageToChat ? streamRelay : undefined),
+                characterId: character.id
             };  
             
         }
@@ -715,7 +736,8 @@ export class Conversation{
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
                 },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined)
+                this.config.stream && sendMessageToChat ? streamRelay : undefined),
+                characterId: character.id
             };
     
         }
