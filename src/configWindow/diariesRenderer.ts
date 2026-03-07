@@ -405,7 +405,16 @@ function addNewDiaryEntry() {
     unsavedChanges = true;
     updateSaveButtonState();
     filterAndRenderDiaries();
-    enterEditMode(0);
+    
+    // Find the index of the new entry in the filtered list after sorting
+    const newIndex = filteredDiaries.findIndex(entry => entry === newEntry);
+
+    if (newIndex !== -1) {
+        enterEditMode(newIndex);
+    } else {
+        // Fallback, though this shouldn't happen if the entry is in the list
+        enterEditMode(0);
+    }
 }
 
 function deleteSelectedDiaryEntry() {
