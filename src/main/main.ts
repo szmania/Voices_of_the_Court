@@ -750,7 +750,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         gameData.characters.forEach(char => {
             characterNameMap.set(String(char.id), char.fullName);
         });
-        const letters = await parseLogForLetters(debugLogPath, characterNameMap, gameData.date);
+        const letters = await parseLettersFromLog(debugLogPath, characterNameMap, gameData.date);
         const latestLetter = letters.pop();
 
         if (!latestLetter) {
