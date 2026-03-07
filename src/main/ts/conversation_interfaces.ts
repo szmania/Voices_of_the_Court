@@ -32,7 +32,8 @@ export interface Setting {
 
 export interface Summary{
     date: string,
-    content: string
+    content: string,
+    characterId?: string;
 }
 
 export interface ActionArgument{
