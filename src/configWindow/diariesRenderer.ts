@@ -445,17 +445,22 @@ async function saveAllDiaries() {
     }
     showLoader(true);
     try {
-        const diariesByChar = allDiaryEntries.reduce((acc, entry) => {
-            const charId = entry.character_id;
-            if (!acc[charId]) acc[charId] = [];
-            const { character_id, _isNew, ...rest } = entry;
-            acc[charId].push(rest);
-            return acc;
-        }, {} as { [key: string]: any[] });
+        // Get all character IDs that were loaded, so we can save empty files for those whose diaries were cleared.
+        const allCharacterIds = Object.keys(characterNameMap);
 
-        for (const charId in diariesByChar) {
-            diariesByChar[charId].sort((a: { date: string }, b: { date: string }) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            const diaryData = { diary_entries: diariesByChar[charId] };
+        for (const charId of allCharacterIds) {
+            // Filter entries for the current character
+            const characterEntries = allDiaryEntries
+                .filter(entry => entry.character_id === charId)
+                .map(entry => {
+                    const { character_id, _isNew, ...rest } = entry;
+                    return rest;
+                });
+
+            // Sort the entries by date
+            characterEntries.sort((a: { date: string }, b: { date: string }) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            
+            const diaryData = { diary_entries: characterEntries };
             await ipcRenderer.invoke('save-diary-file', currentPlayerId, charId, diaryData);
         }
         
