@@ -273,7 +273,7 @@ export class LetterReplyGenerator {
             const otherCharacterId = aiId; // The file is named after the non-player character
             const filePath = letterManager.getLetterFilePath(playerId, otherCharacterId);
     
-            let history: ILetter[] = [];
+            let history: Letter[] = [];
             if (fs.existsSync(filePath)) {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
