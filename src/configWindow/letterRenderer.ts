@@ -9,8 +9,10 @@ let currentView: 'inbox' | 'outbox' = 'inbox';
 
 const initLocalization = () => {
     if (window.LocalizationManager) {
-        window.LocalizationManager.instance.loadTranslations().then(() => {
-            window.LocalizationManager.instance.applyLocalization();
+        // @ts-ignore
+        window.LocalizationManager.loadTranslations().then(() => {
+            // @ts-ignore
+            window.LocalizationManager.applyLocalization();
         });
     }
 };
@@ -209,6 +211,6 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
     document.body.className = `theme-${theme}`;
 });
 
-ipcRenderer.on('update-language', () => {
+ipcRenderer.on('update-language', (event, lang) => {
     initLocalization();
 });
