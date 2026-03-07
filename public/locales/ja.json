@@ -169,7 +169,8 @@
     "scene_description": "シーン説明",
     "narrative": "ナラティブ",
     "not_spoken": "まだ話していません",
-    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
+    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。",
+    "log_narrative_label": "[ナラティブ]:"
   },
   "suggestions": {
     "header": "推奨入力",

@@ -167,7 +167,8 @@
     "scene_description": "Szenenbeschreibung",
     "narrative": "Erzählung",
     "not_spoken": "Hat noch nicht gesprochen",
-    "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden."
+    "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden.",
+    "log_narrative_label": "[Erzählung]:"
   },
   "suggestions": {
     "header": "Empfohlene Eingabe",

@@ -166,7 +166,8 @@
     "scene_description": "Descripción de la escena",
     "narrative": "Narrativa",
     "not_spoken": "No ha hablado todavía",
-    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA."
+    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA.",
+    "log_narrative_label": "[Narrativa]:"
   },
   "suggestions": {
     "header": "Entrada recomendada",
