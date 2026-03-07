@@ -78,8 +78,8 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
-        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'standard', exampleMessagesScriptFileName);
-        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
+        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
+        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', exampleMessagesScriptFileName);
 
         if (fs.existsSync(standardPath)) {
             exampleMessagesPath = standardPath;
