@@ -593,24 +593,25 @@ export class Conversation{
             for (const checkable of checkables) {
                 const parts = checkable.split(/\s+/);
                 for (const part of parts) {
-                    if (part.length < 3 || STOPWORDS.has(part)) continue;
+                    const cleanPart = part.replace(/[.,!?;:]/g, '');
+                    if (cleanPart.length < 3 || STOPWORDS.has(cleanPart)) continue;
 
                     for (const word of words) {
                         if (STOPWORDS.has(word)) continue;
 
                         // Substring match (high confidence)
-                        if (part.includes(word)) {
+                        if (cleanPart.includes(word)) {
                             if (SUBSTRING_CONFIDENCE > highestConfidence) {
                                 highestConfidence = SUBSTRING_CONFIDENCE;
-                                console.log(`... new highest confidence ${SUBSTRING_CONFIDENCE} from substring match: "${part}" includes "${word}"`);
+                                console.log(`... new highest confidence ${SUBSTRING_CONFIDENCE} from substring match: "${cleanPart}" includes "${word}"`);
                             }
                         }
 
                         // Fuzzy match (lower confidence)
-                        const confidence = getSimilarity(part, word);
+                        const confidence = getSimilarity(cleanPart, word);
                         if (confidence > highestConfidence) {
                             highestConfidence = confidence;
-                            console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${part}" vs "${word}"`);
+                            console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${cleanPart}" vs "${word}"`);
                         }
                     }
                 }
@@ -1073,7 +1074,7 @@ ${conversationHistory}
         if (!shouldValidate) {
             console.log(`Identity validation conditions not met (stream: ${this.config.stream}, character count: ${this.gameData.characters.size}). Generating message without validation.`);
             await this.generateNewAIMessage(character, true);
-            return;
+            return null;
         }
         
         let attempts = 0;
