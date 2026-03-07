@@ -21,11 +21,16 @@ let addDiaryBtn: HTMLButtonElement;
 let statusMessage: HTMLElement;
 
 // State
-let allDiaries: { [characterId: string]: any[] } = {};
+let allDiaryEntries: any[] = [];
+let filteredDiaries: any[] = [];
 let currentPlayerId: string | null = null;
 let selectedCharacterId: string = 'all';
 let unsavedChanges = false;
 let userDataPath = '';
+let currentDiaryIndex = -1;
+let editingDiaryIndex = -1;
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 document.addEventListener('DOMContentLoaded', () => {
     container = document.getElementById('container')!;
@@ -36,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function init() {
-    // Assign elements
     loader = document.getElementById('diary-manager-loader') as HTMLElement;
     refreshBtn = document.getElementById('diary-manager-refreshBtn') as HTMLButtonElement;
     saveBtn = document.getElementById('diary-manager-saveBtn') as HTMLButtonElement;
@@ -49,11 +53,9 @@ async function init() {
     addDiaryBtn = document.getElementById('diary-manager-addDiaryBtn') as HTMLButtonElement;
     statusMessage = document.getElementById('diary-manager-statusMessage') as HTMLElement;
 
-    // Apply theme
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
 
-    // Get config and init localization
     const config = await ipcRenderer.invoke('get-config');
     if (window.LocalizationManager) {
         await window.LocalizationManager.loadTranslations(config.language || 'en');
@@ -69,23 +71,17 @@ async function init() {
 function setupEventListeners() {
     refreshBtn.addEventListener('click', loadPlayerIds);
     saveBtn.addEventListener('click', saveAllDiaries);
+    addDiaryBtn.addEventListener('click', addNewDiaryEntry);
+    deleteItemBtn.addEventListener('click', deleteSelectedDiaryEntry);
     playerIdSelect.addEventListener('change', () => {
         currentPlayerId = playerIdSelect.value;
         loadDiaries();
     });
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
-        renderDiaryList();
+        filterAndRenderDiaries();
     });
-    searchInput.addEventListener('input', renderDiaryList);
-    
-    // Add listeners for add/delete if they exist
-    if (addDiaryBtn) {
-        // addDiaryBtn.addEventListener('click', addNewDiaryEntry);
-    }
-    if (deleteItemBtn) {
-        // deleteItemBtn.addEventListener('click', deleteSelectedDiaryEntry);
-    }
+    searchInput.addEventListener('input', filterAndRenderDiaries);
 }
 
 function applyTheme(theme: string) {
@@ -144,15 +140,14 @@ async function loadPlayerIds() {
                 playerIdSelect.value = currentPlayerId!;
                 await loadDiaries();
             } else {
-                showStatus(window.LocalizationManager.getTranslation('diary_manager.no_data', 'No diary data available'), 'info');
-                diaryList.innerHTML = `<div class="no-summaries" data-i18n="diary_manager.no_data">No diary data available</div>`;
-                window.LocalizationManager.applyTranslations();
+                showStatus('No diary data available', 'info');
+                diaryList.innerHTML = `<div class="no-summaries">No diary data available</div>`;
             }
         } else {
             showStatus(result.error, 'error');
         }
     } catch (error: any) {
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.load_fail', 'Failed to load diary data: ') + error.message, 'error');
+        showStatus('Failed to load diary data: ' + error.message, 'error');
     } finally {
         showLoader(false);
     }
@@ -161,26 +156,30 @@ async function loadPlayerIds() {
 async function loadDiaries() {
     if (!currentPlayerId) return;
     showLoader(true);
-    allDiaries = {};
+    allDiaryEntries = [];
     try {
         const characterIds: string[] = await ipcRenderer.invoke('get-diary-files', currentPlayerId);
         for (const charId of characterIds) {
             const data = await ipcRenderer.invoke('read-diary-file', currentPlayerId, charId);
             if (data) {
+                let entries: any[] = [];
                 if (data.diary_entries && Array.isArray(data.diary_entries)) {
-                    // Correct format with diary_entries array
-                    allDiaries[charId] = data.diary_entries;
+                    entries = data.diary_entries;
                 } else if (typeof data === 'object' && !Array.isArray(data) && data.date && data.content) {
-                    // Handle old format where the file is a single diary entry object
-                    allDiaries[charId] = [data];
+                    entries = [data];
                 }
+                entries.forEach(entry => {
+                    allDiaryEntries.push({ ...entry, character_id: charId });
+                });
             }
         }
         await loadCharacters();
-        renderDiaryList();
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.load_success', 'Diary data loaded successfully'), 'success');
+        filterAndRenderDiaries();
+        showStatus('Diary data loaded successfully', 'success');
+        unsavedChanges = false;
+        updateSaveButtonState();
     } catch (error: any) {
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.load_fail', 'Failed to load diary data: ') + error.message, 'error');
+        showStatus('Failed to load diary data: ' + error.message, 'error');
     } finally {
         showLoader(false);
     }
@@ -188,7 +187,7 @@ async function loadDiaries() {
 
 async function loadCharacters() {
     if (!currentPlayerId) return;
-    const characterIds: string[] = await ipcRenderer.invoke('get-diary-files', currentPlayerId);
+    const characterIds = [...new Set(allDiaryEntries.map(entry => entry.character_id))];
     
     const allCharsText = window.LocalizationManager.getTranslation('diary_manager.all_characters', 'All Characters');
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
@@ -202,68 +201,227 @@ async function loadCharacters() {
     characterSelect.value = selectedCharacterId;
 }
 
+function filterAndRenderDiaries() {
+    if (selectedCharacterId === 'all') {
+        filteredDiaries = [...allDiaryEntries];
+    } else {
+        filteredDiaries = allDiaryEntries.filter(entry => entry.character_id === selectedCharacterId);
+    }
+
+    const searchTerm = searchInput.value.toLowerCase();
+    if (searchTerm) {
+        filteredDiaries = filteredDiaries.filter(entry => {
+            const content = entry.content?.toLowerCase() || '';
+            const date = entry.date?.toLowerCase() || '';
+            const charId = entry.character_id?.toLowerCase() || '';
+            return content.includes(searchTerm) || date.includes(searchTerm) || charId.includes(searchTerm);
+        });
+    }
+
+    filteredDiaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    if (currentDiaryIndex >= filteredDiaries.length) {
+        currentDiaryIndex = -1;
+    }
+    if (editingDiaryIndex >= filteredDiaries.length) {
+        editingDiaryIndex = -1;
+    }
+    
+    renderDiaryList();
+}
+
 function renderDiaryList() {
     if (!diaryList) return;
     diaryList.innerHTML = '';
-    const searchTerm = searchInput.value.toLowerCase();
-    
-    let entriesToShow: any[] = [];
-    if (selectedCharacterId === 'all') {
-        Object.keys(allDiaries).forEach(charId => {
-            allDiaries[charId].forEach(entry => {
-                entriesToShow.push({ ...entry, character_id: charId });
-            });
-        });
-    } else if (selectedCharacterId && allDiaries[selectedCharacterId]) {
-        entriesToShow = allDiaries[selectedCharacterId].map((entry: any) => ({ ...entry, character_id: selectedCharacterId }));
-    }
 
-    entriesToShow = entriesToShow.filter(entry => {
-        const content = entry.content?.toLowerCase() || '';
-        const date = entry.date?.toLowerCase() || '';
-        return content.includes(searchTerm) || date.includes(searchTerm);
-    });
-
-    if (entriesToShow.length === 0) {
+    if (filteredDiaries.length === 0) {
         diaryList.innerHTML = `<div class="no-summaries" data-i18n="diary_manager.no_data">No diary data available</div>`;
         window.LocalizationManager.applyTranslations();
         return;
     }
 
-    entriesToShow.forEach((entry, index) => {
-        const item = document.createElement('div');
-        item.className = 'summary-item';
-        item.dataset.index = index.toString();
-        item.dataset.characterId = entry.character_id; 
+    filteredDiaries.forEach((entry, index) => {
+        if (index === editingDiaryIndex) {
+            const editItem = document.createElement('div');
+            editItem.className = 'summary-item-edit';
+            
+            const characterId = entry.character_id || 'Unknown';
+            
+            editItem.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px;">Character: ${characterId}</div>
+                <input type="date" id="diary-edit-date-${index}" value="${formatDateForInput(entry.date)}">
+                <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
+                <div class="edit-controls">
+                    <button class="btn save-inplace-btn">Save</button>
+                    <button class="btn cancel-inplace-btn">Cancel</button>
+                </div>
+            `;
+            
+            diaryList.appendChild(editItem);
 
-        item.innerHTML = `
-            <div class="summary-date">${entry.date || 'No Date'}</div>
-            <div class="summary-content">${entry.content || 'No Content'}</div>
-        `;
-        item.addEventListener('click', () => {
-            console.log('Selected diary entry:', entry);
-            // Here you can implement logic to show entry details
-        });
-        diaryList.appendChild(item);
+            editItem.querySelector('.save-inplace-btn')?.addEventListener('click', () => saveInPlaceEdit(index));
+            editItem.querySelector('.cancel-inplace-btn')?.addEventListener('click', () => cancelInPlaceEdit());
+
+        } else {
+            const item = document.createElement('div');
+            item.className = 'summary-item';
+            if (index === currentDiaryIndex) {
+                item.classList.add('selected');
+            }
+            item.dataset.index = index.toString();
+            
+            const displayDate = formatDateForDisplay(entry.date);
+            const headerText = `${displayDate} - Character: ${entry.character_id}`;
+            
+            item.innerHTML = `
+                <div class="summary-date">${headerText}</div>
+                <div class="summary-content">${entry.content || 'No Content'}</div>
+            `;
+            item.addEventListener('click', () => selectDiary(index));
+            item.addEventListener('dblclick', () => enterEditMode(index));
+            diaryList.appendChild(item);
+        }
     });
+    deleteItemBtn.disabled = currentDiaryIndex === -1;
+}
+
+function selectDiary(index: number) {
+    if (editingDiaryIndex !== -1) return;
+    currentDiaryIndex = index;
+    renderDiaryList();
+}
+
+function enterEditMode(index: number) {
+    if (editingDiaryIndex !== -1) {
+        cancelInPlaceEdit();
+    }
+    editingDiaryIndex = index;
+    currentDiaryIndex = -1;
+    renderDiaryList();
+}
+
+function cancelInPlaceEdit() {
+    const entry = filteredDiaries[editingDiaryIndex];
+    if (entry && entry._isNew) {
+        const originalIndex = allDiaryEntries.findIndex(e => e === entry);
+        if (originalIndex !== -1) {
+            allDiaryEntries.splice(originalIndex, 1);
+        }
+    }
+    editingDiaryIndex = -1;
+    filterAndRenderDiaries();
+}
+
+function saveInPlaceEdit(index: number) {
+    const entry = filteredDiaries[index];
+    const originalIndex = allDiaryEntries.findIndex(e => e === entry);
+
+    const dateInput = document.getElementById(`diary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
+
+    if (originalIndex !== -1) {
+        allDiaryEntries[originalIndex].date = dateInput.value;
+        allDiaryEntries[originalIndex].content = contentInput.value;
+        delete allDiaryEntries[originalIndex]._isNew;
+    }
+
+    editingDiaryIndex = -1;
+    unsavedChanges = true;
+    updateSaveButtonState();
+    filterAndRenderDiaries();
+    currentDiaryIndex = index;
+    renderDiaryList();
+    showStatus('Diary entry updated. Click "Save All Diaries" to persist.', 'info');
+}
+
+function addNewDiaryEntry() {
+    if (editingDiaryIndex !== -1) return;
+    if (selectedCharacterId === 'all') {
+        showStatus('Please select a character before adding a new diary entry.', 'error');
+        return;
+    }
+    const newEntry = {
+        date: new Date().toISOString().split('T')[0],
+        content: 'New diary entry...',
+        character_id: selectedCharacterId,
+        _isNew: true
+    };
+    allDiaryEntries.unshift(newEntry);
+    filterAndRenderDiaries();
+    enterEditMode(0);
+}
+
+function deleteSelectedDiaryEntry() {
+    if (currentDiaryIndex === -1) return;
+    if (confirm('Are you sure you want to delete this diary entry?')) {
+        const entryToDelete = filteredDiaries[currentDiaryIndex];
+        const originalIndex = allDiaryEntries.findIndex(e => e === entryToDelete);
+        if (originalIndex !== -1) {
+            allDiaryEntries.splice(originalIndex, 1);
+        }
+        unsavedChanges = true;
+        updateSaveButtonState();
+        filterAndRenderDiaries();
+        showStatus('Diary entry deleted. Click "Save All Diaries" to persist.', 'info');
+    }
 }
 
 async function saveAllDiaries() {
     if (!unsavedChanges) {
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.no_changes', 'No changes to save.'), 'info');
+        showStatus('No changes to save.', 'info');
         return;
     }
     showLoader(true);
     try {
-        for (const charId in allDiaries) {
-            const diaryData = { diary_entries: allDiaries[charId] };
+        const diariesByChar = allDiaryEntries.reduce((acc, entry) => {
+            const charId = entry.character_id;
+            if (!acc[charId]) acc[charId] = [];
+            const { character_id, _isNew, ...rest } = entry;
+            acc[charId].push(rest);
+            return acc;
+        }, {} as { [key: string]: any[] });
+
+        for (const charId in diariesByChar) {
+            diariesByChar[charId].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const diaryData = { diary_entries: diariesByChar[charId] };
             await ipcRenderer.invoke('save-diary-file', currentPlayerId, charId, diaryData);
         }
+        
         unsavedChanges = false;
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.save_success', 'All diaries saved successfully!'), 'success');
+        updateSaveButtonState();
+        showStatus('All diaries saved successfully!', 'success');
     } catch (error: any) {
-        showStatus(window.LocalizationManager.getTranslation('diary_manager.save_fail', 'Failed to save diaries: ') + error.message, 'error');
+        showStatus('Failed to save diaries: ' + error.message, 'error');
     } finally {
         showLoader(false);
+    }
+}
+
+function updateSaveButtonState() {
+    if (saveBtn) {
+        if (unsavedChanges) {
+            saveBtn.classList.add('blinking');
+        } else {
+            saveBtn.classList.remove('blinking');
+        }
+    }
+}
+
+function formatDateForInput(dateStr: string): string {
+    if (!dateStr) return new Date().toISOString().split('T')[0];
+    try {
+        return new Date(dateStr).toISOString().split('T')[0];
+    } catch (e) {
+        return new Date().toISOString().split('T')[0];
+    }
+}
+
+function formatDateForDisplay(dateStr: string): string {
+    if (!dateStr) return 'No Date';
+    try {
+        const date = new Date(dateStr);
+        return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    } catch (e) {
+        return dateStr;
     }
 }

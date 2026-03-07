@@ -899,3 +899,41 @@ language-selector {
     padding: 20px;
     color: #888;
 }
+
+/* In-place editing styles for Diary Manager */
+#diary-manager-container .summary-item-edit {
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+}
+
+#diary-manager-container .summary-item-edit input[type="date"],
+#diary-manager-container .summary-item-edit textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #555;
+    color: #f0f0f0;
+}
+
+#diary-manager-container .summary-item-edit textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+#diary-manager-container .summary-item-edit .edit-controls {
+    text-align: right;
+    margin-top: 5px;
+}
+
+#diary-manager-container .summary-item-edit .edit-controls button {
+    margin-left: 5px;
+}
