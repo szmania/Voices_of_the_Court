@@ -12,7 +12,7 @@ const initLocalization = () => {
         // @ts-ignore
         window.LocalizationManager.loadTranslations().then(() => {
             // @ts-ignore
-            window.LocalizationManager.applyLocalization();
+            window.LocalizationManager.applyTranslations();
         });
     }
 };
@@ -30,7 +30,8 @@ function renderLetters() {
         noLettersItem.textContent = 'Select a player to view letters.'; // Fallback text
         letterList.appendChild(noLettersItem);
         if (window.LocalizationManager) {
-            window.LocalizationManager.instance.applyLocalization();
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
         }
         return;
     }
@@ -56,7 +57,8 @@ function renderLetters() {
         noLettersItem.textContent = 'No letters found.'; // Fallback text
         letterList.appendChild(noLettersItem);
         if (window.LocalizationManager) {
-            window.LocalizationManager.instance.applyLocalization();
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
         }
         return;
     }
