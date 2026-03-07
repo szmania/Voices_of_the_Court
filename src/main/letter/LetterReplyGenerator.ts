@@ -8,7 +8,7 @@ import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
-import { LetterType } from "./letterInterfaces.js";
+import { ILetter, LetterType } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 
 export class LetterReplyGenerator {
@@ -27,48 +27,6 @@ export class LetterReplyGenerator {
         );
     }
 
-    /**
-     * Extracts player letter content from debug.log
-     * @param debugLogPath Path to debug.log file
-     * @returns Extracted letter content, or null if not found
-     */
-    private extractLetterContent(debugLogPath: string): { content: string; subject: string; senderId: string; recipientId: string; } | null {
-        try {
-            if (!fs.existsSync(debugLogPath)) {
-                console.error(`Debug log file not found at: ${debugLogPath}`);
-                return null;
-            }
-
-            const fileContent = fs.readFileSync(debugLogPath, 'utf8');
-            const lines = fileContent.split(/\r?\n/);
-            
-            let lastMatchParts: string[] | null = null;
-            for (const line of lines) {
-                if (line.includes("VOTC:LETTER")) {
-                    const parts = line.split('/;/');
-                    if (parts.length >= 5) {
-                        lastMatchParts = parts;
-                    }
-                }
-            }
-
-            if (!lastMatchParts) {
-                console.log('No VOTC:LETTER entries found in debug.log');
-                return null;
-            }
-
-            const content = lastMatchParts[1].trim();
-            const subject = lastMatchParts[2].trim();
-            const recipientId = lastMatchParts[3].trim();
-            const senderId = lastMatchParts[4].trim();
-
-            console.log(`Extracted letter - Sender: ${senderId}, Recipient: ${recipientId}, Subject: ${subject}, Content: ${content}`);
-            return { content, subject, senderId, recipientId };
-        } catch (error) {
-            console.error(`Error extracting letter content: ${error}`);
-            return null;
-        }
-    }
 
     /**
      * Builds the prompt for the letter reply
@@ -166,14 +124,14 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @returns The generated reply content, or null on failure
      */
-    public async generateLetterReply(gameData: GameData, debugLogPath: string, userFolderPath: string): Promise<string | null> {
+    public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<string | null> {
         try {
-            // Extract letter content
-            const letterContent = this.extractLetterContent(debugLogPath);
-            if (!letterContent) {
-                console.error('Failed to extract letter content');
-                return null;
-            }
+            const letterContent = {
+                content: letter.content,
+                subject: letter.subject,
+                senderId: String(letter.sender.id),
+                recipientId: String(letter.recipient.id)
+            };
 
             // Build prompt
             const promptText = await this.buildLetterPrompt(gameData, letterContent);

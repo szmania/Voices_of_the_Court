@@ -783,7 +783,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
-        const replyContent = await letterReplyGenerator.generateLetterReply(gameData, debugLogPath, config.userFolderPath);
+        const replyContent = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
         
         if (!replyContent) {
             console.error('Failed to generate letter reply');
