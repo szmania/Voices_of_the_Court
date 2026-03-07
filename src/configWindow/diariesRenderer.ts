@@ -218,13 +218,15 @@ function filterAndRenderDiaries() {
         });
     }
 
-    filteredDiaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    filteredDiaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    if (currentDiaryIndex >= filteredDiaries.length) {
-        currentDiaryIndex = -1;
-    }
-    if (editingDiaryIndex >= filteredDiaries.length) {
-        editingDiaryIndex = -1;
+    currentDiaryIndex = -1;
+    editingDiaryIndex = -1;
+
+    if (selectedCharacterId !== 'all' && currentPlayerId) {
+        diaryPathInput.value = `${userDataPath}/diaries/${currentPlayerId}/${selectedCharacterId}.json`.replace(/\\/g, '/');
+    } else {
+        diaryPathInput.value = '';
     }
     
     renderDiaryList();
@@ -318,6 +320,12 @@ function renderDiaryList() {
 function selectDiary(index: number) {
     if (editingDiaryIndex !== -1) return;
     currentDiaryIndex = index;
+
+    const entry = filteredDiaries[index];
+    if (entry && entry.character_id && currentPlayerId) {
+        diaryPathInput.value = `${userDataPath}/diaries/${currentPlayerId}/${entry.character_id}.json`.replace(/\\/g, '/');
+    }
+
     renderDiaryList();
 }
 
