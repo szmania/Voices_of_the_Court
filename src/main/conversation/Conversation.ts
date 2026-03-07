@@ -157,6 +157,16 @@ export class Conversation{
         
         this.loadConfig();
         this.loadHistory();
+
+        // Sanitize messages to remove any historical placeholders that may have leaked in.
+        const currentCharacterIds = new Set(Array.from(this.gameData.characters.keys()));
+        this.messages = this.messages.filter(msg => {
+            const msgCharId = (msg as any).characterId;
+            // Keep user messages (no characterId) or messages for characters in the current conversation.
+            return !msgCharId || currentCharacterIds.has(msgCharId);
+        });
+        console.log(`Sanitized messages array. Kept ${this.messages.length} messages for current conversation characters.`);
+
         this.checkForSummariesFromOtherPlayers();
         this.initialize();
     }
@@ -550,7 +560,7 @@ export class Conversation{
         // 2. If no UI target, perform automatic detection
         console.log('No UI target found. Performing automatic detection...');
         const messageContent = lastMessage.content.toLowerCase();
-        const words = messageContent.split(/\s+/).filter(w => w.length > 2); // Split message into words for matching, ignore short words
+        const words = messageContent.replace(/[.,!?;:]/g, '').split(/\s+/).filter(w => w.length > 2); // Clean punctuation and split into words
         console.log(`Words from message to check: [${words.join(', ')}]`);
 
         const potentialTargets = new Map<Character, number>(); // Map of Character to confidence score
