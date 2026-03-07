@@ -612,7 +612,7 @@ export class Conversation{
         if (content) {
             const message: Message = {
                 role: 'assistant',
-                name: source.shortName,
+                name: source.fullName,
                 content: content.trim()
             };
             // Add target information for the UI

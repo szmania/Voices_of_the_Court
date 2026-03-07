@@ -45,7 +45,7 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 
-export function buildChatPrompt(conv: Conversation, character: Character): Message[]{
+export function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[]): Message[]{
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
@@ -119,7 +119,7 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         content: "[Start a new chat]"
     })
 
-    let messages = conv.messages.slice(0); //pass by value
+    let messages = messagesOverride ? messagesOverride : conv.messages.slice(0); //pass by value
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
     const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
