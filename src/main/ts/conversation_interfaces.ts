@@ -5,6 +5,7 @@ export interface Message {
     name?: string,
     content: string ;
     narrative?: string; // 添加旁白属性
+    characterId?: number;
 }
 
 

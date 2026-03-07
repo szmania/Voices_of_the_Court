@@ -1,5 +1,6 @@
 
 import { app } from 'electron';
+import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { Config } from '../../shared/Config.js';
@@ -138,6 +139,29 @@ export class Conversation{
         });
 
         this.config = config;
+
+        // Load translations and update placeholder messages
+        const lang = this.config.language || 'en';
+        const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+        let translations;
+        try {
+            translations = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+        } catch (error) {
+            console.error(`Could not load translation file for language: ${lang}. Falling back to en.`, error);
+            const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
+            translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+        }
+        const notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
+
+        this.messages.forEach(msg => {
+            if (msg.content === "Has not spoken yet") {
+                msg.content = notSpokenYetText;
+                const character = Array.from(this.gameData.characters.values()).find(c => c.shortName === msg.name);
+                if (character) {
+                    msg.characterId = character.id;
+                }
+            }
+        });
 
         //TODO: wtf
         this.runFileManager = new RunFileManager(config.userFolderPath);
