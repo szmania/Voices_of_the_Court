@@ -12,7 +12,7 @@ import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -958,6 +958,16 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
         console.error('Error saving diary file:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
+    try {
+        return await getCharacterMap(playerId);
+    } catch (error) {
+        console.error('Error getting character map:', error);
+        return {};
     }
 });
 

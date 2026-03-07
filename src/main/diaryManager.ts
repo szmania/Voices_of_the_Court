@@ -107,7 +107,7 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
     await fs.promises.writeFile(filePath, JSON.stringify(diaryFileContent, null, '\t'));
 }
 
-export async function getAllDiaryPlayerIds(userDataPath: string): Promise<string[]> {
+export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
     const diariesRootPath = path.join(userDataPath, 'diaries');
     if (!fs.existsSync(diariesRootPath)) {
         return [];
@@ -115,6 +115,37 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<string
     const playerDirs = await fs.promises.readdir(diariesRootPath, { withFileTypes: true });
     return playerDirs
         .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name);
+        .map(dirent => {
+            const playerId = dirent.name;
+            const mapPath = path.join(diariesRootPath, playerId, '_character_map.json');
+            let playerName = `Player ${playerId}`; // Fallback name
+            if (fs.existsSync(mapPath)) {
+                try {
+                    const mapContent = fs.readFileSync(mapPath, 'utf8');
+                    const mapData = JSON.parse(mapContent);
+                    // The player's name is also in the map, with their ID as the key
+                    if (mapData[playerId]) {
+                        playerName = mapData[playerId];
+                    }
+                } catch (e) {
+                    console.error(`Error reading character map for player ${playerId}:`, e);
+                }
+            }
+            return { id: playerId, name: playerName };
+        });
+}
+
+export async function getCharacterMap(playerId: string): Promise<{ [key: string]: string }> {
+    const userDataPath = app.getPath('userData');
+    const mapPath = path.join(userDataPath, 'votc_data', 'diaries', playerId, '_character_map.json');
+    if (fs.existsSync(mapPath)) {
+        try {
+            const mapContent = await fs.promises.readFile(mapPath, 'utf8');
+            return JSON.parse(mapContent);
+        } catch (e) {
+            console.error(`Error reading character map for player ${playerId}:`, e);
+        }
+    }
+    return {};
 }
 

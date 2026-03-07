@@ -21,6 +21,7 @@ let addDiaryBtn: HTMLButtonElement;
 let statusMessage: HTMLElement;
 
 // State
+let characterNameMap: { [key: string]: string } = {};
 let allDiaryEntries: any[] = [];
 let filteredDiaries: any[] = [];
 let currentPlayerId: string | null = null;
@@ -136,13 +137,13 @@ async function loadPlayerIds() {
         if (result.success) {
             playerIdSelect.innerHTML = '';
             if (result.ids.length > 0) {
-                result.ids.forEach((id: string) => {
+                result.ids.forEach((player: {id: string, name: string}) => {
                     const option = document.createElement('option');
-                    option.value = id;
-                    option.textContent = id;
+                    option.value = player.id;
+                    option.textContent = `${player.name} (${player.id})`;
                     playerIdSelect.appendChild(option);
                 });
-                currentPlayerId = result.ids[0];
+                currentPlayerId = result.ids[0].id;
                 playerIdSelect.value = currentPlayerId!;
                 await loadDiaries();
             } else {
@@ -164,6 +165,7 @@ async function loadDiaries() {
     showLoader(true);
     allDiaryEntries = [];
     try {
+        characterNameMap = await ipcRenderer.invoke('get-character-map', currentPlayerId);
         const characterIds: string[] = await ipcRenderer.invoke('get-diary-files', currentPlayerId);
         for (const charId of characterIds) {
             const data = await ipcRenderer.invoke('read-diary-file', currentPlayerId, charId);
@@ -201,7 +203,8 @@ async function loadCharacters() {
     characterIds.forEach(id => {
         const option = document.createElement('option');
         option.value = id;
-        option.textContent = id;
+        const charName = characterNameMap[id] || `Character ${id}`;
+        option.textContent = `${charName} (${id})`;
         characterSelect.appendChild(option);
     });
     characterSelect.value = selectedCharacterId;
@@ -283,9 +286,10 @@ function renderDiaryList() {
             editItem.className = 'summary-item-edit';
             
             const characterId = entry.character_id || 'Unknown';
+            const charName = characterNameMap[characterId] || `Character ${characterId}`;
             
             editItem.innerHTML = `
-                <div style="font-weight: bold; margin-bottom: 5px;">Character: ${characterId}</div>
+                <div style="font-weight: bold; margin-bottom: 5px;">Character: ${charName} (${characterId})</div>
                 <input type="date" id="diary-edit-date-${index}" value="${formatDateForInput(entry.date)}">
                 <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
                 <div class="edit-controls">
@@ -313,7 +317,8 @@ function renderDiaryList() {
             item.dataset.index = index.toString();
             
             const displayDate = formatDateForDisplay(entry.date);
-            const headerText = `${displayDate} - Character: ${entry.character_id}`;
+            const charName = characterNameMap[entry.character_id] || `Character ${entry.character_id}`;
+            const headerText = `${displayDate} - Character: ${charName} (${entry.character_id})`;
             const contentText = entry.content || 'No Content';
 
             const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
