@@ -457,12 +457,14 @@ export class Conversation{
         const lastMessage = this.messages[this.messages.length - 1];
         // Only check for targets if the last message was from the user
         if (!lastMessage || lastMessage.role !== 'user') {
+            console.log('Last message not from user, skipping targeting.');
             return [];
         }
+        console.log(`Analyzing user message for targets: "${lastMessage.content}"`);
 
         // 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
         const targetIds = (lastMessage as any).targetCharacterIds as number[] | undefined;
-        if (targetIds && targetIds.length > 0) {
+        if (targetIds && targetIds.length > 0 && targetIds.some(id => !isNaN(id))) { // Check if there are actual numbers
             const explicitTargets = new Set<Character>();
             targetIds.forEach(id => {
                 const char = this.npcQueue.find(c => c.id === id);
@@ -477,28 +479,34 @@ export class Conversation{
         }
 
         // 2. If no UI target, perform fuzzy matching on names, titles, and relationships
+        console.log('No UI target found. Performing automatic detection...');
         const messageContent = lastMessage.content.toLowerCase();
         const words = messageContent.split(/\s+/).filter(w => w.length > 2); // Split message into words for matching, ignore short words
+        console.log(`Words from message to check: [${words.join(', ')}]`);
 
         const potentialTargets = new Map<Character, number>(); // Map of Character to confidence score
         const FUZZY_MATCH_THRESHOLD = 0.8;
 
         for (const character of this.npcQueue) {
             let highestConfidence = 0;
+            console.log(`\nChecking character: ${character.shortName} (ID: ${character.id})`);
 
             // A. Check names (fuzzy)
             const names = [character.fullName, character.shortName, character.firstName].filter(Boolean).map(n => n.toLowerCase());
+            console.log(`... against names: [${names.join(', ')}]`);
             for (const name of names) {
                 for (const word of words) {
                     const confidence = getSimilarity(name, word);
                     if (confidence > highestConfidence) {
                         highestConfidence = confidence;
+                        console.log(`... new highest confidence ${confidence.toFixed(2)} from name match: "${name}" vs "${word}"`);
                     }
                 }
             }
 
             // B. Check titles (fuzzy)
             const titles = [character.primaryTitle, character.titleRankConcept].filter(Boolean).map(t => t!.toLowerCase());
+            console.log(`... against titles: [${titles.join(', ')}]`);
             for (const title of titles) {
                 const titleWords = title.split(/\s+/);
                 for (const titleWord of titleWords) {
@@ -507,6 +515,7 @@ export class Conversation{
                         const confidence = getSimilarity(titleWord, word);
                         if (confidence > highestConfidence) {
                             highestConfidence = confidence;
+                            console.log(`... new highest confidence ${confidence.toFixed(2)} from title match: "${titleWord}" vs "${word}"`);
                         }
                     }
                 }
@@ -518,16 +527,19 @@ export class Conversation{
                 const relationshipToPlayer = player.familyMembers.find(m => m.id === character.id);
                 if (relationshipToPlayer && relationshipToPlayer.relationship) {
                     const relationship = relationshipToPlayer.relationship.toLowerCase();
+                    console.log(`... against relationship: [${relationship}]`);
                     for (const word of words) {
                         const confidence = getSimilarity(relationship, word);
                         if (confidence > highestConfidence) {
                             highestConfidence = confidence;
+                            console.log(`... new highest confidence ${confidence.toFixed(2)} from relationship match: "${relationship}" vs "${word}"`);
                         }
                     }
                 }
             }
 
             if (highestConfidence > FUZZY_MATCH_THRESHOLD) {
+                console.log(`---> Match found for ${character.shortName} with confidence ${highestConfidence.toFixed(2)} (Threshold: ${FUZZY_MATCH_THRESHOLD})`);
                 // If a new character has higher confidence, replace. If same, add.
                 const existingConfidence = potentialTargets.get(character) || 0;
                 if (highestConfidence > existingConfidence) {
@@ -546,12 +558,12 @@ export class Conversation{
                 .map(t => t[0]);
 
             if (highConfidenceTargets.length > 0) {
-                console.log(`Targeted characters determined by fuzzy match: ${highConfidenceTargets.map(c => `${c.shortName} (${potentialTargets.get(c)})`).join(', ')}`);
+                console.log(`\nFinal targeted characters determined by fuzzy match: ${highConfidenceTargets.map(c => `${c.shortName} (Confidence: ${potentialTargets.get(c)?.toFixed(2)})`).join(', ')}`);
                 return highConfidenceTargets;
             }
         }
 
-        console.log('No specific character targeted.');
+        console.log('\nNo specific character targeted after automatic detection.');
         return [];
     }
 
