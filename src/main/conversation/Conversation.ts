@@ -334,9 +334,6 @@ export class Conversation{
                         characters: Array.from(characterNames),
                         messages: fileMessages
                     });
-                    
-                    // Add messages to the main messages array
-                    this.messages.push(...fileMessages);
                 }
                 
                 console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
