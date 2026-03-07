@@ -42,7 +42,7 @@ export class DiaryGenerator {
         }
 
         const diaryEntry: DiaryEntry = {
-            date: new Date().toISOString(),
+            date: gameData.date,
             location: gameData.location,
             scene: gameData.scene,
             participants: Array.from(gameData.characters.keys()).map(id => id.toString()),

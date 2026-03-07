@@ -400,8 +400,9 @@ function addNewDiaryEntry() {
         showStatus('Please select a character before adding a new diary entry.', 'error');
         return;
     }
+    const latestDate = filteredDiaries.length > 0 ? filteredDiaries[0].date : new Date().toISOString().split('T')[0];
     const newEntry = {
-        date: new Date().toISOString().split('T')[0],
+        date: latestDate,
         content: 'New diary entry...',
         character_id: selectedCharacterId,
         _isNew: true
@@ -480,11 +481,42 @@ function updateSaveButtonState() {
 
 function formatDateForInput(dateStr: string): string {
     if (!dateStr) return new Date().toISOString().split('T')[0];
-    try {
-        return new Date(dateStr).toISOString().split('T')[0];
-    } catch (e) {
-        return new Date().toISOString().split('T')[0];
+
+    // If it's already in YYYY-MM-DD, just return it.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
     }
+
+    // Handle YYYY.M.D format from the game
+    const gameDateMatch = dateStr.match(/^(\d{1,4})\.(\d{1,2})\.(\d{1,2})$/);
+    if (gameDateMatch) {
+        const year = gameDateMatch[1].padStart(4, '0');
+        const month = gameDateMatch[2].padStart(2, '0');
+        const day = gameDateMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    // Attempt to handle YYYY年MM月DD日 format
+    const cjkMatch = dateStr.match(/(\d{1,4})年(\d{1,2})月(\d{1,2})日/);
+    if (cjkMatch) {
+        return `${cjkMatch[1].padStart(4, '0')}-${cjkMatch[2].padStart(2, '0')}-${cjkMatch[3].padStart(2, '0')}`;
+    }
+    
+    // As a last resort, try new Date(), but it's risky.
+    try {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            // This will use the local timezone's year, month, day, which might be what we want if the string is ambiguous.
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        }
+    } catch(e) {
+        // ignore error and fall through
+    }
+
+    return new Date().toISOString().split('T')[0]; // Fallback to current date
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
