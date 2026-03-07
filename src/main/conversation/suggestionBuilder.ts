@@ -75,7 +75,7 @@ function parseGameDate(dateStr: string): Date | null {
         const day = parseInt(moonDateMatch[1]);
         const moonName = moonDateMatch[2].toLowerCase();
         const year = parseInt(moonDateMatch[3]);
-
+        
         // Map moon names to month numbers
         const moonToMonth: { [key: string]: number } = {
             'first': 0,     // January
@@ -91,7 +91,7 @@ function parseGameDate(dateStr: string): Date | null {
             'eleventh': 10, // November
             'twelfth': 11   // December
         };
-
+        
         const month = moonToMonth[moonName];
         if (month !== undefined) {
             const date = new Date();
@@ -151,6 +151,152 @@ function getDateDifference(pastDate: string, todayDate: string, lang: string = '
         return getTranslation('today');
     }
 }
+>>>>>>> votc-85-localization-issues
+=======
+// 从promptBuilder.ts导入需要的函数
+function createMemoryString(conv: Conversation): string {
+    let allMemories: any[] = [];
+
+    conv.gameData.characters.forEach((value, key) => {
+        allMemories = allMemories.concat(value!.memories);
+    });
+
+    allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
+    allMemories.reverse();
+
+    let output ="";
+    if(allMemories.length>0){
+        output = conv.config.memoriesPrompt;
+    }
+
+    let tokenCount = 0;
+    while(allMemories.length>0){
+        const memory = allMemories.pop()!;
+
+        let memoryLine = `${memory.creationDate}: ${memory.desc}`;
+        let memoryLineTokenCount = conv.textGenApiConnection.calculateTokensFromText(memoryLine);
+
+        if(tokenCount + memoryLineTokenCount > conv.config.maxMemoryTokens){
+            break;
+        }
+        else{
+            output+="\n"+memoryLine;
+            tokenCount+=memoryLineTokenCount;
+        }
+    }
+
+    return output;
+}
+
+function parseGameDate(dateStr: string): Date | null {
+    if (!dateStr || !(dateStr.trim())) return null;
+
+    const str = dateStr.trim();
+
+    // Handle purely numeric strings, assuming they are a year.
+    if (/^\d+$/.test(str)) {
+        const year = parseInt(str);
+        const date = new Date();
+        date.setFullYear(year, 0, 1);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    // Handle Chinese date format with optional prefix (e.g., "伊耿历82年1月22日" or "82年1月22日")
+    const chineseDateMatch = str.match(/^.*?(\d+)年(\d+)月(\d+)日$/);
+    if (chineseDateMatch) {
+        const year = parseInt(chineseDateMatch[1]);
+        const month = parseInt(chineseDateMatch[2]) - 1; // JavaScript months are 0-indexed
+        const day = parseInt(chineseDateMatch[3]);
+        const date = new Date();
+        date.setFullYear(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    // Handle "Moon" format dates (e.g., "14th Third Moon, 172 A.C.")
+    const moonDateMatch = str.match(/^(\d+)(?:st|nd|rd|th)\s+(\w+)\s+Moon,\s+(\d+)\s*(?:A\.C\.|AC)?$/);
+    if (moonDateMatch) {
+        const day = parseInt(moonDateMatch[1]);
+        const moonName = moonDateMatch[2].toLowerCase();
+        const year = parseInt(moonDateMatch[3]);
+        
+        // Map moon names to month numbers
+        const moonToMonth: { [key: string]: number } = {
+            'first': 0,     // January
+            'second': 1,    // February
+            'third': 2,     // March
+            'fourth': 3,    // April
+            'fifth': 4,     // May
+            'sixth': 5,     // June
+            'seventh': 6,   // July
+            'eighth': 7,    // August
+            'ninth': 8,     // September
+            'tenth': 9,     // October
+            'eleventh': 10, // November
+            'twelfth': 11   // December
+        };
+        
+        const month = moonToMonth[moonName];
+        if (month !== undefined) {
+            const date = new Date();
+            date.setFullYear(year, month, day);
+            date.setHours(0, 0, 0, 0);
+            return date;
+        }
+    }
+
+    // Attempt to parse with the native constructor for standard/English formats.
+    const date = new Date(str);
+
+    // Return the date object if it's valid, otherwise return null.
+    if (!isNaN(date.getTime())) {
+        return date;
+    }
+
+    console.warn(`Could not parse date string: "${str}". It will be included in the prompt by default.`);
+    return null;
+}
+
+function getDateDifference(pastDate: string, todayDate: string, lang: string = 'en'): string{
+    const pastDateObj = parseGameDate(pastDate);
+    const todayDateObj = parseGameDate(todayDate);
+
+    const translations = {
+        unknown: { en: "unknown time ago", zh: "未知时间前", ru: "неизвестно когда", fr: "il y a un temps inconnu", es: "hace un tiempo desconocido", de: "vor unbekannter Zeit", ja: "不明な時間前", ko: "알 수 없는 시간 전", pl: "nieznany czas temu" },
+        years: { en: " years ago", zh: "年前", ru: " лет назад", fr: " ans", es: " años atrás", de: " Jahren", ja: "年前", ko: "년 전", pl: " lat temu" },
+        months: { en: " months ago", zh: "个月前", ru: " месяцев назад", fr: " mois", es: " meses atrás", de: " Monaten", ja: "ヶ月前", ko: "개월 전", pl: " miesięcy temu" },
+        days: { en: " days ago", zh: "天前", ru: " дней назад", fr: " jours", es: " días atrás", de: " Tagen", ja: "日前", ko: "일 전", pl: " dni temu" },
+        today: { en: "today", zh: "今天", ru: "сегодня", fr: "aujourd'hui", es: "hoy", de: "heute", ja: "今日", ko: "오늘", pl: "dzisiaj" }
+    };
+
+    const getTranslation = (key: keyof typeof translations) => (translations[key] as any)[lang] || translations[key]['en'];
+
+    // If either date can't be parsed, return a default string
+    if (!pastDateObj || !todayDateObj) {
+        return getTranslation('unknown');
+    }
+
+    // Calculate the difference in days
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const totalDays = Math.floor((todayDateObj.getTime() - pastDateObj.getTime()) / msPerDay);
+
+    if(totalDays > 365){
+        const years = Math.round(totalDays/365);
+        return years + getTranslation('years');
+    }
+    else if(totalDays >= 30){
+        const months = Math.round(totalDays/30);
+        return months + getTranslation('months');
+    }
+    else if(totalDays > 0){
+        return totalDays + getTranslation('days');
+    }
+    else{
+        return getTranslation('today');
+    }
+}
+>>>>>>> votc-85-localization-issues
 
 /**
  * 构建建议提示词
@@ -165,32 +311,32 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     let description = "";
     try{
         delete require.cache[require.resolve(descriptionPath)];
-        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer());
+        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer()); 
     }catch(err){
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
     }
-
+    
     // 获取玩家和AI角色信息
     const playerCharacter = conv.gameData.getPlayer();
     const aiCharacter = conv.gameData.getAi();
-
+    
     // 获取最近的对话历史，用于上下文
     const recentMessages = conv.messages.slice(-10); // 获取最近10条消息
     const conversationContext = recentMessages.map(m => `${m.name}: ${m.content}`).join('\n');
     console.log('Conversation context for suggestions:', conversationContext);
-
+    
     // 添加记忆信息，参考promptBuilder.ts中的createMemoryString函数
     let memoryString = createMemoryString(conv);
-
+    
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
     const lang = conv.config.language;
-
+    
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
     let summaryString = "";
     // 获取当前AI角色的摘要，而不是玩家角色的摘要
     const characterSummaries = conv.summaries.get(aiCharacter.id) || [];
-
+    
     if(characterSummaries.length > 0){
         const summaryHeader = {
             en: "Here are the dates and summaries of previous conversations:\n",
@@ -204,32 +350,41 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
             pl: "Oto daty i podsumowania poprzednich rozmów:\n"
         };
         summaryString = (summaryHeader as any)[lang] || summaryHeader.en;
-
+        
         const summariesToProcess = [...characterSummaries];
         summariesToProcess.reverse();
-
+        
         const currentGameDate = parseGameDate(conv.gameData.date);
-
+        
         for(let summary of summariesToProcess){
             const summaryDate = parseGameDate(summary.date);
-
+            
             // Include summary if its date is unknown OR if it's in the past/present.
             if(!summaryDate || (currentGameDate && summaryDate <= currentGameDate)){
-                const timeAgo = getDateDifference(summary.date, conv.gameData.date);
+                const timeAgo = getDateDifference(summary.date, conv.gameData.date, lang);
+>>>>>>> votc-85-localization-issues
+=======
+                const timeAgo = getDateDifference(summary.date, conv.gameData.date, lang);
+>>>>>>> votc-85-localization-issues
                 summaryString += `${summary.date} (${timeAgo}): ${summary.content}\n`;
             }
         }
     }
-
+    
     // 构建提示词，请求生成推荐输入语句
     const prompts = {
         en: `Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character ${playerCharacter.shortName}. Suggestions should:
+>>>>>>> votc-85-localization-issues
+=======
+    const prompts = {
+        en: `Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character ${playerCharacter.shortName}. Suggestions should:
+>>>>>>> votc-85-localization-issues
 1. Match the character's personality and current situation
 2. Have diverse tones (e.g., inquiring, agreeing, disagreeing, neutral)
 3. Be concise and natural
 4. Each suggestion should not exceed 15 words
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -261,7 +416,7 @@ ${conversationContext}
 3. Быть краткими и естественными
 4. Каждое предложение не должно превышать 15 слов
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -293,7 +448,7 @@ Suggestions pour le personnage joueur (fournissez uniquement les suggestions, un
 3. Ser concisas y naturales
 4. Cada sugerencia no debe exceder las 15 palabras
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -309,7 +464,7 @@ Sugerencias para el personaje jugador (proporcione solo las sugerencias, una por
 3. Prägnant und natürlich sein
 4. Jeder Vorschlag sollte nicht mehr als 15 Wörter umfassen
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -325,7 +480,7 @@ Vorschläge für Spielercharaktere (geben Sie nur die Vorschläge an, einen pro 
 3. 簡潔で自然である
 4. 各提案は15語を超えないこと
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -341,7 +496,7 @@ ${conversationContext}
 3. 간결하고 자연스러움
 4. 각 제안은 15단어를 초과하지 않아야 함
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -357,7 +512,7 @@ ${conversationContext}
 3. Być zwięzłe i naturalne
 4. Każda sugestia nie powinna przekraczać 15 słów
 
-${conv.description}
+${description}
 
 ${memoryString ? memoryString + "\n" : ""}
 
@@ -421,32 +576,32 @@ export async function generateSuggestions(conv: Conversation): Promise<string[]>
 
     try {
         console.log('Starting to generate suggestions...');
-
+        
         // 检查API连接是否可用
         if (!conv.textGenApiConnection) {
             console.error('Text generation API connection is not available');
             return defaultSuggestions;
         }
-
+        
         // 构建提示词
         const messages = buildSuggestionPrompt(conv);
-
+        
         // 调用API生成建议，使用complete方法而不是generateText
         const response = await conv.textGenApiConnection.complete(messages, false, {});
-
+        
         // 处理响应，分割建议
         let suggestions = response.split('\n')
             .map((s: string) => s.trim())
             .filter((s: string) => s.length > 0);
-
+        
         // 如果没有生成足够的建议，添加默认建议
         if (suggestions.length < 3) {
             suggestions = suggestions.concat(defaultSuggestions);
         }
-
+        
         // 限制建议数量
         suggestions = suggestions.slice(0, 5);
-
+        
         console.log(`Generated ${suggestions.length} suggestions:`, suggestions);
         return suggestions;
     } catch (error) {
