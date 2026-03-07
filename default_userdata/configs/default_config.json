@@ -83,7 +83,7 @@
 	"aiCanStartConversation": true,
 	"aiStartConversationChance": 0.25,
 	"enableDiaryGeneration": true,
-	"diaryGenerationChance": 0.5,
+"diaryGenerationChance": 50,
 	"checkForUpdatesOnStartup": true,
 	"shuffleCharacterOrder": false,
 	"dynamicCharacterSelection": false,
