@@ -422,7 +422,7 @@ async function saveAllDiaries() {
         }, {} as { [key: string]: any[] });
 
         for (const charId in diariesByChar) {
-            diariesByChar[charId].sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            diariesByChar[charId].sort((a: { date: string }, b: { date: string }) => new Date(b.date).getTime() - new Date(a.date).getTime());
             const diaryData = { diary_entries: diariesByChar[charId] };
             await ipcRenderer.invoke('save-diary-file', currentPlayerId, charId, diaryData);
         }
