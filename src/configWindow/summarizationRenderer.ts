@@ -539,6 +539,33 @@ function formatDateForInput(dateStr: string): string {
 }
 
 
+function handleInPlaceInputChange(index: number) {
+    if (index < 0 || index >= filteredSummaries.length) return;
+    
+    const summary = filteredSummaries[index];
+    const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
+    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
+    const editItem = dateInput.closest('.summary-item-edit');
+    const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
+    
+    if (!dateInput || !contentInput || !summary || !saveButton) return;
+    
+    const originalDate = formatDateForInput(summary.date);
+    const originalContent = summary.content || '';
+    
+    const dateChanged = originalDate !== dateInput.value;
+    const contentChanged = originalContent !== contentInput.value;
+    
+    const hasChanges = dateChanged || contentChanged;
+    saveButton.disabled = !hasChanges;
+
+    if (hasChanges) {
+        saveButton.classList.add('blinking');
+    } else {
+        saveButton.classList.remove('blinking');
+    }
+}
+
 function handleSearchKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
         event.preventDefault();
