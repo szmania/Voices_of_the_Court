@@ -178,7 +178,9 @@ async function init(){
         restoreDefaultPromptsBtn.addEventListener('click', () => restoreDefaultPrompts(true));
     } catch (error) {
         console.error('Error in init:', error);
-        alert('初始化配置页面时发生错误，请查看控制台日志。');
+        // @ts-ignore
+        const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+        alert(errorMsg);
     }
 }
 
@@ -331,16 +333,20 @@ async function handlePresetChange() {
 async function saveCurrentPreset() {
     const presetName = promptPresetNameInput.value.trim();
     if (!presetName) {
-        alert("Preset name cannot be empty.");
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
         return;
     }
     if (presetName === 'Default') {
-        alert('Cannot save with the name "Default". Please choose another name.');
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.save_default_preset_alert'));
         return;
     }
 
     if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
-        if (!confirm(`A preset named "${presetName}" already exists. Do you want to overwrite it?`)) {
+        // @ts-ignore
+        const confirmMsg = window.LocalizationManager.getTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
+        if (!confirm(confirmMsg)) {
             return;
         }
     }

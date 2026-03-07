@@ -84,7 +84,17 @@
     "bookmarks": "Marcadores",
     "char_desc_script_tooltip": "Selecciona el script que genera las descripciones de los personajes. El mod proporciona scripts estándar, el usuario puede añadir scripts personalizados.",
     "ex_msg_script_tooltip": "Selecciona el script que proporciona mensajes de ejemplo para la IA. Esto ayuda a la IA a entender el tono y el formato deseados.",
-    "bookmarks_tooltip": "Selecciona el script de marcadores que se usará para procesar los eventos del juego en resúmenes."
+    "bookmarks_tooltip": "Selecciona el script de marcadores que se usará para procesar los eventos del juego en resúmenes.",
+    "save_preset_empty_alert": "El nombre del preajuste no puede estar vacío.",
+    "save_default_preset_alert": "No se puede guardar con el nombre \"Default\". Por favor, elige otro nombre.",
+    "save_preset_overwrite_confirm": "Ya existe un preajuste con el nombre \"{{presetName}}\". ¿Quieres sobrescribirlo?",
+    "save_preset_success": "¡Preajuste \"{{presetName}}\" guardado con éxito!",
+    "delete_default_preset_alert": "No se puede eliminar el preajuste predeterminado.",
+    "delete_preset_confirm": "¿Estás seguro de que quieres eliminar el preajuste \"{{presetName}}\"?",
+    "delete_preset_success": "Preajuste \"{{presetName}}\" eliminado.",
+    "restore_defaults_confirm": "¿Estás seguro de que quieres restaurar todos los prompts a sus valores predeterminados? Esta acción no se puede deshacer.",
+    "restore_defaults_success": "¡Todos los prompts se han restaurado correctamente a sus valores predeterminados!",
+    "restore_defaults_error": "Error al restaurar los prompts predeterminados: {{error}}"
   },
   "settings": {
     "header": "Ajustes",
@@ -505,7 +515,8 @@
     "announcement_message": "¡Tenemos un nuevo servidor de Discord, un nuevo mod de Steam y una página web!\n\nDiscord: Únete a nuestra comunidad para obtener ayuda y debatir.\nSteam: Echa un vistazo a 'Voices of the Court - Community Edition' en la Steam Workshop.\nWeb: Visita nuestra nueva página web para documentación y más.",
     "join_discord": "Unirse a Discord",
     "view_steam": "Ver mod de Steam",
-    "view_website": "Visitar página web"
+    "view_website": "Visitar página web",
+    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola."
   },
   "tray": {
     "open_config": "Abrir ventana de configuración",

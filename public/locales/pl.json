@@ -87,7 +87,17 @@
     "bookmarks": "Zakładki",
     "char_desc_script_tooltip": "Wybierz skrypt generujący opisy postaci. Standardowe skrypty są dostarczane przez moda, własne mogą być dodane przez użytkownika.",
     "ex_msg_script_tooltip": "Wybierz skrypt dostarczający przykładowe wiadomości dla AI. Pomaga to AI zrozumieć pożądany ton i format.",
-    "bookmarks_tooltip": "Wybierz skrypt zakładek do przetwarzania wydarzeń z gry w podsumowania."
+    "bookmarks_tooltip": "Wybierz skrypt zakładek do przetwarzania wydarzeń z gry w podsumowania.",
+    "save_preset_empty_alert": "Nazwa presetu nie może być pusta.",
+    "save_default_preset_alert": "Nie można zapisać pod nazwą \"Default\". Proszę wybrać inną nazwę.",
+    "save_preset_overwrite_confirm": "Preset o nazwie \"{{presetName}}\" już istnieje. Czy chcesz go nadpisać?",
+    "save_preset_success": "Preset \"{{presetName}}\" zapisany pomyślnie!",
+    "delete_default_preset_alert": "Nie można usunąć presetu domyślnego.",
+    "delete_preset_confirm": "Czy na pewno chcesz usunąć preset \"{{presetName}}\"?",
+    "delete_preset_success": "Preset \"{{presetName}}\" usunięty.",
+    "restore_defaults_confirm": "Czy na pewno chcesz przywrócić wszystkie podpowiedzi do wartości domyślnych? Tej operacji nie można cofnąć.",
+    "restore_defaults_success": "Wszystkie podpowiedzi zostały pomyślnie przywrócone do wartości domyślnych!",
+    "restore_defaults_error": "Błąd podczas przywracania domyślnych podpowiedzi: {{error}}"
   },
   "settings": {
     "header": "Ustawienia",

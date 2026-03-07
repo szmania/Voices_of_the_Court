@@ -95,7 +95,17 @@
     "bookmarks": "书签",
     "char_desc_script_tooltip": "选择生成角色描述的脚本。标准脚本由模组提供，用户可以添加自定义脚本。",
     "ex_msg_script_tooltip": "选择为 AI 提供示例消息的脚本。这有助于 AI 理解所需的语气和格式。",
-    "bookmarks_tooltip": "选择用于将游戏事件处理为总结的书签脚本。"
+    "bookmarks_tooltip": "选择用于将游戏事件处理为总结的书签脚本。",
+    "save_preset_empty_alert": "预设名称不能为空。",
+    "save_default_preset_alert": "不能以“Default”为名保存。请选择其他名称。",
+    "save_preset_overwrite_confirm": "名为“{{presetName}}”的预设已存在。要覆盖它吗？",
+    "save_preset_success": "预设“{{presetName}}”已成功保存！",
+    "delete_default_preset_alert": "无法删除默认预设。",
+    "delete_preset_confirm": "确定要删除预设“{{presetName}}”吗？",
+    "delete_preset_success": "预设“{{presetName}}”已删除。",
+    "restore_defaults_confirm": "确定要将所有Prompt恢复为默认值吗？此操作不可撤销。",
+    "restore_defaults_success": "所有Prompt已成功恢复为默认值！",
+    "restore_defaults_error": "恢复默认Prompt时出错：{{error}}"
   },
   "settings": {
     "header": "设置",

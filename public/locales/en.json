@@ -95,7 +95,17 @@
     "bookmarks": "Bookmarks",
     "char_desc_script_tooltip": "Select the script that generates character descriptions. Standard scripts are provided by the mod, custom scripts can be added by the user.",
     "ex_msg_script_tooltip": "Select the script that provides example messages for the AI. This helps the AI understand the desired tone and format.",
-    "bookmarks_tooltip": "Select the bookmark script to use for processing game events into summaries."
+    "bookmarks_tooltip": "Select the bookmark script to use for processing game events into summaries.",
+    "save_preset_empty_alert": "Preset name cannot be empty.",
+    "save_default_preset_alert": "Cannot save with the name \"Default\". Please choose another name.",
+    "save_preset_overwrite_confirm": "A preset named \"{{presetName}}\" already exists. Do you want to overwrite it?",
+    "save_preset_success": "Preset \"{{presetName}}\" saved successfully!",
+    "delete_default_preset_alert": "Cannot delete the Default preset.",
+    "delete_preset_confirm": "Are you sure you want to delete the preset \"{{presetName}}\"?",
+    "delete_preset_success": "Preset \"{{presetName}}\" deleted.",
+    "restore_defaults_confirm": "Are you sure you want to restore all prompts to their default values? This action cannot be undone.",
+    "restore_defaults_success": "All prompts have been successfully restored to default values!",
+    "restore_defaults_error": "Error restoring default prompts: {{error}}"
   },
   "settings": {
     "header": "Settings",
@@ -518,7 +528,8 @@
     "announcement_message": "We have a new Discord server, a new Steam mod, and a website!\n\nDiscord: Join our community for support and discussion.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.\nWebsite: Visit our new website for documentation and more.",
     "join_discord": "Join Discord",
     "view_steam": "View Steam Mod",
-    "view_website": "Visit Website"
+    "view_website": "Visit Website",
+    "init_error": "An error occurred while initializing the configuration page, please check the console log."
   },
   "tray": {
     "open_config": "Open config window",
