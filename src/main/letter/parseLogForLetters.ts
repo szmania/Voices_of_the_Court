@@ -9,7 +9,16 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
         return [];
     }
 
-    const fileContent = await fs.promises.readFile(debugLogPath, 'utf8');
+    // More efficient log reading
+    const CHUNK_SIZE = 64 * 1024; // 64KB chunks
+    const handle = await fs.promises.open(debugLogPath, 'r');
+    const { size } = await handle.stat();
+    const position = Math.max(0, size - CHUNK_SIZE);
+    const buffer = Buffer.alloc(size - position);
+    await handle.read(buffer, 0, buffer.length, position);
+    await handle.close();
+
+    const fileContent = buffer.toString('utf8');
     const lines = fileContent.split(/\r?\n/);
     
     const letters: Letter[] = [];
@@ -18,7 +27,6 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
         if (line.includes('VOTC:LETTER')) {
             const parts = line.split('/;/');
             if (parts.length >= 5) {
-                // Example: [21:44:13][D][jomini_effect_impl.cpp:450]: file: events/message_events.txt line: 202 (message_event.360:option): VOTC:LETTER/;/hi how are you/;/letter_1/;/316742/;/30/;/5/;/12345/;/
                 const content = parts[1].trim();
                 const subject = parts[2].trim();
                 const recipientId = parts[3].trim();

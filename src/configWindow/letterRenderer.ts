@@ -207,7 +207,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const outboxBtn = document.getElementById('outbox-btn') as HTMLButtonElement;
     const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
 
-    refreshBtn.addEventListener('click', loadPlayers);
+    refreshBtn.addEventListener('click', async () => {
+        loader.style.display = 'block';
+        try {
+            await ipcRenderer.invoke('import-letters-from-log');
+            await loadPlayers();
+        } catch (error) {
+            console.error("Error during manual letter import and refresh:", error);
+        } finally {
+            loader.style.display = 'none';
+        }
+    });
 
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;

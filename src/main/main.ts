@@ -738,11 +738,25 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
 clipboardListener.on('VOTC:LETTER', async () => {
     console.log('ClipboardListener: VOTC:LETTER event detected.');
     try {
+        await sleep(250); // Wait for log to flush
+
+        // Immediately import the letter to ensure it's saved and visible in the UI
+        const { playerId } = await getPlayerId(userDataPath);
+        if (playerId) {
+            const characterNameMap = await readCharacterMap(userDataPath, playerId);
+            const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+            const letterManager = LetterManager.getInstance();
+            await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+            console.log("Imported letters immediately after VOTC:LETTER event.");
+        }
+
+        // Now, proceed with the original reply generation logic
         const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
         
         const gameData = await parseLog(debugLogPath);
         if (!gameData) {
-            console.error('Failed to parse game data from debug.log');
+            console.error('Failed to parse game data from debug.log for reply generation.');
             return;
         }
 
@@ -754,17 +768,21 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const latestLetter = letters.pop();
 
         if (!latestLetter) {
-            console.error("VOTC:LETTER event, but no letter found in log.");
+            console.error("VOTC:LETTER event, but no letter found in log for reply generation.");
             return;
         }
 
-        // Update current date from this log parse, just in case the tailer missed it.
+        // Check if the recipient is the current AI. If not, no reply is needed.
+        if (latestLetter.recipient.id !== gameData.aiID) {
+            console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
+            return;
+        }
+
         if (gameData.totalDays) {
             updateCurrentDate(gameData.totalDays);
         }
 
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
-        
         const replyContent = await letterReplyGenerator.generateLetterReply(gameData, debugLogPath, config.userFolderPath);
         
         if (!replyContent) {
@@ -1105,6 +1123,26 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 });
 
 // Letter IPC Handlers
+ipcMain.handle('import-letters-from-log', async () => {
+    console.log('IPC: Received import-letters-from-log event.');
+    try {
+        const { playerId } = await getPlayerId(userDataPath);
+        if (playerId) {
+            const characterNameMap = await readCharacterMap(userDataPath, playerId);
+            const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+            const letterManager = LetterManager.getInstance();
+            await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+            return { success: true };
+        }
+        return { success: false, error: 'Player ID not found.' };
+    } catch (error) {
+        console.error('Error during manual letter import:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
 ipcMain.handle('get-letter-players', async () => {
     console.log('IPC: Received get-letter-players event.');
     const letterManager = LetterManager.getInstance();
