@@ -9,11 +9,16 @@ import { parseLettersFromLog } from './parseLogForLetters.js';
 export class LetterManager {
     private static instance: LetterManager;
     private letterHistoryPath: string;
+    private letterSummaryPath: string;
 
     private constructor() {
         this.letterHistoryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_history');
         if (!fs.existsSync(this.letterHistoryPath)) {
             fs.mkdirSync(this.letterHistoryPath, { recursive: true });
+        }
+        this.letterSummaryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries');
+        if (!fs.existsSync(this.letterSummaryPath)) {
+            fs.mkdirSync(this.letterSummaryPath, { recursive: true });
         }
     }
 
