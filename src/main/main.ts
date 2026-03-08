@@ -521,6 +521,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         };
         console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
         chatWindow.window.webContents.send('chat-start', payload);
+        await conversation.initialize();
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");

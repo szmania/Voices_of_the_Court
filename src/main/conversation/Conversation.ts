@@ -212,7 +212,6 @@ export class Conversation{
         console.log(`Sanitized messages array. Kept ${this.messages.length} messages for current conversation characters.`);
 
         this.checkForSummariesFromOtherPlayers();
-        this.initialize();
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config);
@@ -220,7 +219,7 @@ export class Conversation{
 
 
 
-    private async initialize(): Promise<void> {
+    public async initialize(): Promise<void> {
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
             await this.generateInitialSceneDescription();
@@ -1435,6 +1434,30 @@ ${character.fullName}的发言：`
     }
 
     // Store a summary for each character participating in the conversation.
+    private async summarizeDiaries(characterId: number): Promise<void> {
+        const diaryEntries = await readDiaryFile(this.gameData.playerID.toString(), characterId.toString());
+        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
+            return;
+        }
+
+        const diarySummarizePrompt = this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt;
+        if (!diarySummarizePrompt) {
+            return;
+        }
+
+        const entriesText = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n');
+        const fullPrompt = `${diarySummarizePrompt}\n\n${entriesText}`;
+
+        const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
+
+        const summaryContent = await this.summarizationApiConnection.complete(promptForApi, false, {});
+
+        if (summaryContent) {
+            await saveDiarySummary(this.gameData.playerID.toString(), characterId.toString(), summaryContent);
+            console.log(`Diary summary saved for character ${characterId}`);
+        }
+    }
+
     private async summarizeDiaries(characterId: number): Promise<void> {
         const diaryEntries = await readDiaryFile(this.gameData.playerID.toString(), characterId.toString());
         if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
