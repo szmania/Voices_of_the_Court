@@ -644,7 +644,7 @@ function setupCharacterTargeting(gameData: GameData) {
 
         // Manually set the tooltip since the element might have been hidden during initial localization
         // @ts-ignore
-        const tooltipText = window.LocalizationManager.getNestedTranslation('chat.target_tooltip');
+        const tooltipText = window.LocalizationManager.getTranslation('chat.target_tooltip');
         if (tooltipText) {
             wrapper.setAttribute('data-tooltip', tooltipText);
         }

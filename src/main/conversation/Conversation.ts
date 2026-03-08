@@ -553,6 +553,42 @@ export class Conversation{
              this.chatWindow.window.webContents.send('actions-receive', [], ""); // Clear loading dots if no one responded
         }
 
+        // AI-to-AI chat logic
+        const shouldTalkToAi = Math.random() < (this.config.aiToAiChatChance / 100);
+        if (allGeneratedMessages.length > 0 && this.aiToAiTurnLimit < 2 && shouldTalkToAi) {
+            const lastRespondingCharacter = this.gameData.characters.get((allGeneratedMessages[allGeneratedMessages.length - 1] as any).characterId);
+            if (lastRespondingCharacter) {
+                const otherAIs = Array.from(this.gameData.characters.values()).filter(
+                    c => c.id !== this.gameData.playerID && c.id !== lastRespondingCharacter.id
+                );
+
+                if (otherAIs.length > 0) {
+                    this.aiToAiTurnLimit++;
+                    const targetAI = otherAIs[Math.floor(Math.random() * otherAIs.length)];
+                    console.log(`AI-to-AI turn: ${lastRespondingCharacter.shortName} will now talk to ${targetAI.shortName}.`);
+
+                    const aiMessage = await this.generateAiToAiMessage(lastRespondingCharacter, targetAI);
+                    if (aiMessage) {
+                        this.pushMessage(aiMessage);
+                        const messageIndex = this.messages.length - 1;
+                        this.chatWindow.window.webContents.send('message-receive', aiMessage, this.config.actionsEnableAll);
+
+                        let collectedActions: ActionResponse[] = [];
+                        let narrative: string = "";
+                        if (this.config.actionsEnableAll) {
+                            const actionResult = await checkActions(this);
+                            collectedActions = actionResult.actions;
+                            narrative = actionResult.narrative;
+                            if (narrative) {
+                                this.addNarrativeToMessage(messageIndex, narrative);
+                            }
+                        }
+                        this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
+                    }
+                }
+            }
+        }
+
         console.log('Finished generating and sending all AI messages.');
 
         // If suggestions are enabled, generate them now.
@@ -707,24 +743,6 @@ export class Conversation{
             }
             generatedMessages.push(message);
 
-            // AI-to-AI chat logic
-            const shouldTalkToAi = Math.random() < (this.config.aiToAiChatChance / 100);
-            if (this.aiToAiTurnLimit < 2 && shouldTalkToAi) {
-                const otherAIs = Array.from(this.gameData.characters.values()).filter(
-                    c => c.id !== this.gameData.playerID && c.id !== character.id
-                );
-
-                if (otherAIs.length > 0) {
-                    this.aiToAiTurnLimit++;
-                    const targetAI = otherAIs[Math.floor(Math.random() * otherAIs.length)];
-                    console.log(`AI-to-AI turn: ${character.shortName} will now talk to ${targetAI.shortName}.`);
-
-                    const aiMessage = await this.generateAiToAiMessage(character, targetAI);
-                    if (aiMessage) {
-                        generatedMessages.push(aiMessage);
-                    }
-                }
-            }
         }
         this.chatWindow.window.webContents.send('queue-update', [], null); // Clear queue display
         return generatedMessages;
