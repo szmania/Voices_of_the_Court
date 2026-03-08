@@ -1682,12 +1682,10 @@ ${character.fullName}的发言：`
     }
 
     public async initiateConversation(){
-        if(this.config.aiCanStartConversation){
-            if(Math.random() < (this.config.aiStartConversationChance / 100)){
-                // Send loading event to chat window when AI starts conversation
-                this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
-                await this.generateAIsMessages();
-            }
+        if(Math.random() < (this.config.aiStartConversationChance / 100)){
+            // Send loading event to chat window when AI starts conversation
+            this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
+            await this.generateAIsMessages();
         }
     }
 }
