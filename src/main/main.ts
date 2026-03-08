@@ -747,9 +747,14 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
 
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            console.error('Failed to parse game data from debug.log for letter event.');
+            return;
+        }
+
         const characterNameMap = await readCharacterMap(userDataPath, playerId);
-        const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-        const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+        const gameDate = gameData.date;
         const letterManager = LetterManager.getInstance();
 
         // Import letters from log, which now also saves them.
@@ -763,14 +768,6 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
         const latestLetter = allPlayerLetters[0]; // They are sorted by date descending.
-
-        // The rest of the logic is for generating a reply.
-        // It needs full gameData.
-        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-        if (!gameData) {
-            console.error('Failed to parse game data from debug.log for reply generation.');
-            return;
-        }
 
         // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
         if (latestLetter.recipient.id !== gameData.aiID) {
