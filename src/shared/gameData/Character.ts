@@ -48,7 +48,7 @@ export class Character {
         this.id = Number(data[0]),
             this.shortName = data[1],
             this.fullName = data[2],
-            this.primaryTitle = data[3],
+            this.primaryTitle = data[3] === "None of" ? data[25] : data[3],
             this.sheHe = data[4],
             this.age = Number(data[5]),
             this.gold = Math.floor(Number(data[6])),
