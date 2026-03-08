@@ -11,7 +11,6 @@ import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
 import { DiaryGenerator } from '../diary/DiaryGenerator.js';
 import { saveDiaryFile } from '../diaryManager.js';
-import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -29,6 +28,7 @@ export class Conversation{
     gameData: GameData;
     messages: Message[];
     notSpokenYetText: string;
+    description: string;
     config: Config;
     runFileManager: RunFileManager;
     textGenApiConnection: ApiConnection;
