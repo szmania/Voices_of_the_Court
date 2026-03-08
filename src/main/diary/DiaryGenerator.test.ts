@@ -53,7 +53,6 @@ describe('DiaryGenerator', () => {
 
   it('should return null if diary prompt is not found', async () => {
     (conversation.getHistory as jest.Mock).mockReturnValue([]);
-    // @ts-ignore
     config.prompts['en']!.diaryPrompt = '';
     const entry = await diaryGenerator.generateDiaryEntry(gameData, conversation, '1');
     expect(entry).toBeNull();

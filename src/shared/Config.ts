@@ -19,6 +19,8 @@ export interface PromptConfig {
     selfTalkSummarizePrompt: string;
     narrativePrompt: string;
     sceneDescriptionPrompt: string;
+    diaryPrompt: string;
+    diarySummarizePrompt: string;
     letterPrompt: string;
     letterSummaryPrompt: string;
 }
@@ -99,6 +101,8 @@ export class Config{
     get selfTalkSummarizePrompt(): string { return this.prompts[this.language].selfTalkSummarizePrompt; }
     get narrativePrompt(): string { return this.prompts[this.language].narrativePrompt; }
     get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
+    get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
+    get diarySummarizePrompt(): string { return this.prompts[this.language].diarySummarizePrompt; }
     get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
     get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
 

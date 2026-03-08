@@ -23,7 +23,6 @@ export class DiaryGenerator {
             return null;
         }
 
-        // @ts-ignore - diaryPrompt is a custom property we added
         const diaryPrompt = this.config.prompts[this.config.language]?.diaryPrompt || this.config.prompts['en']?.diaryPrompt;
 
         if (!diaryPrompt) {
