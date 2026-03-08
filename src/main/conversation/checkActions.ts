@@ -15,7 +15,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     const totalMessages = conv.messages.length;
     if (totalMessages < 1) {
         console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is 1`);
-        return { actions: [], narrative: "" };
+        return [];
     }
     
     
@@ -38,7 +38,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     // If no actions are available, return early
     if (availableActions.length === 0) {
         console.log('No actions available for current context.');
-        return { actions: [], narrative: "" };
+        return [];
     }
 
     let triggeredActions: ActionResponse[] = [];
@@ -58,7 +58,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
     if(!response.match(/<rationale>(.*?)<\/?rationale>/) || !response.match(/<actions>(.*?)<\/?actions>/)){
         console.warn("Action warning: rationale or action couldn't be extracted from LLM response. Response: "+ response);
-        return { actions: [], narrative: "" };
+        return [];
     }
 
     const rationale = response.match(/<rationale>(.*?)<\/rationale>/)![1];
@@ -69,7 +69,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
     if(actionsString === "noop()"){
         console.log('LLM returned "noop()", no actions triggered.');
-        return { actions: [], narrative: "" };
+        return [];
     }
 
     const actions = actionsString.split(',').filter(a => a.trim() !== 'noop()');
