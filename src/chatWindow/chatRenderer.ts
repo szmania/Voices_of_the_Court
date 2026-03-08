@@ -1489,6 +1489,9 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
+
+    // Signal to main process that the UI is ready
+    ipcRenderer.send('chat-window-ready');
 });
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{

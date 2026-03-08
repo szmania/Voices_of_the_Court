@@ -521,7 +521,12 @@ clipboardListener.on('VOTC:IN', async () =>{
         };
         console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
         chatWindow.window.webContents.send('chat-start', payload);
-        await conversation.initialize();
+
+        // Wait for the chat window to be ready before starting the conversation flow
+        ipcMain.once('chat-window-ready', async () => {
+            console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
+            await conversation.initialize();
+        });
         
     }catch(err){
         console.log("==VOTC:IN ERROR==");
