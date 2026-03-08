@@ -22,6 +22,7 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
 
     console.log('Generating AI narrative for triggered actions.');
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_generating_narrative');
+    conv.chatWindow.window.webContents.send('status-update', 'chat.status_generating_narrative');
 
     // 构建旁白提示
     const prompt = buildNarrativePrompt(conv, actionResponses);

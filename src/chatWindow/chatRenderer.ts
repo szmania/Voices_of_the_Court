@@ -1309,6 +1309,10 @@ ipcRenderer.on('status-update', (e, textKey: string) => {
     updateStatusText(textKey);
 });
 
+ipcRenderer.on('status-update', (e, textKey: string) => {
+    updateStatusText(textKey);
+});
+
 ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
