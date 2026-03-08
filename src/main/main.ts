@@ -256,6 +256,7 @@ function checkAndDeliverLetters() {
             console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
             letterManager.deliverLetter(storedLetter, config);
             storedLetters.delete(letterId);
+            break;
         }
     }
 }
@@ -662,6 +663,13 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
     try {
         LetterManager.getInstance().clearLettersFile(config);
 
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            console.error('Could not parse game data on LETTER_ACCEPTED event.');
+            return;
+        }
+        const currentDateString = gameData.date;
+
         const { playerId } = await getPlayerId(userDataPath);
         if (playerId) {
             const letterManager = LetterManager.getInstance();
@@ -681,8 +689,9 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
                 
                 if (letterToUpdate) {
                     letterToUpdate.delivered = true;
+                    letterToUpdate.timestamp = new Date(currentDateString.replace(/\./g, '-'));
                     fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
-                    console.log(`Updated delivered status for letter ${undeliveredReply.id} in ${filePath}`);
+                    console.log(`Updated delivered status and timestamp for letter ${undeliveredReply.id} in ${filePath}`);
 
                     if (configWindow && !configWindow.window.isDestroyed()) {
                         configWindow.window.webContents.send('letter-status-changed');
