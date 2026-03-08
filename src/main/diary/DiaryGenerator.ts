@@ -38,6 +38,12 @@ export class DiaryGenerator {
 
     public async generateDiaryEntry(gameData: GameData, conversation: Conversation, characterId: string): Promise<DiaryEntry | null> {
         try {
+            const character = gameData.getCharacter(parseInt(characterId, 10));
+            if (!character) {
+                console.error(`DiaryGenerator: Character with ID ${characterId} not found.`);
+                return null;
+            }
+
             const promptText = this.buildDiaryPrompt(gameData, conversation, characterId);
             const messages: Message[] = [{ role: "user", content: promptText }];
 
@@ -51,10 +57,19 @@ export class DiaryGenerator {
                 return null;
             }
 
+            const participants = Array.from(gameData.characters.values()).map(c => c.fullName);
+            const character_traits = character.traits.reduce((acc, trait) => {
+                acc[trait.name] = trait.desc;
+                return acc;
+            }, {} as { [key: string]: string });
+
             const newEntry: DiaryEntry = {
                 date: gameData.date,
+                location: gameData.location,
+                scene: gameData.scene,
+                participants: participants,
                 content: response.trim(),
-                characterId: characterId
+                character_traits: character_traits
             };
 
             console.log(`Generated diary entry for character ${characterId}: ${newEntry.content.substring(0, 100)}...`);
