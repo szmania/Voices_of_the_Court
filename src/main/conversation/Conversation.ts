@@ -612,9 +612,22 @@ export class Conversation{
                                 this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll);
 
                                 if (this.config.actionsEnableAll) {
-                                    const collectedActions = await checkActions(this);
-                                    if (collectedActions.length > 0) {
-                                        allTurnActions.push(...collectedActions);
+                                    const originalPlayerId = this.gameData.playerID;
+                                    const originalAiId = this.gameData.aiID;
+                                    try {
+                                        // The speaker is targetAI, the target is lastRespondingCharacter
+                                        this.gameData.playerID = targetAI.id;
+                                        this.gameData.aiID = lastRespondingCharacter.id;
+
+                                        const collectedActions = await checkActions(this);
+                                        if (collectedActions.length > 0) {
+                                            allTurnActions.push(...collectedActions);
+                                            this.actionInvolvedCharacterIds.add(targetAI.id);
+                                            this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
+                                        }
+                                    } finally {
+                                        this.gameData.playerID = originalPlayerId;
+                                        this.gameData.aiID = originalAiId;
                                     }
                                 }
                             }

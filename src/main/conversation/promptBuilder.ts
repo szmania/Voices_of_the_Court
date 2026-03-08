@@ -94,10 +94,20 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     let roleplayInstruction: string;
     if (isAiToAi) {
-        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-        roleplayInstruction = aiToAiTemplate
-            .replace(/{sourceCharacterName}/g, character.fullName)
-            .replace(/{targetCharacterName}/g, replyToName);
+        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+        const isInitiatingAiToAi = lastMessage && lastMessage.name === character.fullName;
+
+        if (isInitiatingAiToAi) {
+            const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+            roleplayInstruction = aiToAiInitiateTemplate
+                .replace(/{sourceCharacterName}/g, character.fullName)
+                .replace(/{targetCharacterName}/g, replyToName);
+        } else {
+            const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+            roleplayInstruction = aiToAiTemplate
+                .replace(/{sourceCharacterName}/g, character.fullName)
+                .replace(/{targetCharacterName}/g, replyToName);
+        }
     } else {
         roleplayInstruction = roleplayInstructionTemplate
             .replace(/{characterName}/g, character.fullName)
