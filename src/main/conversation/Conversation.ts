@@ -850,26 +850,8 @@ export class Conversation{
         // Update UI to show who is speaking
         this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
 
+        // buildChatPrompt will correctly set the target and use the right instruction.
         const prompt = await buildChatPrompt(this, source, undefined, target);
-
-        // Remove all system prompts at the end that are instructions
-        while (prompt.length > 0 && prompt[prompt.length - 1].role === 'system') {
-            const content = prompt[prompt.length - 1].content.toLowerCase();
-            if (content.includes('write') || content.includes('reply') || content.includes('instruction')) {
-                prompt.pop();
-            } else {
-                break;
-            }
-        }
-        
-        const instructionTemplate = this.translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-        let newInstruction = instructionTemplate.replace('{sourceCharacterName}', source.fullName);
-        newInstruction = newInstruction.replace('{targetCharacterName}', target.fullName);
-        
-        prompt.push({
-            role: 'system',
-            content: newInstruction
-        });
 
         const content = await this.textGenApiConnection.complete(prompt, false, {
             max_tokens: this.config.maxTokens,
