@@ -256,7 +256,6 @@ function checkAndDeliverLetters() {
             console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
             letterManager.deliverLetter(storedLetter, config);
             storedLetters.delete(letterId);
-            break;
         }
     }
 }
