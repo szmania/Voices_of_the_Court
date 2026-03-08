@@ -81,6 +81,8 @@
     "scene_description_tooltip": "Dieser Prompt wird verwendet, um die anfängliche Szenenbeschreibung zu Beginn des Gesprächs zu generieren. Er liefert Hintergrund und Atmosphäre für Charakterinteraktionen.",
     "diary_prompt": "Tagebuch-Prompt",
     "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
+    "diary_summary_prompt": "Tagebuch-Zusammenfassungs-Prompt",
+    "diary_summary_tooltip": "Dieser Prompt wird verwendet, um alle Tagebucheinträge für einen Charakter in einer einzigen Zusammenfassung zusammenzufassen.",
     "restore_defaults": "Standard-Prompts wiederherstellen",
     "restore_tooltip": "Klicken Sie auf diese Schaltfläche, um alle Prompts auf ihre Standardwerte zurückzusetzen",
     "presets_header": "Prompt-Voreinstellungen",

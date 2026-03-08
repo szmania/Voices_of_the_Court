@@ -81,6 +81,8 @@
     "scene_description_tooltip": "This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.",
     "diary_prompt": "Diary Prompt",
     "diary_tooltip": "This prompt is used to generate diary entries for characters after conversations. It helps maintain character consistency and depth.",
+    "diary_summary_prompt": "Diary Summary Prompt",
+    "diary_summary_tooltip": "This prompt is used to summarize all diary entries for a character into a single summary.",
     "letter_prompt": "Letter prompt",
     "letter_summary_prompt": "Letter Summary prompt",
     "restore_defaults": "Restore Default Prompts",

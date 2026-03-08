@@ -81,6 +81,8 @@
     "scene_description_tooltip": "Ten prompt służy do generowania początkowego opisu sceny na początku rozmowy. Zapewnia tło i atmosferę dla interakcji postaci.",
     "diary_prompt": "Prompt Dziennika",
     "diary_tooltip": "Ten prompt służy do generowania wpisów do dziennika dla postaci po rozmowach. Pomaga utrzymać spójność i głębię postaci.",
+    "diary_summary_prompt": "Prompt podsumowania dziennika",
+    "diary_summary_tooltip": "Ten prompt służy do podsumowania wszystkich wpisów do dziennika postaci w jedno streszczenie.",
     "letter_prompt": "Prompt listu",
     "letter_summary_prompt": "Prompt podsumowania listu",
     "restore_defaults": "Przywróć domyślne prompty",

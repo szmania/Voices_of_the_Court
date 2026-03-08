@@ -10,7 +10,7 @@ import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
 import { DiaryGenerator } from '../diary/DiaryGenerator.js';
-import { saveDiaryFile } from '../diaryManager.js';
+import { readDiaryFile, saveDiaryFile, saveDiarySummary } from '../diaryManager.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -209,6 +209,28 @@ export class Conversation{
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config);
+    }
+
+    async summarizeDiaries(characterId: number): Promise<void> {
+        const playerId = this.gameData.playerID.toString();
+        const charId = characterId.toString();
+        const diaryEntries = await readDiaryFile(playerId, charId);
+
+        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
+            console.log(`No diary entries to summarize for character ${charId}.`);
+            return;
+        }
+
+        const allEntriesContent = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n---\n\n');
+
+        const prompt = (this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt) + `\n\n${allEntriesContent}`;
+
+        const summary = await this.summarizationApiConnection.complete([{ role: 'user', content: prompt }], false, {});
+
+        if (summary) {
+            await saveDiarySummary(playerId, charId, summary);
+            console.log(`Diary summary saved for character ${charId}.`);
+        }
     }
 
     private async initialize(): Promise<void> {
@@ -1359,6 +1381,7 @@ ${character.fullName}的发言：`
                 const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
                 if (newDiaryEntry) {
                     await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
+                    await this.summarizeDiaries(character.id);
                 }
             }
         }

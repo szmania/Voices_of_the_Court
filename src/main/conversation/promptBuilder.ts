@@ -8,6 +8,7 @@ import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
+import { readDiarySummary } from "../diaryManager.js";
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
     let output: string = "";
@@ -166,6 +167,16 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
+    }
+
+    const diarySummary = await readDiarySummary(conv.gameData.playerID.toString(), character.id.toString());
+    if (diarySummary) {
+        const diarySummaryMessage: Message = {
+            role: "system",
+            content: `Summary of ${character.shortName}'s diary:\n${diarySummary}`
+        };
+        insertMessageAtDepth(messages, diarySummaryMessage, conv.config.memoriesInsertDepth); // Or a new depth config
+        console.log(`Inserted diary summary for ${character.shortName}.`);
     }
 
     // too early right now

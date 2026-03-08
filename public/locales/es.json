@@ -81,6 +81,8 @@
     "scene_description_tooltip": "Este prompt se utiliza para generar la descripción inicial de la escena al comienzo de la conversación. Proporciona contexto y atmósfera para las interacciones de los personajes.",
     "diary_prompt": "Prompt de Diario",
     "diary_tooltip": "Este prompt se utiliza para generar entradas de diario para los personajes después de las conversaciones. Ayuda a mantener la consistencia y profundidad del personaje.",
+    "diary_summary_prompt": "Prompt de resumen del diario",
+    "diary_summary_tooltip": "Este prompt se utiliza para resumir todas las entradas del diario de un personaje en un único resumen.",
     "letter_prompt": "Prompt de carta",
     "letter_summary_prompt": "Prompt de resumen de carta",
     "restore_defaults": "Restaurar prompts predeterminados",

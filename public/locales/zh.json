@@ -81,6 +81,8 @@
     "scene_description_tooltip": "此提示词用于在对话开始时生成初始场景描述。它为角色互动提供背景和氛围。",
     "diary_prompt": "日记提示词",
     "diary_tooltip": "此提示词用于在对话后为角色生成日记条目。它有助于保持角色的一致性和深度。",
+    "diary_summary_prompt": "日记摘要提示",
+    "diary_summary_tooltip": "此提示用于将角色的所有日记条目汇总为单个摘要。",
     "letter_prompt": "信件提示词",
     "letter_summary_prompt": "信件总结提示词",
     "restore_defaults": "恢复默认提示词",
