@@ -249,13 +249,40 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 
 
-function checkAndDeliverLetters() {
+async function checkAndDeliverLetters() {
     const letterManager = LetterManager.getInstance();
     for (const [letterId, storedLetter] of storedLetters.entries()) {
         if (currentTotalDays >= storedLetter.expectedDeliveryDay) {
             console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
+            
+            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            if (!gameData) {
+                console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
+                continue; 
+            }
+            const currentDateString = gameData.date;
+
+            const playerId = String(storedLetter.letter.recipient.id);
+            const otherId = String(storedLetter.letter.sender.id);
+            const filePath = letterManager.getLetterFilePath(playerId, otherId);
+            const lettersInFile = letterManager.getLetters(playerId, otherId);
+            
+            const letterToUpdate = lettersInFile.find(l => l.replyToId === storedLetter.letter.id);
+
+            if (letterToUpdate) {
+                letterToUpdate.timestamp = new Date(currentDateString.replace(/\./g, '-'));
+                letterToUpdate.delivered = true;
+                fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
+                console.log(`Updated timestamp and delivered status for letter ${letterToUpdate.id} in ${filePath}`);
+            }
+
             letterManager.deliverLetter(storedLetter, config);
             storedLetters.delete(letterId);
+
+            if (configWindow && !configWindow.window.isDestroyed()) {
+                configWindow.window.webContents.send('letter-status-changed');
+            }
+            break;
         }
     }
 }
@@ -661,45 +688,8 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
     console.log('ClipboardListener: VOTC:LETTER_ACCEPTED event detected.');
     try {
         LetterManager.getInstance().clearLettersFile(config);
-
-        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-        if (!gameData) {
-            console.error('Could not parse game data on LETTER_ACCEPTED event.');
-            return;
-        }
-        const currentDateString = gameData.date;
-
-        const { playerId } = await getPlayerId(userDataPath);
-        if (playerId) {
-            const letterManager = LetterManager.getInstance();
-            const allLetters = letterManager.getAllLetters(playerId);
-            
-            const undeliveredReply = allLetters
-                .filter(l => l.sender.id !== Number(playerId) && l.delivered === false)
-                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                [0];
-
-            if (undeliveredReply) {
-                console.log(`Marking letter ${undeliveredReply.id} as delivered.`);
-                const otherId = undeliveredReply.sender.id;
-                const filePath = letterManager.getLetterFilePath(playerId, String(otherId));
-                const lettersInFile = letterManager.getLetters(playerId, String(otherId));
-                const letterToUpdate = lettersInFile.find(l => l.id === undeliveredReply.id);
-                
-                if (letterToUpdate) {
-                    letterToUpdate.delivered = true;
-                    letterToUpdate.timestamp = new Date(currentDateString.replace(/\./g, '-'));
-                    fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
-                    console.log(`Updated delivered status and timestamp for letter ${undeliveredReply.id} in ${filePath}`);
-
-                    if (configWindow && !configWindow.window.isDestroyed()) {
-                        configWindow.window.webContents.send('letter-status-changed');
-                    }
-                }
-            }
-        }
     } catch (error) {
-        console.error(`Failed to process VOTC:LETTER_ACCEPTED: ${error}`);
+        console.error(`Failed to clear letters file: ${error}`);
     }
 })
 
