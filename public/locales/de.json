@@ -589,6 +589,33 @@
   "prompt_builder": {
     "summary_header": "Hier sind die Daten und Zusammenfassungen früherer Gespräche:"
   },
+  "character_validation": {
+    "prompt_assistant_role": "Sie sind ein Assistent zur Überprüfung der Charakteridentität. Sie müssen feststellen, ob die folgende Nachricht mit der Identität des angegebenen Charakters übereinstimmt.",
+    "character_info": "Charakterinformationen:",
+    "name": "Name",
+    "short_name": "Kurzname",
+    "title": "Identität/Titel",
+    "gender": "Geschlecht",
+    "age": "Alter",
+    "culture": "Kultur",
+    "faith": "Glaube",
+    "is_ruler": "Ist Herrscher",
+    "is_independent_ruler": "Ist unabhängiger Herrscher",
+    "recent_history": "Kürzlicher Gesprächsverlauf:",
+    "current_speaker": "Aktuell sprechender Charakter:",
+    "message_content": "Nachrichteninhalt:",
+    "instruction": "Bestimmen Sie anhand des Gesprächsverlaufs und des Kontexts, ob diese Nachricht mit der Identität des Charakters übereinstimmt. Wenn sie übereinstimmt, antworten Sie mit „Gültig“; wenn sie nicht übereinstimmt, antworten Sie mit „Ungültig“. Antworten Sie nur mit „Gültig“ oder „Ungültig“, ohne weitere Erklärung.",
+    "yes": "Ja",
+    "no": "Nein",
+    "age_suffix": {
+        "infant": "(Säugling)",
+        "toddler": "(Kleinkind)",
+        "child": "(Kind)",
+        "teenager": "(Teenager)"
+    },
+    "valid": "Gültig",
+    "invalid": "Ungültig"
+  },
   "suggestion_builder": {
     "summary_header": "Hier sind die Daten und Zusammenfassungen früherer Gespräche:",
     "prompt_header": "Basierend auf dem folgenden Gesprächskontext und den Charakterinformationen, generiere 3-5 kurze und passende Antwortvorschläge für den Spielercharakter {characterName}. Die Vorschläge sollten:",

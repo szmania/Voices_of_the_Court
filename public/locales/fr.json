@@ -591,6 +591,33 @@
   "prompt_builder": {
     "summary_header": "Voici les dates et les résumés des conversations précédentes :"
   },
+  "character_validation": {
+    "prompt_assistant_role": "Vous êtes un assistant de validation d'identité de personnage. Vous devez déterminer si le message suivant correspond à l'identité du personnage spécifié.",
+    "character_info": "Informations sur le personnage :",
+    "name": "Nom",
+    "short_name": "Nom court",
+    "title": "Identité/Titre",
+    "gender": "Genre",
+    "age": "Âge",
+    "culture": "Culture",
+    "faith": "Foi",
+    "is_ruler": "Est un dirigeant",
+    "is_independent_ruler": "Est un dirigeant indépendant",
+    "recent_history": "Historique de conversation récent :",
+    "current_speaker": "Personnage parlant actuellement :",
+    "message_content": "Contenu du message :",
+    "instruction": "En fonction de l'historique de la conversation et du contexte, déterminez si ce message correspond à l'identité du personnage. S'il correspond, répondez « Valide » ; s'il ne correspond pas, répondez « Invalide ». Répondez uniquement « Valide » ou « Invalide », sans autre explication.",
+    "yes": "Oui",
+    "no": "Non",
+    "age_suffix": {
+        "infant": "(Nourrisson)",
+        "toddler": "(Enfant en bas âge)",
+        "child": "(Enfant)",
+        "teenager": "(Adolescent)"
+    },
+    "valid": "Valide",
+    "invalid": "Invalide"
+  },
   "suggestion_builder": {
     "summary_header": "Voici les dates et les résumés des conversations précédentes :",
     "prompt_header": "En fonction du contexte de conversation et des informations sur le personnage suivants, générez 3 à 5 suggestions de réponse courtes et appropriées pour le personnage joueur {characterName}. Les suggestions doivent :",

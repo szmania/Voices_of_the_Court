@@ -21,6 +21,20 @@ import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
 
+function getTranslations(lang: string): any {
+    const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+    try {
+        if (fs.existsSync(localePath)) {
+            return JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+        }
+    } catch (error) {
+        console.error(`Error reading locale file for ${lang}:`, error);
+    }
+    // Fallback to English
+    const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
+    return JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+}
+
 export class Conversation{
     userDataPath: string;
     chatWindow: ChatWindow;
@@ -44,6 +58,7 @@ export class Conversation{
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     actionInvolvedCharacterIds: Set<number>;
+    translations: any;
     
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -67,16 +82,8 @@ export class Conversation{
 
         // Load translations
         const lang = this.config.language || 'en';
-        const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
-        let translations;
-        try {
-            translations = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
-        } catch (error) {
-            console.error(`Could not load translation file for language: ${lang}. Falling back to en.`, error);
-            const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
-            translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
-        }
-        this.notSpokenYetText = translations.chat.not_spoken || "Has not spoken yet";
+        this.translations = getTranslations(lang);
+        this.notSpokenYetText = this.translations.chat.not_spoken || "Has not spoken yet";
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.description = "";
@@ -1290,6 +1297,8 @@ export class Conversation{
     async validateCharacterIdentity(character: Character, messageContent: string): Promise<boolean> {
         console.log(`Validating if message content matches character identity for: ${character.fullName}`);
         
+        const validationTranslations = this.translations.character_validation || getTranslations('en').character_validation;
+
         // 获取最近的对话历史，用于提供上下文
         const recentMessages = this.messages.slice(-5); // 获取最近5条消息作为上下文
         const conversationHistory = recentMessages.map(msg => 
@@ -1297,43 +1306,43 @@ export class Conversation{
         ).join('\n');
         
         // 获取年龄描述，根据年龄段添加后缀
-        let ageDescription = `${character.age}岁`;
+        let ageDescription = `${character.age}`;
         if (character.age >= 0 && character.age <= 3) {
-            ageDescription += "（婴儿）";
+            ageDescription += ` ${validationTranslations.age_suffix.infant}`;
         } else if (character.age >= 4 && character.age <= 5) {
-            ageDescription += "（幼儿）";
+            ageDescription += ` ${validationTranslations.age_suffix.toddler}`;
         } else if (character.age >= 6 && character.age <= 12) {
-            ageDescription += "（少儿）";
+            ageDescription += ` ${validationTranslations.age_suffix.child}`;
         } else if (character.age >= 13 && character.age <= 16) {
-            ageDescription += "（少年）";
+            ageDescription += ` ${validationTranslations.age_suffix.teenager}`;
         }
 
         // 构建验证提示
         const prompt: Message[] = [
             {
                 role: "user",
-                content: `你是一个角色身份验证助手。你需要判断以下消息是否符合指定角色的身份。
+                content: `${validationTranslations.prompt_assistant_role}
 
-角色信息：
-- 姓名：${character.fullName}
-- 名称：${character.shortName}
-- 身份/头衔：${character.primaryTitle}
-- 性别：${character.sheHe}
-- 年龄：${ageDescription}
-- 文化：${character.culture}
-- 信仰：${character.faith}
-- 是否为统治者：${character.isRuler ? '是' : '否'}
-- 是否为独立统治者：${character.isIndependentRuler ? '是' : '否'}
+${validationTranslations.character_info}
+- ${validationTranslations.name}: ${character.fullName}
+- ${validationTranslations.short_name}: ${character.shortName}
+- ${validationTranslations.title}: ${character.primaryTitle}
+- ${validationTranslations.gender}: ${character.sheHe}
+- ${validationTranslations.age}: ${ageDescription}
+- ${validationTranslations.culture}: ${character.culture}
+- ${validationTranslations.faith}: ${character.faith}
+- ${validationTranslations.is_ruler}: ${character.isRuler ? validationTranslations.yes : validationTranslations.no}
+- ${validationTranslations.is_independent_ruler}: ${character.isIndependentRuler ? validationTranslations.yes : validationTranslations.no}
 
-最近的对话历史：
+${validationTranslations.recent_history}
 ${conversationHistory}
 
-当前角色发言：
+${validationTranslations.current_speaker}
 
-消息内容：
+${validationTranslations.message_content}
 "${messageContent}"
 
-请结合对话历史上下文，判断这条消息是否符合上述角色的身份。如果符合，请回答"符合"；如果不符合，请回答"不符合"。只需要回答"符合"或"不符合"，不需要其他解释。`
+${validationTranslations.instruction}`
             }
         ];
         
@@ -1348,7 +1357,7 @@ ${conversationHistory}
             console.log(`[DEBUG] Parsed response: ${responseText}`);
             
             // 更严格的验证逻辑：明确检查是否为"符合"
-            const isValid = responseText === "符合";
+            const isValid = responseText === validationTranslations.valid;
             console.log(`Character identity validation result for ${character.fullName}: ${isValid ? 'Valid' : 'Invalid'}`);
             return isValid;
         } catch (error) {

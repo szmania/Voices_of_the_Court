@@ -591,6 +591,33 @@
   "prompt_builder": {
     "summary_header": "過去の会話の日付と要約は次のとおりです："
   },
+  "character_validation": {
+    "prompt_assistant_role": "あなたはキャラクターの本人確認アシスタントです。次のメッセージが指定されたキャラクターの本人情報と一致するかどうかを判断する必要があります。",
+    "character_info": "キャラクター情報：",
+    "name": "名前",
+    "short_name": "短い名前",
+    "title": "身元/称号",
+    "gender": "性別",
+    "age": "年齢",
+    "culture": "文化",
+    "faith": "信仰",
+    "is_ruler": "支配者ですか",
+    "is_independent_ruler": "独立した支配者ですか",
+    "recent_history": "最近の会話履歴：",
+    "current_speaker": "現在話しているキャラクター：",
+    "message_content": "メッセージ内容：",
+    "instruction": "会話の履歴と文脈に基づいて、このメッセージがキャラクターの本人情報と一致するかどうかを判断してください。一致する場合は「有効」と回答し、一致しない場合は「無効」と回答してください。「有効」または「無効」とだけ回答し、他の説明は不要です。",
+    "yes": "はい",
+    "no": "いいえ",
+    "age_suffix": {
+        "infant": "（乳児）",
+        "toddler": "（幼児）",
+        "child": "（子供）",
+        "teenager": "（ティーンエイジャー）"
+    },
+    "valid": "有効",
+    "invalid": "無効"
+  },
   "suggestion_builder": {
     "summary_header": "過去の会話の日付と要約は次のとおりです：",
     "prompt_header": "以下の会話の文脈とキャラクター情報に基づいて、プレイヤーキャラクター{characterName}のための短く適切な応答の提案を3〜5個生成してください。提案は次のようになります：",

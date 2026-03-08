@@ -634,6 +634,33 @@
   "prompt_builder": {
     "summary_header": "Here are the dates and summaries of previous conversations:"
   },
+  "character_validation": {
+    "prompt_assistant_role": "You are a character identity validation assistant. You need to determine if the following message matches the identity of the specified character.",
+    "character_info": "Character Information:",
+    "name": "Name",
+    "short_name": "Short Name",
+    "title": "Identity/Title",
+    "gender": "Gender",
+    "age": "Age",
+    "culture": "Culture",
+    "faith": "Faith",
+    "is_ruler": "Is Ruler",
+    "is_independent_ruler": "Is Independent Ruler",
+    "recent_history": "Recent Conversation History:",
+    "current_speaker": "Current Character Speaking:",
+    "message_content": "Message Content:",
+    "instruction": "Based on the conversation history and context, determine if this message matches the character's identity. If it matches, answer \"Valid\"; if it does not match, answer \"Invalid\". Only answer \"Valid\" or \"Invalid\", no other explanation is needed.",
+    "yes": "Yes",
+    "no": "No",
+    "age_suffix": {
+        "infant": "(Infant)",
+        "toddler": "(Toddler)",
+        "child": "(Child)",
+        "teenager": "(Teenager)"
+    },
+    "valid": "Valid",
+    "invalid": "Invalid"
+  },
   "suggestion_builder": {
     "summary_header": "Here are the dates and summaries of previous conversations:",
     "prompt_header": "Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character {characterName}. Suggestions should:",

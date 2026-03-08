@@ -591,6 +591,33 @@
   "prompt_builder": {
     "summary_header": "Oto daty i podsumowania poprzednich rozmów:"
   },
+  "character_validation": {
+    "prompt_assistant_role": "Jesteś asystentem weryfikacji tożsamości postaci. Musisz ustalić, czy poniższa wiadomość pasuje do tożsamości określonej postaci.",
+    "character_info": "Informacje o postaci:",
+    "name": "Imię",
+    "short_name": "Krótkie imię",
+    "title": "Tożsamość/Tytuł",
+    "gender": "Płeć",
+    "age": "Wiek",
+    "culture": "Kultura",
+    "faith": "Wiara",
+    "is_ruler": "Czy jest władcą",
+    "is_independent_ruler": "Czy jest niezależnym władcą",
+    "recent_history": "Ostatnia historia rozmów:",
+    "current_speaker": "Obecnie mówiąca postać:",
+    "message_content": "Treść wiadomości:",
+    "instruction": "Na podstawie historii rozmów i kontekstu ustal, czy ta wiadomość pasuje do tożsamości postaci. Jeśli pasuje, odpowiedz „Prawidłowa”; jeśli nie pasuje, odpowiedz „Nieprawidłowa”. Odpowiedz tylko „Prawidłowa” lub „Nieprawidłowa”, bez żadnych innych wyjaśnień.",
+    "yes": "Tak",
+    "no": "Nie",
+    "age_suffix": {
+        "infant": "(Niemowlę)",
+        "toddler": "(Małe dziecko)",
+        "child": "(Dziecko)",
+        "teenager": "(Nastolatek)"
+    },
+    "valid": "Prawidłowa",
+    "invalid": "Nieprawidłowa"
+  },
   "suggestion_builder": {
     "summary_header": "Oto daty i podsumowania poprzednich rozmów:",
     "prompt_header": "Na podstawie poniższego kontekstu rozmowy i informacji o postaci, wygeneruj 3-5 krótkich i odpowiednich sugestii odpowiedzi dla postaci gracza {characterName}. Sugestie powinny:",

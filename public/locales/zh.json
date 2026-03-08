@@ -635,6 +635,33 @@
   "prompt_builder": {
     "summary_header": "以下是之前对话的日期与摘要："
   },
+  "character_validation": {
+    "prompt_assistant_role": "你是一个角色身份验证助手。你需要判断以下消息是否符合指定角色的身份。",
+    "character_info": "角色信息：",
+    "name": "姓名",
+    "short_name": "名称",
+    "title": "身份/头衔",
+    "gender": "性别",
+    "age": "年龄",
+    "culture": "文化",
+    "faith": "信仰",
+    "is_ruler": "是否为统治者",
+    "is_independent_ruler": "是否为独立统治者",
+    "recent_history": "最近的对话历史：",
+    "current_speaker": "当前角色发言：",
+    "message_content": "消息内容：",
+    "instruction": "请结合对话历史上下文，判断这条消息是否符合上述角色的身份。如果符合，请回答“符合”；如果不符合，请回答“不符合”。只需要回答“符合”或“不符合”，不需要其他解释。",
+    "yes": "是",
+    "no": "否",
+    "age_suffix": {
+        "infant": "（婴儿）",
+        "toddler": "（幼儿）",
+        "child": "（少儿）",
+        "teenager": "（少年）"
+    },
+    "valid": "符合",
+    "invalid": "不符合"
+  },
   "suggestion_builder": {
     "summary_header": "以下是之前对话的日期与摘要：",
     "prompt_header": "基于以下对话上下文和角色信息，为玩家角色{characterName}生成3-5个简短且合适的回应建议。建议应该：",
