@@ -12,6 +12,7 @@ function updateLetterThreadStatus(count: number) {
     statusEl.id = 'letter-thread-status';
     // @ts-ignore
     statusEl.textContent = `${window.LocalizationManager.getTranslation('letters.thread_status', 'Letter Thread')}: ${count}/9`;
+    statusEl.setAttribute('data-i18n-title', 'letters.tooltip_thread_status');
 
     if (count >= 9) {
         statusEl.classList.add('full');
@@ -21,6 +22,11 @@ function updateLetterThreadStatus(count: number) {
     
     letterThreadStatusContainer.innerHTML = ''; // Clear previous
     letterThreadStatusContainer.appendChild(statusEl);
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations(letterThreadStatusContainer);
+    }
 }
 
 function showStatusMessage(message: string, type = 'info') {

@@ -556,7 +556,14 @@
     "outbox": "Bandeja de salida",
     "no_player": "Selecciona un jugador para ver las cartas.",
     "no_letters": "No se encontraron cartas.",
-    "select": "Selecciona una carta para leer."
+    "select": "Selecciona una carta para leer.",
+    "thread_status": "Hilo de Cartas",
+    "tooltip_thread_status": "Indica el número actual de cartas utilizadas en el hilo de cartas del juego. El hilo debe restablecerse en el juego mediante una decisión una vez que llega a 9/9.",
+    "tooltip_total": "Número total de cartas en el historial para el jugador/personaje seleccionado.",
+    "tooltip_generating": "Número de respuestas a cartas que la IA está generando actualmente.",
+    "tooltip_pending": "Número de respuestas generadas que esperan a que pase el retraso del juego antes de ser entregadas.",
+    "tooltip_failed": "Número de cartas que no se pudieron generar o enviar.",
+    "tooltip_completed": "Número de cartas que se han enviado o leído correctamente."
   },
   "letters": {
     "player": "Jugador",

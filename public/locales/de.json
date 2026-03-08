@@ -559,7 +559,14 @@
     "outbox": "Postausgang",
     "no_player": "Wählen Sie einen Spieler aus, um Briefe anzuzeigen.",
     "no_letters": "Keine Briefe gefunden.",
-    "select": "Wählen Sie einen Brief zum Lesen aus."
+    "select": "Wählen Sie einen Brief zum Lesen aus.",
+    "thread_status": "Brief-Thread",
+    "tooltip_thread_status": "Zeigt die aktuelle Anzahl der im Brief-Thread des Spiels verwendeten Briefe an. Der Thread muss im Spiel per Entscheidung zurückgesetzt werden, sobald er 9/9 erreicht.",
+    "tooltip_total": "Gesamtzahl der Briefe im Verlauf für den ausgewählten Spieler/Charakter.",
+    "tooltip_generating": "Anzahl der Briefantworten, die derzeit von der KI generiert werden.",
+    "tooltip_pending": "Anzahl der generierten Antworten, die auf das Verstreichen der Verzögerung im Spiel warten, bevor sie zugestellt werden.",
+    "tooltip_failed": "Anzahl der Briefe, deren Generierung oder Versand fehlgeschlagen ist.",
+    "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe."
   },
   "letters": {
     "player": "Spieler",

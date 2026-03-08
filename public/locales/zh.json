@@ -562,7 +562,14 @@
     "outbox": "发件箱",
     "no_player": "请选择一位玩家以查看信件。",
     "no_letters": "未找到信件。",
-    "select": "请选择一封信件阅读。"
+    "select": "请选择一封信件阅读。",
+    "thread_status": "信件线程",
+    "tooltip_thread_status": "表示游戏中信件线程已使用的信件数量。当达到9/9时，必须通过游戏内决议重置线程才能继续发送信件。",
+    "tooltip_total": "所选玩家/角色的历史信件总数。",
+    "tooltip_generating": "AI当前正在生成的信件回复数量。",
+    "tooltip_pending": "已生成但等待游戏内延迟过去后才能发送的回复数量。",
+    "tooltip_failed": "生成或发送失败的信件数量。",
+    "tooltip_completed": "已成功发送或阅读的信件数量。"
   },
   "diary_manager": {
     "header": "日记管理器",
