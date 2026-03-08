@@ -47,7 +47,7 @@ export class Letter implements ILetter {
     public static fromLog(
         senderId: string,
         recipientId: string,
-        subject: string,
+        letterId: string,
         content: string,
         characterNameMap: Map<string, string>,
         gameDate: string,
@@ -76,7 +76,7 @@ export class Letter implements ILetter {
                 randomUUID(),
                 sender,
                 recipient,
-                subject,
+                letterId,
                 content,
                 LetterType.UNKNOWN,
                 timestamp,

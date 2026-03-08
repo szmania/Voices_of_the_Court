@@ -259,7 +259,7 @@ function deliverLetter(storedLetter: StoredLetter) {
     const letterId = letter.subject; // The original code uses subject as letterId for the file name.
 
     const letterNumber = letterId.replace('letter_', '');
-    const letterFileName = `letter${letterNumber}.txt`;
+    const letterFileName = `${letterId}.txt`;
     const letterFilePath = path.join(userFolderPath, "run", letterFileName);
 
     const runFolderPath = path.join(userFolderPath, "run");

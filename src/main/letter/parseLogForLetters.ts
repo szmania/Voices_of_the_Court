@@ -42,12 +42,12 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
 
             if (parts.length >= 4) {
                 const content = parts[0].trim();
-                const subject = parts[1].trim(); // This is letterId, using as subject
+                const letterId = parts[1].trim(); // This is letterId, using as subject
                 const totalDays = parseInt(parts[2].trim(), 10) || 0;
                 const delay = parseInt(parts[3].trim(), 10) || 0;
 
-                if(content && subject && playerId && recipientId) {
-                    const letter = Letter.fromLog(playerId, recipientId, subject, content, characterNameMap, gameDate, delay, totalDays);
+                if(content && letterId && playerId && recipientId) {
+                    const letter = Letter.fromLog(playerId, recipientId, letterId, content, characterNameMap, gameDate, delay, totalDays);
                     if (letter) {
                         letters.push(letter);
                         // If a playerId is provided, save the letter immediately.
