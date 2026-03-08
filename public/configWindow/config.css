@@ -500,6 +500,15 @@ mark.current-highlight {
     background-color: orange;
 }
 
+mark {
+    background-color: yellow;
+    color: black;
+    padding: 0;
+}
+mark.current-highlight {
+    background-color: orange;
+}
+
 /* Letter Window Styles */
 #container {
     display: flex;

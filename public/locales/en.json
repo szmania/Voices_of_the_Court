@@ -554,6 +554,16 @@
     "top_p": "Top P",
     "reset": "Reset"
   },
+  "letters": {
+    "player": "Player",
+    "character": "Character",
+    "all_characters": "All Characters",
+    "inbox": "Inbox",
+    "outbox": "Outbox",
+    "no_player": "Select a player to view letters.",
+    "no_letters": "No letters found.",
+    "select": "Select a letter to read."
+  },
   "history": {
     "header": "Conversation History Viewer",
     "refresh": "Refresh",
