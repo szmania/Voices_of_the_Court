@@ -183,7 +183,8 @@
     "roaming_data": "Roaming Data Folder",
     "roaming_data_desc": "This folder contains your personal configuration, scripts, and summaries.",
     "open_roaming_data": "Open Roaming Data Folder",
-    "roleplay_instruction": "[System instruction: You are {characterName}. Write a reply to {playerName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]"
+    "roleplay_instruction": "[System instruction: You are {characterName}. Write a reply to {playerName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]"
   },
   "chat": {
     "target_label": "Target Character:",

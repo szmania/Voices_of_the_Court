@@ -181,6 +181,7 @@
     "roaming_data_desc": "このフォルダには、個人設定、スクリプト、要約が含まれています。",
     "open_roaming_data": "ローミングデータフォルダを開く",
     "roleplay_instruction": "あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
+    "roleplay_instruction_ai_to_ai": "あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
     "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
   "chat": {

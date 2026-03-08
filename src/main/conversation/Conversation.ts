@@ -887,7 +887,9 @@ export class Conversation{
             }
         }
         
-        const newInstruction = `You are ${source.fullName}. Write a message to ${target.fullName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.`;
+        const instructionTemplate = this.translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        let newInstruction = instructionTemplate.replace('{sourceCharacterName}', source.fullName);
+        newInstruction = newInstruction.replace('{targetCharacterName}', target.fullName);
         
         prompt.push({
             role: 'system',

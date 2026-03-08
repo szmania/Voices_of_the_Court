@@ -181,6 +181,7 @@
     "roaming_data_desc": "Ten folder zawiera Twoją osobistą konfigurację, skrypty i podsumowania.",
     "open_roaming_data": "Otwórz folder danych mobilnych",
     "roleplay_instruction": "Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
+    "roleplay_instruction_ai_to_ai": "Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
     "start_writing_reply": "Teraz zacznij pisać odpowiedź {characterName}:"
   },
   "chat": {
