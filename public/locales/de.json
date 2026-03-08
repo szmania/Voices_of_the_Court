@@ -207,6 +207,12 @@
     "log_narrative_label": "[Erzählung]:",
     "target_tooltip": "Wählen Sie einen bestimmten Charakter aus, an den Sie Ihre Nachricht richten möchten. Standard ist 'Automatisch erkannt'."
   },
+  "narrative": {
+    "fallback_prompt": "Bitte erstellen Sie eine kurze Erzählung basierend auf dem folgenden Gespräch, die die Atmosphäre der Szene oder die inneren Gefühle des Charakters beschreibt. Die Erzählung sollte prägnant und lebendig sein, mit einer Länge von 50-100 Wörtern.",
+    "last_round_dialogue": "Letzte Dialogrunde:",
+    "event_results": "Ereignisergebnisse:",
+    "generate_description_prompt": "Bitte erstellen Sie eine narrative Beschreibung für die oben genannten Ereignisse:"
+  },
   "suggestions": {
     "header": "Empfohlene Eingabe",
     "button": "Vorschläge",

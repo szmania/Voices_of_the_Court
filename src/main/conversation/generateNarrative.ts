@@ -4,6 +4,9 @@ import { convertMessagesToString } from "./promptBuilder";
 import { Message, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { convertChatToTextPrompt } from "./checkActions";
+import path from 'path';
+import { app } from 'electron';
+import fs from 'fs';
 
 /**
  * 生成AI旁白，基于最后一轮对话和action的return结果
@@ -48,7 +51,24 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
  * @param actionResponses - 已触发的action响应列表
  * @returns 构建的消息列表
  */
+function getTranslations(lang: string): any {
+    const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
+    try {
+        if (fs.existsSync(localePath)) {
+            return JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+        }
+    } catch (error) {
+        console.error(`Error reading locale file for ${lang}:`, error);
+    }
+    // Fallback to English
+    const fallbackLocalePath = path.join(app.getAppPath(), 'public', 'locales', `en.json`);
+    return JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
+}
+
 function buildNarrativePrompt(conv: Conversation, actionResponses: ActionResponse[]): Message[] {
+    const translations = getTranslations(conv.config.language);
+    const narrativeTranslations = translations.narrative || {};
+
     // 获取最后一轮对话（最近的两条消息）
     const lastMessages = conv.messages.slice(-2);
     
@@ -56,8 +76,13 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
     const actionResults = actionResponses.map(action => action.chatMessage).join("\n");
     
     // 使用配置中的narrativePrompt，并替换变量
-    const promptTemplate = conv.config.narrativePrompt || "请根据以下对话内容生成一段简短的旁白，描述场景氛围或角色的内心感受。旁白应该简洁、生动，长度控制在50-100字之间。使用中文。";
+    const fallbackPrompt = narrativeTranslations.fallback_prompt || "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.";
+    const promptTemplate = conv.config.narrativePrompt || fallbackPrompt;
     const promptContent = parseVariables(promptTemplate, conv.gameData);
+
+    const lastRoundDialogueLabel = narrativeTranslations.last_round_dialogue || "Last round of dialogue:";
+    const eventResultsLabel = narrativeTranslations.event_results || "Event results:";
+    const generateDescriptionPromptLabel = narrativeTranslations.generate_description_prompt || "Please generate a narrative description for the above events:";
     
     const output: Message[] = [
         {
@@ -66,13 +91,13 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
         },
         {
             role: "user",
-            content: `最后一轮对话：
+            content: `${lastRoundDialogueLabel}
 ${convertMessagesToString(lastMessages, "", "")}
 
-事件结果：
+${eventResultsLabel}
 ${actionResults}
 
-请为以上事件生成一段旁白描述：`
+${generateDescriptionPromptLabel}`
         }
     ];
 

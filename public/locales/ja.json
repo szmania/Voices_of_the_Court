@@ -209,6 +209,12 @@
     "log_narrative_label": "[ナラティブ]:",
     "target_tooltip": "メッセージを送信する特定のキャラクターを選択します。デフォルトは「自動検出」です。"
   },
+  "narrative": {
+    "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",
+    "last_round_dialogue": "最後の対話ラウンド：",
+    "event_results": "イベント結果：",
+    "generate_description_prompt": "上記のイベントのナラティブ説明を生成してください："
+  },
   "suggestions": {
     "header": "推奨入力",
     "button": "提案",

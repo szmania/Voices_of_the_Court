@@ -209,6 +209,12 @@
     "log_narrative_label": "[Narracja]:",
     "target_tooltip": "Wybierz konkretną postać, do której chcesz skierować wiadomość. Domyślnie jest to 'Wykryto automatycznie'."
   },
+  "narrative": {
+    "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",
+    "last_round_dialogue": "Ostatnia runda dialogu:",
+    "event_results": "Wyniki wydarzenia:",
+    "generate_description_prompt": "Proszę wygenerować opis narracyjny dla powyższych wydarzeń:"
+  },
   "suggestions": {
     "header": "Rekomendowane wejście",
     "button": "Sugestie",

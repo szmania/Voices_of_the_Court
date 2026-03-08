@@ -211,6 +211,12 @@
     "log_narrative_label": "[Narrative]:",
     "target_tooltip": "Select a specific character to direct your message to. Default is 'Automatically Detected'."
   },
+  "narrative": {
+    "fallback_prompt": "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.",
+    "last_round_dialogue": "Last round of dialogue:",
+    "event_results": "Event results:",
+    "generate_description_prompt": "Please generate a narrative description for the above events:"
+  },
   "suggestions": {
     "header": "Recommended Input",
     "button": "Suggestions",

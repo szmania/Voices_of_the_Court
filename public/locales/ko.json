@@ -209,6 +209,12 @@
     "log_narrative_label": "[내레이션]:",
     "target_tooltip": "메시지를 보낼 특정 캐릭터를 선택하십시오. 기본값은 '자동 감지됨'입니다."
   },
+  "narrative": {
+    "fallback_prompt": "다음 대화를 바탕으로 장면의 분위기나 캐릭터의 내면 심리를 묘사하는 짧은 내러티브를 생성해 주세요. 내러티브는 간결하고 생생해야 하며 길이는 50-100단어 사이여야 합니다.",
+    "last_round_dialogue": "마지막 대화 라운드:",
+    "event_results": "이벤트 결과:",
+    "generate_description_prompt": "위 이벤트에 대한 서술적 설명을 생성해 주세요:"
+  },
   "suggestions": {
     "header": "권장 입력",
     "button": "제안",

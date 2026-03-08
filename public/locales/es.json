@@ -209,6 +209,12 @@
     "log_narrative_label": "[Narrativa]:",
     "target_tooltip": "Selecciona un personaje específico al que dirigir tu mensaje. El valor predeterminado es 'Detectado automáticamente'."
   },
+  "narrative": {
+    "fallback_prompt": "Por favor, genera una breve narrativa basada en la siguiente conversación, describiendo la atmósfera de la escena o los sentimientos internos del personaje. La narrativa debe ser concisa y vívida, con una longitud de 50-100 palabras.",
+    "last_round_dialogue": "Última ronda de diálogo:",
+    "event_results": "Resultados del evento:",
+    "generate_description_prompt": "Por favor, genera una descripción narrativa para los eventos anteriores:"
+  },
   "suggestions": {
     "header": "Entrada recomendada",
     "button": "Sugerencias",
