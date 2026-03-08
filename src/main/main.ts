@@ -1148,16 +1148,6 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
     }
 });
 
-ipcMain.handle('get-character-map', async (event, playerId) => {
-    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
-    try {
-        return await getCharacterMap(playerId);
-    } catch (error) {
-        console.error('Error getting character map:', error);
-        return {};
-    }
-});
-
 // Conversation History IPC handlers
 
 
