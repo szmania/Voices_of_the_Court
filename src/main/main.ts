@@ -262,27 +262,12 @@ async function checkAndDeliverLetters() {
             }
             const currentDateString = gameData.date;
 
-            const playerId = String(storedLetter.letter.recipient.id);
-            const otherId = String(storedLetter.letter.sender.id);
-            const filePath = letterManager.getLetterFilePath(playerId, otherId);
-            const lettersInFile = letterManager.getLetters(playerId, otherId);
-            
-            const letterToUpdate = lettersInFile.find(l => l.replyToId === storedLetter.letter.id);
-
-            if (letterToUpdate) {
-                letterToUpdate.timestamp = new Date(currentDateString.replace(/\./g, '-'));
-                letterToUpdate.delivered = true;
-                fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
-                console.log(`Updated timestamp and delivered status for letter ${letterToUpdate.id} in ${filePath}`);
-            }
-
-            letterManager.deliverLetter(storedLetter, config);
+            letterManager.deliverLetter(storedLetter, config, currentDateString);
             storedLetters.delete(letterId);
 
             if (configWindow && !configWindow.window.isDestroyed()) {
                 configWindow.window.webContents.send('letter-status-changed');
             }
-            break;
         }
     }
 }
