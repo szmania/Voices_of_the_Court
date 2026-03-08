@@ -2,7 +2,7 @@ import { app } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
-import { Letter as ILetter, LetterType, StoredLetter } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./letterInterfaces.js";
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
 
