@@ -474,6 +474,7 @@ export class Conversation{
 
         const respondedCharacterIds = new Set<number>();
         const allGeneratedMessages: Message[] = [];
+        const allTurnActions: ActionResponse[] = [];
 
         // Step 1: Get and process targeted characters
         const targetedCharacters = await this.determineTargetedCharacters();
@@ -534,61 +535,34 @@ export class Conversation{
         // Step 3: Send all generated messages to the UI and check for actions
         for (const message of allGeneratedMessages) {
             this.pushMessage(message);
-            const messageIndex = this.messages.length - 1;
             this.chatWindow.window.webContents.send('message-receive', message, this.config.actionsEnableAll);
 
-            if (this.gameData.playerID !== this.gameData.aiID) {
-                let collectedActions: ActionResponse[] = [];
-                let narrative: string = "";
+            if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID) {
+                const character = this.gameData.characters.get((message as any).characterId);
+                if (!character) continue;
 
-                if (this.config.actionsEnableAll) {
-                    const character = this.gameData.characters.get((message as any).characterId);
-                    if (!character) continue;
-
-                    const actionTarget = await this.determineActionTarget(message.content, character.id);
-                    const originalPlayerId = this.gameData.playerID;
-                    const originalAiId = this.gameData.aiID;
-                    try {
-                        // Set context for action check. Source is the speaking character.
-                        this.gameData.playerID = character.id;
-                        // Target is inferred character, or fallback to the human player.
-                        this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
-                        console.log(`Action context: Source=${character.shortName}, Target=${actionTarget ? actionTarget.shortName : 'Player'}`);
-
-                        if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                            const actionResult = await checkActions(this);
-                            collectedActions = actionResult.actions;
-                            narrative = actionResult.narrative;
-
-                            if (collectedActions.length > 0) {
-                                this.consecutiveActionsCount++;
-                                this.lastActionMessageIndex = messageIndex;
-                            } else {
-                                this.consecutiveActionsCount = 0;
-                            }
-
-                            if (narrative) {
-                                this.addNarrativeToMessage(messageIndex, narrative);
-                            }
+                const actionTarget = await this.determineActionTarget(message.content, character.id);
+                const originalPlayerId = this.gameData.playerID;
+                const originalAiId = this.gameData.aiID;
+                try {
+                    this.gameData.playerID = character.id;
+                    this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
+                    
+                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                        const collectedActions = await checkActions(this);
+                        if (collectedActions.length > 0) {
+                            allTurnActions.push(...collectedActions);
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = this.messages.length - 1;
                         } else {
-                            console.log(`Skipping action check: consecutive actions limit reached.`);
+                            this.consecutiveActionsCount = 0;
                         }
-                    } catch (e) {
-                        console.error(`Error during action check: ${e}`);
-                        collectedActions = [];
-                        narrative = "";
-                        this.consecutiveActionsCount = 0;
-                    } finally {
-                        this.gameData.playerID = originalPlayerId;
-                        this.gameData.aiID = originalAiId;
                     }
+                } finally {
+                    this.gameData.playerID = originalPlayerId;
+                    this.gameData.aiID = originalAiId;
                 }
-                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
             }
-        }
-        
-        if (allGeneratedMessages.length === 0) {
-             this.chatWindow.window.webContents.send('actions-receive', [], ""); // Clear loading dots if no one responded
         }
 
         // AI-to-AI chat logic
@@ -608,11 +582,8 @@ export class Conversation{
                     const aiMessage = await this.generateAiToAiMessage(lastRespondingCharacter, targetAI);
                     if (aiMessage) {
                         this.pushMessage(aiMessage);
-                        const messageIndex = this.messages.length - 1;
                         this.chatWindow.window.webContents.send('message-receive', aiMessage, this.config.actionsEnableAll);
 
-                        let collectedActions: ActionResponse[] = [];
-                        let narrative: string = "";
                         if (this.config.actionsEnableAll) {
                             const originalPlayerId = this.gameData.playerID;
                             const originalAiId = this.gameData.aiID;
@@ -620,48 +591,51 @@ export class Conversation{
                                 this.gameData.playerID = lastRespondingCharacter.id;
                                 this.gameData.aiID = targetAI.id;
 
-                                const actionResult = await checkActions(this);
-                                collectedActions = actionResult.actions;
-                                narrative = actionResult.narrative;
+                                const collectedActions = await checkActions(this);
                                 if (collectedActions.length > 0) {
+                                    allTurnActions.push(...collectedActions);
                                     this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                                     this.actionInvolvedCharacterIds.add(targetAI.id);
-                                }
-                                if (narrative) {
-                                    this.addNarrativeToMessage(messageIndex, narrative);
                                 }
                             } finally {
                                 this.gameData.playerID = originalPlayerId;
                                 this.gameData.aiID = originalAiId;
                             }
                         }
-                        this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
 
                         // Generate response from the target AI
                         const targetResponseMessages = await this.processCharacterList([targetAI]);
                         for (const responseMsg of targetResponseMessages) {
                             if (responseMsg) {
                                 this.pushMessage(responseMsg);
-                                const responseMsgIndex = this.messages.length - 1;
                                 this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll);
 
-                                let responseActions: ActionResponse[] = [];
-                                let responseNarrative: string = "";
                                 if (this.config.actionsEnableAll) {
-                                    const actionResult = await checkActions(this);
-                                    responseActions = actionResult.actions;
-                                    responseNarrative = actionResult.narrative;
-                                    if (responseNarrative) {
-                                        this.addNarrativeToMessage(responseMsgIndex, responseNarrative);
+                                    const collectedActions = await checkActions(this);
+                                    if (collectedActions.length > 0) {
+                                        allTurnActions.push(...collectedActions);
                                     }
                                 }
-                                this.chatWindow.window.webContents.send('actions-receive', responseActions, responseNarrative);
                             }
                         }
                     }
                 }
             }
         }
+
+        let narrative = "";
+        if (allTurnActions.length > 0 && this.config.narrativeEnable) {
+            narrative = await generateNarrative(this, allTurnActions);
+        }
+
+        if (narrative) {
+            const lastMessageIndex = this.messages.length - 1;
+            if (lastMessageIndex >= 0) {
+                this.addNarrativeToMessage(lastMessageIndex, narrative);
+            }
+        }
+
+        this.chatWindow.window.webContents.send('actions-receive', allTurnActions, narrative);
 
         console.log('Finished generating and sending all AI messages.');
 

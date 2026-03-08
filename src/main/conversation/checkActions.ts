@@ -6,7 +6,7 @@ import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
 
-export async function checkActions(conv: Conversation): Promise<{actions: ActionResponse[], narrative: string}>{
+export async function checkActions(conv: Conversation): Promise<ActionResponse[]>{
     console.log('Starting action check.');
     const character = conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
@@ -193,19 +193,7 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         console.log(`Action frequency stats: totalMessages=${totalMessages}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
     }
     
-    // 生成AI旁白
-    let narrative = "";
-    if (triggeredActions.length > 0 && conv.config.narrativeEnable) {
-        try {
-            narrative = await generateNarrative(conv, triggeredActions);
-            console.log(`Generated narrative: ${narrative}`);
-        } catch (e) {
-            console.error(`Error generating narrative: ${e}`);
-            narrative = "";
-        }
-    }
-    
-    return { actions: triggeredActions, narrative: narrative };
+    return triggeredActions;
 }
 
 function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]{
