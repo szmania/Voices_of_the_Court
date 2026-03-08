@@ -741,41 +741,47 @@ clipboardListener.on('VOTC:LETTER', async () => {
     try {
         await sleep(250); // Wait for log to flush
 
-        // Immediately import the letter to ensure it's saved and visible in the UI
         const { playerId } = await getPlayerId(userDataPath);
-        if (playerId) {
-            const characterNameMap = await readCharacterMap(userDataPath, playerId);
-            const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-            const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
-            const letterManager = LetterManager.getInstance();
-            await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
-            console.log("Imported letters immediately after VOTC:LETTER event.");
+        if (!playerId) {
+            console.error("Could not determine player ID for VOTC:LETTER event.");
+            return;
         }
 
-        // Now, proceed with the original reply generation logic
-        const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+        const characterNameMap = await readCharacterMap(userDataPath, playerId);
+        const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+        const letterManager = LetterManager.getInstance();
 
-        const gameData = await parseLog(debugLogPath);
+        // Import letters from log, which now also saves them.
+        await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+        console.log("Imported and saved letters immediately after VOTC:LETTER event.");
+
+        // Get all letters for the player and find the most recent one.
+        const allPlayerLetters = letterManager.getAllLetters(playerId);
+        if (allPlayerLetters.length === 0) {
+            console.error("VOTC:LETTER event, but no letters found after import.");
+            return;
+        }
+        const latestLetter = allPlayerLetters[0]; // They are sorted by date descending.
+
+        // The rest of the logic is for generating a reply.
+        // It needs full gameData.
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
         if (!gameData) {
             console.error('Failed to parse game data from debug.log for reply generation.');
             return;
         }
 
-        const characterNameMap = new Map<string, string>();
-        gameData.characters.forEach(char => {
-            characterNameMap.set(String(char.id), char.fullName);
-        });
-        const letters = await parseLettersFromLog(debugLogPath, characterNameMap, gameData.date);
-        const latestLetter = letters.pop();
-
-        if (!latestLetter) {
-            console.error("VOTC:LETTER event, but no letter found in log for reply generation.");
-            return;
-        }
-
-        // Check if the recipient is the current AI. If not, no reply is needed.
+        // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
         if (latestLetter.recipient.id !== gameData.aiID) {
             console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
+            return;
+        }
+        
+        // Check if this letter already has a reply.
+        const hasReply = allPlayerLetters.some(l => l.replyToId === latestLetter.id);
+        if (hasReply) {
+            console.log(`Letter ${latestLetter.id} already has a reply. No new reply will be generated.`);
             return;
         }
 

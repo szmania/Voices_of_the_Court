@@ -182,14 +182,10 @@ export class LetterManager {
         }
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
-        const newLetters = await parseLettersFromLog(debugLogPath, characterNameMap, gameDate);
+        // Pass playerId to parseLettersFromLog so it can save letters immediately.
+        const newLetters = await parseLettersFromLog(debugLogPath, characterNameMap, gameDate, playerId);
 
         if (newLetters.length > 0) {
-            newLetters.forEach(letter => {
-                if(letter){
-                    this.saveLetter(letter, playerId);
-                }
-            });
             console.log(`Imported and saved ${newLetters.length} new letters.`);
         }
     }

@@ -1,7 +1,8 @@
 import fs from 'fs';
 import { Letter } from './Letter.js';
+import { LetterManager } from './LetterManager.js';
 
-export async function parseLettersFromLog(debugLogPath: string, characterNameMap: Map<string, string>, gameDate: string): Promise<Letter[]> {
+export async function parseLettersFromLog(debugLogPath: string, characterNameMap: Map<string, string>, gameDate: string, playerId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
     
     if (!fs.existsSync(debugLogPath)) {
@@ -51,6 +52,11 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                     const letter = Letter.fromLog(senderId, recipientId, subject, content, characterNameMap, gameDate, delay, totalDays);
                     if (letter) {
                         letters.push(letter);
+                        // If a playerId is provided, save the letter immediately.
+                        // This ensures sent letters are captured as soon as they are parsed.
+                        if (playerId) {
+                            LetterManager.getInstance().saveLetter(letter, playerId);
+                        }
                     }
                 }
             }
