@@ -21,6 +21,7 @@ export interface PromptConfig {
     sceneDescriptionPrompt: string;
     letterPrompt: string;
     letterSummaryPrompt: string;
+    diaryPrompt: string;
 }
 
 export class Config{
@@ -100,6 +101,7 @@ export class Config{
     get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
     get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
     get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
+    get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
 
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
