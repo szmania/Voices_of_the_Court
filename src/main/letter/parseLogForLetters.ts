@@ -9,16 +9,24 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
         return [];
     }
 
-    // More efficient log reading
-    const CHUNK_SIZE = 64 * 1024; // 64KB chunks
-    const handle = await fs.promises.open(debugLogPath, 'r');
-    const { size } = await handle.stat();
-    const position = Math.max(0, size - CHUNK_SIZE);
-    const buffer = Buffer.alloc(size - position);
-    await handle.read(buffer, 0, buffer.length, position);
-    await handle.close();
+    // More efficient log reading - read the last 256KB, which should be enough for recent letters.
+    const CHUNK_SIZE = 256 * 1024; // 256KB
+    let fileContent = '';
+    let handle;
+    try {
+        handle = await fs.promises.open(debugLogPath, 'r');
+        const { size } = await handle.stat();
+        const position = Math.max(0, size - CHUNK_SIZE);
+        const buffer = Buffer.alloc(size - position);
+        await handle.read(buffer, 0, buffer.length, position);
+        fileContent = buffer.toString('utf8');
+    } catch (err) {
+        console.error(`Error reading log file for letters: ${err}`);
+        return [];
+    } finally {
+        if (handle) await handle.close();
+    }
 
-    const fileContent = buffer.toString('utf8');
     const lines = fileContent.split(/\r?\n/);
     
     const letters: Letter[] = [];

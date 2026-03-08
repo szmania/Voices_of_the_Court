@@ -562,7 +562,13 @@
     "outbox": "Outbox",
     "no_player": "Select a player to view letters.",
     "no_letters": "No letters found.",
-    "select": "Select a letter to read."
+    "select": "Select a letter to read.",
+    "status_total": "Total",
+    "status_generating": "Generating",
+    "status_pending": "Pending",
+    "status_failed": "Failed",
+    "status_completed": "Completed",
+    "refresh": "Refresh"
   },
   "history": {
     "header": "Conversation History Viewer",
