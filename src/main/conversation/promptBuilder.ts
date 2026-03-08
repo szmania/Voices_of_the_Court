@@ -188,8 +188,24 @@ export function buildChatPrompt(conv: Conversation, character: Character): Messa
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
         console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
-    
 
+    // Load letter summaries
+    const letterSummaries = conv.letterManager.getLetterSummaries(String(conv.gameData.playerID), String(character.id));
+    if (letterSummaries.length > 0) {
+        const allLetterSummaries = letterSummaries.map((summary, index) =>
+            `${index + 1}. ${summary.date}: ${summary.summary}`
+        ).join('\n');
+        
+        const letterSummaryString = `Summaries of previous letters with ${character.fullName}:\n${allLetterSummaries}\n\n`;
+        
+        const letterSummaryMessage: Message = {
+            role: "system",
+            content: letterSummaryString
+        };
+
+        insertMessageAtDepth(messages, letterSummaryMessage, conv.config.summariesInsertDepth);
+        console.log(`Added ${letterSummaries.length} letter summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
+    }
     
 
     if(conv.currentSummary){
