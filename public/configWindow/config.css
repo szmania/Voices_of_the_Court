@@ -639,15 +639,6 @@ mark.current-highlight {
     font-size: 0.9em;
 }
 
-#letter-status-summary {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid #5a4a35;
-    font-size: 0.9em;
-}
-
 .status-item {
     text-align: center;
 }
@@ -695,15 +686,6 @@ mark.current-highlight {
     color: #888;
     font-style: italic;
     text-align: center;
-}
-
-#letter-status-summary {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid #5a4a35;
-    font-size: 0.9em;
 }
 
 .status-item {
