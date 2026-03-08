@@ -256,27 +256,37 @@ function deliverLetter(storedLetter: StoredLetter) {
 
     const letter = storedLetter.letter;
     const replyContent = storedLetter.reply;
-    const letterId = letter.subject; // The original code uses subject as letterId for the file name.
-
-    const letterNumber = letterId.replace('letter_', '');
-    const letterFileName = `${letterId}.txt`;
-    const letterFilePath = path.join(userFolderPath, "run", letterFileName);
+    const letterId = letter.subject; // This is 'letter_5' etc.
 
     const runFolderPath = path.join(userFolderPath, "run");
     if (!fs.existsSync(runFolderPath)) {
         fs.mkdirSync(runFolderPath, { recursive: true });
     }
 
-    const commandTemplates = require("../../default_userdata/scripts/letters/command_templates.js");
-    // This part is tricky. The original LetterReplyGenerator uses gameData.recentEvent.
-    // I don't have gameData here. I'll use the default template.
-    const template = commandTemplates.default;
+    const letterFilePath = path.join(runFolderPath, "letters.txt");
 
     const escapedReply = replyContent.replace(/"/g, '\\"');
-    const gameCommand = template
-        .replace(/{{letterNumber}}/g, letterNumber)
-        .replace(/{{replyContent}}/g, escapedReply)
-        .replace(/{{letterId}}/g, letterId);
+    
+    const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
+remove_global_variable ?= votc_${letterId}
+create_artifact = {
+\tname = votc_huixin_title${letterId.replace(/letter_/, "")}
+\tdescription = "${escapedReply}"
+\ttype = journal
+\tvisuals = scroll
+\tcreator = global_var:message_second_scope_${letterId}
+\tmodifier = artifact_monthly_minor_prestige_1_modifier
+\twealth = scope:wealth
+\tsave_scope_as = votc_latest_letter
+}
+scope:votc_latest_letter = {
+set_variable = { name = votc_letter_artifact value = yes}
+}
+set_global_variable = {
+\tname = votc_latest_letter
+\tvalue = scope:votc_latest_letter
+}
+trigger_event = message_event.362`;
 
     fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
     console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
