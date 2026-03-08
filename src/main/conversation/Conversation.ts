@@ -879,15 +879,17 @@ export class Conversation{
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
         const prompt = await buildChatPrompt(this, source);
 
-        // The last message from buildChatPrompt is the roleplay instruction.
-        // Let's remove it and add our own for AI-to-AI chat.
-        if (prompt.length > 0 && prompt[prompt.length - 1].role === 'system') {
-            prompt.pop();
-        } else {
-            console.warn("Could not find final system message to replace for AI-to-AI chat.");
+        // Remove all system prompts at the end that are instructions
+        while (prompt.length > 0 && prompt[prompt.length - 1].role === 'system') {
+            const content = prompt[prompt.length - 1].content.toLowerCase();
+            if (content.includes('write') || content.includes('reply') || content.includes('instruction')) {
+                prompt.pop();
+            } else {
+                break;
+            }
         }
         
-        const newInstruction = `You are ${source.fullName}. Write a reply to ${target.fullName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.`;
+        const newInstruction = `You are ${source.fullName}. Write a message to ${target.fullName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.`;
         
         prompt.push({
             role: 'system',
