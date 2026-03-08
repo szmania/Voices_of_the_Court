@@ -186,7 +186,12 @@ function renderLetters() {
             sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
         }
 
-        li.innerHTML = receivedHtml + sentHtml;
+        let connectorHtml = '';
+        if (pair.sent && pair.received) {
+            connectorHtml = '<div class="letter-pair-connector"></div>';
+        }
+
+        li.innerHTML = receivedHtml + connectorHtml + sentHtml;
         letterList.appendChild(li);
     });
 

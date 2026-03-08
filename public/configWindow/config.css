@@ -688,6 +688,24 @@ mark.current-highlight {
     text-align: center;
 }
 
+.letter-pair-connector {
+    height: 15px;
+    width: 1px;
+    background-color: #5a4a35;
+    margin: -5px auto 0;
+    position: relative;
+}
+
+.letter-pair-connector::after {
+    content: '↓';
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    transform: translateX(-50%);
+    color: #8a6d45;
+    font-size: 16px;
+}
+
 .status-item {
     text-align: center;
 }

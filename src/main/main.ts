@@ -732,6 +732,7 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
 clipboardListener.on('VOTC:LETTER', async () => {
     console.log('ClipboardListener: VOTC:LETTER event detected.');
     try {
+        LetterManager.getInstance().clearLettersFile(config);
         await sleep(250); // Wait for log to flush
 
         const { playerId } = await getPlayerId(userDataPath);
