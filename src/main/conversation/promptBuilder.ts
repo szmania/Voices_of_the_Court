@@ -46,7 +46,7 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 
-export async function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[]): Promise<Message[]>{
+export async function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[], targetCharacter?: Character): Promise<Message[]>{
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
@@ -71,13 +71,21 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
     
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
-    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-    let replyToName = conv.gameData.getPlayer()!.fullName;
-    if (lastMessage && lastMessage.role === 'assistant' && lastMessage.name !== character.fullName) {
-        const lastSpeaker = Array.from(conv.gameData.characters.values()).find(c => c.fullName === lastMessage.name || c.shortName === lastMessage.name);
-        if (lastSpeaker) {
-            replyToName = lastSpeaker.fullName;
-            console.log(`AI-to-AI reply detected. Setting reply target for ${character.fullName} to ${replyToName}`);
+    
+    let replyToName: string;
+
+    if (targetCharacter) {
+        replyToName = targetCharacter.fullName;
+        console.log(`Explicit target provided. Setting reply target for ${character.fullName} to ${replyToName}`);
+    } else {
+        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+        replyToName = conv.gameData.getPlayer()!.fullName; // Default to player
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.name !== character.fullName) {
+            const lastSpeaker = Array.from(conv.gameData.characters.values()).find(c => c.fullName === lastMessage.name || c.shortName === lastMessage.name);
+            if (lastSpeaker) {
+                replyToName = lastSpeaker.fullName;
+                console.log(`AI-to-AI reply detected. Setting reply target for ${character.fullName} to ${replyToName}`);
+            }
         }
     }
 
