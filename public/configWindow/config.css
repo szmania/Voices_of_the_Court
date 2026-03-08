@@ -1102,7 +1102,7 @@ mark.current-highlight {
     justify-content: flex-end;
 }
 
-#summary-manager-container .status-message {
+.status-message {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -1115,19 +1115,19 @@ mark.current-highlight {
     z-index: 1000;
 }
 
-#summary-manager-container .status-message.success {
+.status-message.success {
     background-color: #2ecc71;
 }
 
-#summary-manager-container .status-message.error {
+.status-message.error {
     background-color: #e74c3c;
 }
 
-#summary-manager-container .status-message.info {
+.status-message.info {
     background-color: #3498db;
 }
 
-#summary-manager-container .status-message.show {
+.status-message.show {
     opacity: 1;
 }
 

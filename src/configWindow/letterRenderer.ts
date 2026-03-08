@@ -2,6 +2,16 @@ import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
 
 const loader = document.getElementById('letter-loader') as HTMLDivElement;
+const statusMessage = document.getElementById('letter-status-message') as HTMLDivElement;
+
+function showStatusMessage(message: string, type = 'info') {
+    if (!statusMessage) return;
+    statusMessage.textContent = message;
+    statusMessage.className = `status-message ${type} show`;
+    setTimeout(() => {
+        statusMessage.classList.remove('show');
+    }, 3000);
+}
 
 function formatDate(date: Date): string {
     const day = date.getDate();
@@ -313,6 +323,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await initLocalization();
+    // @ts-ignore
+    const successMsg = window.LocalizationManager.getTranslation('letters.load_success', 'Letters data successfully loaded');
+    showStatusMessage(successMsg, 'success');
 
     const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
