@@ -207,7 +207,12 @@
     "not_spoken": "N'a pas encore parlé",
     "tokenizer_tooltip": "Comptage de tokens en temps réel pour le message actuel. Les tokens sont les unités de texte de base utilisées par l'IA.",
     "log_narrative_label": "[Récit]:",
-    "target_tooltip": "Sélectionnez un personnage spécifique à qui adresser votre message. La valeur par défaut est 'Détecté automatiquement'."
+    "target_tooltip": "Sélectionnez un personnage spécifique à qui adresser votre message. La valeur par défaut est 'Détecté automatiquement'.",
+    "status_speaking": "Parle :",
+    "status_next_up": "Suivant :",
+    "status_generating_scene": "Génération de la description de la scène...",
+    "status_checking_actions": "Vérification des actions...",
+    "status_generating_narrative": "Génération de la narration..."
   },
   "narrative": {
     "fallback_prompt": "Veuillez générer un court récit basé sur la conversation suivante, décrivant l'atmosphère de la scène ou les sentiments intérieurs du personnage. Le récit doit être concis et vivant, d'une longueur de 50 à 100 mots.",

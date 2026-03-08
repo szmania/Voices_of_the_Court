@@ -207,7 +207,12 @@
     "not_spoken": "No ha hablado todavía",
     "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA.",
     "log_narrative_label": "[Narrativa]:",
-    "target_tooltip": "Selecciona un personaje específico al que dirigir tu mensaje. El valor predeterminado es 'Detectado automáticamente'."
+    "target_tooltip": "Selecciona un personaje específico al que dirigir tu mensaje. El valor predeterminado es 'Detectado automáticamente'.",
+    "status_speaking": "Hablando:",
+    "status_next_up": "Siguiente:",
+    "status_generating_scene": "Generando descripción de la escena...",
+    "status_checking_actions": "Comprobando acciones...",
+    "status_generating_narrative": "Generando narrativa..."
   },
   "narrative": {
     "fallback_prompt": "Por favor, genera una breve narrativa basada en la siguiente conversación, describiendo la atmósfera de la escena o los sentimientos internos del personaje. La narrativa debe ser concisa y vívida, con una longitud de 50-100 palabras.",

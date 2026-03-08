@@ -207,7 +207,12 @@
     "not_spoken": "아직 말하지 않음",
     "tokenizer_tooltip": "현재 메시지의 실시간 토큰 수. 토큰은 AI가 사용하는 기본 텍스트 단위입니다.",
     "log_narrative_label": "[내레이션]:",
-    "target_tooltip": "메시지를 보낼 특정 캐릭터를 선택하십시오. 기본값은 '자동 감지됨'입니다."
+    "target_tooltip": "메시지를 보낼 특정 캐릭터를 선택하십시오. 기본값은 '자동 감지됨'입니다.",
+    "status_speaking": "발언 중:",
+    "status_next_up": "다음:",
+    "status_generating_scene": "장면 설명 생성 중...",
+    "status_checking_actions": "작업 확인 중...",
+    "status_generating_narrative": "내러티브 생성 중..."
   },
   "narrative": {
     "fallback_prompt": "다음 대화를 바탕으로 장면의 분위기나 캐릭터의 내면 심리를 묘사하는 짧은 내러티브를 생성해 주세요. 내러티브는 간결하고 생생해야 하며 길이는 50-100단어 사이여야 합니다.",

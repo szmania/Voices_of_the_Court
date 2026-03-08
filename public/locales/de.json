@@ -205,7 +205,12 @@
     "not_spoken": "Hat noch nicht gesprochen",
     "tokenizer_tooltip": "Echtzeit-Token-Anzahl für die aktuelle Nachricht. Token sind die grundlegenden Texteinheiten, die von der KI verwendet werden.",
     "log_narrative_label": "[Erzählung]:",
-    "target_tooltip": "Wählen Sie einen bestimmten Charakter aus, an den Sie Ihre Nachricht richten möchten. Standard ist 'Automatisch erkannt'."
+    "target_tooltip": "Wählen Sie einen bestimmten Charakter aus, an den Sie Ihre Nachricht richten möchten. Standard ist 'Automatisch erkannt'.",
+    "status_speaking": "Spricht:",
+    "status_next_up": "Nächster:",
+    "status_generating_scene": "Szenenbeschreibung wird generiert...",
+    "status_checking_actions": "Aktionen werden geprüft...",
+    "status_generating_narrative": "Erzählung wird generiert..."
   },
   "narrative": {
     "fallback_prompt": "Bitte erstellen Sie eine kurze Erzählung basierend auf dem folgenden Gespräch, die die Atmosphäre der Szene oder die inneren Gefühle des Charakters beschreibt. Die Erzählung sollte prägnant und lebendig sein, mit einer Länge von 50-100 Wörtern.",

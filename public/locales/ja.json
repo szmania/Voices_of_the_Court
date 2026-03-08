@@ -207,7 +207,12 @@
     "not_spoken": "まだ話していません",
     "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。",
     "log_narrative_label": "[ナラティブ]:",
-    "target_tooltip": "メッセージを送信する特定のキャラクターを選択します。デフォルトは「自動検出」です。"
+    "target_tooltip": "メッセージを送信する特定のキャラクターを選択します。デフォルトは「自動検出」です。",
+    "status_speaking": "発言中：",
+    "status_next_up": "次：",
+    "status_generating_scene": "シーンの説明を生成中...",
+    "status_checking_actions": "アクションを確認中...",
+    "status_generating_narrative": "ナラティブを生成中..."
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",

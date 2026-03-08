@@ -8,6 +8,7 @@ import { generateNarrative } from "./generateNarrative";
 
 export async function checkActions(conv: Conversation): Promise<{actions: ActionResponse[], narrative: string}>{
     console.log('Starting action check.');
+    conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions');
     
     // Check minimum messages before any action can trigger
     const totalMessages = conv.messages.length;

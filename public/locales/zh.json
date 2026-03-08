@@ -210,7 +210,12 @@
     "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。",
     "log_narrative_label": "[旁白]:",
     "target_tooltip": "选择一个特定角色来定向您的消息。默认为“自动检测”。",
-    "target_character": "目标角色"
+    "target_character": "目标角色",
+    "status_speaking": "发言中：",
+    "status_next_up": "下一个：",
+    "status_generating_scene": "正在生成场景描述...",
+    "status_checking_actions": "正在检查动作...",
+    "status_generating_narrative": "正在生成旁白..."
   },
   "narrative": {
     "fallback_prompt": "请根据以下对话内容生成一段简短的旁白，描述场景氛围或角色的内心感受。旁白应该简洁、生动，长度控制在50-100字之间。",

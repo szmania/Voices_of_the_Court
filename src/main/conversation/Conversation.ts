@@ -1710,8 +1710,8 @@ ${character.fullName}的发言：`
         console.log('Starting initial scene description generation.');
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
         
-        // Send loading event to chat window
-        this.chatWindow.window.webContents.send('scene-description-loading', true);
+        // Send status update to chat window
+        this.chatWindow.window.webContents.send('status-update', 'chat.status_generating_scene');
         
         try {
             // 生成场景描述
@@ -1749,6 +1749,8 @@ ${character.fullName}的发言：`
             // 如果生成失败，不影响对话的正常进行
             // 但仍然需要清除加载状态
             this.chatWindow.window.webContents.send('scene-description', '');
+        } finally {
+            this.chatWindow.window.webContents.send('status-update', '');
         }
         
         // 场景描述生成完成后，如果启用了自动生成建议功能，则生成建议

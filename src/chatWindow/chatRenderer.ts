@@ -665,14 +665,26 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
 
     let statusHTML = '';
     if (currentSpeaker) {
-        statusHTML += `<div><span class="current-speaker">Speaking:</span> ${currentSpeaker.name}</div>`;
+        const speakingText = window.LocalizationManager?.getNestedTranslation('chat.status_speaking') || 'Speaking:';
+        statusHTML += `<div><span class="current-speaker">${speakingText}</span> ${currentSpeaker.name}</div>`;
     }
 
     if (queue.length > 0) {
-        statusHTML += `<div><span class="next-up">Next:</span> ${queue.map(c => c.name).join(', ')}</div>`;
+        const nextUpText = window.LocalizationManager?.getNestedTranslation('chat.status_next_up') || 'Next:';
+        statusHTML += `<div><span class="next-up">${nextUpText}</span> ${queue.map(c => c.name).join(', ')}</div>`;
     }
     
     queueStatusDiv.innerHTML = statusHTML;
+}
+
+function updateStatusText(textKey: string) {
+    if (!queueStatusDiv) return;
+    if (textKey) {
+        const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
+        queueStatusDiv.innerHTML = `<div><span class="current-speaker">${statusText}</span></div>`;
+    } else {
+        queueStatusDiv.innerHTML = '';
+    }
 }
 
 leaveButton.addEventListener("click", ()=>{
@@ -1293,6 +1305,10 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
     updateQueueStatus(queue, currentSpeaker);
 });
 
+ipcRenderer.on('status-update', (e, textKey: string) => {
+    updateStatusText(textKey);
+});
+
 ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
@@ -1500,6 +1516,7 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     displayNarrative(narrative);
 
     removeLoadingDots();
+    updateStatusText('');
 })
 
 ipcRenderer.on('stream-start', async (e, gameData)=>{
@@ -1575,19 +1592,6 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
     }
 })
 
-// 监听场景描述加载事件
-ipcRenderer.on('scene-description-loading', (e, isLoading: boolean) =>{
-    console.log(`Scene description loading: ${isLoading}`);
-    if (isLoading === true) {
-        showLoadingDots();
-        // Update tooltip for disabled input
-        updateInputTooltip();
-    } else if (isLoading === false) {
-        removeLoadingDots();
-    } else {
-        console.warn(`Invalid isLoading value received: ${isLoading}`);
-    }
-})
 
 // 监听AI首次对话加载事件
 ipcRenderer.on('ai-first-conversation-loading', (e, isLoading: boolean) =>{

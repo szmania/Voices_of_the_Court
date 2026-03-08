@@ -207,7 +207,12 @@
     "not_spoken": "Jeszcze nie mówił(a)",
     "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI.",
     "log_narrative_label": "[Narracja]:",
-    "target_tooltip": "Wybierz konkretną postać, do której chcesz skierować wiadomość. Domyślnie jest to 'Wykryto automatycznie'."
+    "target_tooltip": "Wybierz konkretną postać, do której chcesz skierować wiadomość. Domyślnie jest to 'Wykryto automatycznie'.",
+    "status_speaking": "Mówi:",
+    "status_next_up": "Następny:",
+    "status_generating_scene": "Generowanie opisu sceny...",
+    "status_checking_actions": "Sprawdzanie akcji...",
+    "status_generating_narrative": "Generowanie narracji..."
   },
   "narrative": {
     "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",
