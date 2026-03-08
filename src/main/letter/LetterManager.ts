@@ -189,11 +189,26 @@ export class LetterManager {
         }
     }
 
-    public deliverLetter(storedLetter: StoredLetter, config: Config) {
+    public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string) {
         const userFolderPath = config.userFolderPath;
         if (!userFolderPath) {
             console.error("Cannot deliver letter, user folder path is not set.");
             return;
+        }
+
+        // Update the letter in the history file first
+        const playerId = String(storedLetter.letter.recipient.id);
+        const otherId = String(storedLetter.letter.sender.id);
+        const filePath = this.getLetterFilePath(playerId, otherId);
+        const lettersInFile = this.getLetters(playerId, otherId);
+        
+        const letterToUpdate = lettersInFile.find(l => l.replyToId === storedLetter.letter.id);
+
+        if (letterToUpdate) {
+            letterToUpdate.timestamp = new Date(gameDate.replace(/\./g, '-'));
+            letterToUpdate.delivered = true;
+            fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
+            console.log(`Updated timestamp and delivered status for letter ${letterToUpdate.id} in ${filePath}`);
         }
     
         const letter = storedLetter.letter;
