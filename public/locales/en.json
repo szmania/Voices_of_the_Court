@@ -6,6 +6,7 @@
     "connection": "Connection",
     "actions": "Actions",
     "summarization": "Summarization",
+    "diaries": "Diaries",
     "prompts": "Prompts",
     "letters": "Letters",
     "settings": "Settings",
@@ -15,6 +16,10 @@
     "discord_tooltip": "Join our Discord",
     "steam_tooltip": "View on Steam Workshop",
     "website_tooltip": "Visit our Website"
+  },
+  "diaries": {
+    "header": "Diaries",
+    "description": "Manage diary entries for characters."
   },
   "connection": {
     "ck3_path": "CK3 user folder path",
@@ -79,6 +84,8 @@
     "letter_tooltip": "Prompt for generating letter replies.",
     "letter_summary_prompt": "Letter Summary Prompt",
     "letter_summary_tooltip": "Prompt for summarizing a letter exchange.",
+    "diary_prompt": "Diary Prompt",
+    "diary_tooltip": "This prompt is used to generate diary entries for characters after conversations. It helps maintain character consistency and depth.",
     "restore_defaults": "Restore Default Prompts",
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
@@ -93,7 +100,17 @@
     "bookmarks": "Bookmarks",
     "char_desc_script_tooltip": "Select the script that generates character descriptions. Standard scripts are provided by the mod, custom scripts can be added by the user.",
     "ex_msg_script_tooltip": "Select the script that provides example messages for the AI. This helps the AI understand the desired tone and format.",
-    "bookmarks_tooltip": "Select the bookmark script to use for processing game events into summaries."
+    "bookmarks_tooltip": "Select the bookmark script to use for processing game events into summaries.",
+    "save_preset_empty_alert": "Preset name cannot be empty.",
+    "save_default_preset_alert": "Cannot save with the name \"Default\". Please choose another name.",
+    "save_preset_overwrite_confirm": "A preset named \"{{presetName}}\" already exists. Do you want to overwrite it?",
+    "save_preset_success": "Preset \"{{presetName}}\" saved successfully!",
+    "delete_default_preset_alert": "Cannot delete the Default preset.",
+    "delete_preset_confirm": "Are you sure you want to delete the preset \"{{presetName}}\"?",
+    "delete_preset_success": "Preset \"{{presetName}}\" deleted.",
+    "restore_defaults_confirm": "Are you sure you want to restore all prompts to their default values? This action cannot be undone.",
+    "restore_defaults_success": "All prompts have been successfully restored to default values!",
+    "restore_defaults_error": "Error restoring default prompts: {{error}}"
   },
   "settings": {
     "header": "Settings",
@@ -125,6 +142,8 @@
     "desc_depth": "Char desc insert depth",
     "ai_start": "AI can start conversation",
     "ai_start_chance": "AI start chance (%)",
+    "enable_diary": "Enable Diary Generation",
+    "diary_chance": "Diary Generation Chance (%)",
     "instruct_header": "Instruct settings",
     "input_seq": "Input sequence",
     "output_seq": "output sequence",
@@ -173,7 +192,8 @@
     "scene_description": "Scene Description",
     "narrative": "Narrative",
     "not_spoken": "Has not spoken yet",
-    "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI."
+    "tokenizer_tooltip": "Real-time token count for the current message. Tokens are the basic units of text used by the AI.",
+    "log_narrative_label": "[Narrative]:"
   },
   "suggestions": {
     "header": "Recommended Input",
@@ -514,7 +534,8 @@
     "announcement_message": "We have a new Discord server, a new Steam mod, and a website!\n\nDiscord: Join our community for support and discussion.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.\nWebsite: Visit our new website for documentation and more.",
     "join_discord": "Join Discord",
     "view_steam": "View Steam Mod",
-    "view_website": "Visit Website"
+    "view_website": "Visit Website",
+    "init_error": "An error occurred while initializing the configuration page, please check the console log."
   },
   "tray": {
     "open_config": "Open config window",
@@ -528,26 +549,6 @@
     "presence_penalty": "Presence Penalty",
     "top_p": "Top P",
     "reset": "Reset"
-  },
-  "letters": {
-    "player": "Player",
-    "character": "Character",
-    "all_characters": "All Characters",
-    "inbox": "Inbox",
-    "outbox": "Outbox",
-    "no_player": "Select a player to view letters.",
-    "no_letters": "No letters found.",
-    "select": "Select a letter to read."
-  },
-  "letters": {
-    "player": "Player",
-    "character": "Character",
-    "all_characters": "All Characters",
-    "inbox": "Inbox",
-    "outbox": "Outbox",
-    "no_player": "Select a player to view letters.",
-    "no_letters": "No letters found.",
-    "select": "Select a letter to read."
   },
   "history": {
     "header": "Conversation History Viewer",

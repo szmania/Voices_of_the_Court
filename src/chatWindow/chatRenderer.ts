@@ -53,6 +53,8 @@ let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
+let messageHistory: string[] = [];
+let historyIndex: number = -1;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -292,12 +294,37 @@ chatInput.addEventListener('keydown', async function(e) {
             hideSlashCommands();
             return;
         }
+    } else { // If slash commands are not active, handle history
+        if (e.key === 'ArrowUp') {
+            if (historyIndex > 0) {
+                e.preventDefault();
+                historyIndex--;
+                chatInput.value = messageHistory[historyIndex];
+                chatInput.selectionStart = chatInput.selectionEnd = chatInput.value.length;
+            }
+        } else if (e.key === 'ArrowDown') {
+            if (historyIndex < messageHistory.length - 1) {
+                e.preventDefault();
+                historyIndex++;
+                chatInput.value = messageHistory[historyIndex];
+                chatInput.selectionStart = chatInput.selectionEnd = chatInput.value.length;
+            } else if (historyIndex === messageHistory.length - 1) {
+                historyIndex++;
+                chatInput.value = '';
+            }
+        }
     }
 
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const messageText = chatInput.value.trim();
         if (!messageText) return;
+
+        // Add to history if it's a new message and not a duplicate of the last one
+        if (messageHistory.length === 0 || messageHistory[messageHistory.length - 1] !== messageText) {
+            messageHistory.push(messageText);
+        }
+        historyIndex = messageHistory.length; // Reset index to point after the last item
 
         chatInput.value = '';
 

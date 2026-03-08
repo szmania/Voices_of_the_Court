@@ -340,16 +340,15 @@ function renderSummaryList() {
                 </div>
             `;
             
+            const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
+            saveButton.addEventListener('click', () => saveInPlaceEdit());
             // Add event listeners for input changes
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
-            const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
             
-            if (dateInput && contentInput && saveButton) {
-                dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-                contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-                saveButton.addEventListener('click', () => saveInPlaceEdit());
-            }
+            dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            
             summaryList.appendChild(editItem);
         } else {
             // Render in display mode
@@ -514,6 +513,15 @@ function formatDateForInput(dateStr: string): string {
         return dateStr;
     }
 
+    // Handle YYYY.M.D format from the game
+    const gameDateMatch = dateStr.match(/^(\d{1,4})\.(\d{1,2})\.(\d{1,2})$/);
+    if (gameDateMatch) {
+        const year = gameDateMatch[1].padStart(4, '0');
+        const month = gameDateMatch[2].padStart(2, '0');
+        const day = gameDateMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     // For any other format, we must parse it into components and build a YYYY-MM-DD string.
     // This avoids timezone issues from `new Date()`.
     const months: { [key: string]: number } = {
@@ -552,6 +560,7 @@ function formatDateForInput(dateStr: string): string {
 
     return ''; // Return empty if parsing fails
 }
+
 
 function handleInPlaceInputChange(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;

@@ -13,6 +13,8 @@ import { convertChatToText, buildChatPrompt, buildResummarizeChatPrompt, convert
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { cleanMessageContent } from './messageCleaner.js';
+import { DiaryGenerator } from '../diary/DiaryGenerator.js';
+import { saveDiaryFile } from '../diaryManager.js';
 import { summarize } from './summarize.js';
 import fs from 'fs';
 import path from 'path';
@@ -29,6 +31,7 @@ export class Conversation{
     runFileManager!: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
+    diaryGenerator!: DiaryGenerator;
     actionsApiConnection: ApiConnection;
     description!: string;
     actions!: Action[];
@@ -46,6 +49,7 @@ export class Conversation{
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
+        this.config = config;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
         this.isOpen = true;
@@ -53,6 +57,10 @@ export class Conversation{
         this.messages = [];
         this.currentSummary = "";
         this.narratives = new Map<number, string[]>(); // 初始化旁白存储
+
+        this.runFileManager = new RunFileManager(this.config.userFolderPath);
+        this.description = "";
+        this.actions = [];
 
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
@@ -78,6 +86,32 @@ export class Conversation{
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
         
+        const diariesBasePath = path.join(this.userDataPath, 'diaries');
+        if (!fs.existsSync(diariesBasePath)) {
+            fs.mkdirSync(diariesBasePath, { recursive: true });
+        }
+        const playerDiariesPath = path.join(diariesBasePath, this.gameData.playerID.toString());
+        if (!fs.existsSync(playerDiariesPath)) {
+            fs.mkdirSync(playerDiariesPath, { recursive: true });
+        }
+
+        // Create/Update character map for the current player in the diary folder
+        const characterMapPath = path.join(playerDiariesPath, '_character_map.json');
+        let characterMap: { [key: string]: string } = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error(`Error parsing character map file, it will be overwritten: ${e}`);
+            }
+        }
+        // Add/update all characters from current gameData
+        this.gameData.characters.forEach((character) => {
+            characterMap[character.id.toString()] = character.fullName;
+        });
+        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Character map updated at ${characterMapPath}`);
+
         const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
             fs.mkdirSync(summariesBasePath);
@@ -128,6 +162,9 @@ export class Conversation{
         this.loadConfig();
         this.loadHistory();
         this.initialize();
+
+        // Initialize diary generator
+        this.diaryGenerator = new DiaryGenerator(this.config);
     }
 
     private async initialize(): Promise<void> {
@@ -219,6 +256,20 @@ export class Conversation{
                 let currentMessage: Message | null = null;
                 let messageIndex = -1;
 
+                const narrativeLabels = {
+                    en: "[Narrative]:",
+                    zh: "[旁白]:",
+                    ru: "[Повествование]:",
+                    fr: "[Récit]:",
+                    es: "[Narrativa]:",
+                    de: "[Erzählung]:",
+                    ja: "[ナラティブ]:",
+                    ko: "[내레이션]:",
+                    pl: "[Narracja]:"
+                };
+                const narrativeLabelValues = Object.values(narrativeLabels);
+                const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
+
                 for (let line of lines) {
                     line = line.trim();
                     if (!line) continue;
@@ -244,9 +295,10 @@ export class Conversation{
                         continue;
                     }
 
-                    if (line.startsWith('[旁白]:')) {
+                    const narrativeMatch = line.match(narrativeRegex);
+                    if (narrativeMatch) {
                         if (messageIndex !== -1) {
-                            const narrative = line.replace('[旁白]:', '').trim();
+                            const narrative = line.substring(narrativeMatch[0].length).trim();
                             this.addNarrativeToMessage(this.messages.length + messageIndex, narrative);
                         }
                         continue;
@@ -1087,6 +1139,17 @@ ${character.fullName}的发言：`
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
         // Write a trigger event to the game (e.g., trigger conversation end event)
+
+        // Generate and save diary entries for each character
+        for (const character of this.gameData.characters.values()) {
+            // @ts-ignore - diaryGenerationChance is a custom property we added
+            if (Math.random() < (this.config.diaryGenerationChance / 100)) {
+                const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                if (newDiaryEntry) {
+                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
+                }
+            }
+        }
         this.runFileManager.write("trigger_event = talk_event.9002");
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
@@ -1127,12 +1190,25 @@ ${character.fullName}的发言：`
         }
         textContent += '\n';
 
+        const narrativeLabels = {
+            en: "[Narrative]:",
+            zh: "[旁白]:",
+            ru: "[Повествование]:",
+            fr: "[Récit]:",
+            es: "[Narrativa]:",
+            de: "[Erzählung]:",
+            ja: "[ナラティブ]:",
+            ko: "[내레이션]:",
+            pl: "[Narracja]:"
+        };
+        const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
+
         processedMessages.forEach((msg, index) => {
           textContent += `${msg.name}: ${msg.content}\n`;
           
           // 添加旁白信息
           if (msg.narratives && msg.narratives.length > 0) {
-            textContent += `[旁白]: ${msg.narratives.join('\n[旁白]: ')}\n`;
+            textContent += `${narrativeLabel} ${msg.narratives.join(`\n${narrativeLabel} `)}\n`;
           }
           
           textContent += '\n';
@@ -1239,7 +1315,7 @@ ${character.fullName}的发言：`
         this.loadActions();
     }
 
-    getApiConnections(){
+    getApiConnections() {
         let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
         
         textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);

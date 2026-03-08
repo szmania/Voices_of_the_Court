@@ -3,6 +3,7 @@
     "connection": "Conexión",
     "actions": "Acciones",
     "summarization": "Resumen",
+    "diaries": "Diarios",
     "prompts": "Prompts",
     "letters": "Cartas",
     "settings": "Ajustes",
@@ -11,6 +12,10 @@
     "language_tooltip": "Seleccionar idioma de la aplicación",
     "discord_tooltip": "Únete a nuestro Discord",
     "website_tooltip": "Visita nuestra página web"
+  },
+  "diaries": {
+    "header": "Diarios",
+    "description": "Gestionar las entradas del diario de los personajes."
   },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",
@@ -75,6 +80,8 @@
     "letter_tooltip": "Prompt para generar respuestas a cartas.",
     "letter_summary_prompt": "Prompt de Resumen de Carta",
     "letter_summary_tooltip": "Prompt para resumir un intercambio de cartas.",
+    "diary_prompt": "Prompt de Diario",
+    "diary_tooltip": "Este prompt se utiliza para generar entradas de diario para los personajes después de las conversaciones. Ayuda a mantener la consistencia y profundidad del personaje.",
     "restore_defaults": "Restaurar prompts predeterminados",
     "restore_tooltip": "Haz clic en este botón para restaurar todos los prompts a sus valores predeterminados",
     "presets_header": "Preajustes de prompts",
@@ -89,7 +96,17 @@
     "bookmarks": "Marcadores",
     "char_desc_script_tooltip": "Selecciona el script que genera las descripciones de los personajes. El mod proporciona scripts estándar, el usuario puede añadir scripts personalizados.",
     "ex_msg_script_tooltip": "Selecciona el script que proporciona mensajes de ejemplo para la IA. Esto ayuda a la IA a entender el tono y el formato deseados.",
-    "bookmarks_tooltip": "Selecciona el script de marcadores que se usará para procesar los eventos del juego en resúmenes."
+    "bookmarks_tooltip": "Selecciona el script de marcadores que se usará para procesar los eventos del juego en resúmenes.",
+    "save_preset_empty_alert": "El nombre del preajuste no puede estar vacío.",
+    "save_default_preset_alert": "No se puede guardar con el nombre \"Default\". Por favor, elige otro nombre.",
+    "save_preset_overwrite_confirm": "Ya existe un preajuste con el nombre \"{{presetName}}\". ¿Quieres sobrescribirlo?",
+    "save_preset_success": "¡Preajuste \"{{presetName}}\" guardado con éxito!",
+    "delete_default_preset_alert": "No se puede eliminar el preajuste predeterminado.",
+    "delete_preset_confirm": "¿Estás seguro de que quieres eliminar el preajuste \"{{presetName}}\"?",
+    "delete_preset_success": "Preajuste \"{{presetName}}\" eliminado.",
+    "restore_defaults_confirm": "¿Estás seguro de que quieres restaurar todos los prompts a sus valores predeterminados? Esta acción no se puede deshacer.",
+    "restore_defaults_success": "¡Todos los prompts se han restaurado correctamente a sus valores predeterminados!",
+    "restore_defaults_error": "Error al restaurar los prompts predeterminados: {{error}}"
   },
   "settings": {
     "header": "Ajustes",
@@ -169,7 +186,8 @@
     "scene_description": "Descripción de la escena",
     "narrative": "Narrativa",
     "not_spoken": "No ha hablado todavía",
-    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA."
+    "tokenizer_tooltip": "Recuento de tokens en tiempo real para el mensaje actual. Los tokens son las unidades básicas de texto utilizadas por la IA.",
+    "log_narrative_label": "[Narrativa]:"
   },
   "suggestions": {
     "header": "Entrada recomendada",
@@ -510,7 +528,8 @@
     "announcement_message": "¡Tenemos un nuevo servidor de Discord, un nuevo mod de Steam y una página web!\n\nDiscord: Únete a nuestra comunidad para obtener ayuda y debatir.\nSteam: Echa un vistazo a 'Voices of the Court - Community Edition' en la Steam Workshop.\nWeb: Visita nuestra nueva página web para documentación y más.",
     "join_discord": "Unirse a Discord",
     "view_steam": "Ver mod de Steam",
-    "view_website": "Visitar página web"
+    "view_website": "Visitar página web",
+    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola."
   },
   "tray": {
     "open_config": "Abrir ventana de configuración",

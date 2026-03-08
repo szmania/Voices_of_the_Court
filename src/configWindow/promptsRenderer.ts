@@ -22,13 +22,16 @@ let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-p
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "letterPrompt", "letterSummaryPrompt"
+    "diaryPrompt", "letterPrompt", "letterSummaryPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
 promptKeys.forEach(key => {
     promptTextareas[key] = document.querySelector(`config-textarea[confID="${key}"]`);
 });
+
+// Add diary prompt key
+promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
 
 let promptPresets: any = {};
 
@@ -177,19 +180,8 @@ async function init(){
     } catch (error) {
         console.error('Error in init:', error);
         // @ts-ignore
-        const lang = window.LocalizationManager?.language || 'en';
-        const errorMessages: any = {
-            en: 'An error occurred while initializing the configuration page, please check the console log.',
-            zh: '初始化配置页面时发生错误，请查看控制台日志。',
-            ru: 'Произошла ошибка при инициализации страницы конфигурации, проверьте консоль.',
-            fr: 'Une erreur s\'est produite lors de l\'initialisation de la page de configuration, veuillez consulter la console.',
-            es: 'Ocurrió un error al inicializar la página de configuración, por favor revise la consola.',
-            de: 'Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole.',
-            ja: '設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。',
-            ko: '구성 페이지를 초기화하는 동안 오류가 발생했습니다. 콘솔 로그를 확인하십시오.',
-            pl: 'Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę.'
-        };
-        alert(errorMessages[lang] || errorMessages.en);
+        const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+        alert(errorMsg);
     }
 }
 
@@ -345,49 +337,20 @@ async function saveCurrentPreset() {
     const lang = window.LocalizationManager?.language || 'en';
 
     if (!presetName) {
-        const alertMessages: any = {
-            en: "Preset name cannot be empty.",
-            zh: "预设名称不能为空。",
-            ru: "Имя пресета не может быть пустым.",
-            fr: "Le nom du préréglage не может быть пустым.",
-            es: "El nombre del preajuste no puede estar vacío.",
-            de: "Der Name der Voreinstellung darf nicht leer sein.",
-            ja: "プリセット名は空にできません。",
-            ko: "프리셋 이름은 비워 둘 수 없습니다.",
-            pl: "Nazwa presetu nie może być pusta."
-        };
-        alert(alertMessages[lang] || alertMessages.en);
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
         return;
     }
     if (presetName === 'Default') {
-        const alertMessages: any = {
-            en: 'Cannot save with the name "Default". Please choose another name.',
-            zh: '不能以“默认”为名保存。请选择其他名称。',
-            ru: 'Нельзя сохранить с именем "Default". Пожалуйста, выберите другое имя.',
-            fr: 'Impossible d\'enregistrer sous le nom "Default". Veuillez choisir un autre nom.',
-            es: 'No se puede guardar con el nombre "Default". Por favor, elija otro nombre.',
-            de: 'Kann nicht unter dem Namen "Default" gespeichert werden. Bitte wählen Sie einen anderen Namen.',
-            ja: '「デフォルト」という名前で保存することはできません。別の名前を選択してください。',
-            ko: '"기본값"이라는 이름으로 저장할 수 없습니다. 다른 이름을 선택하십시오.',
-            pl: 'Nie można zapisać pod nazwą "Default". Proszę wybrać inną nazwę.'
-        };
-        alert(alertMessages[lang] || alertMessages.en);
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.save_default_preset_alert'));
         return;
     }
 
     if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
-        const confirmMessages: any = {
-            en: `A preset named "${presetName}" already exists. Do you want to overwrite it?`,
-            zh: `名为“${presetName}”的预设已存在。要覆盖它吗？`,
-            ru: `Пресет с именем "${presetName}" уже существует. Хотите перезаписать его?`,
-            fr: `Un préréglage nommé "${presetName}" existe déjà. Voulez-vous l'écraser ?`,
-            es: `Ya existe un preajuste llamado "${presetName}". ¿Desea sobrescribirlo?`,
-            de: `Eine Voreinstellung mit dem Namen "${presetName}" ist bereits vorhanden. Möchten Sie sie überschreiben?`,
-            ja: `「${presetName}」という名前のプリセットはすでに存在します。上書きしますか？`,
-            ko: `"${presetName}"이라는 이름의 프리셋이 이미 존재합니다. 덮어쓰시겠습니까?`,
-            pl: `Preset o nazwie "${presetName}" już istnieje. Czy chcesz go nadpisać?`
-        };
-        if (!confirm(confirmMessages[lang] || confirmMessages.en)) {
+        // @ts-ignore
+        const confirmMsg = window.LocalizationManager.getTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
+        if (!confirm(confirmMsg)) {
             return;
         }
     }
@@ -399,20 +362,10 @@ async function saveCurrentPreset() {
 
     promptPresets[presetName] = newPreset;
     await ipcRenderer.invoke('save-prompt-presets', promptPresets);
-    
+
     populatePresetSelector(presetName);
-    const successMessages: any = {
-        en: `Preset "${presetName}" saved successfully!`,
-        zh: `预设“${presetName}”已成功保存！`,
-        ru: `Пресет "${presetName}" успешно сохранен!`,
-        fr: `Le préréglage "${presetName}" a été enregistré avec succès !`,
-        es: `¡El preajuste "${presetName}" se guardó correctamente!`,
-        de: `Voreinstellung "${presetName}" erfolgreich gespeichert!`,
-        ja: `プリセット「${presetName}」が正常に保存されました！`,
-        ko: `프리셋 "${presetName}"이(가) 성공적으로 저장되었습니다!`,
-        pl: `Preset "${presetName}" został pomyślnie zapisany!`
-    };
-    alert(successMessages[lang] || successMessages.en);
+    // @ts-ignore
+    alert(window.LocalizationManager.getTranslation('prompts.save_preset_success', { presetName: presetName }));
     setSaveButtonState(false);
 }
 
@@ -422,86 +375,42 @@ async function deleteSelectedPreset() {
     const lang = window.LocalizationManager?.language || 'en';
 
     if (selectedPresetName === 'Default') {
-        const alertMessages: any = {
-            en: "Cannot delete the Default preset.",
-            zh: "无法删除默认预设。",
-            ru: "Нельзя удалить пресет по умолчанию.",
-            fr: "Impossible de supprimer le préréglage par défaut.",
-            es: "No se puede eliminar el preajuste predeterminado.",
-            de: "Die Standardvoreinstellung kann nicht gelöscht werden.",
-            ja: "デフォルトのプリセットは削除できません。",
-            ko: "기본 프리셋을 삭제할 수 없습니다.",
-            pl: "Nie można usunąć presetu domyślnego."
-        };
-        alert(alertMessages[lang] || alertMessages.en);
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.delete_default_preset_alert'));
         return;
     }
 
-    const confirmMessages: any = {
-        en: `Are you sure you want to delete the preset "${selectedPresetName}"?`,
-        zh: `确定要删除预设“${selectedPresetName}”吗？`,
-        ru: `Вы уверены, что хотите удалить пресет "${selectedPresetName}"?`,
-        fr: `Êtes-vous sûr de vouloir supprimer le préréglage "${selectedPresetName}" ?`,
-        es: `¿Está seguro de que desea eliminar el preajuste "${selectedPresetName}"?`,
-        de: `Möchten Sie die Voreinstellung "${selectedPresetName}" wirklich löschen?`,
-        ja: `プリセット「${selectedPresetName}」を本当に削除しますか？`,
-        ko: `프리셋 "${selectedPresetName}"을(를) 정말로 삭제하시겠습니까?`,
-        pl: `Czy na pewno chcesz usunąć preset "${selectedPresetName}"?`
-    };
-    if (confirm(confirmMessages[lang] || confirmMessages.en)) {
+    // @ts-ignore
+    const confirmMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
+    if (confirm(confirmMsg)) {
         delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         populatePresetSelector('Default'); // Switch to default after deletion
-        const successMessages: any = {
-            en: `Preset "${selectedPresetName}" deleted.`,
-            zh: `预设“${selectedPresetName}”已删除。`,
-            ru: `Пресет "${selectedPresetName}" удален.`,
-            fr: `Le préréglage "${selectedPresetName}" a été supprimé.`,
-            es: `El preajuste "${selectedPresetName}" se ha eliminado.`,
-            de: `Voreinstellung "${selectedPresetName}" gelöscht.`,
-            ja: `プリセット「${selectedPresetName}」が削除されました。`,
-            ko: `프리셋 "${selectedPresetName}"이(가) 삭제되었습니다。`,
-            pl: `Preset "${selectedPresetName}" został usunięty.`
-        };
-        alert(successMessages[lang] || successMessages.en);
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.delete_preset_success', { presetName: selectedPresetName }));
     }
 }
 
-
-/**
- * 恢复所有prompt为默认值
- */
 async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
-        const config = await ipcRenderer.invoke('get-config');
-        const lang = config.language || 'en';
-
+        // @ts-ignore
+        const lang = window.LocalizationManager?.language || 'en';
         if (showConfirmation) {
-            const confirmMessages: any = {
-                en: 'Are you sure you want to restore all prompts to their default values? This action cannot be undone.',
-                zh: '确定要将所有Prompt恢复为默认值吗？此操作不可撤销。',
-                ru: 'Вы уверены, что хотите восстановить все подсказки до значений по умолчанию? Это действие необратимо.',
-                fr: 'Êtes-vous sûr de vouloir restaurer toutes les invites à leurs valeurs par défaut ? Cette action est irréversible.',
-                es: '¿Está seguro de que desea restaurar todos los prompts a sus valores predeterminados? Esta acción no se puede deshacer.',
-                de: 'Möchten Sie wirklich alle Prompts auf ihre Standardwerte zurücksetzen? Diese Aktion kann nicht rückgängig gemacht werden.',
-                ja: 'すべてのプロンプトをデフォルト値に戻しますか？この操作は元に戻せません。',
-                ko: '모든 프롬프트를 기본값으로 복원하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
-                pl: 'Czy na pewno chcesz przywrócić wszystkie podpowiedzi do wartości domyślnych? Tej operacji nie można cofnąć.'
-            };
-            const confirmMsg = confirmMessages[lang] || confirmMessages.en;
+            // @ts-ignore
+            const confirmMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_confirm');
             if (!confirm(confirmMsg)) {
                 return;
             }
         }
 
         console.log('Restoring default prompts...');
-
-        // 默认prompt值
+        
         const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
-        const defaultPrompts = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8')).prompts;
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+        const defaultPrompts = defaultConfig.prompts;
         
         const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
-        // 逐个恢复默认prompt
+
         for (const [key, value] of Object.entries(promptsToApply)) {
             if (promptTextareas[key]) {
                 promptTextareas[key].textarea.value = value;
@@ -511,20 +420,9 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         }
         
         console.log('All prompts restored to default values successfully');
-
         if (showConfirmation) {
-            const successMessages: any = {
-                en: 'All prompts have been successfully restored to default values!',
-                zh: '所有Prompt已成功恢复为默认值！',
-                ru: 'Все подсказки успешно восстановлены до значений по умолчанию!',
-                fr: 'Toutes les invites ont été restaurées avec succès à leurs valeurs par défaut !',
-                es: '¡Todos los prompts se han restaurado correctamente a sus valores predeterminados!',
-                de: 'Alle Prompts wurden erfolgreich auf ihre Standardwerte zurückgesetzt!',
-                ja: 'すべてのプロンプトが正常にデフォルト値に復元されました！',
-                ko: '모든 프롬프트가 성공적으로 기본값으로 복원되었습니다!',
-                pl: 'Wszystkie podpowiedzi zostały pomyślnie przywrócone do wartości domyślnych!'
-            };
-            const successMsg = successMessages[lang] || successMessages.en;
+            // @ts-ignore
+            const successMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_success');
             alert(successMsg);
             // 刷新页面以显示新的值
             location.reload();
@@ -532,7 +430,9 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         
     } catch (error) {
         console.error('Error restoring default prompts:', error);
-        alert('Error restoring default prompts: ' + error);
+        // @ts-ignore
+        const errorMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_error', { error: error });
+        alert(errorMsg);
     }
 }
 

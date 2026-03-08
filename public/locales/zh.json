@@ -6,6 +6,7 @@
     "connection": "连接",
     "actions": "动作",
     "summarization": "总结",
+    "diaries": "日记",
     "prompts": "提示词",
     "letters": "信件",
     "settings": "设置",
@@ -15,6 +16,10 @@
     "discord_tooltip": "加入我们的Discord",
     "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站"
+  },
+  "diaries": {
+    "header": "日记",
+    "description": "管理角色的日记条目。"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",
@@ -79,6 +84,8 @@
     "letter_tooltip": "用于生成信件回复的提示词。",
     "letter_summary_prompt": "信件总结提示词",
     "letter_summary_tooltip": "用于总结信件往来的提示词。",
+    "diary_prompt": "日记提示词",
+    "diary_tooltip": "此提示词用于在对话后为角色生成日记条目。它有助于保持角色的一致性和深度。",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
     "presets_header": "提示词预设",
@@ -93,7 +100,17 @@
     "bookmarks": "书签",
     "char_desc_script_tooltip": "选择生成角色描述的脚本。标准脚本由模组提供，用户可以添加自定义脚本。",
     "ex_msg_script_tooltip": "选择为 AI 提供示例消息的脚本。这有助于 AI 理解所需的语气和格式。",
-    "bookmarks_tooltip": "选择用于将游戏事件处理为总结的书签脚本。"
+    "bookmarks_tooltip": "选择用于将游戏事件处理为总结的书签脚本。",
+    "save_preset_empty_alert": "预设名称不能为空。",
+    "save_default_preset_alert": "不能以“Default”为名保存。请选择其他名称。",
+    "save_preset_overwrite_confirm": "名为“{{presetName}}”的预设已存在。要覆盖它吗？",
+    "save_preset_success": "预设“{{presetName}}”已成功保存！",
+    "delete_default_preset_alert": "无法删除默认预设。",
+    "delete_preset_confirm": "确定要删除预设“{{presetName}}”吗？",
+    "delete_preset_success": "预设“{{presetName}}”已删除。",
+    "restore_defaults_confirm": "确定要将所有Prompt恢复为默认值吗？此操作不可撤销。",
+    "restore_defaults_success": "所有Prompt已成功恢复为默认值！",
+    "restore_defaults_error": "恢复默认Prompt时出错：{{error}}"
   },
   "settings": {
     "header": "设置",
@@ -125,6 +142,8 @@
     "desc_depth": "角色描述插入深度",
     "ai_start": "AI 可以发起对话",
     "ai_start_chance": "AI 发起概率 (%)",
+    "enable_diary": "启用日记生成",
+    "diary_chance": "日记生成概率 (%)",
     "instruct_header": "指令设置",
     "input_seq": "输入序列",
     "output_seq": "输出序列",
@@ -173,7 +192,8 @@
     "scene_description": "场景描述",
     "narrative": "旁白",
     "not_spoken": "尚未发言",
-    "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。"
+    "tokenizer_tooltip": "当前消息的实时分词计数。分词是AI使用的基本文本单位。",
+    "log_narrative_label": "[旁白]:"
   },
   "suggestions": {
     "header": "推荐输入语句",
@@ -514,7 +534,8 @@
     "announcement_message": "我们有了新的 Discord 服务器、新的 Steam 模组和一个网站！\n\nDiscord：加入我们的社区进行支持和讨论。\nSteam：在 Steam 创意工坊中查看“Voices of the Court - Community Edition”。\n网站：访问我们的新网站获取文档等更多信息。",
     "join_discord": "加入 Discord",
     "view_steam": "查看 Steam 模组",
-    "view_website": "访问网站"
+    "view_website": "访问网站",
+    "init_error": "初始化配置页面时发生错误，请查看控制台日志。"
   },
   "tray": {
     "open_config": "打开配置窗口",
@@ -539,15 +560,46 @@
     "no_letters": "未找到信件。",
     "select": "请选择一封信件阅读。"
   },
-  "letters": {
-    "player": "玩家",
-    "character": "角色",
+  "diary_manager": {
+    "header": "日记管理器",
+    "refresh": "刷新",
+    "save": "保存",
+    "close": "关闭",
+    "player_id": "玩家ID:",
+    "select_character": "选择角色:",
     "all_characters": "所有角色",
-    "inbox": "收件箱",
-    "outbox": "发件箱",
-    "no_player": "请选择一位玩家以查看信件。",
-    "no_letters": "未找到信件。",
-    "select": "请选择一封信件阅读。"
+    "file_path": "日记文件路径:",
+    "list_header": "日记条目列表",
+    "add_new": "添加",
+    "edit_header": "编辑日记条目",
+    "date_label": "日期:",
+    "date_placeholder": "例如: 1179年3月21日",
+    "content_label": "内容:",
+    "content_placeholder": "输入日记内容...",
+    "update_btn": "更新条目",
+    "delete_btn": "删除",
+    "new_btn": "新建条目",
+    "save_btn": "保存",
+    "save_all": "保存所有日记",
+    "tooltip_refresh": "从磁盘重新加载玩家ID和日记。",
+    "tooltip_save_all": "将所有角色的所有更改保存到各自的文件中。",
+    "tooltip_player_id": "选择要管理的玩家个人资料。",
+    "tooltip_character": "按特定角色筛选日记或查看全部。",
+    "tooltip_diary_path": "所选角色日记的存储文件路径。",
+    "tooltip_search": "按日期、角色或内容搜索日记。",
+    "tooltip_delete": "删除当前选定的日记条目。此操作无法撤销。",
+    "tooltip_add": "为当前选定的角色添加新日记条目。",
+    "no_data": "暂无日记数据",
+    "loading": "正在加载日记数据...",
+    "load_success": "日记数据加载成功",
+    "load_fail": "加载日记数据失败: ",
+    "save_success": "日记保存成功",
+    "save_fail": "保存日记失败: ",
+    "delete_confirm": "确定要删除这个日记条目吗？",
+    "delete_success": "日记条目已删除",
+    "update_success": "日记条目已更新",
+    "select_first": "请先选择要更新的日记条目",
+    "added_new": "已添加新日记条目"
   },
   "history": {
     "header": "历史对话查看器",

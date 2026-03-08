@@ -16,6 +16,7 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -303,7 +304,7 @@ function updateCurrentDate(newTotalDays: number) {
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
-    
+
     if (match) {
       const newTotalDays = Number(match[1]);
       updateCurrentDate(newTotalDays);
@@ -318,9 +319,9 @@ function startLogTailing() {
         setTimeout(startLogTailing, 5000); // Retry after 5s if path not set
         return;
     }
-    
+
     console.log(`Starting to watch debug log for date updates: ${debugLogPath}`);
-    
+
     try {
         lastSize = fs.statSync(debugLogPath).size;
 
@@ -331,7 +332,7 @@ function startLogTailing() {
                 const fd = fs.openSync(debugLogPath, 'r');
                 fs.readSync(fd, buffer, 0, bufferSize, lastSize);
                 fs.closeSync(fd);
-                
+
                 const newContent = buffer.toString('utf8');
                 newContent.split(/\r?\n/).forEach(line => {
                     if (line) processLogLine(line);
@@ -753,7 +754,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
         // Now, proceed with the original reply generation logic
         const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        
+
         const gameData = await parseLog(debugLogPath);
         if (!gameData) {
             console.error('Failed to parse game data from debug.log for reply generation.');
@@ -784,7 +785,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
         const replyContent = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
-        
+
         if (!replyContent) {
             console.error('Failed to generate letter reply');
             return;
@@ -1084,6 +1085,76 @@ ipcMain.handle('get-character-map', async (event, playerId) => {
         console.error('Error getting character map:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
+    }
+});
+
+// Diary Manager IPC handlers
+ipcMain.handle('get-diary-ids', async () => {
+    console.log('IPC: Received get-diary-ids event.');
+    try {
+        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
+        const ids = await parseDiaryIdsFromLog(logFilePath);
+        return ids;
+    } catch (error) {
+        console.error('Error getting diary IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { playerId: null, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-all-diary-player-ids', async () => {
+    console.log('IPC: Received get-all-diary-player-ids event.');
+    try {
+        const ids = await getAllDiaryPlayerIds(userDataPath);
+        return { success: true, ids: ids };
+    } catch (error) {
+        console.error('Error getting all diary player IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-diary-files', async (event, playerId) => {
+    console.log(`IPC: Received get-diary-files event for player: ${playerId}`);
+    try {
+        const files = await getDiaryFiles(playerId);
+        // we only want character id, so remove .json
+        return files.map(f => f.replace('.json', ''));
+    } catch (error) {
+        console.error('Error getting diary files:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('read-diary-file', async (event, playerId, characterId) => {
+    console.log(`IPC: Received read-diary-file event for player: ${playerId}, character: ${characterId}`);
+    try {
+        return await readDiaryFile(playerId, characterId);
+    } catch (error) {
+        console.error('Error reading diary file:', error);
+        return null;
+    }
+});
+
+ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData) => {
+    console.log(`IPC: Received save-diary-file event for player: ${playerId}, character: ${characterId}`);
+    try {
+        await saveDiaryFile(playerId, characterId, diaryData);
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving diary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
+    try {
+        return await getCharacterMap(playerId);
+    } catch (error) {
+        console.error('Error getting character map:', error);
+        return {};
     }
 });
 

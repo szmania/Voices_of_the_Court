@@ -6,6 +6,7 @@
     "connection": "Połączenie",
     "actions": "Akcje",
     "summarization": "Podsumowanie",
+    "diaries": "Dzienniki",
     "prompts": "Prompty",
     "letters": "Listy",
     "settings": "Ustawienia",
@@ -14,6 +15,10 @@
     "language_tooltip": "Wybierz język aplikacji",
     "discord_tooltip": "Dołącz do naszego Discorda",
     "website_tooltip": "Odwiedź naszą stronę internetową"
+  },
+  "diaries": {
+    "header": "Dzienniki",
+    "description": "Zarządzaj wpisami do dziennika dla postaci."
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",
@@ -78,6 +83,8 @@
     "letter_tooltip": "Prompt do generowania odpowiedzi na listy.",
     "letter_summary_prompt": "Prompt podsumowania listu",
     "letter_summary_tooltip": "Prompt do podsumowywania wymiany listów.",
+    "diary_prompt": "Prompt Dziennika",
+    "diary_tooltip": "Ten prompt służy do generowania wpisów do dziennika dla postaci po rozmowach. Pomaga utrzymać spójność i głębię postaci.",
     "restore_defaults": "Przywróć domyślne prompty",
     "restore_tooltip": "Kliknij ten przycisk, aby przywrócić wszystkie prompty do ich wartości domyślnych",
     "presets_header": "Presety promptów",
@@ -92,7 +99,17 @@
     "bookmarks": "Zakładki",
     "char_desc_script_tooltip": "Wybierz skrypt generujący opisy postaci. Standardowe skrypty są dostarczane przez moda, własne mogą być dodane przez użytkownika.",
     "ex_msg_script_tooltip": "Wybierz skrypt dostarczający przykładowe wiadomości dla AI. Pomaga to AI zrozumieć pożądany ton i format.",
-    "bookmarks_tooltip": "Wybierz skrypt zakładek do przetwarzania wydarzeń z gry w podsumowania."
+    "bookmarks_tooltip": "Wybierz skrypt zakładek do przetwarzania wydarzeń z gry w podsumowania.",
+    "save_preset_empty_alert": "Nazwa presetu nie może być pusta.",
+    "save_default_preset_alert": "Nie można zapisać pod nazwą \"Default\". Proszę wybrać inną nazwę.",
+    "save_preset_overwrite_confirm": "Preset o nazwie \"{{presetName}}\" już istnieje. Czy chcesz go nadpisać?",
+    "save_preset_success": "Preset \"{{presetName}}\" zapisany pomyślnie!",
+    "delete_default_preset_alert": "Nie można usunąć presetu domyślnego.",
+    "delete_preset_confirm": "Czy na pewno chcesz usunąć preset \"{{presetName}}\"?",
+    "delete_preset_success": "Preset \"{{presetName}}\" usunięty.",
+    "restore_defaults_confirm": "Czy na pewno chcesz przywrócić wszystkie podpowiedzi do wartości domyślnych? Tej operacji nie można cofnąć.",
+    "restore_defaults_success": "Wszystkie podpowiedzi zostały pomyślnie przywrócone do wartości domyślnych!",
+    "restore_defaults_error": "Błąd podczas przywracania domyślnych podpowiedzi: {{error}}"
   },
   "settings": {
     "header": "Ustawienia",
@@ -172,7 +189,8 @@
     "scene_description": "Opis sceny",
     "narrative": "Narracja",
     "not_spoken": "Jeszcze nie mówił(a)",
-    "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI."
+    "tokenizer_tooltip": "Licznik tokenów w czasie rzeczywistym dla bieżącej wiadomości. Tokeny to podstawowe jednostki tekstu używane przez AI.",
+    "log_narrative_label": "[Narracja]:"
   },
   "suggestions": {
     "header": "Rekomendowane wejście",
@@ -513,7 +531,8 @@
     "announcement_message": "Mamy nowy serwer Discord, nowy mod na Steam i stronę internetową!\n\nDiscord: Dołącz do naszej społeczności po wsparcie i dyskusje.\nSteam: Sprawdź 'Voices of the Court - Community Edition' w Steam Workshop.\nStrona internetowa: Odwiedź naszą nową stronę internetową, aby uzyskać dokumentację i więcej.",
     "join_discord": "Dołącz do Discord",
     "view_steam": "Zobacz mod na Steam",
-    "view_website": "Odwiedź stronę internetową"
+    "view_website": "Odwiedź stronę internetową",
+    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę."
   },
   "tray": {
     "open_config": "Otwórz okno konfiguracji",

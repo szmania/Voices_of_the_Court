@@ -6,6 +6,7 @@
     "connection": "接続",
     "actions": "アクション",
     "summarization": "要約",
+    "diaries": "日記",
     "prompts": "プロンプト",
     "letters": "手紙",
     "settings": "設定",
@@ -14,6 +15,10 @@
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
     "website_tooltip": "ウェブサイトにアクセス"
+  },
+  "diaries": {
+    "header": "日記",
+    "description": "キャラクターの日記エントリを管理します。"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
@@ -78,6 +83,8 @@
     "letter_tooltip": "手紙の返信を生成するためのプロンプト。",
     "letter_summary_prompt": "手紙の要約プロンプト",
     "letter_summary_tooltip": "手紙のやり取りを要約するためのプロンプト。",
+    "diary_prompt": "日記プロンプト",
+    "diary_tooltip": "このプロンプトは、会話後にキャラクターの日記エントリを生成するために使用されます。キャラクターの一貫性と深みを維持するのに役立ちます。",
     "restore_defaults": "デフォルトのプロンプトを復元",
     "restore_tooltip": "このボタンをクリックすると、すべてのプロンプトがデフォルト値に復元されます",
     "presets_header": "プロンプトプリセット",
@@ -92,7 +99,17 @@
     "bookmarks": "ブックマーク",
     "char_desc_script_tooltip": "キャラクターの説明を生成するスクリプトを選択します。標準スクリプトはモッドによって提供され、カスタムスクリプトはユーザーが追加できます。",
     "ex_msg_script_tooltip": "AI にメッセージの例を提供するスクリプトを選択します。これにより、AI が望ましいトーンとフォーマットを理解するのに役立ちます。",
-    "bookmarks_tooltip": "ゲームイベントを要約に処理するために使用するブックマークスクリプトを選択します。"
+    "bookmarks_tooltip": "ゲームイベントを要約に処理するために使用するブックマークスクリプトを選択します。",
+    "save_preset_empty_alert": "プリセット名は空にできません。",
+    "save_default_preset_alert": "「Default」という名前で保存することはできません。別の名前を選択してください。",
+    "save_preset_overwrite_confirm": "「{{presetName}}」という名前のプリセットは既に存在します。上書きしますか？",
+    "save_preset_success": "プリセット「{{presetName}}」が正常に保存されました！",
+    "delete_default_preset_alert": "デフォルトのプリセットは削除できません。",
+    "delete_preset_confirm": "プリセット「{{presetName}}」を削除してもよろしいですか？",
+    "delete_preset_success": "プリセット「{{presetName}}」が削除されました。",
+    "restore_defaults_confirm": "すべてのプロンプトをデフォルト値に戻しますか？この操作は元に戻せません。",
+    "restore_defaults_success": "すべてのプロンプトが正常にデフォルト値に復元されました！",
+    "restore_defaults_error": "デフォルトのプロンプトの復元中にエラーが発生しました：{{error}}"
   },
   "settings": {
     "header": "設定",
@@ -172,7 +189,8 @@
     "scene_description": "シーン説明",
     "narrative": "ナラティブ",
     "not_spoken": "まだ話していません",
-    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。"
+    "tokenizer_tooltip": "現在のメッセージのリアルタイムトークン数。トークンはAIが使用する基本的なテキスト単位です。",
+    "log_narrative_label": "[ナラティブ]:"
   },
   "suggestions": {
     "header": "推奨入力",
@@ -513,7 +531,8 @@
     "announcement_message": "新しい Discord サーバー、新しい Steam モッド、そしてウェブサイトができました！\n\nDiscord：サポートと議論のためにコミュニティに参加してください。\nSteam：Steam ワークショップで「Voices of the Court - Community Edition」をチェックしてください。\nウェブサイト：ドキュメントなどの詳細については、新しいウェブサイトをご覧ください。",
     "join_discord": "Discord に参加",
     "view_steam": "Steam モッドを表示",
-    "view_website": "ウェブサイトを訪問"
+    "view_website": "ウェブサイトを訪問",
+    "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。"
   },
   "tray": {
     "open_config": "設定ウィンドウを開く",
