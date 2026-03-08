@@ -584,6 +584,28 @@ export class Conversation{
                             }
                         }
                         this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
+
+                        // Generate response from the target AI
+                        const targetResponseMessages = await this.processCharacterList([targetAI]);
+                        for (const responseMsg of targetResponseMessages) {
+                            if (responseMsg) {
+                                this.pushMessage(responseMsg);
+                                const responseMsgIndex = this.messages.length - 1;
+                                this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll);
+
+                                let responseActions: ActionResponse[] = [];
+                                let responseNarrative: string = "";
+                                if (this.config.actionsEnableAll) {
+                                    const actionResult = await checkActions(this);
+                                    responseActions = actionResult.actions;
+                                    responseNarrative = actionResult.narrative;
+                                    if (responseNarrative) {
+                                        this.addNarrativeToMessage(responseMsgIndex, responseNarrative);
+                                    }
+                                }
+                                this.chatWindow.window.webContents.send('actions-receive', responseActions, responseNarrative);
+                            }
+                        }
                     }
                 }
             }
