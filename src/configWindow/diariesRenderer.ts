@@ -244,6 +244,9 @@ function filterAndRenderDiaries() {
 function handleInPlaceInputChange(index: number) {
     const entry = filteredDiaries[index];
     const dateInput = document.getElementById(`diary-edit-date-${index}`) as HTMLInputElement;
+    const locationInput = document.getElementById(`diary-edit-location-${index}`) as HTMLInputElement;
+    const sceneInput = document.getElementById(`diary-edit-scene-${index}`) as HTMLInputElement;
+    const participantsInput = document.getElementById(`diary-edit-participants-${index}`) as HTMLInputElement;
     const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
     const editItem = dateInput.closest('.summary-item-edit');
     const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
@@ -252,11 +255,17 @@ function handleInPlaceInputChange(index: number) {
 
     const originalDate = formatDateForInput(entry.date);
     const originalContent = entry.content || '';
+    const originalLocation = entry.location || '';
+    const originalScene = entry.scene || '';
+    const originalParticipants = (entry.participants || []).join(', ');
 
     const dateChanged = originalDate !== dateInput.value;
     const contentChanged = originalContent !== contentInput.value;
+    const locationChanged = originalLocation !== locationInput.value;
+    const sceneChanged = originalScene !== sceneInput.value;
+    const participantsChanged = originalParticipants !== participantsInput.value;
 
-    const hasChanges = dateChanged || contentChanged;
+    const hasChanges = dateChanged || contentChanged || locationChanged || sceneChanged || participantsChanged;
     saveButton.disabled = !hasChanges;
 
     if (hasChanges) {
@@ -291,6 +300,9 @@ function renderDiaryList() {
             editItem.innerHTML = `
                 <div style="font-weight: bold; margin-bottom: 5px;">Character: ${charName} (${characterId})</div>
                 <input type="date" id="diary-edit-date-${index}" value="${formatDateForInput(entry.date)}">
+                <input type="text" id="diary-edit-location-${index}" value="${entry.location || ''}" placeholder="Location">
+                <input type="text" id="diary-edit-scene-${index}" value="${entry.scene || ''}" placeholder="Scene">
+                <input type="text" id="diary-edit-participants-${index}" value="${(entry.participants || []).join(', ')}" placeholder="Participants (comma-separated IDs)">
                 <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
                 <div class="edit-controls">
                     <button class="btn save-inplace-btn" disabled>Save</button>
@@ -318,14 +330,23 @@ function renderDiaryList() {
             
             const displayDate = formatDateForDisplay(entry.date);
             const charName = characterNameMap[entry.character_id] || `Character ${entry.character_id}`;
+            const participants = (entry.participants || []).map((id: string) => characterNameMap[id] || `ID ${id}`).join(', ');
             const headerText = `${displayDate} - Character: ${charName} (${entry.character_id})`;
+            const locationText = `Location: ${entry.location || 'N/A'}`;
+            const sceneText = `Scene: ${entry.scene || 'N/A'}`;
+            const participantsText = `Participants: ${participants || 'None'}`;
             const contentText = entry.content || 'No Content';
 
             const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
+            const locationHTML = highlightRegex ? locationText.replace(highlightRegex, '<mark>$1</mark>') : locationText;
+            const sceneHTML = highlightRegex ? sceneText.replace(highlightRegex, '<mark>$1</mark>') : sceneText;
+            const participantsHTML = highlightRegex ? participantsText.replace(highlightRegex, '<mark>$1</mark>') : participantsText;
             const contentHTML = highlightRegex ? contentText.replace(highlightRegex, '<mark>$1</mark>') : contentText;
             
             item.innerHTML = `
                 <div class="summary-date">${headerHTML}</div>
+                <div class="summary-meta">${locationHTML} | ${sceneHTML}</div>
+                <div class="summary-meta">Participants: ${participantsHTML}</div>
                 <div class="summary-content">${contentHTML}</div>
             `;
             item.addEventListener('click', () => selectDiary(index));
@@ -377,10 +398,16 @@ function saveInPlaceEdit(index: number) {
     const originalIndex = allDiaryEntries.findIndex(e => e === entry);
 
     const dateInput = document.getElementById(`diary-edit-date-${index}`) as HTMLInputElement;
+    const locationInput = document.getElementById(`diary-edit-location-${index}`) as HTMLInputElement;
+    const sceneInput = document.getElementById(`diary-edit-scene-${index}`) as HTMLInputElement;
+    const participantsInput = document.getElementById(`diary-edit-participants-${index}`) as HTMLInputElement;
     const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
 
     if (originalIndex !== -1) {
         allDiaryEntries[originalIndex].date = dateInput.value;
+        allDiaryEntries[originalIndex].location = locationInput.value;
+        allDiaryEntries[originalIndex].scene = sceneInput.value;
+        allDiaryEntries[originalIndex].participants = participantsInput.value.split(',').map(s => s.trim()).filter(Boolean);
         allDiaryEntries[originalIndex].content = contentInput.value;
         delete allDiaryEntries[originalIndex]._isNew;
     }
@@ -405,6 +432,9 @@ function addNewDiaryEntry() {
         date: latestDate,
         content: 'New diary entry...',
         character_id: selectedCharacterId,
+        location: '',
+        scene: '',
+        participants: [],
         _isNew: true
     };
     allDiaryEntries.unshift(newEntry);

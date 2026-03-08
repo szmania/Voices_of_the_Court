@@ -869,6 +869,23 @@ mark.current-highlight {
     word-break: break-word; /* Ensure long words wrap */
 }
 
+#diary-manager-container .summary-meta {
+    font-size: 12px;
+    color: #a0a0a0;
+    margin-bottom: 5px;
+}
+
+#diary-manager-container .summary-item-edit input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #555;
+    color: #f0f0f0;
+}
+
 #diary-manager-container .list-controls {
     margin-top: 10px;
     display: flex;

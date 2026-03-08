@@ -829,6 +829,8 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 }
                 conversation.actionInvolvedCharacterIds.add(sourceId);
                 conversation.actionInvolvedCharacterIds.add(targetId);
+                conversation.actionInvolvedCharacterIds.add(sourceId);
+                conversation.actionInvolvedCharacterIds.add(targetId);
 
                 if (!conversation.gameData.characters.has(sourceId) || !conversation.gameData.characters.has(targetId)) {
                     throw new Error('Source or target character not found in conversation.');
