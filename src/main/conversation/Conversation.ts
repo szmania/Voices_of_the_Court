@@ -233,6 +233,28 @@ export class Conversation{
         }
     }
 
+    async summarizeDiaries(characterId: number): Promise<void> {
+        const playerId = this.gameData.playerID.toString();
+        const charId = characterId.toString();
+        const diaryEntries = await readDiaryFile(playerId, charId);
+
+        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
+            console.log(`No diary entries to summarize for character ${charId}.`);
+            return;
+        }
+
+        const allEntriesContent = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n---\n\n');
+
+        const prompt = (this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt) + `\n\n${allEntriesContent}`;
+
+        const summary = await this.summarizationApiConnection.complete([{ role: 'user', content: prompt }], false, {});
+
+        if (summary) {
+            await saveDiarySummary(playerId, charId, summary);
+            console.log(`Diary summary saved for character ${charId}.`);
+        }
+    }
+
     private async initialize(): Promise<void> {
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
@@ -806,6 +828,41 @@ export class Conversation{
 
         console.log('\nNo specific character targeted after automatic detection.');
         return [];
+    }
+
+    async determineActionTarget(messageContent: string, speakerId: number): Promise<Character | null> {
+        console.log(`Determining action target from message: "${messageContent}"`);
+        const otherCharacters = Array.from(this.gameData.characters.values()).filter(c => c.id !== speakerId && c.id !== this.gameData.playerID);
+        if (otherCharacters.length === 0) {
+            return null; // No other AIs to target
+        }
+    
+        const content = messageContent.toLowerCase();
+        const words = content.replace(/[.,!?;:]/g, '').split(/\s+/);
+    
+        let bestMatch: Character | null = null;
+        let highestConfidence = 0.75; // Start with a threshold
+    
+        for (const char of otherCharacters) {
+            const checkables = [char.fullName, char.shortName, char.firstName].filter(Boolean).map(n => n.toLowerCase());
+            for (const checkable of checkables) {
+                for (const word of words) {
+                    const confidence = getSimilarity(checkable, word);
+                    if (confidence > highestConfidence) {
+                        highestConfidence = confidence;
+                        bestMatch = char;
+                    }
+                }
+            }
+        }
+    
+        if (bestMatch) {
+            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence}`);
+        } else {
+            console.log('No specific AI action target inferred. Defaulting to player.');
+        }
+    
+        return bestMatch;
     }
 
     async determineActionTarget(messageContent: string, speakerId: number): Promise<Character | null> {
