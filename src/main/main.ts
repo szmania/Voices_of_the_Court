@@ -661,8 +661,37 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
     console.log('ClipboardListener: VOTC:LETTER_ACCEPTED event detected.');
     try {
         LetterManager.getInstance().clearLettersFile(config);
+
+        const { playerId } = await getPlayerId(userDataPath);
+        if (playerId) {
+            const letterManager = LetterManager.getInstance();
+            const allLetters = letterManager.getAllLetters(playerId);
+            
+            const undeliveredReply = allLetters
+                .filter(l => l.sender.id !== Number(playerId) && l.delivered === false)
+                .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                [0];
+
+            if (undeliveredReply) {
+                console.log(`Marking letter ${undeliveredReply.id} as delivered.`);
+                const otherId = undeliveredReply.sender.id;
+                const filePath = letterManager.getLetterFilePath(playerId, String(otherId));
+                const lettersInFile = letterManager.getLetters(playerId, String(otherId));
+                const letterToUpdate = lettersInFile.find(l => l.id === undeliveredReply.id);
+                
+                if (letterToUpdate) {
+                    letterToUpdate.delivered = true;
+                    fs.writeFileSync(filePath, JSON.stringify(lettersInFile, null, 2), 'utf8');
+                    console.log(`Updated delivered status for letter ${undeliveredReply.id} in ${filePath}`);
+
+                    if (configWindow && !configWindow.window.isDestroyed()) {
+                        configWindow.window.webContents.send('letter-status-changed');
+                    }
+                }
+            }
+        }
     } catch (error) {
-        console.error(`Failed to clear letters file: ${error}`);
+        console.error(`Failed to process VOTC:LETTER_ACCEPTED: ${error}`);
     }
 })
 

@@ -133,10 +133,18 @@ function renderLetters() {
             return String(otherPartyId) === selectedCharacterId;
         });
 
+    const lettersToDisplay = characterFilteredLetters.filter(letter => {
+        const isAiReply = letter.sender.id !== Number(selectedPlayerId);
+        if (isAiReply) {
+            return letter.delivered !== false; // Show if delivered is true or undefined (for old letters)
+        }
+        return true; // Always show player letters
+    });
+
     const repliesMap = new Map<string, Letter>();
     const rootLetters: Letter[] = [];
 
-    characterFilteredLetters.forEach(l => {
+    lettersToDisplay.forEach(l => {
         if (l.replyToId) {
             repliesMap.set(l.replyToId, l);
         } else {
@@ -393,6 +401,13 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 
 ipcRenderer.on('update-language', (event, lang) => {
     initLocalization(lang);
+});
+
+ipcRenderer.on('letter-status-changed', () => {
+    console.log('Received letter-status-changed, reloading letters.');
+    if (selectedPlayerId) {
+        loadLetters(selectedPlayerId);
+    }
 });
 
 ipcRenderer.on('letter-thread-status-update', (event, count: number) => {

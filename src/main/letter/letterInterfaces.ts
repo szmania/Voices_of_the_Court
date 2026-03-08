@@ -20,6 +20,7 @@ export interface Letter {
   totalDays: number;
   replyToId?: string;
   status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
+  delivered?: boolean;
 }
 
 export interface StoredLetter {
