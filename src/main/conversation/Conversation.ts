@@ -1458,6 +1458,30 @@ ${character.fullName}的发言：`
         }
     }
 
+    private async summarizeDiaries(characterId: number): Promise<void> {
+        const diaryEntries = await readDiaryFile(this.gameData.playerID.toString(), characterId.toString());
+        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
+            return;
+        }
+
+        const diarySummarizePrompt = this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt;
+        if (!diarySummarizePrompt) {
+            return;
+        }
+
+        const entriesText = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n');
+        const fullPrompt = `${diarySummarizePrompt}\n\n${entriesText}`;
+
+        const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
+
+        const summaryContent = await this.summarizationApiConnection.complete(promptForApi, false, {});
+
+        if (summaryContent) {
+            await saveDiarySummary(this.gameData.playerID.toString(), characterId.toString(), summaryContent);
+            console.log(`Diary summary saved for character ${characterId}`);
+        }
+    }
+
     async summarize() {
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
