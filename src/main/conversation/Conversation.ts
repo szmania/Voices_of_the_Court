@@ -560,23 +560,42 @@ export class Conversation{
                 let narrative: string = "";
 
                 if (this.config.actionsEnableAll) {
-                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                        const actionResult = await checkActions(this);
-                        collectedActions = actionResult.actions;
-                        narrative = actionResult.narrative;
+                    const actionTarget = await this.determineActionTarget(message.content, character.id);
+                    const originalPlayerId = this.gameData.playerID;
+                    const originalAiId = this.gameData.aiID;
+                    try {
+                        // Set context for action check. Source is the speaking character.
+                        this.gameData.playerID = character.id;
+                        // Target is inferred character, or fallback to the human player.
+                        this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
+                        console.log(`Action context: Source=${character.shortName}, Target=${actionTarget ? actionTarget.shortName : 'Player'}`);
 
-                        if (collectedActions.length > 0) {
-                            this.consecutiveActionsCount++;
-                            this.lastActionMessageIndex = messageIndex;
+                        if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                            const actionResult = await checkActions(this);
+                            collectedActions = actionResult.actions;
+                            narrative = actionResult.narrative;
+
+                            if (collectedActions.length > 0) {
+                                this.consecutiveActionsCount++;
+                                this.lastActionMessageIndex = messageIndex;
+                            } else {
+                                this.consecutiveActionsCount = 0;
+                            }
+
+                            if (narrative) {
+                                this.addNarrativeToMessage(messageIndex, narrative);
+                            }
                         } else {
-                            this.consecutiveActionsCount = 0;
+                            console.log(`Skipping action check: consecutive actions limit reached.`);
                         }
-
-                        if (narrative) {
-                            this.addNarrativeToMessage(messageIndex, narrative);
-                        }
-                    } else {
-                         console.log(`Skipping action check: consecutive actions limit reached.`);
+                    } catch (e) {
+                        console.error(`Error during action check: ${e}`);
+                        collectedActions = [];
+                        narrative = "";
+                        this.consecutiveActionsCount = 0;
+                    } finally {
+                        this.gameData.playerID = originalPlayerId;
+                        this.gameData.aiID = originalAiId;
                     }
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
@@ -787,6 +806,41 @@ export class Conversation{
 
         console.log('\nNo specific character targeted after automatic detection.');
         return [];
+    }
+
+    async determineActionTarget(messageContent: string, speakerId: number): Promise<Character | null> {
+        console.log(`Determining action target from message: "${messageContent}"`);
+        const otherCharacters = Array.from(this.gameData.characters.values()).filter(c => c.id !== speakerId && c.id !== this.gameData.playerID);
+        if (otherCharacters.length === 0) {
+            return null; // No other AIs to target
+        }
+    
+        const content = messageContent.toLowerCase();
+        const words = content.replace(/[.,!?;:]/g, '').split(/\s+/);
+    
+        let bestMatch: Character | null = null;
+        let highestConfidence = 0.75; // Start with a threshold
+    
+        for (const char of otherCharacters) {
+            const checkables = [char.fullName, char.shortName, char.firstName].filter(Boolean).map(n => n.toLowerCase());
+            for (const checkable of checkables) {
+                for (const word of words) {
+                    const confidence = getSimilarity(checkable, word);
+                    if (confidence > highestConfidence) {
+                        highestConfidence = confidence;
+                        bestMatch = char;
+                    }
+                }
+            }
+        }
+    
+        if (bestMatch) {
+            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence}`);
+        } else {
+            console.log('No specific AI action target inferred. Defaulting to player.');
+        }
+    
+        return bestMatch;
     }
 
     async processCharacterList(characterList: Character[]): Promise<(Message | null)[]> {
