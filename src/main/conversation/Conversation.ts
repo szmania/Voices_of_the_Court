@@ -62,6 +62,10 @@ export class Conversation{
         this.description = "";
         this.actions = [];
 
+        this.runFileManager = new RunFileManager(this.config.userFolderPath);
+        this.description = "";
+        this.actions = [];
+
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
@@ -86,6 +90,32 @@ export class Conversation{
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
         
+        const diariesBasePath = path.join(this.userDataPath, 'diaries');
+        if (!fs.existsSync(diariesBasePath)) {
+            fs.mkdirSync(diariesBasePath, { recursive: true });
+        }
+        const playerDiariesPath = path.join(diariesBasePath, this.gameData.playerID.toString());
+        if (!fs.existsSync(playerDiariesPath)) {
+            fs.mkdirSync(playerDiariesPath, { recursive: true });
+        }
+
+        // Create/Update character map for the current player in the diary folder
+        const characterMapPath = path.join(playerDiariesPath, '_character_map.json');
+        let characterMap: { [key: string]: string } = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error(`Error parsing character map file, it will be overwritten: ${e}`);
+            }
+        }
+        // Add/update all characters from current gameData
+        this.gameData.characters.forEach((character) => {
+            characterMap[character.id.toString()] = character.fullName;
+        });
+        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Character map updated at ${characterMapPath}`);
+
         const diariesBasePath = path.join(this.userDataPath, 'diaries');
         if (!fs.existsSync(diariesBasePath)) {
             fs.mkdirSync(diariesBasePath, { recursive: true });

@@ -21,6 +21,10 @@
     "header": "日记",
     "description": "管理角色的日记条目。"
   },
+  "diaries": {
+    "header": "日记",
+    "description": "管理角色的日记条目。"
+  },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",
     "select_folder": "选择文件夹",

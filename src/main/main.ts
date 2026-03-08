@@ -1159,6 +1159,77 @@ ipcMain.handle('get-character-map', async (event, playerId) => {
 });
 
 // Conversation History IPC handlers
+
+// Diary Manager IPC handlers
+ipcMain.handle('get-diary-ids', async () => {
+    console.log('IPC: Received get-diary-ids event.');
+    try {
+        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
+        const ids = await parseDiaryIdsFromLog(logFilePath);
+        return ids;
+    } catch (error) {
+        console.error('Error getting diary IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { playerId: null, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-all-diary-player-ids', async () => {
+    console.log('IPC: Received get-all-diary-player-ids event.');
+    try {
+        const ids = await getAllDiaryPlayerIds(userDataPath);
+        return { success: true, ids: ids };
+    } catch (error) {
+        console.error('Error getting all diary player IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-diary-files', async (event, playerId) => {
+    console.log(`IPC: Received get-diary-files event for player: ${playerId}`);
+    try {
+        const files = await getDiaryFiles(playerId);
+        // we only want character id, so remove .json
+        return files.map(f => f.replace('.json', ''));
+    } catch (error) {
+        console.error('Error getting diary files:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('read-diary-file', async (event, playerId, characterId) => {
+    console.log(`IPC: Received read-diary-file event for player: ${playerId}, character: ${characterId}`);
+    try {
+        return await readDiaryFile(playerId, characterId);
+    } catch (error) {
+        console.error('Error reading diary file:', error);
+        return null;
+    }
+});
+
+ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData) => {
+    console.log(`IPC: Received save-diary-file event for player: ${playerId}, character: ${characterId}`);
+    try {
+        await saveDiaryFile(playerId, characterId, diaryData);
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving diary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
+    try {
+        return await getCharacterMap(playerId);
+    } catch (error) {
+        console.error('Error getting character map:', error);
+        return {};
+    }
+});
+
 ipcMain.handle('get-conversation-history-ids', async () => {
     console.log('IPC: Received get-conversation-history-ids event.');
     try {

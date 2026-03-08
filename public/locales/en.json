@@ -21,6 +21,10 @@
     "header": "Diaries",
     "description": "Manage diary entries for characters."
   },
+  "diaries": {
+    "header": "Diaries",
+    "description": "Manage diary entries for characters."
+  },
   "connection": {
     "ck3_path": "CK3 user folder path",
     "select_folder": "Select Folder",
