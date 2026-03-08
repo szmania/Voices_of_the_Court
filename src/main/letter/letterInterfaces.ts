@@ -27,3 +27,9 @@ export interface StoredLetter {
     reply: string;
     expectedDeliveryDay: number;
 }
+
+export interface LetterSummary {
+  date: string;
+  summary: string;
+  letterIds: string[]; // To track which letters this summary covers
+}

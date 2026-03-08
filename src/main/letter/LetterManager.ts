@@ -153,6 +153,37 @@ export class LetterManager {
         }
     }
 
+    public getLetterSummaryFilePath(playerId: string, characterId: string): string {
+        const playerFolderPath = path.join(this.letterSummaryPath, playerId);
+        if (!fs.existsSync(playerFolderPath)) {
+            fs.mkdirSync(playerFolderPath, { recursive: true });
+        }
+        return path.join(playerFolderPath, `${characterId}.json`);
+    }
+
+    public getLetterSummaries(playerId: string, characterId: string): LetterSummary[] {
+        const filePath = this.getLetterSummaryFilePath(playerId, characterId);
+        if (fs.existsSync(filePath)) {
+            try {
+                const data = fs.readFileSync(filePath, 'utf8');
+                return JSON.parse(data) as LetterSummary[];
+            } catch (error) {
+                console.error(`Error reading letter summary for player ${playerId}, character ${characterId}:`, error);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    public saveLetterSummaries(playerId: string, characterId: string, summaries: LetterSummary[]): void {
+        const filePath = this.getLetterSummaryFilePath(playerId, characterId);
+        try {
+            fs.writeFileSync(filePath, JSON.stringify(summaries, null, 2), 'utf8');
+        } catch (error) {
+            console.error(`Error saving letter summaries for player ${playerId}, character ${characterId}:`, error);
+        }
+    }
+
     public deliverLetter(storedLetter: StoredLetter, config: Config) {
         const userFolderPath = config.userFolderPath;
         if (!userFolderPath) {

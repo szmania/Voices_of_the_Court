@@ -8,7 +8,7 @@ import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
-import { Letter as ILetter, LetterType } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 
 export class LetterReplyGenerator {
@@ -67,6 +67,20 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load conversation summary: ${error}`);
         }
 
+        // Load letter summaries
+        const letterManager = LetterManager.getInstance();
+        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), String(gameData.aiID));
+        let letterSummaryContent = '';
+        if (letterSummaries.length > 0) {
+            const allSummaries = letterSummaries.map((summary, index) => 
+                `${index + 1}. ${summary.date}: ${summary.summary}`
+            ).join('\n');
+            letterSummaryContent = `Summaries of previous letters with ${player.fullName}:\n${allSummaries}\n\n`;
+            console.log(`Loaded ${letterSummaries.length} letter summaries for AI ID ${gameData.aiID}`);
+        } else {
+            console.log(`No letter summaries found for AI ID ${gameData.aiID}`);
+        }
+
         // Read memory content
         let memoryContent = '';
         try {
@@ -91,11 +105,12 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        let prompt = this.config.letterPrompt || "You are playing as {{aiName}}.\n\n{{characterDescription}}\n\n{{conversationSummary}}{{memoryContent}}You have received a letter from {{playerName}} with the following content:\n\"{{letterContent}}\"\n\nThe letter requires a reply in {{language}}.\n\nPlease write a suitable reply based on your character's personality, background, relationship with the sender, relevant memories, and the current game situation. The reply should:\n1. Be written in {{language}}\n2. Reflect your character's personality and stance\n3. Respond to the main content of the letter\n4. Have a tone that is appropriate for your identity and relationship with the sender\n5. Be of moderate length and clearly expressed\n6. Appropriately reference relevant memory content to make the reply more aligned with the character's background\n\nPlease write the reply content directly, without adding any explanation or description.";
+        let prompt = this.config.letterPrompt || "You are playing as {{aiName}}.\n\n{{characterDescription}}\n\n{{conversationSummary}}{{letterSummaryContent}}{{memoryContent}}You have received a letter from {{playerName}} with the following content:\n\"{{letterContent}}\"\n\nThe letter requires a reply in {{language}}.\n\nPlease write a suitable reply based on your character's personality, background, relationship with the sender, relevant memories, and the current game situation. The reply should:\n1. Be written in {{language}}\n2. Reflect your character's personality and stance\n3. Respond to the main content of the letter\n4. Have a tone that is appropriate for your identity and relationship with the sender\n5. Be of moderate length and clearly expressed\n6. Appropriately reference relevant memory content to make the reply more aligned with the character's background\n\nPlease write the reply content directly, without adding any explanation or description.";
 
         prompt = prompt.replace('{{aiName}}', ai.fullName)
                        .replace('{{characterDescription}}', characterDescription)
                        .replace('{{conversationSummary}}', conversationSummary)
+                       .replace('{{letterSummaryContent}}', letterSummaryContent)
                        .replace('{{memoryContent}}', memoryContent)
                        .replace('{{playerName}}', player.fullName)
                        .replace('{{letterContent}}', letter.content)
@@ -154,11 +169,14 @@ export class LetterReplyGenerator {
             
             console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
+            // Create a UUID for the reply letter *before* saving history and summary
+            const replyLetterId = randomUUID();
+
             // Generate and save a summary of the letter
-            await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse);
+            await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse, replyLetterId);
 
             // Save letter history immediately
-            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData);
+            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData, replyLetterId);
             
             // Return the generated reply so it can be queued for delayed delivery
             return escapedResponse;
@@ -177,7 +195,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData): Promise<void> {
+    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<void> {
         try {
             const letterManager = LetterManager.getInstance();
     
@@ -190,7 +208,7 @@ export class LetterReplyGenerator {
             }
     
             const replyLetter = new Letter(
-                randomUUID(),
+                replyLetterId,
                 ai, // sender is the AI
                 player, // recipient is the player
                 `Re: ${originalLetter.subject}`,
@@ -239,7 +257,7 @@ export class LetterReplyGenerator {
      * @param letterContent Player's letter content
      * @param replyContent AI's reply content
      */
-    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string): Promise<void> {
+    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string): Promise<void> {
         try {
             const player = gameData.getPlayer();
             const ai = gameData.getAi();
@@ -277,40 +295,24 @@ export class LetterReplyGenerator {
 
             console.log(`Generated letter summary: ${summaryContent.trim()}`);
 
-            // Use the date directly from gameData
             const letterDate = gameData.date;
+            const playerId = String(gameData.playerID);
+            const aiId = String(gameData.aiID);
 
-            // Build new summary object
-            const newSummary = {
+            const newSummary: LetterSummary = {
                 date: letterDate,
-                content: summaryContent.trim()
+                summary: summaryContent.trim(),
+                letterIds: [originalLetter.id, replyLetterId]
             };
-
-            // Read existing summary file
-            let existingSummaries: Summary[] = [];
-            try {
-                existingSummaries = await readSummaryFile(this.userDataPath, String(gameData.playerID));
-            } catch (error) {
-                console.log('No existing summaries found, creating new summary file');
-            }
-
-            // Get existing summaries for the current AI character
-            const aiCharacterId = String(gameData.aiID);
-            const aiCharacterSummaries = existingSummaries.filter(summary => summary.characterId === aiCharacterId);
-            const otherSummaries = existingSummaries.filter(summary => summary.characterId !== aiCharacterId);
+    
+            const letterManager = LetterManager.getInstance();
+            const existingSummaries = letterManager.getLetterSummaries(playerId, aiId);
             
-            // Add the new summary to the list for the current AI character (at the beginning, most recent first)
-            const updatedAiSummaries = [{
-                ...newSummary,
-                characterId: aiCharacterId
-            }, ...aiCharacterSummaries];
-            
-            // Merge all summaries (current AI's summaries first, then others)
-            const updatedSummaries = [...updatedAiSummaries, ...otherSummaries];
-
-            // Save the updated summaries
-            await saveSummaryFile(this.userDataPath, String(gameData.playerID), updatedSummaries);
-            console.log(`Letter summary saved for AI ID ${gameData.aiID}`);
+            // Add new summary to the beginning of the list
+            existingSummaries.unshift(newSummary);
+    
+            letterManager.saveLetterSummaries(playerId, aiId, existingSummaries);
+            console.log(`Letter summary saved for AI ID ${aiId}`);
 
         } catch (error) {
             console.error(`Error generating and saving letter summary: ${error}`);
