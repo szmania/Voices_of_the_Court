@@ -900,6 +900,41 @@ export class Conversation{
         return bestMatch;
     }
 
+    async determineActionTarget(messageContent: string, speakerId: number): Promise<Character | null> {
+        console.log(`Determining action target from message: "${messageContent}"`);
+        const otherCharacters = Array.from(this.gameData.characters.values()).filter(c => c.id !== speakerId && c.id !== this.gameData.playerID);
+        if (otherCharacters.length === 0) {
+            return null; // No other AIs to target
+        }
+    
+        const content = messageContent.toLowerCase();
+        const words = content.replace(/[.,!?;:]/g, '').split(/\s+/);
+    
+        let bestMatch: Character | null = null;
+        let highestConfidence = 0.75; // Start with a threshold
+    
+        for (const char of otherCharacters) {
+            const checkables = [char.fullName, char.shortName, char.firstName].filter(Boolean).map(n => n.toLowerCase());
+            for (const checkable of checkables) {
+                for (const word of words) {
+                    const confidence = getSimilarity(checkable, word);
+                    if (confidence > highestConfidence) {
+                        highestConfidence = confidence;
+                        bestMatch = char;
+                    }
+                }
+            }
+        }
+    
+        if (bestMatch) {
+            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence}`);
+        } else {
+            console.log('No specific AI action target inferred. Defaulting to player.');
+        }
+    
+        return bestMatch;
+    }
+
     async processCharacterList(characterList: Character[]): Promise<(Message | null)[]> {
         const generatedMessages: (Message | null)[] = [];
         for (const character of characterList) {
@@ -945,9 +980,20 @@ export class Conversation{
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
         const prompt = await buildChatPrompt(this, source);
+
+        // The last message from buildChatPrompt is the roleplay instruction.
+        // Let's remove it and add our own for AI-to-AI chat.
+        if (prompt.length > 0 && prompt[prompt.length - 1].role === 'system') {
+            prompt.pop();
+        } else {
+            console.warn("Could not find final system message to replace for AI-to-AI chat.");
+        }
+        
+        const newInstruction = `You are ${source.fullName}. Write a reply to ${target.fullName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.`;
+        
         prompt.push({
             role: 'system',
-            content: `Your next response should be directed at ${target.fullName}.`
+            content: newInstruction
         });
 
         const content = await this.textGenApiConnection.complete(prompt, false, {
@@ -1158,9 +1204,12 @@ export class Conversation{
                         const originalPlayerId = this.gameData.playerID;
                         const originalAiId = this.gameData.aiID;
                         try{
-                            // Set context for action check. Source is the speaking character, target is the player.
+                            const actionTarget = await this.determineActionTarget(responseMessage.content, character.id);
+                            // Set context for action check. Source is the speaking character.
                             this.gameData.playerID = character.id;
-                            this.gameData.aiID = originalPlayerId;
+                            // Target is inferred character, or fallback to the human player.
+                            this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
+                            console.log(`Action context: Source=${character.shortName}, Target=${actionTarget ? actionTarget.shortName : 'Player'}`);
 
                             console.log('Actions are enabled. Checking for actions...');
                             
