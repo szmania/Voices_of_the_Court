@@ -219,27 +219,6 @@ export class Conversation{
     }
 
 
-    async summarizeDiaries(characterId: number): Promise<void> {
-        const playerId = this.gameData.playerID.toString();
-        const charId = characterId.toString();
-        const diaryEntries = await readDiaryFile(playerId, charId);
-
-        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
-            console.log(`No diary entries to summarize for character ${charId}.`);
-            return;
-        }
-
-        const allEntriesContent = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n---\n\n');
-
-        const prompt = (this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt) + `\n\n${allEntriesContent}`;
-
-        const summary = await this.summarizationApiConnection.complete([{ role: 'user', content: prompt }], false, {});
-
-        if (summary) {
-            await saveDiarySummary(playerId, charId, summary);
-            console.log(`Diary summary saved for character ${charId}.`);
-        }
-    }
 
     private async initialize(): Promise<void> {
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
