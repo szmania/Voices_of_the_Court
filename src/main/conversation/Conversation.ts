@@ -43,6 +43,7 @@ export class Conversation{
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
+    actionInvolvedCharacterIds: Set<number>;
     
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -108,6 +109,7 @@ export class Conversation{
         this.customQueue = null;
         this.isPaused = false;
         this.persistCustomQueue = false;
+        this.actionInvolvedCharacterIds = new Set();
 
         const diariesBasePath = path.join(this.userDataPath, 'diaries');
         if (!fs.existsSync(diariesBasePath)) {
@@ -576,11 +578,25 @@ export class Conversation{
                         let collectedActions: ActionResponse[] = [];
                         let narrative: string = "";
                         if (this.config.actionsEnableAll) {
-                            const actionResult = await checkActions(this);
-                            collectedActions = actionResult.actions;
-                            narrative = actionResult.narrative;
-                            if (narrative) {
-                                this.addNarrativeToMessage(messageIndex, narrative);
+                            const originalPlayerId = this.gameData.playerID;
+                            const originalAiId = this.gameData.aiID;
+                            try {
+                                this.gameData.playerID = lastRespondingCharacter.id;
+                                this.gameData.aiID = targetAI.id;
+
+                                const actionResult = await checkActions(this);
+                                collectedActions = actionResult.actions;
+                                narrative = actionResult.narrative;
+                                if (collectedActions.length > 0) {
+                                    this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
+                                    this.actionInvolvedCharacterIds.add(targetAI.id);
+                                }
+                                if (narrative) {
+                                    this.addNarrativeToMessage(messageIndex, narrative);
+                                }
+                            } finally {
+                                this.gameData.playerID = originalPlayerId;
+                                this.gameData.aiID = originalAiId;
                             }
                         }
                         this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative);
@@ -991,12 +1007,18 @@ export class Conversation{
             
             // Only check for actions if it's a conversation between two different characters
             if (this.gameData.playerID !== this.gameData.aiID) {
-                if (character.id === this.gameData.aiID){
+                if (character.id !== this.gameData.playerID) {
                     let collectedActions: ActionResponse[];
                     let narrative: string = "";
                     
                     if(this.config.actionsEnableAll){
+                        const originalPlayerId = this.gameData.playerID;
+                        const originalAiId = this.gameData.aiID;
                         try{
+                            // Set context for action check. Source is the speaking character, target is the player.
+                            this.gameData.playerID = character.id;
+                            this.gameData.aiID = originalPlayerId;
+
                             console.log('Actions are enabled. Checking for actions...');
                             
                             // Check max consecutive actions limit
@@ -1011,6 +1033,8 @@ export class Conversation{
                                 
                                 // Update consecutive actions tracking
                                 if (collectedActions.length > 0) {
+                                    this.actionInvolvedCharacterIds.add(this.gameData.playerID);
+                                    this.actionInvolvedCharacterIds.add(this.gameData.aiID);
                                     this.consecutiveActionsCount++;
                                     this.lastActionMessageIndex = messageIndex;
                                     console.log(`Action triggered. Consecutive actions count: ${this.consecutiveActionsCount}`);
@@ -1033,6 +1057,9 @@ export class Conversation{
                             narrative = "";
                             // Reset counter on error
                             this.consecutiveActionsCount = 0;
+                        } finally {
+                            this.gameData.playerID = originalPlayerId;
+                            this.gameData.aiID = originalAiId;
                         }
                     }
                     else{
@@ -1323,7 +1350,13 @@ ${character.fullName}的发言：`
         // Generate and save diary entries for each character
         for (const character of this.gameData.characters.values()) {
             // @ts-ignore - diaryGenerationChance is a custom property we added
-            if (Math.random() < (this.config.diaryGenerationChance / 100)) {
+            const diaryChance = this.config.diaryGenerationChance / 100;
+            const wasInvolvedInAction = this.actionInvolvedCharacterIds.has(character.id);
+
+            if ((wasInvolvedInAction && diaryChance > 0) || Math.random() < diaryChance) {
+                if (wasInvolvedInAction) {
+                    console.log(`Forcing diary entry for ${character.shortName} due to action involvement.`);
+                }
                 const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
                 if (newDiaryEntry) {
                     await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
