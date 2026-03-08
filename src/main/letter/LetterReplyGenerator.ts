@@ -204,7 +204,7 @@ export class LetterReplyGenerator {
     
             if (!player || !ai) {
                 console.error("Could not find player or AI character to save letter history.");
-                return;
+                return null;
             }
     
             const replyLetter = new Letter(
