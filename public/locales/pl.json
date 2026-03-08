@@ -580,6 +580,9 @@
     "content_fail": "Nie udało się załadować treści rozmowy: ",
     "no_player_id": "Nie udało się sparsować ID gracza z logów gry"
   },
+  "prompt_builder": {
+    "summary_header": "Oto daty i podsumowania poprzednich rozmów:"
+  },
   "suggestion_builder": {
     "summary_header": "Oto daty i podsumowania poprzednich rozmów:",
     "prompt_header": "Na podstawie poniższego kontekstu rozmowy i informacji o postaci, wygeneruj 3-5 krótkich i odpowiednich sugestii odpowiedzi dla postaci gracza {characterName}. Sugestie powinny:",

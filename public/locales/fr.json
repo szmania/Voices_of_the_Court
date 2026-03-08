@@ -580,6 +580,9 @@
     "content_fail": "Échec du chargement du contenu de la conversation : ",
     "no_player_id": "Impossible d'analyser l'ID du joueur à partir des logs du jeu"
   },
+  "prompt_builder": {
+    "summary_header": "Voici les dates et les résumés des conversations précédentes :"
+  },
   "suggestion_builder": {
     "summary_header": "Voici les dates et les résumés des conversations précédentes :",
     "prompt_header": "En fonction du contexte de conversation et des informations sur le personnage suivants, générez 3 à 5 suggestions de réponse courtes et appropriées pour le personnage joueur {characterName}. Les suggestions doivent :",

@@ -580,6 +580,9 @@
     "content_fail": "Error al cargar el contenido de la conversación: ",
     "no_player_id": "No se pudo analizar el ID del jugador de los registros del juego"
   },
+  "prompt_builder": {
+    "summary_header": "Aquí están las fechas y resúmenes de conversaciones anteriores:"
+  },
   "suggestion_builder": {
     "summary_header": "Aquí están las fechas y resúmenes de conversaciones anteriores:",
     "prompt_header": "Basado en el siguiente contexto de conversación e información del personaje, genera de 3 a 5 sugerencias de respuesta cortas y apropiadas para el personaje jugador {characterName}. Las sugerencias deben:",

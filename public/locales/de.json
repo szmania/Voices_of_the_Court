@@ -578,6 +578,9 @@
     "content_fail": "Laden des Gesprächsinhalts fehlgeschlagen: ",
     "no_player_id": "Spieler-ID konnte nicht aus den Spiel-Logs geparst werden"
   },
+  "prompt_builder": {
+    "summary_header": "Hier sind die Daten und Zusammenfassungen früherer Gespräche:"
+  },
   "suggestion_builder": {
     "summary_header": "Hier sind die Daten und Zusammenfassungen früherer Gespräche:",
     "prompt_header": "Basierend auf dem folgenden Gesprächskontext und den Charakterinformationen, generiere 3-5 kurze und passende Antwortvorschläge für den Spielercharakter {characterName}. Die Vorschläge sollten:",

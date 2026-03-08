@@ -623,6 +623,9 @@
     "content_fail": "Failed to load conversation content: ",
     "no_player_id": "Unable to parse player ID from game logs"
   },
+  "prompt_builder": {
+    "summary_header": "Here are the dates and summaries of previous conversations:"
+  },
   "suggestion_builder": {
     "summary_header": "Here are the dates and summaries of previous conversations:",
     "prompt_header": "Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character {characterName}. Suggestions should:",

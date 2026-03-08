@@ -580,6 +580,9 @@
     "content_fail": "대화 내용 로드 실패: ",
     "no_player_id": "게임 로그에서 플레이어 ID를 파싱할 수 없습니다."
   },
+  "prompt_builder": {
+    "summary_header": "이전 대화의 날짜와 요약은 다음과 같습니다."
+  },
   "suggestion_builder": {
     "summary_header": "이전 대화의 날짜와 요약은 다음과 같습니다.",
     "prompt_header": "다음 대화 맥락과 캐릭터 정보를 바탕으로 플레이어 캐릭터 {characterName}에 대한 짧고 적절한 응답 제안 3-5개를 생성하십시오. 제안은 다음과 같아야 합니다.",

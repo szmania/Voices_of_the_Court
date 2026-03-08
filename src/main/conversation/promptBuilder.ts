@@ -186,7 +186,7 @@ export function buildChatPrompt(conv: Conversation, character: Character, messag
         if (isSelfTalk) {
             summaryString = "Here are the date and summary of previous internal monologues for " + conv.gameData.playerName + ":\n";
         } else {
-            summaryString = "以下是之前对话的日期与摘要：\n";
+            summaryString = (translations.prompt_builder?.summary_header || "Here are the dates and summaries of previous conversations:") + "\n";
         }
 
         const summariesToProcess = [...characterSummaries];
