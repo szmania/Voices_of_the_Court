@@ -70,7 +70,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
     
-    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : (conv.messages.length > 0 ? conv.messages[conv.messages.length - 1] : null);
+    let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
+    const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
     let replyToName = conv.gameData.getPlayer()!.fullName;
     if (lastMessage && lastMessage.role === 'assistant' && lastMessage.name !== character.fullName) {
         const lastSpeaker = Array.from(conv.gameData.characters.values()).find(c => c.fullName === lastMessage.name || c.shortName === lastMessage.name);
@@ -132,8 +133,6 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         role: "system",
         content: "[Start a new chat]"
     })
-
-    let messages = messagesOverride ? messagesOverride : conv.messages.slice(0); //pass by value
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
     const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
