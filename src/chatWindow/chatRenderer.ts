@@ -680,8 +680,18 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
 function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
-        const statusText = window.LocalizationManager?.getNestedTranslation(textKey, vars) || textKey;
-        queueStatusDiv.innerHTML = `<div><span class="current-speaker">${statusText}</span></div>`;
+        const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
+        let fullText = statusText;
+        if (vars && vars.characterName) {
+            // Special handling for languages that need the name first.
+            // Japanese and Korean particles attach to the name.
+            if (['ja', 'ko'].includes(window.LocalizationManager?.language)) {
+                fullText = `${vars.characterName}${statusText}`;
+            } else {
+                fullText = `${vars.characterName} ${statusText}`;
+            }
+        }
+        queueStatusDiv.innerHTML = `<div><span class="current-speaker">${fullText}</span></div>`;
     } else {
         queueStatusDiv.innerHTML = '';
     }

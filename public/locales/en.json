@@ -214,7 +214,7 @@
     "status_speaking": "Speaking:",
     "status_next_up": "Next:",
     "status_generating_scene": "Generating scene description...",
-    "status_checking_actions": "{characterName} deciding on an action...",
+    "status_checking_actions": "deciding on an action...",
     "status_generating_narrative": "Generating narrative..."
   },
   "narrative": {
