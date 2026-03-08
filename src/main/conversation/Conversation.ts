@@ -1178,8 +1178,7 @@ ${conversationHistory}
         
         if (!shouldValidate) {
             console.log(`Identity validation conditions not met (stream: ${this.config.stream}, character count: ${this.gameData.characters.size}). Generating message without validation.`);
-            await this.generateNewAIMessage(character, true);
-            return null;
+            return await this.generateNewAIMessage(character, false);
         }
         
         let attempts = 0;

@@ -602,7 +602,7 @@ function setupCharacterTargeting(gameData: GameData) {
             const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
 
             hiddenInput.value = selectedIds.join(',');
-            valueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+            valueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
         };
 
         aiCharacters.forEach(char => {
@@ -628,7 +628,7 @@ function setupCharacterTargeting(gameData: GameData) {
         });
 
         // Set default value
-        valueDiv.textContent = window.LocalizationManager.getTranslation('chat.target_auto', 'Automatically Detected');
+        valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
         hiddenInput.value = '';
 
         // Toggle dropdown
@@ -1310,8 +1310,6 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     characterColorMap.clear();
     nextColorIndex = 0;
 
-    setupCharacterTargeting(gameData);
-
     document.body.style.display = '';
 
     // Capture initial state
@@ -1348,6 +1346,8 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
+
+    setupCharacterTargeting(gameData);
 
     // Initialize chat UI elements (this clears the display)
     initChat();
