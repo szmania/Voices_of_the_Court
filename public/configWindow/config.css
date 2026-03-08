@@ -1332,3 +1332,32 @@ mark.current-highlight {
 #diary-manager-container .summary-item-edit .edit-controls button {
     margin-left: 5px;
 }
+
+#letter-thread-status {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #cca43b;
+    padding: 5px 10px;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.3);
+    margin-left: auto; /* Pushes it to the right */
+}
+
+#letter-thread-status.full {
+    color: #ff4d4d;
+    border-color: #ff4d4d;
+    animation: pulsate 1.5s infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px 5px rgba(255, 77, 77, 0.7);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+    }
+}

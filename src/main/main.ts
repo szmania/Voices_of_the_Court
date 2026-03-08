@@ -241,7 +241,8 @@ const createTray = () => {
 let clipboardListener = new ClipboardListener();
 let config: Config;
 
-
+let letterThreadCount = 0;
+let letterThreadFullNotified = false;
 
 
 let currentTotalDays: number = 0;
@@ -762,6 +763,37 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
         const latestLetter = allPlayerLetters[0]; // They are sorted by date descending.
 
+        // START NEW LOGIC
+        const letterIdMatch = latestLetter.subject.match(/letter_(\d+)/);
+        if (letterIdMatch) {
+            const newCount = parseInt(letterIdMatch[1], 10);
+            if (newCount === 1) {
+                console.log('Letter thread reset detected (letter_1).');
+                letterThreadCount = 1;
+                letterThreadFullNotified = false;
+            } else {
+                letterThreadCount = newCount;
+            }
+
+            console.log(`Letter thread count updated to: ${letterThreadCount}/9`);
+
+            if (letterThreadCount >= 9 && !letterThreadFullNotified) {
+                dialog.showMessageBox({
+                    type: 'warning',
+                    title: t('dialog.letter_thread_full_title'),
+                    message: t('dialog.letter_thread_full_message'),
+                    buttons: [t('dialog.ok')]
+                });
+                letterThreadFullNotified = true;
+            }
+        }
+
+        // Send update to renderer
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-thread-status-update', letterThreadCount);
+        }
+        // END NEW LOGIC
+
         // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
         if (latestLetter.recipient.id !== gameData.aiID) {
             console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
@@ -1073,6 +1105,11 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
+});
+
+ipcMain.handle('get-letter-thread-status', () => {
+    console.log(`IPC: Received get-letter-thread-status. Current count: ${letterThreadCount}`);
+    return letterThreadCount;
 });
 
 ipcMain.handle('get-character-map', async (event, playerId) => {

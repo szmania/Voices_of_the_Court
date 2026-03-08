@@ -3,6 +3,25 @@ import { Letter } from '../main/letter/letterInterfaces.js';
 
 const loader = document.getElementById('letter-loader') as HTMLDivElement;
 const statusMessage = document.getElementById('letter-status-message') as HTMLDivElement;
+const letterThreadStatusContainer = document.getElementById('letter-thread-status-container') as HTMLDivElement;
+
+function updateLetterThreadStatus(count: number) {
+    if (!letterThreadStatusContainer) return;
+
+    const statusEl = document.createElement('div');
+    statusEl.id = 'letter-thread-status';
+    // @ts-ignore
+    statusEl.textContent = `${window.LocalizationManager.getTranslation('letters.thread_status', 'Letter Thread')}: ${count}/9`;
+
+    if (count >= 9) {
+        statusEl.classList.add('full');
+    } else {
+        statusEl.classList.remove('full');
+    }
+    
+    letterThreadStatusContainer.innerHTML = ''; // Clear previous
+    letterThreadStatusContainer.appendChild(statusEl);
+}
 
 function showStatusMessage(message: string, type = 'info') {
     if (!statusMessage) return;
@@ -355,6 +374,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     loadPlayers();
+
+    // Initial load of letter thread status
+    ipcRenderer.invoke('get-letter-thread-status').then(count => {
+        updateLetterThreadStatus(count);
+    });
 });
 
 ipcRenderer.on('update-theme', (event, theme: string) => {
@@ -363,4 +387,8 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 
 ipcRenderer.on('update-language', (event, lang) => {
     initLocalization(lang);
+});
+
+ipcRenderer.on('letter-thread-status-update', (event, count: number) => {
+    updateLetterThreadStatus(count);
 });

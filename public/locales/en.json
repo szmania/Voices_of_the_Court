@@ -534,6 +534,9 @@
     "clear_summaries_message": "Are you sure you want to clear conversation summaries?",
     "yes": "Yes",
     "no": "No",
+    "ok": "OK",
+    "letter_thread_full_title": "Letter Thread Full",
+    "letter_thread_full_message": "The letter thread is full (9/9). Please go to the Decisions panel in-game and select 'VOTC Release Letter Thread' to continue sending letters.",
     "announcement_title": "New Community Resources!",
     "announcement_message": "We have a new Discord server, a new Steam mod, and a website!\n\nDiscord: Join our community for support and discussion.\nSteam: Check out 'Voices of the Court - Community Edition' on the Steam Workshop.\nWebsite: Visit our new website for documentation and more.",
     "join_discord": "Join Discord",
@@ -575,7 +578,8 @@
     "tooltip_pending": "Number of generated replies waiting for the in-game delay to pass before delivery.",
     "tooltip_failed": "Number of letters that failed to generate or send.",
     "tooltip_completed": "Number of letters that have been successfully sent or read.",
-    "load_success": "Letters data successfully loaded"
+    "load_success": "Letters data successfully loaded",
+    "thread_status": "Letter Thread"
   },
   "history": {
     "header": "Conversation History Viewer",
