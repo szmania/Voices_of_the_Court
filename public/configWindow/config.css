@@ -634,6 +634,16 @@ mark.current-highlight {
     justify-content: space-around;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid #5a4a35;
+    border-bottom: 1px solid #5a4a35;
+    font-size: 0.9em;
+}
+
+#letter-status-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
     border-bottom: 1px solid #5a4a35;
     font-size: 0.9em;
 }
