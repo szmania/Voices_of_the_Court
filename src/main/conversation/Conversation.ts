@@ -876,7 +876,7 @@ export class Conversation{
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
-        const prompt = await buildChatPrompt(this, source);
+        const prompt = await buildChatPrompt(this, source, undefined, target);
 
         // Remove all system prompts at the end that are instructions
         while (prompt.length > 0 && prompt[prompt.length - 1].role === 'system') {
