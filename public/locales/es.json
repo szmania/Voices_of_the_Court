@@ -211,7 +211,7 @@
     "status_speaking": "Hablando:",
     "status_next_up": "Siguiente:",
     "status_generating_scene": "Generando descripción de la escena...",
-    "status_checking_actions": "Comprobando acciones...",
+    "status_checking_actions": "{characterName} decidiendo una acción...",
     "status_generating_narrative": "Generando narrativa..."
   },
   "narrative": {

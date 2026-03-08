@@ -209,7 +209,7 @@
     "status_speaking": "Spricht:",
     "status_next_up": "Nächster:",
     "status_generating_scene": "Szenenbeschreibung wird generiert...",
-    "status_checking_actions": "Aktionen werden geprüft...",
+    "status_checking_actions": "{characterName} entscheidet über eine Aktion...",
     "status_generating_narrative": "Erzählung wird generiert..."
   },
   "narrative": {

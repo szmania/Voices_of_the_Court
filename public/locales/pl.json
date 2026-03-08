@@ -211,7 +211,7 @@
     "status_speaking": "Mówi:",
     "status_next_up": "Następny:",
     "status_generating_scene": "Generowanie opisu sceny...",
-    "status_checking_actions": "Sprawdzanie akcji...",
+    "status_checking_actions": "{characterName} decyduje o akcji...",
     "status_generating_narrative": "Generowanie narracji..."
   },
   "narrative": {

@@ -211,7 +211,7 @@
     "status_speaking": "Говорит:",
     "status_next_up": "Следующий:",
     "status_generating_scene": "Генерация описания сцены...",
-    "status_checking_actions": "Проверка действий...",
+    "status_checking_actions": "{characterName} решает, какое действие предпринять...",
     "status_generating_narrative": "Генерация повествования..."
   },
   "narrative": {

@@ -211,7 +211,7 @@
     "status_speaking": "발언 중:",
     "status_next_up": "다음:",
     "status_generating_scene": "장면 설명 생성 중...",
-    "status_checking_actions": "작업 확인 중...",
+    "status_checking_actions": "{characterName}이(가) 행동을 결정 중...",
     "status_generating_narrative": "내러티브 생성 중..."
   },
   "narrative": {

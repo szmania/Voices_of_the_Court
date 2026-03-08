@@ -211,7 +211,7 @@
     "status_speaking": "発言中：",
     "status_next_up": "次：",
     "status_generating_scene": "シーンの説明を生成中...",
-    "status_checking_actions": "アクションを確認中...",
+    "status_checking_actions": "{characterName}がアクションを決定中...",
     "status_generating_narrative": "ナラティブを生成中..."
   },
   "narrative": {

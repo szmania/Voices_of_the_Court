@@ -214,7 +214,7 @@
     "status_speaking": "发言中：",
     "status_next_up": "下一个：",
     "status_generating_scene": "正在生成场景描述...",
-    "status_checking_actions": "正在检查动作...",
+    "status_checking_actions": "{characterName} 正在决定一个动作...",
     "status_generating_narrative": "正在生成旁白..."
   },
   "narrative": {

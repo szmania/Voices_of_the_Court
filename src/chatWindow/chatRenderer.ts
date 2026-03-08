@@ -677,10 +677,10 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
     queueStatusDiv.innerHTML = statusHTML;
 }
 
-function updateStatusText(textKey: string) {
+function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
-        const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
+        const statusText = window.LocalizationManager?.getNestedTranslation(textKey, vars) || textKey;
         queueStatusDiv.innerHTML = `<div><span class="current-speaker">${statusText}</span></div>`;
     } else {
         queueStatusDiv.innerHTML = '';
@@ -1305,12 +1305,8 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
     updateQueueStatus(queue, currentSpeaker);
 });
 
-ipcRenderer.on('status-update', (e, textKey: string) => {
-    updateStatusText(textKey);
-});
-
-ipcRenderer.on('status-update', (e, textKey: string) => {
-    updateStatusText(textKey);
+ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
+    updateStatusText(textKey, vars);
 });
 
 ipcRenderer.on('chat-hide', () =>{
