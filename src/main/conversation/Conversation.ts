@@ -218,27 +218,6 @@ export class Conversation{
         this.diaryGenerator = new DiaryGenerator(this.config);
     }
 
-    async summarizeDiaries(characterId: number): Promise<void> {
-        const playerId = this.gameData.playerID.toString();
-        const charId = characterId.toString();
-        const diaryEntries = await readDiaryFile(playerId, charId);
-
-        if (!diaryEntries || !diaryEntries.diary_entries || diaryEntries.diary_entries.length === 0) {
-            console.log(`No diary entries to summarize for character ${charId}.`);
-            return;
-        }
-
-        const allEntriesContent = diaryEntries.diary_entries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n---\n\n');
-
-        const prompt = (this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt) + `\n\n${allEntriesContent}`;
-
-        const summary = await this.summarizationApiConnection.complete([{ role: 'user', content: prompt }], false, {});
-
-        if (summary) {
-            await saveDiarySummary(playerId, charId, summary);
-            console.log(`Diary summary saved for character ${charId}.`);
-        }
-    }
 
     async summarizeDiaries(characterId: number): Promise<void> {
         const playerId = this.gameData.playerID.toString();
@@ -589,6 +568,9 @@ export class Conversation{
                 let narrative: string = "";
 
                 if (this.config.actionsEnableAll) {
+                    const character = this.gameData.characters.get((message as any).characterId);
+                    if (!character) continue;
+
                     const actionTarget = await this.determineActionTarget(message.content, character.id);
                     const originalPlayerId = this.gameData.playerID;
                     const originalAiId = this.gameData.aiID;
