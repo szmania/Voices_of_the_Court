@@ -618,7 +618,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         gameData.characters.forEach(char => {
             characterNameMap.set(String(char.id), char.fullName);
         });
-        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID), gameData.date);
+        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
@@ -753,7 +753,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const letterManager = LetterManager.getInstance();
 
         // Import letters from log, which now also saves them.
-        await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+        await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate, String(gameData.aiID));
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
 
         // Get all letters for the player and find the most recent one.

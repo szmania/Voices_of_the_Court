@@ -174,7 +174,7 @@ export class LetterManager {
         }
     }
 
-    public async importLettersFromLog(config: Config, characterNameMap: Map<string, string>, playerId: string, gameDate: string): Promise<void> {
+    public async importLettersFromLog(config: Config, characterNameMap: Map<string, string>, playerId: string, gameDate: string, recipientId?: string): Promise<void> {
         const ck3Folder = config.userFolderPath;
         if (!ck3Folder) {
             console.warn("LetterManager.importLettersFromLog: CK3 user folder is not configured.");
@@ -182,8 +182,8 @@ export class LetterManager {
         }
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
-        // Pass playerId to parseLettersFromLog so it can save letters immediately.
-        const newLetters = await parseLettersFromLog(debugLogPath, characterNameMap, gameDate, playerId);
+        // Pass playerId and recipientId to parseLettersFromLog so it can save letters immediately.
+        const newLetters = await parseLettersFromLog(debugLogPath, characterNameMap, gameDate, playerId, recipientId);
 
         if (newLetters.length > 0) {
             console.log(`Imported and saved ${newLetters.length} new letters.`);
