@@ -1344,10 +1344,9 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // @ts-ignore
     if (window.LocalizationManager && config) {
         // @ts-ignore
-        window.LocalizationManager.loadTranslations(config.language || 'en').then(() => {
-            // @ts-ignore
-            window.LocalizationManager.applyTranslations();
-        });
+        await window.LocalizationManager.loadTranslations(config.language || 'en');
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
     }
 
     // Initialize chat UI elements (this clears the display)
