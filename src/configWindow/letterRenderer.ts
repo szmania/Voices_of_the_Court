@@ -44,27 +44,32 @@ function renderStatusSummary() {
     const completed = allLetters.filter(l => l.status === 'sent' || l.status === 'read').length;
 
     summaryContainer.innerHTML = `
-        <div class="status-item">
+        <div class="status-item" data-i18n-title="letters.tooltip_total">
             <div class="count">${total}</div>
-            <div class="label">Total</div>
+            <div class="label" data-i18n="letters.status_total">Total</div>
         </div>
-        <div class="status-item">
+        <div class="status-item" data-i18n-title="letters.tooltip_generating">
             <div class="count">${generating}</div>
-            <div class="label">Generating</div>
+            <div class="label" data-i18n="letters.status_generating">Generating</div>
         </div>
-        <div class="status-item">
+        <div class="status-item" data-i18n-title="letters.tooltip_pending">
             <div class="count">${pending}</div>
-            <div class="label">Pending</div>
+            <div class="label" data-i18n="letters.status_pending">Pending</div>
         </div>
-        <div class="status-item">
+        <div class="status-item" data-i18n-title="letters.tooltip_failed">
             <div class="count">${failed}</div>
-            <div class="label">Failed</div>
+            <div class="label" data-i18n="letters.status_failed">Failed</div>
         </div>
-        <div class="status-item">
+        <div class="status-item" data-i18n-title="letters.tooltip_completed">
             <div class="count">${completed}</div>
-            <div class="label">Completed</div>
+            <div class="label" data-i18n="letters.status_completed">Completed</div>
         </div>
     `;
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations(summaryContainer);
+    }
 }
 
 function renderLetters() {
@@ -93,26 +98,43 @@ function renderLetters() {
             return String(otherPartyId) === selectedCharacterId;
         });
 
-    // Group letters into pairs
-    const rootLetters = characterFilteredLetters.filter(l => !l.replyToId);
     const repliesMap = new Map<string, Letter>();
-    characterFilteredLetters.filter(l => l.replyToId).forEach(r => repliesMap.set(r.replyToId!, r));
+    const rootLetters: Letter[] = [];
 
-    const letterPairs: {sent?: Letter, received?: Letter}[] = rootLetters.map(root => {
-        const reply = repliesMap.get(root.id);
-        if (root.sender.id === Number(selectedPlayerId)) {
-            // Player sent the root letter
-            return { sent: root, received: reply };
+    characterFilteredLetters.forEach(l => {
+        if (l.replyToId) {
+            repliesMap.set(l.replyToId, l);
         } else {
-            // Player received the root letter
-            return { sent: reply, received: root };
+            rootLetters.push(l);
         }
     });
 
-    // Sort pairs by the timestamp of the root letter (which is always the received one if it exists, otherwise the sent one)
+    const letterPairs: {sent?: Letter, received?: Letter}[] = [];
+    
+    rootLetters.forEach(root => {
+        const reply = repliesMap.get(root.id);
+        if (root.sender.id === Number(selectedPlayerId)) {
+            letterPairs.push({ sent: root, received: reply });
+        } else {
+            letterPairs.push({ received: root, sent: reply });
+        }
+    });
+
+    // Identify and add orphaned replies
+    repliesMap.forEach((reply, rootId) => {
+        if (!rootLetters.some(root => root.id === rootId)) {
+            if (reply.sender.id === Number(selectedPlayerId)) {
+                letterPairs.push({ sent: reply });
+            } else {
+                letterPairs.push({ received: reply });
+            }
+        }
+    });
+
+    // Sort pairs by the timestamp of the most recent letter in the pair
     letterPairs.sort((a, b) => {
-        const timeA = a.received ? new Date(a.received.timestamp).getTime() : new Date(a.sent!.timestamp).getTime();
-        const timeB = b.received ? new Date(b.received.timestamp).getTime() : new Date(b.sent!.timestamp).getTime();
+        const timeA = new Date((a.sent || a.received)!.timestamp).getTime();
+        const timeB = new Date((b.sent || b.received)!.timestamp).getTime();
         return timeB - timeA;
     });
 
@@ -161,7 +183,7 @@ function renderLetters() {
             `;
         } else {
              // Case where we have a received letter but no reply from the player yet
-            sentHtml = `<div class="letter-item-placeholder">No reply yet.</div>`;
+            sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
         }
 
         li.innerHTML = receivedHtml + sentHtml;
@@ -193,6 +215,11 @@ function renderLetters() {
             target.classList.add('selected');
         });
     });
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations(letterList);
+    }
 }
 
 function renderLetterContent(letter: Letter) {

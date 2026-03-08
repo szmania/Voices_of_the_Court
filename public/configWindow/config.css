@@ -521,7 +521,6 @@ mark.current-highlight {
     gap: 20px;
     padding: 10px;
     align-items: center;
-    border-bottom: 1px solid #5a4a35;
     flex-wrap: wrap;
     background-color: rgba(26, 26, 26, 0.8);
 }
