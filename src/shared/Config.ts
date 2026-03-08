@@ -105,6 +105,7 @@ export class Config{
     get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
     get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
     get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
+    get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
 
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
