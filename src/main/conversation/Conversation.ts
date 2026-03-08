@@ -523,11 +523,21 @@ export class Conversation{
 
         // Step 2: Get and process non-targeted characters
         const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
-        const respondingCharacters = nonTargetedCharacters.filter(char => {
-            const willRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
-            if (willRespond) console.log(`Non-targeted character ${char.shortName} will respond based on chance.`);
-            return willRespond;
-        }).sort(() => Math.random() - 0.5);
+        const respondingCharacters: Character[] = [];
+
+        // Decide if ANY non-targeted character should respond
+        const willAnyRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
+
+        if (willAnyRespond && nonTargetedCharacters.length > 0) {
+            console.log(`A non-targeted character will respond based on chance.`);
+            // Select one random character from the available non-targeted characters
+            const randomIndex = Math.floor(Math.random() * nonTargetedCharacters.length);
+            const selectedCharacter = nonTargetedCharacters[randomIndex];
+            respondingCharacters.push(selectedCharacter);
+            console.log(`Selected non-targeted character to respond: ${selectedCharacter.shortName}`);
+        } else {
+            console.log(`No non-targeted character will respond this turn.`);
+        }
 
         if (respondingCharacters.length > 0) {
             console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
