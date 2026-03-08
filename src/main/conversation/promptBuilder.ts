@@ -245,9 +245,13 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         });
         console.log('Added self-talk main prompt from config.');
     } else {
+        let mainPromptText = conv.config.mainPrompt;
+        const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
+        mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
+
         chatPrompt.push({
             role: "system",
-            content: parseVariables(conv.config.mainPrompt, conv.gameData)
+            content: parseVariables(mainPromptText, conv.gameData)
         });
         console.log('Added standard main prompt.');
     }
