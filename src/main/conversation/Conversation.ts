@@ -878,6 +878,7 @@ export class Conversation{
             };
             // Add target information for the UI
             (message as any).targetCharacterIds = [target.id];
+            (message as any).characterId = source.id;
             return message;
         }
         return null;

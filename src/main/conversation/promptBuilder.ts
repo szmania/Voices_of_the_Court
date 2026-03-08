@@ -95,7 +95,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let roleplayInstruction: string;
     if (isAiToAi) {
         const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-        const isInitiatingAiToAi = lastMessage && lastMessage.name === character.fullName;
+        const isInitiatingAiToAi = lastMessage && lastMessage.role === 'assistant' && (lastMessage as any).characterId === character.id;
+        console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}. Last speaker ID: ${(lastMessage as any)?.characterId}, Current character ID: ${character.id}`);
 
         if (isInitiatingAiToAi) {
             const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
