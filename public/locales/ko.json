@@ -591,6 +591,33 @@
   "prompt_builder": {
     "summary_header": "이전 대화의 날짜와 요약은 다음과 같습니다."
   },
+  "character_validation": {
+    "prompt_assistant_role": "당신은 캐릭터 신원 확인 도우미입니다. 다음 메시지가 지정된 캐릭터의 신원과 일치하는지 확인해야 합니다.",
+    "character_info": "캐릭터 정보:",
+    "name": "이름",
+    "short_name": "짧은 이름",
+    "title": "신원/직위",
+    "gender": "성별",
+    "age": "나이",
+    "culture": "문화",
+    "faith": "신앙",
+    "is_ruler": "통치자 여부",
+    "is_independent_ruler": "독립 통치자 여부",
+    "recent_history": "최근 대화 기록:",
+    "current_speaker": "현재 말하는 캐릭터:",
+    "message_content": "메시지 내용:",
+    "instruction": "대화 기록과 맥락을 바탕으로 이 메시지가 캐릭터의 신원과 일치하는지 판단하십시오. 일치하면 '유효'라고 답하고, 일치하지 않으면 '무효'라고 답하십시오. '유효' 또는 '무효'라고만 답하고 다른 설명은 필요 없습니다.",
+    "yes": "예",
+    "no": "아니요",
+    "age_suffix": {
+        "infant": "(영아)",
+        "toddler": "(유아)",
+        "child": "(어린이)",
+        "teenager": "(십대)"
+    },
+    "valid": "유효",
+    "invalid": "무효"
+  },
   "suggestion_builder": {
     "summary_header": "이전 대화의 날짜와 요약은 다음과 같습니다.",
     "prompt_header": "다음 대화 맥락과 캐릭터 정보를 바탕으로 플레이어 캐릭터 {characterName}에 대한 짧고 적절한 응답 제안 3-5개를 생성하십시오. 제안은 다음과 같아야 합니다.",
