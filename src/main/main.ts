@@ -247,56 +247,13 @@ let config: Config;
 let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 
-function deliverLetter(storedLetter: StoredLetter) {
-    const userFolderPath = config.userFolderPath;
-    if (!userFolderPath) {
-        console.error("Cannot deliver letter, user folder path is not set.");
-        return;
-    }
-
-    const letter = storedLetter.letter;
-    const replyContent = storedLetter.reply;
-    const letterId = letter.subject; // This is 'letter_5' etc.
-
-    const runFolderPath = path.join(userFolderPath, "run");
-    if (!fs.existsSync(runFolderPath)) {
-        fs.mkdirSync(runFolderPath, { recursive: true });
-    }
-
-    const letterFilePath = path.join(runFolderPath, "letters.txt");
-
-    const escapedReply = replyContent.replace(/"/g, '\\"');
-    
-    const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
-remove_global_variable ?= votc_${letterId}
-create_artifact = {
-\tname = votc_huixin_title${letterId.replace(/letter_/, "")}
-\tdescription = "${escapedReply}"
-\ttype = journal
-\tvisuals = scroll
-\tcreator = global_var:message_second_scope_${letterId}
-\tmodifier = artifact_monthly_minor_prestige_1_modifier
-\twealth = scope:wealth
-\tsave_scope_as = votc_latest_letter
-}
-scope:votc_latest_letter = {
-set_variable = { name = votc_letter_artifact value = yes}
-}
-set_global_variable = {
-\tname = votc_latest_letter
-\tvalue = scope:votc_latest_letter
-}
-trigger_event = message_event.362`;
-
-    fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
-    console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
-}
 
 function checkAndDeliverLetters() {
+    const letterManager = LetterManager.getInstance();
     for (const [letterId, storedLetter] of storedLetters.entries()) {
         if (currentTotalDays >= storedLetter.expectedDeliveryDay) {
             console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
-            deliverLetter(storedLetter);
+            letterManager.deliverLetter(storedLetter, config);
             storedLetters.delete(letterId);
         }
     }
