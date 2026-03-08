@@ -46,7 +46,7 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 
-export function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[]): Message[]{
+export async function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[]): Promise<Message[]>{
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 

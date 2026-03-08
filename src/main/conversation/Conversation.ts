@@ -823,7 +823,7 @@ export class Conversation{
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
-        const prompt = buildChatPrompt(this, source);
+        const prompt = await buildChatPrompt(this, source);
         prompt.push({
             role: 'system',
             content: `Your next response should be directed at ${target.fullName}.`
@@ -859,7 +859,7 @@ export class Conversation{
             console.log('Stream started for AI message generation.');
         }
 
-        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(buildChatPrompt(this, character));
+        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(await buildChatPrompt(this, character));
         //let currentTokens = 500;
         console.log(`Current prompt token count: ${currentTokens}`);
 
@@ -891,7 +891,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                content: await this.textGenApiConnection.complete(buildChatPrompt(this, character), this.config.stream && sendMessageToChat, {
+                content: await this.textGenApiConnection.complete(await buildChatPrompt(this, character), this.config.stream && sendMessageToChat, {
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
                 },
@@ -906,7 +906,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: await this.textGenApiConnection.complete(convertChatToText(buildChatPrompt(this, character), this.config, character.fullName), this.config.stream && sendMessageToChat, {
+                content: await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character), this.config, character.fullName), this.config.stream && sendMessageToChat, {
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
                 },
