@@ -73,9 +73,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
     
     let replyToName: string;
+    let isAiToAi = false;
 
     if (targetCharacter) {
         replyToName = targetCharacter.fullName;
+        isAiToAi = true;
         console.log(`Explicit target provided. Setting reply target for ${character.fullName} to ${replyToName}`);
     } else {
         const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
@@ -84,13 +86,23 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             const lastSpeaker = Array.from(conv.gameData.characters.values()).find(c => c.fullName === lastMessage.name || c.shortName === lastMessage.name);
             if (lastSpeaker) {
                 replyToName = lastSpeaker.fullName;
+                isAiToAi = true;
                 console.log(`AI-to-AI reply detected. Setting reply target for ${character.fullName} to ${replyToName}`);
             }
         }
     }
 
-    let roleplayInstruction = roleplayInstructionTemplate.replace(/{characterName}/g, character.fullName);
-    roleplayInstruction = roleplayInstruction.replace(/{playerName}/g, replyToName);
+    let roleplayInstruction: string;
+    if (isAiToAi) {
+        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiToAiTemplate
+            .replace(/{sourceCharacterName}/g, character.fullName)
+            .replace(/{targetCharacterName}/g, replyToName);
+    } else {
+        roleplayInstruction = roleplayInstructionTemplate
+            .replace(/{characterName}/g, character.fullName)
+            .replace(/{playerName}/g, replyToName);
+    }
 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
