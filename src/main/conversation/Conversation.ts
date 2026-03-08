@@ -410,8 +410,7 @@ export class Conversation{
     }
 
     pushMessage(message: Message): void{
-        let replacedPlaceholder = false;
-        // If this is an AI message, try to replace a placeholder
+        // If this is an AI message, try to remove a placeholder
         if (message.role === 'assistant' && (message as any).characterId) {
             const characterId = (message as any).characterId;
             const placeholderIndex = this.messages.findIndex(
@@ -419,15 +418,12 @@ export class Conversation{
             );
 
             if (placeholderIndex !== -1) {
-                this.messages[placeholderIndex] = message;
-                console.log(`Replaced placeholder for character ID ${characterId}.`);
-                replacedPlaceholder = true;
+                this.messages.splice(placeholderIndex, 1); // Remove the placeholder
+                console.log(`Removed placeholder for character ID ${characterId}.`);
             }
         }
 
-        if (!replacedPlaceholder) {
-            this.messages.push(message);
-        }
+        this.messages.push(message); // Always push the new message to the end
 
         console.log(`Message processed for conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
         
@@ -876,6 +872,9 @@ export class Conversation{
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
+        // Update UI to show who is speaking
+        this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
+
         const prompt = await buildChatPrompt(this, source, undefined, target);
 
         // Remove all system prompts at the end that are instructions
