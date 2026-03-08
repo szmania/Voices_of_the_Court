@@ -13,6 +13,8 @@ export class Letter implements ILetter {
     letterType: LetterType;
     delay: number;
     totalDays: number;
+    replyToId?: string;
+    status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
 
     constructor(
         id: string,
@@ -24,7 +26,9 @@ export class Letter implements ILetter {
         timestamp: Date = new Date(),
         isRead: boolean = false,
         delay: number = 0,
-        totalDays: number = 0
+        totalDays: number = 0,
+        replyToId?: string,
+        status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read'
     ) {
         this.id = id;
         this.sender = sender;
@@ -36,6 +40,8 @@ export class Letter implements ILetter {
         this.letterType = letterType;
         this.delay = delay;
         this.totalDays = totalDays;
+        this.replyToId = replyToId;
+        this.status = status;
     }
 
     public static fromLog(
@@ -76,7 +82,9 @@ export class Letter implements ILetter {
                 timestamp,
                 false,
                 delay,
-                totalDays
+                totalDays,
+                undefined,
+                'sent'
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

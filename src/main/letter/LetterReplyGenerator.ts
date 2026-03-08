@@ -34,7 +34,7 @@ export class LetterReplyGenerator {
      * @param letterContent Letter content
      * @returns The constructed prompt
      */
-    private async buildLetterPrompt(gameData: GameData, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }): Promise<string> {
+    private async buildLetterPrompt(gameData: GameData, letter: ILetter): Promise<string> {
         const player = gameData.characters.get(gameData.playerID);
         const ai = gameData.characters.get(gameData.aiID);
 
@@ -98,7 +98,7 @@ export class LetterReplyGenerator {
                        .replace('{{conversationSummary}}', conversationSummary)
                        .replace('{{memoryContent}}', memoryContent)
                        .replace('{{playerName}}', player.fullName)
-                       .replace('{{letterContent}}', letterContent.content)
+                       .replace('{{letterContent}}', letter.content)
                        .replace(/{{language}}/g, this.config.language);
 
         return prompt;
@@ -126,15 +126,8 @@ export class LetterReplyGenerator {
      */
     public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<string | null> {
         try {
-            const letterContent = {
-                content: letter.content,
-                subject: letter.subject,
-                senderId: String(letter.sender.id),
-                recipientId: String(letter.recipient.id)
-            };
-
             // Build prompt
-            const promptText = await this.buildLetterPrompt(gameData, letterContent);
+            const promptText = await this.buildLetterPrompt(gameData, letter);
             console.log(`Generated letter prompt: ${promptText.substring(0, 200)}...`);
 
             // Convert prompt to Message array format
@@ -162,10 +155,10 @@ export class LetterReplyGenerator {
             console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
             // Generate and save a summary of the letter
-            await this.generateAndSaveLetterSummary(gameData, letterContent, escapedResponse);
+            await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse);
 
             // Save letter history immediately
-            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letterContent, escapedResponse, gameData);
+            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData);
             
             // Return the generated reply so it can be queued for delayed delivery
             return escapedResponse;
@@ -184,7 +177,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string, gameData: GameData): Promise<void> {
+    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData): Promise<void> {
         try {
             const letterManager = LetterManager.getInstance();
     
@@ -196,43 +189,26 @@ export class LetterReplyGenerator {
                 return;
             }
     
-            // Get characters for the original letter
-            const originalSender = gameData.getCharacter(Number(letterContent.senderId));
-            const originalRecipient = gameData.getCharacter(Number(letterContent.recipientId));
-    
-            if (!originalSender || !originalRecipient) {
-                console.error(`Could not find original sender (${letterContent.senderId}) or recipient (${letterContent.recipientId}) to save letter history.`);
-                return;
-            }
-    
-            // Create both letter objects
-            const originalLetter = new Letter(
-                randomUUID(),
-                originalSender,
-                originalRecipient,
-                letterContent.subject,
-                letterContent.content,
-                LetterType.PERSONAL,
-                new Date(gameData.date.replace(/\./g, '-')),
-                true // The player sent it, so it's "read" by them.
-            );
-    
             const replyLetter = new Letter(
                 randomUUID(),
                 ai, // sender is the AI
                 player, // recipient is the player
-                `Re: ${letterContent.subject}`,
+                `Re: ${originalLetter.subject}`,
                 replyContent,
                 LetterType.PERSONAL,
                 new Date(gameData.date.replace(/\./g, '-')),
-                false // It's a new letter, so not read by the player yet
+                false, // It's a new letter, so not read by the player yet
+                originalLetter.delay,
+                gameData.totalDays,
+                originalLetter.id,
+                'pending'
             );
     
             // Atomically update the history file
             const otherCharacterId = aiId; // The file is named after the non-player character
             const filePath = letterManager.getLetterFilePath(playerId, otherCharacterId);
     
-            let history: Letter[] = [];
+            let history: ILetter[] = [];
             if (fs.existsSync(filePath)) {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
@@ -263,7 +239,7 @@ export class LetterReplyGenerator {
      * @param letterContent Player's letter content
      * @param replyContent AI's reply content
      */
-    private async generateAndSaveLetterSummary(gameData: GameData, letterContent: { content: string; subject: string; senderId: string; recipientId: string; }, replyContent: string): Promise<void> {
+    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string): Promise<void> {
         try {
             const player = gameData.getPlayer();
             const ai = gameData.getAi();
@@ -277,7 +253,7 @@ export class LetterReplyGenerator {
             let summaryPrompt = this.config.letterSummaryPrompt || "Please generate a concise summary based on the following letter exchange:\n\nPlayer {{playerName}}'s letter:\n\"{{playerLetterContent}}\"\n\nCharacter {{aiName}}'s reply:\n\"{{aiReplyContent}}\"\n\nPlease generate a concise summary describing the main content of this letter exchange. The summary should:\n1. Be concise and clear, not exceeding 100 words\n2. Highlight the core content of the letter exchange\n3. Reflect the relationship and interaction characteristics between the characters\n\nPlease write the summary content directly, without adding any explanation or description.";
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
-                                         .replace('{{playerLetterContent}}', letterContent.content)
+                                         .replace('{{playerLetterContent}}', originalLetter.content)
                                          .replace('{{aiName}}', ai.fullName)
                                          .replace('{{aiReplyContent}}', replyContent);
 

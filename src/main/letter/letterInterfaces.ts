@@ -18,6 +18,8 @@ export interface Letter {
   letterType: LetterType;
   delay: number;
   totalDays: number;
+  replyToId?: string;
+  status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
 }
 
 export interface StoredLetter {

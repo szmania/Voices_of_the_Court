@@ -15,7 +15,6 @@ function formatDate(date: Date): string {
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
 let selectedCharacterId: string | null = 'all';
-let currentView: 'inbox' | 'outbox' = 'inbox';
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -33,6 +32,40 @@ const initLocalization = async (lang?: string) => {
     }
 };
 
+
+function renderStatusSummary() {
+    const summaryContainer = document.getElementById('letter-status-summary');
+    if (!summaryContainer) return;
+
+    const total = allLetters.length;
+    const generating = allLetters.filter(l => l.status === 'generating').length;
+    const pending = allLetters.filter(l => l.status === 'pending').length;
+    const failed = allLetters.filter(l => l.status === 'failed').length;
+    const completed = allLetters.filter(l => l.status === 'sent' || l.status === 'read').length;
+
+    summaryContainer.innerHTML = `
+        <div class="status-item">
+            <div class="count">${total}</div>
+            <div class="label">Total</div>
+        </div>
+        <div class="status-item">
+            <div class="count">${generating}</div>
+            <div class="label">Generating</div>
+        </div>
+        <div class="status-item">
+            <div class="count">${pending}</div>
+            <div class="label">Pending</div>
+        </div>
+        <div class="status-item">
+            <div class="count">${failed}</div>
+            <div class="label">Failed</div>
+        </div>
+        <div class="status-item">
+            <div class="count">${completed}</div>
+            <div class="label">Completed</div>
+        </div>
+    `;
+}
 
 function renderLetters() {
     const letterList = document.getElementById('letter-list');
@@ -52,24 +85,39 @@ function renderLetters() {
         return;
     }
 
-    const filteredLetters = allLetters.filter(letter => {
-        if (!letter.recipient || !letter.sender) return false;
-
-        const isInbox = letter.recipient.id === Number(selectedPlayerId);
-        const isOutbox = letter.sender.id === Number(selectedPlayerId);
-
-        if (currentView === 'inbox' && !isInbox) return false;
-        if (currentView === 'outbox' && !isOutbox) return false;
-
-        if (selectedCharacterId && selectedCharacterId !== 'all') {
-            const otherPartyId = isInbox ? letter.sender.id : letter.recipient.id;
+    // Filter letters by selected character
+    const characterFilteredLetters = selectedCharacterId === 'all'
+        ? allLetters
+        : allLetters.filter(letter => {
+            const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
             return String(otherPartyId) === selectedCharacterId;
-        }
+        });
 
-        return true;
+    // Group letters into pairs
+    const rootLetters = characterFilteredLetters.filter(l => !l.replyToId);
+    const repliesMap = new Map<string, Letter>();
+    characterFilteredLetters.filter(l => l.replyToId).forEach(r => repliesMap.set(r.replyToId!, r));
+
+    const letterPairs: {sent?: Letter, received?: Letter}[] = rootLetters.map(root => {
+        const reply = repliesMap.get(root.id);
+        if (root.sender.id === Number(selectedPlayerId)) {
+            // Player sent the root letter
+            return { sent: root, received: reply };
+        } else {
+            // Player received the root letter
+            return { sent: reply, received: root };
+        }
     });
 
-    if (filteredLetters.length === 0) {
+    // Sort pairs by the timestamp of the root letter (which is always the received one if it exists, otherwise the sent one)
+    letterPairs.sort((a, b) => {
+        const timeA = a.received ? new Date(a.received.timestamp).getTime() : new Date(a.sent!.timestamp).getTime();
+        const timeB = b.received ? new Date(b.received.timestamp).getTime() : new Date(b.sent!.timestamp).getTime();
+        return timeB - timeA;
+    });
+
+
+    if (letterPairs.length === 0) {
         const noLettersItem = document.createElement('li');
         noLettersItem.setAttribute('data-i18n', 'letters.no_letters');
         noLettersItem.textContent = 'No letters found.'; // Fallback text
@@ -81,37 +129,69 @@ function renderLetters() {
         return;
     }
 
-    filteredLetters.forEach(letter => {
+    letterPairs.forEach(pair => {
         const li = document.createElement('li');
-        li.dataset.letterId = letter.id;
-        li.classList.add('letter-item');
-        if (!letter.isRead && currentView === 'inbox') {
-            li.classList.add('unread');
+        li.classList.add('letter-pair-item');
+
+        let receivedHtml = '';
+        if (pair.received) {
+            const isUnread = !pair.received.isRead;
+            li.classList.toggle('unread', isUnread);
+            receivedHtml = `
+                <div class="letter-item received" data-letter-id="${pair.received.id}">
+                    <div class="letter-item-header">
+                        <span class="letter-item-party">From: ${pair.received.sender.shortName}</span>
+                        <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
+                    </div>
+                    <div class="letter-item-subject">${pair.received.subject}</div>
+                </div>
+            `;
         }
 
-        const otherParty = currentView === 'inbox' ? letter.sender : letter.recipient;
+        let sentHtml = '';
+        if (pair.sent) {
+            sentHtml = `
+                <div class="letter-item sent" data-letter-id="${pair.sent.id}">
+                    <div class="letter-item-header">
+                        <span class="letter-item-party">To: ${pair.sent.recipient.shortName}</span>
+                        <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
+                    </div>
+                    <div class="letter-item-subject">${pair.sent.subject}</div>
+                </div>
+            `;
+        } else {
+             // Case where we have a received letter but no reply from the player yet
+            sentHtml = `<div class="letter-item-placeholder">No reply yet.</div>`;
+        }
 
-        li.innerHTML = `
-            <div class="letter-item-header">
-                <span class="letter-item-party">${otherParty.shortName}</span>
-                <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
-            </div>
-            <div class="letter-item-subject">${letter.subject}</div>
-        `;
+        li.innerHTML = receivedHtml + sentHtml;
+        letterList.appendChild(li);
+    });
 
-        li.addEventListener('click', () => {
+    // Add event listeners after rendering
+    document.querySelectorAll('.letter-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const target = e.currentTarget as HTMLElement;
+            const letterId = target.dataset.letterId;
+            if (!letterId) return;
+
+            const letter = allLetters.find(l => l.id === letterId);
+            if (!letter) return;
+
             renderLetterContent(letter);
-            // Mark as read if it's an inbox letter
-            if (currentView === 'inbox' && !letter.isRead) {
+
+            // Mark as read if it's a received letter
+            if (letter.recipient.id === Number(selectedPlayerId) && !letter.isRead) {
                 ipcRenderer.send('mark-letter-as-read', { playerId: selectedPlayerId, characterId: String(letter.sender.id), letterId: letter.id });
                 letter.isRead = true; // Update local state
-                li.classList.remove('unread');
+                const pairElement = target.closest('.letter-pair-item');
+                if (pairElement) pairElement.classList.remove('unread');
             }
+
             // Highlight selected
             document.querySelectorAll('.letter-item.selected').forEach(el => el.classList.remove('selected'));
-            li.classList.add('selected');
+            target.classList.add('selected');
         });
-        letterList.appendChild(li);
     });
 }
 
@@ -190,6 +270,7 @@ async function loadCharacters(playerId: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
+    renderStatusSummary();
     renderLetters();
 }
 
@@ -203,8 +284,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
-    const inboxBtn = document.getElementById('inbox-btn') as HTMLButtonElement;
-    const outboxBtn = document.getElementById('outbox-btn') as HTMLButtonElement;
     const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
 
     refreshBtn.addEventListener('click', async () => {
@@ -227,20 +306,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
-        renderLetters();
-    });
-
-    inboxBtn.addEventListener('click', () => {
-        currentView = 'inbox';
-        inboxBtn.classList.add('active');
-        outboxBtn.classList.remove('active');
-        renderLetters();
-    });
-
-    outboxBtn.addEventListener('click', () => {
-        currentView = 'outbox';
-        outboxBtn.classList.add('active');
-        inboxBtn.classList.remove('active');
         renderLetters();
     });
 
