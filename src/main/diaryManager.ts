@@ -52,7 +52,7 @@ export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playe
 }
 
 export async function getDiaryFiles(playerId: string): Promise<string[]> {
-    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
+    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diary_history', playerId);
     if (!fs.existsSync(diaryPath)) {
         return [];
     }
@@ -61,7 +61,7 @@ export async function getDiaryFiles(playerId: string): Promise<string[]> {
 }
 
 export async function readDiaryFile(playerId: string, characterId: string): Promise<any> {
-    const filePath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId, `${characterId}.json`);
+    const filePath = path.join(app.getPath('userData'), 'votc_data', 'diary_history', playerId, `${characterId}.json`);
     if (!fs.existsSync(filePath)) {
         return null;
     }
@@ -70,7 +70,7 @@ export async function readDiaryFile(playerId: string, characterId: string): Prom
 }
 
 export async function saveDiaryFile(playerId: string, characterId: string, diaryData: any): Promise<void> {
-    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diaries', playerId);
+    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diary_history', playerId);
     if (!fs.existsSync(diaryPath)) {
         fs.mkdirSync(diaryPath, { recursive: true });
     }
@@ -108,7 +108,7 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
 }
 
 export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
-    const diariesRootPath = path.join(userDataPath, 'diaries');
+    const diariesRootPath = path.join(userDataPath, 'diary_history');
     if (!fs.existsSync(diariesRootPath)) {
         return [];
     }
@@ -137,7 +137,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
 
 export async function getCharacterMap(playerId: string): Promise<{ [key: string]: string }> {
     const userDataPath = app.getPath('userData');
-    const mapPath = path.join(userDataPath, 'votc_data', 'diaries', playerId, '_character_map.json');
+    const mapPath = path.join(userDataPath, 'votc_data', 'diary_history', playerId, '_character_map.json');
     if (fs.existsSync(mapPath)) {
         try {
             const mapContent = await fs.promises.readFile(mapPath, 'utf8');

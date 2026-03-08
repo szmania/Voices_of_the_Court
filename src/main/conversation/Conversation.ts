@@ -111,7 +111,7 @@ export class Conversation{
         this.persistCustomQueue = false;
         this.actionInvolvedCharacterIds = new Set();
 
-        const diariesBasePath = path.join(this.userDataPath, 'diaries');
+        const diariesBasePath = path.join(this.userDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
             fs.mkdirSync(diariesBasePath, { recursive: true });
         }
