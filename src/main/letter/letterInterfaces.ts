@@ -24,8 +24,8 @@ export interface Letter {
 }
 
 export interface StoredLetter {
-    letter: Letter;
-    reply: string;
+    letter: Letter; // The reply letter
+    originalLetter: Letter;
     expectedDeliveryDay: number;
 }
 

@@ -202,7 +202,7 @@ export class LetterManager {
         const filePath = this.getLetterFilePath(playerId, otherId);
         const lettersInFile = this.getLetters(playerId, otherId);
         
-        const letterToUpdate = lettersInFile.find(l => l.replyToId === storedLetter.letter.id);
+        const letterToUpdate = lettersInFile.find(l => l.id === storedLetter.letter.id);
 
         if (letterToUpdate) {
             letterToUpdate.timestamp = new Date(gameDate.replace(/\./g, '-'));
@@ -211,8 +211,8 @@ export class LetterManager {
             console.log(`Updated timestamp and delivered status for letter ${letterToUpdate.id} in ${filePath}`);
         }
     
-        const letter = storedLetter.letter;
-        const replyContent = storedLetter.reply;
+        const letter = storedLetter.originalLetter;
+        const replyContent = storedLetter.letter.content;
         const letterId = letter.subject; // This is 'letter_5' etc.
     
         const runFolderPath = path.join(userFolderPath, "run");

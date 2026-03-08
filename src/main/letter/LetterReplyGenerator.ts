@@ -139,7 +139,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @returns The generated reply content, or null on failure
      */
-    public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<string | null> {
+    public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<ILetter | null> {
         try {
             // Build prompt
             const promptText = await this.buildLetterPrompt(gameData, letter);
@@ -176,10 +176,10 @@ export class LetterReplyGenerator {
             await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse, replyLetterId);
 
             // Save letter history immediately
-            await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData, replyLetterId);
+            const replyLetter = await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData, replyLetterId);
             
             // Return the generated reply so it can be queued for delayed delivery
-            return escapedResponse;
+            return replyLetter;
         } catch (error) {
             console.error(`Error generating letter reply: ${error}`);
             return null;
@@ -195,7 +195,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<void> {
+    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
     
@@ -247,8 +247,10 @@ export class LetterReplyGenerator {
             
             console.log(`Saved original letter and AI reply to letter history for player ${playerId} and character ${aiId}`);
     
+            return replyLetter;
         } catch (error) {
             console.error(`Error saving letter history: ${error}`);
+            return null;
         }
     }
 

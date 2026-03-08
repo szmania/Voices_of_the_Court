@@ -824,17 +824,17 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
-        const replyContent = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
+        const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
-        if (!replyContent) {
+        if (!replyLetter) {
             console.error('Failed to generate letter reply');
             return;
         }
 
         const expectedDeliveryDay = latestLetter.totalDays + latestLetter.delay;
         const storedLetter: StoredLetter = {
-            letter: latestLetter,
-            reply: replyContent,
+            letter: replyLetter,
+            originalLetter: latestLetter,
             expectedDeliveryDay: expectedDeliveryDay
         };
 
