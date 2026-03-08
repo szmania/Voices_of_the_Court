@@ -827,10 +827,10 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 if (isNaN(sourceId) || isNaN(targetId)) {
                     throw new Error('Invalid source or target character ID.');
                 }
-                conversation.actionInvolvedCharacterIds.add(sourceId);
-                conversation.actionInvolvedCharacterIds.add(targetId);
-                conversation.actionInvolvedCharacterIds.add(sourceId);
-                conversation.actionInvolvedCharacterIds.add(targetId);
+                if (signature !== 'noOp') {
+                    conversation.actionInvolvedCharacterIds.add(sourceId);
+                    conversation.actionInvolvedCharacterIds.add(targetId);
+                }
 
                 if (!conversation.gameData.characters.has(sourceId) || !conversation.gameData.characters.has(targetId)) {
                     throw new Error('Source or target character not found in conversation.');

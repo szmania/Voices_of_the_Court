@@ -70,7 +70,7 @@ export async function checkActions(conv: Conversation): Promise<{actions: Action
         return { actions: [], narrative: "" };
     }
 
-    const actions = actionsString.split(',');
+    const actions = actionsString.split(',').filter(a => a.trim() !== 'noop()');
 
     //validations
     for(const actionInResponse of actions){
