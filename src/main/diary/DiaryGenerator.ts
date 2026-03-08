@@ -5,6 +5,7 @@ import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
 import { Conversation } from "../conversation/Conversation";
 import { DiaryEntry } from "../ts/diary_interfaces";
+import { LetterManager } from "../letter/LetterManager";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
@@ -30,8 +31,23 @@ export class DiaryGenerator {
 
         let prompt = this.config.prompts[this.config.language]?.diaryPrompt || this.config.prompts.en.diaryPrompt;
 
+        // Add letter summaries
+        const letterManager = LetterManager.getInstance();
+        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId);
+        let letterSummaryContent = '';
+        if (letterSummaries.length > 0) {
+            const allSummaries = letterSummaries.map((summary, index) => 
+                `${index + 1}. ${summary.date}: ${summary.summary}`
+            ).join('\n');
+            letterSummaryContent = `Summaries of previous letters with ${gameData.getPlayer().fullName}:\n${allSummaries}\n\n`;
+            console.log(`Loaded ${letterSummaries.length} letter summaries for diary prompt for character ID ${characterId}`);
+        } else {
+            console.log(`No letter summaries found for diary prompt for character ID ${characterId}`);
+        }
+
         prompt = prompt.replace(/{{charName}}/g, character.fullName)
-                       .replace(/{{conversationHistory}}/g, conversationHistory);
+                       .replace(/{{conversationHistory}}/g, conversationHistory)
+                       .replace(/{{letterSummaryContent}}/g, letterSummaryContent);
 
         return prompt;
     }
