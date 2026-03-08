@@ -292,10 +292,36 @@ function checkAndDeliverLetters() {
     }
 }
 
-function updateCurrentDate(newTotalDays: number) {
-    if (currentTotalDays > 0 && newTotalDays < currentTotalDays) {
-        console.log(`Time travel detected (backwards). Old: ${currentTotalDays}, New: ${newTotalDays}. Not handling this for now.`);
+function removeLettersAfterDate(cutoffDate: number): void {
+    const lettersToRemove: string[] = [];
+    
+    for (const [letterId, storedLetter] of storedLetters.entries()) {
+      // The timestamp for when the reply was generated is the `totalDays` of the original letter.
+      if (storedLetter.letter.totalDays > cutoffDate) {
+        lettersToRemove.push(letterId);
+      }
     }
+
+    for (const letterId of lettersToRemove) {
+      console.log(`Removing pending letter ${letterId} due to time travel.`);
+      storedLetters.delete(letterId);
+    }
+}
+
+function updateCurrentDate(newTotalDays: number) {
+    const oldTotalDays = currentTotalDays;
+
+    // Detect time travel backwards (loading an older save)
+    if (oldTotalDays > 0 && newTotalDays < oldTotalDays) {
+        console.log(`Time travel detected (backwards). Removing letters sent after new date. | Old date: ${oldTotalDays} | New date: ${newTotalDays}`);
+        removeLettersAfterDate(newTotalDays);
+    }
+    // Detect large time jump forward (more than 40 days), could be loading a different save
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 40) {
+        console.log("Large time jump detected (>40 days). Assuming new save loaded, clearing all pending letters.");
+        storedLetters.clear();
+    }
+
     currentTotalDays = newTotalDays;
     console.log(`Game date updated to: ${currentTotalDays}`);
     checkAndDeliverLetters();
