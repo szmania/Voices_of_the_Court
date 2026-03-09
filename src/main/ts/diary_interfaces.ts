@@ -5,4 +5,5 @@ export interface DiaryEntry {
     participants: string[];
     content: string;
     character_traits: { [key: string]: string };
+    creationTimestamp?: Date;
 }

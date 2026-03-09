@@ -223,6 +223,11 @@ async function loadCharacters() {
         const nameB = characterNameMap[b] || `Character ${b}`;
         return nameA.localeCompare(nameB);
     });
+    characterIds.sort((a, b) => {
+        const nameA = characterNameMap[a] || `Character ${a}`;
+        const nameB = characterNameMap[b] || `Character ${b}`;
+        return nameA.localeCompare(nameB);
+    });
     characterIds.forEach(id => {
         const option = document.createElement('option');
         option.value = id;
@@ -512,9 +517,7 @@ async function saveAllDiaries() {
     }
     showLoader(true);
     try {
-        const allCharacterIdsInEntries = [...new Set(allDiaryEntries.map(entry => entry.character_id))];
-        const allCharacterIdsFromMap = Object.keys(characterNameMap);
-        const allCharacterIds = [...new Set([...allCharacterIdsInEntries, ...allCharacterIdsFromMap])];
+        const allCharacterIds = Object.keys(characterNameMap);
 
         for (const charId of allCharacterIds) {
             // Filter entries for the current character
