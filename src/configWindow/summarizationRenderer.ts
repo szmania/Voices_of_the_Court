@@ -165,6 +165,7 @@ function setupEventListeners() {
         renderSummaryList();
     });
     summarySearchInput.addEventListener('keydown', handleSearchKeydown);
+    summarySearchInput.addEventListener('keydown', handleSearchKeydown);
     
     if (deleteItemBtn) {
         deleteItemBtn.addEventListener('click', deleteCurrentSummary);
