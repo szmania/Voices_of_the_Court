@@ -21,7 +21,8 @@ let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-p
 
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
-    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt", "diaryPrompt"
+    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt", "diaryPrompt",
+    "diarySummarizePrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};

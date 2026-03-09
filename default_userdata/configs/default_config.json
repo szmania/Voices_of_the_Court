@@ -95,7 +95,6 @@
 	"showTokenizerDisplay": true,
 	"earlyAccessUpdates": true,
 	"lastAnnouncementVersion": "",
-	"aiFirstSpeakerChance": 25,
 	"summariesInsertDepth": 6,
 	"memoriesInsertDepth": 5,
 	"descInsertDepth": 4,
