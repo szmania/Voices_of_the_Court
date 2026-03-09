@@ -1333,6 +1333,8 @@ mark.current-highlight {
     box-sizing: border-box;
     background-color: #555;
     color: #f0f0f0;
+    pointer-events: auto !important;
+    -webkit-user-modify: read-write !important;
 }
 
 #diary-manager-container .summary-item-edit textarea {
