@@ -182,6 +182,7 @@ async function loadPlayerIds() {
         
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
+            ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
             ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
                 option.value = player.id;
@@ -387,14 +388,8 @@ function renderSummaryList() {
                 <div class="summary-content">${contentHTML}</div>
             `;
             summaryItem.dataset.originalIndex = originalIndex.toString();
-            summaryItem.addEventListener('click', (e) => {
-                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
-                selectSummary(index);
-            });
-            summaryItem.addEventListener('dblclick', (e) => {
-                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
-                enterEditMode(index);
-            });
+            summaryItem.addEventListener('click', () => selectSummary(originalIndex));
+            summaryItem.addEventListener('dblclick', () => enterEditMode(originalIndex));
             summaryList.appendChild(summaryItem);
         }
     });
@@ -664,6 +659,12 @@ function enterEditMode(index: number) {
     
     
     renderSummaryList();
+
+    // Focus the content textarea
+    const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
+    if (contentInput) {
+        contentInput.focus();
+    }
 }
 
 function saveInPlaceEdit() {

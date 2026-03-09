@@ -89,7 +89,8 @@ export class DiaryGenerator {
           character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
             acc[trait.name] = 'true';
             return acc;
-          }, {})
+          }, {}),
+          creationTimestamp: new Date()
         };
 
         return diaryEntry;
@@ -118,7 +119,8 @@ export class DiaryGenerator {
             character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
                 acc[trait.name] = 'true';
                 return acc;
-            }, {})
+            }, {}),
+            creationTimestamp: new Date()
         };
     }
 

@@ -32,6 +32,7 @@ let currentDiaryIndex = -1;
 let editingDiaryIndex = -1;
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
+let currentSortOrder: 'gameDate' | 'realDate' = 'gameDate';
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -137,6 +138,7 @@ async function loadPlayerIds() {
         if (result.success) {
             playerIdSelect.innerHTML = '';
             if (result.ids.length > 0) {
+                result.ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
                 result.ids.forEach((player: {id: string, name: string}) => {
                     const option = document.createElement('option');
                     option.value = player.id;
@@ -237,7 +239,15 @@ function filterAndRenderDiaries() {
         });
     }
 
-    filteredDiaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (currentSortOrder === 'gameDate') {
+        filteredDiaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } else {
+        filteredDiaries.sort((a: any, b: any) => {
+            const timeA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : 0;
+            const timeB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : 0;
+            return timeB - timeA;
+        });
+    }
     
     currentDiaryIndex = -1;
     editingDiaryIndex = -1;
@@ -389,6 +399,12 @@ function enterEditMode(index: number) {
     editingDiaryIndex = index;
     currentDiaryIndex = -1;
     renderDiaryList();
+
+    // Focus the content textarea
+    const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
+    if (contentInput) {
+        contentInput.focus();
+    }
 }
 
 function cancelInPlaceEdit() {
@@ -485,8 +501,9 @@ async function saveAllDiaries() {
     }
     showLoader(true);
     try {
-        // Get all character IDs that were loaded, so we can save empty files for those whose diaries were cleared.
-        const allCharacterIds = Object.keys(characterNameMap);
+        const allCharacterIdsInEntries = [...new Set(allDiaryEntries.map(entry => entry.character_id))];
+        const allCharacterIdsFromMap = Object.keys(characterNameMap);
+        const allCharacterIds = [...new Set([...allCharacterIdsInEntries, ...allCharacterIdsFromMap])];
 
         for (const charId of allCharacterIds) {
             // Filter entries for the current character
