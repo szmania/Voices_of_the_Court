@@ -767,13 +767,14 @@ clipboardListener.on('VOTC:LETTER', async () => {
         await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate, String(gameData.aiID));
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
 
-        // Get all letters for the player and find the most recent one.
+        // Get all letters for the player and find the most recent one by creation date.
         const allPlayerLetters = letterManager.getAllLetters(playerId);
-        if (allPlayerLetters.length === 0) {
+        const latestLetter = letterManager.getLatestLetter(playerId);
+
+        if (!latestLetter) {
             console.error("VOTC:LETTER event, but no letters found after import.");
             return;
         }
-        const latestLetter = allPlayerLetters[0]; // They are sorted by date descending.
 
         // START NEW LOGIC
         const letterIdMatch = latestLetter.subject.match(/letter_(\d+)/);

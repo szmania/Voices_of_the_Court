@@ -44,7 +44,11 @@ export class LetterManager {
                 const data = fs.readFileSync(filePath, 'utf8');
                 const letters = JSON.parse(data) as ILetter[];
                 // Re-hydrate dates
-                return letters.map(l => ({...l, timestamp: new Date(l.timestamp)}));
+                return letters.map(l => ({
+                    ...l,
+                    timestamp: new Date(l.timestamp),
+                    creationTimestamp: l.creationTimestamp ? new Date(l.creationTimestamp) : new Date(l.timestamp)
+                }));
             } catch (error) {
                 console.error(`Error reading letter history for player ${playerId}, character ${characterId}:`, error);
                 return [];
@@ -284,5 +288,21 @@ trigger_event = message_event.362`;
         if (newLetters.length > 0) {
             console.log(`Imported and saved ${newLetters.length} new letters.`);
         }
+    }
+
+    public getLatestLetter(playerId: string): ILetter | null {
+        const allLetters = this.getAllLetters(playerId);
+        if (allLetters.length === 0) {
+            return null;
+        }
+    
+        // Sort by real-world creation timestamp, most recent first
+        allLetters.sort((a, b) => {
+            const timeA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : 0;
+            const timeB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : 0;
+            return timeB - timeA;
+        });
+    
+        return allLetters[0];
     }
 }
