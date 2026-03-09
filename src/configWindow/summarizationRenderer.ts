@@ -264,7 +264,7 @@ function populateCharacterSelect() {
     sortedCharacters.forEach(([characterId, characterName]) => {
         const option = document.createElement('option');
         option.value = characterId;
-        option.textContent = characterName;
+        option.textContent = `${characterName} (${characterId})`;
         characterSelect.appendChild(option);
     });
 
