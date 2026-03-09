@@ -110,6 +110,20 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             roleplayInstruction = aiToAiInitiateTemplate
                 .replace(/{sourceCharacterName}/g, character.fullName)
                 .replace(/{targetCharacterName}/g, replyToName);
+
+            // Add a fake user prompt to guide the LLM
+            const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
+            const narratorPrompt = narratorPromptTemplate
+                .replace(/{sourceCharacterName}/g, character.shortName)
+                .replace(/{targetCharacterName}/g, replyToName);
+            
+            chatPrompt.push({
+                role: "user",
+                name: "Narrator",
+                content: narratorPrompt
+            });
+            console.log('Added AI-to-AI narrator prompt.');
+
         } else {
             const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
             roleplayInstruction = aiToAiTemplate
