@@ -806,11 +806,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
         // END NEW LOGIC
 
-        // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
-        if (latestLetter.recipient.id !== gameData.aiID) {
-            console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
-            return;
-        }
+        // // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
+        // if (latestLetter.recipient.id !== gameData.aiID) {
+        //     console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
+        //     return;
+        // }
         
         // Check if this letter already has a reply.
         const hasReply = allPlayerLetters.some(l => l.replyToId === latestLetter.id);
