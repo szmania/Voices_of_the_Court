@@ -21,6 +21,7 @@ export interface PromptConfig {
     sceneDescriptionPrompt: string;
     diaryPrompt: string;
     diarySummarizePrompt: string;
+    diaryForLetterPrompt: string;
     letterPrompt: string;
     letterSummaryPrompt: string;
 }
@@ -103,6 +104,7 @@ export class Config{
     get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
     get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
     get diarySummarizePrompt(): string { return this.prompts[this.language].diarySummarizePrompt; }
+    get diaryForLetterPrompt(): string { return this.prompts[this.language].diaryForLetterPrompt; }
     get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
     get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
 

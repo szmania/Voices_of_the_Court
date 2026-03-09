@@ -16,7 +16,7 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -240,6 +240,7 @@ const createTray = () => {
 
 let clipboardListener = new ClipboardListener();
 let config: Config;
+let diaryGenerator: DiaryGenerator;
 
 let letterThreadCount = 0;
 let letterThreadFullNotified = false;
@@ -369,6 +370,7 @@ app.on('ready',  async () => {
     }
     
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
+    diaryGenerator = new DiaryGenerator(config);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -838,6 +840,22 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
         const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
+        // Diary entry for player sending a letter
+        if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
+            const playerCharacter = gameData.getCharacter(gameData.playerID);
+            if (playerCharacter) {
+                const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, playerCharacter, latestLetter.content, 'sent');
+                if (newEntry) {
+                    await saveDiaryFile(String(gameData.playerID), String(playerCharacter.id), newEntry);
+                    const allEntries = await readDiaryFile(String(gameData.playerID), String(playerCharacter.id));
+                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    if (summary) {
+                        await saveDiarySummary(String(gameData.playerID), String(playerCharacter.id), summary);
+                    }
+                }
+            }
+        }
+
         if (!replyLetter) {
             console.error('Failed to generate letter reply');
             return;
@@ -852,6 +870,22 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
         storedLetters.set(latestLetter.id, storedLetter);
         console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}.`);
+
+        // Diary entry for AI receiving a letter and replying
+        if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
+            const aiCharacter = gameData.getCharacter(replyLetter.sender.id);
+            if (aiCharacter) {
+                const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, replyLetter.content, 'received');
+                if (newEntry) {
+                    await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
+                    const allEntries = await readDiaryFile(String(gameData.playerID), String(aiCharacter.id));
+                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    if (summary) {
+                        await saveDiarySummary(String(gameData.playerID), String(aiCharacter.id), summary);
+                    }
+                }
+            }
+        }
 
         checkAndDeliverLetters();
         
@@ -960,6 +994,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
     
     config.export();
+    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -983,6 +1018,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     //@ts-ignore
     config[outerConfID][innerConfID] = newValue;
     config.export();
+    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -994,6 +1030,7 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
+    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }

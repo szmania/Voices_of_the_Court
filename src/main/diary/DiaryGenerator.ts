@@ -73,7 +73,7 @@ export class DiaryGenerator {
         const promptForApi = [{ role: 'user', content: fullPrompt }];
 
         // @ts-ignore - using complete instead of generate
-        const generatedContent = await this.textGenApiConnection.complete(promptForApi, false, {});
+        const generatedContent = await this.apiConnection.complete(promptForApi, false, {});
 
         if (!generatedContent) {
           return null;
@@ -93,5 +93,52 @@ export class DiaryGenerator {
         };
 
         return diaryEntry;
+    }
+
+    public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
+        const diaryPrompt = this.config.prompts[this.config.language]?.diaryForLetterPrompt || this.config.prompts['en']?.diaryForLetterPrompt;
+        if (!diaryPrompt) return null;
+
+        const replacedPrompt = diaryPrompt
+            .replace(/{{charName}}/g, character.fullName)
+            .replace(/{{letterDirection}}/g, letterDirection)
+            .replace(/{{letterContent}}/g, letterContent);
+
+        const promptForApi: Message[] = [{ role: 'user', content: replacedPrompt }];
+        const generatedContent = await this.apiConnection.complete(promptForApi, false, {});
+
+        if (!generatedContent) return null;
+
+        return {
+            date: gameData.date,
+            location: gameData.location,
+            scene: 'Wrote/Read a letter',
+            participants: [String(gameData.playerID), String(character.id)],
+            content: generatedContent,
+            character_traits: character.traits.reduce((acc, trait) => {
+                // @ts-ignore
+                acc[trait.name] = trait.value || '';
+                return acc;
+            }, {} as { [key: string]: string })
+        };
+    }
+
+    public async summarizeDiary(diaryEntries: DiaryEntry[]): Promise<string | null> {
+        if (!diaryEntries || diaryEntries.length === 0) {
+            return null;
+        }
+
+        const diarySummarizePrompt = this.config.prompts[this.config.language]?.diarySummarizePrompt || this.config.prompts['en']?.diarySummarizePrompt;
+        if (!diarySummarizePrompt) {
+            return null;
+        }
+
+        const entriesText = diaryEntries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n');
+        const fullPrompt = `${diarySummarizePrompt}\n\n${entriesText}`;
+
+        const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
+
+        const summaryContent = await this.apiConnection.complete(promptForApi, false, {});
+        return summaryContent;
     }
 }
