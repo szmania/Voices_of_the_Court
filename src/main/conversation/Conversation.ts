@@ -802,7 +802,8 @@ export class Conversation{
 
         // buildChatPrompt will correctly set the target and use the right instruction.
         // buildChatPrompt will correctly set the target and use the right instruction.
-        let prompt = await buildChatPrompt(this, source, undefined, target);
+        // We pass an empty array for messagesOverride to prevent the previous turn's conversation from polluting the prompt.
+        let prompt = await buildChatPrompt(this, source, [], target);
 
         let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
         console.log(`Current prompt token count for AI-to-AI: ${currentTokens}`);
@@ -811,7 +812,7 @@ export class Conversation{
             console.log(`Context limit hit (${currentTokens}/${this.textGenApiConnection.context} tokens), resummarizing conversation!`);
             await this.resummarize();
             // Rebuild prompt after summarization
-            prompt = await buildChatPrompt(this, source, undefined, target);
+            prompt = await buildChatPrompt(this, source, [], target);
         }
 
         const content = await this.textGenApiConnection.complete(prompt, false, {
