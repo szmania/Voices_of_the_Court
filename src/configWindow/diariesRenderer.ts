@@ -19,6 +19,7 @@ let diaryList: HTMLElement;
 let deleteItemBtn: HTMLButtonElement;
 let addDiaryBtn: HTMLButtonElement;
 let statusMessage: HTMLElement;
+let sortOrderSelect: HTMLSelectElement;
 
 // State
 let characterNameMap: { [key: string]: string } = {};
@@ -56,6 +57,7 @@ async function init() {
     deleteItemBtn = document.getElementById('diary-manager-deleteItemBtn') as HTMLButtonElement;
     addDiaryBtn = document.getElementById('diary-manager-addDiaryBtn') as HTMLButtonElement;
     statusMessage = document.getElementById('diary-manager-statusMessage') as HTMLElement;
+    sortOrderSelect = document.getElementById('diary-sort-order') as HTMLSelectElement;
 
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
@@ -90,6 +92,10 @@ function setupEventListeners() {
         filterAndRenderDiaries();
     });
     searchInput.addEventListener('keydown', handleSearchKeydown);
+    sortOrderSelect.addEventListener('change', () => {
+        currentSortOrder = sortOrderSelect.value as 'gameDate' | 'realDate';
+        filterAndRenderDiaries();
+    });
 }
 
 function applyTheme(theme: string) {

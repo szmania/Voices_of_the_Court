@@ -388,8 +388,15 @@ function renderSummaryList() {
                 <div class="summary-content">${contentHTML}</div>
             `;
             summaryItem.dataset.originalIndex = originalIndex.toString();
-            summaryItem.addEventListener('click', () => selectSummary(originalIndex));
-            summaryItem.addEventListener('dblclick', () => enterEditMode(originalIndex));
+            summaryItem.dataset.originalIndex = originalIndex.toString();
+            summaryItem.addEventListener('click', (e) => {
+                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
+                selectSummary(index);
+            });
+            summaryItem.addEventListener('dblclick', (e) => {
+                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
+                enterEditMode(index);
+            });
             summaryList.appendChild(summaryItem);
         }
     });

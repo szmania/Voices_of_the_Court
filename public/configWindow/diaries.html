@@ -62,6 +62,13 @@
         <div class="summary-list-container">
             <div class="summary-list-header">
               <h3 data-i18n="diary_manager.list_header">Diary List</h3>
+              <div class="control-group">
+                <label for="diary-sort-order" data-i18n="letters.sort_by">Sort by:</label>
+                <select id="diary-sort-order">
+                    <option value="gameDate" data-i18n="letters.sort_game_date">Game Date</option>
+                    <option value="realDate" data-i18n="letters.sort_real_date">Real Date</option>
+                </select>
+              </div>
               <input type="search" id="diary-manager-search" data-i18n-placeholder="diary_manager.search_placeholder" placeholder="Search diaries..." data-i18n-title="diary_manager.tooltip_search">
             </div>
             <div id="diary-manager-diaryList" class="summary-list">
