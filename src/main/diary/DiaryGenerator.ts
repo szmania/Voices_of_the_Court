@@ -1,7 +1,7 @@
 
 import { ApiConnection } from "../../shared/apiConnection";
 import { Character } from "../../shared/gameData/Character";
-import { GameData } from "../../shared/gameData/GameData";
+import { GameData, Trait } from "../../shared/gameData/GameData";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
 import { Conversation } from "../conversation/Conversation";
@@ -86,8 +86,8 @@ export class DiaryGenerator {
           scene: gameData.scene,
           participants: Array.from(gameData.characters.keys()).map(id => id.toString()),
           content: generatedContent,
-          character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
-            acc[trait.name] = 'true';
+          character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: Trait) => {
+            acc[trait.name] = trait.desc || 'true';
             return acc;
           }, {}),
           creationTimestamp: new Date()
@@ -116,8 +116,8 @@ export class DiaryGenerator {
             scene: 'Wrote/Read a letter',
             participants: [String(gameData.playerID), String(character.id)],
             content: generatedContent,
-            character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
-                acc[trait.name] = 'true';
+            character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: Trait) => {
+                acc[trait.name] = trait.desc || 'true';
                 return acc;
             }, {}),
             creationTimestamp: new Date()
