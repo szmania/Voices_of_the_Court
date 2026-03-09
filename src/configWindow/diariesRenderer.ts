@@ -483,7 +483,8 @@ async function saveAllDiaries() {
             const characterEntries = allDiaryEntries
                 .filter(entry => entry.character_id === charId)
                 .map(entry => {
-                    const { character_id, _isNew, ...rest } = entry;
+                    // Create a clean copy without the temporary _isNew flag
+                    const { _isNew, ...rest } = entry;
                     return rest;
                 });
 
