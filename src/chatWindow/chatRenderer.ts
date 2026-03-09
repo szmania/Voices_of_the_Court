@@ -907,7 +907,10 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
         if (firstMatch) {
             (firstMatch as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        allHighlightMarks = Array.from(chatMessages.querySelectorAll('mark'));
     });
+
+    searchInput.addEventListener('keydown', handleSearchKeydown);
 
     searchInput.addEventListener('keydown', handleSearchKeydown);
 

@@ -828,9 +828,8 @@ export class Conversation{
         this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
 
         // buildChatPrompt will correctly set the target and use the right instruction.
-        // We pass undefined for messagesOverride to use the full conversation history,
-        // relying on the context switch message to guide the AI.
-        let prompt = await buildChatPrompt(this, source, undefined, target);
+        // We pass an empty array for messagesOverride to clear the history for a clean AI-to-AI start.
+        let prompt = await buildChatPrompt(this, source, [], target);
 
         let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
         console.log(`Current prompt token count for AI-to-AI: ${currentTokens}`);
