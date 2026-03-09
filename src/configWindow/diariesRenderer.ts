@@ -139,6 +139,8 @@ const showStatus = (message: string, type: 'success' | 'error' | 'info') => {
 
 async function loadPlayerIds() {
     showLoader(true);
+    refreshBtn.disabled = true;
+    saveBtn.disabled = true;
     try {
         const result = await ipcRenderer.invoke('get-all-diary-player-ids');
         if (result.success) {
@@ -165,6 +167,8 @@ async function loadPlayerIds() {
         showStatus('Failed to load diary data: ' + error.message, 'error');
     } finally {
         showLoader(false);
+        refreshBtn.disabled = false;
+        saveBtn.disabled = false;
     }
 }
 
@@ -516,6 +520,8 @@ async function saveAllDiaries() {
         return;
     }
     showLoader(true);
+    refreshBtn.disabled = true;
+    saveBtn.disabled = true;
     try {
         const allCharacterIds = Object.keys(characterNameMap);
 
@@ -543,6 +549,8 @@ async function saveAllDiaries() {
         showStatus('Failed to save diaries: ' + error.message, 'error');
     } finally {
         showLoader(false);
+        refreshBtn.disabled = false;
+        saveBtn.disabled = false;
     }
 }
 
