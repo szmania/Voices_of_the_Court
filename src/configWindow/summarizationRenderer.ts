@@ -175,6 +175,8 @@ function setupEventListeners() {
 
 async function loadPlayerIds() {
     summaryLoader.style.display = 'block';
+    refreshBtn.disabled = true;
+    saveBtn.disabled = true;
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_players', 'Loading player IDs...'), 'info');
         const { success, ids, error } = await ipcRenderer.invoke('get-all-summary-player-ids');
@@ -205,6 +207,8 @@ async function loadPlayerIds() {
         console.error('Error loading player IDs:', error);
     } finally {
         summaryLoader.style.display = 'none';
+        refreshBtn.disabled = false;
+        saveBtn.disabled = false;
     }
 }
 
@@ -492,6 +496,8 @@ async function saveSummaries() {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_player_selected_save', 'No player selected. Cannot save.'), 'error');
         return;
     }
+    refreshBtn.disabled = true;
+    saveBtn.disabled = true;
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving summaries...'), 'info');
         await ipcRenderer.invoke('save-summary-file', selectedPlayerId, allSummaries);
@@ -502,6 +508,9 @@ async function saveSummaries() {
         const errorMsg = window.LocalizationManager.getTranslation('summary_manager.save_fail', 'Failed to save summaries: ');
         showStatusMessage(errorMsg + error.message, 'error');
         console.error('Error saving summaries:', error);
+    } finally {
+        refreshBtn.disabled = false;
+        saveBtn.disabled = false;
     }
 }
 
