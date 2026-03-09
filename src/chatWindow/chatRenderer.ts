@@ -404,29 +404,33 @@ async function replaceLastMessage(message: Message){
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function showLoadingDots(){  //and disable chat
+function showLoadingDots(disableInput: boolean = true){  //and disable chat
     if (loadingDots) {
         return;
     }
-    console.log('showLoadingDots() called');
+    console.log(`showLoadingDots() called, disableInput: ${disableInput}`);
     loadingDots = document.createElement('div');
     loadingDots.classList.add('loading');
     chatMessages.append(loadingDots);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    chatInput.disabled = true;
+    if (disableInput) {
+        chatInput.disabled = true;
+    }
 
     updateRegenerateButtonState();
     updateInputTooltip();
 }
 
-function removeLoadingDots(){
+function removeLoadingDots(enableInput: boolean = true){
     if (!loadingDots) {
         return;
     }
-    console.log('removeLoadingDots() called');
+    console.log(`removeLoadingDots() called, enableInput: ${enableInput}`);
     loadingDots.remove();
     loadingDots = null;
-    chatInput.disabled = false;
+    if (enableInput) {
+        chatInput.disabled = false;
+    }
 
     updateRegenerateButtonState();
     updateInputTooltip();
@@ -1524,11 +1528,12 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
 
 })
 
-ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrative: string) =>{
+ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrative: string, isAiToAi: boolean = false) =>{
     displayActions(actionsResponse);
     displayNarrative(narrative);
 
-    removeLoadingDots();
+    const shouldEnableInput = !isAiToAi;
+    removeLoadingDots(shouldEnableInput);
     updateStatusText('');
 })
 

@@ -180,11 +180,13 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         
     }
 
-    conv.runFileManager.append(`
-        global_var:talk_first_scope = {
-            trigger_event = talk_event.9003
-        }`
-    );
+    if (triggeredActions.length > 0) {
+        conv.runFileManager.append(`
+            global_var:talk_first_scope = {
+                trigger_event = talk_event.9003
+            }`
+        );
+    }
     
     console.log(`Final triggered actions: ${triggeredActions.map(a => a.actionName).join(', ')}`);
     
