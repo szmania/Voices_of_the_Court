@@ -206,6 +206,11 @@ async function loadCharacters() {
         const nameB = characterNameMap[b] || `Character ${b}`;
         return nameA.localeCompare(nameB);
     });
+    characterIds.sort((a, b) => {
+        const nameA = characterNameMap[a] || `Character ${a}`;
+        const nameB = characterNameMap[b] || `Character ${b}`;
+        return nameA.localeCompare(nameB);
+    });
     characterIds.forEach(id => {
         const option = document.createElement('option');
         option.value = id;

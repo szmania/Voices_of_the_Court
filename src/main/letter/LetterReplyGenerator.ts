@@ -1,5 +1,6 @@
 import { ApiConnection } from "../../shared/apiConnection";
-import { GameData } from "../../shared/gameData/GameData";
+import { Character } from "../../shared/gameData/Character.js";
+import { GameData, Trait } from "../../shared/gameData/GameData.js";
 import { Config } from "../../shared/Config";
 import { Message, Summary } from "../ts/conversation_interfaces";
 import * as fs from "fs";
