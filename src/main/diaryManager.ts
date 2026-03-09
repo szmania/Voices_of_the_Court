@@ -6,7 +6,7 @@ import { app } from 'electron';
 import { DiaryEntry } from './ts/diary_interfaces';
 
 const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-const diariesDir = path.join(userDataPath, 'diaries');
+const diariesDir = path.join(userDataPath, 'diary_history');
 
 function getPlayerDiaryDir(playerId: string): string {
     return path.join(diariesDir, playerId);

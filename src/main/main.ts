@@ -297,8 +297,8 @@ function updateCurrentDate(newTotalDays: number) {
         removeLettersAfterDate(newTotalDays);
     }
     // Detect large time jump forward (more than 40 days), could be loading a different save
-    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 180) {
-        console.log("Large time jump detected (>180 days). Assuming new save loaded, clearing all pending letters.");
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 90) {
+        console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
         storedLetters.clear();
     }
 

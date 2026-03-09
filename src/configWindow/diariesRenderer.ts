@@ -233,7 +233,7 @@ function filterAndRenderDiaries() {
     editingDiaryIndex = -1;
 
     if (selectedCharacterId !== 'all' && currentPlayerId) {
-        diaryPathInput.value = `${userDataPath}/diaries/${currentPlayerId}/${selectedCharacterId}.json`.replace(/\\/g, '/');
+        diaryPathInput.value = `${userDataPath}/diary_history/${currentPlayerId}/${selectedCharacterId}.json`.replace(/\\/g, '/');
     } else {
         diaryPathInput.value = '';
     }
@@ -345,7 +345,7 @@ function selectDiary(index: number) {
 
     const entry = filteredDiaries[index];
     if (entry && entry.character_id && currentPlayerId) {
-        diaryPathInput.value = `${userDataPath}/diaries/${currentPlayerId}/${entry.character_id}.json`.replace(/\\/g, '/');
+        diaryPathInput.value = `${userDataPath}/diary_history/${currentPlayerId}/${entry.character_id}.json`.replace(/\\/g, '/');
     }
 
     renderDiaryList();
