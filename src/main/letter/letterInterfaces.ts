@@ -13,7 +13,8 @@ export interface Letter {
   recipient: Character;
   subject: string;
   content: string;
-  timestamp: Date;
+  timestamp: Date; // Game Date
+  creationTimestamp: Date; // Real-world Date
   isRead: boolean;
   letterType: LetterType;
   delay: number;

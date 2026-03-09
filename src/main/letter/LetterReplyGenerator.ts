@@ -220,7 +220,8 @@ export class LetterReplyGenerator {
                 gameData.totalDays,
                 originalLetter.id,
                 'pending',
-                false
+                false,
+                new Date()
             );
     
             // Atomically update the history file
