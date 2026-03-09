@@ -35,8 +35,8 @@ export class LetterReplyGenerator {
      * @returns The constructed prompt
      */
     private async buildLetterPrompt(gameData: GameData, letter: ILetter): Promise<string> {
-        const player = gameData.characters.get(gameData.playerID);
-        const ai = gameData.characters.get(gameData.aiID);
+        const player = gameData.characters.get(letter.sender.id);
+        const ai = gameData.characters.get(letter.recipient.id);
 
         if (!player || !ai) {
             throw new Error('Player or AI character data not found in gameData');
@@ -176,7 +176,7 @@ export class LetterReplyGenerator {
             await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse, replyLetterId);
 
             // Save letter history immediately
-            const replyLetter = await this.saveLetterHistory(String(gameData.playerID), String(gameData.aiID), letter, escapedResponse, gameData, replyLetterId);
+            const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
             
             // Return the generated reply so it can be queued for delayed delivery
             return replyLetter;
@@ -262,8 +262,8 @@ export class LetterReplyGenerator {
      */
     private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string): Promise<void> {
         try {
-            const player = gameData.getPlayer();
-            const ai = gameData.getAi();
+            const player = gameData.characters.get(originalLetter.sender.id);
+            const ai = gameData.characters.get(originalLetter.recipient.id);
             
             if (!player || !ai) {
                 console.error('Player or AI character data not found for summary generation');
@@ -299,8 +299,8 @@ export class LetterReplyGenerator {
             console.log(`Generated letter summary: ${summaryContent.trim()}`);
 
             const letterDate = gameData.date;
-            const playerId = String(gameData.playerID);
-            const aiId = String(gameData.aiID);
+            const playerId = String(originalLetter.sender.id);
+            const aiId = String(originalLetter.recipient.id);
 
             const newSummary: LetterSummary = {
                 date: letterDate,
