@@ -114,6 +114,8 @@ let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
 let messageHistory: string[] = [];
 let historyIndex: number = -1;
+let allHighlightMarks: HTMLElement[] = [];
+let currentHighlightIndex = -1;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -842,6 +844,7 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
     searchInput.addEventListener('input', () => {
         const searchTerm = searchInput.value.trim();
         const messages = chatMessages.querySelectorAll('.message');
+        currentHighlightIndex = -1; // Reset highlight on new search
 
         // 首先清除所有现有的高亮
         messages.forEach((msg: any) => {
@@ -905,6 +908,8 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
             (firstMatch as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
+
+    searchInput.addEventListener('keydown', handleSearchKeydown);
 
     // 重置窗口位置和大小
     // 重置窗口位置和大小
