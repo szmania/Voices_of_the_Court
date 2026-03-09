@@ -14,7 +14,7 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
     let output: string = "";
 
     for(let msg of chat){
-        
+
         switch(msg.role){
             case "system":
                     output += msg.content+"\n";
@@ -52,7 +52,6 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
-
 
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
@@ -159,7 +158,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         try {
             delete require.cache[require.resolve(exampleMessagesPath)];
             let exampleMessages = require(exampleMessagesPath)(conv.gameData, character);
-            
+
             // 只有当example messages不为空时才添加占位符和实际消息
             if (exampleMessages && exampleMessages.length > 0) {
                 chatPrompt.push({
@@ -178,7 +177,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     } else if (exampleMessagesPath) { // If path was set but file doesn't exist
         console.error(`Example message script file not found at expected path: ${exampleMessagesPath}. Continuing without example messages.`);
     }
-    
+
 
     chatPrompt.push({
         role: "system",
@@ -231,7 +230,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         content: createMemoryString(conv)
     }
 
-    
+
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
@@ -289,9 +288,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         let summariesMessage: Message = {
             role: "system",
             content: summaryString
-        } 
+        }
 
-        insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
+        insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth);
         console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
 
@@ -312,7 +311,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         insertMessageAtDepth(messages, letterSummaryMessage, conv.config.summariesInsertDepth);
         console.log(`Added ${letterSummaries.length} letter summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
-    
+
 
     if(conv.currentSummary){
         let currentSummaryMessage: Message = {
@@ -393,16 +392,16 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if(conv.currentSummary){
-        const summaryIntro = isSelfTalk 
-            ? "Summary of this internal monologue that happened before the messages:" 
+        const summaryIntro = isSelfTalk
+            ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-        
+
         prompt.push({
             role: "system",
             content: summaryIntro + conv.currentSummary
         });
     }
-    
+
     prompt.push({
         role: "system",
         content: convertMessagesToString(messagesToSummarize, "", "")
@@ -418,7 +417,7 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     return prompt;
 }
 
-//help functions 
+//help functions
 
 export function convertMessagesToString(messages: Message[], inputSeq: string, outputSeq: string): string{
     let output= "";
