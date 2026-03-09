@@ -34,7 +34,7 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
                 return { id: playerId, name: playerName };
             });
 
-        return playerDirs;
+        return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
         console.error('Error getting all player IDs from summaries:', error);
         throw error;

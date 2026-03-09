@@ -137,7 +137,6 @@ async function loadPlayerIds() {
         if (result.success) {
             playerIdSelect.innerHTML = '';
             if (result.ids.length > 0) {
-                result.ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
                 result.ids.forEach((player: {id: string, name: string}) => {
                     const option = document.createElement('option');
                     option.value = player.id;
@@ -316,8 +315,8 @@ function renderDiaryList() {
                 <input type="text" id="diary-edit-participants-${index}" value="${(entry.participants || []).join(', ')}" placeholder="Participants (comma-separated IDs)">
                 <textarea id="diary-edit-content-${index}" rows="5">${entry.content || ''}</textarea>
                 <div class="edit-controls">
-                    <button class="btn save-inplace-btn" disabled>Save</button>
-                    <button class="btn cancel-inplace-btn">Cancel</button>
+                    <button class="btn cancel-inplace-btn" data-i18n="summary_manager.close_btn">Close</button>
+                    <button class="btn save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
                 </div>
             `;
             

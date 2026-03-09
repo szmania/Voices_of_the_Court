@@ -91,7 +91,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
             }
             return { id: playerId, name: playerName };
         });
-    return playerDirs;
+    return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getDiaryFiles(playerId: string): Promise<string[]> {

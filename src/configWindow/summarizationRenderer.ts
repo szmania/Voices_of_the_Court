@@ -182,7 +182,6 @@ async function loadPlayerIds() {
         
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
-            ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
             ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
                 option.value = player.id;
@@ -346,12 +345,15 @@ function renderSummaryList() {
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
                 <textarea id="summary-edit-content-${originalIndex}" rows="3">${summary.content || ''}</textarea>
                 <div class="edit-controls">
+                    <button class="btn cancel-inplace-btn" data-i18n="summary_manager.close_btn">Close</button>
                     <button class="btn btn-success save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
                 </div>
             `;
             
             const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
             saveButton.addEventListener('click', () => saveInPlaceEdit());
+            const cancelButton = editItem.querySelector('.cancel-inplace-btn') as HTMLButtonElement;
+            cancelButton.addEventListener('click', () => cancelInPlaceEdit());
             // Add event listeners for input changes
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
@@ -384,8 +386,15 @@ function renderSummaryList() {
                 <div class="summary-date">${headerHTML}</div>
                 <div class="summary-content">${contentHTML}</div>
             `;
-            summaryItem.addEventListener('click', () => selectSummary(originalIndex));
-            summaryItem.addEventListener('dblclick', () => enterEditMode(originalIndex));
+            summaryItem.dataset.originalIndex = originalIndex.toString();
+            summaryItem.addEventListener('click', (e) => {
+                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
+                selectSummary(index);
+            });
+            summaryItem.addEventListener('dblclick', (e) => {
+                const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
+                enterEditMode(index);
+            });
             summaryList.appendChild(summaryItem);
         }
     });
@@ -430,7 +439,8 @@ function addNewSummary() {
         date: new Date().toISOString().split('T')[0], // Default to today in YYYY-MM-DD format
         content: 'New summary content',
         characterId: characterId,
-        characterName: characterName
+        characterName: characterName,
+        _isNew: true
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter(); // This will filter, sort, and render the list
@@ -602,6 +612,19 @@ function handleInPlaceInputChange(index: number) {
     }
 }
 
+function cancelInPlaceEdit() {
+    if (editingSummaryIndex === -1) return;
+    const entry = filteredSummaries[editingSummaryIndex];
+    if (entry && (entry as any)._isNew) {
+        const originalIndex = allSummaries.findIndex(s => s === entry);
+        if (originalIndex !== -1) {
+            allSummaries.splice(originalIndex, 1);
+        }
+    }
+    editingSummaryIndex = -1;
+    filterSummariesByCharacter();
+}
+
 function handleSearchKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
         event.preventDefault();
@@ -660,6 +683,7 @@ function saveInPlaceEdit() {
     if (originalIndex !== -1) {
         allSummaries[originalIndex].date = newDate;
         allSummaries[originalIndex].content = newContent;
+        delete (allSummaries[originalIndex] as any)._isNew;
     }
 
     const justEditedIndex = editingSummaryIndex;

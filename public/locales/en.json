@@ -247,7 +247,7 @@
     "header": "Summary Manager",
     "refresh": "Refresh",
     "save": "Save",
-    "close": "Close",
+    "close_btn": "Close",
     "player_id": "Player ID:",
     "select_character": "Select Character:",
     "all_characters": "All Characters",
