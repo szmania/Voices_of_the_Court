@@ -1417,7 +1417,10 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         let messageIndex = 0;
         if (historicalMetadata && historicalMetadata.length > 0) {
-            for (const conv of historicalMetadata) {
+            // Reverse the metadata array to display oldest conversations first
+            const chronologicalMetadata = historicalMetadata.slice().reverse();
+
+            for (const conv of chronologicalMetadata) {
                 const convHeader = document.createElement('div');
                 convHeader.classList.add('historical-conversation-header');
                 convHeader.classList.add('message');

@@ -254,9 +254,20 @@ export class Conversation{
             return;
         }
 
-        // Get all historical conversation files for this player and AI character
+        const allAiCharacterIds = Array.from(this.gameData.characters.values())
+            .filter(c => c.id !== this.gameData.playerID)
+            .map(c => c.id);
+
+        // Get all historical conversation files for this player and ANY AI character in the scene
         const files = fs.readdirSync(historyDir)
-            .filter(file => file.startsWith(`${this.gameData.playerID}_${this.gameData.aiID}_`) && file.endsWith('.txt'))
+            .filter(file => {
+                if (!file.endsWith('.txt')) return false;
+                const parts = file.split('_');
+                if (parts.length < 3) return false;
+                const filePlayerId = parseInt(parts[0], 10);
+                const fileAiId = parseInt(parts[1], 10);
+                return filePlayerId === this.gameData.playerID && allAiCharacterIds.includes(fileAiId);
+            })
             .map(file => ({
                 name: file,
                 time: parseInt(file.split('_')[2].split('.')[0]) || 0
@@ -284,8 +295,8 @@ export class Conversation{
         const MAX_HISTORICAL_MESSAGES = 100; // Limit total historical messages to prevent UI freezing
         const MAX_CONVERSATIONS_TO_LOAD = 10; // Limit number of conversation files to load
         
-        // Load most recent conversation files first (reverse chronological order)
-        const recentFiles = files.slice(-MAX_CONVERSATIONS_TO_LOAD).reverse();
+        // Load most recent conversation files in chronological order
+        const recentFiles = files.slice(-MAX_CONVERSATIONS_TO_LOAD);
         
         for (const fileInfo of recentFiles) {
             // Stop if we've reached the maximum number of messages
@@ -801,9 +812,9 @@ export class Conversation{
         this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
 
         // buildChatPrompt will correctly set the target and use the right instruction.
-        // buildChatPrompt will correctly set the target and use the right instruction.
-        // We pass an empty array for messagesOverride to prevent the previous turn's conversation from polluting the prompt.
-        let prompt = await buildChatPrompt(this, source, [], target);
+        // We pass undefined for messagesOverride to use the full conversation history,
+        // relying on the context switch message to guide the AI.
+        let prompt = await buildChatPrompt(this, source, undefined, target);
 
         let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
         console.log(`Current prompt token count for AI-to-AI: ${currentTokens}`);
