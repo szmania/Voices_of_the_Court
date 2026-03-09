@@ -153,6 +153,7 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
 
     // Add the new single entry to the beginning of the array
     diaryFileContent.diary_entries.unshift(diaryData);
+    diaryFileContent.diary_entries.sort((a: { date: string; }, b: { date: string; }) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     await fs.promises.writeFile(filePath, JSON.stringify(diaryFileContent, null, '\t'));
 }
