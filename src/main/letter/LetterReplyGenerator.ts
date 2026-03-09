@@ -49,8 +49,8 @@ export class LetterReplyGenerator {
         // Read conversation summary
         let conversationSummary = '';
         try {
-            const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(gameData.playerID));
-            const aiSummaries = summaries.filter(summary => summary.characterId === String(gameData.aiID));
+            const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(player.id));
+            const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id));
             
             if (aiSummaries.length > 0) {
                 // Read all summaries for this character, sorted by date (most recent first)
@@ -59,9 +59,9 @@ export class LetterReplyGenerator {
                 ).join('\n');
                 
                 conversationSummary = `Summaries of previous conversations with ${player.fullName}:\n${allSummaries}\n\n`;
-                console.log(`Loaded ${aiSummaries.length} conversation summaries for AI ID ${gameData.aiID}`);
+                console.log(`Loaded ${aiSummaries.length} conversation summaries for AI ID ${ai.id}`);
             } else {
-                console.log(`No conversation summary found for AI ID ${gameData.aiID}`);
+                console.log(`No conversation summary found for AI ID ${ai.id}`);
             }
         } catch (error) {
             console.warn(`Failed to load conversation summary: ${error}`);
@@ -69,16 +69,16 @@ export class LetterReplyGenerator {
 
         // Load letter summaries
         const letterManager = LetterManager.getInstance();
-        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), String(gameData.aiID));
+        const letterSummaries = letterManager.getLetterSummaries(String(player.id), String(ai.id));
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
             const allSummaries = letterSummaries.map((summary, index) => 
                 `${index + 1}. ${summary.date}: ${summary.summary}`
             ).join('\n');
             letterSummaryContent = `Summaries of previous letters with ${player.fullName}:\n${allSummaries}\n\n`;
-            console.log(`Loaded ${letterSummaries.length} letter summaries for AI ID ${gameData.aiID}`);
+            console.log(`Loaded ${letterSummaries.length} letter summaries for AI ID ${ai.id}`);
         } else {
-            console.log(`No letter summaries found for AI ID ${gameData.aiID}`);
+            console.log(`No letter summaries found for AI ID ${ai.id}`);
         }
 
         // Read memory content
