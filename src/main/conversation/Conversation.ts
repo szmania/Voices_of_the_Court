@@ -801,7 +801,17 @@ export class Conversation{
         this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
 
         // buildChatPrompt will correctly set the target and use the right instruction.
-        const prompt = await buildChatPrompt(this, source, undefined, target);
+        let prompt = await buildChatPrompt(this, source, undefined, target);
+
+        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
+        console.log(`Current prompt token count for AI-to-AI: ${currentTokens}`);
+
+        if(currentTokens > this.textGenApiConnection.context){
+            console.log(`Context limit hit (${currentTokens}/${this.textGenApiConnection.context} tokens), resummarizing conversation!`);
+            await this.resummarize();
+            // Rebuild prompt after summarization
+            prompt = await buildChatPrompt(this, source, undefined, target);
+        }
 
         const content = await this.textGenApiConnection.complete(prompt, false, {
             max_tokens: this.config.maxTokens,
