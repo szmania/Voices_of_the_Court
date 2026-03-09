@@ -86,8 +86,8 @@ export class DiaryGenerator {
           scene: gameData.scene,
           participants: Array.from(gameData.characters.keys()).map(id => id.toString()),
           content: generatedContent,
-          character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; value: any; }) => {
-            acc[trait.name] = trait.value || '';
+          character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
+            acc[trait.name] = 'true';
             return acc;
           }, {})
         };
@@ -115,8 +115,8 @@ export class DiaryGenerator {
             scene: 'Wrote/Read a letter',
             participants: [String(gameData.playerID), String(character.id)],
             content: generatedContent,
-            character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; value: any; }) => {
-                acc[trait.name] = trait.value || '';
+            character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; }) => {
+                acc[trait.name] = 'true';
                 return acc;
             }, {})
         };
