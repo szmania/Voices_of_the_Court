@@ -439,7 +439,7 @@ function cancelInPlaceEdit() {
     filterAndRenderDiaries();
 }
 
-function saveInPlaceEdit(index: number) {
+async function saveInPlaceEdit(index: number) {
     const entry = filteredDiaries[index];
     const originalIndex = allDiaryEntries.findIndex(e => e === entry);
 
@@ -460,11 +460,12 @@ function saveInPlaceEdit(index: number) {
 
     editingDiaryIndex = -1;
     unsavedChanges = true;
-    updateSaveButtonState();
+    
+    await saveAllDiaries();
+
     filterAndRenderDiaries();
     currentDiaryIndex = index;
     renderDiaryList();
-    showStatus('Diary entry updated. Click "Save All Diaries" to persist.', 'info');
 }
 
 function addNewDiaryEntry() {
