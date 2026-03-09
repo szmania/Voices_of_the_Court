@@ -30,26 +30,6 @@ function getCharacterColor(characterId: number): string {
     return characterColorMap.get(characterId)!;
 }
 
-function handleSearchKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        if (allHighlightMarks.length === 0) return;
-
-        if (currentHighlightIndex !== -1) {
-            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
-        }
-
-        currentHighlightIndex++;
-        if (currentHighlightIndex >= allHighlightMarks.length) {
-            currentHighlightIndex = 0;
-        }
-
-        const currentMark = allHighlightMarks[currentHighlightIndex];
-        currentMark.classList.add('current-highlight');
-        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
 function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
@@ -72,10 +52,6 @@ function handleSearchKeydown(event: KeyboardEvent) {
         currentMark.classList.add('current-highlight');
         currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-}
-
-function escapeRegExp(string: string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 hideChat();
@@ -202,7 +178,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             }
             const displayName = `${message.name} (You)`;
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${displayName}:** ${message.content}`), sanitizeConfig);
-    
+
             // Add visual indicator for targeted message
             const targetId = (message as any).targetCharacterId;
             if (targetId && currentGameData) {
@@ -222,7 +198,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
                 const character = Array.from(currentGameData.characters.values()).find(c => c.shortName === message.name || c.fullName === message.name);
                 if (character) messageDiv.style.color = getCharacterColor(character.id);
             }
-            
+
             messageDiv.classList.add('ai-message');
             if (isHistorical) {
                 messageDiv.classList.add('historical-ai-message');
@@ -263,7 +239,7 @@ function displayActions(actions: ActionResponse[]){
 
     const feedbackDiv = document.createElement('div');
     feedbackDiv.classList.add('action-feedback');
-    
+
     const messages = actions.map(action => {
         return action.chatMessage;
     }).join('\n');
@@ -725,7 +701,7 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
         const nextUpText = window.LocalizationManager?.getNestedTranslation('chat.status_next_up') || 'Next:';
         statusHTML += `<div><span class="next-up">${nextUpText}</span> ${queue.map(c => c.name).join(', ')}</div>`;
     }
-    
+
     queueStatusDiv.innerHTML = statusHTML;
 }
 
@@ -1063,10 +1039,10 @@ function showInlineActionForm(action: any) {
     sourceSelectDiv.classList.add('action-character-select');
     const sourceLabel = document.createElement('label');
     sourceLabel.textContent = 'Source Character';
-    
+
     const sourceCustomSelect = document.createElement('div');
     sourceCustomSelect.className = 'custom-select-container';
-    
+
     const sourceHiddenInput = document.createElement('input');
     sourceHiddenInput.type = 'hidden';
     sourceHiddenInput.id = 'action-source-char-hidden';
@@ -1237,7 +1213,7 @@ function showInlineActionForm(action: any) {
                 optionsSource.forEach((option: any, optionIndex: number) => {
                     const optionElement = document.createElement('div');
                     optionElement.classList.add('custom-select-option');
-                    
+
                     let value: string;
                     let display: string;
 
@@ -1297,7 +1273,7 @@ function showInlineActionForm(action: any) {
                 argDiv.appendChild(inputElement);
                 argDiv.appendChild(desc);
             }
-            
+
             argsContainer.appendChild(argDiv);
         });
     }
@@ -1330,10 +1306,10 @@ function showInlineActionForm(action: any) {
     executeButton.addEventListener('click', () => {
         const sourceId = (formContainer.querySelector('#action-source-char-hidden') as HTMLInputElement).value;
         const targetId = (formContainer.querySelector('#action-target-char-hidden') as HTMLInputElement).value;
-        
+
         const args: any[] = [sourceId, targetId];
         const inputs = formContainer.querySelectorAll('.action-arg input, .action-arg select, .action-arg input[type=hidden]');
-        
+
         inputs.forEach(input => {
             args.push((input as HTMLInputElement | HTMLSelectElement).value);
         });
