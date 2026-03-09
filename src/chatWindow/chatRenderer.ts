@@ -1504,20 +1504,22 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     ipcRenderer.send('chat-window-ready');
 });
 
-ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean)=>{
+ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean, isAiToAi: boolean = false)=>{
     await displayMessage(message);
-    console.log("wait: "+waitForActions)
+    console.log(`wait: ${waitForActions}, isAiToAi: ${isAiToAi}`)
+
+    const shouldDisableInput = !isAiToAi;
 
     // Clear loading dots if this is an AI message and we're not waiting for actions
     // This handles the case where AI speaks first in a conversation
     if (message.role === "assistant" && !waitForActions) {
-        removeLoadingDots();
+        removeLoadingDots(shouldDisableInput);
     }
 
     // Always keep loading dots visible until actions are received
     // Don't remove loading dots here - wait for actions-receive event
     if(waitForActions){
-        showLoadingDots();
+        showLoadingDots(shouldDisableInput);
     }
 
     // Show clear history button after first message
