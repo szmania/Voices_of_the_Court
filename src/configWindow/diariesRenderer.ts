@@ -173,7 +173,12 @@ async function loadDiaries() {
     showLoader(true);
     allDiaryEntries = [];
     try {
-        characterNameMap = await ipcRenderer.invoke('get-character-map', currentPlayerId);
+        const result = await ipcRenderer.invoke('get-diary-character-map', currentPlayerId);
+        if (result.success) {
+            characterNameMap = result.map;
+        } else {
+            throw new Error(result.error);
+        }
         const characterIds: string[] = await ipcRenderer.invoke('get-diary-files', currentPlayerId);
         for (const charId of characterIds) {
             const data = await ipcRenderer.invoke('read-diary-file', currentPlayerId, charId);

@@ -17,7 +17,7 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import path from 'path';
@@ -1250,6 +1250,18 @@ ipcMain.handle('get-character-map', async (event, playerId) => {
         return { success: true, map: Object.fromEntries(map) };
     } catch (error) {
         console.error('Error getting character map:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-diary-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-diary-character-map event for player: ${playerId}`);
+    try {
+        const map = await getDiaryCharacterMap(playerId);
+        return { success: true, map: map };
+    } catch (error) {
+        console.error('Error getting diary character map:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
