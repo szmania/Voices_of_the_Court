@@ -95,8 +95,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let roleplayInstruction: string;
     if (isAiToAi) {
         const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-        const isInitiatingAiToAi = lastMessage && lastMessage.role === 'assistant' && (lastMessage as any).characterId === character.id;
-        console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}. Last speaker ID: ${(lastMessage as any)?.characterId}, Current character ID: ${character.id}`);
+        const isInitiatingAiToAi = lastMessage && lastMessage.role === 'assistant' && (lastMessage.name === character.fullName || lastMessage.name === character.shortName);
+        console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}. Last speaker name: ${lastMessage?.name}, Current character name: ${character.fullName}`);
 
         if (isInitiatingAiToAi) {
             const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
