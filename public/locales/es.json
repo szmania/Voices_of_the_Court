@@ -8,6 +8,7 @@
     "summarization": "Resumen",
     "diaries": "Diarios",
     "prompts": "Prompts",
+    "letters": "Cartas",
     "settings": "Ajustes",
     "system": "Sistema",
     "help": "Ayuda",
@@ -15,6 +16,10 @@
     "discord_tooltip": "Únete a nuestro Discord",
     "steam_tooltip": "Ver en Steam Workshop",
     "website_tooltip": "Visita nuestra página web"
+  },
+  "diaries": {
+    "header": "Diarios",
+    "description": "Gestionar las entradas del diario de los personajes."
   },
   "diaries": {
     "header": "Diarios",
@@ -79,6 +84,10 @@
     "narrative_tooltip": "Este prompt se utiliza para generar descripciones narrativas de IA después de que se activan las acciones. La narrativa proporciona descripciones atmosféricas de los eventos en el juego.",
     "scene_description_prompt": "Prompt de descripción de escena",
     "scene_description_tooltip": "Este prompt se utiliza para generar la descripción inicial de la escena al comienzo de la conversación. Proporciona contexto y atmósfera para las interacciones de los personajes.",
+    "letter_prompt": "Prompt de Carta",
+    "letter_tooltip": "Prompt para generar respuestas a cartas.",
+    "letter_summary_prompt": "Prompt de Resumen de Carta",
+    "letter_summary_tooltip": "Prompt para resumir un intercambio de cartas.",
     "diary_prompt": "Prompt de Diario",
     "diary_tooltip": "Este prompt se utiliza para generar entradas de diario para los personajes después de las conversaciones. Ayuda a mantener la consistencia y profundidad del personaje.",
     "diary_summary_prompt": "Prompt de resumen del diario",
@@ -575,6 +584,26 @@
     "presence_penalty": "Penalización de presencia",
     "top_p": "Top P",
     "reset": "Restablecer"
+  },
+  "letters": {
+    "player": "Jugador",
+    "character": "Personaje",
+    "all_characters": "Todos los personajes",
+    "inbox": "Bandeja de entrada",
+    "outbox": "Bandeja de salida",
+    "no_player": "Selecciona un jugador para ver las cartas.",
+    "no_letters": "No se encontraron cartas.",
+    "select": "Selecciona una carta para leer.",
+    "sort_by": "Ordenar por:",
+    "sort_game_date": "Fecha del juego",
+    "sort_real_date": "Fecha real",
+    "thread_status": "Hilo de Cartas",
+    "tooltip_thread_status": "Indica el número actual de cartas utilizadas en el hilo de cartas del juego. El hilo debe restablecerse en el juego mediante una decisión una vez que llega a 9/9.",
+    "tooltip_total": "Número total de cartas en el historial para el jugador/personaje seleccionado.",
+    "tooltip_generating": "Número de respuestas a cartas que la IA está generando actualmente.",
+    "tooltip_pending": "Número de respuestas generadas que esperan a que pase el retraso del juego antes de ser entregadas.",
+    "tooltip_failed": "Número de cartas que no se pudieron generar o enviar.",
+    "tooltip_completed": "Número de cartas que se han enviado o leído correctamente."
   },
   "history": {
     "header": "Visor del historial de conversaciones",

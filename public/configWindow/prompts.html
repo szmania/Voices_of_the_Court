@@ -14,6 +14,7 @@
         <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
         <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
         <li class="active"><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
         <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
         <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
@@ -81,6 +82,18 @@
                         <label data-i18n="prompts.scene_description_prompt"></label>
                         <tooltip-text side="top" data-i18n="prompts.scene_description_tooltip"></tooltip-text>
                         <config-textarea confID="sceneDescriptionPrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.letter_prompt">Letter Prompt</label>
+                        <tooltip-text side="top" data-i18n="prompts.letter_tooltip">Prompt for generating letter replies.</tooltip-text>
+                        <config-textarea confID="letterPrompt" rows="6"></config-textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-i18n="prompts.letter_summary_prompt">Letter Summary Prompt</label>
+                        <tooltip-text side="top" data-i18n="prompts.letter_summary_tooltip">Prompt for summarizing a letter exchange.</tooltip-text>
+                        <config-textarea confID="letterSummaryPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">

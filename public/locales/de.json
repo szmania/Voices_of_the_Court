@@ -8,6 +8,7 @@
     "summarization": "Zusammenfassung",
     "diaries": "Tagebücher",
     "prompts": "Prompts",
+    "letters": "Briefe",
     "settings": "Einstellungen",
     "system": "System",
     "help": "Hilfe",
@@ -15,6 +16,10 @@
     "discord_tooltip": "Tritt unserem Discord bei",
     "steam_tooltip": "Im Steam Workshop ansehen",
     "website_tooltip": "Besuche unsere Webseite"
+  },
+  "diaries": {
+    "header": "Tagebücher",
+    "description": "Tagebucheinträge für Charaktere verwalten."
   },
   "diaries": {
     "header": "Tagebücher",
@@ -79,6 +84,10 @@
     "narrative_tooltip": "Dieser Prompt wird verwendet, um KI-Erzählbeschreibungen zu generieren, nachdem Aktionen ausgelöst wurden. Die Erzählung liefert atmosphärische Beschreibungen von Ereignissen im Spiel.",
     "scene_description_prompt": "Szenenbeschreibungs-Prompt",
     "scene_description_tooltip": "Dieser Prompt wird verwendet, um die anfängliche Szenenbeschreibung zu Beginn des Gesprächs zu generieren. Er liefert Hintergrund und Atmosphäre für Charakterinteraktionen.",
+    "letter_prompt": "Brief-Prompt",
+    "letter_tooltip": "Prompt zur Generierung von Briefantworten.",
+    "letter_summary_prompt": "Briefzusammenfassungs-Prompt",
+    "letter_summary_tooltip": "Prompt zur Zusammenfassung eines Briefwechsels.",
     "diary_prompt": "Tagebuch-Prompt",
     "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
     "diary_summary_prompt": "Tagebuch-Zusammenfassungs-Prompt",
@@ -573,6 +582,33 @@
     "presence_penalty": "Präsenzstrafe",
     "top_p": "Top P",
     "reset": "Zurücksetzen"
+  },
+  "letters": {
+    "player": "Spieler",
+    "character": "Charakter",
+    "all_characters": "Alle Charaktere",
+    "inbox": "Posteingang",
+    "outbox": "Postausgang",
+    "no_player": "Wählen Sie einen Spieler aus, um Briefe anzuzeigen.",
+    "no_letters": "Keine Briefe gefunden.",
+    "select": "Wählen Sie einen Brief zum Lesen aus.",
+    "thread_status": "Brief-Thread",
+    "tooltip_thread_status": "Zeigt die aktuelle Anzahl der im Brief-Thread des Spiels verwendeten Briefe an. Der Thread muss im Spiel per Entscheidung zurückgesetzt werden, sobald er 9/9 erreicht.",
+    "tooltip_total": "Gesamtzahl der Briefe im Verlauf für den ausgewählten Spieler/Charakter.",
+    "tooltip_generating": "Anzahl der Briefantworten, die derzeit von der KI generiert werden.",
+    "tooltip_pending": "Anzahl der generierten Antworten, die auf das Verstreichen der Verzögerung im Spiel warten, bevor sie zugestellt werden.",
+    "tooltip_failed": "Anzahl der Briefe, deren Generierung oder Versand fehlgeschlagen ist.",
+    "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe."
+  },
+  "letters": {
+    "player": "Spieler",
+    "character": "Charakter",
+    "all_characters": "Alle Charaktere",
+    "inbox": "Posteingang",
+    "outbox": "Postausgang",
+    "no_player": "Wählen Sie einen Spieler aus, um Briefe anzuzeigen.",
+    "no_letters": "Keine Briefe gefunden.",
+    "select": "Wählen Sie einen Brief zum Lesen aus."
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

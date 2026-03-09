@@ -2,6 +2,11 @@
 import { app } from 'electron';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
+import { ChatWindow } from '../windows/ChatWindow.js';
+import { RunFileManager } from '../RunFileManager.js';
+import { SummaryFileWatcher } from './SummaryFileWatcher.js';
+import { LetterManager } from '../letter/LetterManager.js';
+import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
@@ -14,11 +19,7 @@ import { DiaryGenerator } from '../diary/DiaryGenerator.js';
 import { readDiaryFile, saveDiaryFile, saveDiarySummary } from '../diaryManager.js';
 import fs from 'fs';
 import path from 'path';
-
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
-import { RunFileManager } from '../RunFileManager.js';
-import { ChatWindow } from '../windows/ChatWindow.js';
-import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
 
@@ -45,22 +46,24 @@ export class Conversation{
     notSpokenYetText: string;
     description: string;
     config: Config;
-    runFileManager: RunFileManager;
+    runFileManager!: RunFileManager;
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
     diaryGenerator!: DiaryGenerator;
     actionsApiConnection: ApiConnection;
-    actions: Action[];
+    actions!: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
     narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
+    letterManager: LetterManager;
+    letters: Map<number, ILetter[]>;
     consecutiveActionsCount: number; // Track consecutive responses with actions
     lastActionMessageIndex: number; // Track the last message index that had actions
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
-    
+
     npcQueue: Character[];
     customQueue: Character[] | null;
     isPaused: boolean;
@@ -90,6 +93,10 @@ export class Conversation{
         this.description = "";
         this.actions = [];
 
+        this.runFileManager = new RunFileManager(this.config.userFolderPath);
+        this.description = "";
+        this.actions = [];
+
         // 如果角色数量大于2，为所有非玩家角色创建空白消息
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
@@ -109,6 +116,8 @@ export class Conversation{
 
         this.summaries = new Map<number, Summary[]>();
         this.summaryFileWatcher = new SummaryFileWatcher(); // 初始化文件监控器
+        this.letterManager = LetterManager.getInstance();
+        this.letters = new Map<number, ILetter[]>();
         this.consecutiveActionsCount = 0; // Initialize consecutive actions counter
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
@@ -177,12 +186,18 @@ export class Conversation{
                 this.summaries.set(character.id, characterSummaries);
 
                 // 设置文件监控，当文件变化时自动重新加载
-                this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries) => {
+                this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries: Summary[]) => {
                     this.summaries.set(character.id, updatedSummaries);
                     console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
                 });
+
+                const characterLetters = this.letterManager.getLetters(String(this.gameData.playerID), String(character.id));
+                this.letters.set(character.id, characterLetters);
+                console.log(`Loaded ${characterLetters.length} letters for AI ID ${character.id}.`);
             }
         });
+
+        this.config = config;
 
         this.messages.forEach(msg => {
             if (msg.content === "Has not spoken yet") {
@@ -202,6 +217,7 @@ export class Conversation{
         
         this.loadConfig();
         this.loadHistory();
+        this.initialize();
 
         // Sanitize messages to remove any historical placeholders that may have leaked in.
         const currentCharacterIds = new Set(Array.from(this.gameData.characters.keys()));
@@ -559,7 +575,7 @@ export class Conversation{
                 try {
                     this.gameData.playerID = character.id;
                     this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
-                    
+
                     if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
                         const collectedActions = await checkActions(this);
                         if (collectedActions.length > 0) {
@@ -735,13 +751,13 @@ export class Conversation{
         if (otherCharacters.length === 0) {
             return null; // No other AIs to target
         }
-    
+
         const content = messageContent.toLowerCase();
         const words = content.replace(/[.,!?;:]/g, '').split(/\s+/);
-    
+
         let bestMatch: Character | null = null;
         let highestConfidence = 0.75; // Start with a threshold
-    
+
         for (const char of otherCharacters) {
             const checkables = [char.fullName, char.shortName, char.firstName].filter(Boolean).map(n => n.toLowerCase());
             for (const checkable of checkables) {
@@ -754,13 +770,13 @@ export class Conversation{
                 }
             }
         }
-    
+
         if (bestMatch) {
             console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence}`);
         } else {
             console.log('No specific AI action target inferred. Defaulting to player.');
         }
-    
+
         return bestMatch;
     }
 
@@ -1736,25 +1752,25 @@ ${character.fullName}的发言：`
         if (initialMessages.length === 0 || this.aiToAiTurnLimit >= 2 || !shouldTalkToAi) {
             return;
         }
-    
+
         this.aiToAiTurnLimit++;
         const lastRespondingCharacter = this.gameData.characters.get((initialMessages[initialMessages.length - 1] as any).characterId);
         if (!lastRespondingCharacter) return;
-    
+
         const otherAIs = Array.from(this.gameData.characters.values()).filter(
             c => c.id !== this.gameData.playerID && c.id !== lastRespondingCharacter.id
         );
-    
+
         if (otherAIs.length > 0) {
             const targetAI = otherAIs[Math.floor(Math.random() * otherAIs.length)];
             console.log(`AI-to-AI turn: ${lastRespondingCharacter.shortName} will now talk to ${targetAI.shortName}.`);
-    
+
             // Generate AI1 -> AI2 message
             const aiMessage = await this.generateAiToAiMessage(lastRespondingCharacter, targetAI);
             if (aiMessage) {
                 this.pushMessage(aiMessage);
                 this.chatWindow.window.webContents.send('message-receive', aiMessage, this.config.actionsEnableAll, true);
-    
+
                 let collectedActions: ActionResponse[] = [];
                 if (this.config.actionsEnableAll) {
                     const originalPlayerId = this.gameData.playerID;
@@ -1782,14 +1798,14 @@ ${character.fullName}的发言：`
                     }
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative, true);
-    
+
                 // Generate AI2 -> AI1 response
                 const targetResponseMessages = await this.processCharacterList([targetAI]);
                 for (const responseMsg of targetResponseMessages) {
                     if (responseMsg) {
                         this.pushMessage(responseMsg);
                         this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll, true);
-    
+
                         let responseActions: ActionResponse[] = [];
                         if (this.config.actionsEnableAll) {
                             const originalPlayerId = this.gameData.playerID;

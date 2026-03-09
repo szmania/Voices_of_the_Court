@@ -21,14 +21,17 @@ let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-p
 
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
-    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt", "diaryPrompt",
-    "diarySummarizePrompt"
+    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
 promptKeys.forEach(key => {
     promptTextareas[key] = document.querySelector(`config-textarea[confID="${key}"]`);
 });
+
+// Add diary prompt key
+promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
 
 // Add diary prompt key
 promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
@@ -333,6 +336,9 @@ async function handlePresetChange() {
 
 async function saveCurrentPreset() {
     const presetName = promptPresetNameInput.value.trim();
+    // @ts-ignore
+    const lang = window.LocalizationManager?.language || 'en';
+
     if (!presetName) {
         // @ts-ignore
         alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
@@ -368,6 +374,9 @@ async function saveCurrentPreset() {
 
 async function deleteSelectedPreset() {
     const selectedPresetName = promptPresetSelect.value;
+    // @ts-ignore
+    const lang = window.LocalizationManager?.language || 'en';
+
     if (selectedPresetName === 'Default') {
         // @ts-ignore
         alert(window.LocalizationManager.getTranslation('prompts.delete_default_preset_alert'));

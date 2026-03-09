@@ -39,6 +39,7 @@ let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let editingSummaryIndex = -1;
 let hasUnsavedChanges = false;
+let characterMap: { [key: string]: string } = {};
 
 //init
 document.getElementById("container")!.style.display = "block";
@@ -181,10 +182,10 @@ async function loadPlayerIds() {
         
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
-            ids.forEach((id: string) => {
+            ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
-                option.value = id;
-                option.textContent = id;
+                option.value = player.id;
+                option.textContent = player.name === `Player ${player.id}` ? player.id : `${player.name} (${player.id})`;
                 playerIdSelect.appendChild(option);
             });
             await loadSummaryData(); // Load data for the first player
@@ -218,6 +219,14 @@ async function loadSummaryData() {
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
         
+        const { success, map, error } = await ipcRenderer.invoke('get-character-map', selectedPlayerId);
+        if (success) {
+            characterMap = map;
+        } else {
+            console.warn('Could not load character map:', error);
+            characterMap = {}; // Reset on failure
+        }
+
         allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
         populateCharacterSelect();
         filterSummariesByCharacter();
@@ -236,7 +245,7 @@ async function loadSummaryData() {
 function populateCharacterSelect() {
     const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
-    
+
     const characterMap = new Map<string, string>();
     allSummaries.forEach(summary => {
         if (summary.characterId) {
@@ -361,7 +370,8 @@ function renderSummaryList() {
             const characterId = summary.characterId || 'Unknown';
             const characterName = summary.characterName || characterId;
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
-            
+            const characterDisplayText = characterName ? `${characterName} (${characterId})` : characterId;
+
             // Format date for display
             const displayDate = formatDateForDisplay(summary.date);
             const headerText = `${displayDate} - ${characterText}: ${characterName}`;
@@ -524,6 +534,7 @@ function formatDateForInput(dateStr: string): string {
 
     // For any other format, we must parse it into components and build a YYYY-MM-DD string.
     // This avoids timezone issues from `new Date()`.
+
     const months: { [key: string]: number } = {
         'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
         'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11

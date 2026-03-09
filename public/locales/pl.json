@@ -8,6 +8,7 @@
     "summarization": "Podsumowanie",
     "diaries": "Dzienniki",
     "prompts": "Prompty",
+    "letters": "Listy",
     "settings": "Ustawienia",
     "system": "System",
     "help": "Pomoc",
@@ -15,6 +16,10 @@
     "discord_tooltip": "Dołącz do naszego Discorda",
     "steam_tooltip": "Zobacz w Warsztacie Steam",
     "website_tooltip": "Odwiedź naszą stronę internetową"
+  },
+  "diaries": {
+    "header": "Dzienniki",
+    "description": "Zarządzaj wpisami do dziennika dla postaci."
   },
   "diaries": {
     "header": "Dzienniki",
@@ -84,7 +89,11 @@
     "diary_summary_prompt": "Prompt podsumowania dziennika",
     "diary_summary_tooltip": "Ten prompt służy do podsumowania wszystkich wpisów do dziennika postaci w jedno streszczenie.",
     "letter_prompt": "Prompt listu",
+    "letter_tooltip": "Prompt do generowania odpowiedzi na listy.",
     "letter_summary_prompt": "Prompt podsumowania listu",
+    "letter_summary_tooltip": "Prompt do podsumowywania wymiany listów.",
+    "diary_prompt": "Prompt Dziennika",
+    "diary_tooltip": "Ten prompt służy do generowania wpisów do dziennika dla postaci po rozmowach. Pomaga utrzymać spójność i głębię postaci.",
     "restore_defaults": "Przywróć domyślne prompty",
     "restore_tooltip": "Kliknij ten przycisk, aby przywrócić wszystkie prompty do ich wartości domyślnych",
     "presets_header": "Presety promptów",
@@ -575,6 +584,26 @@
     "presence_penalty": "Kara za obecność",
     "top_p": "Top P",
     "reset": "Resetuj"
+  },
+  "letters": {
+    "player": "Gracz",
+    "character": "Postać",
+    "all_characters": "Wszystkie postacie",
+    "inbox": "Skrzynka odbiorcza",
+    "outbox": "Skrzynka nadawcza",
+    "no_player": "Wybierz gracza, aby wyświetlić listy.",
+    "no_letters": "Nie znaleziono listów.",
+    "select": "Wybierz list do przeczytania.",
+    "sort_by": "Sortuj według:",
+    "sort_game_date": "Data w grze",
+    "sort_real_date": "Data rzeczywista",
+    "thread_status": "Wątek listów",
+    "tooltip_thread_status": "Wskazuje aktualną liczbę listów użytych w wątku listów w grze. Wątek musi zostać zresetowany w grze poprzez decyzję, gdy osiągnie 9/9.",
+    "tooltip_total": "Całkowita liczba listów w historii dla wybranego gracza/postaci.",
+    "tooltip_generating": "Liczba odpowiedzi na listy aktualnie generowanych przez AI.",
+    "tooltip_pending": "Liczba wygenerowanych odpowiedzi oczekujących na upłynięcie opóźnienia w grze przed dostarczeniem.",
+    "tooltip_failed": "Liczba listów, których generowanie lub wysłanie nie powiodło się.",
+    "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane."
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

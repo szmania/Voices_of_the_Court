@@ -8,6 +8,7 @@
     "summarization": "Résumé",
     "diaries": "Journaux",
     "prompts": "Prompts",
+    "letters": "Lettres",
     "settings": "Paramètres",
     "system": "Système",
     "help": "Aide",
@@ -15,6 +16,10 @@
     "discord_tooltip": "Rejoignez notre Discord",
     "steam_tooltip": "Voir sur le Steam Workshop",
     "website_tooltip": "Visitez notre site web"
+  },
+  "diaries": {
+    "header": "Journaux",
+    "description": "Gérer les entrées de journal des personnages."
   },
   "diaries": {
     "header": "Journaux",
@@ -79,6 +84,10 @@
     "narrative_tooltip": "Ce prompt est utilisé pour générer des descriptions narratives par l'IA après le déclenchement d'actions. La narration fournit des descriptions atmosphériques des événements du jeu.",
     "scene_description_prompt": "Prompt de description de scène",
     "scene_description_tooltip": "Ce prompt est utilisé pour générer la description initiale de la scène au début de la conversation. Il fournit le contexte et l'atmosphère pour les interactions entre personnages.",
+    "letter_prompt": "Prompt de Lettre",
+    "letter_tooltip": "Prompt pour générer des réponses aux lettres.",
+    "letter_summary_prompt": "Prompt de Résumé de Lettre",
+    "letter_summary_tooltip": "Prompt pour résumer un échange de lettres.",
     "diary_prompt": "Prompt de Journal",
     "diary_tooltip": "Ce prompt est utilisé pour générer des entrées de journal pour les personnages après les conversations. Il aide à maintenir la cohérence et la profondeur du personnage.",
     "diary_summary_prompt": "Prompt de résumé de journal",
@@ -575,6 +584,26 @@
     "presence_penalty": "Pénalité de présence",
     "top_p": "Top P",
     "reset": "Réinitialiser"
+  },
+  "letters": {
+    "player": "Joueur",
+    "character": "Personnage",
+    "all_characters": "Tous les personnages",
+    "inbox": "Boîte de réception",
+    "outbox": "Boîte d'envoi",
+    "no_player": "Sélectionnez un joueur pour voir les lettres.",
+    "no_letters": "Aucune lettre trouvée.",
+    "select": "Sélectionnez une lettre à lire.",
+    "sort_by": "Trier par :",
+    "sort_game_date": "Date du jeu",
+    "sort_real_date": "Date réelle",
+    "thread_status": "Fil de Lettres",
+    "tooltip_thread_status": "Indique le nombre actuel de lettres utilisées dans le fil de lettres du jeu. Le fil doit être réinitialisé dans le jeu via une décision une fois qu'il atteint 9/9.",
+    "tooltip_total": "Nombre total de lettres dans l'historique pour le joueur/personnage sélectionné.",
+    "tooltip_generating": "Nombre de réponses aux lettres en cours de génération par l'IA.",
+    "tooltip_pending": "Nombre de réponses générées en attente de la fin du délai en jeu avant leur livraison.",
+    "tooltip_failed": "Nombre de lettres dont la génération ou l'envoi a échoué.",
+    "tooltip_completed": "Nombre de lettres qui ont été envoyées ou lues avec succès."
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

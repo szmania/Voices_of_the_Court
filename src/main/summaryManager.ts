@@ -1,18 +1,38 @@
+import fs from 'fs';
+import path from 'path';
+import { Summary } from './ts/conversation_interfaces';
+
 /**
  * Gets all player IDs by scanning summary directories.
  * @param userDataPath The path to the user data directory (e.g., .../votc_data).
  * @returns A promise that resolves to an array of player ID strings.
  */
-export async function getAllPlayerIds(userDataPath: string): Promise<string[]> {
+export async function getAllPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
     try {
         const summaryDir = path.join(userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summaryDir)) {
-            return []; // Return empty array if the base directory doesn't exist
+            return [];
         }
 
         const playerDirs = fs.readdirSync(summaryDir, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
-            .map(dirent => dirent.name);
+            .map(dirent => {
+                const playerId = dirent.name;
+                const mapPath = path.join(summaryDir, playerId, '_character_map.json');
+                let playerName = `Player ${playerId}`; // Fallback name
+                if (fs.existsSync(mapPath)) {
+                    try {
+                        const mapContent = fs.readFileSync(mapPath, 'utf8');
+                        const mapData = JSON.parse(mapContent);
+                        if (mapData[playerId]) {
+                            playerName = mapData[playerId];
+                        }
+                    } catch (e) {
+                        console.error(`Error reading character map for player ${playerId}:`, e);
+                    }
+                }
+                return { id: playerId, name: playerName };
+            });
 
         return playerDirs;
     } catch (error) {
@@ -20,9 +40,6 @@ export async function getAllPlayerIds(userDataPath: string): Promise<string[]> {
         throw error;
     }
 }
-
-import fs from 'fs';
-import path from 'path';
 
 /**
  * Gets the most recent player ID by scanning summary directories.
@@ -71,7 +88,7 @@ export async function getPlayerId(userDataPath: string): Promise<{playerId: stri
  * @param playerId The ID of the player whose summaries to read.
  * @returns A promise that resolves to an array of all summaries.
  */
-export async function readSummaryFile(userDataPath: string, playerId: string): Promise<any[]> {
+export async function readSummaryFile(userDataPath: string, playerId: string): Promise<Summary[]> {
     try {
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
@@ -82,17 +99,17 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
         }
         
         // Read all JSON files in the directory
-        const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json'));
-        const allSummaries = [];
+        const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+        const allSummaries: Summary[] = [];
         
         for (const file of files) {
             const filePath = path.join(summaryDir, file);
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
-                const summaries = JSON.parse(content);
+                const summaries: Summary[] = JSON.parse(content);
                 // Add character ID info to each summary
                 const characterId = path.basename(file, '.json');
-                const summariesWithCharacterId = summaries.map((summary: any) => ({
+                const summariesWithCharacterId = summaries.map((summary) => ({
                     ...summary,
                     characterId
                 }));
@@ -136,7 +153,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
  * @param playerId The ID of the player.
  * @param summaries An array of all summaries to save.
  */
-export async function saveSummaryFile(userDataPath: string, playerId: string, summaries: any[]): Promise<void> {
+export async function saveSummaryFile(userDataPath: string, playerId: string, summaries: Summary[]): Promise<void> {
     try {
         const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
         
@@ -146,7 +163,7 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
         }
         
         // Group summaries by character ID
-        const summariesByCharacter: { [key: string]: any[] } = {};
+        const summariesByCharacter: { [key: string]: Summary[] } = {};
         summaries.forEach(summary => {
             const characterId = summary.characterId || 'default';
             if (!summariesByCharacter[characterId]) {
@@ -160,7 +177,7 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
             const summaryFilePath = path.join(summaryDir, `${characterId}.json`);
             
             // Remove characterId field as it is already in the filename
-            const cleanSummaries = characterSummaries.map((summary: any) => {
+            const cleanSummaries = characterSummaries.map((summary) => {
                 const { characterId, ...cleanSummary } = summary;
                 return cleanSummary;
             });
@@ -170,6 +187,32 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
         }
     } catch (error) {
         console.error('Error saving summary file:', error);
+        throw error;
+    }
+}
+
+/**
+ * Reads the character map for a given player.
+ * @param userDataPath The path to the user data directory.
+ * @param playerId The ID of the player whose character map to read.
+ * @returns A promise that resolves to a map of character IDs to names.
+ */
+export async function readCharacterMap(userDataPath: string, playerId: string): Promise<Map<string, string>> {
+    try {
+        const mapFilePath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMap = new Map<string, string>();
+
+        if (fs.existsSync(mapFilePath)) {
+            const content = fs.readFileSync(mapFilePath, 'utf8');
+            const mapData = JSON.parse(content);
+            for (const id in mapData) {
+                characterMap.set(id, mapData[id]);
+            }
+        }
+        
+        return characterMap;
+    } catch (error) {
+        console.error('Error reading character map file:', error);
         throw error;
     }
 }

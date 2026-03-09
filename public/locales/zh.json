@@ -8,6 +8,7 @@
     "summarization": "总结",
     "diaries": "日记",
     "prompts": "提示词",
+    "letters": "信件",
     "settings": "设置",
     "system": "系统",
     "help": "帮助",
@@ -15,6 +16,10 @@
     "discord_tooltip": "加入我们的Discord",
     "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站"
+  },
+  "diaries": {
+    "header": "日记",
+    "description": "管理角色的日记条目。"
   },
   "diaries": {
     "header": "日记",
@@ -84,7 +89,11 @@
     "diary_summary_prompt": "日记摘要提示",
     "diary_summary_tooltip": "此提示用于将角色的所有日记条目汇总为单个摘要。",
     "letter_prompt": "信件提示词",
+    "letter_tooltip": "用于生成信件回复的提示词。",
     "letter_summary_prompt": "信件总结提示词",
+    "letter_summary_tooltip": "用于总结信件往来的提示词。",
+    "diary_prompt": "日记提示词",
+    "diary_tooltip": "此提示词用于在对话后为角色生成日记条目。它有助于保持角色的一致性和深度。",
     "restore_defaults": "恢复默认提示词",
     "restore_tooltip": "点击此按钮将所有提示词恢复为默认值",
     "presets_header": "提示词预设",
@@ -578,6 +587,26 @@
     "presence_penalty": "存在惩罚 (Presence Penalty)",
     "top_p": "核采样 (Top P)",
     "reset": "重置"
+  },
+  "letters": {
+    "player": "玩家",
+    "character": "角色",
+    "all_characters": "所有角色",
+    "inbox": "收件箱",
+    "outbox": "发件箱",
+    "no_player": "请选择一位玩家以查看信件。",
+    "no_letters": "未找到信件。",
+    "select": "请选择一封信件阅读。",
+    "sort_by": "排序方式：",
+    "sort_game_date": "游戏日期",
+    "sort_real_date": "真实日期",
+    "thread_status": "信件线程",
+    "tooltip_thread_status": "表示游戏中信件线程已使用的信件数量。当达到9/9时，必须通过游戏内决议重置线程才能继续发送信件。",
+    "tooltip_total": "所选玩家/角色的历史信件总数。",
+    "tooltip_generating": "AI当前正在生成的信件回复数量。",
+    "tooltip_pending": "已生成但等待游戏内延迟过去后才能发送的回复数量。",
+    "tooltip_failed": "生成或发送失败的信件数量。",
+    "tooltip_completed": "已成功发送或阅读的信件数量。"
   },
   "diary_manager": {
     "header": "日记管理器",

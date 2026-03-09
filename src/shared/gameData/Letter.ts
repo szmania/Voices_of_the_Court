@@ -28,4 +28,5 @@ export interface Letter {
   summaryContent?: string;
   summaryError?: string;
   characterName?: string;
+  delivered?: boolean;
 }

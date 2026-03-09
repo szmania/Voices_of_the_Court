@@ -7,11 +7,15 @@ import { Config } from '../shared/Config.js';
 import { ClipboardListener } from "./ClipboardListener.js";
 import { Conversation } from "./conversation/Conversation.js";
 import { GameData } from "../shared/gameData/GameData.js";
+import { Letter } from "./letter/Letter.js";
+import { StoredLetter } from "./letter/letterInterfaces.js";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
+import { LetterManager } from "./letter/LetterManager.js";
 import { parseLog } from "../shared/gameData/parseLog.js";
+import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
@@ -237,6 +241,119 @@ const createTray = () => {
 let clipboardListener = new ClipboardListener();
 let config: Config;
 
+let letterThreadCount = 0;
+let letterThreadFullNotified = false;
+
+
+let currentTotalDays: number = 0;
+const storedLetters: Map<string, StoredLetter> = new Map();
+
+
+async function checkAndDeliverLetters() {
+    const letterManager = LetterManager.getInstance();
+    for (const [letterId, storedLetter] of storedLetters.entries()) {
+        if (currentTotalDays >= storedLetter.expectedDeliveryDay) {
+            console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
+
+            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            if (!gameData) {
+                console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
+                continue;
+            }
+            const currentDateString = gameData.date;
+
+            letterManager.deliverLetter(storedLetter, config, currentDateString);
+            storedLetters.delete(letterId);
+
+            if (configWindow && !configWindow.window.isDestroyed()) {
+                configWindow.window.webContents.send('letter-status-changed');
+            }
+        }
+    }
+}
+
+function removeLettersAfterDate(cutoffDate: number): void {
+    const lettersToRemove: string[] = [];
+
+    for (const [letterId, storedLetter] of storedLetters.entries()) {
+      // The timestamp for when the reply was generated is the `totalDays` of the original letter.
+      if (storedLetter.letter.totalDays > cutoffDate) {
+        lettersToRemove.push(letterId);
+      }
+    }
+
+    for (const letterId of lettersToRemove) {
+      console.log(`Removing pending letter ${letterId} due to time travel.`);
+      storedLetters.delete(letterId);
+    }
+}
+
+function updateCurrentDate(newTotalDays: number) {
+    const oldTotalDays = currentTotalDays;
+
+    // Detect time travel backwards (loading an older save)
+    if (oldTotalDays > 0 && newTotalDays < oldTotalDays) {
+        console.log(`Time travel detected (backwards). Removing letters sent after new date. | Old date: ${oldTotalDays} | New date: ${newTotalDays}`);
+        removeLettersAfterDate(newTotalDays);
+    }
+    // Detect large time jump forward (more than 40 days), could be loading a different save
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 90) {
+        console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
+        storedLetters.clear();
+    }
+
+    currentTotalDays = newTotalDays;
+    console.log(`Game date updated to: ${currentTotalDays}`);
+    checkAndDeliverLetters();
+}
+
+function processLogLine(line: string) {
+    const dateRegex = /VOTC:DATE\/;\/(\d+)/;
+    const match = line.match(dateRegex);
+
+    if (match) {
+      const newTotalDays = Number(match[1]);
+      updateCurrentDate(newTotalDays);
+    }
+}
+
+let lastSize = 0;
+function startLogTailing() {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (!config.userFolderPath || !fs.existsSync(debugLogPath)) {
+        console.warn("LetterManager: CK3 debug log path not configured or file not found; cannot start log tailing for date updates.");
+        setTimeout(startLogTailing, 5000); // Retry after 5s if path not set
+        return;
+    }
+
+    console.log(`Starting to watch debug log for date updates: ${debugLogPath}`);
+
+    try {
+        lastSize = fs.statSync(debugLogPath).size;
+
+        fs.watchFile(debugLogPath, { interval: 2000 }, (curr, prev) => {
+            if (curr.mtime > prev.mtime && curr.size > lastSize) {
+                const bufferSize = curr.size - lastSize;
+                const buffer = Buffer.alloc(bufferSize);
+                const fd = fs.openSync(debugLogPath, 'r');
+                fs.readSync(fd, buffer, 0, bufferSize, lastSize);
+                fs.closeSync(fd);
+
+                const newContent = buffer.toString('utf8');
+                newContent.split(/\r?\n/).forEach(line => {
+                    if (line) processLogLine(line);
+                });
+                lastSize = curr.size;
+            } else if (curr.size < lastSize) {
+                // Log file was likely cleared/rotated
+                lastSize = curr.size;
+            }
+        });
+    } catch (error) {
+        console.error("Error starting log tailing:", error);
+    }
+}
+
 
 app.on('ready',  async () => {
     console.log('App is ready event triggered.');
@@ -414,6 +531,7 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
+    startLogTailing();
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -501,6 +619,14 @@ clipboardListener.on('VOTC:IN', async () =>{
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
 
+        // Import letters from log
+        const characterNameMap = new Map<string, string>();
+        gameData.characters.forEach(char => {
+            characterNameMap.set(String(char.id), char.fullName);
+        });
+        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID), gameData.date, String(gameData.aiID));
+
+
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
         
@@ -527,7 +653,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
             await conversation.initialize();
         });
-        
+
     }catch(err){
         console.log("==VOTC:IN ERROR==");
         console.error(err); // Changed from console.log(err)
@@ -547,6 +673,15 @@ clipboardListener.on('VOTC:EFFECT_ACCEPTED', async () =>{
         console.warn('VOTC:EFFECT_ACCEPTED received but no active conversation.');
     }
     
+})
+
+clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
+    console.log('ClipboardListener: VOTC:LETTER_ACCEPTED event detected.');
+    try {
+        LetterManager.getInstance().clearLettersFile(config);
+    } catch (error) {
+        console.error(`Failed to clear letters file: ${error}`);
+    }
 })
 
 clipboardListener.on('VOTC:BOOKMARK', async () => {
@@ -615,26 +750,110 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
 clipboardListener.on('VOTC:LETTER', async () => {
     console.log('ClipboardListener: VOTC:LETTER event detected.');
     try {
-        const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        
-        // 解析游戏数据
-        const gameData = await parseLog(debugLogPath);
-        if (!gameData) {
-            console.error('Failed to parse game data from debug.log');
+        LetterManager.getInstance().clearLettersFile(config);
+        await sleep(250); // Wait for log to flush
+
+        const { playerId } = await getPlayerId(userDataPath);
+        if (!playerId) {
+            console.error("Could not determine player ID for VOTC:LETTER event.");
             return;
         }
 
-        // 创建信件回复生成器
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            console.error('Failed to parse game data from debug.log for letter event.');
+            return;
+        }
+
+        const characterNameMap = await readCharacterMap(userDataPath, playerId);
+        const gameDate = gameData.date;
+        const letterManager = LetterManager.getInstance();
+
+        // Import letters from log, which now also saves them.
+        await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate, String(gameData.aiID));
+        console.log("Imported and saved letters immediately after VOTC:LETTER event.");
+
+        // Get all letters for the player and find the most recent one by creation date.
+        const allPlayerLetters = letterManager.getAllLetters(playerId);
+        const latestLetter = letterManager.getLatestLetter(playerId);
+
+        if (!latestLetter) {
+            console.error("VOTC:LETTER event, but no letters found after import.");
+            return;
+        }
+
+        // START NEW LOGIC
+        const letterIdMatch = latestLetter.subject.match(/letter_(\d+)/);
+        if (letterIdMatch) {
+            const newCount = parseInt(letterIdMatch[1], 10);
+            if (newCount === 1) {
+                console.log('Letter thread reset detected (letter_1).');
+                letterThreadCount = 1;
+                letterThreadFullNotified = false;
+            } else {
+                letterThreadCount = newCount;
+            }
+
+            console.log(`Letter thread count updated to: ${letterThreadCount}/9`);
+
+            if (letterThreadCount >= 9 && !letterThreadFullNotified) {
+                dialog.showMessageBox({
+                    type: 'warning',
+                    title: t('dialog.letter_thread_full_title'),
+                    message: t('dialog.letter_thread_full_message'),
+                    buttons: [t('dialog.ok')]
+                });
+                letterThreadFullNotified = true;
+            }
+        }
+
+        // Send update to renderer
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-thread-status-update', letterThreadCount);
+        }
+        // END NEW LOGIC
+
+        // // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
+        // if (latestLetter.recipient.id !== gameData.aiID) {
+        //     console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
+        //     return;
+        // }
+
+        // Check if this letter already has a reply that is not in the future
+        const hasReply = allPlayerLetters.some(l =>
+            l.replyToId === latestLetter.id &&
+            l.totalDays <= gameData.totalDays &&
+            l.sender.id === latestLetter.recipient.id &&
+            l.recipient.id === latestLetter.sender.id
+        );
+        if (hasReply) {
+            console.log(`Letter ${latestLetter.id} already has a reply that is not in the future. No new reply will be generated.`);
+            return;
+        }
+
+        if (gameData.totalDays) {
+            updateCurrentDate(gameData.totalDays);
+        }
+
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
-        
-        // 生成回信并写入文件（新方法会自动处理letterId）
-        const replyContent = await letterReplyGenerator.generateLetterReply(gameData, debugLogPath, config.userFolderPath);
-        if (!replyContent) {
+        const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
+
+        if (!replyLetter) {
             console.error('Failed to generate letter reply');
             return;
         }
 
-        console.log('Letter reply generated and written successfully.');
+        const expectedDeliveryDay = latestLetter.totalDays + latestLetter.delay;
+        const storedLetter: StoredLetter = {
+            letter: replyLetter,
+            originalLetter: latestLetter,
+            expectedDeliveryDay: expectedDeliveryDay
+        };
+
+        storedLetters.set(latestLetter.id, storedLetter);
+        console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}.`);
+
+        checkAndDeliverLetters();
         
     } catch (error) {
         console.error('Error processing VOTC:LETTER event:', error);
@@ -723,10 +942,10 @@ const promptKeys = [
     'selfTalkSummarizePrompt', 
     'narrativePrompt', 
     'sceneDescriptionPrompt',
+    'letterPrompt',
+    'letterSummaryPrompt',
     'diaryPrompt',
     'diarySummarizePrompt',
-    'letterPrompt',
-    'letterSummaryPrompt'
 ];
 
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
@@ -785,6 +1004,9 @@ ipcMain.on('chat-stop', () =>{
     chatWindow.hide();
 
     if(conversation && conversation.isOpen){
+        if (conversation.gameData.totalDays) {
+            updateCurrentDate(conversation.gameData.totalDays);
+        }
         conversation.summarize();
     }
     
@@ -950,10 +1172,10 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
                 console.error('Error reading character map:', e);
             }
         }
-        
+
         const augmentedSummaries = summaries.map(summary => {
-            const characterName = characterMap[summary.characterId] || summary.characterId;
-            return { ...summary, characterName };
+            const characterName = summary.characterId ? characterMap[summary.characterId] : 'Unknown';
+            return { ...summary, characterName: characterName || summary.characterId };
         });
 
         return augmentedSummaries;
@@ -970,6 +1192,23 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-letter-thread-status', () => {
+    console.log(`IPC: Received get-letter-thread-status. Current count: ${letterThreadCount}`);
+    return letterThreadCount;
+});
+
+ipcMain.handle('get-character-map', async (event, playerId) => {
+    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
+    try {
+        const map = await readCharacterMap(userDataPath, playerId);
+        return { success: true, map: Object.fromEntries(map) };
+    } catch (error) {
+        console.error('Error getting character map:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
@@ -1035,17 +1274,9 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
     }
 });
 
-ipcMain.handle('get-character-map', async (event, playerId) => {
-    console.log(`IPC: Received get-character-map event for player: ${playerId}`);
-    try {
-        return await getCharacterMap(playerId);
-    } catch (error) {
-        console.error('Error getting character map:', error);
-        return {};
-    }
-});
-
 // Conversation History IPC handlers
+
+
 ipcMain.handle('get-conversation-history-ids', async () => {
     console.log('IPC: Received get-conversation-history-ids event.');
     try {
@@ -1078,6 +1309,89 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
         console.error('Error reading conversation history file:', error);
         return '';
     }
+});
+
+// Letter IPC Handlers
+ipcMain.handle('import-letters-from-log', async () => {
+    console.log('IPC: Received import-letters-from-log event.');
+    try {
+        const { playerId } = await getPlayerId(userDataPath);
+        if (playerId) {
+            const characterNameMap = await readCharacterMap(userDataPath, playerId);
+            const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+            const letterManager = LetterManager.getInstance();
+            await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+            return { success: true };
+        }
+        return { success: false, error: 'Player ID not found.' };
+    } catch (error) {
+        console.error('Error during manual letter import:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-letter-players', async () => {
+    console.log('IPC: Received get-letter-players event.');
+    const letterManager = LetterManager.getInstance();
+    const playerIds = letterManager.getAllPlayerIdsWithLetters();
+    const playerInfo = new Map<string, string>();
+
+    for (const pId of playerIds) {
+        const lettersForPlayer = letterManager.getAllLetters(pId);
+        if (lettersForPlayer.length > 0) {
+            let playerName: string | undefined;
+            // Try to find the player's name from any letter
+            for (const letter of lettersForPlayer) {
+                if (letter.sender && String(letter.sender.id) === pId && letter.sender.fullName) {
+                    playerName = letter.sender.fullName;
+                    break;
+                }
+                if (letter.recipient && String(letter.recipient.id) === pId && letter.recipient.fullName) {
+                    playerName = letter.recipient.fullName;
+                    break;
+                }
+            }
+            playerInfo.set(pId, playerName || `Player ${pId}`);
+        }
+    }
+    return Array.from(playerInfo.entries()).map(([id, name]) => ({ id, name }));
+});
+
+ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {
+    console.log(`IPC: Received get-corresponded-characters event for player: ${playerId}`);
+    const letterManager = LetterManager.getInstance();
+    return letterManager.getCorrespondedCharacters(playerId);
+});
+
+ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
+    if (playerId) {
+        const letterManager = LetterManager.getInstance();
+        return letterManager.getAllLetters(playerId);
+    }
+    return [];
+});
+
+ipcMain.on('get-letters', (event) => {
+    console.log('IPC: Received get-letters event.');
+    if (conversation) {
+        const letters = conversation.letterManager.getAllLetters(String(conversation.gameData.playerID));
+        event.sender.send('letters-data', letters);
+    } else {
+        // Fallback for when conversation is not active, maybe check last player ID?
+        // For now, just send empty. A more robust solution could be implemented if needed.
+        console.log('IPC: No active conversation, sending empty letter array.');
+        event.sender.send('letters-data', []);
+    }
+});
+
+ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: { playerId: string, characterId: string, letterId: string }) => {
+    console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId} for player ${playerId} and character ${characterId}`);
+    const letterManager = LetterManager.getInstance();
+    letterManager.markAsRead(playerId, characterId, letterId);
+    console.log(`Letter ${letterId} marked as read.`);
 });
 
 // Tokenizer IPC handlers

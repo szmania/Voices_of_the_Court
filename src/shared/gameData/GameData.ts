@@ -40,17 +40,21 @@ export type FamilyMember = {
 */
 export class GameData {
     date: string;
+    totalDays: number;
     scene: string;
     location: string;
     locationController: string;
+    recentEvent: { type: string; context: any } | null = null;
 
     playerID: number;
     playerName: string;
     aiID: number;
     aiName: string;
 
-    // 用于存储非玩家角色的shortName，供parseVariables使用
+    // Used to store the shortName of non-player characters for use by parseVariables
+    // @deprecated
     character1Name: string = "";
+    // @deprecated
     character2Name: string = "";
 
     characters: Map<number,Character>
@@ -61,6 +65,7 @@ export class GameData {
             this.aiID = Number(data[2]),
             this.aiName = removeTooltip(data[3]),
             this.date = data[4],
+            this.totalDays = Number(data[8]),
             this.scene = data[5].substring(11),
             this.location = data[6],
             this.locationController = data[7],
@@ -85,13 +90,23 @@ export class GameData {
     }
 
     /**
-     * 设置非玩家角色的名称，供parseVariables使用
+     * Gets all characters in the conversation except the player and the main AI.
+     * @returns {Character[]} An array of other characters.
+     */
+    getOtherCharacters(): Character[] {
+        return Array.from(this.characters.values()).filter(
+            char => char.id !== this.playerID && char.id !== this.aiID
+        );
+    }
+
+    /**
+     * Sets the names of non-player characters for use by parseVariables.
+     * @deprecated This method is not scalable. Use getOtherCharacters() instead.
      */
     setCharacterNames(): void {
-        const nonPlayerCharacters = Array.from(this.characters.values())
-            .filter(char => char.id !== this.playerID);
+        const nonPlayerCharacters = this.getOtherCharacters();
         
-        this.character1Name = nonPlayerCharacters[0]?.shortName || "某人";
-        this.character2Name = nonPlayerCharacters[1]?.shortName || "另一人";
+        this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
+        this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
     }
 }

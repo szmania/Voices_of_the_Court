@@ -1,55 +1,87 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8" />
     <title data-i18n="app.title">Voices of the Court - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
-  </head>
-  <body>
-    <div class="navbar">
-      <ul>
+</head>
+<body>
+<div class="navbar">
+    <ul>
         <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
         <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
         <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
         <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
-        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
         <li class="active"><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
         <language-selector></language-selector>
-      </ul> 
-    </div>
+    </ul>
+</div>
 
-    <div class="container" id="container">
-      <div class="row">
-        <div class="column">
-          <div class="border">
-            <h2 data-i18n="letters.header">Letters</h2>
-            <p data-i18n="letters.description">Manage letter templates and responses.</p>
-          </div>
+<div class="container" id="container" style="display: flex; flex-direction: column; height: 100vh; box-sizing: border-box;">
+    <div id="letter-loader" class="loader" style="display: none;"></div>
+    <div id="letter-controls">
+        <div class="control-group">
+            <button id="letter-refresh-btn" class="btn" data-i18n="letters.refresh">Refresh</button>
         </div>
-      </div>
+        <div class="control-group">
+            <label for="player-select" data-i18n="letters.player">Player:</label>
+            <select id="player-select"></select>
+        </div>
+        <div class="control-group">
+            <label for="character-select" data-i18n="letters.character">Character:</label>
+            <select id="character-select"></select>
+        </div>
+        <div class="control-group">
+            <label for="letter-sort-select" data-i18n="letters.sort_by">Sort by:</label>
+            <select id="letter-sort-select">
+                <option value="gameDate" data-i18n="letters.sort_game_date">Game Date</option>
+                <option value="realDate" data-i18n="letters.sort_real_date">Real Date</option>
+            </select>
+        </div>
+        <div id="letter-thread-status-container" class="control-group">
+            <!-- Status will be injected here -->
+        </div>
     </div>
+    <div id="letter-status-summary">
+        <!-- Status summary will be injected here -->
+    </div>
+    <div class="letter-main-content">
+        <div id="letter-list-container">
+            <ul id="letter-list">
+                <!-- Letter items will be dynamically inserted here -->
+            </ul>
+        </div>
+        <div id="letter-view-container">
+            <p data-i18n="letters.select">Select a letter to read.</p>
+        </div>
+    </div>
+    <div id="letter-status-message" class="status-message"></div>
+</div>
 
-    <script>require("../../dist/shared/LocalizationManager.js")</script>
-    <script>
-      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
-      window.LocalizationManager = LocalizationManager;
-    </script>
-    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const openReadmeBtn = document.getElementById('open-readme');
-        if (openReadmeBtn) {
-          openReadmeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const { ipcRenderer } = require('electron');
-            ipcRenderer.send('open-readme-window');
-          });
-        }
+<script>require("../../dist/shared/LocalizationManager.js")</script>
+<script>
+  const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+  window.LocalizationManager = LocalizationManager;
+</script>
+<script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+<script>require("../../dist/configWindow/letterRenderer.js")</script>
+<script>
+  // 添加帮助菜单点击事件
+  document.addEventListener('DOMContentLoaded', function() {
+    const openReadmeBtn = document.getElementById('open-readme');
+    if (openReadmeBtn) {
+      openReadmeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('open-readme-window');
       });
-    </script>
-  </body>
+    }
+  });
+</script>
+</body>
 </html>

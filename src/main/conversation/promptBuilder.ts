@@ -69,9 +69,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     }
 
     const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
-    
+
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
-    
+
     let replyToName: string;
     let isAiToAi = false;
 
@@ -105,7 +105,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
                 content: contextSwitchTemplate
             });
             console.log('Added AI-to-AI context switch message.');
-            
+
             const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
             roleplayInstruction = aiToAiInitiateTemplate
                 .replace(/{sourceCharacterName}/g, character.fullName)
@@ -116,7 +116,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             const narratorPrompt = narratorPromptTemplate
                 .replace(/{sourceCharacterName}/g, character.shortName)
                 .replace(/{targetCharacterName}/g, replyToName);
-            
+
             chatPrompt.push({
                 role: "user",
                 name: "Narrator",
@@ -295,6 +295,26 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
         console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
+
+    // Load letter summaries
+    const letterSummaries = conv.letterManager.getLetterSummaries(String(conv.gameData.playerID), String(character.id));
+    if (letterSummaries.length > 0) {
+        const allLetterSummaries = letterSummaries.map((summary, index) =>
+            `${index + 1}. ${summary.date}: ${summary.summary}`
+        ).join('\n');
+
+        const letterSummaryString = `Summaries of previous letters with ${character.fullName}:\n${allLetterSummaries}\n\n`;
+
+        const letterSummaryMessage: Message = {
+            role: "system",
+            content: letterSummaryString
+        };
+
+        insertMessageAtDepth(messages, letterSummaryMessage, conv.config.summariesInsertDepth);
+        console.log(`Added ${letterSummaries.length} letter summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
+    }
+    
+
     if(conv.currentSummary){
         let currentSummaryMessage: Message = {
             role: "system",

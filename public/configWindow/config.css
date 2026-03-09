@@ -483,12 +483,397 @@ language-selector {
 }
 
 mark {
-  background-color: yellow;
-  color: black;
-  padding: 0;
+    background-color: yellow;
+    color: black;
+    padding: 0;
 }
 mark.current-highlight {
-  background-color: orange;
+    background-color: orange;
+}
+
+mark {
+    background-color: yellow;
+    color: black;
+    padding: 0;
+}
+mark.current-highlight {
+    background-color: orange;
+}
+
+mark {
+    background-color: yellow;
+    color: black;
+    padding: 0;
+}
+mark.current-highlight {
+    background-color: orange;
+}
+
+/* Letter Window Styles */
+#container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 50px); /* Adjust based on navbar height */
+}
+
+#letter-controls {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: rgba(26, 26, 26, 0.8);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#letter-view-tabs button {
+    padding: 8px 15px;
+    border: 1px solid #5a4a35;
+    background-color: #2d2d2d;
+    color: #b8860b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#letter-view-tabs button.active {
+    background-color: #3d2e1e;
+    color: #ffd700;
+    border-bottom-color: #3d2e1e;
+}
+
+.letter-main-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#letter-list-container {
+    flex: 0 0 350px; /* Fixed width for the list */
+    border-right: 1px solid #5a4a35;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#letter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.letter-item {
+    padding: 15px;
+    border-bottom: 1px solid #3d2e1e;
+    cursor: pointer;
+}
+
+.letter-item.unread .letter-item-subject {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.letter-item:hover {
+    background-color: #3d2e1e;
+}
+
+.letter-item.selected {
+    background-color: #591919;
+    border-left: 3px solid #cca43b;
+}
+
+.letter-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.letter-item-party {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+#letter-view-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.letter-view-header h3 {
+    margin-top: 0;
+    color: #cca43b;
+}
+
+.letter-view-meta {
+    font-size: 0.9em;
+    color: #aaa;
+    border-bottom: 1px solid #3d2e1e;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.letter-view-meta span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.letter-view-body {
+    line-height: 1.6;
+}
+
+#letter-status-summary {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid #5a4a35;
+    border-bottom: 1px solid #5a4a35;
+    font-size: 0.9em;
+}
+
+.status-item {
+    text-align: center;
+}
+
+.status-item .count {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #ffd700;
+}
+
+.status-item .label {
+    color: #aaa;
+}
+
+.letter-pair-item {
+    border: 1px solid #3d2e1e;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.letter-pair-item.unread {
+    border-left: 3px solid #cca43b;
+}
+
+.letter-pair-item .letter-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.letter-pair-item .letter-item:hover {
+    background-color: #3d2e1e;
+}
+
+.letter-pair-item .letter-item.received {
+    border-bottom: 1px dashed #5a4a35;
+}
+
+.letter-pair-item .letter-item.selected {
+    background-color: #591919;
+}
+
+.letter-item-placeholder {
+    padding: 10px;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+.letter-pair-connector {
+    height: 15px;
+    width: 1px;
+    background-color: #5a4a35;
+    margin: -5px auto 0;
+    position: relative;
+}
+
+.letter-pair-connector::after {
+    content: '↓';
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    transform: translateX(-50%);
+    color: #8a6d45;
+    font-size: 16px;
+}
+
+.status-item {
+    text-align: center;
+}
+
+.status-item .count {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #ffd700;
+}
+
+.status-item .label {
+    color: #aaa;
+}
+
+.letter-pair-item {
+    border: 1px solid #3d2e1e;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.letter-pair-item.unread {
+    border-left: 3px solid #cca43b;
+}
+
+.letter-pair-item .letter-item {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.letter-pair-item .letter-item:hover {
+    background-color: #3d2e1e;
+}
+
+.letter-pair-item .letter-item.received {
+    border-bottom: 1px dashed #5a4a35;
+}
+
+.letter-pair-item .letter-item.selected {
+    background-color: #591919;
+}
+
+.letter-item-placeholder {
+    padding: 10px;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Letter Window Styles */
+#container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 50px); /* Adjust based on navbar height */
+}
+
+#letter-controls {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    align-items: center;
+    border-bottom: 1px solid #5a4a35;
+    flex-wrap: wrap;
+    background-color: rgba(26, 26, 26, 0.8);
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#letter-view-tabs button {
+    padding: 8px 15px;
+    border: 1px solid #5a4a35;
+    background-color: #2d2d2d;
+    color: #b8860b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#letter-view-tabs button.active {
+    background-color: #3d2e1e;
+    color: #ffd700;
+    border-bottom-color: #3d2e1e;
+}
+
+.letter-main-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#letter-list-container {
+    flex: 0 0 350px; /* Fixed width for the list */
+    border-right: 1px solid #5a4a35;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#letter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.letter-item {
+    padding: 15px;
+    border-bottom: 1px solid #3d2e1e;
+    cursor: pointer;
+}
+
+.letter-item.unread .letter-item-subject {
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.letter-item:hover {
+    background-color: #3d2e1e;
+}
+
+.letter-item.selected {
+    background-color: #591919;
+    border-left: 3px solid #cca43b;
+}
+
+.letter-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.letter-item-party {
+    font-weight: bold;
+    color: #e0e0e0;
+}
+
+#letter-view-container {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.letter-view-header h3 {
+    margin-top: 0;
+    color: #cca43b;
+}
+
+.letter-view-meta {
+    font-size: 0.9em;
+    color: #aaa;
+    border-bottom: 1px solid #3d2e1e;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.letter-view-meta span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.letter-view-body {
+    line-height: 1.6;
 }
 .social-links-li {
   order: 0; /* Prepend */
@@ -717,7 +1102,7 @@ mark.current-highlight {
     justify-content: flex-end;
 }
 
-#summary-manager-container .status-message {
+.status-message {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -730,19 +1115,19 @@ mark.current-highlight {
     z-index: 1000;
 }
 
-#summary-manager-container .status-message.success {
+.status-message.success {
     background-color: #2ecc71;
 }
 
-#summary-manager-container .status-message.error {
+.status-message.error {
     background-color: #e74c3c;
 }
 
-#summary-manager-container .status-message.info {
+.status-message.info {
     background-color: #3498db;
 }
 
-#summary-manager-container .status-message.show {
+.status-message.show {
     opacity: 1;
 }
 
@@ -963,4 +1348,33 @@ mark.current-highlight {
 
 #diary-manager-container .summary-item-edit .edit-controls button {
     margin-left: 5px;
+}
+
+#letter-thread-status {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #cca43b;
+    padding: 5px 10px;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.3);
+    margin-left: auto; /* Pushes it to the right */
+}
+
+#letter-thread-status.full {
+    color: #ff4d4d;
+    border-color: #ff4d4d;
+    animation: pulsate 1.5s infinite;
+}
+
+@keyframes pulsate {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px 5px rgba(255, 77, 77, 0.7);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+    }
 }
