@@ -130,8 +130,8 @@ function renderLetters() {
     const characterFilteredLetters = selectedCharacterId === 'all'
         ? allLetters
         : allLetters.filter(letter => {
-            if (!letter.sender || !letter.recipient) {
-                console.warn('Skipping malformed letter object without sender/recipient:', letter);
+            if (!letter || !letter.sender || !letter.recipient) {
+                console.warn('Skipping malformed or incomplete letter object:', letter);
                 return false;
             }
             const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
