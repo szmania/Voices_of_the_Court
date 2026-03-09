@@ -560,6 +560,9 @@
     "no_player": "편지를 보려면 플레이어를 선택하세요.",
     "no_letters": "편지를 찾을 수 없습니다.",
     "select": "읽을 편지를 선택하세요.",
+    "sort_by": "정렬 기준:",
+    "sort_game_date": "게임 날짜",
+    "sort_real_date": "실제 날짜",
     "thread_status": "편지 스레드",
     "tooltip_thread_status": "게임의 편지 스레드에서 사용된 현재 편지 수를 나타냅니다. 9/9에 도달하면 게임 내 결정을 통해 스레드를 재설정해야 합니다.",
     "tooltip_total": "선택한 플레이어/캐릭터의 기록에 있는 총 편지 수.",
@@ -567,16 +570,6 @@
     "tooltip_pending": "생성된 답장 중 게임 내 지연이 지나기를 기다리는 수.",
     "tooltip_failed": "생성 또는 전송에 실패한 편지 수.",
     "tooltip_completed": "성공적으로 보내거나 읽은 편지 수."
-  },
-  "letters": {
-    "player": "플레이어",
-    "character": "캐릭터",
-    "all_characters": "모든 캐릭터",
-    "inbox": "받은 편지함",
-    "outbox": "보낸 편지함",
-    "no_player": "편지를 보려면 플레이어를 선택하세요.",
-    "no_letters": "편지를 찾을 수 없습니다.",
-    "select": "읽을 편지를 선택하세요."
   },
   "history": {
     "header": "대화 기록 뷰어",

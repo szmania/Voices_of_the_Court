@@ -51,6 +51,7 @@ let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
 let selectedCharacterId: string | null = 'all';
 let sortMode: 'gameDate' | 'realDate' = 'gameDate';
+let sortMode: 'gameDate' | 'realDate' = 'gameDate';
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
