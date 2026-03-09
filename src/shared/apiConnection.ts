@@ -507,10 +507,10 @@ export class ApiConnection{
                         retries++;
                         console.debug(
                             `Retry ${retries}/${MAX_RETRIES} after error: ${typedError.error?.message}, delaying for ${
-                                RETRY_DELAY * retries
+                                RETRY_DELAY * Math.pow(2, retries)
                             }ms`
                         );
-                        await delay(RETRY_DELAY * retries); // Exponential backoff
+                        await delay(RETRY_DELAY * Math.pow(2, retries)); // Exponential backoff
                     } else if (
                         typedError.code === 599 &&
                         typedError.error?.message.includes("No response")
@@ -518,10 +518,10 @@ export class ApiConnection{
                         retries++;
                         console.debug(
                             `Retry ${retries}/${MAX_RETRIES} after error: ${typedError.error?.message}, delaying for ${
-                                RETRY_DELAY * retries
+                                RETRY_DELAY * Math.pow(2, retries)
                             }ms`
                         );
-                        await delay(RETRY_DELAY * retries); // Exponential backoff
+                        await delay(RETRY_DELAY * Math.pow(2, retries)); // Exponential backoff
                     } else {
                         console.debug("Unrecoverable error:", error);
                         throw error; // Propagate unrecoverable errors
