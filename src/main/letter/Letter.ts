@@ -32,7 +32,7 @@ export class Letter implements ILetter {
         replyToId?: string,
         status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read',
         delivered?: boolean,
-        creationTimestamp: Date = new Date()
+        creationTimestamp?: Date
     ) {
         this.id = id;
         this.sender = sender;
@@ -40,7 +40,7 @@ export class Letter implements ILetter {
         this.subject = subject;
         this.content = content;
         this.timestamp = timestamp;
-        this.creationTimestamp = creationTimestamp;
+        this.creationTimestamp = creationTimestamp || new Date();
         this.isRead = isRead;
         this.letterType = letterType;
         this.delay = delay;
@@ -91,8 +91,7 @@ export class Letter implements ILetter {
                 totalDays,
                 undefined,
                 'sent',
-                true,
-                new Date()
+                true
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);
