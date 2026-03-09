@@ -130,7 +130,7 @@ function renderLetters() {
     const characterFilteredLetters = selectedCharacterId === 'all'
         ? allLetters
         : allLetters.filter(letter => {
-            if (!letter || !letter.sender || !letter.recipient) {
+            if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
                 console.warn('Skipping malformed or incomplete letter object:', letter);
                 return false;
             }
