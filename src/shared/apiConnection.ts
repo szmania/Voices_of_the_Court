@@ -148,7 +148,7 @@ export class ApiConnection{
     ): Promise<string> {
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
-        rconsole.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
+        console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 
