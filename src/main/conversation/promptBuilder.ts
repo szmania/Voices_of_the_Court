@@ -99,6 +99,13 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}. Last speaker ID: ${(lastMessage as any)?.characterId}, Current character ID: ${character.id}`);
 
         if (isInitiatingAiToAi) {
+            const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
+            chatPrompt.push({
+                role: "system",
+                content: contextSwitchTemplate
+            });
+            console.log('Added AI-to-AI context switch message.');
+            
             const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
             roleplayInstruction = aiToAiInitiateTemplate
                 .replace(/{sourceCharacterName}/g, character.fullName)
