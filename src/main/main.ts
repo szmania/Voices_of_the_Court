@@ -4,6 +4,7 @@ import {ChatWindow} from './windows/ChatWindow.js';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
 import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow.js';
 import { Config } from '../shared/Config.js';
+import { DiaryGenerator } from './diary/DiaryGenerator.js';
 import { ClipboardListener } from "./ClipboardListener.js";
 import { Conversation } from "./conversation/Conversation.js";
 import { GameData } from "../shared/gameData/GameData.js";
@@ -1211,8 +1212,11 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
         }
 
         const augmentedSummaries = summaries.map(summary => {
-            const characterName = summary.characterId ? characterMap[summary.characterId] : 'Unknown';
-            return { ...summary, characterName: characterName || summary.characterId };
+            let characterName = 'Unknown';
+            if (summary.characterId) {
+                characterName = characterMap[summary.characterId] || `Character ${summary.characterId}`;
+            }
+            return { ...summary, characterName };
         });
 
         return augmentedSummaries;
@@ -1255,13 +1259,12 @@ ipcMain.handle('get-character-map', async (event, playerId) => {
 ipcMain.handle('get-diary-ids', async () => {
     console.log('IPC: Received get-diary-ids event.');
     try {
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        const ids = await parseDiaryIdsFromLog(logFilePath);
-        return ids;
+        const ids = await getAllDiaryPlayerIds(userDataPath);
+        return { success: true, ids: ids };
     } catch (error) {
         console.error('Error getting diary IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return { playerId: null, error: errorMessage };
+        return { success: false, error: errorMessage };
     }
 });
 

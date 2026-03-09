@@ -62,6 +62,7 @@ export class Config{
     cleanMessages!: boolean;
     debugMode!: boolean;
     aiStartConversationChance!: number;
+    diaryGenerationChance!: number;
     shuffleCharacterOrder!: boolean;
     dynamicCharacterSelection!: boolean;
     aiToAiChatChance!: number;

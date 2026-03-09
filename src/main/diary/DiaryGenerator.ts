@@ -1,5 +1,6 @@
 
 import { ApiConnection } from "../../shared/apiConnection";
+import { Character } from "../../shared/gameData/Character";
 import { GameData } from "../../shared/gameData/GameData";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
@@ -85,11 +86,10 @@ export class DiaryGenerator {
           scene: gameData.scene,
           participants: Array.from(gameData.characters.keys()).map(id => id.toString()),
           content: generatedContent,
-          character_traits: character.traits.reduce((acc, trait) => {
-            // @ts-ignore - assuming trait has a value property
+          character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; value: any; }) => {
             acc[trait.name] = trait.value || '';
             return acc;
-          }, {} as { [key: string]: string })
+          }, {})
         };
 
         return diaryEntry;
@@ -115,11 +115,10 @@ export class DiaryGenerator {
             scene: 'Wrote/Read a letter',
             participants: [String(gameData.playerID), String(character.id)],
             content: generatedContent,
-            character_traits: character.traits.reduce((acc, trait) => {
-                // @ts-ignore
+            character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: { name: string; value: any; }) => {
                 acc[trait.name] = trait.value || '';
                 return acc;
-            }, {} as { [key: string]: string })
+            }, {})
         };
     }
 

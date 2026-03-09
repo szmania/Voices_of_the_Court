@@ -137,6 +137,7 @@ async function loadPlayerIds() {
         if (result.success) {
             playerIdSelect.innerHTML = '';
             if (result.ids.length > 0) {
+                result.ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
                 result.ids.forEach((player: {id: string, name: string}) => {
                     const option = document.createElement('option');
                     option.value = player.id;
@@ -200,6 +201,11 @@ async function loadCharacters() {
     const allCharsText = window.LocalizationManager.getTranslation('diary_manager.all_characters', 'All Characters');
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
     
+    characterIds.sort((a, b) => {
+        const nameA = characterNameMap[a] || `Character ${a}`;
+        const nameB = characterNameMap[b] || `Character ${b}`;
+        return nameA.localeCompare(nameB);
+    });
     characterIds.forEach(id => {
         const option = document.createElement('option');
         option.value = id;

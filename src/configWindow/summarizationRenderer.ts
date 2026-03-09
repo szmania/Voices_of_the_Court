@@ -182,6 +182,7 @@ async function loadPlayerIds() {
         
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
+            ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
             ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
                 option.value = player.id;
@@ -253,7 +254,8 @@ function populateCharacterSelect() {
         }
     });
 
-    characterMap.forEach((characterName, characterId) => {
+    const sortedCharacters = [...characterMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    sortedCharacters.forEach(([characterId, characterName]) => {
         const option = document.createElement('option');
         option.value = characterId;
         option.textContent = characterName;
