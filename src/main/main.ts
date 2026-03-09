@@ -812,10 +812,10 @@ clipboardListener.on('VOTC:LETTER', async () => {
         //     return;
         // }
         
-        // Check if this letter already has a reply.
-        const hasReply = allPlayerLetters.some(l => l.replyToId === latestLetter.id);
+        // Check if this letter already has a reply that is not in the future
+        const hasReply = allPlayerLetters.some(l => l.replyToId === latestLetter.id && l.totalDays <= gameData.totalDays);
         if (hasReply) {
-            console.log(`Letter ${latestLetter.id} already has a reply. No new reply will be generated.`);
+            console.log(`Letter ${latestLetter.id} already has a reply that is not in the future. No new reply will be generated.`);
             return;
         }
 
