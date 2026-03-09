@@ -418,8 +418,9 @@ export class ApiConnection{
                         }
                     }
 
-                    if (!response) {
+                    if (!response || response.trim() === "") {
                         console.error("Empty response parsed from chat completion:", JSON.stringify(completion, null, 2));
+                        throw { code: 599, error: { message: "No response" } };
                     }
                     console.debug("Parsed response:", response);
                     return response;
@@ -482,13 +483,11 @@ export class ApiConnection{
                         }
                     }
 
-                    if (!response) {
+                    if (!response || response.trim() === "") {
                         console.error("Empty response parsed from completion endpoint:", JSON.stringify(completion, null, 2));
+                        throw { code: 599, error: { message: "No response" } };
                     }
                     console.debug("Parsed response:", response);
-                    if (response === "" || response === undefined || response === null || response === " ") {
-                        throw new Error("{code: 599, error: {message: 'No response'}}");
-                    }
                     return response;
                 }
             } catch (error) {

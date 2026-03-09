@@ -559,6 +559,8 @@ export class Conversation{
                             this.consecutiveActionsCount = 0;
                         }
                     }
+                } catch (error) {
+                    console.error(`Error during action check for character ${character.shortName}:`, error);
                 } finally {
                     this.gameData.playerID = originalPlayerId;
                     this.gameData.aiID = originalAiId;
@@ -598,6 +600,8 @@ export class Conversation{
                                     this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                                     this.actionInvolvedCharacterIds.add(targetAI.id);
                                 }
+                            } catch (error) {
+                                console.error(`Error during AI-to-AI action check for source ${lastRespondingCharacter.shortName}:`, error);
                             } finally {
                                 this.gameData.playerID = originalPlayerId;
                                 this.gameData.aiID = originalAiId;
@@ -625,6 +629,8 @@ export class Conversation{
                                             this.actionInvolvedCharacterIds.add(targetAI.id);
                                             this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                                         }
+                                    } catch (error) {
+                                        console.error(`Error during AI-to-AI action check for target ${targetAI.shortName}:`, error);
                                     } finally {
                                         this.gameData.playerID = originalPlayerId;
                                         this.gameData.aiID = originalAiId;
