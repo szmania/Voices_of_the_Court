@@ -318,6 +318,7 @@ async function loadPlayers() {
             return;
         }
 
+        players.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
         players.forEach((player: {id: string, name: string}) => {
             const option = document.createElement('option');
             option.value = player.id;
@@ -346,6 +347,7 @@ async function loadCharacters(playerId: string) {
     allOption.setAttribute('data-i18n', 'letters.all_characters');
     characterSelect.appendChild(allOption);
 
+    characters.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
     characters.forEach((char: {id: string, name: string}) => {
         const option = document.createElement('option');
         option.value = char.id;

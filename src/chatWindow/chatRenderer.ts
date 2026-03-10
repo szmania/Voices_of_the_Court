@@ -159,7 +159,10 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void>{
+    if (message.name === 'Narrator') {
+        return;
+    }
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
@@ -907,6 +910,7 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
         if (firstMatch) {
             (firstMatch as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        allHighlightMarks = Array.from(chatMessages.querySelectorAll('mark'));
     });
 
     searchInput.addEventListener('keydown', handleSearchKeydown);
@@ -1649,7 +1653,7 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
 ipcRenderer.on('ai-first-conversation-loading', (e, isLoading: boolean) =>{
     console.log(`AI first conversation loading: ${isLoading}`);
     if (isLoading) {
-        showLoadingDots();
+        showLoadingDots(false);
         // Update tooltip for disabled input
         updateInputTooltip();
     }

@@ -14,7 +14,7 @@ export function convertChatToText(chat: Message[], config: Config, aiName: strin
     let output: string = "";
 
     for(let msg of chat){
-        
+
         switch(msg.role){
             case "system":
                     output += msg.content+"\n";
@@ -46,13 +46,12 @@ export function convertChatToTextNoNames(messages: Message[], config: Config): s
 }
 
 
-export async function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[], targetCharacter?: Character): Promise<Message[]>{
+export async function buildChatPrompt(conv: Conversation, character: Character, messagesOverride?: Message[], targetCharacter?: Character, isNonTargetedResponse: boolean = false): Promise<Message[]>{
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
-
 
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
@@ -92,50 +91,6 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         }
     }
 
-    let roleplayInstruction: string;
-    if (isAiToAi) {
-        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-        const isInitiatingAiToAi = lastMessage && lastMessage.role === 'assistant' && (lastMessage.name === character.fullName || lastMessage.name === character.shortName);
-        console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}. Last speaker name: ${lastMessage?.name}, Current character name: ${character.fullName}`);
-
-        if (isInitiatingAiToAi) {
-            const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
-            chatPrompt.push({
-                role: "system",
-                content: contextSwitchTemplate
-            });
-            console.log('Added AI-to-AI context switch message.');
-
-            const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-            roleplayInstruction = aiToAiInitiateTemplate
-                .replace(/{sourceCharacterName}/g, character.fullName)
-                .replace(/{targetCharacterName}/g, replyToName);
-
-            // Add a fake user prompt to guide the LLM
-            const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
-            const narratorPrompt = narratorPromptTemplate
-                .replace(/{sourceCharacterName}/g, character.shortName)
-                .replace(/{targetCharacterName}/g, replyToName);
-
-            chatPrompt.push({
-                role: "user",
-                name: "Narrator",
-                content: narratorPrompt
-            });
-            console.log('Added AI-to-AI narrator prompt.');
-
-        } else {
-            const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-            roleplayInstruction = aiToAiTemplate
-                .replace(/{sourceCharacterName}/g, character.fullName)
-                .replace(/{targetCharacterName}/g, replyToName);
-        }
-    } else {
-        roleplayInstruction = roleplayInstructionTemplate
-            .replace(/{characterName}/g, character.fullName)
-            .replace(/{playerName}/g, replyToName);
-    }
-
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
@@ -160,7 +115,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         try {
             delete require.cache[require.resolve(exampleMessagesPath)];
             let exampleMessages = require(exampleMessagesPath)(conv.gameData, character);
-            
+
             // 只有当example messages不为空时才添加占位符和实际消息
             if (exampleMessages && exampleMessages.length > 0) {
                 chatPrompt.push({
@@ -179,7 +134,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     } else if (exampleMessagesPath) { // If path was set but file doesn't exist
         console.error(`Example message script file not found at expected path: ${exampleMessagesPath}. Continuing without example messages.`);
     }
-    
+
 
     chatPrompt.push({
         role: "system",
@@ -232,7 +187,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         content: createMemoryString(conv)
     }
 
-    
+
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
@@ -290,9 +245,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         let summariesMessage: Message = {
             role: "system",
             content: summaryString
-        } 
+        }
 
-        insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth); 
+        insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth);
         console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
 
@@ -313,7 +268,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         insertMessageAtDepth(messages, letterSummaryMessage, conv.config.summariesInsertDepth);
         console.log(`Added ${letterSummaries.length} letter summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
-    
+
 
     if(conv.currentSummary){
         let currentSummaryMessage: Message = {
@@ -327,22 +282,24 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
-    if (isSelfTalk) {
-        chatPrompt.push({
-            role: "system",
-            content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
-        });
-        console.log('Added self-talk main prompt from config.');
-    } else {
-        let mainPromptText = conv.config.mainPrompt;
-        const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
-        mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
+    if (!isAiToAi && !isNonTargetedResponse) {
+        if (isSelfTalk) {
+            chatPrompt.push({
+                role: "system",
+                content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
+            });
+            console.log('Added self-talk main prompt from config.');
+        } else {
+            let mainPromptText = conv.config.mainPrompt;
+            const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
+            mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
-        chatPrompt.push({
-            role: "system",
-            content: parseVariables(mainPromptText, conv.gameData)
-        });
-        console.log('Added standard main prompt.');
+            chatPrompt.push({
+                role: "system",
+                content: parseVariables(mainPromptText, conv.gameData)
+            });
+            console.log('Added standard main prompt.');
+        }
     }
 
 
@@ -352,6 +309,74 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             content: conv.config.suffixPrompt
         })
         console.log('Added suffix prompt.');
+    }
+
+    let roleplayInstruction: string;
+    const isInitiatingAiToAi = isAiToAi && messagesOverride && messagesOverride.length === 0;
+
+    if (isInitiatingAiToAi) {
+        // Case 1: AI 1 is initiating a conversation with AI 2
+        const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
+        chatPrompt.push({
+            role: "system",
+            content: contextSwitchTemplate
+        });
+        console.log('Added AI-to-AI context switch message.');
+
+        const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiToAiInitiateTemplate
+            .replace(/{sourceCharacterName}/g, character.fullName)
+            .replace(/{targetCharacterName}/g, replyToName);
+
+        const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
+        const narratorPrompt = narratorPromptTemplate
+            .replace(/{sourceCharacterName}/g, character.shortName)
+            .replace(/{targetCharacterName}/g, replyToName);
+
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added AI-to-AI narrator prompt.');
+
+    } else if (isAiToAi) {
+        // Case 2: AI 2 is replying to AI 1
+        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiToAiTemplate
+            .replace(/{sourceCharacterName}/g, character.fullName)
+            .replace(/{targetCharacterName}/g, replyToName);
+
+        const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
+        const narratorPrompt = narratorReplyPromptTemplate
+            .replace(/{sourceCharacterName}/g, character.shortName)
+            .replace(/{targetCharacterName}/g, replyToName);
+
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added AI-to-AI narrator reply prompt.');
+
+    } else if (isNonTargetedResponse) {
+        const nonTargetedTemplate = translations.system.ai_to_ai_narrator_non_targeted_prompt || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
+        const narratorPrompt = nonTargetedTemplate.replace(/{sourceCharacterName}/g, character.shortName);
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added non-targeted narrator prompt.');
+
+        roleplayInstruction = roleplayInstructionTemplate
+            .replace(/{characterName}/g, character.fullName)
+            .replace(/{playerName}/g, replyToName);
+    } else {
+        // Case 3: Normal reply to the player
+        roleplayInstruction = roleplayInstructionTemplate
+            .replace(/{characterName}/g, character.fullName)
+            .replace(/{playerName}/g, replyToName);
     }
 
     chatPrompt.push({
@@ -394,16 +419,16 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
 
     if(conv.currentSummary){
-        const summaryIntro = isSelfTalk 
-            ? "Summary of this internal monologue that happened before the messages:" 
+        const summaryIntro = isSelfTalk
+            ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-        
+
         prompt.push({
             role: "system",
             content: summaryIntro + conv.currentSummary
         });
     }
-    
+
     prompt.push({
         role: "system",
         content: convertMessagesToString(messagesToSummarize, "", "")
@@ -419,7 +444,7 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     return prompt;
 }
 
-//help functions 
+//help functions
 
 export function convertMessagesToString(messages: Message[], inputSeq: string, outputSeq: string): string{
     let output= "";

@@ -88,6 +88,7 @@
     "diary_tooltip": "此提示词用于在对话后为角色生成日记条目。它有助于保持角色的一致性和深度。",
     "diary_summary_prompt": "日记摘要提示",
     "diary_summary_tooltip": "此提示用于将角色的所有日记条目汇总为单个摘要。",
+    "diary_for_letter_prompt": "This prompt is used to generate a diary entry based on a sent or received letter.",
     "letter_prompt": "信件提示词",
     "letter_tooltip": "用于生成信件回复的提示词。",
     "letter_summary_prompt": "信件总结提示词",
@@ -157,7 +158,6 @@
     "aiToAiChatChance_tooltip": "AI角色在回应玩家后，继续向另一个AI角色发送消息的概率。",
     "maxConsecutiveActions": "最大连续动作数",
     "maxConsecutiveActions_tooltip": "AI连续触发动作的最大回合数。有助于防止动作循环。设置为0则无限制。",
-    "enable_diary": "启用日记生成",
     "diary_chance": "日记生成概率 (%)",
     "diary_chance_tooltip": "对话结束后为角色生成日记条目的概率（0-100%）。如果角色参与了行动，则始终会生成条目。",
     "stream_tooltip": "逐字接收AI的响应。禁用此功能可能会导致更长的等待时间，但可能与某些模型更兼容。",
@@ -193,7 +193,12 @@
     "roaming_data_desc": "此文件夹包含您的个人配置、脚本和摘要。",
     "open_roaming_data": "打开漫游数据文件夹",
     "roleplay_instruction": "[系统指令：你是 {characterName}。请向 {playerName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]",
-    "roleplay_instruction_ai_to_ai": "[系统指令：你是 {sourceCharacterName}。请向 {targetCharacterName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]"
+    "roleplay_instruction_ai_to_ai": "[系统指令：你是 {sourceCharacterName}。请向 {targetCharacterName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]",
+    "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
+    "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
+    "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
+    "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
+    "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?"
   },
   "chat": {
     "target_label": "目标角色：",
