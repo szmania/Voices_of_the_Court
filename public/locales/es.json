@@ -612,7 +612,9 @@
     "tooltip_generating": "Número de respuestas a cartas que la IA está generando actualmente.",
     "tooltip_pending": "Número de respuestas generadas que esperan a que pase el retraso del juego antes de ser entregadas.",
     "tooltip_failed": "Número de cartas que no se pudieron generar o enviar.",
-    "tooltip_completed": "Número de cartas que se han enviado o leído correctamente."
+    "tooltip_completed": "Número de cartas que se han enviado o leído correctamente.",
+    "search": "Buscar:",
+    "search_placeholder": "Buscar cartas..."
   },
   "history": {
     "header": "Visor del historial de conversaciones",

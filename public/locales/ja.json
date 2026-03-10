@@ -612,7 +612,9 @@
     "tooltip_generating": "AIによって現在生成中の手紙の返信数。",
     "tooltip_pending": "生成された返信のうち、ゲーム内の遅延が経過するのを待っている数。",
     "tooltip_failed": "生成または送信に失敗した手紙の数。",
-    "tooltip_completed": "正常に送信または読まれた手紙の数。"
+    "tooltip_completed": "正常に送信または読まれた手紙の数。",
+    "search": "検索:",
+    "search_placeholder": "手紙を検索..."
   },
   "history": {
     "header": "会話履歴ビューアー",

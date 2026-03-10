@@ -607,17 +607,9 @@
     "tooltip_generating": "Anzahl der Briefantworten, die derzeit von der KI generiert werden.",
     "tooltip_pending": "Anzahl der generierten Antworten, die auf das Verstreichen der Verzögerung im Spiel warten, bevor sie zugestellt werden.",
     "tooltip_failed": "Anzahl der Briefe, deren Generierung oder Versand fehlgeschlagen ist.",
-    "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe."
-  },
-  "letters": {
-    "player": "Spieler",
-    "character": "Charakter",
-    "all_characters": "Alle Charaktere",
-    "inbox": "Posteingang",
-    "outbox": "Postausgang",
-    "no_player": "Wählen Sie einen Spieler aus, um Briefe anzuzeigen.",
-    "no_letters": "Keine Briefe gefunden.",
-    "select": "Wählen Sie einen Brief zum Lesen aus."
+    "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe.",
+    "search": "Suchen:",
+    "search_placeholder": "Briefe durchsuchen..."
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

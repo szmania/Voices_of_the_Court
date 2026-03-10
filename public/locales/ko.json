@@ -612,7 +612,9 @@
     "tooltip_generating": "AI가 현재 생성 중인 편지 답장 수.",
     "tooltip_pending": "생성된 답장 중 게임 내 지연이 지나기를 기다리는 수.",
     "tooltip_failed": "생성 또는 전송에 실패한 편지 수.",
-    "tooltip_completed": "성공적으로 보내거나 읽은 편지 수."
+    "tooltip_completed": "성공적으로 보내거나 읽은 편지 수.",
+    "search": "검색:",
+    "search_placeholder": "편지 검색..."
   },
   "history": {
     "header": "대화 기록 뷰어",
