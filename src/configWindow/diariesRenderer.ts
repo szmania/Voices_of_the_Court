@@ -255,7 +255,18 @@ function filterAndRenderDiaries() {
             const content = entry.content?.toLowerCase() || '';
             const date = entry.date?.toLowerCase() || '';
             const charId = entry.character_id?.toLowerCase() || '';
-            return content.includes(searchTerm) || date.includes(searchTerm) || charId.includes(searchTerm);
+            const charName = (characterNameMap[entry.character_id] || '').toLowerCase();
+            const location = (entry.location || '').toLowerCase();
+            const scene = (entry.scene || '').toLowerCase();
+            const participants = (entry.participants || []).map((id: string) => characterNameMap[id] || `ID ${id}`).join(', ').toLowerCase();
+
+            return content.includes(searchTerm) ||
+                   date.includes(searchTerm) ||
+                   charId.includes(searchTerm) ||
+                   charName.includes(searchTerm) ||
+                   location.includes(searchTerm) ||
+                   scene.includes(searchTerm) ||
+                   participants.includes(searchTerm);
         });
     }
 
