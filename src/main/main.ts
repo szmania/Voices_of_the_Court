@@ -53,7 +53,7 @@ if (!isFirstInstance) {
     console.log('Another instance of the application is already running. Quitting this instance.');
     app.quit();
     process.exit();
-} 
+}
 else {
 app.on('second-instance', (event, commandLine, workingDirectory) => {
     console.log('Second instance detected. Focusing the existing window.');
@@ -120,7 +120,7 @@ const checkGitHubForUpdates = async (manual: boolean = false) => {
     try {
         const response = await fetch('https://api.github.com/repos/szmania/Voices_of_the_Court/releases');
         if (!response.ok) throw new Error(`GitHub API error: ${response.statusText}`);
-        
+
         const releases: any[] = await response.json();
         if (!releases || releases.length === 0) return;
 
@@ -135,13 +135,13 @@ const checkGitHubForUpdates = async (manual: boolean = false) => {
 
         if (latestRelease && compareVersions(latestRelease.tag_name, currentVersion) > 0) {
             console.log(`New version found: ${latestRelease.tag_name}`);
-            
+
             const dialogOpts = {
                 type: 'info' as const,
                 buttons: [t('dialog.update_now'), t('dialog.later')],
                 title: t('dialog.update_title'),
                 message: t('dialog.update_message', { version: latestRelease.tag_name }),
-                detail: latestRelease.prerelease 
+                detail: latestRelease.prerelease
                     ? t('dialog.early_access_detail')
                     : t('dialog.stable_detail')
             };
@@ -202,9 +202,9 @@ const createTray = () => {
     if (tray) tray.destroy();
     tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
     const contextMenu = Menu.buildFromTemplate([
-        { 
+        {
             label: t('tray.open_config'),
-            click: () => { 
+            click: () => {
                 if(configWindow.window.isDestroyed()){
                     configWindow = new ConfigWindow();
                 }
@@ -213,15 +213,15 @@ const createTray = () => {
                 }
             }
         },
-        { 
+        {
             label: t('tray.check_updates'),
-            click: () => { 
+            click: () => {
                 checkForUpdates();
             }
         },
-        { 
-            label: t('tray.exit'), 
-            click: () => { 
+        {
+            label: t('tray.exit'),
+            click: () => {
                 app.quit();
             }
         },
@@ -299,7 +299,7 @@ function updateCurrentDate(newTotalDays: number) {
         removeLettersAfterDate(newTotalDays);
     }
     // Detect large time jump forward (more than 40 days), could be loading a different save
-    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 90) {
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
         console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
         storedLetters.clear();
     }
@@ -369,7 +369,7 @@ app.on('ready',  async () => {
         let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
         await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
     }
-    
+
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config);
     loadTranslations(config.language);
@@ -392,7 +392,7 @@ app.on('ready',  async () => {
     const logToFile = (prefix: string, message: string) => {
         const time = new Date();
         const currentDate = `[${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}] `;
-        
+
         let sanitizedMessage = message;
         try {
             // Sanitize API keys from log messages to avoid leaking sensitive data.
@@ -466,7 +466,7 @@ app.on('ready',  async () => {
     // Conditional automatic update check based on config
     if (app.isPackaged && config.checkForUpdatesOnStartup) {
         console.log('Initializing automatic update check on startup...');
-        
+
         // Use custom check to respect earlyAccessUpdates toggle
         checkGitHubForUpdates(false);
 
@@ -493,7 +493,7 @@ app.on('ready',  async () => {
     createTray();
     console.log('Tray icon and context menu created.');
 
-    
+
 
     console.log("App ready!");
 
@@ -522,10 +522,10 @@ app.on('ready',  async () => {
     console.log('ChatWindow created.');
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
-    
+
     // 检查是否是首次启动
     // checkFirstRunAndShowReadme(); // Disabled: Don't show help window on startup
-    
+
     chatWindow.window.on('closed', () =>{
         console.log('Chat window closed. Quitting application.');
         app.quit()
@@ -539,8 +539,8 @@ app.on('ready',  async () => {
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
-    }) 
-   
+    })
+
 });
 
 ipcMain.on('open-external-link', (event, url: string) => {
@@ -580,7 +580,7 @@ ipcMain.on('clear-summaries', ()=>{
         title: t('dialog.clear_summaries_title'),
         message: t('dialog.clear_summaries_message'),
       }
-    
+
       dialog.showMessageBox(dialogOpts).then((returnValue) => {
         console.log(`User chose to ${returnValue.response === 0 ? 'confirm' : 'cancel'} clearing summaries.`);
         if (returnValue.response === 0){
@@ -595,7 +595,7 @@ ipcMain.on('clear-summaries', ()=>{
                     console.log(`Removed summary file: ${filePath}`);
                 }
 
-                
+
             })
         }
       })
@@ -607,7 +607,7 @@ clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
-    try{ 
+    try{
         console.log("Waiting briefly for log file to update...");
         await sleep(250);
 
@@ -632,7 +632,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
-        
+
         // Sanitize actions to remove non-serializable functions
         const sanitizedActions = conversation.actions.map(action => ({
             signature: action.signature,
@@ -675,7 +675,7 @@ clipboardListener.on('VOTC:EFFECT_ACCEPTED', async () =>{
     } else {
         console.warn('VOTC:EFFECT_ACCEPTED received but no active conversation.');
     }
-    
+
 })
 
 clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
@@ -692,28 +692,28 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
     try {
         // Wait briefly for log file to update
         await sleep(250);
-        
+
         // Parse the log file for bookmark data
         const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
         console.log(`Parsing log file for bookmark data: ${logFilePath}`);
-        
+
         const bookmarkData = await parseLogForBookmarks(logFilePath);
         if (!bookmarkData) {
             console.error('Failed to parse bookmark data from log file.');
             return;
         }
-        
+
         // Get the selected bookmark script from config
         const bookmarkScriptPath = config.selectedBookmarkScript || 'standard/shaosong.json';
         console.log(`Using bookmark script: ${bookmarkScriptPath}`);
-        
+
         // Process the bookmark data and update conversation summaries
         await processBookmarkToSummary(
             bookmarkData,
             path.join(app.getPath("userData"), 'votc_data'),
             bookmarkScriptPath
         );
-        
+
         console.log('Bookmark processing completed successfully.');
     } catch (error) {
         console.error('Error processing VOTC:BOOKMARK event:', error);
@@ -727,7 +727,7 @@ clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
         if (!summaryManagerWindow || summaryManagerWindow.isDestroyed()) {
             summaryManagerWindow = new SummaryManagerWindow();
         }
-        
+
         summaryManagerWindow.show();
         console.log('Summary manager window opened.');
     } catch (error) {
@@ -742,7 +742,7 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
         if (!conversationHistoryWindow || conversationHistoryWindow.isDestroyed()) {
             conversationHistoryWindow = new ConversationHistoryWindow();
         }
-        
+
         conversationHistoryWindow.show();
         console.log('Conversation history window opened.');
     } catch (error) {
@@ -889,13 +889,13 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         checkAndDeliverLetters();
-        
+
     } catch (error) {
         console.error('Error processing VOTC:LETTER event:', error);
     }
 })
 
-//IPC 
+//IPC
 
 ipcMain.on('message-send', async (e, message: Message) =>{
     console.log('IPC: Received message-send event with message:', message.content);
@@ -907,9 +907,9 @@ ipcMain.on('message-send', async (e, message: Message) =>{
         console.error(err); // Changed from console.log(err)
         chatWindow.window.webContents.send('error-message', err);
     }
-    
-    
-    
+
+
+
 });
 
     // 处理获取推荐输入语句的请求
@@ -969,13 +969,13 @@ ipcMain.handle('save-prompt-presets', async (event, presets) => {
 
 
 const promptKeys = [
-    'mainPrompt', 
-    'summarizePrompt', 
-    'memoriesPrompt', 
-    'suffixPrompt', 
-    'selfTalkPrompt', 
-    'selfTalkSummarizePrompt', 
-    'narrativePrompt', 
+    'mainPrompt',
+    'summarizePrompt',
+    'memoriesPrompt',
+    'suffixPrompt',
+    'selfTalkPrompt',
+    'selfTalkSummarizePrompt',
+    'narrativePrompt',
     'sceneDescriptionPrompt',
     'letterPrompt',
     'letterSummaryPrompt',
@@ -985,7 +985,7 @@ const promptKeys = [
 
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     console.log(`IPC: Received config-change event. ID: ${confID}, New Value: ${newValue}`);
-    
+
     if (promptKeys.includes(confID)) {
         // @ts-ignore
         config.prompts[config.language][confID] = newValue;
@@ -993,13 +993,13 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
         // @ts-ignore
         config[confID] = newValue;
     }
-    
+
     config.export();
     diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
-    
+
     // 将配置变更发送到聊天窗口
     if (chatWindow.window) {
         chatWindow.window.webContents.send('config-change', confID, newValue);
@@ -1047,7 +1047,7 @@ ipcMain.on('chat-stop', () =>{
         }
         conversation.summarize();
     }
-    
+
 })
 
 ipcMain.on('clear-conversation-history', () => {
@@ -1491,36 +1491,36 @@ ipcMain.handle('get-context-limit', async () => {
 // 处理API配置更改事件
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {
     console.log(`IPC: Received api-config-change event. Config Type: ${configType}, API Type: ${apiType}`);
-    
+
     // 确保配置对象存在
     if (!(config as any)[configType]) {
         console.error(`Configuration type ${configType} not found`);
         return;
     }
-    
+
     // 确保connection对象存在
     if (!(config as any)[configType].connection) {
         (config as any)[configType].connection = {};
     }
-    
+
     // 确保apiKeys对象存在
     if (!(config as any)[configType].connection.apiKeys) {
         (config as any)[configType].connection.apiKeys = {};
     }
-    
+
     // 保存API配置到apiKeys对象中
     (config as any)[configType].connection.apiKeys[apiType] = configData;
-    
+
     // 如果是当前选中的API类型，同时更新connection对象中的主要字段
     if ((config as any)[configType].connection.type === apiType) {
         (config as any)[configType].connection.key = configData.key || '';
         (config as any)[configType].connection.baseUrl = configData.baseUrl || '';
         (config as any)[configType].connection.model = configData.model || '';
     }
-    
+
     // 导出配置
     config.export();
-    
+
     // 如果聊天窗口已显示，更新对话配置
     if(chatWindow.isShown){
         conversation.updateConfig(config);
@@ -1548,7 +1548,7 @@ ipcMain.on('close-summary-manager', () => {
 // 处理主题切换事件
 ipcMain.on('theme-changed', (event, theme: string) => {
     console.log(`IPC: Received theme-changed event. Theme: ${theme}`);
-    
+
     const windows = [
         configWindow,
         chatWindow,
@@ -1567,7 +1567,7 @@ ipcMain.on('theme-changed', (event, theme: string) => {
 // 处理语言切换事件
 ipcMain.on('language-changed', (event, lang: string) => {
     console.log(`IPC: Received language-changed event. Language: ${lang}`);
-    
+
     loadTranslations(lang);
     createTray();
 

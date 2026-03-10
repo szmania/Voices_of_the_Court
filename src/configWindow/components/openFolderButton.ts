@@ -42,7 +42,7 @@ class openFolderButton extends HTMLElement{
 
     async connectedCallback(){
 
-       let userdataPath = await ipcRenderer.invoke('get-userdata-path');
+        let userdataPath = await ipcRenderer.invoke('get-userdata-path');
 
         this.button.addEventListener("click", (e: any) => {
             

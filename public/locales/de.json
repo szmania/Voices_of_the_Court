@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Voices of the Court - Community Edition"
+    "title": "Voices of the Court 2.0 - Community Edition"
   },
   "nav": {
     "connection": "Verbindung",
@@ -302,7 +302,7 @@
     "step3_2": "Den Spielzustand und die Charakterbeziehungen beeinflussen können",
     "step3_3": "Dynamisch generierte Charakterpersönlichkeitsmerkmale erleben können",
     "warning_title": "⚠️ Wichtiger Hinweis:",
-    "warning_desc": "Stellen Sie vor der ersten Verwendung sicher, dass der Mod 'Voices of the Court - Community Edition' im Spiel aktiviert und gemäß den Mod-Anweisungen korrekt installiert ist.",
+    "warning_desc": "Stellen Sie vor der ersten Verwendung sicher, dass der Mod 'Voices of the Court 2.0 - Community Edition' im Spiel aktiviert und gemäß den Mod-Anweisungen korrekt installiert ist.",
     "feat1_title": "🗣️ KI-Charakterdialog",
     "feat1_desc": "Führen Sie intelligente Dialoge mit jedem Charakter im Spiel. Die KI generiert angemessene Antworten basierend auf der Persönlichkeit, den Merkmalen und dem aktuellen Kontext des Charakters.",
     "feat2_title": "🧠 Dynamisches Persönlichkeitssystem",
@@ -468,7 +468,7 @@
     "sum_feat_use2": "Charakterfilter: Verwenden Sie den Charakterfilter, um Zusammenfassungen für einen bestimmten Charakter oder alle Charaktere anzuzeigen",
     "sum_feat_use3": "Änderungen speichern: Alle Änderungen müssen durch Klicken auf die Schaltfläche 'Speichern' gespeichert werden, um in die Datei geschrieben zu werden",
     "sum_feat_use4": "Hinweis zum Löschen: Das Löschen kann nicht rückgängig gemacht werden, bitte mit Vorsicht verwenden",
-    "about_title": "Voices of the Court - Community Edition",
+    "about_title": "Voices of the Court 2.0 - Community Edition",
     "about_desc": "Ein revolutionärer Mod für Crusader Kings III, der große Sprachmodelle in das Spiel integriert und es Spielern ermöglicht, mit Spielcharakteren zu sprechen. Originalautor: Durond.",
     "about_ver": "Version:",
     "about_auth": "Autor:",
@@ -518,7 +518,7 @@
       "header": "Lizenz und Namensnennung",
       "mod_info_header": "Mod-Informationen",
       "mod_name_label": "Mod-Name:",
-      "mod_name_value": "Voices of the Court - Community Edition (VOTC-CE)",
+      "mod_name_value": "Voices of the Court 2.0 - Community Edition (VOTC-CE)",
       "license_label": "Lizenz:",
       "license_value": "GNU General Public License v3.0 (GPLv3)",
       "supported_ck3_version_label": "Unterstützte CK3-Version:",
@@ -564,7 +564,7 @@
     "yes": "Ja",
     "no": "Nein",
     "announcement_title": "Neue Community-Ressourcen!",
-    "announcement_message": "Wir haben einen neuen Discord-Server, einen neuen Steam-Mod und eine Webseite!\n\nDiscord: Treten Sie unserer Community für Support und Diskussionen bei.\nSteam: Schauen Sie sich 'Voices of the Court - Community Edition' im Steam Workshop an.\nWebseite: Besuchen Sie unsere neue Webseite für Dokumentation und mehr.",
+    "announcement_message": "Wir haben einen neuen Discord-Server, einen neuen Steam-Mod und eine Webseite!\n\nDiscord: Treten Sie unserer Community für Support und Diskussionen bei.\nSteam: Schauen Sie sich 'Voices of the Court 2.0 - Community Edition' im Steam Workshop an.\nWebseite: Besuchen Sie unsere neue Webseite für Dokumentation und mehr.",
     "join_discord": "Discord beitreten",
     "view_steam": "Steam-Mod ansehen",
     "view_website": "Webseite besuchen",
@@ -574,7 +574,7 @@
     "open_config": "Konfigurationsfenster öffnen",
     "check_updates": "Auf Updates prüfen..",
     "exit": "Beenden",
-    "tooltip": "Voices of the Court - Community Edition CK3-Mod"
+    "tooltip": "Voices of the Court 2.0 - Community Edition CK3-Mod"
   },
   "parameters": {
     "temperature": "Temperatur",

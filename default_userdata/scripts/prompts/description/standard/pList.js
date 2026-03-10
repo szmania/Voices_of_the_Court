@@ -18,49 +18,49 @@ module.exports = (gameData) =>{
     const scene = gameData.scene;
     const lang = gameData.lang || 'en';
     const T = (text) => gameData.localize(text, lang);
-    
+
     let playerPersonaItems = [,
-        mainPosition(player), 
-        courtAndCouncilPositions(player), 
-        houseAndStatus(player), 
-        personalityTraits(player), 
-        otherTraits(player), 
-        marriage(player), 
+        mainPosition(player),
+        courtAndCouncilPositions(player),
+        houseAndStatus(player),
+        personalityTraits(player),
+        otherTraits(player),
+        marriage(player),
         family(player),
-        `${T('age')}(${player.age})`, 
-        `${T('faith')}(${player.faith})`, 
+        `${T('age')}(${player.age})`,
+        `${T('faith')}(${player.faith})`,
         `${T('culture')}(${player.culture})`,
         `${T('wealth')}(${player.gold} ${T('gold')})`
     ];
-    
+
     let aiPersonaItems = [,
-        mainPosition(ai), 
-        courtAndCouncilPositions(ai), 
-        listRelationsToPlayer(ai), 
-        houseAndStatus(ai), 
-        opinion(ai), 
-        personalityTraits(ai), 
-        otherTraits(ai), 
-        greedines(ai), 
-        marriage(ai),  
+        mainPosition(ai),
+        courtAndCouncilPositions(ai),
+        listRelationsToPlayer(ai),
+        houseAndStatus(ai),
+        opinion(ai),
+        personalityTraits(ai),
+        otherTraits(ai),
+        greedines(ai),
+        marriage(ai),
         family(ai),
-        `${T('age')}(${ai.age})`, 
-        `${T('faith')}(${ai.faith})`, 
+        `${T('age')}(${ai.age})`,
+        `${T('faith')}(${ai.faith})`,
         `${T('culture')}(${ai.culture})`,
         `${T('wealth')}(${ai.gold} ${T('gold')})`
     ];
-    
-    //remove "", null, undefined and 0. 
-    playerPersonaItems = playerPersonaItems.filter(function(e){return e}); 
-    aiPersonaItems = aiPersonaItems.filter(function(e){return e}); 
-    
+
+    //remove "", null, undefined and 0.
+    playerPersonaItems = playerPersonaItems.filter(function(e){return e});
+    aiPersonaItems = aiPersonaItems.filter(function(e){return e});
+
     let output = "";
     output+= `\n[${player.shortName}${T('s_persona')}: ${playerPersonaItems.join("; ")}]`;
     output+=`\n[${ai.shortName}${T('s_persona')}: ${aiPersonaItems.join("; ")}]`;
     output+=`\n[${T('date')}(${date}), ${T('location')}(${location}), ${T('scenario')}(${scenario()})]`;
-    
+
     return output;
-    
+
     function mainPosition(char){
         if(isLandlessAdventurer(char)){
             if(char.isRuler){
@@ -77,11 +77,11 @@ module.exports = (gameData) =>{
             else{
                 return `${T('ruler_of')} ${char.primaryTitle}, ${T('vassal_of')} ${char.liege}`
             }
-            
+
         }
         else if(char.isKnight){
             return `${T('knight_of')} ${char.liege}`
-        }        
+        }
     }
 
     function courtAndCouncilPositions(char){
@@ -101,7 +101,7 @@ module.exports = (gameData) =>{
         else{
             output+=T('lowborn') + " ";
         }
-    
+
         if(char.sheHe === "she" || char.sheHe === "她"){
             output+= T('woman');
         }
@@ -112,7 +112,7 @@ module.exports = (gameData) =>{
         if(char.house){
             output+=` ${T('of_house')} ${char.house}`
         }
-    
+
         return output;
     }
 
@@ -135,8 +135,8 @@ module.exports = (gameData) =>{
              return `${char.shortName} ${T('opinion_strong_hatred')} ${player.shortName}`
         }
     }
-    
-    
+
+
     function greedines(char){
         if(char.greed>75){
             return T('very_greedy');
@@ -151,7 +151,7 @@ module.exports = (gameData) =>{
             return null;
         }
     }
-    
+
     function marriage(char){
         if(char.consort){
             if(char.consort == player.fullName){
@@ -168,7 +168,7 @@ module.exports = (gameData) =>{
             return T('unmarried');
         }
     }
-    
+
     function family(char){
         const familyDesc = char.getFamilyDescription();
         if(familyDesc){
@@ -178,31 +178,31 @@ module.exports = (gameData) =>{
             return null;
         }
     }
-    
+
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != "Personality Trait");
-    
+
         let traitNames = otherTraits.map(trait => trait.name);
-    
+
         let output = `${T('traits')}(`
         output+= traitNames.join(", ");
         output+=")";
-    
+
         return output;
     }
-    
+
     function personalityTraits(char){
         let personalityTraits = filterTraitsToCategory(char.traits, "Personality Trait");
-    
+
         let traitNames = personalityTraits.map(trait => trait.name);
-    
+
         let output = `${T('personality')}(`
         output+= traitNames.join(", ");
         output+=")";
-    
+
         return output;
     }
-    
+
     function listRelationsToPlayer(char){
         if(char.relationsToPlayer.length === 0){
             return `${T('has_no_relation_to')} ${player.shortName}`;
@@ -211,13 +211,13 @@ module.exports = (gameData) =>{
             return `${char.shortName} ${T('is_the')} ${char.relationsToPlayer.join(', ')} ${T('of')} ${player.shortName}`;
         }
     }
-    
+
     function scenario(){
         // If there are more than 2 characters, return all character names in the scene name
         if (gameData.characters.size > 2) {
             const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join(', ');
             let sceneDescription = scene; // Default to scene variable
-            
+
             switch (scene){
                 case "family_meeting_east":
                 case "family_meeting":
@@ -309,7 +309,7 @@ module.exports = (gameData) =>{
                     sceneDescription = T('locations.bustling_market');
                     break;
             }
-            
+
             return `${characterNames} ${T('in')} ${sceneDescription}`;
         }
 
@@ -381,13 +381,13 @@ module.exports = (gameData) =>{
                 return T('scenario_default', {aiShortName: ai.shortName, playerShortName: player.shortName, location: location});
         }
     }
-    
-    
+
+
     }
-    
-    
+
+
     //help functions
-    
+
     function filterTraitsToCategory(traits, category){
         return traits.filter((trait) => trait.category == category);
     }

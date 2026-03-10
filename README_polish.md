@@ -1,6 +1,6 @@
-# Voices of the Court (VOTC)
+# Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
-Asystent oparty na sztucznej inteligencji dla Crusader Kings III, który pomaga śledzić postacie, spiski i wątki fabularne. Voices of the Court integruje duże modele językowe z grą, pozwalając na prowadzenie naturalnych rozmów z postaciami i dynamiczne wpływanie na stan gry.
+Asystent oparty na sztucznej inteligencji dla Crusader Kings III, który pomaga śledzić postacie, spiski i wątki fabularne. Voices of the Court 2.0 - Community Edition integruje duże modele językowe z grą, pozwalając na prowadzenie naturalnych rozmów z postaciami i dynamiczne wpływanie na stan gry.
 
 Dokumentacja: https://docs.voicesofthecourt.app
 
@@ -225,10 +225,10 @@ Menedżer podsumowań to interfejs do zarządzania i edycji podsumowań rozmów 
 ## 🚀 Konfiguracja lokalna
 
 ### 📥 Instalacja
-1. Pobierz najnowszą wersję moda VOTC
+1. Pobierz najnowszą wersję moda VOTC-CE
 2. Rozpakuj do folderu modów CK3
 3. Uruchom CK3 i włącz mod w launcherze
-4. Uruchom aplikację VOTC
+4. Uruchom aplikację VOTC-CE
 
 ### ⚙️ Konfiguracja
 1. Uruchom aplikację
@@ -299,7 +299,7 @@ Poprawka dla problemów z wersją Electron:
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
 
 ### Original Creators and Supporters
-The VOTC Team and community contributors for their contributions to the project.
+The VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
 Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
@@ -312,7 +312,7 @@ This project is licensed under the [GPL-3.0 License](LICENSE). Some of the origi
 
 In accordance with Section 4(b) of the CC BY-SA 4.0 license, this derivative work is being licensed under a BY-SA Compatible License: the GNU General Public License v3.0 (GPLv3).
 
-For more details on licensing, please see the README files in our repositories: Voices of the Court README and VOTC Mod README.
+For more details on licensing, please see the README files in our repositories: Voices of the Court 2.0 - Community Edition README and VOTC-CE Mod README.
 
 **Original License**
 GPLv3 and CC BY-SA 4.0

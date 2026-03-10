@@ -39,26 +39,9 @@ module.exports = (gameData) =>{
         "Herculean": T('personality_herculean'), "Amazon": T('personality_amazon'),
     };
 
-    const PERSONALITY_DESCRIPTIONS_ZH = {
-        "Brave": [T('personality_brave_zh'), "勇敢"], "Craven": [T('personality_craven_zh'), "怯懦"], "Calm": [T('personality_calm_zh'), "冷静"],
-        "Wrathful": [T('personality_wrathful_zh'), "暴怒"], "Chaste": [T('personality_chaste_zh'), "忠贞"], "Lustful": [T('personality_lustful_zh'), "色欲"],
-        "Content": [T('personality_content_zh'), "安于现状"], "Ambitious": [T('personality_ambitious_zh'), "野心勃勃"], "Diligent": [T('personality_diligent_zh'), "勤勉"],
-        "Lazy": [T('personality_lazy_zh'), "懒惰"], "Generous": [T('personality_generous_zh'), "宽宏大量"], "Vengeful": [T('personality_vengeful_zh'), "睚眦必报"],
-        "Charitable": [T('personality_charitable_zh'), "慷慨"], "Greedy": [T('personality_greedy_zh'), "贪婪"], "Gregarious": [T('personality_gregarious_zh'), "合群"],
-        "Shy": [T('personality_shy_zh'), "害羞"], "Honest": [T('personality_honest_zh'), "诚实"], "Deceitful": [T('personality_deceitful_zh'), "狡诈"],
-        "Humble": [T('personality_humble_zh'), "谦卑"], "Arrogant": [T('personality_arrogant_zh'), "傲慢"], "Just": [T('personality_just_zh'), "公正"],
-        "Arbitrary": [T('personality_arbitrary_zh'), "专断"], "Patient": [T('personality_patient_zh'), "耐心"], "Impatient": [T('personality_impatient_zh'), "急躁"],
-        "Temperate": [T('personality_temperate_zh'), "节制"], "Gluttonous": [T('personality_gluttonous_zh'), "暴食"], "Trusting": [T('personality_trusting_zh'), "轻信他人"],
-        "Paranoid": [T('personality_paranoid_zh'), "多疑"], "Zealous": [T('personality_zealous_zh'), "狂热"], "Cynical": [T('personality_cynical_zh'), "愤世嫉俗"],
-        "Compassionate": [T('personality_compassionate_zh'), "慈悲"], "Callous": [T('personality_callous_zh'), "冷酷"], "Sadistic": [T('personality_sadistic_zh'), "虐待狂"],
-        "Fickle": [T('personality_fickle_zh'), "多变"], "Stubborn": [T('personality_stubborn_zh'), "固执"], "Eccentric": [T('personality_eccentric_zh'), "怪客"],
-        "Beautiful": [T('personality_beautiful_zh'), "螓首蛾眉"], "Handsome": [T('personality_handsome_zh'), "英姿飒爽"], "Comely": [T('personality_comely_zh'), "倾国倾城"],
-        "Herculean": [T('personality_herculean_zh'), "海格力斯"], "Amazon": [T('personality_amazon_zh'), "阿玛宗"]
-    };
-
-    for (const key in PERSONALITY_DESCRIPTIONS_ZH) {
-        const [desc, zh_key] = PERSONALITY_DESCRIPTIONS_ZH[key];
-        PERSONALITY_DESCRIPTIONS[zh_key] = desc;
+    for (const key in PERSONALITY_DESCRIPTIONS) {
+        const [desc, _key] = PERSONALITY_DESCRIPTIONS[key];
+        PERSONALITY_DESCRIPTIONS[_key] = desc;
     }
 
     let playerPersonaItems = [

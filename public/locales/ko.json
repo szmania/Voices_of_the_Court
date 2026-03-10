@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Voices of the Court - Community Edition"
+    "title": "Voices of the Court 2.0 - Community Edition"
   },
   "nav": {
     "connection": "연결",
@@ -304,7 +304,7 @@
     "step3_2": "게임 상태 및 캐릭터 관계에 영향",
     "step3_3": "동적으로 생성된 캐릭터 성격 특성 경험",
     "warning_title": "⚠️ 중요 알림:",
-    "warning_desc": "처음 사용하기 전에 Voices of the Court - Community Edition 모드가 게임에서 활성화되어 있고 모드 지침에 따라 올바르게 설치되었는지 확인하세요.",
+    "warning_desc": "처음 사용하기 전에 Voices of the Court 2.0 - Community Edition 모드가 게임에서 활성화되어 있고 모드 지침에 따라 올바르게 설치되었는지 확인하세요.",
     "feat1_title": "🗣️ AI 캐릭터 대화",
     "feat1_desc": "게임 내 모든 캐릭터와 지능적인 대화를 나눕니다. AI는 캐릭터의 성격, 특성 및 현재 문맥에 따라 적절한 응답을 생성합니다.",
     "feat2_title": "🧠 동적 성격 시스템",
@@ -470,7 +470,7 @@
     "sum_feat_use2": "캐릭터 필터: 캐릭터 필터를 사용하여 특정 캐릭터 또는 모든 캐릭터의 요약을 봅니다.",
     "sum_feat_use3": "변경 사항 저장: 모든 변경 사항은 파일에 기록되려면 '저장' 버튼을 클릭하여 저장해야 합니다.",
     "sum_feat_use4": "삭제 참고: 삭제는 취소할 수 없으므로 주의해서 사용하세요.",
-    "about_title": "Voices of the Court - Community Edition",
+    "about_title": "Voices of the Court 2.0 - Community Edition",
     "about_desc": "대규모 언어 모델을 게임에 통합하여 플레이어가 게임 캐릭터와 대화할 수 있도록 하는 Crusader Kings III용 혁신적인 모드입니다. 원작자: Durond.",
     "about_ver": "버전:",
     "about_auth": "저자:",
@@ -520,7 +520,7 @@
       "header": "라이선스 및 저작자 표시",
       "mod_info_header": "모드 정보",
       "mod_name_label": "모드 이름:",
-      "mod_name_value": "Voices of the Court - Community Edition (VOTC-CE)",
+      "mod_name_value": "Voices of the Court 2.0 - Community Edition (VOTC-CE)",
       "license_label": "라이선스:",
       "license_value": "GNU General Public License v3.0 (GPLv3)",
       "supported_ck3_version_label": "지원되는 CK3 버전:",
@@ -566,7 +566,7 @@
     "yes": "예",
     "no": "아니요",
     "announcement_title": "새로운 커뮤니티 리소스!",
-    "announcement_message": "새로운 Discord 서버, 새로운 Steam 모드, 그리고 웹사이트가 생겼습니다!\n\nDiscord: 지원 및 토론을 위해 커뮤니티에 가입하세요.\nSteam: Steam 창작마당에서 'Voices of the Court - Community Edition'을 확인하세요.\n웹사이트: 문서 등을 보려면 새 웹사이트를 방문하세요.",
+    "announcement_message": "새로운 Discord 서버, 새로운 Steam 모드, 그리고 웹사이트가 생겼습니다!\n\nDiscord: 지원 및 토론을 위해 커뮤니티에 가입하세요.\nSteam: Steam 창작마당에서 'Voices of the Court 2.0 - Community Edition'을 확인하세요.\n웹사이트: 문서 등을 보려면 새 웹사이트를 방문하세요.",
     "join_discord": "Discord 가입",
     "view_steam": "Steam 모드 보기",
     "view_website": "웹사이트 방문",
@@ -576,7 +576,7 @@
     "open_config": "설정 창 열기",
     "check_updates": "업데이트 확인..",
     "exit": "종료",
-    "tooltip": "Voices of the Court - Community Edition CK3 모드"
+    "tooltip": "Voices of the Court 2.0 - Community Edition CK3 모드"
   },
   "parameters": {
     "temperature": "온도",

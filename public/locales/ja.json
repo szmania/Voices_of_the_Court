@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Voices of the Court - Community Edition"
+    "title": "Voices of the Court 2.0 - Community Edition"
   },
   "nav": {
     "connection": "接続",
@@ -304,7 +304,7 @@
     "step3_2": "ゲームの状態やキャラクターの関係に影響を与える",
     "step3_3": "動的に生成されたキャラクターの性格特性を体験する",
     "warning_title": "⚠️ 重要なリマインダー：",
-    "warning_desc": "最初に使用する前に、Voices of the Court - Community Edition モッドがゲーム内で有効になっており、モッドの指示に従って正しくインストールされていることを確認してください。",
+    "warning_desc": "最初に使用する前に、Voices of the Court 2.0 - Community Edition モッドがゲーム内で有効になっており、モッドの指示に従って正しくインストールされていることを確認してください。",
     "feat1_title": "🗣️ AI キャラクター対話",
     "feat1_desc": "ゲーム内の任意のキャラクターとインテリジェントな対話を行います。AI は、キャラクターの性格、特性、現在のコンテキストに基づいて適切な応答を生成します。",
     "feat2_title": "🧠 動的な性格システム",
@@ -470,7 +470,7 @@
     "sum_feat_use2": "キャラクターフィルター：キャラクターフィルターを使用して、特定のキャラクターまたはすべてのキャラクターの要約を表示します",
     "sum_feat_use3": "変更を保存：すべての変更は、ファイルに書き込むために「保存」ボタンをクリックして保存する必要があります",
     "sum_feat_use4": "削除に関する注意：削除は元に戻せません。注意して使用してください",
-    "about_title": "Voices of the Court - Community Edition",
+    "about_title": "Voices of the Court 2.0 - Community Edition",
     "about_desc": "大規模言語モデルをゲームに統合し、プレイヤーがゲームキャラクターと会話できるようにする Crusader Kings III 用の革命的なモッド。オリジナル作者：Durond。",
     "about_ver": "バージョン：",
     "about_auth": "作者：",
@@ -520,7 +520,7 @@
       "header": "ライセンスと帰属",
       "mod_info_header": "Mod情報",
       "mod_name_label": "Mod名:",
-      "mod_name_value": "Voices of the Court - Community Edition (VOTC-CE)",
+      "mod_name_value": "Voices of the Court 2.0 - Community Edition (VOTC-CE)",
       "license_label": "ライセンス:",
       "license_value": "GNU General Public License v3.0 (GPLv3)",
       "supported_ck3_version_label": "サポートされているCK3バージョン:",
@@ -566,7 +566,7 @@
     "yes": "はい",
     "no": "いいえ",
     "announcement_title": "新しいコミュニティリソース！",
-    "announcement_message": "新しい Discord サーバー、新しい Steam モッド、そしてウェブサイトができました！\n\nDiscord：サポートと議論のためにコミュニティに参加してください。\nSteam：Steam ワークショップで「Voices of the Court - Community Edition」をチェックしてください。\nウェブサイト：ドキュメントなどの詳細については、新しいウェブサイトをご覧ください。",
+    "announcement_message": "新しい Discord サーバー、新しい Steam モッド、そしてウェブサイトができました！\n\nDiscord：サポートと議論のためにコミュニティに参加してください。\nSteam：Steam ワークショップで「Voices of the Court 2.0 - Community Edition」をチェックしてください。\nウェブサイト：ドキュメントなどの詳細については、新しいウェブサイトをご覧ください。",
     "join_discord": "Discord に参加",
     "view_steam": "Steam モッドを表示",
     "view_website": "ウェブサイトを訪問",
@@ -576,7 +576,7 @@
     "open_config": "設定ウィンドウを開く",
     "check_updates": "アップデートを確認..",
     "exit": "終了",
-    "tooltip": "Voices of the Court - Community Edition CK3 モッド"
+    "tooltip": "Voices of the Court 2.0 - Community Edition CK3 モッド"
   },
   "parameters": {
     "temperature": "温度",

@@ -1,6 +1,6 @@
-# Voices of the Court (VOTC)
+# Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
-Un compagnon alimenté par l'IA pour Crusader Kings III qui vous aide à suivre les personnages, les complots et les intrigues. Voices of the Court intègre des modèles de langage (LLM) dans le jeu, vous permettant de tenir des conversations naturelles avec les personnages et d'influencer dynamiquement l'état du jeu.
+Un compagnon alimenté par l'IA pour Crusader Kings III qui vous aide à suivre les personnages, les complots et les intrigues. Voices of the Court 2.0 - Community Edition intègre des modèles de langage (LLM) dans le jeu, vous permettant de tenir des conversations naturelles avec les personnages et d'influencer dynamiquement l'état du jeu.
 
 Documentation : https://docs.voicesofthecourt.app
 
@@ -77,10 +77,10 @@ Maintenance de l'application et liens communautaires.
 ## 🚀 Installation Locale
 
 ### 📥 Installation
-1. Téléchargez la dernière version du mod VOTC.
+1. Téléchargez la dernière version du mod VOTC-CE.
 2. Extrayez-le dans votre dossier de mods CK3.
 3. Lancez CK3 et activez le mod dans le launcher.
-4. Lancez l'application VOTC.
+4. Lancez l'application VOTC-CE.
 
 ### 🛠️ Configuration pour le Développement Local
 1. Clonez le dépôt.
@@ -93,7 +93,7 @@ Maintenance de l'application et liens communautaires.
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
 
 ### Original Creators and Supporters
-The VOTC Team and community contributors for their contributions to the project.
+The VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
 Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
@@ -106,7 +106,7 @@ This project is licensed under the [GPL-3.0 License](LICENSE). Some of the origi
 
 In accordance with Section 4(b) of the CC BY-SA 4.0 license, this derivative work is being licensed under a BY-SA Compatible License: the GNU General Public License v3.0 (GPLv3).
 
-For more details on licensing, please see the README files in our repositories: Voices of the Court README and VOTC Mod README.
+For more details on licensing, please see the README files in our repositories: Voices of the Court 2.0 - Community Edition README and VOTC-CE Mod README.
 
 **Original License**
 GPLv3 and CC BY-SA 4.0

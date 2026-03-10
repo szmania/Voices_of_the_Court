@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Voices of the Court - Community Edition"
+    "title": "Voices of the Court 2.0 - Community Edition"
   },
   "nav": {
     "connection": "连接",
@@ -473,7 +473,7 @@
     "sum_feat_use2": "角色筛选：使用角色筛选器可以查看特定角色或所有角色的摘要",
     "sum_feat_use3": "保存更改：所有更改需要点击\"保存\"按钮才会写入文件",
     "sum_feat_use4": "删除注意：删除操作不可撤销，请谨慎使用",
-    "about_title": "Voices of the Court - Community Edition",
+    "about_title": "Voices of the Court 2.0 - Community Edition",
     "about_desc": "一个为《十字军之王3》设计的革命性模组，将大型语言模型集成到游戏中，让玩家能够与游戏角色进行对话。原作者为Durond。",
     "about_ver": "版本：",
     "about_auth": "作者：",
@@ -569,7 +569,7 @@
     "yes": "是",
     "no": "否",
     "announcement_title": "新的社区资源！",
-    "announcement_message": "我们有了新的 Discord 服务器、新的 Steam 模组和一个网站！\n\nDiscord：加入我们的社区进行支持和讨论。\nSteam：在 Steam 创意工坊中查看“Voices of the Court - Community Edition”。\n网站：访问我们的新网站获取文档等更多信息。",
+    "announcement_message": "我们有了新的 Discord 服务器、新的 Steam 模组和一个网站！\n\nDiscord：加入我们的社区进行支持和讨论。\nSteam：在 Steam 创意工坊中查看“Voices of the Court 2.0 - Community Edition”。\n网站：访问我们的新网站获取文档等更多信息。",
     "join_discord": "加入 Discord",
     "view_steam": "查看 Steam 模组",
     "view_website": "访问网站",

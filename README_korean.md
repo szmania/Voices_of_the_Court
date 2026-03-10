@@ -1,4 +1,4 @@
-# Voices of the Court (VOTC)
+# Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 Crusader Kings III를 위한 AI 기반 동반자로, 캐릭터, 음모 및 스토리라인을 추적하는 데 도움을 줍니다. Voices of the Court는 대규모 언어 모델을 게임에 통합하여 캐릭터와 자연스러운 대화를 나누고 게임 상태에 동적으로 영향을 줄 수 있도록 합니다.
 
@@ -225,10 +225,10 @@ Discord 참여:
 ## 🚀 로컬 설정
 
 ### 📥 설치
-1. VOTC 모드 최신 버전 다운로드
+1. VOTC-CE 모드 최신 버전 다운로드
 2. CK3 모드 폴더에 압축 해제
 3. CK3를 실행하고 런처에서 모드 활성화
-4. VOTC 애플리케이션 실행
+4. VOTC-CE 애플리케이션 실행
 
 ### ⚙️ 설정
 1. 애플리케이션 실행
@@ -299,20 +299,20 @@ npx electron-rebuild
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
 
 ### Original Creators and Supporters
-The VOTC Team and community contributors for their contributions to the project.
+The VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
 Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
 
 ### Community Edition Maintainers
-The VOTC-CE team and contributors.
+The VOTC-CEteam and contributors.
 
 ### Licensing Information
 This project is licensed under the [GPL-3.0 License](LICENSE). Some of the original source material for this mod was released under the Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) license.
 
 In accordance with Section 4(b) of the CC BY-SA 4.0 license, this derivative work is being licensed under a BY-SA Compatible License: the GNU General Public License v3.0 (GPLv3).
 
-For more details on licensing, please see the README files in our repositories: Voices of the Court README and VOTC Mod README.
+For more details on licensing, please see the README files in our repositories: Voices of the Court 2.0 - Community Edition README and VOTC-CE Mod README.
 
 **Original License**
 GPLv3 and CC BY-SA 4.0

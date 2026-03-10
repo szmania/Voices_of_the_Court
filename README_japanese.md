@@ -1,6 +1,6 @@
-# Voices of the Court (VOTC)
+# Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
-Crusader Kings III のための AI 搭載コンパニオンで、キャラクター、プロット、ストーリーラインを追跡するのに役立ちます。Voices of the Court は大規模言語モデルをゲームに統合し、キャラクターと自然な会話を交わし、ゲームの状態にダイナミックに影響を与えることができます。
+Crusader Kings III のための AI 搭載コンパニオンで、キャラクター、プロット、ストーリーラインを追跡するのに役立ちます。Voices of the Court 2.0 - Community Edition は大規模言語モデルをゲームに統合し、キャラクターと自然な会話を交わし、ゲームの状態にダイナミックに影響を与えることができます。
 
 ドキュメント: https://docs.voicesofthecourt.app
 
@@ -225,10 +225,10 @@ Discord に参加:
 ## 🚀 ローカルセットアップ
 
 ### 📥 インストール
-1. VOTC モッドの最新バージョンをダウンロード
+1. VOTC-CE モッドの最新バージョンをダウンロード
 2. CK3 モッドフォルダに解凍
 3. CK3 を起動し、ランチャーでモッドを有効にする
-4. VOTC アプリケーションを実行
+4. VOTC-CE アプリケーションを実行
 
 ### ⚙️ 設定
 1. アプリケーションを起動
@@ -299,7 +299,7 @@ npx electron-rebuild
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
 
 ### Original Creators and Supporters
-The VOTC Team and community contributors for their contributions to the project.
+The VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
 Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
@@ -312,7 +312,7 @@ This project is licensed under the [GPL-3.0 License](LICENSE). Some of the origi
 
 In accordance with Section 4(b) of the CC BY-SA 4.0 license, this derivative work is being licensed under a BY-SA Compatible License: the GNU General Public License v3.0 (GPLv3).
 
-For more details on licensing, please see the README files in our repositories: Voices of the Court README and VOTC Mod README.
+For more details on licensing, please see the README files in our repositories: Voices of the Court 2.0 - Community Edition README and VOTC-CE Mod README.
 
 **Original License**
 GPLv3 and CC BY-SA 4.0
