@@ -5,6 +5,16 @@
     <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
+    <style>
+        mark {
+            background-color: yellow;
+            color: black;
+        }
+        .current-match {
+            background-color: orange;
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
 <div class="navbar">
@@ -42,6 +52,10 @@
                 <option value="gameDate" data-i18n="letters.sort_game_date">Game Date</option>
                 <option value="realDate" data-i18n="letters.sort_real_date">Real Date</option>
             </select>
+        </div>
+        <div class="control-group">
+            <label for="letter-search-input" data-i18n="letters.search">Search:</label>
+            <input type="search" id="letter-search-input" data-i18n-placeholder="letters.search_placeholder" placeholder="Search letters...">
         </div>
         <div id="letter-thread-status-container" class="control-group">
             <!-- Status will be injected here -->
