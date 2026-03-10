@@ -51,6 +51,9 @@ let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
 let selectedCharacterId: string | null = 'all';
 let sortMode: 'gameDate' | 'realDate' = 'gameDate';
+let currentSearchTerm = '';
+let currentMatchIndex = -1;
+let matches: HTMLElement[] = [];
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -106,6 +109,76 @@ function renderStatusSummary() {
         // @ts-ignore
         window.LocalizationManager.applyTranslations(summaryContainer);
     }
+}
+
+function clearHighlights() {
+    const letterList = document.getElementById('letter-list');
+    const letterView = document.getElementById('letter-view-container');
+    if (!letterList || !letterView) return;
+
+    // Remove marks but keep content
+    letterList.innerHTML = letterList.innerHTML.replace(/<mark class="current-match">/g, '').replace(/<mark>/g, '').replace(/<\/mark>/g, '');
+    letterView.innerHTML = letterView.innerHTML.replace(/<mark class="current-match">/g, '').replace(/<mark>/g, '').replace(/<\/mark>/g, '');
+}
+
+function highlightText(element: HTMLElement, term: string) {
+    if (!term) return;
+    const innerHTML = element.innerHTML;
+    const regex = new RegExp(`(${term})`, 'gi');
+    const newHTML = innerHTML.replace(regex, '<mark>$1</mark>');
+    element.innerHTML = newHTML;
+}
+
+function performSearch(term: string) {
+    clearHighlights();
+    currentSearchTerm = term.trim();
+    matches = [];
+    currentMatchIndex = -1;
+
+    if (!currentSearchTerm) {
+        return;
+    }
+
+    const letterList = document.getElementById('letter-list');
+    const letterView = document.getElementById('letter-view-container');
+
+    if (letterList) {
+        const items = letterList.querySelectorAll('.letter-item-subject, .letter-item-party');
+        items.forEach(item => highlightText(item as HTMLElement, currentSearchTerm));
+    }
+    if (letterView) {
+        highlightText(letterView, currentSearchTerm);
+    }
+
+    matches = Array.from(document.querySelectorAll('mark'));
+    if (matches.length > 0) {
+        currentMatchIndex = 0;
+        const currentMatch = matches[currentMatchIndex];
+        currentMatch.classList.add('current-match');
+        currentMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function cycleSearch(direction: number) {
+    if (matches.length === 0) return;
+
+    // Remove highlight from current match
+    if (currentMatchIndex !== -1) {
+        matches[currentMatchIndex].classList.remove('current-match');
+    }
+
+    // Calculate next index
+    currentMatchIndex += direction;
+    if (currentMatchIndex < 0) {
+        currentMatchIndex = matches.length - 1;
+    } else if (currentMatchIndex >= matches.length) {
+        currentMatchIndex = 0;
+    }
+
+    // Highlight new match and scroll to it
+    const newMatch = matches[currentMatchIndex];
+    newMatch.classList.add('current-match');
+    newMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function renderLetters() {
@@ -282,6 +355,11 @@ function renderLetters() {
         // @ts-ignore
         window.LocalizationManager.applyTranslations(letterList);
     }
+
+    // Re-apply search highlighting if there's an active search term
+    if (currentSearchTerm) {
+        performSearch(currentSearchTerm);
+    }
 }
 
 function renderLetterContent(letter: Letter) {
@@ -301,6 +379,17 @@ function renderLetterContent(letter: Letter) {
             ${letter.content.replace(/\n/g, '<br>')}
         </div>
     `;
+
+    // Re-apply search highlighting if there's an active search term
+    if (currentSearchTerm) {
+        highlightText(letterViewContainer, currentSearchTerm);
+        // Reset matches to only be in the current view if a letter is selected
+        matches = Array.from(letterViewContainer.querySelectorAll('mark'));
+        if (matches.length > 0) {
+            currentMatchIndex = 0;
+            matches[0].classList.add('current-match');
+        }
+    }
 }
 
 async function loadPlayers() {
@@ -380,6 +469,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const sortSelect = document.getElementById('letter-sort-select') as HTMLSelectElement;
     const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
+    const searchInput = document.getElementById('letter-search-input') as HTMLInputElement;
+
+    searchInput.addEventListener('input', () => {
+        performSearch(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && currentSearchTerm) {
+            e.preventDefault();
+            if (e.shiftKey) {
+                cycleSearch(-1); // Go to previous match
+            } else {
+                cycleSearch(1); // Go to next match
+            }
+        }
+    });
 
     sortSelect.addEventListener('change', () => {
         sortMode = sortSelect.value as 'gameDate' | 'realDate';
