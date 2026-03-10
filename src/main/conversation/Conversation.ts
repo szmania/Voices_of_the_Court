@@ -516,7 +516,7 @@ export class Conversation{
 
             if (targetedCharacters.length > 0) {
                 console.log(`Processing ${targetedCharacters.length} targeted characters.`);
-                const messages = await this.processCharacterList(targetedCharacters);
+                const messages = await this.processCharacterList(targetedCharacters, false);
                 messages.forEach(msg => {
                     if (msg) {
                         allGeneratedMessages.push(msg);
@@ -529,7 +529,7 @@ export class Conversation{
                 const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
                 if (shuffledQueue.length > 0) {
                     const charToRespond = shuffledQueue[0];
-                    const messages = await this.processCharacterList([charToRespond]);
+                    const messages = await this.processCharacterList([charToRespond], false);
                     messages.forEach(msg => {
                         if (msg) {
                             allGeneratedMessages.push(msg);
@@ -559,7 +559,7 @@ export class Conversation{
 
             if (respondingCharacters.length > 0) {
                 console.log(`Processing ${respondingCharacters.length} non-targeted characters.`);
-                const messages = await this.processCharacterList(respondingCharacters);
+                const messages = await this.processCharacterList(respondingCharacters, true);
                 messages.forEach(msg => {
                     if (msg) {
                         allGeneratedMessages.push(msg);
@@ -790,7 +790,7 @@ export class Conversation{
         return bestMatch;
     }
 
-    async processCharacterList(characterList: Character[]): Promise<(Message | null)[]> {
+    async processCharacterList(characterList: Character[], isNonTargeted: boolean): Promise<(Message | null)[]> {
         const generatedMessages: (Message | null)[] = [];
         for (const character of characterList) {
             if (this.isPaused) {
@@ -808,9 +808,9 @@ export class Conversation{
             let message: Message | null = null;
             // Generate and get the message, but don't send it to the chat yet
             if (this.config.validateCharacterIdentity) {
-                message = await this.generateNewAIMessageWithValidation(character);
+                message = await this.generateNewAIMessageWithValidation(character, isNonTargeted);
             } else {
-                message = await this.generateNewAIMessage(character, false);
+                message = await this.generateNewAIMessage(character, false, isNonTargeted);
             }
             generatedMessages.push(message);
 
@@ -869,7 +869,7 @@ export class Conversation{
         return null;
     }
 
-    async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true): Promise<Message | null> {
+    async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message for character: ${character.fullName}`);
         
         const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
@@ -882,7 +882,7 @@ export class Conversation{
             console.log('Stream started for AI message generation.');
         }
 
-        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(await buildChatPrompt(this, character));
+        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted));
         //let currentTokens = 500;
         console.log(`Current prompt token count: ${currentTokens}`);
 
@@ -914,7 +914,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                content: await this.textGenApiConnection.complete(await buildChatPrompt(this, character), this.config.stream && sendMessageToChat, {
+                content: await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
                 },
@@ -929,7 +929,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character), this.config, character.fullName), this.config.stream && sendMessageToChat, {
+                content: await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
                 },
@@ -1145,7 +1145,7 @@ ${validationTranslations.instruction}`
      * 生成带有身份验证的AI消息
      * @param character - 应该发言的角色
      */
-    async generateNewAIMessageWithValidation(character: Character): Promise<Message | null> {
+    async generateNewAIMessageWithValidation(character: Character, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message with identity validation for character: ${character.fullName}`);
         
         // 检查是否满足身份验证的条件：流式传输关闭且角色数量大于2
@@ -1153,7 +1153,7 @@ ${validationTranslations.instruction}`
         
         if (!shouldValidate) {
             console.log(`Identity validation conditions not met (stream: ${this.config.stream}, character count: ${this.gameData.characters.size}). Generating message without validation.`);
-            return await this.generateNewAIMessage(character, false);
+            return await this.generateNewAIMessage(character, false, isNonTargeted);
         }
         
         let attempts = 0;
@@ -1170,7 +1170,7 @@ ${validationTranslations.instruction}`
                 
                 // 第一次尝试使用常规生成方式
                 if (attempts === 1) {
-                    generatedMessage = await this.generateNewAIMessage(character, false);
+                    generatedMessage = await this.generateNewAIMessage(character, false, isNonTargeted);
                 } else {
                     // 后续尝试使用特定提示词生成消息
                     generatedMessage = await this.generateMessageWithValidationPrompt(character);
