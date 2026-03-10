@@ -310,56 +310,55 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     }
 
     let roleplayInstruction: string;
-    if (isAiToAi) {
-        const isInitiatingAiToAi = messagesOverride && messagesOverride.length === 0;
-        console.log(`[AI-to-AI] isInitiating: ${isInitiatingAiToAi}.`);
+    const isInitiatingAiToAi = isAiToAi && messagesOverride && messagesOverride.length === 0;
 
-        if (isInitiatingAiToAi) {
-            const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
-            chatPrompt.push({
-                role: "system",
-                content: contextSwitchTemplate
-            });
-            console.log('Added AI-to-AI context switch message.');
+    if (isInitiatingAiToAi) {
+        // Case 1: AI 1 is initiating a conversation with AI 2
+        const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
+        chatPrompt.push({
+            role: "system",
+            content: contextSwitchTemplate
+        });
+        console.log('Added AI-to-AI context switch message.');
 
-            const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-            roleplayInstruction = aiToAiInitiateTemplate
-                .replace(/{sourceCharacterName}/g, character.fullName)
-                .replace(/{targetCharacterName}/g, replyToName);
+        const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiToAiInitiateTemplate
+            .replace(/{sourceCharacterName}/g, character.fullName)
+            .replace(/{targetCharacterName}/g, replyToName);
 
-            // Add a fake user prompt to guide the LLM
-            const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
-            const narratorPrompt = narratorPromptTemplate
-                .replace(/{sourceCharacterName}/g, character.shortName)
-                .replace(/{targetCharacterName}/g, replyToName);
+        const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
+        const narratorPrompt = narratorPromptTemplate
+            .replace(/{sourceCharacterName}/g, character.shortName)
+            .replace(/{targetCharacterName}/g, replyToName);
 
-            chatPrompt.push({
-                role: "user",
-                name: "Narrator",
-                content: narratorPrompt
-            });
-            console.log('Added AI-to-AI narrator prompt.');
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added AI-to-AI narrator prompt.');
 
-        } else {
-            const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-            roleplayInstruction = aiToAiTemplate
-                .replace(/{sourceCharacterName}/g, character.fullName)
-                .replace(/{targetCharacterName}/g, replyToName);
+    } else if (isAiToAi) {
+        // Case 2: AI 2 is replying to AI 1
+        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiToAiTemplate
+            .replace(/{sourceCharacterName}/g, character.fullName)
+            .replace(/{targetCharacterName}/g, replyToName);
 
-            // Add a fake user prompt to guide the LLM for the reply
-            const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
-            const narratorPrompt = narratorReplyPromptTemplate
-                .replace(/{sourceCharacterName}/g, character.shortName)
-                .replace(/{targetCharacterName}/g, replyToName);
+        const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
+        const narratorPrompt = narratorReplyPromptTemplate
+            .replace(/{sourceCharacterName}/g, character.shortName)
+            .replace(/{targetCharacterName}/g, replyToName);
 
-            chatPrompt.push({
-                role: "user",
-                name: "Narrator",
-                content: narratorPrompt
-            });
-            console.log('Added AI-to-AI narrator reply prompt.');
-        }
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added AI-to-AI narrator reply prompt.');
+
     } else {
+        // Case 3: Normal reply to the player
         roleplayInstruction = roleplayInstructionTemplate
             .replace(/{characterName}/g, character.fullName)
             .replace(/{playerName}/g, replyToName);
