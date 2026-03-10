@@ -227,7 +227,12 @@
     "status_next_up": "Następny:",
     "status_generating_scene": "Generowanie opisu sceny...",
     "status_checking_actions": "decyduje o akcji...",
-    "status_generating_narrative": "Generowanie narracji..."
+    "status_generating_narrative": "Generowanie narracji...",
+    "tokenizer_tokens": "Tokeny:",
+    "source_character": "Postać źródłowa",
+    "target_character": "Postać docelowa",
+    "action_cancel": "Anuluj",
+    "action_execute": "Wykonaj"
   },
   "narrative": {
     "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",

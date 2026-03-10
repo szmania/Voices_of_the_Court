@@ -227,7 +227,12 @@
     "status_next_up": "次：",
     "status_generating_scene": "シーンの説明を生成中...",
     "status_checking_actions": "がアクションを決定中...",
-    "status_generating_narrative": "ナラティブを生成中..."
+    "status_generating_narrative": "ナラティブを生成中...",
+    "tokenizer_tokens": "トークン:",
+    "source_character": "ソースキャラクター",
+    "target_character": "ターゲットキャラクター",
+    "action_cancel": "キャンセル",
+    "action_execute": "実行"
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",

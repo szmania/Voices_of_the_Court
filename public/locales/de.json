@@ -225,7 +225,12 @@
     "status_next_up": "Nächster:",
     "status_generating_scene": "Szenenbeschreibung wird generiert...",
     "status_checking_actions": "entscheidet über eine Aktion...",
-    "status_generating_narrative": "Erzählung wird generiert..."
+    "status_generating_narrative": "Erzählung wird generiert...",
+    "tokenizer_tokens": "Tokens:",
+    "source_character": "Quellcharakter",
+    "target_character": "Zielcharakter",
+    "action_cancel": "Abbrechen",
+    "action_execute": "Ausführen"
   },
   "narrative": {
     "fallback_prompt": "Bitte erstellen Sie eine kurze Erzählung basierend auf dem folgenden Gespräch, die die Atmosphäre der Szene oder die inneren Gefühle des Charakters beschreibt. Die Erzählung sollte prägnant und lebendig sein, mit einer Länge von 50-100 Wörtern.",

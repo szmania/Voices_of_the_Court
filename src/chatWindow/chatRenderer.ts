@@ -312,7 +312,10 @@ function updateTokenCount(text: string) {
     // Calculate token count using the ApiConnection's calculateTokensFromText method
     // We'll need to get this from the main process
     ipcRenderer.invoke('calculate-tokens', text).then((tokenCount: number) => {
-        tokenCountElement.textContent = `Tokens: ${tokenCount}`;
+        // @ts-ignore
+        const lm = window.LocalizationManager;
+        const tokensLabel = (lm ? lm.getNestedTranslation('chat.tokenizer_tokens') : null) || 'Tokens:';
+        tokenCountElement.textContent = `${tokensLabel} ${tokenCount}`;
 
         if (contextLimit > 0) {
             contextLimitElement.textContent = `/${contextLimit}`;
@@ -1027,6 +1030,8 @@ function selectSlashCommand(action: any) {
 }
 
 function showInlineActionForm(action: any) {
+    // @ts-ignore
+    const lm = window.LocalizationManager;
     // Create form container
     const formContainer = document.createElement('div');
     formContainer.classList.add('inline-action-form');
@@ -1047,7 +1052,7 @@ function showInlineActionForm(action: any) {
     const sourceSelectDiv = document.createElement('div');
     sourceSelectDiv.classList.add('action-character-select');
     const sourceLabel = document.createElement('label');
-    sourceLabel.textContent = 'Source Character';
+    sourceLabel.textContent = (lm ? lm.getNestedTranslation('chat.source_character') : null) || 'Source Character';
 
     const sourceCustomSelect = document.createElement('div');
     sourceCustomSelect.className = 'custom-select-container';
@@ -1104,7 +1109,7 @@ function showInlineActionForm(action: any) {
     const targetSelectDiv = document.createElement('div');
     targetSelectDiv.classList.add('action-character-select');
     const targetLabel = document.createElement('label');
-    targetLabel.textContent = 'Target Character';
+    targetLabel.textContent = (lm ? lm.getNestedTranslation('chat.target_character') : null) || 'Target Character';
 
     const targetCustomSelect = document.createElement('div');
     targetCustomSelect.className = 'custom-select-container';
@@ -1293,11 +1298,8 @@ function showInlineActionForm(action: any) {
     const buttonsContainer = document.createElement('div');
     buttonsContainer.classList.add('inline-action-buttons');
 
-    // @ts-ignore
-    const lm = window.LocalizationManager;
-
     const cancelButton = document.createElement('button');
-    cancelButton.textContent = 'Cancel';
+    cancelButton.textContent = (lm ? lm.getNestedTranslation('chat.action_cancel') : null) || 'Cancel';
     cancelButton.classList.add('action-cancel-button');
     const cancelTooltip = (lm ? lm.getNestedTranslation('chat.cancel_tooltip') : null) || "Cancel this action.";
     cancelButton.setAttribute('data-tooltip', cancelTooltip);
@@ -1308,7 +1310,7 @@ function showInlineActionForm(action: any) {
     });
 
     const executeButton = document.createElement('button');
-    executeButton.textContent = 'Execute';
+    executeButton.textContent = (lm ? lm.getNestedTranslation('chat.action_execute') : null) || 'Execute';
     executeButton.classList.add('action-execute-button');
     const executeTooltip = (lm ? lm.getNestedTranslation('chat.execute_tooltip') : null) || "Execute this action.";
     executeButton.setAttribute('data-tooltip', executeTooltip);

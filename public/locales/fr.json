@@ -227,7 +227,12 @@
     "status_next_up": "Suivant :",
     "status_generating_scene": "Génération de la description de la scène...",
     "status_checking_actions": "décide d'une action...",
-    "status_generating_narrative": "Génération de la narration..."
+    "status_generating_narrative": "Génération de la narration...",
+    "tokenizer_tokens": "Tokens :",
+    "source_character": "Personnage Source",
+    "target_character": "Personnage Cible",
+    "action_cancel": "Annuler",
+    "action_execute": "Exécuter"
   },
   "narrative": {
     "fallback_prompt": "Veuillez générer un court récit basé sur la conversation suivante, décrivant l'atmosphère de la scène ou les sentiments intérieurs du personnage. Le récit doit être concis et vivant, d'une longueur de 50 à 100 mots.",
