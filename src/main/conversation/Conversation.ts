@@ -1359,7 +1359,7 @@ ${character.fullName}的发言：`
         }
 
         // Process conversation messages, keeping name, content and narrative
-        const messagesToSave = this.messages.filter(msg => msg.content !== this.notSpokenYetText);
+        const messagesToSave = this.messages.filter(msg => msg.content !== this.notSpokenYetText && msg.name !== 'Narrator');
         const processedMessages = messagesToSave.map((msg, index) => {
           const messageData: any = {
             name: msg.name,
