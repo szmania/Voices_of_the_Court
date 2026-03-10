@@ -189,7 +189,7 @@ function setupEventListeners() {
         renderSummaryList();
     });
     summarySearchInput.addEventListener('keydown', handleSearchKeydown);
-    
+
     if (deleteItemBtn) {
         deleteItemBtn.addEventListener('click', deleteCurrentSummary);
     }
@@ -203,7 +203,7 @@ async function loadPlayerIds() {
         if (!success) {
             throw new Error(error || 'Unknown error');
         }
-        
+
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
             ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
@@ -243,7 +243,7 @@ async function loadSummaryData() {
 
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.loading_data', 'Loading summary data...'), 'info');
-        
+
         const { success, map, error } = await ipcRenderer.invoke('get-character-map', selectedPlayerId);
         if (success) {
             characterMap = map;
@@ -355,16 +355,16 @@ function renderSummaryList() {
 
     summariesToRender.forEach((summary, index) => {
         const originalIndex = filteredSummaries.indexOf(summary);
-        
+
         if (originalIndex === editingSummaryIndex) {
             // Render in edit mode
             const editItem = document.createElement('div');
             editItem.className = 'summary-item-edit';
-            
+
             const characterId = summary.characterId || 'Unknown';
             const characterName = summary.characterName || characterId;
             const characterText = window.LocalizationManager.getTranslation('summary_manager.character', 'Character');
-            
+
             editItem.innerHTML = `
                 <div style="font-weight: bold; margin-bottom: 5px;">${characterText}: ${characterName}</div>
                 <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(summary.date)}">
@@ -374,7 +374,7 @@ function renderSummaryList() {
                     <button class="btn btn-success save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
                 </div>
             `;
-            
+
             const saveButton = editItem.querySelector('.save-inplace-btn') as HTMLButtonElement;
             saveButton.addEventListener('click', () => saveInPlaceEdit());
             const cancelButton = editItem.querySelector('.cancel-inplace-btn') as HTMLButtonElement;
@@ -382,10 +382,10 @@ function renderSummaryList() {
             // Add event listeners for input changes
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
-            
+
             dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
             contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-            
+
             summaryList.appendChild(editItem);
         } else {
             // Render in display mode
@@ -427,7 +427,7 @@ function renderSummaryList() {
 
     // After rendering, collect all mark elements for 'Enter' key navigation
     allHighlightMarks = Array.from(summaryList.querySelectorAll('mark'));
-    
+
     // Update delete item button state
     if (deleteItemBtn) {
         deleteItemBtn.disabled = currentSummaryIndex === -1 || editingSummaryIndex !== -1;
@@ -436,13 +436,13 @@ function renderSummaryList() {
 
 function selectSummary(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
-    
+
     // Don't allow selection while editing
     if (editingSummaryIndex !== -1) return;
-    
+
     currentSummaryIndex = index;
     const summary = filteredSummaries[index];
-    
+
     // Update file path
     const characterId = summary.characterId || 'Unknown';
     const summaryFilePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
@@ -470,14 +470,14 @@ function addNewSummary() {
     };
     allSummaries.unshift(newSummary);
     filterSummariesByCharacter(); // This will filter, sort, and render the list
-    
+
     // Find the index of the new summary in the filtered list after sorting
     const newIndex = filteredSummaries.findIndex(s => s === newSummary);
 
     if (newIndex !== -1) {
         enterEditMode(newIndex);
     }
-    
+
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
     hasUnsavedChanges = true;
     updateSaveButtonState();
@@ -537,7 +537,7 @@ function showStatusMessage(message: string, type = 'info') {
 
 function formatDateForDisplay(dateStr: string): string {
     if (!dateStr) return '';
-    
+
     // The input is expected to be YYYY-MM-DD from the input field or storage.
     const ymdMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (ymdMatch) {
@@ -548,7 +548,7 @@ function formatDateForDisplay(dateStr: string): string {
             return `${day} ${monthNames[monthIndex]} ${year}`;
         }
     }
-    
+
     // If it's not in YYYY-MM-DD, it might be one of the other formats, just return it as is.
     return dateStr;
 }
@@ -577,7 +577,7 @@ function formatDateForInput(dateStr: string): string {
         'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
         'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
     };
-    
+
     // Handle "DD MMM YYYY" format
     const dmyMatch = dateStr.match(/^(\d{1,2})\s+(\w{3})\s+(\d{1,4})$/i);
     if (dmyMatch) {
@@ -585,18 +585,18 @@ function formatDateForInput(dateStr: string): string {
         const monthStr = dmyMatch[2].toLowerCase();
         const month = months[monthStr];
         const year = parseInt(dmyMatch[3], 10);
-        
+
         if (month !== undefined) {
             return `${year.toString().padStart(4, '0')}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         }
     }
-    
+
     // Attempt to handle YYYY年MM月DD日 format
     const cjkMatch = dateStr.match(/(\d{1,4})年(\d{1,2})月(\d{1,2})日/);
     if (cjkMatch) {
         return `${cjkMatch[1].padStart(4, '0')}-${cjkMatch[2].padStart(2, '0')}-${cjkMatch[3].padStart(2, '0')}`;
     }
-    
+
     // As a last resort, try new Date(), but it's risky.
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
@@ -613,21 +613,21 @@ function formatDateForInput(dateStr: string): string {
 
 function handleInPlaceInputChange(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
-    
+
     const summary = filteredSummaries[index];
     const dateInput = document.getElementById(`summary-edit-date-${index}`) as HTMLInputElement;
     const contentInput = document.getElementById(`summary-edit-content-${index}`) as HTMLTextAreaElement;
     const editItem = dateInput.closest('.summary-item-edit');
     const saveButton = editItem?.querySelector('.save-inplace-btn') as HTMLButtonElement;
-    
+
     if (!dateInput || !contentInput || !summary || !saveButton) return;
-    
+
     const originalDate = formatDateForInput(summary.date);
     const originalContent = summary.content || '';
-    
+
     const dateChanged = originalDate !== dateInput.value;
     const contentChanged = originalContent !== contentInput.value;
-    
+
     const hasChanges = dateChanged || contentChanged;
     saveButton.disabled = !hasChanges;
 
@@ -651,44 +651,20 @@ function cancelInPlaceEdit() {
     filterSummariesByCharacter();
 }
 
-function handleSearchKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-        event.preventDefault();
-        if (allHighlightMarks.length === 0) return;
-
-        if (currentHighlightIndex !== -1) {
-            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
-        }
-
-        currentHighlightIndex++;
-        if (currentHighlightIndex >= allHighlightMarks.length) {
-            currentHighlightIndex = 0;
-        }
-
-        const currentMark = allHighlightMarks[currentHighlightIndex];
-        currentMark.classList.add('current-highlight');
-        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-function escapeRegExp(string: string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
-
 function enterEditMode(index: number) {
     if (index < 0 || index >= filteredSummaries.length) return;
-    
+
     // Exit any existing edit mode without saving
     if (editingSummaryIndex !== -1) {
         // Just cancel the previous edit
     }
-    
+
     editingSummaryIndex = index;
-    
+
     // Disable delete button during edit
     if (deleteItemBtn) deleteItemBtn.disabled = true;
-    
-    
+
+
     renderSummaryList();
 
     // Focus the content textarea
@@ -720,19 +696,19 @@ function saveInPlaceEdit() {
 
     const justEditedIndex = editingSummaryIndex;
     editingSummaryIndex = -1;
-    
-    
+
+
     // Enable delete button
     if (deleteItemBtn) {
         deleteItemBtn.disabled = false;
     }
-    
+
     // Refresh the list
     filterSummariesByCharacter();
-    
+
     // Re-select the item that was just edited
     selectSummary(justEditedIndex);
-    
+
     showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.update_success', 'Summary updated'), 'success');
     hasUnsavedChanges = true;
     updateSaveButtonState();
