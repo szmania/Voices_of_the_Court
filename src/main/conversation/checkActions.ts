@@ -230,7 +230,11 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         }
 
         for(const arg of action.args){
-            argString += `${arg.name} (${arg.type}): ${arg.desc}. `
+            let argDesc = arg.desc;
+            if (typeof argDesc === 'object') {
+                argDesc = argDesc[conv.config.language] || argDesc['en'] || Object.values(argDesc)[0];
+            }
+            argString += `${arg.name} (${arg.type}): ${argDesc}. `
         }
 
         let description = action.description;
