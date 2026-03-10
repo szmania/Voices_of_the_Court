@@ -1650,7 +1650,7 @@ ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
 ipcRenderer.on('ai-first-conversation-loading', (e, isLoading: boolean) =>{
     console.log(`AI first conversation loading: ${isLoading}`);
     if (isLoading) {
-        showLoadingDots();
+        showLoadingDots(false);
         // Update tooltip for disabled input
         updateInputTooltip();
     }
