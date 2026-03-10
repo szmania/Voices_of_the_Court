@@ -359,6 +359,19 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         });
         console.log('Added AI-to-AI narrator reply prompt.');
 
+    } else if (isNonTargetedResponse) {
+        const nonTargetedTemplate = translations.system.ai_to_ai_narrator_non_targeted_prompt || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
+        const narratorPrompt = nonTargetedTemplate.replace(/{sourceCharacterName}/g, character.shortName);
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added non-targeted narrator prompt.');
+
+        roleplayInstruction = roleplayInstructionTemplate
+            .replace(/{characterName}/g, character.fullName)
+            .replace(/{playerName}/g, replyToName);
     } else {
         // Case 3: Normal reply to the player
         roleplayInstruction = roleplayInstructionTemplate
