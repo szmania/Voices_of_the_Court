@@ -1113,6 +1113,13 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 // Run the action's effect
                 action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, actionArgs);
 
+                // Append the trigger event to make the game process the action
+                conversation.runFileManager.append(`
+                    global_var:talk_first_scope = {
+                        trigger_event = talk_event.9003
+                    }`
+                );
+
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
                     let chatMessage = action.chatMessage(actionArgs);
