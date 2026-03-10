@@ -122,6 +122,30 @@ function updateSaveButtonState() {
     }
 }
 
+function handleSearchKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (allHighlightMarks.length === 0) return;
+
+        if (currentHighlightIndex !== -1) {
+            allHighlightMarks[currentHighlightIndex].classList.remove('current-highlight');
+        }
+
+        currentHighlightIndex++;
+        if (currentHighlightIndex >= allHighlightMarks.length) {
+            currentHighlightIndex = 0;
+        }
+
+        const currentMark = allHighlightMarks[currentHighlightIndex];
+        currentMark.classList.add('current-highlight');
+        currentMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 function addExternalLinks() {
     const navbarUl = document.querySelector('.navbar ul');
     if (navbarUl) {
