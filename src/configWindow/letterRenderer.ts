@@ -54,6 +54,7 @@ let sortMode: 'gameDate' | 'realDate' = 'gameDate';
 let currentSearchTerm = '';
 let currentMatchIndex = -1;
 let matches: HTMLElement[] = [];
+let selectedLetter: Letter | null = null;
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -335,6 +336,7 @@ function renderLetters() {
             const letter = allLetters.find(l => l.id === letterId);
             if (!letter) return;
 
+            selectedLetter = letter;
             renderLetterContent(letter);
 
             // Mark as read if it's a received letter
@@ -472,7 +474,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('letter-search-input') as HTMLInputElement;
 
     searchInput.addEventListener('input', () => {
-        performSearch(searchInput.value);
+        const term = searchInput.value;
+        if (term.trim() === '') {
+            currentSearchTerm = '';
+            matches = [];
+            currentMatchIndex = -1;
+            renderLetters();
+            if (selectedLetter) {
+                renderLetterContent(selectedLetter);
+            } else {
+                const letterView = document.getElementById('letter-view-container');
+                if (letterView) {
+                    // @ts-ignore
+                    letterView.innerHTML = `<p data-i18n="letters.select">${window.LocalizationManager.getTranslation('letters.select', 'Select a letter to read.')}</p>`;
+                }
+            }
+        } else {
+            performSearch(term);
+        }
     });
 
     searchInput.addEventListener('keydown', (e) => {
