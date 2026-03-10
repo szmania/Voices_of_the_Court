@@ -1111,37 +1111,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 conversation.gameData.aiID = targetId;
 
                 // Run the action's effect
-                let scriptText = "";
-                // Capture the script instead of writing it directly
-                action.run(conversation.gameData, (text: string) => { scriptText += text; }, actionArgs);
-
-                // Clean the captured script to remove its own wrapper, if it exists
-                let innerScript = scriptText.trim();
-                const wrapperRegex = /^global_var:talk_first_scope\s*=\s*\{([\s\S]*)\}$/;
-                const match = innerScript.match(wrapperRegex);
-                if (match) {
-                    innerScript = match[1].trim(); // Get only the content inside the braces
-                }
-
-                // Construct the final, valid script block with the trigger
-                const finalScript = `
-                    global_var:talk_first_scope = {
-                        ${innerScript}
-                        trigger_event = talk_event.9003
-                    }
-                `;
-
-                // Use write() to ensure the file is clean and contains only this single atomic action
-                conversation.runFileManager.write(finalScript);
-
-                // Clear the file after a delay to prevent re-triggering.
-                // This acts as a failsafe if the game doesn't send VOTC:EFFECT_ACCEPTED.
-                setTimeout(() => {
-                    if (conversation && conversation.runFileManager) {
-                        conversation.runFileManager.clear();
-                        console.log('Run file cleared after slash command action (timeout).');
-                    }
-                }, 750);
+                action.run(conversation.gameData, (text: string) => { conversation.runFileManager.append(text) }, actionArgs);
 
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
