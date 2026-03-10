@@ -159,7 +159,10 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement>{
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void>{
+    if (message.name === 'Narrator') {
+        return;
+    }
 
     if(message.content.startsWith(message.name+":")){
         message.content = message.content.slice(message.name!.length+1);
