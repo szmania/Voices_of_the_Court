@@ -219,7 +219,6 @@ export class Conversation{
         
         this.loadConfig();
         this.loadHistory();
-        this.initialize();
 
         // Sanitize messages to remove any historical placeholders that may have leaked in.
         const currentCharacterIds = new Set(Array.from(this.gameData.characters.keys()));
