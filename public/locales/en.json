@@ -124,7 +124,9 @@
   "settings": {
     "header": "Settings",
     "max_tokens": "max new tokens",
+    "max_tokens_tooltip": "The maximum number of tokens (words/characters) the AI can generate in a single response. Higher values allow for longer replies.",
     "max_memory_tokens": "max memory tokens",
+    "max_memory_tokens_tooltip": "The maximum number of tokens to use for character memories. This affects how much of their past experiences the AI can recall.",
     "stream": "stream messages",
     "clean_messages": "clean Messages",
     "clean_tooltip": "The mod will try to remove parts of the messages that the llm shouldn't have generated, like emojis",
