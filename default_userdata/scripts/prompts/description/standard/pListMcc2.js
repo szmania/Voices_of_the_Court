@@ -19,7 +19,11 @@ module.exports = (gameData) =>{
     const lang = gameData.lang || 'en';
 
     const T = (key, vars) => {
-        return gameData.localize(key, lang, vars);
+        if (typeof gameData.localize === 'function') {
+            return gameData.localize(key, lang, vars);
+        }
+        console.warn('gameData.localize is not a function. Falling back to key.');
+        return key;
     };
     
     const PERSONALITY_DESCRIPTIONS = {
@@ -39,10 +43,6 @@ module.exports = (gameData) =>{
         "Herculean": T('personality_herculean'), "Amazon": T('personality_amazon'),
     };
 
-    for (const key in PERSONALITY_DESCRIPTIONS) {
-        const [desc, _key] = PERSONALITY_DESCRIPTIONS[key];
-        PERSONALITY_DESCRIPTIONS[_key] = desc;
-    }
 
     let playerPersonaItems = [
         `id(${player.id})`,

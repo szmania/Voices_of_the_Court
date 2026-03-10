@@ -19,7 +19,11 @@ module.exports = (gameData) =>{
     const lang = gameData.lang || 'en';
 
     const T = (key, vars) => {
-        return gameData.localize(key, lang, vars);
+        if (typeof gameData.localize === 'function') {
+            return gameData.localize(key, lang, vars);
+        }
+        console.warn('gameData.localize is not a function. Falling back to key.');
+        return key;
     };
     
     const PERSONALITY_DESCRIPTIONS = {
