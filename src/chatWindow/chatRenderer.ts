@@ -912,8 +912,6 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
     searchInput.addEventListener('keydown', handleSearchKeydown);
 
-    searchInput.addEventListener('keydown', handleSearchKeydown);
-
     // 重置窗口位置和大小
     // 重置窗口位置和大小
     resetButton.addEventListener('click', () => {

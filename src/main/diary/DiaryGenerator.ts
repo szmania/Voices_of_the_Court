@@ -87,7 +87,9 @@ export class DiaryGenerator {
           participants: Array.from(gameData.characters.keys()).map(id => id.toString()),
           content: generatedContent,
           character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: Trait) => {
-            acc[trait.name] = trait.desc || 'true';
+            if (trait && trait.name) {
+              acc[trait.name] = trait.desc || 'true';
+            }
             return acc;
           }, {}),
           creationTimestamp: new Date()
@@ -117,7 +119,9 @@ export class DiaryGenerator {
             participants: [String(gameData.playerID), String(character.id)],
             content: generatedContent,
             character_traits: character.traits.reduce((acc: { [key: string]: string; }, trait: Trait) => {
-                acc[trait.name] = trait.desc || 'true';
+                if (trait && trait.name) {
+                    acc[trait.name] = trait.desc || 'true';
+                }
                 return acc;
             }, {}),
             creationTimestamp: new Date()
