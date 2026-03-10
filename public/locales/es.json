@@ -21,10 +21,6 @@
     "header": "Diarios",
     "description": "Gestionar las entradas del diario de los personajes."
   },
-  "diaries": {
-    "header": "Diarios",
-    "description": "Gestionar las entradas del diario de los personajes."
-  },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",
     "select_folder": "Seleccionar carpeta",

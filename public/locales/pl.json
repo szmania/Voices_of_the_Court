@@ -21,10 +21,6 @@
     "header": "Dzienniki",
     "description": "Zarządzaj wpisami do dziennika dla postaci."
   },
-  "diaries": {
-    "header": "Dzienniki",
-    "description": "Zarządzaj wpisami do dziennika dla postaci."
-  },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",
     "select_folder": "Wybierz folder",

@@ -21,10 +21,6 @@
     "header": "Tagebücher",
     "description": "Tagebucheinträge für Charaktere verwalten."
   },
-  "diaries": {
-    "header": "Tagebücher",
-    "description": "Tagebucheinträge für Charaktere verwalten."
-  },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",
     "select_folder": "Ordner auswählen",

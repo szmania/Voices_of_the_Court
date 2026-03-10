@@ -21,10 +21,6 @@
     "header": "日記",
     "description": "キャラクターの日記エントリを管理します。"
   },
-  "diaries": {
-    "header": "日記",
-    "description": "キャラクターの日記エントリを管理します。"
-  },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
     "select_folder": "フォルダを選択",

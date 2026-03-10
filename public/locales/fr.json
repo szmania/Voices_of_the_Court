@@ -21,10 +21,6 @@
     "header": "Journaux",
     "description": "Gérer les entrées de journal des personnages."
   },
-  "diaries": {
-    "header": "Journaux",
-    "description": "Gérer les entrées de journal des personnages."
-  },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",
     "select_folder": "Sélectionner le dossier",
