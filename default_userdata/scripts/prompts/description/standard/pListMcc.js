@@ -16,54 +16,46 @@ module.exports = (gameData) =>{
         locationController = ai.shortName;
     }
     const scene = gameData.scene;
+    const lang = gameData.lang || 'en';
 
+    const T = (key, vars) => {
+        return gameData.localize(key, lang, vars);
+    };
+    
     const PERSONALITY_DESCRIPTIONS = {
-        "Brave": "Fearless in the face of challenge and danger, actively taking risks and responsibilities; often proposes action in dialogue with a firm tone, daring to take responsibility and not backing down from conflict.",
-        "Craven": "Avoids challenges and scares, preferring safe and low-risk paths; speaks cautiously, often using vague or evasive wording, easily compromising or shifting topics under pressure.",
-        "Calm": "Composed and steady, with little emotional fluctuation, good at rational judgment; speaks in a steady tone, analyzes before taking a stand, rarely loses composure, prefers to persuade others with data or logic.",
-        "Wrathful": "Easily provoked, reacts strongly, finds it difficult to remain restrained in conflict; speaks with a touch of hostility, easily raises volume, uses questioning or commanding sentence structures, attacks first and thinks later in conflicts.",
-        "Chaste": "Restrains the desire for intimate contact, stays away from physical temptation, focuses on long-term commitment; uses conservative language, avoids ambiguous topics, emphasizes responsibility and loyalty, often limits self with moral standards.",
-        "Lustful": "Strong craving for physical pleasure, easily driven by passion while ignoring consequences; speaks in an ambiguous tone, good at using puns or hints, actively closes physical or emotional distance, topics easily slide towards the private.",
-        "Content": "Satisfied with what they have, few further pursuits, values stability and comfort; speaks in a relaxed tone, opposes radical plans, emphasizes the benefits of maintaining the status quo.",
-        "Ambitious": "Clear goals, firm will, will not stop until the goal is reached; speech points directly to results, actively proposes expansion or upgrade plans, shows impatience with obstacles.",
-        "Diligent": "Hardworking, not afraid of hardships, long-term investment to achieve results; actively takes on work, shows dissatisfaction with procrastinators, emphasizes that hard work will pay off.",
-        "Lazy": "Tends towards the easiest choice, lacks continuous investment and self-requirement; speaks in a lazy tone, proposes shortcuts or delays, asks \"can it be simplified\" first for complex plans.",
-        "Generous": "Easy to let go of offenses and setbacks, holds no grudges, open-minded; speaks in a relaxed tone, actively eases tension, tends to use humor or diversion to resolve awkwardness.",
-        "Vengeful": "Broods over slights and mistakes, tends to seek revenge or compensation; speaks in a cold tone, remembers details of grudges clearly, often reminds of old accounts, demands \"compensation before talking about the future\" in negotiations.",
-        "Charitable": "Willing to give and share, actively participates in charity and assistance; speaks boldly, offers help first, shows impatience with bargaining.",
-        "Greedy": "Obsessed with wealth accumulation, spends cautiously, constantly looking for profit opportunities; sensitive to costs.",
-        "Gregarious": "Enjoys socializing and being with others, draws energy from the group; speaks in an enthusiastic tone, frequently calls the other person by name, actively initiates gatherings or alliances, fears silence.",
-        "Shy": "Avoids too much interaction, prefers solitude or small-scale communication; speaks softly, avoids eye contact, needs repeated encouragement for public statements.",
-        "Honest": "Values facts and sincerity, transparent in words and deeds, rarely deceives; directly states pros and cons, actively admits mistakes, shows obvious discomfort with lies.",
-        "Deceitful": "Good at deception and manipulation, uses lies to achieve goals; speaks in a smooth tone, tests the waters before taking a stand, avoids direct commitments.",
-        "Humble": "Low self-requirement, modest attitude, avoids boasting and showing off; attributes credit to others, denies praise before shifting it.",
-        "Arrogant": "Deeply believes in their own value and superiority, finds it difficult to accept questioning and criticism; speaks in a condescending tone, belittles and then refutes opposing opinions.",
-        "Just": "Strong sense of justice, emphasizes fairness and order, abides by rules; proposes voting or third-party arbitration, shows resentment towards privilege.",
-        "Arbitrary": "Acts arbitrarily, rarely seeks opinions, puts their own judgment first; interrupts others, shows impatience with consultation, demands immediate execution.",
-        "Patient": "Good at waiting and observing, acts steadily after choosing the right moment; speaks in a slow tone, rarely interrupts.",
-        "Impatient": "Pursues fast results, finds it difficult to tolerate delays, prefers immediate execution; speaks in short bursts, shows irritability with long explanations, easily interrupts.",
-        "Temperate": "Advocates for abstinence and moderation, restrains impulses, maintains balance; uses neutral wording, opposes extreme plans.",
-        "Gluttonous": "Disregards moderation and restraint, tends towards excessive enjoyment and possession; speaks in an exaggerated tone, shows resentment towards restrictions, actively increases the stakes.",
-        "Trusting": "Easily believes others' statements, lacks awareness of precautions; quickly accepts new information, low requirements for evidence, easily follows the other person's line of thought.",
-        "Paranoid": "Suspicious of surroundings, often foresees potential threats; asks frequent questions, demands evidence or guarantees, questions motives behind kindness first.",
-        "Zealous": "High religious fervor, uses faith as a guide for action; quotes scriptures or oracles, views dissent as blasphemy, speaks in an excited tone.",
-        "Cynical": "Puts personal interests first, suspicious of ideals and good intentions; sarcastic, undermines altruistic proposals first.",
-        "Compassionate": "Filled with benevolence and sympathy, willing to take on and give for others; speaks in a soft tone, actively proposes reductions or assistance, empathizes with pain.",
-        "Callous": "Indifferent emotional response, lacks resonance with others' pain; speaks in a flat tone, evaluates pros and cons before helping, rarely offers comfort.",
-        "Sadistic": "Enjoys others' suffering, tends to inflict harm; speaks in an excited tone, shows pleasure at pleas for mercy, actively proposes punitive plans.",
-        "Fickle": "Views and choices often change unpredictably, difficult to predict; contradicts self on the same topic, reneges on promises at any time, topics jump significantly.",
-        "Stubborn": "Does not yield easily, sticks to their own views, resists change; repeats original position, rejects new evidence, does not budge an inch in negotiations.",
-        "Eccentric": "Behavior differs from ordinary people, patterns are unstable but not completely disordered; uses abrupt words or tones, likes to use self-created metaphors, topics jump, shows disregard for conventional social rules.",
-        "Beautiful": "Has a lovely face, picturesque features, carries a gentle and soft temperament; often appears dignified in speech and behavior, easily wins others' favor.",
-        "Handsome": "Radiant and spirited, with a heroic bearing.",
-        "Comely": "Exquisitely beautiful, unforgettable at first sight, carries a halo effect; often listened to when speaking, easily becomes the focus, topics naturally revolve around them.",
-        "Herculean": "Possesses extraordinary physique and strength, exceptionally brave.",
-        "Amazon": "Possesses extraordinary physique and strength, exceptionally brave."
+        "Brave": T('personality_brave'), "Craven": T('personality_craven'), "Calm": T('personality_calm'),
+        "Wrathful": T('personality_wrathful'), "Chaste": T('personality_chaste'), "Lustful": T('personality_lustful'),
+        "Content": T('personality_content'), "Ambitious": T('personality_ambitious'), "Diligent": T('personality_diligent'),
+        "Lazy": T('personality_lazy'), "Generous": T('personality_generous'), "Vengeful": T('personality_vengeful'),
+        "Charitable": T('personality_charitable'), "Greedy": T('personality_greedy'), "Gregarious": T('personality_gregarious'),
+        "Shy": T('personality_shy'), "Honest": T('personality_honest'), "Deceitful": T('personality_deceitful'),
+        "Humble": T('personality_humble'), "Arrogant": T('personality_arrogant'), "Just": T('personality_just'),
+        "Arbitrary": T('personality_arbitrary'), "Patient": T('personality_patient'), "Impatient": T('personality_impatient'),
+        "Temperate": T('personality_temperate'), "Gluttonous": T('personality_gluttonous'), "Trusting": T('personality_trusting'),
+        "Paranoid": T('personality_paranoid'), "Zealous": T('personality_zealous'), "Cynical": T('personality_cynical'),
+        "Compassionate": T('personality_compassionate'), "Callous": T('personality_callous'), "Sadistic": T('personality_sadistic'),
+        "Fickle": T('personality_fickle'), "Stubborn": T('personality_stubborn'), "Eccentric": T('personality_eccentric'),
+        "Beautiful": T('personality_beautiful'), "Handsome": T('personality_handsome'), "Comely": T('personality_comely'),
+        "Herculean": T('personality_herculean'), "Amazon": T('personality_amazon'),
+        "勇敢": T('personality_brave'), "怯懦": T('personality_craven'), "冷静": T('personality_calm'),
+        "暴怒": T('personality_wrathful'), "忠贞": T('personality_chaste'), "色欲": T('personality_lustful'),
+        "安于现状": T('personality_content'), "野心勃勃": T('personality_ambitious'), "勤勉": T('personality_diligent'),
+        "懒惰": T('personality_lazy'), "宽宏大量": T('personality_generous'), "睚眦必报": T('personality_vengeful'),
+        "慷慨": T('personality_charitable'), "贪婪": T('personality_greedy'), "合群": T('personality_gregarious'),
+        "害羞": T('personality_shy'), "诚实": T('personality_honest'), "狡诈": T('personality_deceitful'),
+        "谦卑": T('personality_humble'), "傲慢": T('personality_arrogant'), "公正": T('personality_just'),
+        "专断": T('personality_arbitrary'), "耐心": T('personality_patient'), "急躁": T('personality_impatient'),
+        "节制": T('personality_temperate'), "暴食": T('personality_gluttonous'), "轻信他人": T('personality_trusting'),
+        "多疑": T('personality_paranoid'), "狂热": T('personality_zealous'), "愤世嫉俗": T('personality_cynical'),
+        "慈悲": T('personality_compassionate'), "冷酷": T('personality_callous'), "虐待狂": T('personality_sadistic'),
+        "多变": T('personality_fickle'), "固执": T('personality_stubborn'), "怪客": T('personality_eccentric'),
+        "螓首蛾眉": T('personality_beautiful_zh'), "英姿飒爽": T('personality_handsome_zh'), "倾国倾城": T('personality_comely_zh'),
+        "海格力斯": T('personality_herculean_zh'), "阿玛宗": T('personality_amazon_zh')
     };
 
     let playerPersonaItems = [
         `id(${player.id})`,
-        `Name: ${player.firstName}`,
+        `${T('name')}: ${player.firstName}`,
         mainPosition(player), 
         courtAndCouncilPositions(player), 
         houseAndStatus(player), 
@@ -73,13 +65,13 @@ module.exports = (gameData) =>{
         describeProwess(player),
         goldStatus(player),
         age(player),
-        `Faith: ${player.faith}`, 
-        `Culture: ${player.culture}`,
+        `${T('faith')}: ${player.faith}`, 
+        `${T('culture')}: ${player.culture}`,
     ];
     
     let aiPersonaItems = [
         `id(${ai.id})`,
-        `Name: ${ai.firstName}`,
+        `${T('name')}: ${ai.firstName}`,
         mainPosition(ai), 
         courtAndCouncilPositions(ai), 
         listRelationsToPlayer(ai), 
@@ -94,8 +86,8 @@ module.exports = (gameData) =>{
         marriage(ai),
         goldStatus(ai),
         age(ai), 
-        `Faith: ${ai.faith}`, 
-        `Culture: ${ai.culture}`,
+        `${T('faith')}: ${ai.faith}`, 
+        `${T('culture')}: ${ai.culture}`,
     ];
     
 
@@ -104,93 +96,92 @@ module.exports = (gameData) =>{
     aiPersonaItems = aiPersonaItems.filter(function(e){return e}); 
     
     let output = "";
-    output+= `\n[${player.shortName}'s Persona: ${playerPersonaItems.join("; ")}]`;
-    output+=`\n[${ai.shortName}'s Persona: ${aiPersonaItems.join("; ")}]`;
+    output+= `\n[${player.shortName}${T('s_persona_user')}: ${playerPersonaItems.join("; ")}]`;
+    output+=`\n[${ai.shortName}${T('s_persona')}: ${aiPersonaItems.join("; ")}]`;
     
-    if (gameData.characters.size > 2){
-        gameData.characters.forEach((value, key) => {
-            if(key !== gameData.playerID && key !== gameData.aiID)
-            {
-                let secondaryAiItems = [
-                    `id(${value.id})`,
-                    `Name: ${value.firstName}`,
-                    mainPosition(value), 
-                    courtAndCouncilPositions(value), 
-                    listRelationsToPlayer(value), 
-                    listRelationsToCharacters(value),
-                    houseAndStatus(value), 
-                    opinion(value),
-                    listOpinionsToCharacters(value),
-                    personalityTraits(value), 
-                    otherTraits(value), 
-                    greedines(value), 
-                    describeProwess(value),
-                    marriage(value),  
-                    goldStatus(value),
-                    age(value), 
-                    `Faith: ${value.faith}`, 
-                    `Culture: ${value.culture}`]
-                output+=`\n[${value.shortName}'s Persona: ${secondaryAiItems.join("; ")}]`;
-            }
+    const otherCharacters = gameData.getOtherCharacters();
+    if (otherCharacters.length > 0){
+        otherCharacters.forEach(char => {
+            let secondaryAiItems = [
+                `id(${char.id})`,
+                `${T('name')}: ${char.firstName}`,
+                mainPosition(char), 
+                courtAndCouncilPositions(char), 
+                listRelationsToPlayer(char), 
+                listRelationsToCharacters(char),
+                houseAndStatus(char), 
+                opinion(char),
+                listOpinionsToCharacters(char),
+                personalityTraits(char), 
+                otherTraits(char), 
+                greedines(char), 
+                describeProwess(char),
+                marriage(char),  
+                goldStatus(char),
+                age(char), 
+                `${T('faith')}: ${char.faith}`, 
+                `${T('culture')}: ${char.culture}`]
+            output+=`\n[${char.shortName}${T('s_persona')}: ${secondaryAiItems.join("; ")}]`;
         })
     }
 
 
 
-    output+=`\n[date(${date}), location(${location}), scenario(${scenario()})]`;
+    output+=`\n[${T('date')}(${date}), ${T('location')}(${location}), ${T('scenario')}(${scenario()})]`;
     
     return output;
     
     function mainPosition(char){
         if(isLandlessAdventurer(char)){
             if(char.isRuler){
-                return `Leader of ${char.primaryTitle}, a group of ${char.liegeRealmLaw}`
+                return T('main_position_landless_ruler', {primaryTitle: char.primaryTitle, liegeRealmLaw: char.liegeRealmLaw});
             }
             else{
-                return `A follower of ${char.liege}, they are a group of ${char.liegeRealmLaw}`
+                return T('main_position_landless_follower', {liege: char.liege, liegeRealmLaw: char.liegeRealmLaw});
             }
         }
         else if(char.isLandedRuler){
             if(char.isIndependentRuler){
-                return `Independent ruler of ${char.primaryTitle}`
+                return T('main_position_independent_ruler', {primaryTitle: char.primaryTitle});
             }
             else{
-                return `Ruler of ${char.primaryTitle}, vassal of ${char.liege}`
+                return T('main_position_landed_vassal', {primaryTitle: char.primaryTitle, liege: char.liege});
             }
             
         }
         else if(char.isKnight){
-            return `Knight of ${char.liege}`
+            return T('main_position_knight', {liege: char.liege});
         }        
     }
 
     function courtAndCouncilPositions(char){
         if(char.heldCourtAndCouncilPositions){
-            return `${char.heldCourtAndCouncilPositions} of ${char.liege}`
+            return T('court_position', {position: char.heldCourtAndCouncilPositions, liege: char.liege});
         }
         else{
-            return ``
+            return ``;
         }
     }
 
     function houseAndStatus(char){
         let output="";
-        if(char.house){
-            output+="noble";
+
+        if(char.sheHe === "她" || char.sheHe === "she"){
+            output+= `${T('gender')}: ${T('female')}, `;
         }
-        else{
-            output+="lowborn ";
-        }
-    
-        if(char.SheHe === "she"){
-            output+= "woman";
-        }
-        else if(char.SheHe === "he"){
-            output+= "man";
+        else if(char.sheHe === "他" || char.sheHe === "he"){
+            output+= `${T('gender')}: ${T('male')}, `;
         }
 
         if(char.house){
-            output+=` of house ${char.house}`
+            output+=`${T('noble_birth')}, `;
+        }
+        else{
+            output+=`${T('common_birth')}`;
+        }
+    
+        if(char.house){
+            output+=`${T('surname')}: ${char.house}`
         }
     
         return output;
@@ -200,32 +191,32 @@ module.exports = (gameData) =>{
         const op = char.opinionOfPlayer;
 
         if(op>60){
-            return `${char.shortName} has a very favorable opinion of ${player.shortName}`
+            return T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: player.shortName});
         }
         else if(op>20){
-            return `${char.shortName} has a slightly positive opinion of ${player.shortName}`
+            return T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: player.shortName});
         }
         else if(op>-20){
-            return `${char.shortName} has a neutral opinion of ${player.shortName}`
+            return T('opinion_neutral', {charShortName: char.shortName, playerShortName: player.shortName});
         }
         else if(op>-60){
-            return `${char.shortName} has a slight hatred towards ${player.shortName}`
+            return T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
         }
         else{
-             return `${char.shortName} has a very strong hatred towards ${player.shortName}`
+             return T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
         }
     }
     
     
     function greedines(char){
         if(char.greed>75){
-            return "very greedy";
+            return T('very_greedy');
         }
         else if(char.greed>50){
-            return "greedy";
+            return T('greedy');
         }
         else if(char.greed>25){
-            return "slightly greedy";
+            return T('slightly_greedy');
         }
         else{
             return null;
@@ -235,29 +226,29 @@ module.exports = (gameData) =>{
     function marriage(char){
         if(char.consort){
             if(char.consort == player.fullName){
-                return `married to ${player.shortName}`;
+                return T('spouse_is', {spouseName: player.shortName});
             }
             else if(char.consort == ai.fullName){
-                return `married to ${ai.shortName}`;
+                return T('spouse_is', {spouseName: ai.shortName});
             }
             else{
-                return `married to ${char.consort}`
+                return T('spouse_is', {spouseName: char.consort});
             }
         }
         else{
-            return `unmarried`;
+            return ``;
         }
     }
     
     function otherTraits(char){
-        let otherTraits = char.traits.filter((trait) => trait.category != "Personality Trait");
+        let otherTraits = char.traits.filter((trait) => trait.category != T('personality_trait_category') && trait.category != "Personality Trait");
     
         let traitTexts = otherTraits.map(trait => {
             const d = PERSONALITY_DESCRIPTIONS[trait.name] || trait.desc;
             return d ? `${trait.name}: ${d}` : trait.name;
         });
     
-        let output = "traits("
+        let output = `${T('has_traits')}: (`
         output+= traitTexts.join(", ");
         output+=")";
     
@@ -265,12 +256,15 @@ module.exports = (gameData) =>{
     }
     
     function personalityTraits(char){
-        let personalityTraits = filterTraitsToCategory(char.traits, "Personality Trait");
+        let personalityTraits = filterTraitsToCategory(char.traits, T('personality_trait_category'));
+        if (personalityTraits.length === 0) {
+            personalityTraits = filterTraitsToCategory(char.traits, "Personality Trait");
+        }
         let traitTexts = personalityTraits.map(trait => {
             const d = PERSONALITY_DESCRIPTIONS[trait.name] || trait.desc;
             return d ? `${trait.name}: ${d}` : trait.name;
         });
-        let output = "personality("
+        let output = `${T('personality')}: (`
         output+= traitTexts.join(", ");
         output+=")";
     
@@ -279,273 +273,269 @@ module.exports = (gameData) =>{
     
     function listRelationsToCharacters(char) {
         if (char.relationsToCharacters.length === 0) {
-            return `${char.shortName} has no relations.`;
+            return ``;
         } else {
             return char.relationsToCharacters
                 .map(relation => {
                     const targetCharacter = gameData.characters.get(relation.id);
                     if (targetCharacter) {
                         let relationTypes = relation.relations.join(', ');
-                        if (relationTypes.includes("your")) {
-                            relationTypes = relationTypes.replace("your", gameData.playerName+"'s");
+                        if (relationTypes.includes(T('your_relation'))) {
+                            relationTypes = relationTypes.replace(T('your_relation'), gameData.playerName+"'s");
                         }
-                        return `${char.shortName} is ${relationTypes} for ${targetCharacter.shortName}`;
+                        return T('is_relation_to', {charShortName: char.shortName, targetShortName: targetCharacter.shortName, relations: relationTypes});
                     } else {
-                        return `${char.shortName} has relations to an unknown character (ID: ${relation.id})`;
+                        return ``;
                     }
                 })
-                .join('\n');
+                .join('; ');
         }
     }
-
 
     function listOpinionsToCharacters(char) {
         if (gameData.characters.size <= 2) {
-            return null; // Not enough characters to analyze opinions
-        }  
-        return "This are " + char.shortName + "'s opinions about other characters of conversation:" + char.opinions
+            return null;
+        }
+        const opinions = char.opinions
             .map(opinionData => {
                 const targetCharacter = gameData.characters.get(opinionData.id);
                 if (targetCharacter && targetCharacter.id !== char.id && targetCharacter.id !== player.id) {
-                    const op = opinionData.opinon; // Opinion score
+                    const op = opinionData.opinion;
                     if (op > 60) {
-                        return `${char.shortName} has a very favorable opinion of ${targetCharacter.shortName}`;
+                        return T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
                     } else if (op > 20) {
-                        return `${char.shortName} has a slightly positive opinion of ${targetCharacter.shortName}`;
+                        return T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
                     } else if (op > -20) {
-                        return `${char.shortName} has a neutral opinion of ${targetCharacter.shortName}`;
+                        return T('opinion_neutral', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
                     } else if (op > -60) {
-                        return `${char.shortName} has a slight hatred towards ${targetCharacter.shortName}`;
+                        return T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
                     } else {
-                        return `${char.shortName} has a very strong hatred towards ${targetCharacter.shortName}`;
+                        return T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
                     }
-                } else {
-                    return `${char.shortName} has an opinion about an unknown character (ID: ${opinionData.id})`;
                 }
+                return null;
             })
-            .join('\n');
-    }
+            .filter(Boolean)
+            .join('; ');
     
+        if (opinions) {
+            return T('character_opinions_intro', {charShortName: char.shortName, opinions: opinions});
+        }
+        return null;
+    }
         
     function listRelationsToPlayer(char){
-        if(char.relationsToPlayer === 0){
-            return `has no relation to ${player.shortName}`;
+        if(char.relationsToPlayer.length === 0){
+            return T('has_no_relation_to', {playerShortName: player.shortName});
         }
         else{
-            return `${char.shortName} is the ${char.relationsToPlayer.join(', ')} of ${player.shortName}`;
+            return T('is_relation_of_player', {charShortName: char.shortName, playerShortName: player.shortName, relations: char.relationsToPlayer.join(', ')});
         }
     }
-
 
     function scenario(){
         // If there are more than 2 characters, return all character names in the scene name
         if (gameData.characters.size > 2) {
             const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join(', ');
             let sceneDescription = scene; // Default to scene variable
-            
+
             switch (scene){
                 case "family_meeting_east":
                 case "family_meeting":
-                    sceneDescription = `a family meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_family_meeting', {playerShortName: player.shortName});
                     break;
                 case "cabinet_meeting_chinese_empire":
-                    sceneDescription = `a central meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_central_meeting', {playerShortName: player.shortName});
                     break;
                 case "cabinet_meeting":
                 case "cabinet_meeting_chinese":
-                    sceneDescription = `a cabinet meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_cabinet_meeting', {playerShortName: player.shortName});
                     break;
                 case "lingyinsi":
-                    sceneDescription = "Lingyin Temple";
+                    sceneDescription = T('locations.lingyinsi');
                     break;
                 case "throneroom_japan":
-                    sceneDescription = "Heian Palace";
+                    sceneDescription = T('locations.throneroom_japan');
                     break;
                 case "shaolinsidai":
-                    sceneDescription = "Shaolin Temple";
+                    sceneDescription = T('locations.shaolinsidai');
                     break;
                 case "wudangshandaoguan":
-                    sceneDescription = "Wudang Mountain Taoist Temple";
+                    sceneDescription = T('locations.wudangshandaoguan');
                     break;
                 case "yungangshiku":
-                    sceneDescription = "Yungang Grottoes";
+                    sceneDescription = T('locations.yungangshiku');
                     break;
                 case "leshandafou":
-                    sceneDescription = "Leshan Giant Buddha";
+                    sceneDescription = T('locations.leshandafou');
                     break;
                 case "taishan":
-                    sceneDescription = "Mount Tai";
+                    sceneDescription = T('locations.taishan');
                     break;
                 case "wulingyuan":
-                    sceneDescription = "Wulingyuan";
+                    sceneDescription = T('locations.wulingyuan');
                     break;
                 case "kaifenghuangcheng":
-                    sceneDescription = "Kaifeng Imperial City";
+                    sceneDescription = T('locations.kaifenghuangcheng');
                     break;
                 case "huanghelou":
-                    sceneDescription = "Yellow Crane Tower";
+                    sceneDescription = T('locations.huanghelou');
                     break;
                 case "tengwangge":
-                    sceneDescription = "Tengwang Pavilion";
+                    sceneDescription = T('locations.tengwangge');
                     break;
                 case "yueyanglou":
-                    sceneDescription = "Yueyang Tower";
+                    sceneDescription = T('locations.yueyanglou');
                     break;
                 case "bedchamber_east1":
-                    sceneDescription = "the bedchamber";
+                    sceneDescription = T('locations.bedchamber');
                     break;
                 case "garden_east1":
-                    sceneDescription = "the Imperial Garden";
+                    sceneDescription = T('locations.imperial_garden');
                     break;
                 case "throneroom_east_fuya1":
-                    sceneDescription = "the government office";
-                    break;
                 case "throneroom_east_fuya":
-                    sceneDescription = "the government office";
+                    sceneDescription = T('locations.government_office');
                     break;
                 case "throneroom_east_empire":
-                    sceneDescription = "the Imperial Palace Hall";
-                    break;
                 case "throneroom_east_empire1":
-                    sceneDescription = "the Imperial Palace Hall";
+                    sceneDescription = T('locations.imperial_palace_hall');
                     break;
                 case "throneroom":
-                    sceneDescription = `${locationController}'s throneroom`;
+                    sceneDescription = T('scenario_throneroom', {locationController: locationController});
                     break;
                 case "garden":
-                    sceneDescription = "the castle garden";
+                    sceneDescription = T('locations.castle_garden');
                     break;
                 case "bedchamber":
-                    sceneDescription = "the private bedchamber";
+                    sceneDescription = T('locations.private_bedchamber');
                     break;
                 case "feast":
-                    sceneDescription = `the feast hosted by ${locationController}`;
+                    sceneDescription = T('scenario_feast', {locationController: locationController});
                     break;
                 case "armycamp":
                 case "army_camp":
-                    sceneDescription = "the army camp";
+                    sceneDescription = T('locations.army_camp');
                     break;
                 case "hunt":
-                    sceneDescription = "the foggy forest";
+                    sceneDescription = T('locations.foggy_forest');
                     break;
                 case "dungeon":
-                    sceneDescription = "the dungeon";
+                    sceneDescription = T('locations.dungeon');
                     break;
                 case "alley":
-                    sceneDescription = "a narrow alley";
+                    sceneDescription = T('locations.narrow_alley');
                     break;
                 case "market":
-                    sceneDescription = "the bustling market";
+                    sceneDescription = T('locations.bustling_market');
                     break;
             }
-            
-            return `${characterNames} in ${sceneDescription}`;
+
+            return `${characterNames} ${T('in')} ${sceneDescription}`;
         }
 
         switch (scene){
             case "family_meeting_east":
-                return `${player.shortName} has convened a family meeting`;
+            case "family_meeting":
+                return T('scenario_family_meeting_convened', {playerShortName: player.shortName});
             case "cabinet_meeting_chinese_empire":
-                return `${player.shortName} has convened a central meeting`;
+                return T('scenario_central_meeting_convened', {playerShortName: player.shortName});
             case "cabinet_meeting":
             case "cabinet_meeting_chinese":
-                return `${player.shortName} has convened a cabinet meeting`;
+                return T('scenario_cabinet_meeting_convened', {playerShortName: player.shortName});
             case "lingyinsi":
-                return `${ai.shortName} and ${player.shortName} meet at Lingyin Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.lingyinsi')});
             case "throneroom_japan":
-                return `${ai.shortName} and ${player.shortName} meet at Heian Palace`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.throneroom_japan')});
             case "shaolinsidai":
-                return `${ai.shortName} and ${player.shortName} meet at Shaolin Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.shaolinsidai')});
             case "wudangshandaoguan":
-                return `${ai.shortName} and ${player.shortName} meet at Wudang Mountain Taoist Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wudangshandaoguan')});
             case "yungangshiku":
-                return `${ai.shortName} and ${player.shortName} meet at Yungang Grottoes`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yungangshiku')});
             case "leshandafou":
-                return `${ai.shortName} and ${player.shortName} meet at Leshan Giant Buddha`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.leshandafou')});
             case "taishan":
-                return `${ai.shortName} and ${player.shortName} meet at Mount Tai`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.taishan')});
             case "wulingyuan":
-                return `${ai.shortName} and ${player.shortName} meet at Wulingyuan`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wulingyuan')});
             case "kaifenghuangcheng":
-                return `${ai.shortName} and ${player.shortName} meet at Kaifeng Imperial City`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.kaifenghuangcheng')});
             case "huanghelou":
-                return `${ai.shortName} and ${player.shortName} meet at Yellow Crane Tower`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.huanghelou')});
             case "tengwangge":
-                return `${ai.shortName} and ${player.shortName} meet at Tengwang Pavilion`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.tengwangge')});
             case "yueyanglou":
-                return `${ai.shortName} and ${player.shortName} meet at Yueyang Tower`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yueyanglou')});
             case "bedchamber_east1":
-                return `${ai.shortName} and ${player.shortName} are talking in the bedchamber`;
+                return T('scenario_talking_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.bedchamber')});
             case "garden_east1":
-                return `${ai.shortName} meets ${player.shortName} in the Imperial Garden`;
+                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_garden')});
             case "throneroom_east_fuya1":
-                return `${ai.shortName} pays respects to ${player.shortName} in the government office`;
+                return T('scenario_pays_respects', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
             case "throneroom_east_fuya":
-                return `${ai.shortName} receives ${player.shortName} in the government office`;
+                return T('scenario_receives', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
             case "throneroom_east_empire":
-                return `${ai.shortName} summons ${player.shortName} in the Imperial Palace Hall`;
+                return T('scenario_summons', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
             case "throneroom_east_empire1":
-                return `${ai.shortName} has an audience with ${player.shortName} in the Imperial Palace Hall`;
-
+                return T('scenario_audience_with', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
             case "throneroom":
-                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s throneroom.`;
+                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.throneroom')});
             case "garden":
-                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s castle garden.`;
+                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.castle_garden')});
             case "bedchamber":
-                return `${ai.shortName} meets ${player.shortName} in their private bedchamber.`;
+                return T('scenario_meet_in_private', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.private_bedchamber')});
             case "feast":
-                return `${ai.shortName} talks to ${player.shortName} during the feast hosted by ${locationController}.`;
+                return T('scenario_talks_during_feast', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController});
             case "armycamp":
             case "army_camp":
-                return `${ai.shortName} meets ${player.shortName} in the army camp.`;
+                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.army_camp')});
             case "hunt":
-                return `${ai.shortName} meets ${player.shortName} while hunting in the foggy forest. Their weapons are bows.`;
+                return T('scenario_hunt', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "dungeon":
-                return `${ai.shortName} meets ${player.shortName} in the dungeon, where ${ai.shortName} is held as a prisoner.`;
+                return T('scenario_dungeon', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "alley":
-                return `${ai.shortName} meets ${player.shortName} in the narrow alley, hidden from everyone`;
+                return T('scenario_alley', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "market":
-                return `${ai.shortName} meets ${player.shortName} in the bustling market.`;
+                return T('scenario_market', {aiShortName: ai.shortName, playerShortName: player.shortName});
             default:
-                return `${ai.shortName} and ${player.shortName} are at ${location}.`;
+                return T('scenario_default', {aiShortName: ai.shortName, playerShortName: player.shortName, location: location});
         }
     }
 
     function goldStatus(char) {
         const gold = char.gold;
-        // Wealth status levels (unit: gold)
         if (gold >= 1000000) {
-            return `${char.shortName} is as wealthy as a nation (gold: ${gold})`; // Millionaire level
+            return T('gold_status_nation', {shortName: char.shortName, gold: gold});
         } else if (gold >= 100000) {
-            return `${char.shortName} is immensely wealthy (gold: ${gold})`; // Hundred thousand level
+            return T('gold_status_immensely_wealthy', {shortName: char.shortName, gold: gold});
         } else if (gold >= 10000) {
-            return `${char.shortName} is very wealthy (gold: ${gold})`; // Ten thousand level
+            return T('gold_status_very_wealthy', {shortName: char.shortName, gold: gold});
         } else if (gold >= 5000) {
-            return `${char.shortName} is rich in the region (gold: ${gold})`;
+            return T('gold_status_region_rich', {shortName: char.shortName, gold: gold});
         } else if (gold >= 1000) {
-            return `${char.shortName} lives a prosperous life (gold: ${gold})`;
+            return T('gold_status_prosperous', {shortName: char.shortName, gold: gold});
         } else if (gold >= 500) {
-            return `${char.shortName} has some savings (gold: ${gold})`;
+            return T('gold_status_some_savings', {shortName: char.shortName, gold: gold});
         } else if (gold >= 200) {
-            return `${char.shortName} breaks even (gold: ${gold})`;
+            return T('gold_status_breaks_even', {shortName: char.shortName, gold: gold});
         } else if (gold >= 100) {
-            return `${char.shortName} barely maintains (gold: ${gold})`;
+            return T('gold_status_barely_maintains', {shortName: char.shortName, gold: gold});
         } else if (gold >= 50) {
-            return `${char.shortName} is stretched thin (gold: ${gold})`;
+            return T('gold_status_stretched_thin', {shortName: char.shortName, gold: gold});
         } else if (gold > 0) {
-            return `${char.shortName} is struggling to survive (gold: ${gold})`;
+            return T('gold_status_struggling', {shortName: char.shortName, gold: gold});
         } else if (gold === 0) {
-            return `${char.shortName} is penniless`;
+            return T('gold_status_penniless', {shortName: char.shortName});
         } else {
-            // Debt status levels
             if (gold <= -1000) {
-                return `${char.shortName} is heavily in debt (debt: ${-gold})`;
+                return T('debt_status_heavily', {shortName: char.shortName, debt: -gold});
             } else if (gold <= -500) {
-                return `${char.shortName} is insolvent (debt: ${-gold})`;
+                return T('debt_status_insolvent', {shortName: char.shortName, debt: -gold});
             } else if (gold <= -100) {
-                return `${char.shortName} is burdened with debt (debt: ${-gold})`;
+                return T('debt_status_burdened', {shortName: char.shortName, debt: -gold});
             } else {
-                return `${char.shortName} is slightly in debt (debt: ${-gold})`;
+                return T('debt_status_slightly', {shortName: char.shortName, debt: -gold});
             }
         }
     }
@@ -553,40 +543,36 @@ module.exports = (gameData) =>{
     function age(char) {
         const age = char.age;
         if (age > 13) {
-            return `${age} years old`;
+            return `${age} ${T('years_old')}`;
         }
         if (age < 3) {
-            return `${char.shortName} is an infant, unable to speak but quick to babble, cry, or smile to convey needs. They spend their time observing and reaching out for what’s near.`;
+            return T('age_infant', {shortName: char.shortName});
         } else if (age < 6) {
-            return `${char.shortName} is a small child, learning to speak in simple phrases and curious about their surroundings. They play often, imitating the actions of adults with innocence and energy.`;
+            return T('age_small_child', {shortName: char.shortName});
         } else if (age < 10) {
-            return `${char.shortName} is a child, capable of speaking clearly and enjoying games or tales. They understand basic duties and may help with simple tasks, but they still rely heavily on guidance.`;
+            return T('age_child', {shortName: char.shortName});
         } else if (age <= 13) {
-            return `${char.shortName} is a preteen, beginning to take on minor tasks or skills training. They speak with more confidence and show a budding sense of duty, often eager to earn approval from elders.`;
+            return T('age_preteen', {shortName: char.shortName});
         }
     }
     
     function describeProwess(char){    
-        let description = `${char.shortName}'s prowess is `;
         let prowess = char.prowess;
         if (prowess >= 0 && prowess <= 4) {
-            description = `terrible: This character is physically weak, with little muscle mass and minimal personal combat skills. They are highly vulnerable in battle and likely to be injured or killed even in minor skirmishes.`;
+            return T('prowess_terrible');
         } else if (prowess >= 5 && prowess <= 8) {
-            description = `poor: This character has below-average physical strength and combat aptitude. They may have some muscle definition but are at significant risk in personal combat and on the battlefield.`;
+            return T('prowess_poor');
         } else if (prowess >= 9 && prowess <= 12) {
-            description = `average: This character has some physical strength and combat ability. They can hold their own in personal combat against less skilled opponents but remain vulnerable in pitched battles.`;
+            return T('prowess_average');
         } else if (prowess >= 13 && prowess <= 16) {
-            description = `good: This character is above average in physical strength and combat skills. They show noticeable muscle mass and are capable of defending themselves well in personal combat and as a knight or commander.`;
+            return T('prowess_good');
         } else if (prowess >= 17 && prowess <= 68) {
-            description = `excellent: This character is highly skilled in personal combat and possesses significant physical strength. Their prowess makes them a fearsome presence on the battlefield, with a good balance of survival instincts and lethality.`;
+            return T('prowess_excellent');
         } else if (prowess === 69) {
-            description = `nice: This character’s prowess is both exceptional and memorable. They excel in personal combat with an almost legendary balance of skill and strength. Their presence in battle is inspiring.`;
+            return T('prowess_nice');
         } else if (prowess >= 70 && prowess <= 100) {
-            description = `excellent: This character is at the peak of physical and combat capability, with unmatched skill and muscle mass. They dominate in personal combat, and their presence as a knight or commander is both intimidating and awe-inspiring.`;
+            return T('prowess_peak');
         }
-    
-        return description;
-    }
     }
     
     
@@ -600,4 +586,5 @@ module.exports = (gameData) =>{
         const landlessLaws = ["Wanderers", "Swords-for-Hire", "Scholars", "Explorers", "Freebooters", "Legitimists"]
         return landlessLaws.includes(char.liegeRealmLaw);
     }
+}
 

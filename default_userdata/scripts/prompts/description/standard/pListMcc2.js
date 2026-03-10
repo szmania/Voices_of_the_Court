@@ -307,12 +307,10 @@ module.exports = (gameData) =>{
     function scenario(){
         // If there are more than 2 characters, return all character names in the scene name
         if (gameData.characters.size > 2) {
-            const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join('、');
+            const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join(', ');
             let sceneDescription = scene; // Default to scene variable
-            
-            // 沿用原来的switch-case逻辑获取场景描述
+
             switch (scene){
-                //添加更多场景
                 case "family_meeting_east":
                 case "family_meeting":
                     sceneDescription = T('scenario_family_meeting', {playerShortName: player.shortName});
@@ -374,7 +372,6 @@ module.exports = (gameData) =>{
                 case "throneroom_east_empire1":
                     sceneDescription = T('locations.imperial_palace_hall');
                     break;
-                //原作者设置的场景
                 case "throneroom":
                     sceneDescription = T('scenario_throneroom', {locationController: locationController});
                     break;
@@ -388,6 +385,7 @@ module.exports = (gameData) =>{
                     sceneDescription = T('scenario_feast', {locationController: locationController});
                     break;
                 case "armycamp":
+                case "army_camp":
                     sceneDescription = T('locations.army_camp');
                     break;
                 case "hunt":
@@ -403,12 +401,11 @@ module.exports = (gameData) =>{
                     sceneDescription = T('locations.bustling_market');
                     break;
             }
-            
+
             return `${characterNames} ${T('in')} ${sceneDescription}`;
         }
 
         switch (scene){
-             //添加更多场景
             case "family_meeting_east":
             case "family_meeting":
                 return T('scenario_family_meeting_convened', {playerShortName: player.shortName});
@@ -453,8 +450,6 @@ module.exports = (gameData) =>{
                 return T('scenario_summons', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
             case "throneroom_east_empire1":
                 return T('scenario_audience_with', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
-
-            //原作者设置的场景
             case "throneroom":
                 return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.throneroom')});
             case "garden":
@@ -464,6 +459,7 @@ module.exports = (gameData) =>{
             case "feast":
                 return T('scenario_talks_during_feast', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController});
             case "armycamp":
+            case "army_camp":
                 return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.army_camp')});
             case "hunt":
                 return T('scenario_hunt', {aiShortName: ai.shortName, playerShortName: player.shortName});
