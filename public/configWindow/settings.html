@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="config.css" />
   <link rel="stylesheet" href="../chatWindow/theme.css" />
 
-  
+
 
 </head>
 
@@ -44,7 +44,7 @@
                 <config-number confID="maxMemoryTokens" min="0" max="4084" data-i18n="settings.max_memory_tokens"></config-number>
               </div>
             </div>
-            
+
             <hr>
 
             <div class="row">
@@ -126,10 +126,10 @@
                 <config-number confID="descInsertDepth" min="0" max="20" data-i18n="settings.desc_depth"></config-number> <tooltip-text side="top" data-i18n="settings.desc_depth_tooltip"></tooltip-text>
               </div>
               <div class="column">
-                <tooltip-text side="top" data-i18n="settings.ai_start_tooltip"></tooltip-text>
                 <config-number confID="aiStartConversationChance" min="0" max="100" step="1" data-i18n="settings.ai_start_chance"></config-number>
+                <tooltip-text side="top" data-i18n="settings.ai_start_tooltip"></tooltip-text>
               </div>
-
+            </div>
             <div class="row">
               <div class="column">
                 <config-number confID="aiToAiChatChance" min="0" max="100" step="1" data-i18n="settings.aiToAiChatChance"></config-number>
@@ -151,14 +151,14 @@
                 <tooltip-text side="top" data-i18n="settings.diary_chance_tooltip"></tooltip-text>
               </div>
             </div>
-          </div>  
+          </div>
         </div>
         <br>
 
         <h2 data-i18n="settings.instruct_header">Instruct settings</h2>
 
         <div class="border">
-          
+
           <div class="row">
             <div class="column">
               <config-text confID="inputSequence" data-i18n="settings.input_seq"></config-text>
@@ -175,11 +175,11 @@
 
         <h2 data-i18n="settings.text_gen_params">Text-generation parameters</h2>
 
-        
+
 
         <parameters-box confID="textGenerationApiConnectionConfig" tempDefault="0.8" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
-       
+
 
 
       </div>
@@ -204,7 +204,7 @@
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
   <script>require("../../dist/configWindow/components/tooltip.js")</script>
   <script>require("../../dist/configWindow/modelSettingsRenderer.js")</script>
-  
+
   <script>
     // 添加帮助菜单点击事件
     document.addEventListener('DOMContentLoaded', function() {
@@ -218,7 +218,7 @@
       }
     });
   </script>
-  
+
 </body>
 
 </html>
