@@ -16,6 +16,8 @@ module.exports = (gameData) =>{
         locationController = ai.shortName;
     }
     const scene = gameData.scene;
+    const lang = gameData.lang || 'en';
+    const T = (text) => gameData.localize(text, lang);
     
     let playerPersonaItems = [,
         mainPosition(player), 
@@ -25,10 +27,10 @@ module.exports = (gameData) =>{
         otherTraits(player), 
         marriage(player), 
         family(player),
-        `age(${player.age})`, 
-        `faith(${player.faith})`, 
-        `culture(${player.culture})`,
-        `wealth(${player.gold} gold)`
+        `${T('age')}(${player.age})`, 
+        `${T('faith')}(${player.faith})`, 
+        `${T('culture')}(${player.culture})`,
+        `${T('wealth')}(${player.gold} ${T('gold')})`
     ];
     
     let aiPersonaItems = [,
@@ -42,10 +44,10 @@ module.exports = (gameData) =>{
         greedines(ai), 
         marriage(ai),  
         family(ai),
-        `age(${ai.age})`, 
-        `faith(${ai.faith})`, 
-        `culture(${ai.culture})`,
-        `wealth(${ai.gold} gold)`
+        `${T('age')}(${ai.age})`, 
+        `${T('faith')}(${ai.faith})`, 
+        `${T('culture')}(${ai.culture})`,
+        `${T('wealth')}(${ai.gold} ${T('gold')})`
     ];
     
     //remove "", null, undefined and 0. 
@@ -53,38 +55,38 @@ module.exports = (gameData) =>{
     aiPersonaItems = aiPersonaItems.filter(function(e){return e}); 
     
     let output = "";
-    output+= `\n[${player.shortName}'s Persona: ${playerPersonaItems.join("; ")}]`;
-    output+=`\n[${ai.shortName}'s Persona: ${aiPersonaItems.join("; ")}]`;
-    output+=`\n[date(${date}), location(${location}), scenario(${scenario()})]`;
+    output+= `\n[${player.shortName}${T('s_persona')}: ${playerPersonaItems.join("; ")}]`;
+    output+=`\n[${ai.shortName}${T('s_persona')}: ${aiPersonaItems.join("; ")}]`;
+    output+=`\n[${T('date')}(${date}), ${T('location')}(${location}), ${T('scenario')}(${scenario()})]`;
     
     return output;
     
     function mainPosition(char){
         if(isLandlessAdventurer(char)){
             if(char.isRuler){
-                return `Leader of ${char.primaryTitle}, a group of ${char.liegeRealmLaw}`
+                return `${T('leader_of')} ${char.primaryTitle}, ${T('a_group_of')} ${char.liegeRealmLaw}`
             }
             else{
-                return `A follower of ${char.liege}, they are a group of ${char.liegeRealmLaw}`
+                return `${T('a_follower_of')} ${char.liege}, ${T('they_are_a_group_of')} ${char.liegeRealmLaw}`
             }
         }
         else if(char.isLandedRuler){
             if(char.isIndependentRuler){
-                return `Independent ruler of ${char.primaryTitle}`
+                return `${T('independent_ruler_of')} ${char.primaryTitle}`
             }
             else{
-                return `Ruler of ${char.primaryTitle}, vassal of ${char.liege}`
+                return `${T('ruler_of')} ${char.primaryTitle}, ${T('vassal_of')} ${char.liege}`
             }
             
         }
         else if(char.isKnight){
-            return `Knight of ${char.liege}`
+            return `${T('knight_of')} ${char.liege}`
         }        
     }
 
     function courtAndCouncilPositions(char){
         if(char.heldCourtAndCouncilPositions){
-            return `${char.heldCourtAndCouncilPositions} of ${char.liege}`
+            return `${char.heldCourtAndCouncilPositions} ${T('of')} ${char.liege}`
         }
         else{
             return ``
@@ -94,21 +96,21 @@ module.exports = (gameData) =>{
     function houseAndStatus(char){
         let output="";
         if(char.house){
-            output+="noble";
+            output+=T('noble');
         }
         else{
-            output+="lowborn ";
+            output+=T('lowborn') + " ";
         }
     
-        if(char.sheHe === "she"){
-            output+= "woman";
+        if(char.sheHe === "she" || char.sheHe === "她"){
+            output+= T('woman');
         }
-        else if(char.sheHe === "he"){
-            output+= "man";
+        else if(char.sheHe === "he" || char.sheHe === "他"){
+            output+= T('man');
         }
 
         if(char.house){
-            output+=` of house ${char.house}`
+            output+=` ${T('of_house')} ${char.house}`
         }
     
         return output;
@@ -118,32 +120,32 @@ module.exports = (gameData) =>{
         const op = char.opinionOfPlayer;
 
         if(op>60){
-            return `${char.shortName} has a very favorable opinion of ${player.shortName}`
+            return `${char.shortName} ${T('opinion_very_favorable')} ${player.shortName}`
         }
         else if(op>20){
-            return `${char.shortName} has a slightly positive opinion of ${player.shortName}`
+            return `${char.shortName} ${T('opinion_slightly_positive')} ${player.shortName}`
         }
         else if(op>-20){
-            return `${char.shortName} has a neutral opinion of ${player.shortName}`
+            return `${char.shortName} ${T('opinion_neutral')} ${player.shortName}`
         }
         else if(op>-60){
-            return `${char.shortName} has a slight hatred towards ${player.shortName}`
+            return `${char.shortName} ${T('opinion_slight_hatred')} ${player.shortName}`
         }
         else{
-             return `${char.shortName} has a very strong hatred towards ${player.shortName}`
+             return `${char.shortName} ${T('opinion_strong_hatred')} ${player.shortName}`
         }
     }
     
     
     function greedines(char){
         if(char.greed>75){
-            return "very greedy";
+            return T('very_greedy');
         }
         else if(char.greed>50){
-            return "greedy";
+            return T('greedy');
         }
         else if(char.greed>25){
-            return "slightly greedy";
+            return T('slightly_greedy');
         }
         else{
             return null;
@@ -153,17 +155,17 @@ module.exports = (gameData) =>{
     function marriage(char){
         if(char.consort){
             if(char.consort == player.fullName){
-                return `married to ${player.shortName}`;
+                return `${T('married_to')} ${player.shortName}`;
             }
             else if(char.consort == ai.fullName){
-                return `married to ${ai.shortName}`;
+                return `${T('married_to')} ${ai.shortName}`;
             }
             else{
-                return `married to ${char.consort}`
+                return `${T('married_to')} ${char.consort}`
             }
         }
         else{
-            return `unmarried`;
+            return T('unmarried');
         }
     }
     
@@ -182,7 +184,7 @@ module.exports = (gameData) =>{
     
         let traitNames = otherTraits.map(trait => trait.name);
     
-        let output = "traits("
+        let output = `${T('traits')}(`
         output+= traitNames.join(", ");
         output+=")";
     
@@ -194,7 +196,7 @@ module.exports = (gameData) =>{
     
         let traitNames = personalityTraits.map(trait => trait.name);
     
-        let output = "personality("
+        let output = `${T('personality')}(`
         output+= traitNames.join(", ");
         output+=")";
     
@@ -203,10 +205,10 @@ module.exports = (gameData) =>{
     
     function listRelationsToPlayer(char){
         if(char.relationsToPlayer.length === 0){
-            return `has no relation to ${player.shortName}`;
+            return `${T('has_no_relation_to')} ${player.shortName}`;
         }
         else{
-            return `${char.shortName} is the ${char.relationsToPlayer.join(', ')} of ${player.shortName}`;
+            return `${char.shortName} ${T('is_the')} ${char.relationsToPlayer.join(', ')} ${T('of')} ${player.shortName}`;
         }
     }
     
@@ -219,168 +221,164 @@ module.exports = (gameData) =>{
             switch (scene){
                 case "family_meeting_east":
                 case "family_meeting":
-                    sceneDescription = `a family meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_family_meeting', {playerShortName: player.shortName});
                     break;
                 case "cabinet_meeting_chinese_empire":
-                    sceneDescription = `a central meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_central_meeting', {playerShortName: player.shortName});
                     break;
                 case "cabinet_meeting":
                 case "cabinet_meeting_chinese":
-                    sceneDescription = `a cabinet meeting convened by ${player.shortName}`;
+                    sceneDescription = T('scenario_cabinet_meeting', {playerShortName: player.shortName});
                     break;
                 case "lingyinsi":
-                    sceneDescription = "Lingyin Temple";
+                    sceneDescription = T('locations.lingyinsi');
                     break;
                 case "throneroom_japan":
-                    sceneDescription = "Heian Palace";
+                    sceneDescription = T('locations.throneroom_japan');
                     break;
                 case "shaolinsidai":
-                    sceneDescription = "Shaolin Temple";
+                    sceneDescription = T('locations.shaolinsidai');
                     break;
                 case "wudangshandaoguan":
-                    sceneDescription = "Wudang Mountain Taoist Temple";
+                    sceneDescription = T('locations.wudangshandaoguan');
                     break;
                 case "yungangshiku":
-                    sceneDescription = "Yungang Grottoes";
+                    sceneDescription = T('locations.yungangshiku');
                     break;
                 case "leshandafou":
-                    sceneDescription = "Leshan Giant Buddha";
+                    sceneDescription = T('locations.leshandafou');
                     break;
                 case "taishan":
-                    sceneDescription = "Mount Tai";
+                    sceneDescription = T('locations.taishan');
                     break;
                 case "wulingyuan":
-                    sceneDescription = "Wulingyuan";
+                    sceneDescription = T('locations.wulingyuan');
                     break;
                 case "kaifenghuangcheng":
-                    sceneDescription = "Kaifeng Imperial City";
+                    sceneDescription = T('locations.kaifenghuangcheng');
                     break;
                 case "huanghelou":
-                    sceneDescription = "Yellow Crane Tower";
+                    sceneDescription = T('locations.huanghelou');
                     break;
                 case "tengwangge":
-                    sceneDescription = "Tengwang Pavilion";
+                    sceneDescription = T('locations.tengwangge');
                     break;
                 case "yueyanglou":
-                    sceneDescription = "Yueyang Tower";
+                    sceneDescription = T('locations.yueyanglou');
                     break;
                 case "bedchamber_east1":
-                    sceneDescription = "the bedchamber";
+                    sceneDescription = T('locations.bedchamber');
                     break;
                 case "garden_east1":
-                    sceneDescription = "the Imperial Garden";
+                    sceneDescription = T('locations.imperial_garden');
                     break;
                 case "throneroom_east_fuya1":
-                    sceneDescription = "the government office";
-                    break;
                 case "throneroom_east_fuya":
-                    sceneDescription = "the government office";
+                    sceneDescription = T('locations.government_office');
                     break;
                 case "throneroom_east_empire":
-                    sceneDescription = "the Imperial Palace Hall";
-                    break;
                 case "throneroom_east_empire1":
-                    sceneDescription = "the Imperial Palace Hall";
+                    sceneDescription = T('locations.imperial_palace_hall');
                     break;
                 case "throneroom":
-                    sceneDescription = `${locationController}'s throneroom`;
+                    sceneDescription = T('scenario_throneroom', {locationController: locationController});
                     break;
                 case "garden":
-                    sceneDescription = "the castle garden";
+                    sceneDescription = T('locations.castle_garden');
                     break;
                 case "bedchamber":
-                    sceneDescription = "the private bedchamber";
+                    sceneDescription = T('locations.private_bedchamber');
                     break;
                 case "feast":
-                    sceneDescription = `the feast hosted by ${locationController}`;
+                    sceneDescription = T('scenario_feast', {locationController: locationController});
                     break;
                 case "armycamp":
                 case "army_camp":
-                    sceneDescription = "the army camp";
+                    sceneDescription = T('locations.army_camp');
                     break;
                 case "hunt":
-                    sceneDescription = "the foggy forest";
+                    sceneDescription = T('locations.foggy_forest');
                     break;
                 case "dungeon":
-                    sceneDescription = "the dungeon";
+                    sceneDescription = T('locations.dungeon');
                     break;
                 case "alley":
-                    sceneDescription = "a narrow alley";
+                    sceneDescription = T('locations.narrow_alley');
                     break;
                 case "market":
-                    sceneDescription = "the bustling market";
+                    sceneDescription = T('locations.bustling_market');
                     break;
             }
             
-            return `${characterNames} in ${sceneDescription}`;
+            return `${characterNames} ${T('in')} ${sceneDescription}`;
         }
 
         switch (scene){
             case "family_meeting_east":
-                return `${player.shortName} has convened a family meeting`;
+            case "family_meeting":
+                return T('scenario_family_meeting_convened', {playerShortName: player.shortName});
             case "cabinet_meeting_chinese_empire":
-                return `${player.shortName} has convened a central meeting`;
+                return T('scenario_central_meeting_convened', {playerShortName: player.shortName});
             case "cabinet_meeting":
             case "cabinet_meeting_chinese":
-                return `${player.shortName} has convened a cabinet meeting`;
+                return T('scenario_cabinet_meeting_convened', {playerShortName: player.shortName});
             case "lingyinsi":
-                return `${ai.shortName} and ${player.shortName} meet at Lingyin Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.lingyinsi')});
             case "throneroom_japan":
-                return `${ai.shortName} and ${player.shortName} meet at Heian Palace`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.throneroom_japan')});
             case "shaolinsidai":
-                return `${ai.shortName} and ${player.shortName} meet at Shaolin Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.shaolinsidai')});
             case "wudangshandaoguan":
-                return `${ai.shortName} and ${player.shortName} meet at Wudang Mountain Taoist Temple`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wudangshandaoguan')});
             case "yungangshiku":
-                return `${ai.shortName} and ${player.shortName} meet at Yungang Grottoes`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yungangshiku')});
             case "leshandafou":
-                return `${ai.shortName} and ${player.shortName} meet at Leshan Giant Buddha`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.leshandafou')});
             case "taishan":
-                return `${ai.shortName} and ${player.shortName} meet at Mount Tai`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.taishan')});
             case "wulingyuan":
-                return `${ai.shortName} and ${player.shortName} meet at Wulingyuan`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wulingyuan')});
             case "kaifenghuangcheng":
-                return `${ai.shortName} and ${player.shortName} meet at Kaifeng Imperial City`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.kaifenghuangcheng')});
             case "huanghelou":
-                return `${ai.shortName} and ${player.shortName} meet at Yellow Crane Tower`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.huanghelou')});
             case "tengwangge":
-                return `${ai.shortName} and ${player.shortName} meet at Tengwang Pavilion`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.tengwangge')});
             case "yueyanglou":
-                return `${ai.shortName} and ${player.shortName} meet at Yueyang Tower`;
+                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yueyanglou')});
             case "bedchamber_east1":
-                return `${ai.shortName} and ${player.shortName} are talking in the bedchamber`;
+                return T('scenario_talking_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.bedchamber')});
             case "garden_east1":
-                return `${ai.shortName} meets ${player.shortName} in the Imperial Garden`;
+                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_garden')});
             case "throneroom_east_fuya1":
-                return `${ai.shortName} pays respects to ${player.shortName} in the government office`;
+                return T('scenario_pays_respects', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
             case "throneroom_east_fuya":
-                return `${ai.shortName} receives ${player.shortName} in the government office`;
+                return T('scenario_receives', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
             case "throneroom_east_empire":
-                return `${ai.shortName} summons ${player.shortName} in the Imperial Palace Hall`;
+                return T('scenario_summons', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
             case "throneroom_east_empire1":
-                return `${ai.shortName} has an audience with ${player.shortName} in the Imperial Palace Hall`;
-
+                return T('scenario_audience_with', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
             case "throneroom":
-                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s throneroom.`;
+                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.throneroom')});
             case "garden":
-                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s castle garden.`;
+                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.castle_garden')});
             case "bedchamber":
-                return `${ai.shortName} meets ${player.shortName} in their private bedchamber.`;
+                return T('scenario_meet_in_private', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.private_bedchamber')});
             case "feast":
-                return `${ai.shortName} talks to ${player.shortName} during the feast hosted by ${locationController}.`;
+                return T('scenario_talks_during_feast', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController});
             case "armycamp":
             case "army_camp":
-                return `${ai.shortName} meets ${player.shortName} in the army camp.`;
+                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.army_camp')});
             case "hunt":
-                return `${ai.shortName} meets ${player.shortName} while hunting in the foggy forest. Their weapons are bows.`;
+                return T('scenario_hunt', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "dungeon":
-                return `${ai.shortName} meets ${player.shortName} in the dungeon, where ${ai.shortName} is held as a prisoner.`;
+                return T('scenario_dungeon', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "alley":
-                return `${ai.shortName} meets ${player.shortName} in the narrow alley, hidden from everyone`;
+                return T('scenario_alley', {aiShortName: ai.shortName, playerShortName: player.shortName});
             case "market":
-                return `${ai.shortName} meets ${player.shortName} in the bustling market.`;
+                return T('scenario_market', {aiShortName: ai.shortName, playerShortName: player.shortName});
             default:
-                return `${ai.shortName} and ${player.shortName} are at ${location}.`;
+                return T('scenario_default', {aiShortName: ai.shortName, playerShortName: player.shortName, location: location});
         }
     }
     
