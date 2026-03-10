@@ -345,6 +345,19 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             roleplayInstruction = aiToAiTemplate
                 .replace(/{sourceCharacterName}/g, character.fullName)
                 .replace(/{targetCharacterName}/g, replyToName);
+
+            // Add a fake user prompt to guide the LLM for the reply
+            const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
+            const narratorPrompt = narratorReplyPromptTemplate
+                .replace(/{sourceCharacterName}/g, character.shortName)
+                .replace(/{targetCharacterName}/g, replyToName);
+
+            chatPrompt.push({
+                role: "user",
+                name: "Narrator",
+                content: narratorPrompt
+            });
+            console.log('Added AI-to-AI narrator reply prompt.');
         }
     } else {
         roleplayInstruction = roleplayInstructionTemplate
