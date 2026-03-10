@@ -282,7 +282,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
-    if (!isAiToAi) {
+    if (!isAiToAi && !isNonTargetedResponse) {
         if (isSelfTalk) {
             chatPrompt.push({
                 role: "system",

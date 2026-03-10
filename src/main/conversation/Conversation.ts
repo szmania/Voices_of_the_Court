@@ -493,7 +493,7 @@ export class Conversation{
             if (this.gameData.playerID === this.gameData.aiID) {
                 console.log('Self-talk session detected. Generating internal monologue for player character.');
                 const playerCharacter = this.gameData.getPlayer();
-                const messages = await this.processCharacterList([playerCharacter]);
+                const messages = await this.processCharacterList([playerCharacter], false);
                 for (const message of messages) {
                     if (message) {
                         this.pushMessage(message);
@@ -1790,7 +1790,7 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative, true);
 
                 // Generate AI2 -> AI1 response
-                const targetResponseMessages = await this.processCharacterList([targetAI]);
+                const targetResponseMessages = await this.processCharacterList([targetAI], false);
                 for (const responseMsg of targetResponseMessages) {
                     if (responseMsg) {
                         this.pushMessage(responseMsg);
