@@ -16,77 +16,75 @@ module.exports = (gameData) =>{
         locationController = ai.shortName;
     }
     const scene = gameData.scene;
-    const lang = gameData.lang || 'en';
-    const T = (text) => gameData.localize(text, lang);
-
+    
     let playerPersonaItems = [,
-        mainPosition(player),
-        courtAndCouncilPositions(player),
-        houseAndStatus(player),
-        personalityTraits(player),
-        otherTraits(player),
-        marriage(player),
+        mainPosition(player), 
+        courtAndCouncilPositions(player), 
+        houseAndStatus(player), 
+        personalityTraits(player), 
+        otherTraits(player), 
+        marriage(player), 
         family(player),
-        `${T('age')}(${player.age})`,
-        `${T('faith')}(${player.faith})`,
-        `${T('culture')}(${player.culture})`,
-        `${T('wealth')}(${player.gold} ${T('gold')})`
+        `age(${player.age})`, 
+        `faith(${player.faith})`, 
+        `culture(${player.culture})`,
+        `wealth(${player.gold} gold)`
     ];
-
+    
     let aiPersonaItems = [,
-        mainPosition(ai),
-        courtAndCouncilPositions(ai),
-        listRelationsToPlayer(ai),
-        houseAndStatus(ai),
-        opinion(ai),
-        personalityTraits(ai),
-        otherTraits(ai),
-        greedines(ai),
-        marriage(ai),
+        mainPosition(ai), 
+        courtAndCouncilPositions(ai), 
+        listRelationsToPlayer(ai), 
+        houseAndStatus(ai), 
+        opinion(ai), 
+        personalityTraits(ai), 
+        otherTraits(ai), 
+        greedines(ai), 
+        marriage(ai),  
         family(ai),
-        `${T('age')}(${ai.age})`,
-        `${T('faith')}(${ai.faith})`,
-        `${T('culture')}(${ai.culture})`,
-        `${T('wealth')}(${ai.gold} ${T('gold')})`
+        `age(${ai.age})`, 
+        `faith(${ai.faith})`, 
+        `culture(${ai.culture})`,
+        `wealth(${ai.gold} gold)`
     ];
-
-    //remove "", null, undefined and 0.
-    playerPersonaItems = playerPersonaItems.filter(function(e){return e});
-    aiPersonaItems = aiPersonaItems.filter(function(e){return e});
-
+    
+    //remove "", null, undefined and 0. 
+    playerPersonaItems = playerPersonaItems.filter(function(e){return e}); 
+    aiPersonaItems = aiPersonaItems.filter(function(e){return e}); 
+    
     let output = "";
-    output+= `\n[${player.shortName}${T('s_persona')}: ${playerPersonaItems.join("; ")}]`;
-    output+=`\n[${ai.shortName}${T('s_persona')}: ${aiPersonaItems.join("; ")}]`;
-    output+=`\n[${T('date')}(${date}), ${T('location')}(${location}), ${T('scenario')}(${scenario()})]`;
-
+    output+= `\n[${player.shortName}'s Persona: ${playerPersonaItems.join("; ")}]`;
+    output+=`\n[${ai.shortName}'s Persona: ${aiPersonaItems.join("; ")}]`;
+    output+=`\n[date(${date}), location(${location}), scenario(${scenario()})]`;
+    
     return output;
-
+    
     function mainPosition(char){
         if(isLandlessAdventurer(char)){
             if(char.isRuler){
-                return `${T('leader_of')} ${char.primaryTitle}, ${T('a_group_of')} ${char.liegeRealmLaw}`
+                return `Leader of ${char.primaryTitle}, a group of ${char.liegeRealmLaw}`
             }
             else{
-                return `${T('a_follower_of')} ${char.liege}, ${T('they_are_a_group_of')} ${char.liegeRealmLaw}`
+                return `A follower of ${char.liege}, they are a group of ${char.liegeRealmLaw}`
             }
         }
         else if(char.isLandedRuler){
             if(char.isIndependentRuler){
-                return `${T('independent_ruler_of')} ${char.primaryTitle}`
+                return `Independent ruler of ${char.primaryTitle}`
             }
             else{
-                return `${T('ruler_of')} ${char.primaryTitle}, ${T('vassal_of')} ${char.liege}`
+                return `Ruler of ${char.primaryTitle}, vassal of ${char.liege}`
             }
-
+            
         }
         else if(char.isKnight){
-            return `${T('knight_of')} ${char.liege}`
-        }
+            return `Knight of ${char.liege}`
+        }        
     }
 
     function courtAndCouncilPositions(char){
         if(char.heldCourtAndCouncilPositions){
-            return `${char.heldCourtAndCouncilPositions} ${T('of')} ${char.liege}`
+            return `${char.heldCourtAndCouncilPositions} of ${char.liege}`
         }
         else{
             return ``
@@ -96,23 +94,23 @@ module.exports = (gameData) =>{
     function houseAndStatus(char){
         let output="";
         if(char.house){
-            output+=T('noble');
+            output+="noble";
         }
         else{
-            output+=T('lowborn') + " ";
+            output+="lowborn ";
         }
-
-        if(char.sheHe === "she" || char.sheHe === "她"){
-            output+= T('woman');
+    
+        if(char.sheHe === "she"){
+            output+= "woman";
         }
-        else if(char.sheHe === "he" || char.sheHe === "他"){
-            output+= T('man');
+        else if(char.sheHe === "he"){
+            output+= "man";
         }
 
         if(char.house){
-            output+=` ${T('of_house')} ${char.house}`
+            output+=` of house ${char.house}`
         }
-
+    
         return output;
     }
 
@@ -120,55 +118,55 @@ module.exports = (gameData) =>{
         const op = char.opinionOfPlayer;
 
         if(op>60){
-            return `${char.shortName} ${T('opinion_very_favorable')} ${player.shortName}`
+            return `${char.shortName} has a very favorable opinion of ${player.shortName}`
         }
         else if(op>20){
-            return `${char.shortName} ${T('opinion_slightly_positive')} ${player.shortName}`
+            return `${char.shortName} has a slightly positive opinion of ${player.shortName}`
         }
         else if(op>-20){
-            return `${char.shortName} ${T('opinion_neutral')} ${player.shortName}`
+            return `${char.shortName} has a neutral opinion of ${player.shortName}`
         }
         else if(op>-60){
-            return `${char.shortName} ${T('opinion_slight_hatred')} ${player.shortName}`
+            return `${char.shortName} has a slight hatred towards ${player.shortName}`
         }
         else{
-             return `${char.shortName} ${T('opinion_strong_hatred')} ${player.shortName}`
+             return `${char.shortName} has a very strong hatred towards ${player.shortName}`
         }
     }
-
-
+    
+    
     function greedines(char){
         if(char.greed>75){
-            return T('very_greedy');
+            return "very greedy";
         }
         else if(char.greed>50){
-            return T('greedy');
+            return "greedy";
         }
         else if(char.greed>25){
-            return T('slightly_greedy');
+            return "slightly greedy";
         }
         else{
             return null;
         }
     }
-
+    
     function marriage(char){
         if(char.consort){
             if(char.consort == player.fullName){
-                return `${T('married_to')} ${player.shortName}`;
+                return `married to ${player.shortName}`;
             }
             else if(char.consort == ai.fullName){
-                return `${T('married_to')} ${ai.shortName}`;
+                return `married to ${ai.shortName}`;
             }
             else{
-                return `${T('married_to')} ${char.consort}`
+                return `married to ${char.consort}`
             }
         }
         else{
-            return T('unmarried');
+            return `unmarried`;
         }
     }
-
+    
     function family(char){
         const familyDesc = char.getFamilyDescription();
         if(familyDesc){
@@ -178,216 +176,220 @@ module.exports = (gameData) =>{
             return null;
         }
     }
-
+    
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != "Personality Trait");
-
+    
         let traitNames = otherTraits.map(trait => trait.name);
-
-        let output = `${T('traits')}(`
+    
+        let output = "traits("
         output+= traitNames.join(", ");
         output+=")";
-
+    
         return output;
     }
-
+    
     function personalityTraits(char){
         let personalityTraits = filterTraitsToCategory(char.traits, "Personality Trait");
-
+    
         let traitNames = personalityTraits.map(trait => trait.name);
-
-        let output = `${T('personality')}(`
+    
+        let output = "personality("
         output+= traitNames.join(", ");
         output+=")";
-
+    
         return output;
     }
-
+    
     function listRelationsToPlayer(char){
         if(char.relationsToPlayer.length === 0){
-            return `${T('has_no_relation_to')} ${player.shortName}`;
+            return `has no relation to ${player.shortName}`;
         }
         else{
-            return `${char.shortName} ${T('is_the')} ${char.relationsToPlayer.join(', ')} ${T('of')} ${player.shortName}`;
+            return `${char.shortName} is the ${char.relationsToPlayer.join(', ')} of ${player.shortName}`;
         }
     }
-
+    
     function scenario(){
         // If there are more than 2 characters, return all character names in the scene name
         if (gameData.characters.size > 2) {
             const characterNames = Array.from(gameData.characters.values()).map(char => char.shortName).join(', ');
             let sceneDescription = scene; // Default to scene variable
-
+            
             switch (scene){
                 case "family_meeting_east":
                 case "family_meeting":
-                    sceneDescription = T('scenario_family_meeting', {playerShortName: player.shortName});
+                    sceneDescription = `a family meeting convened by ${player.shortName}`;
                     break;
                 case "cabinet_meeting_chinese_empire":
-                    sceneDescription = T('scenario_central_meeting', {playerShortName: player.shortName});
+                    sceneDescription = `a central meeting convened by ${player.shortName}`;
                     break;
                 case "cabinet_meeting":
                 case "cabinet_meeting_chinese":
-                    sceneDescription = T('scenario_cabinet_meeting', {playerShortName: player.shortName});
+                    sceneDescription = `a cabinet meeting convened by ${player.shortName}`;
                     break;
                 case "lingyinsi":
-                    sceneDescription = T('locations.lingyinsi');
+                    sceneDescription = "Lingyin Temple";
                     break;
                 case "throneroom_japan":
-                    sceneDescription = T('locations.throneroom_japan');
+                    sceneDescription = "Heian Palace";
                     break;
                 case "shaolinsidai":
-                    sceneDescription = T('locations.shaolinsidai');
+                    sceneDescription = "Shaolin Temple";
                     break;
                 case "wudangshandaoguan":
-                    sceneDescription = T('locations.wudangshandaoguan');
+                    sceneDescription = "Wudang Mountain Taoist Temple";
                     break;
                 case "yungangshiku":
-                    sceneDescription = T('locations.yungangshiku');
+                    sceneDescription = "Yungang Grottoes";
                     break;
                 case "leshandafou":
-                    sceneDescription = T('locations.leshandafou');
+                    sceneDescription = "Leshan Giant Buddha";
                     break;
                 case "taishan":
-                    sceneDescription = T('locations.taishan');
+                    sceneDescription = "Mount Tai";
                     break;
                 case "wulingyuan":
-                    sceneDescription = T('locations.wulingyuan');
+                    sceneDescription = "Wulingyuan";
                     break;
                 case "kaifenghuangcheng":
-                    sceneDescription = T('locations.kaifenghuangcheng');
+                    sceneDescription = "Kaifeng Imperial City";
                     break;
                 case "huanghelou":
-                    sceneDescription = T('locations.huanghelou');
+                    sceneDescription = "Yellow Crane Tower";
                     break;
                 case "tengwangge":
-                    sceneDescription = T('locations.tengwangge');
+                    sceneDescription = "Tengwang Pavilion";
                     break;
                 case "yueyanglou":
-                    sceneDescription = T('locations.yueyanglou');
+                    sceneDescription = "Yueyang Tower";
                     break;
                 case "bedchamber_east1":
-                    sceneDescription = T('locations.bedchamber');
+                    sceneDescription = "the bedchamber";
                     break;
                 case "garden_east1":
-                    sceneDescription = T('locations.imperial_garden');
+                    sceneDescription = "the Imperial Garden";
                     break;
                 case "throneroom_east_fuya1":
+                    sceneDescription = "the government office";
+                    break;
                 case "throneroom_east_fuya":
-                    sceneDescription = T('locations.government_office');
+                    sceneDescription = "the government office";
                     break;
                 case "throneroom_east_empire":
+                    sceneDescription = "the Imperial Palace Hall";
+                    break;
                 case "throneroom_east_empire1":
-                    sceneDescription = T('locations.imperial_palace_hall');
+                    sceneDescription = "the Imperial Palace Hall";
                     break;
                 case "throneroom":
-                    sceneDescription = T('scenario_throneroom', {locationController: locationController});
+                    sceneDescription = `${locationController}'s throneroom`;
                     break;
                 case "garden":
-                    sceneDescription = T('locations.castle_garden');
+                    sceneDescription = "the castle garden";
                     break;
                 case "bedchamber":
-                    sceneDescription = T('locations.private_bedchamber');
+                    sceneDescription = "the private bedchamber";
                     break;
                 case "feast":
-                    sceneDescription = T('scenario_feast', {locationController: locationController});
+                    sceneDescription = `the feast hosted by ${locationController}`;
                     break;
                 case "armycamp":
                 case "army_camp":
-                    sceneDescription = T('locations.army_camp');
+                    sceneDescription = "the army camp";
                     break;
                 case "hunt":
-                    sceneDescription = T('locations.foggy_forest');
+                    sceneDescription = "the foggy forest";
                     break;
                 case "dungeon":
-                    sceneDescription = T('locations.dungeon');
+                    sceneDescription = "the dungeon";
                     break;
                 case "alley":
-                    sceneDescription = T('locations.narrow_alley');
+                    sceneDescription = "a narrow alley";
                     break;
                 case "market":
-                    sceneDescription = T('locations.bustling_market');
+                    sceneDescription = "the bustling market";
                     break;
             }
-
-            return `${characterNames} ${T('in')} ${sceneDescription}`;
+            
+            return `${characterNames} in ${sceneDescription}`;
         }
 
         switch (scene){
             case "family_meeting_east":
-            case "family_meeting":
-                return T('scenario_family_meeting_convened', {playerShortName: player.shortName});
+                return `${player.shortName} has convened a family meeting`;
             case "cabinet_meeting_chinese_empire":
-                return T('scenario_central_meeting_convened', {playerShortName: player.shortName});
+                return `${player.shortName} has convened a central meeting`;
             case "cabinet_meeting":
             case "cabinet_meeting_chinese":
-                return T('scenario_cabinet_meeting_convened', {playerShortName: player.shortName});
+                return `${player.shortName} has convened a cabinet meeting`;
             case "lingyinsi":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.lingyinsi')});
+                return `${ai.shortName} and ${player.shortName} meet at Lingyin Temple`;
             case "throneroom_japan":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.throneroom_japan')});
+                return `${ai.shortName} and ${player.shortName} meet at Heian Palace`;
             case "shaolinsidai":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.shaolinsidai')});
+                return `${ai.shortName} and ${player.shortName} meet at Shaolin Temple`;
             case "wudangshandaoguan":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wudangshandaoguan')});
+                return `${ai.shortName} and ${player.shortName} meet at Wudang Mountain Taoist Temple`;
             case "yungangshiku":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yungangshiku')});
+                return `${ai.shortName} and ${player.shortName} meet at Yungang Grottoes`;
             case "leshandafou":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.leshandafou')});
+                return `${ai.shortName} and ${player.shortName} meet at Leshan Giant Buddha`;
             case "taishan":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.taishan')});
+                return `${ai.shortName} and ${player.shortName} meet at Mount Tai`;
             case "wulingyuan":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.wulingyuan')});
+                return `${ai.shortName} and ${player.shortName} meet at Wulingyuan`;
             case "kaifenghuangcheng":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.kaifenghuangcheng')});
+                return `${ai.shortName} and ${player.shortName} meet at Kaifeng Imperial City`;
             case "huanghelou":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.huanghelou')});
+                return `${ai.shortName} and ${player.shortName} meet at Yellow Crane Tower`;
             case "tengwangge":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.tengwangge')});
+                return `${ai.shortName} and ${player.shortName} meet at Tengwang Pavilion`;
             case "yueyanglou":
-                return T('scenario_meet_at', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.yueyanglou')});
+                return `${ai.shortName} and ${player.shortName} meet at Yueyang Tower`;
             case "bedchamber_east1":
-                return T('scenario_talking_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.bedchamber')});
+                return `${ai.shortName} and ${player.shortName} are talking in the bedchamber`;
             case "garden_east1":
-                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_garden')});
+                return `${ai.shortName} meets ${player.shortName} in the Imperial Garden`;
             case "throneroom_east_fuya1":
-                return T('scenario_pays_respects', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
+                return `${ai.shortName} pays respects to ${player.shortName} in the government office`;
             case "throneroom_east_fuya":
-                return T('scenario_receives', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.government_office')});
+                return `${ai.shortName} receives ${player.shortName} in the government office`;
             case "throneroom_east_empire":
-                return T('scenario_summons', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
+                return `${ai.shortName} summons ${player.shortName} in the Imperial Palace Hall`;
             case "throneroom_east_empire1":
-                return T('scenario_audience_with', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.imperial_palace_hall')});
+                return `${ai.shortName} has an audience with ${player.shortName} in the Imperial Palace Hall`;
+
             case "throneroom":
-                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.throneroom')});
+                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s throneroom.`;
             case "garden":
-                return T('scenario_meet_in_controller', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController, location: T('locations.castle_garden')});
+                return `${ai.shortName} meets ${player.shortName} in ${locationController}'s castle garden.`;
             case "bedchamber":
-                return T('scenario_meet_in_private', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.private_bedchamber')});
+                return `${ai.shortName} meets ${player.shortName} in their private bedchamber.`;
             case "feast":
-                return T('scenario_talks_during_feast', {aiShortName: ai.shortName, playerShortName: player.shortName, locationController: locationController});
+                return `${ai.shortName} talks to ${player.shortName} during the feast hosted by ${locationController}.`;
             case "armycamp":
             case "army_camp":
-                return T('scenario_meet_in', {aiShortName: ai.shortName, playerShortName: player.shortName, location: T('locations.army_camp')});
+                return `${ai.shortName} meets ${player.shortName} in the army camp.`;
             case "hunt":
-                return T('scenario_hunt', {aiShortName: ai.shortName, playerShortName: player.shortName});
+                return `${ai.shortName} meets ${player.shortName} while hunting in the foggy forest. Their weapons are bows.`;
             case "dungeon":
-                return T('scenario_dungeon', {aiShortName: ai.shortName, playerShortName: player.shortName});
+                return `${ai.shortName} meets ${player.shortName} in the dungeon, where ${ai.shortName} is held as a prisoner.`;
             case "alley":
-                return T('scenario_alley', {aiShortName: ai.shortName, playerShortName: player.shortName});
+                return `${ai.shortName} meets ${player.shortName} in the narrow alley, hidden from everyone`;
             case "market":
-                return T('scenario_market', {aiShortName: ai.shortName, playerShortName: player.shortName});
+                return `${ai.shortName} meets ${player.shortName} in the bustling market.`;
             default:
-                return T('scenario_default', {aiShortName: ai.shortName, playerShortName: player.shortName, location: location});
+                return `${ai.shortName} and ${player.shortName} are at ${location}.`;
         }
     }
-
-
+    
+    
     }
-
-
+    
+    
     //help functions
-
+    
     function filterTraitsToCategory(traits, category){
         return traits.filter((trait) => trait.category == category);
     }
