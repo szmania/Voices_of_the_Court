@@ -5,6 +5,7 @@ import path from 'path';
 import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
+import { ActionEffectWriter } from "./ActionEffectWriter.js";
 
 export async function checkActions(conv: Conversation): Promise<ActionResponse[]>{
     console.log('Starting action check.');
@@ -102,7 +103,14 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             if(matchedAction.args.length === 0){
                 console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
                 try{
-                    matchedAction.run(conv.gameData, (text: string)=>{conv.runFileManager.append(text)}, []);
+                    const effectBody = matchedAction.run(conv.gameData, []);
+                    ActionEffectWriter.appendEffect(
+                        conv.runFileManager,
+                        conv.gameData,
+                        conv.gameData.playerID,
+                        conv.gameData.aiID,
+                        effectBody
+                    );
                 }catch(e){
                     let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
                     console.error(errMsg)
@@ -157,7 +165,14 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
         console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
         try{
-            matchedAction.run(conv.gameData, (text: string)=>{conv.runFileManager.append(text)}, args);
+            const effectBody = matchedAction.run(conv.gameData, args);
+            ActionEffectWriter.appendEffect(
+                conv.runFileManager,
+                conv.gameData,
+                conv.gameData.playerID,
+                conv.gameData.aiID,
+                effectBody
+            );
         }catch(e){
             let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
             console.error(errMsg)

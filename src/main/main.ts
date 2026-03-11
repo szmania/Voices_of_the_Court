@@ -20,6 +20,7 @@ import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCha
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
+import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
 import path from 'path';
 import fs from 'fs';
 import { checkUserData } from "./userDataCheck.js";
