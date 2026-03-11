@@ -1097,8 +1097,8 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 const targetId = parseInt(args[1], 10);
                 const actionArgs = args.slice(2);
 
-                if (isNaN(sourceId) || isNaN(targetId)) {
-                    throw new Error('Invalid source or target character ID.');
+                if (isNaN(sourceId) && isNaN(targetId)) {
+                    throw new Error('Invalid source and target character ID.');
                 }
                 if (signature !== 'noOp') {
                     conversation.actionInvolvedCharacterIds.add(sourceId);
