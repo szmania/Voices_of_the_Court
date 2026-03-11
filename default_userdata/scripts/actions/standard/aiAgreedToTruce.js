@@ -65,25 +65,23 @@ module.exports = {
         let truceYears = args.length > 0 ? args[0] : 3; // Default to 3 years if not provided
 
         runGameEffect(`
-            global_var:votcce_action_source = { 
-                if = {
-                    limit = { 
-                        OR = {
-                            AND = {
-                                max_military_strength:global_var:votcce_action_source >= max_military_strength:global_var:votcce_action_target
-                                opinion:global_var:votcce_action_target = { target = votcce_action_source value = { -30 100 } } 
-                            }
-                            AND = {
-                                max_military_strength:global_var:votcce_action_source < max_military_strength:global_var:votcce_action_target
-                                opinion:global_var:votcce_action_target = { target = votcce_action_source value = { 30 100 } }
-                            }
+            if = {
+                limit = { 
+                    OR = {
+                        AND = {
+                            max_military_strength:global_var:votcce_action_source >= max_military_strength:global_var:votcce_action_target
+                            opinion:global_var:votcce_action_target = { target = global_var:votcce_action_source value = { -30 100 } } 
+                        }
+                        AND = {
+                            max_military_strength:global_var:votcce_action_source < max_military_strength:global_var:votcce_action_target
+                            opinion:global_var:votcce_action_target = { target = global_var:votcce_action_source value = { 30 100 } }
                         }
                     }
-                    add_truce_both_ways = { 
-                        character = global_var:votcce_action_target
-                        years = ${truceYears}
-                        override = yes
-                    }
+                }
+                add_truce_both_ways = { 
+                    character = global_var:votcce_action_target
+                    years = ${truceYears}
+                    override = yes
                 }
             }
         `);

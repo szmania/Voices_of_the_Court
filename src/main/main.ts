@@ -1112,7 +1112,8 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 conversation.gameData.aiID = targetId;
 
                 // Run the action to get the effect body
-                const effectBody = action.run(conversation.gameData, actionArgs);
+                let effectBody = "";
+                action.run(conversation.gameData, (text: string) => { effectBody += text; }, actionArgs);
 
                 // Use the writer to create the full script with prelude
                 ActionEffectWriter.writeEffect(
