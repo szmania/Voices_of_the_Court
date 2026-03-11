@@ -1092,6 +1092,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
         if (action) {
             const originalPlayerId = conversation.gameData.playerID;
             const originalAiId = conversation.gameData.aiID;
+            const originalAiName = conversation.gameData.aiName;
             try {
                 const sourceId = args[0] ? parseInt(args[0], 10) : null;
                 const targetId = args[1] ? parseInt(args[1], 10) : null;
@@ -1113,6 +1114,12 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 // Temporarily set gameData context for the action
                 conversation.gameData.playerID = sourceId !== null ? sourceId : originalPlayerId;
                 conversation.gameData.aiID = targetId !== null ? targetId : originalAiId;
+                if (targetId !== null) {
+                    const targetCharacter = conversation.gameData.characters.get(targetId);
+                    if (targetCharacter) {
+                        conversation.gameData.aiName = targetCharacter.shortName;
+                    }
+                }
 
                 // Run the action to get the effect body
                 let effectBody = "";
@@ -1163,6 +1170,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 // Restore original gameData context
                 conversation.gameData.playerID = originalPlayerId;
                 conversation.gameData.aiID = originalAiId;
+                conversation.gameData.aiName = originalAiName;
             }
         } else {
             console.warn(`Execute-action warning: Action "${signature}" not found.`);
