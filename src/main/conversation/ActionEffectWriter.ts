@@ -34,7 +34,7 @@ ordered_in_global_list = {
         prelude += `
 root = {
     set_global_variable = {
-        name = votc_action_target
+        name = votcce_action_target
         value = root
     }
 }
@@ -46,7 +46,7 @@ ordered_in_global_list = {
     variable = mcc_characters_list_v2
     position = ${targetIndex}
     set_global_variable = {
-        name = votc_action_target
+        name = votcce_action_target
         value = this
     }
 }
