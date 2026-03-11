@@ -103,7 +103,8 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             if(matchedAction.args.length === 0){
                 console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
                 try{
-                    const effectBody = matchedAction.run(conv.gameData, []);
+                    let effectBody = "";
+                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, []);
                     ActionEffectWriter.appendEffect(
                         conv.runFileManager,
                         conv.gameData,
@@ -165,7 +166,8 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
         console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
         try{
-            const effectBody = matchedAction.run(conv.gameData, args);
+            let effectBody = "";
+            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args);
             ActionEffectWriter.appendEffect(
                 conv.runFileManager,
                 conv.gameData,
