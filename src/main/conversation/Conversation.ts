@@ -1343,7 +1343,10 @@ ${character.fullName}的发言：`
                 }
             }
         }
-        this.runFileManager.write("trigger_event = talk_event.9002");
+        this.runFileManager.write(`
+          trigger_event = mcc_event_v2.9002
+          trigger_event = mcc_event_v2.9003
+       `);
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
             console.log('Run file cleared after conversation end event.');

@@ -1127,7 +1127,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 // Append the trigger to execute the script
                 const triggerScript = `
                     global_var:talk_first_scope = {
-                        trigger_event = talk_event.9003
+                        trigger_event = mcc_event_v2.9003
                     }
                 `;
                 conversation.runFileManager.append(triggerScript);
