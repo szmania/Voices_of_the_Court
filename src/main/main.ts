@@ -1093,25 +1093,26 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
             const originalPlayerId = conversation.gameData.playerID;
             const originalAiId = conversation.gameData.aiID;
             try {
-                const sourceId = parseInt(args[0], 10);
-                const targetId = parseInt(args[1], 10);
+                const sourceId = args[0] ? parseInt(args[0], 10) : null;
+                const targetId = args[1] ? parseInt(args[1], 10) : null;
                 const actionArgs = args.slice(2);
 
-                if (isNaN(sourceId) && isNaN(targetId)) {
-                    throw new Error('Invalid source and target character ID.');
-                }
-                if (signature !== 'noOp') {
-                    conversation.actionInvolvedCharacterIds.add(sourceId);
-                    conversation.actionInvolvedCharacterIds.add(targetId);
+                if ((args[0] && isNaN(sourceId!)) || (args[1] && isNaN(targetId!))) {
+                    throw new Error('Invalid source or target character ID.');
                 }
 
-                if (!conversation.gameData.characters.has(sourceId) || !conversation.gameData.characters.has(targetId)) {
+                if (signature !== 'noOp') {
+                    if (sourceId !== null) conversation.actionInvolvedCharacterIds.add(sourceId);
+                    if (targetId !== null) conversation.actionInvolvedCharacterIds.add(targetId);
+                }
+
+                if ((sourceId !== null && !conversation.gameData.characters.has(sourceId)) || (targetId !== null && !conversation.gameData.characters.has(targetId))) {
                     throw new Error('Source or target character not found in conversation.');
                 }
 
                 // Temporarily set gameData context for the action
-                conversation.gameData.playerID = sourceId;
-                conversation.gameData.aiID = targetId;
+                conversation.gameData.playerID = sourceId !== null ? sourceId : originalPlayerId;
+                conversation.gameData.aiID = targetId !== null ? targetId : originalAiId;
 
                 // Run the action to get the effect body
                 let effectBody = "";
