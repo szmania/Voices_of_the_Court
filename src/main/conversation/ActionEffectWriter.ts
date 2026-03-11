@@ -9,8 +9,8 @@ export class ActionEffectWriter {
   /**
    * Compose CK3 prelude code to scope source/target characters from the ordered list.
    * Uses:
-   *  - global_var:votc_action_source
-   *  - global_var:votc_action_target
+   *  - global_var:votcce_action_source
+   *  - global_var:votcce_action_target
    */
   static composeScopePrelude(sourceIndex: number | null | undefined, targetIndex?: number | null, isPlayerTarget?: boolean): string {
     let prelude = "";
@@ -21,7 +21,7 @@ ordered_in_global_list = {
     variable = mcc_characters_list_v2
     position = ${sourceIndex}
     set_global_variable = {
-        name = votc_action_source
+        name = votcce_action_source
         value = this
     }
 }

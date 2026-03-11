@@ -58,32 +58,35 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
+     * @param {Function} runGameEffect
      * @param {string[]} args 
      */
-    run: (gameData, args) => {
+    run: (gameData, runGameEffect, args) => {
         let truceYears = args.length > 0 ? args[0] : 3; // Default to 3 years if not provided
 
-        return `
-            if = {
-                limit = { 
-                    OR = {
-                        AND = {
-                            max_military_strength:global_var:votc_action_source >= max_military_strength:global_var:votc_action_target
-                            opinion:global_var:votc_action_target = { target = global_var:votc_action_source value = { -30 100 } } 
-                        }
-                        AND = {
-                            max_military_strength:global_var:votc_action_source < max_military_strength:global_var:votc_action_target
-                            opinion:global_var:votc_action_target = { target = global_var:votc_action_source value = { 30 100 } }
+        runGameEffect(`
+            global_var:votcce_action_source = { 
+                if = {
+                    limit = { 
+                        OR = {
+                            AND = {
+                                max_military_strength:global_var:votcce_action_source >= max_military_strength:global_var:votcce_action_target
+                                opinion:global_var:votcce_action_target = { target = votcce_action_source value = { -30 100 } } 
+                            }
+                            AND = {
+                                max_military_strength:global_var:votcce_action_source < max_military_strength:global_var:votcce_action_target
+                                opinion:global_var:votcce_action_target = { target = votcce_action_source value = { 30 100 } }
+                            }
                         }
                     }
-                }
-                add_truce_both_ways = { 
-                    character = global_var:votc_action_target
-                    years = ${truceYears}
-                    override = yes
+                    add_truce_both_ways = { 
+                        character = global_var:votcce_action_target
+                        years = ${truceYears}
+                        override = yes
+                    }
                 }
             }
-        `;
+        `);
     },
 
     chatMessage: (args) => {
