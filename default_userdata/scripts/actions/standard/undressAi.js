@@ -30,7 +30,7 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) => {
         runGameEffect(`
-        global_var:talk_second_scope = {
+        global_var:votcce_action_target = {
             add_character_flag = {
                 flag = is_naked
                 days = 1

@@ -51,11 +51,11 @@ module.exports = {
         args[1] = ai.gold
         if (Number(args[0]) <= Number(args[1])) {
             runGameEffect(`
-                global_var:talk_first_scope = {
+                global_var:votcce_action_source = {
                     add_gold = ${args[0]};
                 }
 
-                global_var:talk_second_scope = {
+                global_var:votcce_action_target = {
                     remove_short_term_gold = ${args[0]};
                 }
             `);

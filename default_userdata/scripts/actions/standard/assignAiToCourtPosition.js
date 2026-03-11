@@ -87,7 +87,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_physician_court_position
                     }
                 `);
@@ -99,7 +99,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = keeper_of_swans_court_position
                     }
                 `);
@@ -111,7 +111,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = travel_leader_court_position
                     }
                 `);
@@ -123,7 +123,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = master_of_horse_court_position
                     }
                 `);
@@ -135,7 +135,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_jester_court_position
                     }
                 `);
@@ -147,7 +147,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = master_of_hunt_court_position
                     }
                 `);
@@ -159,7 +159,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = high_almoner_court_position
                     }
                 `);
@@ -171,7 +171,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = cupbearer_court_position
                     }
                 `);
@@ -183,7 +183,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = seneschal_court_position
                     }
                 `);
@@ -195,7 +195,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = antiquarian_court_position
                     }
                 `);
@@ -207,7 +207,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_tutor_court_position
                     }
                 `);
@@ -219,7 +219,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = royal_architect_court_position
                     }
                 `);
@@ -231,7 +231,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_poet_court_position
                     }
                 `);
@@ -243,7 +243,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = bodyguard_court_position
                     }
                 `);
@@ -255,7 +255,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = champion_court_position
                     }
                 `);
@@ -267,7 +267,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_musician_court_position
                     }
                 `);
@@ -279,7 +279,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = food_taster_court_position
                     }
                 `);
@@ -291,7 +291,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = lady_in_waiting_court_position
                     }
                 `);
@@ -303,7 +303,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = chief_eunuch_court_position
                     }
                 `);
@@ -315,7 +315,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = court_gardener_court_position
                     }
                 `);
@@ -327,7 +327,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = chief_qadi_court_position
                     }
                 `);
@@ -336,7 +336,7 @@ module.exports = {
                 runGameEffect(`
                     if={
                         limit = {
-                            global_var:talk_second_scope = {
+                            global_var:votcce_action_target = {
                             is_female = yes
                             }
                         }
@@ -344,7 +344,7 @@ module.exports = {
                             court_position = wet_nurse_court_position
                             }
                         appoint_court_position = {
-                            recipient = global_var:talk_second_scope
+                            recipient = global_var:votcce_action_target
                             court_position = wet_nurse_court_position
                             }
                         }
@@ -354,7 +354,7 @@ module.exports = {
                 runGameEffect(`
                     if = {
                     limit = {
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             is_male = yes
                         }
                     }
@@ -363,7 +363,7 @@ module.exports = {
                     }
                     
                     appoint_court_position = {
-                        recipient = global_var:talk_second_scope
+                        recipient = global_var:votcce_action_target
                         court_position = akolouthos_court_position
                     }
                     }

@@ -53,20 +53,20 @@ module.exports = {
 			runGameEffect(`
 				random_list = {
 					10 = {
-						global_var:talk_second_scope = {
+						global_var:votcce_action_target = {
 							save_temporary_scope_value_as = {
 								name = tmp
-								value = global_var:talk_second_scope.faith
+								value = global_var:votcce_action_target.faith
 							}
-							set_character_faith = global_var:talk_first_scope.faith
+							set_character_faith = global_var:votcce_action_source.faith
 							make_character_crypto_religionist_effect = {
 								CRYPTO_RELIGION = scope:tmp
 							}
 				}	
 					}
 					90 = {
-						global_var:talk_second_scope = {
-							set_character_faith = global_var:talk_first_scope.faith
+						global_var:votcce_action_target = {
+							set_character_faith = global_var:votcce_action_source.faith
 						}
 					}
 				}
@@ -75,20 +75,20 @@ module.exports = {
 			runGameEffect(`
 				random_list = {
 					60 = {
-						global_var:talk_second_scope = {
+						global_var:votcce_action_target = {
 							save_temporary_scope_value_as = {
 								name = tmp
-								value = global_var:talk_second_scope.faith
+								value = global_var:votcce_action_target.faith
 							}
-							set_character_faith = global_var:talk_first_scope.faith
+							set_character_faith = global_var:votcce_action_source.faith
 							make_character_crypto_religionist_effect = {
 								CRYPTO_RELIGION = scope:tmp
 							}
 				}	
 					}
 					40 = {
-						global_var:talk_second_scope = {
-							set_character_faith = global_var:talk_first_scope.faith
+						global_var:votcce_action_target = {
+							set_character_faith = global_var:votcce_action_source.faith
 						}
 					}
 				}

@@ -200,7 +200,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     if (triggeredActions.length > 0) {
         conv.runFileManager.append(`
             global_var:talk_first_scope = {
-                trigger_event = talk_event.9003
+                trigger_event = mcc_event_v2.9003
             }`
         );
     }

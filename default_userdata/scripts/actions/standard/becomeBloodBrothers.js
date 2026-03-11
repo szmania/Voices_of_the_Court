@@ -48,8 +48,8 @@ module.exports = {
      * @param {string[]} args 
      */
     run: (gameData, runGameEffect, args) => {
-        runGameEffect(`global_var:talk_second_scope = {
-            set_relation_blood_brother = { reason = ${args[0]} target = global_var:talk_first_scope }
+        runGameEffect(`global_var:votcce_action_target = {
+            set_relation_blood_brother = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`);
 
         // Remove any hostile relations

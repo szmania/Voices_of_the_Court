@@ -119,7 +119,7 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) => {
         runGameEffect(`
-            global_var:talk_second_scope = {
+            global_var:votcce_action_target = {
                 move_character_to_location_effect = {
                     LOCATION = ${args[0]}
                 }

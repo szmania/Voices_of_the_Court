@@ -31,7 +31,7 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) =>{
         runGameEffect(`
-			global_var:talk_second_scope = {
+			global_var:votcce_action_target = {
 				death = {
 					death_reason = death_murder killer = root
 				}

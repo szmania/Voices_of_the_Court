@@ -53,9 +53,9 @@ module.exports = {
             ai.setOpinionModifierValue("From conversations", conversationOpinion - args[0]);
 
             runGameEffect(
-                `global_var:talk_second_scope = {
+                `global_var:votcce_action_target = {
                     add_opinion = {
-                        target = global_var:talk_first_scope
+                        target = global_var:votcce_action_source
                         modifier = conversation_opinion
                         opinion = -${args[0]}
                     }

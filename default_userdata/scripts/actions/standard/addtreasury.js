@@ -47,7 +47,7 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) => {
             runGameEffect(`
-                global_var:talk_first_scope = {
+                global_var:votcce_action_source = {
                     add_treasury_or_gold = ${args[0]};
                 }
             `);

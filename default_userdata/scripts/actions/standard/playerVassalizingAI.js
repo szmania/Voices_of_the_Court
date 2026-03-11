@@ -101,7 +101,7 @@ module.exports = {
                     type = swear_fealty
                     save_scope_as = change
                 }
-                global_var:talk_second_scope = {
+                global_var:votcce_action_target = {
                     change_liege = {
                         liege = root
                         change = scope:change

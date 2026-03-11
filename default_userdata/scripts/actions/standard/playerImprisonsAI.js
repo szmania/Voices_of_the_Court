@@ -57,18 +57,18 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = { target_is_liege_or_above = global_var:talk_first_scope }
+                            global_var:votcce_action_target = { target_is_liege_or_above = global_var:votcce_action_source }
                         }
                         imprison_character_effect = {
-                            TARGET = global_var:talk_second_scope
-                            IMPRISONER = global_var:talk_first_scope
+                            TARGET = global_var:votcce_action_target
+                            IMPRISONER = global_var:votcce_action_source
                         }
-                        global_var:talk_first_scope = { consume_imprisonment_reasons = global_var:talk_second_scope }
+                        global_var:votcce_action_source = { consume_imprisonment_reasons = global_var:votcce_action_target }
                     }
                     else = {
                         rightfully_imprison_character_effect = {
-                                TARGET = global_var:talk_second_scope
-                                IMPRISONER = global_var:talk_first_scope
+                                TARGET = global_var:votcce_action_target
+                                IMPRISONER = global_var:votcce_action_source
                         }            
                     }
                 `);
@@ -78,23 +78,23 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = { target_is_liege_or_above = global_var:talk_first_scope }
+                            global_var:votcce_action_target = { target_is_liege_or_above = global_var:votcce_action_source }
                         }
                         imprison_character_effect = {
-                            TARGET = global_var:talk_second_scope
-                            IMPRISONER = global_var:talk_first_scope
+                            TARGET = global_var:votcce_action_target
+                            IMPRISONER = global_var:votcce_action_source
                         }
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             change_prison_type = dungeon
                         }
-                        global_var:talk_first_scope = { consume_imprisonment_reasons = global_var:talk_second_scope }
+                        global_var:votcce_action_source = { consume_imprisonment_reasons = global_var:votcce_action_target }
                     }
                     else = {
                         rightfully_imprison_character_effect = {
-                                TARGET = global_var:talk_second_scope
-                                IMPRISONER = global_var:talk_first_scope
+                                TARGET = global_var:votcce_action_target
+                                IMPRISONER = global_var:votcce_action_source
                         }        
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             change_prison_type = dungeon
                         }
                     }                        
@@ -106,18 +106,18 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = { target_is_liege_or_above = global_var:talk_first_scope }
+                            global_var:votcce_action_target = { target_is_liege_or_above = global_var:votcce_action_source }
                         }
                         imprison_character_effect = {
-                            TARGET = global_var:talk_second_scope
-                            IMPRISONER = global_var:talk_first_scope
+                            TARGET = global_var:votcce_action_target
+                            IMPRISONER = global_var:votcce_action_source
                         }
-                        global_var:talk_first_scope = { consume_imprisonment_reasons = global_var:talk_second_scope }
+                        global_var:votcce_action_source = { consume_imprisonment_reasons = global_var:votcce_action_target }
                     }
                     else = {
                         rightfully_imprison_character_effect = {
-                                TARGET = global_var:talk_second_scope
-                                IMPRISONER = global_var:talk_first_scope
+                                TARGET = global_var:votcce_action_target
+                                IMPRISONER = global_var:votcce_action_source
                         }            
                     }
                 `);

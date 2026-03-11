@@ -50,17 +50,17 @@ module.exports = {
     run: (gameData, runGameEffect, args) => {
 		console.log(`Diplomatic Alliance Signed`);
         runGameEffect(`
-			global_var:talk_first_scope = { 
+			global_var:votcce_action_source = { 
 				create_alliance = { 
-					target = global_var:talk_second_scope 
-					allied_through_owner = global_var:talk_first_scope
-					allied_through_target = global_var:talk_second_scope
+					target = global_var:votcce_action_target 
+					allied_through_owner = global_var:votcce_action_source
+					allied_through_target = global_var:votcce_action_target
 				} 
 			}
-			global_var:talk_second_scope = {
+			global_var:votcce_action_target = {
 				add_opinion = {
 					modifier = perk_negotiated_alliance_opinion
-					target = global_var:talk_first_scope
+					target = global_var:votcce_action_source
 				}
 			}
         `);

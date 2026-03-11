@@ -67,7 +67,7 @@ module.exports = {
                 console.log("Executing remove_eye effect"); // Debug log
                 if (ai.hasTrait("One-Eyed")) {
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             add_trait = blind
                             remove_trait = one_eyed
                         }
@@ -79,7 +79,7 @@ module.exports = {
                     });
                 } else {
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             add_trait = one_eyed
                         }
                     `);
@@ -95,7 +95,7 @@ module.exports = {
                 console.log("Executing blind effect"); // Debug log
                 if (!ai.hasTrait('Blind')) {
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             add_trait = blind
                         }
                     `);
@@ -111,7 +111,7 @@ module.exports = {
                 console.log("Executing cut_leg effect"); // Debug log
                 if (!ai.hasTrait('One-Legged')) {
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             add_trait = one_legged
                         }
                     `);
@@ -126,7 +126,7 @@ module.exports = {
             case "cut_balls":
                 console.log("Executing cut_balls effect"); // Debug log
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
 	                        add_trait = eunuch_1
 	                        torture_memory_effect = {
 		                        VICTIM = scope:recipient
@@ -147,7 +147,7 @@ module.exports = {
                 console.log("Executing disfigured effect"); // Debug log
                 if (!ai.hasTrait('Disfigured')) {
                     runGameEffect(`
-                        global_var:talk_second_scope = {
+                        global_var:votcce_action_target = {
                             add_trait = disfigured
                         }
                     `);
@@ -167,7 +167,7 @@ module.exports = {
 		if (Math.random() < 0.05 && !(ai.hasTrait('lunatic_1') || ai.hasTrait('possessed_1'))) {
 			const mentalTrait = Math.random() < 0.5 ? 'lunatic_1' : 'possessed_1';
 			runGameEffect(`
-				global_var:talk_second_scope = {
+				global_var:votcce_action_target = {
 					add_trait = ${mentalTrait}
 				}
 			`);
@@ -178,7 +178,7 @@ module.exports = {
             // Replace Wounded_3 with Maimed (15% chance)
             if (Math.random() < 0.25) {
                 runGameEffect(`
-                    global_var:talk_second_scope = {
+                    global_var:votcce_action_target = {
                         remove_trait = wounded_3
                         add_trait = maimed
                     }
@@ -194,7 +194,7 @@ module.exports = {
             // Replace Wounded_2 with Wounded_3 (20% chance)
             if (Math.random() < 0.40) {
                 runGameEffect(`
-                    global_var:talk_second_scope = {
+                    global_var:votcce_action_target = {
                         remove_trait = wounded_2
                         add_trait = wounded_3
                     }
@@ -210,7 +210,7 @@ module.exports = {
             // Replace Wounded_1 with Wounded_2 (30% chance)
             if (Math.random() < 0.65) {
                 runGameEffect(`
-                    global_var:talk_second_scope = {
+                    global_var:votcce_action_target = {
                         remove_trait = wounded_1
                         add_trait = wounded_2
                     }
@@ -225,7 +225,7 @@ module.exports = {
         } else {
             // If the AI has no wounded traits, add Wounded_1
             runGameEffect(`
-                global_var:talk_second_scope = {
+                global_var:votcce_action_target = {
                     add_trait = wounded_1
                 }
             `);

@@ -72,18 +72,18 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = {
+                            global_var:votcce_action_target = {
                                 exists = liege
-                                liege = global_var:talk_first_scope
-                                can_be_chancellor_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                                liege = global_var:votcce_action_source
+                                can_be_chancellor_trigger = { COURT_OWNER = global_var:votcce_action_source }
                             }
                         }
-                        global_var:talk_first_scope = {
+                        global_var:votcce_action_source = {
                             scope:council_position = flag:chancellor
                             fire_councillor = cp:councillor_chancellor
                             assign_councillor_type = {
                                     type = councillor_chancellor
-                                    target = global_var:talk_second_scope
+                                    target = global_var:votcce_action_target
                             }
                         }
                     }
@@ -93,17 +93,17 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = {
+                            global_var:votcce_action_target = {
                                 exists = liege
-                                liege = global_var:talk_first_scope
+                                liege = global_var:votcce_action_source
                             }
                         }
-                        global_var:talk_first_scope = {
+                        global_var:votcce_action_source = {
                             scope:council_position = flag:steward
                             fire_councillor = cp:councillor_steward
                             assign_councillor_type = {
                                     type = councillor_steward
-                                    target = global_var:talk_second_scope
+                                    target = global_var:votcce_action_target
                             }
                         }
                     }
@@ -113,18 +113,18 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = {
+                            global_var:votcce_action_target = {
                                 exists = liege
-                                liege = global_var:talk_first_scope
-                                can_be_marshal_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                                liege = global_var:votcce_action_source
+                                can_be_marshal_trigger = { COURT_OWNER = global_var:votcce_action_source }
                             }
                         }
-                        global_var:talk_first_scope = {
+                        global_var:votcce_action_source = {
                             scope:council_position = flag:marshal
                             fire_councillor = cp:councillor_marshal
                             assign_councillor_type = {
                                     type = councillor_marshal
-                                    target = global_var:talk_second_scope
+                                    target = global_var:votcce_action_target
                             }
                         }
                     }
@@ -134,18 +134,18 @@ module.exports = {
                 runGameEffect(`
                     if = {
                         limit = {
-                            global_var:talk_second_scope = {
+                            global_var:votcce_action_target = {
                                 exists = liege
-                                liege = global_var:talk_first_scope
-                                can_be_spymaster_trigger = { COURT_OWNER = global_var:talk_first_scope }
+                                liege = global_var:votcce_action_source
+                                can_be_spymaster_trigger = { COURT_OWNER = global_var:votcce_action_source }
                             }
                         }
-                        global_var:talk_first_scope = {
+                        global_var:votcce_action_source = {
                             scope:council_position = flag:spymaster
                             fire_councillor = cp:councillor_spymaster
                             assign_councillor_type = {
                                     type = councillor_spymaster
-                                    target = global_var:talk_second_scope
+                                    target = global_var:votcce_action_target
                             }
                         }
                     }

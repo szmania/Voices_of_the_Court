@@ -31,7 +31,7 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args) => {
         runGameEffect(`
-        global_var:talk_second_scope = {
+        global_var:votcce_action_target = {
             had_sex_with_effect = {
 				CHARACTER = global_var:talk_third_scope
 				PREGNANCY_CHANCE = pregnancy_chance

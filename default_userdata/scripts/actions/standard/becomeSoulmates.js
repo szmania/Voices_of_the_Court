@@ -49,8 +49,8 @@ module.exports = {
     run: (gameData, runGameEffect, args) => {
         console.log(args[0])
         let ai = gameData.getAi();
-        runGameEffect(`global_var:talk_second_scope = {
-            set_relation_soulmate = { reason = ${args[0]} target = global_var:talk_first_scope }
+        runGameEffect(`global_var:votcce_action_target = {
+            set_relation_soulmate = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`)
 		ai.addTrait({
         category: "flag",
