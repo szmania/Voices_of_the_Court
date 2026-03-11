@@ -63,11 +63,11 @@ ordered_in_global_list = {
    */
   static composeFullEffect(
     gameData: GameData,
-    sourceCharacterId: number,
+    sourceCharacterId: number | null | undefined,
     targetCharacterId: number | null | undefined,
     effectBody: string
   ): string {
-    const sourceIndex = this.getCharacterIndex(gameData, sourceCharacterId);
+    const sourceIndex = sourceCharacterId != null ? this.getCharacterIndex(gameData, sourceCharacterId) : null;
     const targetIndex = targetCharacterId != null ? this.getCharacterIndex(gameData, targetCharacterId) : null;
     const isPlayerTarget = targetCharacterId != null && targetCharacterId === gameData.playerID;
 
@@ -81,7 +81,7 @@ ordered_in_global_list = {
   static writeEffect(
     runFileManager: RunFileManager,
     gameData: GameData,
-    sourceCharacterId: number,
+    sourceCharacterId: number | null | undefined,
     targetCharacterId: number | null | undefined,
     effectBody: string
   ): void {
@@ -95,7 +95,7 @@ ordered_in_global_list = {
   static appendEffect(
     runFileManager: RunFileManager,
     gameData: GameData,
-    sourceCharacterId: number,
+    sourceCharacterId: number | null | undefined,
     targetCharacterId: number | null | undefined,
     effectBody: string
   ): void {
