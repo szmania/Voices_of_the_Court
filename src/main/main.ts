@@ -1111,20 +1111,27 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 conversation.gameData.playerID = sourceId;
                 conversation.gameData.aiID = targetId;
 
-                // Run the action's effect
-                let scriptText = "";
-                action.run(conversation.gameData, (text: string) => { scriptText += text; }, actionArgs);
+                // Run the action to get the effect body
+                const effectBody = action.run(conversation.gameData, actionArgs);
 
-                // Write the core action script to the file.
-                conversation.runFileManager.write(scriptText);
+                // Use the writer to create the full script with prelude
+                ActionEffectWriter.writeEffect(
+                    conversation.runFileManager,
+                    conversation.gameData,
+                    sourceId,
+                    targetId,
+                    effectBody
+                );
 
+                // Append the trigger to execute the script
                 const triggerScript = `
-            global_var:talk_first_scope = {
-                trigger_event = talk_event.9003
-            }
-                    `;
+                    global_var:talk_first_scope = {
+                        trigger_event = talk_event.9003
+                    }
+                `;
                 conversation.runFileManager.append(triggerScript);
                 console.log('Appended trigger event for slash command.');
+
 
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
