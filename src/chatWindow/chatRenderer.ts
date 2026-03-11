@@ -1319,8 +1319,11 @@ function showInlineActionForm(action: any) {
     const executeTooltip = (lm ? lm.getNestedTranslation('chat.execute_tooltip') : null) || "Execute this action.";
     executeButton.setAttribute('data-tooltip', executeTooltip);
     executeButton.addEventListener('click', () => {
-        const sourceId = (formContainer.querySelector('#action-source-char-hidden') as HTMLInputElement).value;
-        const targetId = (formContainer.querySelector('#action-target-char-hidden') as HTMLInputElement).value;
+        const sourceInput = formContainer.querySelector('#action-source-char-hidden') as HTMLInputElement;
+        const targetInput = formContainer.querySelector('#action-target-char-hidden') as HTMLInputElement;
+
+        const sourceId = sourceInput ? sourceInput.value : null;
+        const targetId = targetInput ? targetInput.value : null;
 
         const args: any[] = [sourceId, targetId];
         const inputs = formContainer.querySelectorAll('.action-arg input, .action-arg select, .action-arg input[type=hidden]');
