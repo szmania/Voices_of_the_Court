@@ -1049,7 +1049,8 @@ function showInlineActionForm(action: any) {
     const allCharacters = Array.from(currentGameData!.characters.values());
 
     // Source selector
-    const sourceSelectDiv = document.createElement('div');
+    if (action.usesSource) {
+        const sourceSelectDiv = document.createElement('div');
     sourceSelectDiv.classList.add('action-character-select');
     const sourceLabel = document.createElement('label');
     sourceLabel.textContent = (lm ? lm.getNestedTranslation('chat.source_character') : null) || 'Source Character';
@@ -1104,9 +1105,11 @@ function showInlineActionForm(action: any) {
     sourceSelectDiv.appendChild(sourceLabel);
     sourceSelectDiv.appendChild(sourceCustomSelect);
     characterSelectorsContainer.appendChild(sourceSelectDiv);
+    }
 
     // Target selector
-    const targetSelectDiv = document.createElement('div');
+    if (action.usesTarget) {
+        const targetSelectDiv = document.createElement('div');
     targetSelectDiv.classList.add('action-character-select');
     const targetLabel = document.createElement('label');
     targetLabel.textContent = (lm ? lm.getNestedTranslation('chat.target_character') : null) || 'Target Character';
@@ -1163,6 +1166,7 @@ function showInlineActionForm(action: any) {
     targetSelectDiv.appendChild(targetLabel);
     targetSelectDiv.appendChild(targetCustomSelect);
     characterSelectorsContainer.appendChild(targetSelectDiv);
+    }
 
     formContainer.appendChild(characterSelectorsContainer);
 

@@ -639,7 +639,9 @@ clipboardListener.on('VOTC:IN', async () =>{
             signature: action.signature,
             args: action.args,
             description: action.description,
-            creator: action.creator
+            creator: action.creator,
+            usesSource: (action as any).usesSource,
+            usesTarget: (action as any).usesTarget
         }));
 
         const payload = {
