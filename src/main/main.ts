@@ -1117,16 +1117,13 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 // Write the core action script to the file.
                 conversation.runFileManager.write(scriptText);
 
-                // After a delay, append the trigger.
-                setTimeout(() => {
-                    const triggerScript = `
-                        global_var:talk_first_scope = {
-                            trigger_event = talk_event.9003
-                        }
+                const triggerScript = `
+            global_var:talk_first_scope = {
+                trigger_event = talk_event.9003
+            }
                     `;
-                    conversation.runFileManager.append(triggerScript);
-                    console.log('Appended trigger event for slash command.');
-                }, 500);
+                conversation.runFileManager.append(triggerScript);
+                console.log('Appended trigger event for slash command.');
 
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
