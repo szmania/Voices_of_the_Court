@@ -2,7 +2,7 @@
 const path = require('path');
 
 module.exports = {
-  outDir: 'C:/tmp',
+  outDir: process.platform === 'win32' ? 'C:/tmp' : 'out',
   packagerConfig: {
     icon: './build/icons/icon', // Electron Forge will automatically use .ico for Windows and .icns for Mac
     //"asar":true
@@ -22,7 +22,8 @@ module.exports = {
       name: '@electron-forge/maker-dmg',
       config: {
         format: 'ULFO',
-        name: 'VOTC-CE'
+        name: 'VOTC-CE',
+        title: 'VOTC-CE'
       }
     },
     {
