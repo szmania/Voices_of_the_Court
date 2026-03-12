@@ -45,13 +45,16 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 const totalDays = parseInt(parts[2].trim(), 10) || 0;
                 const delay = parseInt(parts[3].trim(), 10) || 0;
+                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId; // Use sender from log if available
+                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId; // Use recipient from log if available
 
-                if(content && letterId && playerId && recipientId) {
-                    const letter = Letter.fromLog(playerId, recipientId, letterId, content, characterNameMap, gameDate, delay, totalDays);
+
+                if(content && letterId && senderIdFromLog && recipientIdFromLog) {
+                    const letter = Letter.fromLog(senderIdFromLog, recipientIdFromLog, letterId, content, characterNameMap, gameDate, delay, totalDays);
                     if (letter) {
                         letters.push(letter);
                         // If a playerId is provided, save the letter immediately.
-                        LetterManager.getInstance().saveLetter(letter, playerId);
+                        LetterManager.getInstance().saveLetter(letter, senderIdFromLog);
                     }
                 }
             }
