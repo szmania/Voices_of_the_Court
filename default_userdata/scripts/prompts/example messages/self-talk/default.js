@@ -1,10 +1,9 @@
 /**
  * @param {import('../../../gamedata_typedefs.js').GameData} gameData
- * @param {number} characterId
+ * @param {import('../../../gamedata_typedefs.js').Character} character
  * @returns {import('../../../../main/ts/conversation_interfaces.js').Message[]}
  */
-function getExampleMessages(gameData, characterId) {
-    const character = gameData.getCharacter(characterId);
+function getExampleMessages(gameData, character) {
     const playerName = character.fullName;
 
     return [
