@@ -64,6 +64,7 @@ export class Conversation{
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
     pendingActions: Map<number, PendingAction[]>;
+    pendingActions: Map<number, PendingAction[]>;
 
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -130,6 +131,7 @@ export class Conversation{
         this.persistCustomQueue = false;
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
+        this.pendingActions = new Map();
         this.pendingActions = new Map();
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
@@ -1696,6 +1698,61 @@ ${character.fullName}的发言：`
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
+        }
+    }
+
+    async executeApprovedAction(messageIndex: number, actionName: string) {
+        const pending = this.pendingActions.get(messageIndex);
+        if (!pending) {
+            console.error(`No pending actions found for message index ${messageIndex}`);
+            return;
+        }
+
+        const actionToExecute = pending.find(p => p.action.signature === actionName);
+        if (!actionToExecute) {
+            console.error(`Action ${actionName} not found in pending actions for message index ${messageIndex}`);
+            return;
+        }
+
+        const { action, args } = actionToExecute;
+
+        try {
+            let effectBody = "";
+            action.run(this.gameData, (text: string) => { effectBody += text; }, args);
+            ActionEffectWriter.appendEffect(
+                this.runFileManager,
+                this.gameData,
+                this.gameData.playerID,
+                this.gameData.aiID,
+                effectBody
+            );
+
+            if (action.chatMessageClass != null) {
+                let chatMessage = action.chatMessage(args);
+                if (typeof chatMessage === 'object') {
+                    chatMessage = chatMessage[this.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                }
+                const actionResponse: ActionResponse = {
+                    actionName: action.signature,
+                    chatMessage: parseVariables(chatMessage, this.gameData),
+                    chatMessageClass: action.chatMessageClass
+                };
+                this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
+            }
+            
+            console.log(`Action "${action.signature}" successfully executed after approval.`);
+        } catch (e) {
+            let errMsg = `Action error: failure in run function for action: ${action.signature}; details: ` + e;
+            console.error(errMsg);
+            this.chatWindow.window.webContents.send('error-message', errMsg);
+        }
+
+        // Remove the executed action from pending
+        const updatedPending = pending.filter(p => p.action.signature !== actionName);
+        if (updatedPending.length === 0) {
+            this.pendingActions.delete(messageIndex);
+        } else {
+            this.pendingActions.set(messageIndex, updatedPending);
         }
     }
 

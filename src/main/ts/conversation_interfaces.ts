@@ -65,3 +65,8 @@ export interface PendingAction {
     args: string[];
 }
 
+export interface PendingAction {
+    action: Action;
+    args: string[];
+}
+
