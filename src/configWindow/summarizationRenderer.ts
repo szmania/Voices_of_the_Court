@@ -179,10 +179,14 @@ async function initSummaryManager() {
 }
 
 function setupEventListeners() {
-    refreshBtn.addEventListener('click', loadPlayerIds);
+    refreshBtn.addEventListener('click', () => {
+        const currentPlayerId = playerIdSelect.value;
+        const currentCharacterId = characterSelect.value;
+        loadPlayerIds(currentPlayerId, currentCharacterId);
+    });
     saveBtn.addEventListener('click', saveSummaries);
     addSummaryBtn.addEventListener('click', addNewSummary);
-    playerIdSelect.addEventListener('change', loadSummaryData);
+    playerIdSelect.addEventListener('change', () => loadSummaryData());
     characterSelect.addEventListener('change', filterSummariesByCharacter);
     summarySearchInput.addEventListener('input', () => {
         currentHighlightIndex = -1; // Reset highlight on new search
@@ -195,7 +199,7 @@ function setupEventListeners() {
     }
 }
 
-async function loadPlayerIds() {
+async function loadPlayerIds(currentPlayerId?: string, currentCharacterId?: string) {
     summaryLoader.style.display = 'block';
     refreshBtn.disabled = true;
     saveBtn.disabled = true;
@@ -215,7 +219,12 @@ async function loadPlayerIds() {
                 option.textContent = player.name === `Player ${player.id}` ? player.id : `${player.name} (${player.id})`;
                 playerIdSelect.appendChild(option);
             });
-            await loadSummaryData(); // Load data for the first player
+
+            if (currentPlayerId && Array.from(playerIdSelect.options).some(opt => opt.value === currentPlayerId)) {
+                playerIdSelect.value = currentPlayerId;
+            }
+
+            await loadSummaryData(currentCharacterId); // Load data for the selected player
         } else {
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_players_found', 'No player summary directories found.'), 'info');
             summaryList.innerHTML = '';
@@ -234,7 +243,7 @@ async function loadPlayerIds() {
     }
 }
 
-async function loadSummaryData() {
+async function loadSummaryData(currentCharacterId?: string) {
     summaryLoader.style.display = 'block';
     summaryList.innerHTML = '';
     selectedPlayerId = playerIdSelect.value;
@@ -257,7 +266,7 @@ async function loadSummaryData() {
         }
 
         allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
-        populateCharacterSelect();
+        populateCharacterSelect(currentCharacterId);
         filterSummariesByCharacter();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
         hasUnsavedChanges = false;
@@ -271,7 +280,7 @@ async function loadSummaryData() {
     }
 }
 
-function populateCharacterSelect() {
+function populateCharacterSelect(currentCharacterId?: string) {
     const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
 
@@ -290,7 +299,12 @@ function populateCharacterSelect() {
         characterSelect.appendChild(option);
     });
 
-    characterSelect.value = selectedCharacterId;
+    if (currentCharacterId && Array.from(characterSelect.options).some(opt => opt.value === currentCharacterId)) {
+        characterSelect.value = currentCharacterId;
+    } else {
+        characterSelect.value = 'all';
+    }
+    selectedCharacterId = characterSelect.value;
 }
 
 function filterSummariesByCharacter() {
