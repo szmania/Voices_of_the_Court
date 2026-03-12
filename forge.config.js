@@ -21,7 +21,8 @@ module.exports = {
     {
       name: '@electron-forge/maker-dmg',
       config: {
-        format: 'ULFO'
+        format: 'ULFO',
+        name: 'VOTC-CE'
       }
     },
     {
