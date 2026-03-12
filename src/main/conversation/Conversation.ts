@@ -22,6 +22,8 @@ import path from 'path';
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, PendingAction} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
+import { parseVariables } from '../parseVariables.js';
+import { ActionEffectWriter } from './ActionEffectWriter.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -63,7 +65,6 @@ export class Conversation{
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
-    pendingActions: Map<number, PendingAction[]>;
     pendingActions: Map<number, PendingAction[]>;
 
     npcQueue: Character[];
