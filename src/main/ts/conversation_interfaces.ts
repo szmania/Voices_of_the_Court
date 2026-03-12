@@ -60,3 +60,8 @@ export interface ActionResponse{
     chatMessageClass: string
 }
 
+export interface PendingAction {
+    action: Action;
+    args: string[];
+}
+
