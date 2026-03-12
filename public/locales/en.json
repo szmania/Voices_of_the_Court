@@ -122,7 +122,7 @@
     "max_memory_tokens": "max memory tokens",
     "max_memory_tokens_tooltip": "The maximum number of tokens to use for character memories. This affects how much of their past experiences the AI can recall.",
     "stream": "stream messages",
-    "clean_messages": "clean Messages",
+    "clean_messages": "clean messages",
     "clean_tooltip": "The mod will try to remove parts of the messages that the llm shouldn't have generated, like emojis",
     "shuffle_order": "shuffle character order",
     "shuffle_tooltip": "Randomize the order in which characters generate messages in multi-character conversations. Note: If enabled, the speaking order of each character will be random, which may lead to confusion in the LLM's output character identity.",
