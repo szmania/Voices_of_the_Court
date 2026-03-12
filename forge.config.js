@@ -2,9 +2,8 @@
 const path = require('path');
 
 module.exports = {
-  outDir: 'C:/tmp',
   packagerConfig: {
-     icon: './build/icons/icon.ico',
+    icon: './build/icons/icon', // Electron Forge will automatically use .ico for Windows and .icns for Mac
     //"asar":true
     ignore: /^(\/out|\/tests|\/logs|\/debug|\/\.)/
   },
@@ -13,6 +12,17 @@ module.exports = {
     {
       name: '@electron-forge/maker-squirrel',
       config: { loadingGif: path.join(__dirname, 'build', 'icons', 'installerPic.png')}
+    },
+    {
+      name: '@electron-forge/maker-zip',
+      platforms: ['darwin']
+    },
+    {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        background: './build/icons/dmg-background.png',
+        format: 'ULFO'
+      }
     },
     {
       name: '@electron-forge/maker-deb',
