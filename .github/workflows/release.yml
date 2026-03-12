@@ -11,9 +11,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     environment: prod
 
-    permissions:
-      contents: write
-
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
@@ -32,5 +29,5 @@ jobs:
 
     - name: Publish application
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: npm run publish
