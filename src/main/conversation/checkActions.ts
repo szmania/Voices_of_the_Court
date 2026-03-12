@@ -2,7 +2,7 @@ import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
 import { convertMessagesToString } from "./promptBuilder";
 import path from 'path';
-import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
+import { Message, Action, ActionResponse, PendingAction } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
 import { ActionEffectWriter } from "./ActionEffectWriter.js";
@@ -76,18 +76,10 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     const actions = actionsString.split(',').filter(a => a.trim() !== 'noop()');
 
     //validations
-    for(const actionInResponse of actions){
-        //validate name
-        const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
-
-        if(!foundActionName){
-            console.warn(`Action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
-            continue;
-        }
-
-    //validations
     if (conv.config.manualActionApproval) {
         const proposedActions: ActionResponse[] = [];
+        const pendingActionsForMessage: PendingAction[] = [];
+
         for (const actionInResponse of actions) {
             const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
             if (!foundActionName) continue;
@@ -99,6 +91,11 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             const args = argsString ? argsString[1].split(",") : [];
 
             if (args.length !== matchedAction.args.length) continue;
+
+            pendingActionsForMessage.push({
+                action: matchedAction,
+                args: args
+            });
 
             let chatMessage = matchedAction.chatMessage(args);
             if (typeof chatMessage === 'object') {
@@ -114,6 +111,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
         if (proposedActions.length > 0) {
             const messageIndex = conv.messages.length - 1;
+            conv.pendingActions.set(messageIndex, pendingActionsForMessage);
             conv.chatWindow.window.webContents.send('action-approval-request', messageIndex, proposedActions);
             console.log(`Sent ${proposedActions.length} actions for user approval.`);
         }
@@ -257,19 +255,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         console.log(`Action frequency stats: totalMessages=${totalMessages}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
     }
 
-    // 生成AI旁白
-    let narrative = "";
-    if (triggeredActions.length > 0 && conv.config.narrativeEnable) {
-        try {
-            narrative = await generateNarrative(conv, triggeredActions);
-            console.log(`Generated narrative: ${narrative}`);
-        } catch (e) {
-            console.error(`Error generating narrative: ${e}`);
-            narrative = "";
-        }
-    }
-
-    return { actions: triggeredActions, narrative: narrative };
+    return triggeredActions;
 }
 
 function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]{
