@@ -1001,7 +1001,7 @@ function handleInPlaceInputChange(index: number) {
 
     if (!dateInput || !contentInput || !item || !saveButton) return;
 
-    let originalDate: string, originalContent: string;
+    let originalDate: string = '', originalContent: string = '';
     if (activeTab === 'conversations') {
         originalDate = formatDateForInput(item.date);
         originalContent = item.content || '';
