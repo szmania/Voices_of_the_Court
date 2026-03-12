@@ -1219,8 +1219,38 @@ ipcMain.handle('get-summary-ids', async () => {
 ipcMain.handle('get-all-summary-player-ids', async () => {
     console.log('IPC: Received get-all-summary-player-ids event.');
     try {
-        const ids = await getAllPlayerIds(userDataPath);
-        return { success: true, ids: ids };
+        // Get player IDs from all three sources and merge them
+        const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+        const letterManager = LetterManager.getInstance();
+        const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters().map(id => ({ id, name: `Player ${id}` }));
+        
+        // Get diary player IDs
+        const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+        
+        // Merge all player IDs, ensuring uniqueness
+        const allPlayerIds = new Map<string, { id: string, name: string }>();
+        
+        // Add conversation player IDs
+        conversationPlayerIds.forEach(player => {
+            allPlayerIds.set(player.id, player);
+        });
+        
+        // Add letter player IDs
+        letterPlayerIds.forEach(player => {
+            if (!allPlayerIds.has(player.id)) {
+                allPlayerIds.set(player.id, player);
+            }
+        });
+        
+        // Add diary player IDs
+        diaryPlayerIds.forEach(player => {
+            if (!allPlayerIds.has(player.id)) {
+                allPlayerIds.set(player.id, player);
+            }
+        });
+        
+        const mergedPlayerIds = Array.from(allPlayerIds.values());
+        return { success: true, ids: mergedPlayerIds };
     } catch (error) {
         console.error('Error getting all player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1265,6 +1295,147 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+// Letter Summary IPC handlers
+ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
+    try {
+        const letterManager = LetterManager.getInstance();
+        const letters = letterManager.getAllLetters(playerId);
+        
+        // Get character map for names
+        const characterMap = await readCharacterMap(userDataPath, playerId);
+        
+        // Augment letters with character names
+        const augmentedLetters = letters.map(letter => {
+            const senderName = characterMap.get(String(letter.sender.id)) || `Character ${letter.sender.id}`;
+            const recipientName = characterMap.get(String(letter.recipient.id)) || `Character ${letter.recipient.id}`;
+            return {
+                ...letter,
+                senderName,
+                recipientName
+            };
+        });
+        
+        return augmentedLetters;
+    } catch (error) {
+        console.error('Error getting letters for player:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('save-all-letters', async (event, playerId: string, lettersData: any[]) => {
+    console.log(`IPC: Received save-all-letters event for player: ${playerId}`);
+    try {
+        const letterManager = LetterManager.getInstance();
+        
+        // Group letters by character
+        const lettersByCharacter: { [key: string]: any[] } = {};
+        lettersData.forEach(letter => {
+            const otherCharacterId = letter.sender.id === Number(playerId) ? String(letter.recipient.id) : String(letter.sender.id);
+            if (!lettersByCharacter[otherCharacterId]) {
+                lettersByCharacter[otherCharacterId] = [];
+            }
+            lettersByCharacter[otherCharacterId].push(letter);
+        });
+        
+        // Save each group
+        for (const [characterId, letters] of Object.entries(lettersByCharacter)) {
+            // Sort letters by date
+            letters.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            
+            const filePath = letterManager.getLetterFilePath(playerId, characterId);
+            fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving letters:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+// Diary Summary IPC handlers
+ipcMain.handle('get-all-diaries-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-diaries-for-player event for player: ${playerId}`);
+    try {
+        // Get all diary files for the player
+        const diaryFiles = await getDiaryFiles(playerId);
+        const allDiaryEntries: any[] = [];
+        
+        // Get character map
+        const characterMap = await getDiaryCharacterMap(playerId);
+        
+        // Read all diary files
+        for (const file of diaryFiles) {
+            const characterId = file.replace('.json', '');
+            const diaryData = await readDiaryFile(playerId, characterId);
+            
+            if (diaryData && diaryData.diary_entries) {
+                // Add character info to each entry
+                const entriesWithCharacter = diaryData.diary_entries.map(entry => ({
+                    ...entry,
+                    characterId,
+                    characterName: characterMap[characterId] || `Character ${characterId}`
+                }));
+                allDiaryEntries.push(...entriesWithCharacter);
+            }
+        }
+        
+        // Sort by date (newest first)
+        allDiaryEntries.sort((a, b) => {
+            const dateA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : new Date(a.date).getTime();
+            const dateB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : new Date(b.date).getTime();
+            return dateB - dateA;
+        });
+        
+        return allDiaryEntries;
+    } catch (error) {
+        console.error('Error getting diaries for player:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('save-all-diaries', async (event, playerId: string, diaryData: any[]) => {
+    console.log(`IPC: Received save-all-diaries event for player: ${playerId}`);
+    try {
+        // Group diary entries by character
+        const entriesByCharacter: { [key: string]: any[] } = {};
+        diaryData.forEach(entry => {
+            const characterId = entry.characterId;
+            if (!entriesByCharacter[characterId]) {
+                entriesByCharacter[characterId] = [];
+            }
+            entriesByCharacter[characterId].push(entry);
+        });
+        
+        // Save each character's diary entries
+        for (const [characterId, entries] of Object.entries(entriesByCharacter)) {
+            // Sort entries by date
+            entries.sort((a: any, b: any) => {
+                const dateA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : new Date(a.date).getTime();
+                const dateB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : new Date(b.date).getTime();
+                return dateB - dateA;
+            });
+            
+            const diaryPath = path.join(userDataPath, 'diary_history', playerId);
+            if (!fs.existsSync(diaryPath)) {
+                fs.mkdirSync(diaryPath, { recursive: true });
+            }
+            
+            const filePath = path.join(diaryPath, `${characterId}.json`);
+            const fileData = { diary_entries: entries };
+            fs.writeFileSync(filePath, JSON.stringify(fileData, null, '\t'), 'utf8');
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving diaries:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
