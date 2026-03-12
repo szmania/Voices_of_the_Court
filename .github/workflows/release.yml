@@ -11,6 +11,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     environment: prod
 
+    permissions:
+      contents: write
+
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
