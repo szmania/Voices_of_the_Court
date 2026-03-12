@@ -29,5 +29,5 @@ jobs:
 
     - name: Publish application
       env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        GITHUB_TOKEN: ${{ secrets.SZMANIA_GITHUB_PAT }}
       run: npm run publish
