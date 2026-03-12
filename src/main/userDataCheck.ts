@@ -143,6 +143,14 @@ export async function checkUserData(){
         // Step 3.2: Perform a Deep Merge
         const mergedConfig = mergeConfigsStrict(defaultConfig, userConfig);
 
+        // Set platform-specific user folder path if not set or invalid
+        const documentsPath = app.getPath('documents');
+        const defaultCk3Path = path.join(documentsPath, 'Paradox Interactive', 'Crusader Kings III');
+        if ((!mergedConfig.userFolderPath || !fs.existsSync(mergedConfig.userFolderPath)) && fs.existsSync(defaultCk3Path)) {
+            mergedConfig.userFolderPath = defaultCk3Path;
+            console.log(`User folder path updated to platform-specific default: ${defaultCk3Path}`);
+        }
+
         // Hardcode Player2 API key
         const configsToUpdate = [
             'textGenerationApiConnectionConfig',
@@ -174,6 +182,14 @@ export async function checkUserData(){
         console.log(`Config file not found at ${configPath}. Creating new config with Player2 as default.`);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
         defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+
+        // Set platform-specific user folder path
+        const documentsPath = app.getPath('documents');
+        const defaultCk3Path = path.join(documentsPath, 'Paradox Interactive', 'Crusader Kings III');
+        if (fs.existsSync(defaultCk3Path)) {
+            defaultConfig.userFolderPath = defaultCk3Path;
+            console.log(`Setting default user folder path to platform-specific default: ${defaultCk3Path}`);
+        }
         
         const configsToUpdate = [
             'textGenerationApiConnectionConfig',
