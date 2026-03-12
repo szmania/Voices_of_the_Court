@@ -514,7 +514,7 @@ function renderCurrentTabList() {
     const highlightRegex = searchTerm ? new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi') : null;
 
     itemsToRender.forEach((item, index) => {
-        let originalIndex;
+        let originalIndex: number | undefined;
         if (activeTab === 'conversations') {
             originalIndex = filteredSummaries.indexOf(item);
         } else if (activeTab === 'letters') {
@@ -647,7 +647,9 @@ function renderCurrentTabList() {
                 `;
             }
             
-            summaryItem.dataset.originalIndex = originalIndex.toString();
+            if (originalIndex !== undefined) {
+                summaryItem.dataset.originalIndex = originalIndex.toString();
+            }
             summaryItem.addEventListener('click', (e) => {
                 const index = parseInt((e.currentTarget as HTMLElement).dataset.originalIndex!);
                 selectSummary(index);
@@ -677,7 +679,7 @@ function selectSummary(index: number) {
     
     let item: any;
     let characterId: string;
-    let filePath: string;
+    let filePath: string = '';
     
     if (activeTab === 'conversations') {
         if (index < 0 || index >= filteredSummaries.length) return;
@@ -1094,7 +1096,8 @@ function enterEditMode(index: number) {
 function saveInPlaceEdit() {
     if (editingSummaryIndex < 0) return;
     
-    let item: any, originalIndex: number;
+    let item: any = null;
+    let originalIndex: number = -1;
     if (activeTab === 'conversations') {
         if (editingSummaryIndex >= filteredSummaries.length) return;
         item = filteredSummaries[editingSummaryIndex];
