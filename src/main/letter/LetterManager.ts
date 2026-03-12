@@ -226,7 +226,7 @@ export class LetterManager {
     
         const letterFilePath = path.join(runFolderPath, "letters.txt");
     
-        const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
         
         const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
 remove_global_variable ?= votc_${letterId}
