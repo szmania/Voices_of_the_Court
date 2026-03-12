@@ -226,7 +226,7 @@ export class LetterManager {
     
         const letterFilePath = path.join(runFolderPath, "letters.txt");
     
-        const escapedReply = replyContent.replace(/"/g, '\\"');
+        const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
         
         const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
 remove_global_variable ?= votc_${letterId}
@@ -249,7 +249,7 @@ set_global_variable = {
 }
 trigger_event = message_event.362`;
     
-        fs.writeFileSync(letterFilePath, gameCommand, 'utf8');
+        fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
     }
 
@@ -267,7 +267,7 @@ trigger_event = message_event.362`;
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
     
         if (fs.existsSync(letterFilePath)) {
-          fs.writeFileSync(letterFilePath, "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
+          fs.writeFileSync(letterFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
           console.log("Cleared letters.txt file");
         } else {
           console.log("letters.txt file does not exist, nothing to clear");

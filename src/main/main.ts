@@ -861,7 +861,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         if (!replyLetter) {
-            console.error('Failed to generate letter reply');
+            console.error(`Failed to generate a reply for letter ${latestLetter.id}. The LLM may have returned an empty response.`);
             return;
         }
 
@@ -873,7 +873,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         };
 
         storedLetters.set(latestLetter.id, storedLetter);
-        console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}.`);
+        console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}. Current day: ${currentTotalDays}`);
 
         // Diary entry for AI receiving a letter and replying
         if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
