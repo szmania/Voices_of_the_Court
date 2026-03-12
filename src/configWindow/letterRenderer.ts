@@ -394,7 +394,7 @@ function renderLetterContent(letter: Letter) {
     }
 }
 
-async function loadPlayers() {
+async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string) {
     loader.style.display = 'block';
     try {
         const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
@@ -417,8 +417,14 @@ async function loadPlayers() {
             playerSelect.appendChild(option);
         });
 
+        // Restore previous selection if it exists, otherwise default to the first player
+        const playerExists = players.some((p: { id: string; }) => p.id === currentPlayerId);
+        if (currentPlayerId && playerExists) {
+            playerSelect.value = currentPlayerId;
+        }
+        
         selectedPlayerId = playerSelect.value;
-        await loadCharacters(selectedPlayerId);
+        await loadCharacters(selectedPlayerId, currentCharacterId);
         await loadLetters(selectedPlayerId);
     } catch (error) {
         console.error("Error loading players:", error);
@@ -427,7 +433,7 @@ async function loadPlayers() {
     }
 }
 
-async function loadCharacters(playerId: string) {
+async function loadCharacters(playerId: string, currentCharacterId?: string) {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const characters = await ipcRenderer.invoke('get-corresponded-characters', playerId);
 
@@ -446,8 +452,14 @@ async function loadCharacters(playerId: string) {
         characterSelect.appendChild(option);
     });
 
-    selectedCharacterId = 'all';
-    characterSelect.value = 'all';
+    // Restore previous selection if it exists, otherwise default to 'all'
+    const characterExists = characters.some((c: { id: string; }) => c.id === currentCharacterId);
+    if (currentCharacterId && characterExists) {
+        characterSelect.value = currentCharacterId;
+    } else {
+        characterSelect.value = 'all';
+    }
+    selectedCharacterId = characterSelect.value;
 }
 
 async function loadLetters(playerId: string) {
@@ -512,9 +524,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     refreshBtn.addEventListener('click', async () => {
         loader.style.display = 'block';
+        const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
+        const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
+        const currentPlayerId = playerSelect.value;
+        const currentCharacterId = characterSelect.value;
+
         try {
             await ipcRenderer.invoke('import-letters-from-log');
-            await loadPlayers();
+            await loadPlayers(currentPlayerId, currentCharacterId);
         } catch (error) {
             console.error("Error during manual letter import and refresh:", error);
         } finally {
@@ -524,7 +541,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
-        await loadCharacters(selectedPlayerId);
+        // When player changes, reset character to 'all'
+        await loadCharacters(selectedPlayerId, 'all');
         await loadLetters(selectedPlayerId);
     });
 
