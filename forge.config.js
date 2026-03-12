@@ -2,6 +2,7 @@
 const path = require('path');
 
 module.exports = {
+  outDir: 'C:/tmp',
   packagerConfig: {
     icon: './build/icons/icon', // Electron Forge will automatically use .ico for Windows and .icns for Mac
     //"asar":true
@@ -34,7 +35,7 @@ module.exports = {
     },
   ],
   hooks: {
-    
+
 
   },
   publishers: [

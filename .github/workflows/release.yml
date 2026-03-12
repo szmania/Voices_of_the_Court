@@ -1,6 +1,7 @@
 name: Publish Electron App
 
 on:
+  workflow_dispatch:  # 👈 manual trigger
   push:
     tags:
       - 'v*.*.*'
@@ -8,6 +9,7 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
+    environment: prod
 
     strategy:
       matrix:
