@@ -1549,6 +1549,66 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     ipcRenderer.send('chat-window-ready');
 });
 
+ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposedActions: ActionResponse[]) => {
+    const messages = chatMessages.querySelectorAll('.message');
+    if (messageIndex < messages.length) {
+        const messageDiv = messages[messageIndex];
+
+        const approvalContainer = document.createElement('div');
+        approvalContainer.classList.add('action-approval-container');
+
+        // @ts-ignore
+        const lm = window.LocalizationManager;
+        const acceptText = (lm ? lm.getNestedTranslation('chat.action_approve') : null) || 'Accept';
+        const declineText = (lm ? lm.getNestedTranslation('chat.action_decline') : null) || 'Decline';
+
+        proposedActions.forEach(action => {
+            const actionPrompt = document.createElement('div');
+            actionPrompt.classList.add('action-prompt');
+            if (action.chatMessageClass) {
+                actionPrompt.classList.add(action.chatMessageClass);
+            }
+
+            const text = document.createElement('span');
+            text.textContent = action.chatMessage;
+
+            const buttons = document.createElement('div');
+            buttons.classList.add('action-buttons');
+
+            const approveButton = document.createElement('button');
+            approveButton.textContent = acceptText;
+            approveButton.onclick = () => {
+                ipcRenderer.send('execute-approved-action', messageIndex, action.actionName);
+                actionPrompt.remove();
+                // If no more prompts, remove the container
+                if (approvalContainer.childElementCount === 0) {
+                    approvalContainer.remove();
+                }
+            };
+
+            const declineButton = document.createElement('button');
+            declineButton.textContent = declineText;
+            declineButton.onclick = () => {
+                actionPrompt.remove();
+                // If no more prompts, remove the container
+                if (approvalContainer.childElementCount === 0) {
+                    approvalContainer.remove();
+                }
+            };
+
+            buttons.appendChild(approveButton);
+            buttons.appendChild(declineButton);
+            actionPrompt.appendChild(text);
+            actionPrompt.appendChild(buttons);
+            approvalContainer.appendChild(actionPrompt);
+        });
+
+        // Append after the message content, but inside the message div
+        messageDiv.appendChild(approvalContainer);
+        approvalContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean, isAiToAi: boolean = false)=>{
     await displayMessage(message);
     console.log(`wait: ${waitForActions}, isAiToAi: ${isAiToAi}`)

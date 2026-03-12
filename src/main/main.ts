@@ -1105,6 +1105,13 @@ ipcMain.on('resume-conversation', () => {
     }
 });
 
+ipcMain.on('execute-approved-action', (event, messageIndex: number, actionName: string) => {
+    console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
+    if (conversation) {
+        conversation.executeApprovedAction(messageIndex, actionName);
+    }
+});
+
 ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
     if (conversation) {

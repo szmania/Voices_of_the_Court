@@ -1232,3 +1232,59 @@ html{
 .queue-status .next-up {
     color: #a18c61;
 }
+
+/* Action Approval Styles */
+.action-approval-container {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(40, 40, 40, 0.7);
+    border-left: 3px solid #ffc107;
+    border-radius: 3px;
+}
+
+.action-prompt {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #444;
+}
+
+.action-prompt:last-child {
+    border-bottom: none;
+}
+
+.action-prompt span {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.action-buttons button {
+    margin-left: 5px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'Gitan', sans-serif;
+    transition: all 0.2s;
+}
+
+.action-buttons button:first-child {
+    background-color: #1e5a1e; /* Dark Green */
+    border: 1px solid #28a745;
+    color: white;
+}
+
+.action-buttons button:first-child:hover {
+    background-color: #218838;
+}
+
+.action-buttons button:last-child {
+    background-color: #5a1e1e; /* Dark Red */
+    border: 1px solid #dc3545;
+    color: white;
+}
+
+.action-buttons button:last-child:hover {
+    background-color: #c82333;
+}
