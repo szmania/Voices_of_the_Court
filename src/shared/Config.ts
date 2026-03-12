@@ -52,6 +52,7 @@ export class Config{
     actionsUseTextGenApi!: boolean;
 
     actionsEnableAll!: boolean;
+    manualActionApproval!: boolean;
     narrativeEnable!: boolean;
     disabledActions!: string[];
     
