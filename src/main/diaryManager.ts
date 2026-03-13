@@ -32,7 +32,38 @@ export async function readDiarySummaries(playerId: string, characterId: string):
         return [];
     }
     const fileContent = await fs.promises.readFile(summaryPath, 'utf-8');
-    return JSON.parse(fileContent) as DiarySummary[];
+    try {
+        const data = JSON.parse(fileContent);
+
+        if (Array.isArray(data)) {
+            // New format (array of summaries). Ensure all items are valid.
+            return data.map(s => {
+                if (typeof s === 'object' && s !== null && s.summary && s.date) {
+                    return {
+                        id: s.id || randomUUID(),
+                        diaryEntryId: s.diaryEntryId || '',
+                        date: s.date,
+                        summary: s.summary,
+                        characterId: characterId
+                    };
+                }
+                return null;
+            }).filter((s): s is DiarySummary => s !== null);
+        } else if (typeof data === 'object' && data !== null && data.summary && data.date) {
+            // Old format (single summary object).
+            return [{
+                id: randomUUID(),
+                diaryEntryId: '',
+                date: data.date,
+                summary: data.summary,
+                characterId: characterId
+            }];
+        }
+    } catch (error) {
+        console.error(`Error parsing diary summary file ${summaryPath}:`, error);
+    }
+
+    return [];
 }
 
 export async function saveDiarySummaries(playerId: string, characterId: string, summaries: DiarySummary[]): Promise<void> {
