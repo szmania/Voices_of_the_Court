@@ -170,7 +170,21 @@ function renderStatusSummary() {
     const counts = {
         total: allLetters.length,
         generating: allLetters.filter(l => l.status === 'generating').length,
-        pending: allLetters.filter(l => l.status === 'pending').length,
+        pending: allLetters.filter(l => {
+            // AI letter pending delivery
+            if (!l.isPlayerSender && l.status === 'pending') {
+                return true;
+            }
+            // Player letter pending non-overdue reply
+            if (l.isPlayerSender) {
+                const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                if (hasReply) return false;
+                if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
+                const expectedReplyDay = l.totalDays + (l.delay * 2);
+                return expectedReplyDay >= currentGameDay;
+            }
+            return false;
+        }).length,
         reply_overdue: allLetters.filter(l => {
             if (!l.isPlayerSender) return false;
             const hasReply = allLetters.some(reply => reply.replyToId === l.id);
@@ -339,7 +353,23 @@ function renderLetters() {
                 const expectedReplyDay = l.totalDays + (l.delay * 2);
                 return expectedReplyDay < currentGameDay;
             });
-        } else {
+        } else if (statusFilter === 'pending') {
+            characterFilteredLetters = characterFilteredLetters.filter(l => {
+                // AI-sent letters pending delivery
+                if (!l.isPlayerSender && l.status === 'pending') {
+                    return true;
+                }
+                // Player-sent letters awaiting a reply that is NOT overdue
+                if (l.isPlayerSender) {
+                    const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                    if (hasReply) return false;
+                    if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
+                    const expectedReplyDay = l.totalDays + (l.delay * 2);
+                    return expectedReplyDay >= currentGameDay;
+                }
+                return false;
+            });
+        } else { // 'generating', 'failed'
             characterFilteredLetters = characterFilteredLetters.filter(l => l.status === statusFilter);
         }
     }
