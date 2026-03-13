@@ -151,8 +151,8 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
                     ActionEffectWriter.appendEffect(
                         conv.runFileManager,
                         conv.gameData,
-                        conv.gameData.playerID,
-                        conv.gameData.aiID,
+                        initiatorId,
+                        targetId,
                         effectBody
                     );
                 }catch(e){
@@ -214,8 +214,8 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             ActionEffectWriter.appendEffect(
                 conv.runFileManager,
                 conv.gameData,
-                conv.gameData.playerID,
-                conv.gameData.aiID,
+                initiatorId,
+                targetId,
                 effectBody
             );
         }catch(e){
