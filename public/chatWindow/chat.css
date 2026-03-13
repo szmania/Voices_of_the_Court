@@ -136,9 +136,12 @@
 }
 
 #character-target-wrapper::after {
-    top: 100%;
+    top: 50%;
+    left: 100%;
     bottom: auto;
-    margin-top: 5px;
+    transform: translateY(-50%);
+    margin-top: 0;
+    margin-left: 10px;
 }
 
 .search-icon:hover, .reset-button:hover {
