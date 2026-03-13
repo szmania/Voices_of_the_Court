@@ -144,7 +144,7 @@
     "auto_send_tooltip": "When enabled, selecting a suggestion will automatically send the message without clicking the send button.",
     "show_tokenizer": "show tokenizer display",
     "show_tokenizer_tooltip": "When enabled, shows a real-time token count display in the chat window.",
-    "manual_approval": "Manual Action Approval",
+    "manual_approval": "manual action approval",
     "manual_approval_tooltip": "If enabled, actions triggered by the AI must be manually approved by the user in the chat window before they are executed.",
     "summaries_depth": "Summaries insert depth",
     "memories_depth": "Memories insert depth",

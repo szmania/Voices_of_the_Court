@@ -67,7 +67,7 @@
 	"summarizationUseTextGenApi": true,
 	"actionsUseTextGenApi": true,
 	"actionsEnableAll": true,
-	"manualActionApproval": false,
+	"manualActionApproval": true,
 	"showPreviousConversations": true,
 	"disableHistoricalConversations": false,
 	"narrativeEnable": true,
