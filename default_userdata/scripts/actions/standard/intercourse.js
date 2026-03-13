@@ -5,21 +5,23 @@ module.exports = {
     signature: "intercourse",
     args: [],
     description: {
-        en: `Executed when {{aiName}} and {{playerName}} have sexual intercourse. Can be consensual or forced.`,
-        zh: `当{{aiName}}和{{playerName}}发生性关系时执行，仅在性关系结束后执行。行为可以是双方自愿的或强奸。`,
-        ru: `Выполняется, когда {{aiName}} и {{playerName}} вступают в половую связь. Может быть по обоюдному согласию или принудительно.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} ont des rapports sexuels. Peut être consensuel ou forcé.`,
-        es: `Ejecutado cuando {{aiName}} y {{playerName}} tienen relaciones sexuales. Puede ser consensual o forzado.`,
-        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} Geschlechtsverkehr haben. Kann einvernehmlich oder gewaltsam sein.`,
-        ja: `{{aiName}}と{{playerName}}が性的な交渉を持ったときに実行されます。合意の上か強制的かもしれません。`,
-        ko: `{{aiName}}와 {{playerName}}가 성관계를 가질 때 실행됩니다. 합의하거나 강제일 수 있습니다.`,
-        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} odbywają stosunek seksualny. Może być dobrowolny lub wymuszony.`
+        en: `Executed when two characters have sexual intercourse. Can be consensual or forced.`,
+        zh: `当两个角色发生性关系时执行，仅在性关系结束后执行。行为可以是双方自愿的或强奸。`,
+        ru: `Выполняется, когда два персонажа вступают в половую связь. Может быть по обоюдному согласию или принудительно.`,
+        fr: `Exécuté lorsque deux personnages ont des rapports sexuels. Peut être consensuel ou forcé.`,
+        es: `Ejecutado cuando dos personajes tienen relaciones sexuales. Puede ser consensual o forzado.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere Geschlechtsverkehr haben. Kann einvernehmlich oder gewaltsam sein.`,
+        ja: `二人のキャラクターが性的な交渉を持ったときに実行されます。合意の上か強制的かもしれません。`,
+        ko: `두 캐릭터가 성관계를 가질 때 실행됩니다. 합의하거나 강제일 수 있습니다.`,
+        pl: `Wykonywane, gdy dwie postacie odbywają stosunek seksualny. Może być dobrowolny lub wymuszony.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
+    check: (gameData, initiatorId, targetId) => {
         return true;
     },
 
@@ -27,8 +29,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`
         global_var:votcce_action_source = {
             had_sex_with_effect = {
@@ -40,15 +44,15 @@ module.exports = {
     },
     chatMessage: (args) =>{
         return {
-            en: `You had intercourse with {{aiName}}.`,
-            zh: `你与{{aiName}}性交`,
-            ru: `Вы вступили в половую связь с {{aiName}}.`,
-            fr: `Vous avez eu des rapports sexuels avec {{aiName}}.`,
-            es: `Tuviste relaciones sexuales con {{aiName}}.`,
-            de: `Du hattest Geschlechtsverkehr mit {{aiName}}.`,
-            ja: `あなたは{{aiName}}と性的な交渉を持ちました。`,
-            ko: `당신은 {{aiName}}와 성관계를 가졌습니다.`,
-            pl: `Odbyłeś stosunek seksualny z {{aiName}}.`
+            en: `{{character1Name}} and {{character2Name}} had intercourse.`,
+            zh: `{{character1Name}}和{{character2Name}}性交`,
+            ru: `{{character1Name}} и {{character2Name}} вступили в половую связь.`,
+            fr: `{{character1Name}} et {{character2Name}} ont eu des rapports sexuels.`,
+            es: `{{character1Name}} y {{character2Name}} tuvieron relaciones sexuales.`,
+            de: `{{character1Name}} und {{character2Name}} hatten Geschlechtsverkehr.`,
+            ja: `{{character1Name}}と{{character2Name}}は性的な交渉を持ちました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 성관계를 가졌습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} odbyli stosunek seksualny.`
         }
     },
     chatMessageClass: "neutral-action-message"
