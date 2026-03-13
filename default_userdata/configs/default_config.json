@@ -72,8 +72,8 @@
 	"disableHistoricalConversations": false,
 	"narrativeEnable": true,
 	"disabledActions": [
-		"aiGetsWounded",
-		"undressAi",
+		"woundCharacter",
+		"undressCharacter",
 		"intercourse"
 	],
 	"actionProbability": 0.3,

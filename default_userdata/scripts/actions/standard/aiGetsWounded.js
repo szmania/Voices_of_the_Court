@@ -2,18 +2,18 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiGetsWounded",
+    signature: "woundCharacter",
     args: [],
     description: {
-        en: `Executed when {{aiName}} is seriously wounded.`,
-        zh: `当{{aiName}}受重伤时执行。`,
-        ru: `Выполняется, когда {{aiName}} получает серьезное ранение.`,
-        fr: `Exécuté lorsque {{aiName}} est gravement blessé.`,
-        es: `Ejecutado cuando {{aiName}} está gravemente herido.`,
-        de: `Wird ausgeführt, wenn {{aiName}} schwer verwundet ist.`,
-        ja: `{{aiName}}が重傷を負ったときに実行されます。`,
-        ko: `{{aiName}}가 중상을 입었을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} jest ciężko ranny.`
+        en: `Executed when a character is seriously wounded.`,
+        zh: `当一个角色受重伤时执行。`,
+        ru: `Выполняется, когда персонаж получает серьезное ранение.`,
+        fr: `Exécuté lorsqu'un personnage est gravement blessé.`,
+        es: `Ejecutado cuando un personaje está gravemente herido.`,
+        de: `Wird ausgeführt, wenn ein Charakter schwer verwundet ist.`,
+        ja: `キャラクターが重傷を負ったときに実行されます。`,
+        ko: `캐릭터가 중상을 입었을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy postać jest ciężko ranna.`
     },
     creator: "Durond",
     /**

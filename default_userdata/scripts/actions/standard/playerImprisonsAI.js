@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "playerImprisonsAI",
+    signature: "imprisonCharacter",
     args: [
         {
             name: "prisonType",
@@ -26,15 +26,15 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{aiName}} is explicitly imprisoned by {{playerName}}.`,
-        zh: `当{{aiName}}被{{playerName}}明确监禁时执行`,
-        ru: `Выполняется, когда {{aiName}} явно заключен в тюрьму {{playerName}}.`,
-        fr: `Exécuté lorsque {{aiName}} est explicitement emprisonné par {{playerName}}.`,
-        es: `Ejecutado cuando {{aiName}} es explícitamente encarcelado por {{playerName}}.`,
-        de: `Wird ausgeführt, wenn {{aiName}} ausdrücklich von {{playerName}} eingekerkert wird.`,
-        ja: `{{aiName}}が{{playerName}}によって明示的に投獄されたときに実行されます。`,
-        ko: `{{aiName}}가 {{playerName}}에 의해 명시적으로 투옥되었을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} jest wyraźnie uwięziony przez {{playerName}}.`
+        en: `Executed when a character is imprisoned by another.`,
+        zh: `当一个角色被另一个角色监禁时执行。`,
+        ru: `Выполняется, когда один персонаж заключен в тюрьму другим.`,
+        fr: `Exécuté lorsqu'un personnage est emprisonné par un autre.`,
+        es: `Ejecutado cuando un personaje es encarcelado por otro.`,
+        de: `Wird ausgeführt, wenn ein Charakter von einem anderen inhaftiert wird.`,
+        ja: `あるキャラクターが別のキャラクターによって投獄されたときに実行されます。`,
+        ko: `한 캐릭터가 다른 캐릭터에 의해 투옥되었을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy jedna postać zostaje uwięziona przez inną.`
     },
     
     check: (gameData) => {

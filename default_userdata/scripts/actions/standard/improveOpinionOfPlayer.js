@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "improveOpinionOfPlayer",
+    signature: "improveOpinion",
     args: [ 
         {
             name: "opinion",

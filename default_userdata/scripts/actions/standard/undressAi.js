@@ -2,18 +2,18 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "undressAi",
+    signature: "undressCharacter",
     args: [],
     description: {
-        en: `Executed when {{aiName}} undresses, either willingly or forcefully.`,
-        zh: `当{{aiName}}自愿或被迫脱去衣服时执行。`,
-        ru: `Выполняется, когда {{aiName}} раздевается, добровольно или принудительно.`,
-        fr: `Exécuté lorsque {{aiName}} se déshabille, de plein gré ou par la force.`,
-        es: `Ejecutado cuando {{aiName}} se desviste, voluntariamente o por la fuerza.`,
-        de: `Wird ausgeführt, wenn {{aiName}} sich auszieht, freiwillig oder gewaltsam.`,
-        ja: `{{aiName}}が服を脱いだときに実行されます。自発的または強制的に。`,
-        ko: `{{aiName}}가 옷을 벗을 때 실행됩니다. 자발적이거나 강제로.`,
-        pl: `Wykonywane, gdy {{aiName}} rozbiera się, dobrowolnie lub siłą.`,
+        en: `Executed when a character undresses, either willingly or forcefully.`,
+        zh: `当一个角色自愿或被迫脱去衣服时执行。`,
+        ru: `Выполняется, когда персонаж раздевается, добровольно или принудительно.`,
+        fr: `Exécuté lorsqu'un personnage se déshabille, de plein gré ou par la force.`,
+        es: `Ejecutado cuando un personaje se desviste, voluntariamente o por la fuerza.`,
+        de: `Wird ausgeführt, wenn ein Charakter sich auszieht, freiwillig oder gewaltsam.`,
+        ja: `キャラクターが服を脱いだときに実行されます。自発的または強制的に。`,
+        ko: `캐릭터가 옷을 벗을 때 실행됩니다. 자발적이거나 강제로.`,
+        pl: `Wykonywane, gdy postać rozbiera się, dobrowolnie lub siłą.`,
     },
 
     /**
