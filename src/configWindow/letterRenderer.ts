@@ -71,7 +71,7 @@ function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expec
     if (daysDifference < 0) {
         return {
             // @ts-ignore
-            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedDate)})`,
+            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
             overdue: true,
             expectedDate: expectedReplyDate
         };
