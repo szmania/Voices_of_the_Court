@@ -27,7 +27,19 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Publish application
+    - name: Build/package application
+      run: npm run make
+
+    - name: Create Release and Upload Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          out/make/**/*.zip
+          out/make/**/*.dmg
+          out/make/**/*.exe
+          out/make/**/*.nupkg
+          out/make/**/RELEASES
+        prerelease: true
       env:
         GITHUB_TOKEN: ${{ secrets.SZMANIA_GITHUB_PAT }}
-      run: npm run publish
