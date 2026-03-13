@@ -49,12 +49,12 @@ export async function readDiarySummaries(playerId: string, characterId: string):
                 }
                 return acc;
             }, []);
-        } else if (typeof data === 'object' && data !== null && data.summary && data.date) {
-            // Old format (single summary object).
+        } else if (typeof data === 'object' && data !== null && data.summary) {
+            // Old format (single summary object), possibly without a date.
             return [{
                 id: randomUUID(),
                 diaryEntryId: '',
-                date: data.date,
+                date: data.date || '', // Provide empty string if date is missing
                 summary: data.summary,
                 characterId: characterId
             }];
