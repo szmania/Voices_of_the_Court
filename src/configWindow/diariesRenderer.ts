@@ -487,12 +487,14 @@ function addNewDiaryEntry() {
     }
     const latestDate = filteredDiaries.length > 0 ? filteredDiaries[0].date : new Date().toISOString().split('T')[0];
     const newEntry = {
+        id: window.crypto.randomUUID(),
         date: latestDate,
         content: 'New diary entry...',
         character_id: selectedCharacterId,
         location: '',
         scene: '',
         participants: [],
+        creationTimestamp: new Date(),
         _isNew: true
     };
     allDiaryEntries.unshift(newEntry);

@@ -973,6 +973,36 @@ mark.current-highlight {
 }
 
 /* Summary Manager Styles */
+#summary-manager-container .tab-navigation {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #5a4a35;
+    padding-bottom: 10px;
+}
+
+#summary-manager-container .tab-button {
+    background-color: #2d2d2d;
+    color: #b8860b;
+    border: 1px solid #5a4a35;
+    border-bottom: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'Gitan', sans-serif;
+    transition: all 0.2s;
+}
+
+#summary-manager-container .tab-button:hover {
+    background-color: #3d2e1e;
+    color: #ffd700;
+}
+
+#summary-manager-container .tab-button.active {
+    background-color: #3d2e1e;
+    color: #ffd700;
+    border-bottom: 3px solid #cca43b;
+}
+
 #summary-manager-container .header-controls {
     display: flex;
     gap: 10px;

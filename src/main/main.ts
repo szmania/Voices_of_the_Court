@@ -17,12 +17,13 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
 import path from 'path';
 import fs from 'fs';
+import { randomUUID } from "crypto";
 import { checkUserData } from "./userDataCheck.js";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow.js';
@@ -851,10 +852,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, playerCharacter, latestLetter.content, 'sent');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(playerCharacter.id), newEntry);
-                    const allEntries = await readDiaryFile(String(gameData.playerID), String(playerCharacter.id));
-                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(String(gameData.playerID), String(playerCharacter.id), summary);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
+                    if (summaryResult) {
+                        const summaries = await readDiarySummaries(String(gameData.playerID), String(playerCharacter.id));
+                        summaries.unshift({ id: randomUUID(), ...summaryResult });
+                        await saveDiarySummaries(String(gameData.playerID), String(playerCharacter.id), summaries);
                     }
                 }
             }
@@ -882,10 +884,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, replyLetter.content, 'received');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
-                    const allEntries = await readDiaryFile(String(gameData.playerID), String(aiCharacter.id));
-                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(String(gameData.playerID), String(aiCharacter.id), summary);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
+                    if (summaryResult) {
+                        const summaries = await readDiarySummaries(String(gameData.playerID), String(aiCharacter.id));
+                        summaries.unshift({ id: randomUUID(), ...summaryResult });
+                        await saveDiarySummaries(String(gameData.playerID), String(aiCharacter.id), summaries);
                     }
                 }
             }
@@ -1219,8 +1222,38 @@ ipcMain.handle('get-summary-ids', async () => {
 ipcMain.handle('get-all-summary-player-ids', async () => {
     console.log('IPC: Received get-all-summary-player-ids event.');
     try {
-        const ids = await getAllPlayerIds(userDataPath);
-        return { success: true, ids: ids };
+        // Get player IDs from all three sources and merge them
+        const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+        const letterManager = LetterManager.getInstance();
+        const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
+        
+        // Get diary player IDs
+        const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+        
+        // Merge all player IDs, ensuring uniqueness
+        const allPlayerIds = new Map<string, { id: string, name: string }>();
+        
+        // Add conversation player IDs
+        conversationPlayerIds.forEach(player => {
+            allPlayerIds.set(player.id, player);
+        });
+        
+        // Add letter player IDs
+        letterPlayerIds.forEach(player => {
+            if (!allPlayerIds.has(player.id)) {
+                allPlayerIds.set(player.id, player);
+            }
+        });
+        
+        // Add diary player IDs
+        diaryPlayerIds.forEach(player => {
+            if (!allPlayerIds.has(player.id)) {
+                allPlayerIds.set(player.id, player);
+            }
+        });
+        
+        const mergedPlayerIds = Array.from(allPlayerIds.values());
+        return { success: true, ids: mergedPlayerIds };
     } catch (error) {
         console.error('Error getting all player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1265,6 +1298,113 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+// Letter Summary IPC handlers
+ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
+    try {
+        const letterManager = LetterManager.getInstance();
+        const summaries = letterManager.getAllLetterSummaries(playerId);
+        return summaries;
+    } catch (error) {
+        console.error('Error getting letter summaries for player:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summariesData: any[]) => {
+    console.log(`IPC: Received save-all-letter-summaries event for player: ${playerId}`);
+    try {
+        const letterManager = LetterManager.getInstance();
+        const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+
+        const summariesByCharacter: { [key: string]: any[] } = {};
+        summariesData.forEach(summary => {
+            const characterId = summary.characterId;
+            if (!summariesByCharacter[characterId]) {
+                summariesByCharacter[characterId] = [];
+            }
+            summariesByCharacter[characterId].push(summary);
+            existingCharIds.delete(characterId);
+        });
+        
+        for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
+            summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const cleanSummaries = summaries.map(({ characterId, characterName, ...rest }) => rest);
+            letterManager.saveLetterSummaries(playerId, characterId, cleanSummaries);
+        }
+
+        // Delete summaries for characters that were removed
+        for (const charIdToDelete of existingCharIds) {
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            if (fs.existsSync(summaryPath)) {
+                fs.unlinkSync(summaryPath);
+                console.log(`Deleted letter summary for character ${charIdToDelete}`);
+            }
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving letter summaries:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+// Diary Summary IPC handlers
+ipcMain.handle('get-all-diaries-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-diaries-for-player event for player: ${playerId}`);
+    try {
+        const summaries = await getAllDiarySummaries(playerId);
+        summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return summaries;
+    } catch (error) {
+        console.error('Error getting diary summaries for player:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summariesData: any[]) => {
+    console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
+    try {
+        const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+
+        const summariesByCharacter: { [key: string]: any[] } = {};
+        summariesData.forEach(summary => {
+            const characterId = summary.characterId;
+            if (!summariesByCharacter[characterId]) {
+                summariesByCharacter[characterId] = [];
+            }
+            summariesByCharacter[characterId].push(summary);
+            existingCharIds.delete(characterId);
+        });
+        
+        for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
+            summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const cleanSummaries = summaries.map(({ characterName, ...rest }) => rest);
+            await saveDiarySummaries(playerId, characterId, cleanSummaries);
+        }
+
+        // Delete summaries for characters that were removed
+        for (const charIdToDelete of existingCharIds) {
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            if (fs.existsSync(summaryPath)) {
+                fs.unlinkSync(summaryPath);
+                console.log(`Deleted diary summary for character ${charIdToDelete}`);
+            }
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving diary summaries:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
@@ -1419,28 +1559,7 @@ ipcMain.handle('import-letters-from-log', async () => {
 ipcMain.handle('get-letter-players', async () => {
     console.log('IPC: Received get-letter-players event.');
     const letterManager = LetterManager.getInstance();
-    const playerIds = letterManager.getAllPlayerIdsWithLetters();
-    const playerInfo = new Map<string, string>();
-
-    for (const pId of playerIds) {
-        const lettersForPlayer = letterManager.getAllLetters(pId);
-        if (lettersForPlayer.length > 0) {
-            let playerName: string | undefined;
-            // Try to find the player's name from any letter
-            for (const letter of lettersForPlayer) {
-                if (letter.sender && String(letter.sender.id) === pId && letter.sender.fullName) {
-                    playerName = letter.sender.fullName;
-                    break;
-                }
-                if (letter.recipient && String(letter.recipient.id) === pId && letter.recipient.fullName) {
-                    playerName = letter.recipient.fullName;
-                    break;
-                }
-            }
-            playerInfo.set(pId, playerName || `Player ${pId}`);
-        }
-    }
-    return Array.from(playerInfo.entries()).map(([id, name]) => ({ id, name }));
+    return letterManager.getAllPlayerIdsWithLetters();
 });
 
 ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {

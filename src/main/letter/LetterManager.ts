@@ -81,8 +81,8 @@ export class LetterManager {
         return allLetters;
     }
 
-    public getAllPlayerIdsWithLetters(): string[] {
-        const playerFolderPath = this.letterHistoryPath;
+    public getAllPlayerIdsWithLetters(): { id: string, name: string }[] {
+        const playerFolderPath = this.letterSummaryPath;
         if (!fs.existsSync(playerFolderPath)) {
             return [];
         }
@@ -90,20 +90,23 @@ export class LetterManager {
         const playerDirs = fs.readdirSync(playerFolderPath, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => {
-                return {
-                    name: dirent.name,
-                    time: fs.statSync(path.join(playerFolderPath, dirent.name)).mtimeMs,
-                };
+                const playerId = dirent.name;
+                const mapPath = path.join(this.letterSummaryPath, '..', 'conversation_summaries', playerId, '_character_map.json');
+                let playerName = `Player ${playerId}`;
+                if (fs.existsSync(mapPath)) {
+                    try {
+                        const mapData = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+                        if (mapData[playerId]) {
+                            playerName = mapData[playerId];
+                        }
+                    } catch (e) {
+                        console.error(`Error reading character map for player ${playerId}:`, e);
+                    }
+                }
+                return { id: playerId, name: playerName };
             });
 
-        if (playerDirs.length === 0) {
-            return [];
-        }
-
-        // Sort by most recent modification time
-        playerDirs.sort((a, b) => b.time - a.time);
-        
-        return playerDirs.map(dir => dir.name);
+        return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
@@ -193,6 +196,39 @@ export class LetterManager {
         } catch (error) {
             console.error(`Error saving letter summaries for player ${playerId}, character ${characterId}:`, error);
         }
+    }
+
+    public getAllLetterSummaries(playerId: string): (LetterSummary & { characterId: string, characterName: string })[] {
+        const playerFolderPath = path.join(this.letterSummaryPath, playerId);
+        if (!fs.existsSync(playerFolderPath)) {
+            return [];
+        }
+
+        const characterMapPath = path.join(this.letterHistoryPath, '..', 'conversation_summaries', playerId, '_character_map.json');
+        let characterMap: {[key: string]: string} = {};
+        if (fs.existsSync(characterMapPath)) {
+            try {
+                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+            } catch (e) {
+                console.error('Error reading character map for letters:', e);
+            }
+        }
+
+        let allSummaries: (LetterSummary & { characterId: string, characterName: string })[] = [];
+        const files = fs.readdirSync(playerFolderPath);
+
+        for (const file of files) {
+            if (file.endsWith('.json') && file !== '_character_map.json') {
+                const characterId = file.replace('.json', '');
+                const summaries = this.getLetterSummaries(playerId, characterId);
+                const characterName = characterMap[characterId] || `Character ${characterId}`;
+                const summariesWithCharId = summaries.map(s => ({...s, characterId, characterName}));
+                allSummaries.push(...summariesWithCharId);
+            }
+        }
+
+        allSummaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return allSummaries;
     }
 
     public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string) {

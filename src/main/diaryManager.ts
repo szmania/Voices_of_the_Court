@@ -3,10 +3,12 @@
 import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
-import { DiaryEntry } from './ts/diary_interfaces';
+import { DiaryEntry, DiarySummary } from './ts/diary_interfaces';
+import { randomUUID } from 'crypto';
 
 const userDataPath = path.join(app.getPath('userData'), 'votc_data');
 const diariesDir = path.join(userDataPath, 'diary_history');
+const diarySummariesDir = path.join(userDataPath, 'diary_summaries');
 
 function getPlayerDiaryDir(playerId: string): string {
     return path.join(diariesDir, playerId);
@@ -16,25 +18,57 @@ function getDiaryFilePath(playerId: string, characterId: string): string {
     return path.join(getPlayerDiaryDir(playerId), `${characterId}.json`);
 }
 
-
-export async function readDiarySummary(playerId: string, characterId: string): Promise<string | null> {
-    const summaryPath = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId, `${characterId}.json`);
-    if (!fs.existsSync(summaryPath)) {
-        return null;
+function getDiarySummaryFilePath(playerId: string, characterId: string): string {
+    const playerSummaryDir = path.join(diarySummariesDir, playerId);
+    if (!fs.existsSync(playerSummaryDir)) {
+        fs.mkdirSync(playerSummaryDir, { recursive: true });
     }
-    const fileContent = await fs.promises.readFile(summaryPath, 'utf-8');
-    const summaryData = JSON.parse(fileContent);
-    return summaryData.summary || null;
+    return path.join(playerSummaryDir, `${characterId}.json`);
 }
 
-export async function saveDiarySummary(playerId: string, characterId: string, summary: string): Promise<void> {
-    const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
-    if (!fs.existsSync(summaryDir)) {
-        fs.mkdirSync(summaryDir, { recursive: true });
+export async function readDiarySummaries(playerId: string, characterId: string): Promise<DiarySummary[]> {
+    const summaryPath = getDiarySummaryFilePath(playerId, characterId);
+    if (!fs.existsSync(summaryPath)) {
+        return [];
     }
-    const summaryPath = path.join(summaryDir, `${characterId}.json`);
-    const summaryData = { summary: summary };
-    await fs.promises.writeFile(summaryPath, JSON.stringify(summaryData, null, '\t'));
+    const fileContent = await fs.promises.readFile(summaryPath, 'utf-8');
+    try {
+        const data = JSON.parse(fileContent);
+
+        if (Array.isArray(data)) {
+            // New format (array of summaries).
+            return data.reduce((acc: DiarySummary[], s: any) => {
+                if (typeof s === 'object' && s !== null && s.summary && typeof s.date !== 'undefined') {
+                    acc.push({
+                        id: s.id || randomUUID(),
+                        diaryEntryId: s.diaryEntryId || '',
+                        date: s.date,
+                        summary: s.summary,
+                        characterId: characterId
+                    });
+                }
+                return acc;
+            }, []);
+        } else if (typeof data === 'object' && data !== null && data.summary) {
+            // Old format (single summary object), possibly without a date.
+            return [{
+                id: randomUUID(),
+                diaryEntryId: '',
+                date: data.date || '', // Provide empty string if date is missing
+                summary: data.summary,
+                characterId: characterId
+            }];
+        }
+    } catch (error) {
+        console.error(`Error parsing diary summary file ${summaryPath}:`, error);
+    }
+
+    return [];
+}
+
+export async function saveDiarySummaries(playerId: string, characterId: string, summaries: DiarySummary[]): Promise<void> {
+    const summaryPath = getDiarySummaryFilePath(playerId, characterId);
+    await fs.promises.writeFile(summaryPath, JSON.stringify(summaries, null, '\t'));
 }
 
 export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playerId: string | null }> {
@@ -69,7 +103,7 @@ export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playe
 }
 
 export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
-    const diariesRootPath = path.join(userDataPath, 'diary_history');
+    const diariesRootPath = path.join(userDataPath, 'diary_summaries');
     if (!fs.existsSync(diariesRootPath)) {
         return [];
     }
@@ -77,7 +111,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
         .filter(dirent => dirent.isDirectory())
         .map(dirent => {
             const playerId = dirent.name;
-            const mapPath = path.join(diariesDir, playerId, '_character_map.json');
+            const mapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
             let playerName = `Player ${playerId}`;
             if (fs.existsSync(mapPath)) {
                 try {
@@ -169,4 +203,33 @@ export async function getCharacterMap(playerId: string): Promise<{ [key: string]
         }
     }
     return {};
+}
+
+export async function getAllDiarySummaries(playerId: string): Promise<(DiarySummary & { characterName: string })[]> {
+    const summaryDir = path.join(diarySummariesDir, playerId);
+    if (!fs.existsSync(summaryDir)) {
+        return [];
+    }
+
+    const characterMap = await getCharacterMap(playerId);
+    const summaryFiles = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+    const allSummaries: (DiarySummary & { characterName: string })[] = [];
+
+    for (const file of summaryFiles) {
+        const characterId = path.basename(file, '.json');
+        try {
+            const summaries = await readDiarySummaries(playerId, characterId);
+            const characterName = characterMap[characterId] || `Character ${characterId}`;
+            summaries.forEach(summary => {
+                allSummaries.push({
+                    ...summary,
+                    characterName: characterName
+                });
+            });
+        } catch (error) {
+            console.error(`Error reading diary summary file for character ${characterId}:`, error);
+        }
+    }
+    allSummaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return allSummaries;
 }
