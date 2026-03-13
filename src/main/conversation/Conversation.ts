@@ -1336,9 +1336,9 @@ ${character.fullName}的发言：`
                     
                     // Re-summarize the diary with the new entry
                     const allEntries = await readDiaryFile(this.gameData.playerID.toString(), character.id.toString());
-                    const summary = await this.diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(this.gameData.playerID.toString(), character.id.toString(), summary);
+                    const summaryResult = await this.diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    if (summaryResult) {
+                        await saveDiarySummary(this.gameData.playerID.toString(), character.id.toString(), summaryResult.summary, summaryResult.date);
                     }
                 }
             }
