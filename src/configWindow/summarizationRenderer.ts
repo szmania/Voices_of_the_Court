@@ -734,6 +734,8 @@ function addNewEntry() {
     } else if (activeTab === 'diaries') {
         // Create a mock diary summary
         const newDiarySummary = {
+            id: window.crypto.randomUUID(),
+            diaryEntryId: '', // No associated entry yet
             date: today,
             summary: 'New diary summary',
             characterId: characterId,

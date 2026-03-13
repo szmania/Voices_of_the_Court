@@ -17,12 +17,13 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary, getAllDiarySummaries } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
 import path from 'path';
 import fs from 'fs';
+import { randomUUID } from "crypto";
 import { checkUserData } from "./userDataCheck.js";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow.js';
@@ -851,10 +852,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, playerCharacter, latestLetter.content, 'sent');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(playerCharacter.id), newEntry);
-                    const allEntries = await readDiaryFile(String(gameData.playerID), String(playerCharacter.id));
-                    const summaryResult = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
                     if (summaryResult) {
-                        await saveDiarySummary(String(gameData.playerID), String(playerCharacter.id), summaryResult.summary, summaryResult.date);
+                        const summaries = await readDiarySummaries(String(gameData.playerID), String(playerCharacter.id));
+                        summaries.unshift({ id: randomUUID(), ...summaryResult });
+                        await saveDiarySummaries(String(gameData.playerID), String(playerCharacter.id), summaries);
                     }
                 }
             }
@@ -882,10 +884,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, replyLetter.content, 'received');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
-                    const allEntries = await readDiaryFile(String(gameData.playerID), String(aiCharacter.id));
-                    const summaryResult = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
                     if (summaryResult) {
-                        await saveDiarySummary(String(gameData.playerID), String(aiCharacter.id), summaryResult.summary, summaryResult.date);
+                        const summaries = await readDiarySummaries(String(gameData.playerID), String(aiCharacter.id));
+                        summaries.unshift({ id: randomUUID(), ...summaryResult });
+                        await saveDiarySummaries(String(gameData.playerID), String(aiCharacter.id), summaries);
                     }
                 }
             }
@@ -1381,15 +1384,13 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
                 summariesByCharacter[characterId] = [];
             }
             summariesByCharacter[characterId].push(summary);
-            existingCharIds.delete(characterId); // Remove from set of files to delete
+            existingCharIds.delete(characterId);
         });
-
-        // Save updated/new summaries
+        
         for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
-            if (summaries.length > 0) {
-                const latestSummary = summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-                await saveDiarySummary(playerId, characterId, latestSummary.summary, latestSummary.date);
-            }
+            summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const cleanSummaries = summaries.map(({ characterName, ...rest }) => rest);
+            await saveDiarySummaries(playerId, characterId, cleanSummaries);
         }
 
         // Delete summaries for characters that were removed
@@ -1400,7 +1401,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
             }
         }
-
+        
         return { success: true };
     } catch (error) {
         console.error('Error saving diary summaries:', error);
