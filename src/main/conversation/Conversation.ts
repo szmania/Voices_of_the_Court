@@ -19,6 +19,7 @@ import { DiaryGenerator } from '../diary/DiaryGenerator.js';
 import { readDiaryFile, saveDiaryFile, readDiarySummaries, saveDiarySummaries } from '../diaryManager.js';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
