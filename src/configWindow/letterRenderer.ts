@@ -142,7 +142,7 @@ let currentMatchIndex = -1;
 let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
-let statusFilter: 'total' | 'generating' | 'pending' | 'failed' | 'completed' = 'total';
+let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -165,11 +165,19 @@ function renderStatusSummary() {
     const summaryContainer = document.getElementById('letter-status-summary');
     if (!summaryContainer) return;
 
-    const statuses: (keyof typeof counts)[] = ['total', 'generating', 'pending', 'failed', 'completed'];
+    const statuses: (keyof typeof counts)[] = ['total', 'generating', 'pending', 'reply_overdue', 'failed', 'completed'];
     const counts = {
         total: allLetters.length,
         generating: allLetters.filter(l => l.status === 'generating').length,
         pending: allLetters.filter(l => l.status === 'pending').length,
+        reply_overdue: allLetters.filter(l => {
+            if (!l.isPlayerSender) return false;
+            const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+            if (hasReply) return false;
+            if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
+            const expectedReplyDay = l.totalDays + (l.delay * 2);
+            return expectedReplyDay < currentGameDay;
+        }).length,
         failed: allLetters.filter(l => l.status === 'failed').length,
         completed: allLetters.filter(l => l.status === 'sent' || l.status === 'read').length
     };
@@ -321,6 +329,15 @@ function renderLetters() {
     if (statusFilter !== 'total') {
         if (statusFilter === 'completed') {
             characterFilteredLetters = characterFilteredLetters.filter(l => l.status === 'sent' || l.status === 'read');
+        } else if (statusFilter === 'reply_overdue') {
+            characterFilteredLetters = characterFilteredLetters.filter(l => {
+                if (!l.isPlayerSender) return false;
+                const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                if (hasReply) return false;
+                if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
+                const expectedReplyDay = l.totalDays + (l.delay * 2);
+                return expectedReplyDay < currentGameDay;
+            });
         } else {
             characterFilteredLetters = characterFilteredLetters.filter(l => l.status === statusFilter);
         }
