@@ -679,7 +679,10 @@
     "reply_overdue_since": "Reply overdue since",
     "estimated_reply_date_was": "Estimated reply date was",
     "reply_received_on": "Reply received on {date}",
-    "view_reply": "View Reply"
+    "view_reply": "View Reply",
+    "journey_traveling_to": "Traveling to {character}",
+    "journey_writing_reply": "Writing Reply",
+    "journey_traveling_back": "Traveling Back"
   },
   "history": {
     "header": "Conversation History Viewer",

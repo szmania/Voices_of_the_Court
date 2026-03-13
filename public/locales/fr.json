@@ -671,7 +671,10 @@
     "reply_overdue_since": "Réponse en retard depuis",
     "estimated_reply_date_was": "La date de réponse estimée était",
     "reply_received_on": "Réponse reçue le {date}",
-    "view_reply": "Voir la réponse"
+    "view_reply": "Voir la réponse",
+    "journey_traveling_to": "En route vers {character}",
+    "journey_writing_reply": "Rédaction de la réponse",
+    "journey_traveling_back": "En route de retour"
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

@@ -669,7 +669,10 @@
     "reply_overdue_since": "Antwort überfällig seit",
     "estimated_reply_date_was": "Geschätztes Antwortdatum war",
     "reply_received_on": "Antwort erhalten am {date}",
-    "view_reply": "Antwort ansehen"
+    "view_reply": "Antwort ansehen",
+    "journey_traveling_to": "Unterwegs zu {character}",
+    "journey_writing_reply": "Antwort wird verfasst",
+    "journey_traveling_back": "Rückreise"
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

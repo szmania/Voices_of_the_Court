@@ -671,7 +671,10 @@
     "reply_overdue_since": "Ответ просрочен с",
     "estimated_reply_date_was": "Предполагаемая дата ответа была",
     "reply_received_on": "Ответ получен {date}",
-    "view_reply": "Посмотреть ответ"
+    "view_reply": "Посмотреть ответ",
+    "journey_traveling_to": "В пути к {character}",
+    "journey_writing_reply": "Написание ответа",
+    "journey_traveling_back": "В пути обратно"
   },
   "history": {
     "header": "Просмотр истории разговоров",

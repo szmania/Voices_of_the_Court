@@ -670,7 +670,10 @@
     "reply_overdue_since": "回复已逾期",
     "estimated_reply_date_was": "预计回复日期为",
     "reply_received_on": "已于{date}收到回复",
-    "view_reply": "查看回复"
+    "view_reply": "查看回复",
+    "journey_traveling_to": "正在前往 {character}",
+    "journey_writing_reply": "正在写回信",
+    "journey_traveling_back": "回复在路上"
   },
   "diary_manager": {
     "header": "日记管理器",

@@ -671,7 +671,10 @@
     "reply_overdue_since": "Odpowiedź spóźniona od",
     "estimated_reply_date_was": "Szacowana data odpowiedzi to",
     "reply_received_on": "Otrzymano odpowiedź {date}",
-    "view_reply": "Zobacz odpowiedź"
+    "view_reply": "Zobacz odpowiedź",
+    "journey_traveling_to": "W drodze do {character}",
+    "journey_writing_reply": "Pisanie odpowiedzi",
+    "journey_traveling_back": "W drodze powrotnej"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

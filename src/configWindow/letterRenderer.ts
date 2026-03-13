@@ -77,9 +77,25 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean } | n
                     overdue: true,
                 };
             } else {
-                return {
+                const totalJourneyTime = letter.delay * 2;
+                const timeElapsed = totalJourneyTime - daysDifference;
+                const stage1End = Math.floor(totalJourneyTime * 4 / 9);
+                const stage2End = Math.floor(totalJourneyTime * 5 / 9);
+
+                let statusText = '';
+                if (timeElapsed <= stage1End) {
                     // @ts-ignore
-                    text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
+                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_to', 'Traveling to {character}...').replace('{character}', letter.recipient.shortName);
+                } else if (timeElapsed <= stage2End) {
+                    // @ts-ignore
+                    statusText = window.LocalizationManager.getTranslation('letters.status_writing_reply', '{character} is writing a reply...').replace('{character}', letter.recipient.shortName);
+                } else {
+                    // @ts-ignore
+                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_from', 'Reply from {character} is on its way...').replace('{character}', letter.recipient.shortName);
+                }
+
+                return {
+                    text: statusText,
                     overdue: false,
                 };
             }

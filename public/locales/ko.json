@@ -671,7 +671,10 @@
     "reply_overdue_since": "답장 기한 초과",
     "estimated_reply_date_was": "예상 답장 날짜",
     "reply_received_on": "{date}에 답장 받음",
-    "view_reply": "답장 보기"
+    "view_reply": "답장 보기",
+    "journey_traveling_to": "{character}에게 가는 중",
+    "journey_writing_reply": "답장 작성 중",
+    "journey_traveling_back": "답장 오는 중"
   },
   "history": {
     "header": "대화 기록 뷰어",

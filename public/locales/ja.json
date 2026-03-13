@@ -671,7 +671,10 @@
     "reply_overdue_since": "返信期限切れ",
     "estimated_reply_date_was": "推定返信日",
     "reply_received_on": "{date}に返信を受信",
-    "view_reply": "返信を表示"
+    "view_reply": "返信を表示",
+    "journey_traveling_to": "{character}へ移動中",
+    "journey_writing_reply": "返信を作成中",
+    "journey_traveling_back": "返信を輸送中"
   },
   "history": {
     "header": "会話履歴ビューアー",
