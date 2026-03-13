@@ -669,7 +669,9 @@
     "delivery_expected_in": "配達予定",
     "delivery_overdue": "配達遅延",
     "reply_overdue_since": "返信期限切れ",
-    "estimated_reply_date_was": "推定返信日"
+    "estimated_reply_date_was": "推定返信日",
+    "reply_received_on": "{date}に返信を受信",
+    "view_reply": "返信を表示"
   },
   "history": {
     "header": "会話履歴ビューアー",

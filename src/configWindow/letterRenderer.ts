@@ -459,10 +459,24 @@ function renderLetterContent(letter: Letter) {
     const letterViewContainer = document.getElementById('letter-view-container');
     if (!letterViewContainer) return;
 
-    const status = getLetterStatus(letter);
     let statusHtml = '';
-    if (status) {
-        statusHtml = `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+    const reply = allLetters.find(l => l.replyToId === letter.id);
+
+    if (letter.isPlayerSender && reply) {
+        const replyDate = formatDate(new Date(reply.timestamp));
+        // @ts-ignore
+        const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}', { date: replyDate });
+        statusHtml = `
+            <div class="letter-view-reply-status has-reply">
+                <span>${statusText}</span>
+                <button class="view-reply-btn" data-reply-id="${reply.id}" data-i18n="letters.view_reply">View Reply</button>
+            </div>
+        `;
+    } else {
+        const status = getLetterStatus(letter);
+        if (status) {
+            statusHtml = `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+        }
     }
 
     letterViewContainer.innerHTML = `
@@ -480,15 +494,38 @@ function renderLetterContent(letter: Letter) {
         </div>
     `;
 
+    const viewReplyBtn = letterViewContainer.querySelector('.view-reply-btn');
+    if (viewReplyBtn) {
+        viewReplyBtn.addEventListener('click', (e) => {
+            const replyId = (e.currentTarget as HTMLElement).dataset.replyId;
+            const replyLetter = allLetters.find(l => l.id === replyId);
+            if (replyLetter) {
+                selectedLetter = replyLetter;
+                renderLetterContent(replyLetter);
+                document.querySelectorAll('.letter-item.selected').forEach(el => el.classList.remove('selected'));
+                const newListItem = document.querySelector(`.letter-item[data-letter-id="${replyId}"]`);
+                if (newListItem) {
+                    newListItem.classList.add('selected');
+                    newListItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    }
+
     // Re-apply search highlighting if there's an active search term
     if (currentSearchTerm) {
         highlightText(letterViewContainer, currentSearchTerm);
-        // Reset matches to only be in the current view if a letter is selected
         matches = Array.from(letterViewContainer.querySelectorAll('mark'));
         if (matches.length > 0) {
             currentMatchIndex = 0;
             matches[0].classList.add('current-match');
         }
+    }
+
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations(letterViewContainer);
     }
 }
 

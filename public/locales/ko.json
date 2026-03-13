@@ -669,7 +669,9 @@
     "delivery_expected_in": "배달 예상",
     "delivery_overdue": "배달 지연",
     "reply_overdue_since": "답장 기한 초과",
-    "estimated_reply_date_was": "예상 답장 날짜"
+    "estimated_reply_date_was": "예상 답장 날짜",
+    "reply_received_on": "{date}에 답장 받음",
+    "view_reply": "답장 보기"
   },
   "history": {
     "header": "대화 기록 뷰어",

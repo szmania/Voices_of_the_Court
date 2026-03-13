@@ -1455,3 +1455,27 @@ mark.current-highlight {
     color: #ff4d4d;
     border-color: #ff4d4d;
 }
+
+.letter-view-reply-status.has-reply {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-reply-btn {
+    background-color: #3d2e1e;
+    color: #cca43b;
+    border: 1px solid #5a4a35;
+    border-radius: 2px;
+    padding: 4px 8px;
+    font-family: 'Gitan', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8em;
+}
+
+.view-reply-btn:hover {
+    background-color: #5a4a35;
+    border-color: #cca43b;
+    color: #fff;
+}

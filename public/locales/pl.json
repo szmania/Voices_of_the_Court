@@ -669,7 +669,9 @@
     "delivery_expected_in": "Dostawa oczekiwana za",
     "delivery_overdue": "Dostawa opóźniona od",
     "reply_overdue_since": "Odpowiedź spóźniona od",
-    "estimated_reply_date_was": "Szacowana data odpowiedzi to"
+    "estimated_reply_date_was": "Szacowana data odpowiedzi to",
+    "reply_received_on": "Otrzymano odpowiedź {date}",
+    "view_reply": "Zobacz odpowiedź"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

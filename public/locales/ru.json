@@ -669,7 +669,9 @@
     "delivery_expected_in": "Доставка ожидается через",
     "delivery_overdue": "Доставка просрочена с",
     "reply_overdue_since": "Ответ просрочен с",
-    "estimated_reply_date_was": "Предполагаемая дата ответа была"
+    "estimated_reply_date_was": "Предполагаемая дата ответа была",
+    "reply_received_on": "Ответ получен {date}",
+    "view_reply": "Посмотреть ответ"
   },
   "history": {
     "header": "Просмотр истории разговоров",

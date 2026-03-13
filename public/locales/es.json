@@ -669,7 +669,9 @@
     "delivery_expected_in": "Entrega esperada en",
     "delivery_overdue": "Entrega atrasada desde",
     "reply_overdue_since": "Respuesta atrasada desde",
-    "estimated_reply_date_was": "La fecha estimada de respuesta era"
+    "estimated_reply_date_was": "La fecha estimada de respuesta era",
+    "reply_received_on": "Respuesta recibida el {date}",
+    "view_reply": "Ver respuesta"
   },
   "history": {
     "header": "Visor del historial de conversaciones",

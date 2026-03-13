@@ -667,7 +667,9 @@
     "delivery_expected_in": "Zustellung erwartet in",
     "delivery_overdue": "Zustellung überfällig seit",
     "reply_overdue_since": "Antwort überfällig seit",
-    "estimated_reply_date_was": "Geschätztes Antwortdatum war"
+    "estimated_reply_date_was": "Geschätztes Antwortdatum war",
+    "reply_received_on": "Antwort erhalten am {date}",
+    "view_reply": "Antwort ansehen"
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",
