@@ -71,7 +71,7 @@ function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expec
     if (daysDifference < 0) {
         return {
             // @ts-ignore
-            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')}`,
+            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedDate)})`,
             overdue: true,
             expectedDate: expectedReplyDate
         };
@@ -124,23 +124,23 @@ function renderStatusSummary() {
     const completed = allLetters.filter(l => l.status === 'sent' || l.status === 'read').length;
 
     summaryContainer.innerHTML = `
-        <div class="status-item" data-i18n-title="letters.tooltip_total">
+        <div class="status-item" data-i18n-tooltip="letters.tooltip_total">
             <div class="count">${total}</div>
             <div class="label" data-i18n="letters.status_total">Total</div>
         </div>
-        <div class="status-item" data-i18n-title="letters.tooltip_generating">
+        <div class="status-item" data-i18n-tooltip="letters.tooltip_generating">
             <div class="count">${generating}</div>
             <div class="label" data-i18n="letters.status_generating">Generating</div>
         </div>
-        <div class="status-item" data-i18n-title="letters.tooltip_pending">
+        <div class="status-item" data-i18n-tooltip="letters.tooltip_pending">
             <div class="count">${pending}</div>
             <div class="label" data-i18n="letters.status_pending">Pending</div>
         </div>
-        <div class="status-item" data-i18n-title="letters.tooltip_failed">
+        <div class="status-item" data-i18n-tooltip="letters.tooltip_failed">
             <div class="count">${failed}</div>
             <div class="label" data-i18n="letters.status_failed">Failed</div>
         </div>
-        <div class="status-item" data-i18n-title="letters.tooltip_completed">
+        <div class="status-item" data-i18n-tooltip="letters.tooltip_completed">
             <div class="count">${completed}</div>
             <div class="label" data-i18n="letters.status_completed">Completed</div>
         </div>
