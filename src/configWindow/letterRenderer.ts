@@ -47,10 +47,9 @@ function formatDate(date: Date): string {
 }
 
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean } | null {
-    // 1. Status for player-sent letter awaiting reply
-    if (letter.isPlayerSender && !letter.replyToId) {
+    // 1. Status for player-sent letters (OUTBOX)
+    if (letter.isPlayerSender) {
         const hasReply = allLetters.some(l => l.replyToId === letter.id);
-        if (hasReply) return null;
 
         if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
 
@@ -62,22 +61,32 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean } | n
         const expectedReplyDate = new Date(sentDate.getTime());
         expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
 
-        if (daysDifference < 0) {
+        if (hasReply) {
+            // Case B: Reply received. Show when it was expected.
             return {
                 // @ts-ignore
-                text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
-                overdue: true,
+                text: `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`,
+                overdue: false // Not an "overdue" state, just informational
             };
         } else {
-            return {
-                // @ts-ignore
-                text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
-                overdue: false,
-            };
+            // Case A: No reply yet. Show pending/overdue status.
+            if (daysDifference < 0) {
+                return {
+                    // @ts-ignore
+                    text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
+                    overdue: true,
+                };
+            } else {
+                return {
+                    // @ts-ignore
+                    text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
+                    overdue: false,
+                };
+            }
         }
     }
 
-    // 2. Status for AI-sent letter pending delivery
+    // 2. Status for AI-sent letters (INBOX) pending delivery
     if (!letter.isPlayerSender && letter.status === 'pending' && letter.delivered === false) {
         if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
 
@@ -95,13 +104,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean } | n
                 text: `${window.LocalizationManager.getTranslation('letters.delivery_expected_in', 'Delivery expected in')} ${daysUntilDelivery} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedDeliveryDate)})`,
                 overdue: false
             };
-        } else {
-             return {
-                // @ts-ignore
-                text: `${window.LocalizationManager.getTranslation('letters.delivery_overdue', 'Delivery overdue since')} ${formatDate(expectedDeliveryDate)}`,
-                overdue: true
-            };
         }
+        // If delivery is overdue, we no longer show a message for inbox items.
     }
 
     return null;
