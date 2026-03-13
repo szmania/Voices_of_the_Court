@@ -22,6 +22,12 @@ module.exports = {
      * @param {number} targetId
      */
     check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        // Prevent action if either character recently had sex, to avoid spam.
+        if ((initiator && initiator.hasTrait("HadSex")) || (target && target.hasTrait("HadSex"))) {
+            return false;
+        }
         return true;
     },
 
@@ -41,6 +47,23 @@ module.exports = {
 			}
         }
     `);
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+
+        if (initiator) {
+            initiator.addTrait({
+                category: "flag",
+                name: "HadSex",
+                desc: `${initiator.shortName} had sex recently`
+            });
+        }
+        if (target) {
+            target.addTrait({
+                category: "flag",
+                name: "HadSex",
+                desc: `${target.shortName} had sex recently`
+            });
+        }
     },
     chatMessage: (args) =>{
         return {
