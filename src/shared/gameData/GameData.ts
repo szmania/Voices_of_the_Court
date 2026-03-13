@@ -89,6 +89,10 @@ export class GameData {
         return this.characters.get(characterID);
     }
 
+    getCharacterById(id: number): Character | undefined {
+        return this.characters.get(id);
+    }
+
     /**
      * Gets all characters in the conversation except the player and the main AI.
      * @returns {Character[]} An array of other characters.
