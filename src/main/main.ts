@@ -1304,8 +1304,8 @@ ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
 });
 
 // Letter Summary IPC handlers
-ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => {
-    console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
+ipcMain.handle('get-all-letter-summaries-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-letter-summaries-for-player event for player: ${playerId}`);
     try {
         const letterManager = LetterManager.getInstance();
         const summaries = letterManager.getAllLetterSummaries(playerId);

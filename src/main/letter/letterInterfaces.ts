@@ -31,6 +31,7 @@ export interface StoredLetter {
 }
 
 export interface LetterSummary {
+  id: string;
   date: string;
   summary: string;
   letterIds: string[]; // To track which letters this summary covers

@@ -308,6 +308,7 @@ export class LetterReplyGenerator {
             const aiId = String(originalLetter.recipient.id);
 
             const newSummary: LetterSummary = {
+                id: randomUUID(),
                 date: letterDate,
                 summary: summaryContent.trim(),
                 letterIds: [originalLetter.id, replyLetterId]

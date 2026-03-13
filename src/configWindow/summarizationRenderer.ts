@@ -320,7 +320,7 @@ async function loadAllDataForPlayer() {
         allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
         
         // Load letters
-        allLetters = await ipcRenderer.invoke('get-all-letters-for-player', selectedPlayerId);
+        allLetters = await ipcRenderer.invoke('get-all-letter-summaries-for-player', selectedPlayerId);
         
         // Load diaries
         allDiaries = await ipcRenderer.invoke('get-all-diaries-for-player', selectedPlayerId);

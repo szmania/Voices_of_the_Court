@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
 import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./letterInterfaces.js";
+import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
 
@@ -178,7 +179,11 @@ export class LetterManager {
         if (fs.existsSync(filePath)) {
             try {
                 const data = fs.readFileSync(filePath, 'utf8');
-                return JSON.parse(data) as LetterSummary[];
+                const summaries = JSON.parse(data) as any[];
+                return summaries.map(s => ({
+                    id: s.id || randomUUID(), // Add UUID if missing
+                    ...s
+                }));
             } catch (error) {
                 console.error(`Error reading letter summary for player ${playerId}, character ${characterId}:`, error);
                 return [];
