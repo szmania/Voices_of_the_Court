@@ -649,6 +649,11 @@
     "sort_by": "정렬 기준:",
     "sort_game_date": "게임 날짜",
     "sort_real_date": "실제 날짜",
+    "status_total": "총계",
+    "status_generating": "생성 중",
+    "status_pending": "대기 중",
+    "status_failed": "실패",
+    "status_completed": "완료됨",
     "thread_status": "편지 스레드",
     "tooltip_thread_status": "게임의 편지 스레드에서 사용된 현재 편지 수를 나타냅니다. 9/9에 도달하면 게임 내 결정을 통해 스레드를 재설정해야 합니다.",
     "tooltip_total": "선택한 플레이어/캐릭터의 기록에 있는 총 편지 수.",
@@ -657,7 +662,11 @@
     "tooltip_failed": "생성 또는 전송에 실패한 편지 수.",
     "tooltip_completed": "성공적으로 보내거나 읽은 편지 수.",
     "search": "검색:",
-    "search_placeholder": "편지 검색..."
+    "search_placeholder": "편지 검색...",
+    "reply_overdue": "답장이 늦어지고 있습니다",
+    "days": "일",
+    "est": "예상",
+    "reply_expected_in": "답장 예상"
   },
   "history": {
     "header": "대화 기록 뷰어",

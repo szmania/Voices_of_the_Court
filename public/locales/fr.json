@@ -649,6 +649,11 @@
     "sort_by": "Trier par :",
     "sort_game_date": "Date du jeu",
     "sort_real_date": "Date réelle",
+    "status_total": "Total",
+    "status_generating": "Génération",
+    "status_pending": "En attente",
+    "status_failed": "Échoué",
+    "status_completed": "Terminé",
     "thread_status": "Fil de Lettres",
     "tooltip_thread_status": "Indique le nombre actuel de lettres utilisées dans le fil de lettres du jeu. Le fil doit être réinitialisé dans le jeu via une décision une fois qu'il atteint 9/9.",
     "tooltip_total": "Nombre total de lettres dans l'historique pour le joueur/personnage sélectionné.",
@@ -657,7 +662,11 @@
     "tooltip_failed": "Nombre de lettres dont la génération ou l'envoi a échoué.",
     "tooltip_completed": "Nombre de lettres qui ont été envoyées ou lues avec succès.",
     "search": "Rechercher:",
-    "search_placeholder": "Rechercher des lettres..."
+    "search_placeholder": "Rechercher des lettres...",
+    "reply_overdue": "Réponse en retard de",
+    "days": "jours",
+    "est": "est.",
+    "reply_expected_in": "Réponse attendue dans"
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

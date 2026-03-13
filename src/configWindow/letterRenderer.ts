@@ -95,6 +95,7 @@ let currentMatchIndex = -1;
 let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
+let statusFilter: 'total' | 'generating' | 'pending' | 'failed' | 'completed' = 'total';
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -117,34 +118,43 @@ function renderStatusSummary() {
     const summaryContainer = document.getElementById('letter-status-summary');
     if (!summaryContainer) return;
 
-    const total = allLetters.length;
-    const generating = allLetters.filter(l => l.status === 'generating').length;
-    const pending = allLetters.filter(l => l.status === 'pending').length;
-    const failed = allLetters.filter(l => l.status === 'failed').length;
-    const completed = allLetters.filter(l => l.status === 'sent' || l.status === 'read').length;
+    const statuses: (keyof typeof counts)[] = ['total', 'generating', 'pending', 'failed', 'completed'];
+    const counts = {
+        total: allLetters.length,
+        generating: allLetters.filter(l => l.status === 'generating').length,
+        pending: allLetters.filter(l => l.status === 'pending').length,
+        failed: allLetters.filter(l => l.status === 'failed').length,
+        completed: allLetters.filter(l => l.status === 'sent' || l.status === 'read').length
+    };
 
-    summaryContainer.innerHTML = `
-        <div class="status-item" data-i18n-tooltip="letters.tooltip_total">
-            <div class="count">${total}</div>
-            <div class="label" data-i18n="letters.status_total">Total</div>
-        </div>
-        <div class="status-item" data-i18n-tooltip="letters.tooltip_generating">
-            <div class="count">${generating}</div>
-            <div class="label" data-i18n="letters.status_generating">Generating</div>
-        </div>
-        <div class="status-item" data-i18n-tooltip="letters.tooltip_pending">
-            <div class="count">${pending}</div>
-            <div class="label" data-i18n="letters.status_pending">Pending</div>
-        </div>
-        <div class="status-item" data-i18n-tooltip="letters.tooltip_failed">
-            <div class="count">${failed}</div>
-            <div class="label" data-i18n="letters.status_failed">Failed</div>
-        </div>
-        <div class="status-item" data-i18n-tooltip="letters.tooltip_completed">
-            <div class="count">${completed}</div>
-            <div class="label" data-i18n="letters.status_completed">Completed</div>
-        </div>
-    `;
+    summaryContainer.innerHTML = ''; // Clear previous content
+
+    statuses.forEach(status => {
+        const statusItem = document.createElement('div');
+        statusItem.classList.add('status-item');
+        if (status === statusFilter) {
+            statusItem.classList.add('selected');
+        }
+        // @ts-ignore
+        const tooltipText = window.LocalizationManager.getTranslation(`letters.tooltip_${status}`);
+        if (tooltipText) {
+            statusItem.setAttribute('data-tooltip', tooltipText);
+        }
+
+        statusItem.innerHTML = `
+            <div class="count">${counts[status]}</div>
+            <div class="label" data-i18n="letters.status_${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</div>
+        `;
+
+        statusItem.addEventListener('click', () => {
+            statusFilter = status as any;
+            renderStatusSummary(); // Re-render summary to update selection
+            renderLetters(); // Re-render letters with new filter
+        });
+
+        summaryContainer.appendChild(statusItem);
+    });
+
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -241,7 +251,7 @@ function renderLetters() {
     }
 
     // Filter letters by selected character
-    const characterFilteredLetters = selectedCharacterId === 'all'
+    let characterFilteredLetters = selectedCharacterId === 'all'
         ? allLetters
         : allLetters.filter(letter => {
             if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
@@ -251,6 +261,15 @@ function renderLetters() {
             const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
             return String(otherPartyId) === selectedCharacterId;
         });
+
+    // Filter by status
+    if (statusFilter !== 'total') {
+        if (statusFilter === 'completed') {
+            characterFilteredLetters = characterFilteredLetters.filter(l => l.status === 'sent' || l.status === 'read');
+        } else {
+            characterFilteredLetters = characterFilteredLetters.filter(l => l.status === statusFilter);
+        }
+    }
 
     const lettersToDisplay = characterFilteredLetters.filter(letter => {
         const isAiReply = letter.sender.id !== Number(selectedPlayerId);

@@ -643,6 +643,24 @@ mark.current-highlight {
 .status-item {
     position: relative;
     text-align: center;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.status-item:hover {
+    background-color: #3d2e1e;
+}
+
+.status-item.selected {
+    background-color: #591919;
+    color: #ffd700;
+}
+
+.status-item.selected .label,
+.status-item.selected .count {
+    color: #ffd700;
 }
 
 .status-item::after {

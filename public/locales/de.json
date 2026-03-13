@@ -646,6 +646,11 @@
     "sort_by": "Sortieren nach:",
     "sort_game_date": "Spieldatum",
     "sort_real_date": "Echtes Datum",
+    "status_total": "Gesamt",
+    "status_generating": "Generierung",
+    "status_pending": "Ausstehend",
+    "status_failed": "Fehlgeschlagen",
+    "status_completed": "Abgeschlossen",
     "refresh": "Aktualisieren",
     "thread_status": "Brief-Thread",
     "tooltip_thread_status": "Zeigt die aktuelle Anzahl der im Brief-Thread des Spiels verwendeten Briefe an. Der Thread muss im Spiel per Entscheidung zurückgesetzt werden, sobald er 9/9 erreicht.",
@@ -655,7 +660,11 @@
     "tooltip_failed": "Anzahl der Briefe, deren Generierung oder Versand fehlgeschlagen ist.",
     "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe.",
     "search": "Suchen:",
-    "search_placeholder": "Briefe durchsuchen..."
+    "search_placeholder": "Briefe durchsuchen...",
+    "reply_overdue": "Antwort überfällig seit",
+    "days": "Tagen",
+    "est": "gesch.",
+    "reply_expected_in": "Antwort erwartet in"
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

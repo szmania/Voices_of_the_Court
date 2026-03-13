@@ -649,6 +649,11 @@
     "sort_by": "Ordenar por:",
     "sort_game_date": "Fecha del juego",
     "sort_real_date": "Fecha real",
+    "status_total": "Total",
+    "status_generating": "Generando",
+    "status_pending": "Pendiente",
+    "status_failed": "Fallido",
+    "status_completed": "Completado",
     "thread_status": "Hilo de Cartas",
     "tooltip_thread_status": "Indica el número actual de cartas utilizadas en el hilo de cartas del juego. El hilo debe restablecerse en el juego mediante una decisión una vez que llega a 9/9.",
     "tooltip_total": "Número total de cartas en el historial para el jugador/personaje seleccionado.",
@@ -657,7 +662,11 @@
     "tooltip_failed": "Número de cartas que no se pudieron generar o enviar.",
     "tooltip_completed": "Número de cartas que se han enviado o leído correctamente.",
     "search": "Buscar:",
-    "search_placeholder": "Buscar cartas..."
+    "search_placeholder": "Buscar cartas...",
+    "reply_overdue": "Respuesta atrasada por",
+    "days": "días",
+    "est": "est.",
+    "reply_expected_in": "Respuesta esperada en"
   },
   "history": {
     "header": "Visor del historial de conversaciones",

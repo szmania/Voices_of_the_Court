@@ -670,7 +670,11 @@
     "tooltip_failed": "Number of letters that failed to generate or send.",
     "tooltip_completed": "Number of letters that have been successfully sent or read.",
     "search": "Search:",
-    "search_placeholder": "Search letters..."
+    "search_placeholder": "Search letters...",
+    "reply_overdue": "Reply overdue by",
+    "days": "days",
+    "est": "est.",
+    "reply_expected_in": "Reply expected in"
   },
   "history": {
     "header": "Conversation History Viewer",

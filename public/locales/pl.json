@@ -649,6 +649,11 @@
     "sort_by": "Sortuj według:",
     "sort_game_date": "Data w grze",
     "sort_real_date": "Data rzeczywista",
+    "status_total": "Suma",
+    "status_generating": "Generowanie",
+    "status_pending": "Oczekujące",
+    "status_failed": "Niepowodzenie",
+    "status_completed": "Ukończone",
     "thread_status": "Wątek listów",
     "tooltip_thread_status": "Wskazuje aktualną liczbę listów użytych w wątku listów w grze. Wątek musi zostać zresetowany w grze poprzez decyzję, gdy osiągnie 9/9.",
     "tooltip_total": "Całkowita liczba listów w historii dla wybranego gracza/postaci.",
@@ -657,7 +662,11 @@
     "tooltip_failed": "Liczba listów, których generowanie lub wysłanie nie powiodło się.",
     "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane.",
     "search": "Szukaj:",
-    "search_placeholder": "Szukaj listów..."
+    "search_placeholder": "Szukaj listów...",
+    "reply_overdue": "Odpowiedź spóźniona o",
+    "days": "dni",
+    "est": "szac.",
+    "reply_expected_in": "Odpowiedź oczekiwana za"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",
