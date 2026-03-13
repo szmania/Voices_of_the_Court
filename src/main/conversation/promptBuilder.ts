@@ -8,7 +8,7 @@ import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
-import { readDiarySummary } from "../diaryManager.js";
+import { readDiarySummaries } from "../diaryManager.js";
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
     let output: string = "";
@@ -193,14 +193,18 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
-    const diarySummary = await readDiarySummary(conv.gameData.playerID.toString(), character.id.toString());
-    if (diarySummary) {
+    // @ts-ignore
+    const depth = conv.config.summaries_insert_depth || 3;
+    const diarySummaries = await readDiarySummaries(conv.gameData.playerID.toString(), character.id.toString());
+    const recentDiarySummaries = diarySummaries.slice(0, depth);
+    if (recentDiarySummaries.length > 0) {
+        const summaryContent = recentDiarySummaries.map(s => `${s.date}: ${s.summary}`).join('\n');
         const diarySummaryMessage: Message = {
             role: "system",
-            content: `Summary of ${character.shortName}'s diary:\n${diarySummary}`
+            content: `Summary of ${character.shortName}'s diary:\n${summaryContent}`
         };
         insertMessageAtDepth(messages, diarySummaryMessage, conv.config.memoriesInsertDepth); // Or a new depth config
-        console.log(`Inserted diary summary for ${character.shortName}.`);
+        console.log(`Inserted ${recentDiarySummaries.length} diary summaries for ${character.shortName}.`);
     }
 
     // too early right now

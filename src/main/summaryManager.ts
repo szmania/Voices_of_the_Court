@@ -161,6 +161,9 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
         }
+
+        const existingSummaryFiles = fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json');
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
         
         // Group summaries by character ID
         const summariesByCharacter: { [key: string]: Summary[] } = {};
@@ -170,6 +173,7 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
                 summariesByCharacter[characterId] = [];
             }
             summariesByCharacter[characterId].push(summary);
+            existingCharIds.delete(characterId);
         });
         
         // Create a separate file for each character
@@ -184,6 +188,15 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
             
             // Write to file
             fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\t'), 'utf8');
+        }
+
+        // Delete summaries for characters that were removed
+        for (const charIdToDelete of existingCharIds) {
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            if (fs.existsSync(summaryPath)) {
+                fs.unlinkSync(summaryPath);
+                console.log(`Deleted conversation summary for character ${charIdToDelete}`);
+            }
         }
     } catch (error) {
         console.error('Error saving summary file:', error);
