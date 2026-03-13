@@ -646,6 +646,8 @@
     "no_letters": "手紙が見つかりません。",
     "select": "読む手紙を選択してください。",
     "refresh": "更新",
+    "no_reply": "まだ返信がありません。",
+    "outbound_not_found": "送信済みレターが見つかりません。",
     "sort_by": "並べ替え:",
     "sort_game_date": "ゲームの日付",
     "sort_real_date": "実際の日付",

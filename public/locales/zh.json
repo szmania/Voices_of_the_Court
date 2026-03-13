@@ -645,6 +645,8 @@
     "no_letters": "未找到信件。",
     "select": "请选择一封信件阅读。",
     "refresh": "刷新",
+    "no_reply": "暂无回复。",
+    "outbound_not_found": "未找到发出的信件。",
     "sort_by": "排序方式：",
     "sort_game_date": "游戏日期",
     "sort_real_date": "真实日期",

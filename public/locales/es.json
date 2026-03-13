@@ -646,6 +646,8 @@
     "no_letters": "No se encontraron cartas.",
     "select": "Selecciona una carta para leer.",
     "refresh": "Actualizar",
+    "no_reply": "Aún no hay respuesta.",
+    "outbound_not_found": "Carta de salida no encontrada.",
     "sort_by": "Ordenar por:",
     "sort_game_date": "Fecha del juego",
     "sort_real_date": "Fecha real",

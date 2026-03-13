@@ -297,13 +297,21 @@ function renderLetters() {
         return;
     }
 
+    const cleanLetters = allLetters.filter(l => {
+        if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
+            console.warn('Skipping malformed or incomplete letter object:', l);
+            return false;
+        }
+        return true;
+    });
+
     // Filter letters by selected character
     let characterFilteredLetters = selectedCharacterId === 'all'
-        ? allLetters
-        : allLetters.filter(letter => {
+        ? cleanLetters
+        : cleanLetters.filter(letter => {
             if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
-                console.warn('Skipping malformed or incomplete letter object:', letter);
-                return false;
+              console.warn('Skipping malformed or incomplete letter object:', letter);
+              return false;
             }
             const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
             return String(otherPartyId) === selectedCharacterId;
@@ -435,8 +443,12 @@ function renderLetters() {
                 </div>
             `;
         } else {
-             // Case where we have a received letter but no reply from the player yet
-            sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
+            if (pair.received && pair.received.replyToId) {
+                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.outbound_not_found">Outbound letter not found.</div>`;
+            } else {
+                // Case where we have a received letter but no reply from the player yet
+                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
+            }
         }
 
         let connectorHtml = '';

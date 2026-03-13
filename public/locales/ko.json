@@ -646,6 +646,8 @@
     "no_letters": "편지를 찾을 수 없습니다.",
     "select": "읽을 편지를 선택하세요.",
     "refresh": "새로고침",
+    "no_reply": "아직 답장이 없습니다.",
+    "outbound_not_found": "보낸 편지를 찾을 수 없습니다.",
     "sort_by": "정렬 기준:",
     "sort_game_date": "게임 날짜",
     "sort_real_date": "실제 날짜",

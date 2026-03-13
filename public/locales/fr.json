@@ -646,6 +646,8 @@
     "no_letters": "Aucune lettre trouvée.",
     "select": "Sélectionnez une lettre à lire.",
     "refresh": "Actualiser",
+    "no_reply": "Pas encore de réponse.",
+    "outbound_not_found": "Lettre sortante non trouvée.",
     "sort_by": "Trier par :",
     "sort_game_date": "Date du jeu",
     "sort_real_date": "Date réelle",

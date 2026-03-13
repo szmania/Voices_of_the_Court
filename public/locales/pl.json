@@ -646,6 +646,8 @@
     "no_letters": "Nie znaleziono listów.",
     "select": "Wybierz list do przeczytania.",
     "refresh": "Odśwież",
+    "no_reply": "Jeszcze brak odpowiedzi.",
+    "outbound_not_found": "Nie znaleziono listu wychodzącego.",
     "sort_by": "Sortuj według:",
     "sort_game_date": "Data w grze",
     "sort_real_date": "Data rzeczywista",
