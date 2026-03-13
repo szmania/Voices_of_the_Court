@@ -68,7 +68,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     console.log(`Extracted actions string: ${actionsString}`);
 
 
-    if(actionsString === "noop()"){
+    if(actionsString.trim() === "noop()"){
         console.log('LLM returned "noop()", no actions triggered.');
         return [];
     }
