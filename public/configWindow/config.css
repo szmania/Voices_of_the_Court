@@ -1381,3 +1381,29 @@ mark.current-highlight {
         box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
     }
 }
+
+.letter-item-reply-status {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+.letter-item-reply-status.overdue {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+.letter-view-reply-status {
+    font-size: 0.9em;
+    color: #ccc;
+    background-color: rgba(0,0,0,0.2);
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border: 1px solid #5a4a35;
+}
+
+.letter-view-reply-status.overdue {
+    color: #ff4d4d;
+    border-color: #ff4d4d;
+}

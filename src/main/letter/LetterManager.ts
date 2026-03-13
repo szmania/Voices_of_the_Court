@@ -43,11 +43,13 @@ export class LetterManager {
             try {
                 const data = fs.readFileSync(filePath, 'utf8');
                 const letters = JSON.parse(data) as ILetter[];
+                const playerNumericId = Number(playerId);
                 // Re-hydrate dates
                 return letters.map(l => ({
                     ...l,
                     timestamp: new Date(l.timestamp),
-                    creationTimestamp: l.creationTimestamp ? new Date(l.creationTimestamp) : new Date(l.timestamp)
+                    creationTimestamp: l.creationTimestamp ? new Date(l.creationTimestamp) : new Date(l.timestamp),
+                    isPlayerSender: l.sender.id === playerNumericId
                 }));
             } catch (error) {
                 console.error(`Error reading letter history for player ${playerId}, character ${characterId}:`, error);
