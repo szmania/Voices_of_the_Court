@@ -1270,21 +1270,21 @@ html{
 }
 
 .action-buttons button:first-child {
-    background-color: #1e5a1e; /* Dark Green */
-    border: 1px solid #28a745;
-    color: white;
+    background-color: #193a19; /* Darker Green */
+    border: 1px solid #2a522a;
+    color: #c0c0c0;
 }
 
 .action-buttons button:first-child:hover {
-    background-color: #218838;
+    background-color: #234f23;
 }
 
 .action-buttons button:last-child {
-    background-color: #5a1e1e; /* Dark Red */
-    border: 1px solid #dc3545;
-    color: white;
+    background-color: #4a1a1a; /* Darker Red */
+    border: 1px solid #6b2a2a;
+    color: #c0c0c0;
 }
 
 .action-buttons button:last-child:hover {
-    background-color: #c82333;
+    background-color: #6b2a2a;
 }
