@@ -481,7 +481,7 @@ function renderLetterContent(letter: Letter) {
     if (letter.isPlayerSender && reply) {
         const replyDate = formatDate(new Date(reply.timestamp));
         // @ts-ignore
-        const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}', { date: replyDate });
+        const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
         statusHtml = `
             <div class="letter-view-reply-status has-reply">
                 <span>${statusText}</span>
