@@ -7,9 +7,9 @@ import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
 import { ActionEffectWriter } from "./ActionEffectWriter.js";
 
-export async function checkActions(conv: Conversation): Promise<ActionResponse[]>{
-    console.log('Starting action check.');
-    const character = conv.gameData.getPlayer();
+export async function checkActions(conv: Conversation, initiatorId: number, targetId: number): Promise<ActionResponse[]>{
+    console.log(`Starting action check for initiator: ${initiatorId}, target: ${targetId}`);
+    const character = conv.gameData.getCharacterById(initiatorId) || conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
 
     // Check minimum messages before any action can trigger
@@ -24,7 +24,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
     for(let action of conv.actions){
         try{
-            if(action.check(conv.gameData)){
+            if(action.check(conv.gameData, initiatorId, targetId)){
                 availableActions.push(action)
             }
         }catch(e){
@@ -147,7 +147,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                 console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
                 try{
                     let effectBody = "";
-                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, []);
+                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, [], initiatorId, targetId);
                     ActionEffectWriter.appendEffect(
                         conv.runFileManager,
                         conv.gameData,
@@ -210,7 +210,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
         try{
             let effectBody = "";
-            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args);
+            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
             ActionEffectWriter.appendEffect(
                 conv.runFileManager,
                 conv.gameData,
@@ -230,6 +230,10 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             if (typeof chatMessage === 'object') {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
+            const initiator = conv.gameData.getCharacterById(initiatorId);
+            const target = conv.gameData.getCharacterById(targetId);
+            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
+            conv.gameData.character2Name = target ? target.shortName : "someone";
             triggeredActions.push({
                 actionName: matchedAction.signature,
                 chatMessage: parseVariables(chatMessage, conv.gameData),
