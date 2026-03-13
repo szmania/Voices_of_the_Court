@@ -61,12 +61,12 @@ function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expec
     if (currentGameDay === 0 || !letter.totalDays || !letter.delay) return null;
 
     const sentDay = letter.totalDays;
-    const expectedReplyDay = sentDay + letter.delay;
+    const expectedReplyDay = sentDay + (letter.delay * 2);
     const daysDifference = expectedReplyDay - currentGameDay;
 
     const sentDate = new Date(letter.timestamp);
     const expectedReplyDate = new Date(sentDate.getTime());
-    expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+    expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
 
     if (daysDifference < 0) {
         return {
@@ -78,7 +78,7 @@ function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expec
     } else {
         return {
             // @ts-ignore
-            text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${formatDate(expectedReplyDate)})`,
+            text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
             overdue: false,
             expectedDate: expectedReplyDate
         };
