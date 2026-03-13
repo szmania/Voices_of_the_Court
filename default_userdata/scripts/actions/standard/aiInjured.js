@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiInjured",
+    signature: "woundCharacter",
     args: [
         {
             name: "injuryType",
@@ -16,15 +16,15 @@ module.exports = {
                 { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen', ja: '顔面損傷', ko: '얼굴 훼손', pl: 'Zniekształcić' }}
             ],
             desc: { 
-                en: "Type of injury inflicted on {{aiName}} by {{playerName}}.",
-                zh: "{{playerName}}对{{aiName}}造成的伤害类型。",
-                ru: "Тип травмы, нанесенной {{playerName}} {{aiName}}.",
-                fr: "Type de blessure infligée à {{aiName}} par {{playerName}}.",
-                es: "Tipo de lesión infligida a {{aiName}} por {{playerName}}.",
-                de: "Art der Verletzung, die {{playerName}} {{aiName}} zufügt.",
-                ja: "{{playerName}}が{{aiName}}に与える傷害の種類。",
-                ko: "{{playerName}}가 {{aiName}}에게 가하는 부상 유형.",
-                pl: "Rodzaj obrażeń zadanych {{aiName}} przez {{playerName}}."
+                en: "Type of injury inflicted on {{character2Name}} by {{character1Name}}.",
+                zh: "{{character1Name}}对{{character2Name}}造成的伤害类型。",
+                ru: "Тип травмы, нанесенной {{character1Name}} {{character2Name}}.",
+                fr: "Type de blessure infligée à {{character2Name}} par {{character1Name}}.",
+                es: "Tipo de lesión infligida a {{character2Name}} por {{character1Name}}.",
+                de: "Art der Verletzung, die {{character1Name}} {{character2Name}} zufügt.",
+                ja: "{{character1Name}}が{{character2Name}}に与える傷害の種類。",
+                ko: "{{character1Name}}가 {{character2Name}}에게 가하는 부상 유형.",
+                pl: "Rodzaj obrażeń zadanych {{character2Name}} przez {{character1Name}}."
             }
         }
     ],
