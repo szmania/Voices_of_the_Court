@@ -82,7 +82,7 @@ ipcRenderer.on('update-language', async (event, lang) => {
             populateCharacterSelect();
         }
         if (summaryList) {
-            renderSummaryList();
+            renderCurrentTabList();
         }
     }
 });
