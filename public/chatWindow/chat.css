@@ -1221,8 +1221,9 @@ html{
 
 .queue-status {
     position: absolute;
-    top: 40px;
-    right: 15px;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
     background: rgba(15, 15, 15, 0.5);
     border: 1px solid #3d2e1e;
     padding: 5px 10px;
@@ -1231,6 +1232,7 @@ html{
     font-family: Gitan;
     font-size: 0.9rem;
     color: #c0c0c0;
+    text-align: center;
 }
 
 .queue-status .current-speaker {
