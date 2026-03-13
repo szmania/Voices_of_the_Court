@@ -23,15 +23,15 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}}'s last dialogue or action significantly lowers {{aiName}}'s opinion of them.`,
-        zh: `当{{playerName}}的最后一次对话或行动极大地降低了{{aiName}}对{{playerName}}的看法时执行。`,
-        ru: `Выполняется, когда последний диалог или действие {{playerName}} значительно ухудшает мнение {{aiName}} о нем.`,
-        fr: `Exécuté lorsque le dernier dialogue ou la dernière action de {{playerName}} diminue considérablement l'opinion que {{aiName}} a de lui.`,
-        es: `Ejecutado cuando el último diálogo o acción de {{playerName}} disminuye significativamente la opinión que {{aiName}} tiene de él.`,
-        de: `Wird ausgeführt, wenn der letzte Dialog oder die letzte Aktion von {{playerName}} die Meinung, die {{aiName}} von ihm hat, erheblich verschlechtert.`,
-        ja: `{{playerName}}の最後の対話または行動が{{aiName}}の彼に対する評価を大幅に低下させたときに実行されます。`,
-        ko: `{{playerName}}의 마지막 대화나 행동이 {{aiName}}의 그에 대한 평가를 크게 낮출 때 실행됩니다.`,
-        pl: `Wykonywane, gdy ostatni dialog lub działanie {{playerName}} znacząco obniża opinię, jaką {{aiName}} o nim ma.`
+        en: `Executed when one character's dialogue or action significantly lowers another's opinion of them.`,
+        zh: `当一个角色的对话或行动显著降低另一个角色对他们的看法时执行。`,
+        ru: `Выполняется, когда диалог или действие одного персонажа значительно ухудшает мнение другого о нем.`,
+        fr: `Exécuté lorsque le dialogue ou l'action d'un personnage diminue considérablement l'opinion qu'un autre a de lui.`,
+        es: `Ejecutado cuando el diálogo o la acción de un personaje disminuye significativamente la opinión que otro tiene de él.`,
+        de: `Wird ausgeführt, wenn der Dialog oder die Handlung eines Charakters die Meinung eines другого über ihn erheblich verschlechtert.`,
+        ja: `あるキャラクターの対話または行動が、別のキャラクターの彼らに対する評価を大幅に低下させたときに実行されます。`,
+        ko: `한 캐릭터의 대화나 행동이 다른 캐릭터의 그들에 대한 평가를 크게 낮출 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dialog lub działanie jednej postaci znacząco obniża opinię drugiej o niej.`
     },
 
     /**

@@ -9,15 +9,15 @@ module.exports = {
             type: "number",
             min: 1,
             desc: { 
-                en: "the amount of gold {{aiName}} pays to {{playerName}}, should be always positive",
-                zh: "{{aiName}}支付给{{playerName}}的金币数量，应始终为正数",
-                ru: "количество золота, которое {{aiName}} платит {{playerName}}, всегда должно быть положительным",
-                fr: "le montant d'or que {{aiName}} paie à {{playerName}}, doit toujours être positif",
-                es: "la cantidad de oro que {{aiName}} paga a {{playerName}}, siempre debe ser positiva",
-                de: "die Menge Gold, die {{aiName}} an {{playerName}} zahlt, sollte immer positiv sein",
-                ja: "{{aiName}}が{{playerName}}に支払うゴールドの量は常に正数である必要があります",
-                ko: "{{aiName}}가 {{playerName}}에게 지불하는 골드의 양은 항상 양수여야 합니다",
-                pl: "ilość złota, którą {{aiName}} płaci {{playerName}}, powinna być zawsze dodatnia"
+                en: "the amount of gold {{character1Name}} requests from {{character2Name}}, should be always positive",
+                zh: "{{character1Name}}向{{character2Name}}请求的金币数量，应始终为正数",
+                ru: "количество золота, которое {{character1Name}} запрашивает у {{character2Name}}, всегда должно быть положительным",
+                fr: "le montant d'or que {{character1Name}} demande à {{character2Name}}, doit toujours être positif",
+                es: "la cantidad de oro que {{character1Name}} solicita a {{character2Name}}, siempre debe ser positiva",
+                de: "die Menge Gold, die {{character1Name}} von {{character2Name}} anfordert, sollte immer positiv sein",
+                ja: "{{character1Name}}が{{character2Name}}に要求するゴールドの量は常に正数である必要があります",
+                ko: "{{character1Name}}가 {{character2Name}}에게 요청하는 골드의 양은 항상 양수여야 합니다",
+                pl: "ilość złota, którą {{character1Name}} prosi od {{character2Name}}, powinna być zawsze dodatnia"
             }
         }
     ],
