@@ -38,7 +38,7 @@ export async function readDiarySummaries(playerId: string, characterId: string):
         if (Array.isArray(data)) {
             // New format (array of summaries).
             return data.reduce((acc: DiarySummary[], s: any) => {
-                if (typeof s === 'object' && s !== null && s.summary && s.date) {
+                if (typeof s === 'object' && s !== null && s.summary && typeof s.date !== 'undefined') {
                     acc.push({
                         id: s.id || randomUUID(),
                         diaryEntryId: s.diaryEntryId || '',
