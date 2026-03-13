@@ -200,14 +200,18 @@ function renderLetters() {
         return;
     }
 
+    const cleanLetters = allLetters.filter(l => {
+        if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
+            console.warn('Skipping malformed or incomplete letter object:', l);
+            return false;
+        }
+        return true;
+    });
+
     // Filter letters by selected character
     const characterFilteredLetters = selectedCharacterId === 'all'
-        ? allLetters
-        : allLetters.filter(letter => {
-            if (letter?.sender?.id == null || letter?.recipient?.id == null) {
-                console.warn('Skipping malformed or incomplete letter object:', letter);
-                return false;
-            }
+        ? cleanLetters
+        : cleanLetters.filter(letter => {
             const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
             return String(otherPartyId) === selectedCharacterId;
         });
