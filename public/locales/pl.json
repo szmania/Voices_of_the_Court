@@ -666,7 +666,9 @@
     "reply_overdue": "Odpowiedź spóźniona o",
     "days": "dni",
     "est": "szac.",
-    "reply_expected_in": "Odpowiedź oczekiwana za"
+    "reply_expected_in": "Odpowiedź oczekiwana za",
+    "delivery_expected_in": "Dostawa oczekiwana za",
+    "delivery_overdue": "Dostawa opóźniona od"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

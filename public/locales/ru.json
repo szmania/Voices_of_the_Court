@@ -666,7 +666,9 @@
     "reply_overdue": "Ответ просрочен на",
     "days": "дней",
     "est": "прим.",
-    "reply_expected_in": "Ответ ожидается через"
+    "reply_expected_in": "Ответ ожидается через",
+    "delivery_expected_in": "Доставка ожидается через",
+    "delivery_overdue": "Доставка просрочена с"
   },
   "history": {
     "header": "Просмотр истории разговоров",

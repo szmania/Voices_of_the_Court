@@ -674,7 +674,9 @@
     "reply_overdue": "Reply overdue by",
     "days": "days",
     "est": "est.",
-    "reply_expected_in": "Reply expected in"
+    "reply_expected_in": "Reply expected in",
+    "delivery_expected_in": "Delivery expected in",
+    "delivery_overdue": "Delivery overdue since"
   },
   "history": {
     "header": "Conversation History Viewer",

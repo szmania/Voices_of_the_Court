@@ -666,7 +666,9 @@
     "reply_overdue": "답장이 늦어지고 있습니다",
     "days": "일",
     "est": "예상",
-    "reply_expected_in": "답장 예상"
+    "reply_expected_in": "답장 예상",
+    "delivery_expected_in": "배달 예상",
+    "delivery_overdue": "배달 지연"
   },
   "history": {
     "header": "대화 기록 뷰어",

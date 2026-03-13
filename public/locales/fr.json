@@ -666,7 +666,9 @@
     "reply_overdue": "Réponse en retard de",
     "days": "jours",
     "est": "est.",
-    "reply_expected_in": "Réponse attendue dans"
+    "reply_expected_in": "Réponse attendue dans",
+    "delivery_expected_in": "Livraison prévue dans",
+    "delivery_overdue": "Livraison en retard depuis"
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

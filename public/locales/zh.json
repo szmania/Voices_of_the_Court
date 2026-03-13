@@ -665,7 +665,9 @@
     "reply_overdue": "回复已逾期",
     "days": "天",
     "est": "预计",
-    "reply_expected_in": "预计回复在"
+    "reply_expected_in": "预计回复在",
+    "delivery_expected_in": "预计送达时间",
+    "delivery_overdue": "送达已逾期"
   },
   "diary_manager": {
     "header": "日记管理器",

@@ -666,7 +666,9 @@
     "reply_overdue": "返信が遅れています",
     "days": "日",
     "est": "推定",
-    "reply_expected_in": "返信予定"
+    "reply_expected_in": "返信予定",
+    "delivery_expected_in": "配達予定",
+    "delivery_overdue": "配達遅延"
   },
   "history": {
     "header": "会話履歴ビューアー",

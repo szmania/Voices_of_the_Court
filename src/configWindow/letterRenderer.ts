@@ -46,43 +46,65 @@ function formatDate(date: Date): string {
     return `${day} ${month} ${year}`;
 }
 
-function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expectedDate: Date } | null {
-    // Only show for letters sent by the player that are not replies themselves
-    if (!letter.isPlayerSender || letter.replyToId) {
-        return null;
+function getLetterStatus(letter: Letter): { text: string, overdue: boolean } | null {
+    // 1. Status for player-sent letter awaiting reply
+    if (letter.isPlayerSender && !letter.replyToId) {
+        const hasReply = allLetters.some(l => l.replyToId === letter.id);
+        if (hasReply) return null;
+
+        if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
+
+        const sentDay = letter.totalDays;
+        const expectedReplyDay = sentDay + (letter.delay * 2);
+        const daysDifference = expectedReplyDay - currentGameDay;
+
+        const sentDate = new Date(letter.timestamp);
+        const expectedReplyDate = new Date(sentDate.getTime());
+        expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
+
+        if (daysDifference < 0) {
+            return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
+                overdue: true,
+            };
+        } else {
+            return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
+                overdue: false,
+            };
+        }
     }
 
-    // Check if there's a reply to this letter
-    const hasReply = allLetters.some(l => l.replyToId === letter.id);
-    if (hasReply) {
-        return null; // Don't show status if it's already replied to
+    // 2. Status for AI-sent letter pending delivery
+    if (!letter.isPlayerSender && letter.status === 'pending' && letter.delivered === false) {
+        if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
+
+        const generatedDay = letter.totalDays;
+        const expectedDeliveryDay = generatedDay + letter.delay;
+        const daysUntilDelivery = expectedDeliveryDay - currentGameDay;
+
+        const generatedDate = new Date(letter.timestamp);
+        const expectedDeliveryDate = new Date(generatedDate.getTime());
+        expectedDeliveryDate.setDate(generatedDate.getDate() + letter.delay);
+
+        if (daysUntilDelivery > 0) {
+            return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.delivery_expected_in', 'Delivery expected in')} ${daysUntilDelivery} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedDeliveryDate)})`,
+                overdue: false
+            };
+        } else {
+             return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.delivery_overdue', 'Delivery overdue since')} ${formatDate(expectedDeliveryDate)}`,
+                overdue: true
+            };
+        }
     }
 
-    if (currentGameDay === 0 || !letter.totalDays || !letter.delay) return null;
-
-    const sentDay = letter.totalDays;
-    const expectedReplyDay = sentDay + (letter.delay * 2);
-    const daysDifference = expectedReplyDay - currentGameDay;
-
-    const sentDate = new Date(letter.timestamp);
-    const expectedReplyDate = new Date(sentDate.getTime());
-    expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
-
-    if (daysDifference < 0) {
-        return {
-            // @ts-ignore
-            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
-            overdue: true,
-            expectedDate: expectedReplyDate
-        };
-    } else {
-        return {
-            // @ts-ignore
-            text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${window.LocalizationManager.getTranslation('letters.est', 'est.')} ${formatDate(expectedReplyDate)})`,
-            overdue: false,
-            expectedDate: expectedReplyDate
-        };
-    }
+    return null;
 }
 
 // State
@@ -271,13 +293,7 @@ function renderLetters() {
         }
     }
 
-    const lettersToDisplay = characterFilteredLetters.filter(letter => {
-        const isAiReply = letter.sender.id !== Number(selectedPlayerId);
-        if (isAiReply) {
-            return letter.delivered !== false; // Show if delivered is true or undefined (for old letters)
-        }
-        return true; // Always show player letters
-    });
+    const lettersToDisplay = characterFilteredLetters;
 
     const repliesMap = new Map<string, Letter>();
     const rootLetters: Letter[] = [];
@@ -349,6 +365,11 @@ function renderLetters() {
         if (pair.received) {
             const isUnread = !pair.received.isRead;
             li.classList.toggle('unread', isUnread);
+            const status = getLetterStatus(pair.received);
+            let statusHtml = '';
+            if (status) {
+                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+            }
             receivedHtml = `
                 <div class="letter-item received" data-letter-id="${pair.received.id}">
                     <div class="letter-item-header">
@@ -356,16 +377,17 @@ function renderLetters() {
                         <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.received.subject}</div>
+                    ${statusHtml}
                 </div>
             `;
         }
 
         let sentHtml = '';
         if (pair.sent) {
-            const replyStatus = getReplyStatus(pair.sent);
+            const status = getLetterStatus(pair.sent);
             let statusHtml = '';
-            if (replyStatus) {
-                statusHtml = `<div class="letter-item-reply-status ${replyStatus.overdue ? 'overdue' : ''}">${replyStatus.text}</div>`;
+            if (status) {
+                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
@@ -433,10 +455,10 @@ function renderLetterContent(letter: Letter) {
     const letterViewContainer = document.getElementById('letter-view-container');
     if (!letterViewContainer) return;
 
-    const replyStatus = getReplyStatus(letter);
+    const status = getLetterStatus(letter);
     let statusHtml = '';
-    if (replyStatus) {
-        statusHtml = `<div class="letter-view-reply-status ${replyStatus.overdue ? 'overdue' : ''}">${replyStatus.text}</div>`;
+    if (status) {
+        statusHtml = `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
     }
 
     letterViewContainer.innerHTML = `
