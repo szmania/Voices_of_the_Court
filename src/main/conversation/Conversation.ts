@@ -16,9 +16,10 @@ import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { generateNarrative } from './generateNarrative.js';
 import { cleanMessageContent } from './messageCleaner.js';
 import { DiaryGenerator } from '../diary/DiaryGenerator.js';
-import { readDiaryFile, saveDiaryFile, saveDiarySummary } from '../diaryManager.js';
+import { readDiaryFile, saveDiaryFile, readDiarySummaries, saveDiarySummaries } from '../diaryManager.js';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, PendingAction} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
@@ -1326,7 +1327,7 @@ ${character.fullName}的发言：`
                 };
                 this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
             }
-            
+
             console.log(`Action "${action.signature}" successfully executed after approval.`);
         } catch (e) {
             let errMsg = `Action error: failure in run function for action: ${action.signature}; details: `+e;
@@ -1395,10 +1396,11 @@ ${character.fullName}的发言：`
                     await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
                     
                     // Re-summarize the diary with the new entry
-                    const allEntries = await readDiaryFile(this.gameData.playerID.toString(), character.id.toString());
-                    const summary = await this.diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(this.gameData.playerID.toString(), character.id.toString(), summary);
+                    const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry);
+                    if (summaryResult) {
+                        const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
+                        summaries.unshift({ id: randomUUID(), ...summaryResult });
+                        await saveDiarySummaries(this.gameData.playerID.toString(), character.id.toString(), summaries);
                     }
                 }
             }

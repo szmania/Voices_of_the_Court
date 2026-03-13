@@ -167,9 +167,17 @@
         <div id="summary-manager-container" class="border">
             <div id="summary-manager-loader" class="loader" style="display: none;"></div>
             <h2 data-i18n="summary_manager.header">Summary Manager</h2>
+            
+            <!-- Tab Navigation -->
+            <div id="summary-manager-tabs" class="tab-navigation">
+                <button id="summary-tab-conversations" class="tab-button active" data-tab="conversations" data-i18n="summary_manager.tab_conversations">Conversations</button>
+                <button id="summary-tab-letters" class="tab-button" data-tab="letters" data-i18n="summary_manager.tab_letters">Letters</button>
+                <button id="summary-tab-diaries" class="tab-button" data-tab="diaries" data-i18n="summary_manager.tab_diaries">Diaries</button>
+            </div>
+            
             <div class="header-controls">
                 <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh" data-i18n-title="summary_manager.tooltip_refresh">Refresh</button>
-                <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save_all" data-i18n-title="summary_manager.tooltip_save_all">Save All Summaries</button>
+                <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save_all" data-i18n-title="summary_manager.tooltip_save_all">Save All</button>
             </div>
         
             <div class="info-panel">

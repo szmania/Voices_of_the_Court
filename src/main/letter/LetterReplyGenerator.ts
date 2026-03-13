@@ -59,8 +59,10 @@ export class LetterReplyGenerator {
         // Read conversation summary
         let conversationSummary = '';
         try {
+            // @ts-ignore
+            const depth = this.config.summaries_insert_depth || 3;
             const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(player.id));
-            const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id));
+            const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id)).slice(0, depth);
             
             if (aiSummaries.length > 0) {
                 // Read all summaries for this character, sorted by date (most recent first)
@@ -79,7 +81,9 @@ export class LetterReplyGenerator {
 
         // Load letter summaries
         const letterManager = LetterManager.getInstance();
-        const letterSummaries = letterManager.getLetterSummaries(String(player.id), String(ai.id));
+        // @ts-ignore
+        const depth = this.config.summaries_insert_depth || 3;
+        const letterSummaries = letterManager.getLetterSummaries(String(player.id), String(ai.id)).slice(0, depth);
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
             const allSummaries = letterSummaries.map((summary, index) => 

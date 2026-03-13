@@ -7,6 +7,7 @@ import { Message } from "../ts/conversation_interfaces";
 import { Conversation } from "../conversation/Conversation";
 import { DiaryEntry } from "../ts/diary_interfaces";
 import { LetterManager } from "../letter/LetterManager";
+import { randomUUID } from "crypto";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
@@ -34,7 +35,9 @@ export class DiaryGenerator {
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
-        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId);
+        // @ts-ignore
+        const depth = this.config.summaries_insert_depth || 3;
+        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId).slice(0, depth);
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
             const allSummaries = letterSummaries.map((summary, index) =>
@@ -81,6 +84,7 @@ export class DiaryGenerator {
         }
 
         const diaryEntry: DiaryEntry = {
+          id: randomUUID(),
           date: gameData.date,
           location: gameData.location,
           scene: gameData.scene,
@@ -113,6 +117,7 @@ export class DiaryGenerator {
         if (!generatedContent) return null;
 
         return {
+            id: randomUUID(),
             date: gameData.date,
             location: gameData.location,
             scene: 'Wrote/Read a letter',
@@ -128,8 +133,8 @@ export class DiaryGenerator {
         };
     }
 
-    public async summarizeDiary(diaryEntries: DiaryEntry[]): Promise<string | null> {
-        if (!diaryEntries || diaryEntries.length === 0) {
+    public async summarizeDiaryEntry(diaryEntry: DiaryEntry): Promise<{ summary: string, date: string, diaryEntryId: string } | null> {
+        if (!diaryEntry) {
             return null;
         }
 
@@ -138,12 +143,17 @@ export class DiaryGenerator {
             return null;
         }
 
-        const entriesText = diaryEntries.map((entry: any) => `Date: ${entry.date}\n${entry.content}`).join('\n\n');
-        const fullPrompt = `${diarySummarizePrompt}\n\n${entriesText}`;
+        const entryText = `Date: ${diaryEntry.date}\n${diaryEntry.content}`;
+        const fullPrompt = `${diarySummarizePrompt}\n\n${entryText}`;
 
         const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
 
         const summaryContent = await this.apiConnection.complete(promptForApi, false, {});
-        return summaryContent;
+        
+        if (!summaryContent) {
+            return null;
+        }
+
+        return { summary: summaryContent, date: diaryEntry.date, diaryEntryId: diaryEntry.id };
     }
 }
