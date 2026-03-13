@@ -17,7 +17,7 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary } from "./diaryManager.js";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummary, saveDiarySummary, getAllDiarySummaries } from "./diaryManager.js";
 import { parseConversationHistoryIdsFromLog, getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
@@ -852,9 +852,9 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(playerCharacter.id), newEntry);
                     const allEntries = await readDiaryFile(String(gameData.playerID), String(playerCharacter.id));
-                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(String(gameData.playerID), String(playerCharacter.id), summary);
+                    const summaryResult = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    if (summaryResult) {
+                        await saveDiarySummary(String(gameData.playerID), String(playerCharacter.id), summaryResult.summary, summaryResult.date);
                     }
                 }
             }
@@ -883,9 +883,9 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
                     const allEntries = await readDiaryFile(String(gameData.playerID), String(aiCharacter.id));
-                    const summary = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
-                    if (summary) {
-                        await saveDiarySummary(String(gameData.playerID), String(aiCharacter.id), summary);
+                    const summaryResult = await diaryGenerator.summarizeDiary(allEntries.diary_entries);
+                    if (summaryResult) {
+                        await saveDiarySummary(String(gameData.playerID), String(aiCharacter.id), summaryResult.summary, summaryResult.date);
                     }
                 }
             }
@@ -1364,78 +1364,37 @@ ipcMain.handle('save-all-letters', async (event, playerId: string, lettersData: 
 ipcMain.handle('get-all-diaries-for-player', async (event, playerId: string) => {
     console.log(`IPC: Received get-all-diaries-for-player event for player: ${playerId}`);
     try {
-        // Get all diary files for the player
-        const diaryFiles = await getDiaryFiles(playerId);
-        const allDiaryEntries: any[] = [];
-        
-        // Get character map
-        const characterMap = await getDiaryCharacterMap(playerId);
-        
-        // Read all diary files
-        for (const file of diaryFiles) {
-            const characterId = file.replace('.json', '');
-            const diaryData = await readDiaryFile(playerId, characterId);
-            
-            if (diaryData && diaryData.diary_entries) {
-                // Add character info to each entry
-                const entriesWithCharacter = diaryData.diary_entries.map(entry => ({
-                    ...entry,
-                    characterId,
-                    characterName: characterMap[characterId] || `Character ${characterId}`
-                }));
-                allDiaryEntries.push(...entriesWithCharacter);
-            }
-        }
-        
-        // Sort by date (newest first)
-        allDiaryEntries.sort((a, b) => {
-            const dateA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : new Date(a.date).getTime();
-            const dateB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : new Date(b.date).getTime();
-            return dateB - dateA;
-        });
-        
-        return allDiaryEntries;
+        const summaries = await getAllDiarySummaries(playerId);
+        summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return summaries;
     } catch (error) {
-        console.error('Error getting diaries for player:', error);
+        console.error('Error getting diary summaries for player:', error);
         return [];
     }
 });
 
-ipcMain.handle('save-all-diaries', async (event, playerId: string, diaryData: any[]) => {
-    console.log(`IPC: Received save-all-diaries event for player: ${playerId}`);
+ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summariesData: any[]) => {
+    console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
-        // Group diary entries by character
-        const entriesByCharacter: { [key: string]: any[] } = {};
-        diaryData.forEach(entry => {
-            const characterId = entry.characterId;
-            if (!entriesByCharacter[characterId]) {
-                entriesByCharacter[characterId] = [];
+        const summariesByCharacter: { [key: string]: any[] } = {};
+        summariesData.forEach(summary => {
+            const characterId = summary.characterId;
+            if (!summariesByCharacter[characterId]) {
+                summariesByCharacter[characterId] = [];
             }
-            entriesByCharacter[characterId].push(entry);
+            summariesByCharacter[characterId].push(summary);
         });
-        
-        // Save each character's diary entries
-        for (const [characterId, entries] of Object.entries(entriesByCharacter)) {
-            // Sort entries by date
-            entries.sort((a: any, b: any) => {
-                const dateA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : new Date(a.date).getTime();
-                const dateB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : new Date(b.date).getTime();
-                return dateB - dateA;
-            });
-            
-            const diaryPath = path.join(userDataPath, 'diary_history', playerId);
-            if (!fs.existsSync(diaryPath)) {
-                fs.mkdirSync(diaryPath, { recursive: true });
+
+        for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
+            // A character should only have one summary file.
+            if (summaries.length > 0) {
+                const latestSummary = summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                await saveDiarySummary(playerId, characterId, latestSummary.summary, latestSummary.date);
             }
-            
-            const filePath = path.join(diaryPath, `${characterId}.json`);
-            const fileData = { diary_entries: entries };
-            fs.writeFileSync(filePath, JSON.stringify(fileData, null, '\t'), 'utf8');
         }
-        
         return { success: true };
     } catch (error) {
-        console.error('Error saving diaries:', error);
+        console.error('Error saving diary summaries:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }

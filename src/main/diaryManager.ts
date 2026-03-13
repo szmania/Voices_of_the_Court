@@ -17,23 +17,23 @@ function getDiaryFilePath(playerId: string, characterId: string): string {
 }
 
 
-export async function readDiarySummary(playerId: string, characterId: string): Promise<string | null> {
+export async function readDiarySummary(playerId: string, characterId: string): Promise<{ summary: string, date: string } | null> {
     const summaryPath = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId, `${characterId}.json`);
     if (!fs.existsSync(summaryPath)) {
         return null;
     }
     const fileContent = await fs.promises.readFile(summaryPath, 'utf-8');
     const summaryData = JSON.parse(fileContent);
-    return summaryData.summary || null;
+    return summaryData.summary ? summaryData : null;
 }
 
-export async function saveDiarySummary(playerId: string, characterId: string, summary: string): Promise<void> {
+export async function saveDiarySummary(playerId: string, characterId: string, summary: string, date: string): Promise<void> {
     const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
     if (!fs.existsSync(summaryDir)) {
         fs.mkdirSync(summaryDir, { recursive: true });
     }
     const summaryPath = path.join(summaryDir, `${characterId}.json`);
-    const summaryData = { summary: summary };
+    const summaryData = { summary: summary, date: date };
     await fs.promises.writeFile(summaryPath, JSON.stringify(summaryData, null, '\t'));
 }
 
@@ -69,7 +69,7 @@ export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playe
 }
 
 export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
-    const diariesRootPath = path.join(userDataPath, 'diary_history');
+    const diariesRootPath = path.join(userDataPath, 'diary_summaries');
     if (!fs.existsSync(diariesRootPath)) {
         return [];
     }
@@ -77,7 +77,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
         .filter(dirent => dirent.isDirectory())
         .map(dirent => {
             const playerId = dirent.name;
-            const mapPath = path.join(diariesDir, playerId, '_character_map.json');
+            const mapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
             let playerName = `Player ${playerId}`;
             if (fs.existsSync(mapPath)) {
                 try {
@@ -169,4 +169,35 @@ export async function getCharacterMap(playerId: string): Promise<{ [key: string]
         }
     }
     return {};
+}
+
+export async function getAllDiarySummaries(playerId: string): Promise<{ summary: string, date: string, characterId: string, characterName: string }[]> {
+    const summaryDir = path.join(diariesDir, '..', 'diary_summaries', playerId);
+    if (!fs.existsSync(summaryDir)) {
+        return [];
+    }
+
+    const characterMap = await getCharacterMap(playerId);
+    const summaryFiles = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+    const allSummaries: { summary: string, date: string, characterId: string, characterName: string }[] = [];
+
+    for (const file of summaryFiles) {
+        const characterId = path.basename(file, '.json');
+        const summaryPath = path.join(summaryDir, file);
+        try {
+            const fileContent = await fs.promises.readFile(summaryPath, 'utf-8');
+            const summaryData = JSON.parse(fileContent);
+            if (summaryData.summary) {
+                allSummaries.push({
+                    summary: summaryData.summary,
+                    date: summaryData.date,
+                    characterId: characterId,
+                    characterName: characterMap[characterId] || `Character ${characterId}`
+                });
+            }
+        } catch (error) {
+            console.error(`Error reading diary summary file ${summaryPath}:`, error);
+        }
+    }
+    return allSummaries;
 }

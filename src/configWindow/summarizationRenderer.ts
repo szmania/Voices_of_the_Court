@@ -489,18 +489,14 @@ function renderCurrentTabList() {
             : filteredLetters;
     } else if (activeTab === 'diaries') {
         itemsToRender = searchTerm
-            ? filteredDiaries.filter(diary => {
-                const content = diary.content || '';
-                const date = diary.date || '';
-                const characterName = diary.characterName || '';
-                const location = diary.location || '';
-                const scene = diary.scene || '';
+            ? filteredDiaries.filter(summary => {
+                const content = summary.summary || '';
+                const date = summary.date || '';
+                const characterName = summary.characterName || '';
                 const lowerCaseSearchTerm = searchTerm.toLowerCase();
                 return content.toLowerCase().includes(lowerCaseSearchTerm) ||
                        date.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       characterName.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       location.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       scene.toLowerCase().includes(lowerCaseSearchTerm);
+                       characterName.toLowerCase().includes(lowerCaseSearchTerm);
             })
             : filteredDiaries;
     }
@@ -559,14 +555,11 @@ function renderCurrentTabList() {
                 `;
             } else if (activeTab === 'diaries') {
                 const characterName = item.characterName || `Character ${item.characterId}`;
-                const location = item.location || 'Unknown Location';
-                const scene = item.scene || 'Unknown Scene';
 
                 editItem.innerHTML = `
                     <div style="font-weight: bold; margin-bottom: 5px;">${characterName}</div>
-                    <div style="margin-bottom: 5px;">${location} - ${scene}</div>
                     <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(item.date)}">
-                    <textarea id="summary-edit-content-${originalIndex}" rows="5">${item.content || ''}</textarea>
+                    <textarea id="summary-edit-content-${originalIndex}" rows="5">${item.summary || ''}</textarea>
                     <div class="edit-controls">
                         <button class="btn cancel-inplace-btn" data-i18n="summary_manager.close_btn">Close</button>
                         <button class="btn btn-success save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
@@ -629,20 +622,15 @@ function renderCurrentTabList() {
                 `;
             } else if (activeTab === 'diaries') {
                 const characterName = item.characterName || `Character ${item.characterId}`;
-                const location = item.location || 'Unknown Location';
-                const scene = item.scene || 'Unknown Scene';
                 
                 // Format date for display
                 const displayDate = formatDateForDisplay(item.date);
                 const headerText = `${displayDate} - ${characterName}`;
-                const metaText = `${location} - ${scene}`;
                 const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
-                const metaHTML = highlightRegex ? metaText.replace(highlightRegex, '<mark>$1</mark>') : metaText;
-                const contentHTML = highlightRegex ? (item.content || '').replace(highlightRegex, '<mark>$1</mark>') : (item.content || '');
+                const contentHTML = highlightRegex ? (item.summary || '').replace(highlightRegex, '<mark>$1</mark>') : (item.summary || '');
 
                 summaryItem.innerHTML = `
                     <div class="summary-date">${headerHTML}</div>
-                    <div class="summary-meta">${metaHTML}</div>
                     <div class="summary-content">${contentHTML}</div>
                 `;
             }
@@ -772,29 +760,25 @@ function addNewEntry() {
 
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New letter added'), 'success');
     } else if (activeTab === 'diaries') {
-        // Create a mock diary entry
-        const newDiary = {
+        // Create a mock diary summary
+        const newDiarySummary = {
             date: today,
-            location: 'Unknown Location',
-            scene: 'Unknown Scene',
-            participants: [selectedPlayerId, characterId],
-            content: 'New diary entry content',
+            summary: 'New diary summary',
             characterId: characterId,
             characterName: characterName,
-            creationTimestamp: new Date().toISOString(),
             _isNew: true
         };
-        allDiaries.unshift(newDiary);
+        allDiaries.unshift(newDiarySummary);
         filterCurrentTabData();
 
         // Find the index of the new diary in the filtered list
-        const newIndex = filteredDiaries.findIndex(d => d === newDiary);
+        const newIndex = filteredDiaries.findIndex(d => d === newDiarySummary);
 
         if (newIndex !== -1) {
             enterEditMode(newIndex);
         }
 
-        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New diary entry added'), 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New diary summary added'), 'success');
     }
     
     hasUnsavedChanges = true;
@@ -844,7 +828,7 @@ async function deleteCurrentEntry() {
                 allDiaries.splice(originalIndex, 1);
             }
             filterCurrentTabData();
-            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Diary entry deleted'), 'success');
+            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Diary summary deleted'), 'success');
         }
         
         hasUnsavedChanges = true;
@@ -879,8 +863,8 @@ async function saveCurrentTabData() {
             await ipcRenderer.invoke('save-all-letters', selectedPlayerId, allLetters);
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Letters saved successfully'), 'success');
         } else if (activeTab === 'diaries') {
-            await ipcRenderer.invoke('save-all-diaries', selectedPlayerId, allDiaries);
-            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Diaries saved successfully'), 'success');
+            await ipcRenderer.invoke('save-all-diary-summaries', selectedPlayerId, allDiaries);
+            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Diary summaries saved successfully'), 'success');
         }
         
         hasUnsavedChanges = false;
@@ -1010,7 +994,7 @@ function handleInPlaceInputChange(index: number) {
         originalContent = item.content || '';
     } else if (activeTab === 'diaries') {
         originalDate = formatDateForInput(item.date);
-        originalContent = item.content || '';
+        originalContent = item.summary || '';
     }
 
     const dateChanged = originalDate !== dateInput.value;
@@ -1133,7 +1117,7 @@ function saveInPlaceEdit() {
             delete (allLetters[originalIndex] as any)._isNew;
         } else if (activeTab === 'diaries') {
             allDiaries[originalIndex].date = newDate;
-            allDiaries[originalIndex].content = newContent;
+            allDiaries[originalIndex].summary = newContent;
             delete (allDiaries[originalIndex] as any)._isNew;
         }
     }

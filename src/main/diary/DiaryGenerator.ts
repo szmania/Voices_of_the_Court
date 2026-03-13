@@ -128,7 +128,7 @@ export class DiaryGenerator {
         };
     }
 
-    public async summarizeDiary(diaryEntries: DiaryEntry[]): Promise<string | null> {
+    public async summarizeDiary(diaryEntries: DiaryEntry[]): Promise<{ summary: string, date: string } | null> {
         if (!diaryEntries || diaryEntries.length === 0) {
             return null;
         }
@@ -144,6 +144,12 @@ export class DiaryGenerator {
         const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
 
         const summaryContent = await this.apiConnection.complete(promptForApi, false, {});
-        return summaryContent;
+        
+        if (!summaryContent) {
+            return null;
+        }
+
+        // Assuming diaryEntries is sorted with the latest first
+        return { summary: summaryContent, date: diaryEntries[0].date };
     }
 }
