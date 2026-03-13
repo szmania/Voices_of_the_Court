@@ -156,7 +156,7 @@
     "aiToAiChatChance_tooltip": "La chance qu'un personnage IA, après avoir répondu au joueur, envoie également un message à un autre personnage IA.",
     "maxConsecutiveActions": "Max d'actions consécutives",
     "maxConsecutiveActions_tooltip": "Le nombre maximum de tours consécutifs de l'IA pouvant déclencher des actions. Aide à prévenir les boucles d'actions. Mettre à 0 pour aucune limite.",
-    "enable_diary": "Enable Diary Generation",
+    "enable_diary": "Activer la génération de journal",
     "diary_chance": "Diary Generation Chance (%)",
     "diary_chance_tooltip": "La probabilité (0-100%) qu'une entrée de journal soit générée pour un personnage après une conversation. Une entrée est toujours générée si le personnage a été impliqué dans une action.",
     "stream_tooltip": "Recevez la réponse de l'IA au fur et à mesure de sa génération, mot par mot. La désactivation peut entraîner des temps d'attente plus longs mais peut être plus compatible avec certains modèles.",

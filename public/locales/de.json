@@ -154,7 +154,7 @@
     "aiToAiChatChance_tooltip": "Die Wahrscheinlichkeit, dass ein KI-Charakter nach der Antwort an den Spieler auch eine Nachricht an einen anderen KI-Charakter sendet.",
     "maxConsecutiveActions": "Max. aufeinanderfolgende Aktionen",
     "maxConsecutiveActions_tooltip": "Die maximale Anzahl aufeinanderfolgender KI-Züge, die Aktionen auslösen können. Hilft, Aktionsschleifen zu verhindern. Auf 0 setzen für kein Limit.",
-    "enable_diary": "Enable Diary Generation",
+    "enable_diary": "Tagebucherstellung aktivieren",
     "diary_chance": "Diary Generation Chance (%)",
     "diary_chance_tooltip": "Die Wahrscheinlichkeit (0-100%), dass nach einem Gespräch ein Tagebucheintrag für einen Charakter generiert wird. Ein Eintrag wird immer generiert, wenn der Charakter an einer Aktion beteiligt war.",
     "stream_tooltip": "Empfangen Sie die Antwort der KI, während sie generiert wird, Wort für Wort. Das Deaktivieren kann zu längeren Wartezeiten führen, ist aber möglicherweise mit einigen Modellen kompatibler.",

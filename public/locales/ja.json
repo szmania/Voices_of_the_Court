@@ -156,7 +156,7 @@
     "aiToAiChatChance_tooltip": "AIキャラクターがプレイヤーに応答した後、別のAIキャラクターにもメッセージを送信する確率。",
     "maxConsecutiveActions": "最大連続アクション数",
     "maxConsecutiveActions_tooltip": "アクションをトリガーできるAIの連続ターン数の最大値。アクションループを防ぐのに役立ちます。0に設定すると制限なしになります。",
-    "enable_diary": "Enable Diary Generation",
+    "enable_diary": "日記生成を有効にする",
     "diary_chance": "Diary Generation Chance (%)",
     "diary_chance_tooltip": "会話後にキャラクターの日記が生成される確率（0-100%）。キャラクターがアクションに関与した場合、常にエントリが生成されます。",
     "stream_tooltip": "AIの応答を生成中に逐語的に受信します。無効にすると待ち時間が長くなる可能性がありますが、一部のモデルとの互換性が向上する場合があります。",
