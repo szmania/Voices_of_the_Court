@@ -2,12 +2,12 @@
 
 /**@typedef {import('../../../gamedata_typedefs.js').GameData} GameData */
 /**@param {GameData} gameData */
-module.exports = (gameData, id) => {
+module.exports = (gameData) => {
     const date = gameData.date;
     const scene = gameData.scene;
     const location = gameData.location;
     const player = gameData.characters.get(gameData.playerID);
-    const ai = gameData.characters.get(id);
+    const ai = gameData.characters.get(gameData.aiID);
 
     let msgs = [];
 
@@ -33,7 +33,7 @@ module.exports = (gameData, id) => {
 
 
     //trait 1
-    
+
     if(personalityTraits.length > 0){
         let output = `*${ai.shortName}'s eyes lit up* My personality, my lord? *${ai.sheHe} takes a short pause thinking* Well, I am ${personalityTraits[0].name}, ${traitMessageMap.get(personalityTraits[0].name)}`;
 
@@ -42,17 +42,17 @@ module.exports = (gameData, id) => {
             name: player.shortName,
             content: "Personality?"
         });
-    
+
         msgs.push({
             role: "assistant",
             name: ai.shortName,
             content: output
         });
     }
-    
+
 
     //trait 2
-    if(personalityTraits.length > 1){   
+    if(personalityTraits.length > 1){
         let output = `Yes, *${ai.sheHe} pauses again thinking about what else to say* I am also ${personalityTraits[1].name}, ${traitMessageMap.get(personalityTraits[1].name)}`;
 
         msgs.push({
@@ -60,7 +60,7 @@ module.exports = (gameData, id) => {
             name: player.shortName,
             content: "Anyting else?"
         });
-    
+
         msgs.push({
             role: "assistant",
             name: ai.shortName,
@@ -77,7 +77,7 @@ module.exports = (gameData, id) => {
             name: player.shortName,
             content: "Is that all?"
         });
-    
+
         msgs.push({
             role: "assistant",
             name: ai.shortName,

@@ -155,7 +155,7 @@
     "aiToAiChatChance": "AI to AI chat chance (%)",
     "aiToAiChatChance_tooltip": "The chance that an AI character, after responding to the player, will also send a message to another AI character.",
     "maxConsecutiveActions": "Max Consecutive Actions",
-    "maxConsecutiveActions_tooltip": "The maximum number of consecutive AI turns that can trigger actions. Helps prevent action loops. Set to 0 for no limit.",
+    "maxConsecutiveActions_tooltip": "The maximum number of consecutive AI responses that can trigger actions. Helps prevent action loops. Set to 0 for no limit.",
     "diary_chance": "Diary Generation Chance (%)",
     "diary_chance_tooltip": "The chance (0-100%) that a diary entry will be generated for a character after a conversation. An entry is always generated if the character was involved in an action.",
     "stream_tooltip": "Receive the AI's response as it's being generated, word by word. Disabling this may result in longer wait times but can be more compatible with some models.",
