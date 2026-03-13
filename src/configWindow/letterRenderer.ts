@@ -204,7 +204,8 @@ function renderLetters() {
     const characterFilteredLetters = selectedCharacterId === 'all'
         ? allLetters
         : allLetters.filter(letter => {
-            if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
+            // More robust check to prevent crashes on malformed letter objects
+            if (!letter || !letter.sender || !letter.recipient || typeof letter.sender.id === 'undefined' || typeof letter.recipient.id === 'undefined') {
                 console.warn('Skipping malformed or incomplete letter object:', letter);
                 return false;
             }
