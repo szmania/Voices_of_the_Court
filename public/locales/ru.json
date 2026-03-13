@@ -663,12 +663,13 @@
     "tooltip_completed": "Количество писем, которые были успешно отправлены или прочитаны.",
     "search": "Поиск:",
     "search_placeholder": "Искать письма...",
-    "reply_overdue": "Ответ просрочен на",
     "days": "дней",
     "est": "прим.",
     "reply_expected_in": "Ответ ожидается через",
     "delivery_expected_in": "Доставка ожидается через",
-    "delivery_overdue": "Доставка просрочена с"
+    "delivery_overdue": "Доставка просрочена с",
+    "reply_overdue_since": "Ответ просрочен с",
+    "estimated_reply_date_was": "Предполагаемая дата ответа была"
   },
   "history": {
     "header": "Просмотр истории разговоров",

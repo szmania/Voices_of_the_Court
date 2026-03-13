@@ -663,12 +663,13 @@
     "tooltip_completed": "성공적으로 보내거나 읽은 편지 수.",
     "search": "검색:",
     "search_placeholder": "편지 검색...",
-    "reply_overdue": "답장이 늦어지고 있습니다",
     "days": "일",
     "est": "예상",
     "reply_expected_in": "답장 예상",
     "delivery_expected_in": "배달 예상",
-    "delivery_overdue": "배달 지연"
+    "delivery_overdue": "배달 지연",
+    "reply_overdue_since": "답장 기한 초과",
+    "estimated_reply_date_was": "예상 답장 날짜"
   },
   "history": {
     "header": "대화 기록 뷰어",

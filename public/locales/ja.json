@@ -663,12 +663,13 @@
     "tooltip_completed": "正常に送信または読まれた手紙の数。",
     "search": "検索:",
     "search_placeholder": "手紙を検索...",
-    "reply_overdue": "返信が遅れています",
     "days": "日",
     "est": "推定",
     "reply_expected_in": "返信予定",
     "delivery_expected_in": "配達予定",
-    "delivery_overdue": "配達遅延"
+    "delivery_overdue": "配達遅延",
+    "reply_overdue_since": "返信期限切れ",
+    "estimated_reply_date_was": "推定返信日"
   },
   "history": {
     "header": "会話履歴ビューアー",

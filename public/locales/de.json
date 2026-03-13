@@ -661,12 +661,13 @@
     "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe.",
     "search": "Suchen:",
     "search_placeholder": "Briefe durchsuchen...",
-    "reply_overdue": "Antwort überfällig seit",
     "days": "Tagen",
     "est": "gesch.",
     "reply_expected_in": "Antwort erwartet in",
     "delivery_expected_in": "Zustellung erwartet in",
-    "delivery_overdue": "Zustellung überfällig seit"
+    "delivery_overdue": "Zustellung überfällig seit",
+    "reply_overdue_since": "Antwort überfällig seit",
+    "estimated_reply_date_was": "Geschätztes Antwortdatum war"
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

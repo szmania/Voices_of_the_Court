@@ -663,12 +663,13 @@
     "tooltip_completed": "Número de cartas que se han enviado o leído correctamente.",
     "search": "Buscar:",
     "search_placeholder": "Buscar cartas...",
-    "reply_overdue": "Respuesta atrasada por",
     "days": "días",
     "est": "est.",
     "reply_expected_in": "Respuesta esperada en",
     "delivery_expected_in": "Entrega esperada en",
-    "delivery_overdue": "Entrega atrasada desde"
+    "delivery_overdue": "Entrega atrasada desde",
+    "reply_overdue_since": "Respuesta atrasada desde",
+    "estimated_reply_date_was": "La fecha estimada de respuesta era"
   },
   "history": {
     "header": "Visor del historial de conversaciones",

@@ -663,12 +663,13 @@
     "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane.",
     "search": "Szukaj:",
     "search_placeholder": "Szukaj listów...",
-    "reply_overdue": "Odpowiedź spóźniona o",
     "days": "dni",
     "est": "szac.",
     "reply_expected_in": "Odpowiedź oczekiwana za",
     "delivery_expected_in": "Dostawa oczekiwana za",
-    "delivery_overdue": "Dostawa opóźniona od"
+    "delivery_overdue": "Dostawa opóźniona od",
+    "reply_overdue_since": "Odpowiedź spóźniona od",
+    "estimated_reply_date_was": "Szacowana data odpowiedzi to"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

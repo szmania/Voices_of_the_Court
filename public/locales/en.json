@@ -671,12 +671,13 @@
     "tooltip_completed": "Number of letters that have been successfully sent or read.",
     "search": "Search:",
     "search_placeholder": "Search letters...",
-    "reply_overdue": "Reply overdue by",
     "days": "days",
     "est": "est.",
     "reply_expected_in": "Reply expected in",
     "delivery_expected_in": "Delivery expected in",
-    "delivery_overdue": "Delivery overdue since"
+    "delivery_overdue": "Delivery overdue since",
+    "reply_overdue_since": "Reply overdue since",
+    "estimated_reply_date_was": "Estimated reply date was"
   },
   "history": {
     "header": "Conversation History Viewer",

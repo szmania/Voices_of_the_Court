@@ -662,12 +662,13 @@
     "tooltip_completed": "已成功发送或阅读的信件数量。",
     "search": "搜索：",
     "search_placeholder": "搜索信件...",
-    "reply_overdue": "回复已逾期",
     "days": "天",
     "est": "预计",
     "reply_expected_in": "预计回复在",
     "delivery_expected_in": "预计送达时间",
-    "delivery_overdue": "送达已逾期"
+    "delivery_overdue": "送达已逾期",
+    "reply_overdue_since": "回复已逾期",
+    "estimated_reply_date_was": "预计回复日期为"
   },
   "diary_manager": {
     "header": "日记管理器",
