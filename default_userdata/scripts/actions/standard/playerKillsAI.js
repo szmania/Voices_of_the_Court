@@ -6,15 +6,15 @@ module.exports = {
     args: [],
 	
     description: {
-        en: `Executed when {{aiName}} is killed by {{playerName}}.`,
-        zh: `当{{aiName}}被杀死时执行。`,
-        ru: `Выполняется, когда {{aiName}} убит {{playerName}}.`,
-        fr: `Exécuté lorsque {{aiName}} est tué par {{playerName}}.`,
-        es: `Ejecutado cuando {{aiName}} es asesinado por {{playerName}}.`,
-        de: `Wird ausgeführt, wenn {{aiName}} von {{playerName}} getötet wird.`,
-        ja: `{{aiName}}が{{playerName}}に殺されたときに実行されます。`,
-        ko: `{{aiName}}가 {{playerName}}에게 살해당했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} zostaje zabity przez {{playerName}}.`,
+        en: `Executed when a character is killed by another.`,
+        zh: `当一个角色被另一个角色杀死时执行。`,
+        ru: `Выполняется, когда один персонаж убит другим.`,
+        fr: `Exécuté lorsqu'un personnage est tué par un autre.`,
+        es: `Ejecutado cuando un personaje es asesinado por otro.`,
+        de: `Wird ausgeführt, wenn ein Charakter von einem anderen getötet wird.`,
+        ja: `あるキャラクターが別のキャラクターに殺されたときに実行されます。`,
+        ko: `한 캐릭터가 다른 캐릭터에게 살해당했을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy jedna postać zostaje zabita przez inną.`,
     },
 
     /**
