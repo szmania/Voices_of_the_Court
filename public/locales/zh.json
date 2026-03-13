@@ -219,6 +219,8 @@
     "action_prompt_header": "动作建议",
     "action_approve": "接受",
     "action_decline": "拒绝",
+    "action_approve_tooltip": "接受此动作并在游戏中应用其效果。",
+    "action_decline_tooltip": "拒绝此动作。它将不会被执行。",
     "execute_tooltip": "执行此操作。",
     "cancel_tooltip": "取消此操作。",
     "scene_description": "场景描述",

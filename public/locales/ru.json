@@ -220,6 +220,8 @@
     "action_prompt_header": "предложено действие",
     "action_approve": "принять",
     "action_decline": "отклонить",
+    "action_approve_tooltip": "Принять это действие и применить его эффекты в игре.",
+    "action_decline_tooltip": "Отклонить это действие. Оно не будет выполнено.",
     "execute_tooltip": "Выполнить это действие.",
     "cancel_tooltip": "Отменить это действие.",
     "scene_description": "Описание сцены",

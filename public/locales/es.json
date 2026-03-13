@@ -220,6 +220,8 @@
     "action_prompt_header": "acción sugerida",
     "action_approve": "aceptar",
     "action_decline": "rechazar",
+    "action_approve_tooltip": "Aceptar esta acción y aplicar sus efectos en el juego.",
+    "action_decline_tooltip": "Rechazar esta acción. No se ejecutará.",
     "execute_tooltip": "Ejecutar esta acción.",
     "cancel_tooltip": "Cancelar esta acción.",
     "scene_description": "Descripción de la escena",

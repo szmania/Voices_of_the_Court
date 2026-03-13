@@ -220,6 +220,8 @@
     "action_prompt_header": "작업 제안됨",
     "action_approve": "수락",
     "action_decline": "거절",
+    "action_approve_tooltip": "이 작업을 수락하고 게임 내 효과를 적용합니다.",
+    "action_decline_tooltip": "이 작업을 거절합니다. 실행되지 않습니다.",
     "execute_tooltip": "이 작업을 실행합니다.",
     "cancel_tooltip": "이 작업을 취소합니다.",
     "scene_description": "장면 설명",

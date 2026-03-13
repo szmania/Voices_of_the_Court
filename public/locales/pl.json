@@ -220,6 +220,8 @@
     "action_prompt_header": "zaproponowano akcję",
     "action_approve": "zaakceptuj",
     "action_decline": "odrzuć",
+    "action_approve_tooltip": "Zaakceptuj tę akcję i zastosuj jej efekty w grze.",
+    "action_decline_tooltip": "Odrzuć tę akcję. Nie zostanie wykonana.",
     "execute_tooltip": "Wykonaj tę akcję.",
     "cancel_tooltip": "Anuluj tę akcję.",
     "scene_description": "Opis sceny",

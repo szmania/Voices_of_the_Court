@@ -220,6 +220,8 @@
     "action_prompt_header": "アクションが提案されました",
     "action_approve": "承認",
     "action_decline": "拒否",
+    "action_approve_tooltip": "このアクションを承認し、ゲーム内でその効果を適用します。",
+    "action_decline_tooltip": "このアクションを拒否します。実行されません。",
     "execute_tooltip": "このアクションを実行します。",
     "cancel_tooltip": "このアクションをキャンセルします。",
     "scene_description": "シーン説明",
