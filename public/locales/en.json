@@ -218,6 +218,8 @@
     "action_prompt_header": "action suggested",
     "action_approve": "accept",
     "action_decline": "decline",
+    "action_approve_tooltip": "Accept this action and apply its effects in-game.",
+    "action_decline_tooltip": "Decline this action. It will not be executed.",
     "execute_tooltip": "Execute this action.",
     "cancel_tooltip": "Cancel this action.",
     "scene_description": "Scene Description",

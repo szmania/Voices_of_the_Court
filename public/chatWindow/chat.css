@@ -1267,6 +1267,7 @@ html{
     cursor: pointer;
     font-family: 'Gitan', sans-serif;
     transition: all 0.2s;
+    position: relative;
 }
 
 .action-buttons button:first-child {
@@ -1287,4 +1288,33 @@ html{
 
 .action-buttons button:last-child:hover {
     background-color: #6b2a2a;
+}
+
+.action-buttons button::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.action-buttons button:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
 }

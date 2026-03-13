@@ -1577,6 +1577,8 @@ ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposed
 
             const approveButton = document.createElement('button');
             approveButton.textContent = acceptText;
+            const approveTooltip = (lm ? lm.getNestedTranslation('chat.action_approve_tooltip') : null) || 'Accept this action and apply its effects in-game.';
+            approveButton.setAttribute('data-tooltip', approveTooltip);
             approveButton.onclick = () => {
                 ipcRenderer.send('execute-approved-action', messageIndex, action.actionName);
                 actionPrompt.remove();
@@ -1588,6 +1590,8 @@ ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposed
 
             const declineButton = document.createElement('button');
             declineButton.textContent = declineText;
+            const declineTooltip = (lm ? lm.getNestedTranslation('chat.action_decline_tooltip') : null) || 'Decline this action. It will not be executed.';
+            declineButton.setAttribute('data-tooltip', declineTooltip);
             declineButton.onclick = () => {
                 actionPrompt.remove();
                 // If no more prompts, remove the container
