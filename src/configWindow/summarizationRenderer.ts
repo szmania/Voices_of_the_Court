@@ -243,6 +243,7 @@ function switchTab(tab: 'conversations' | 'letters' | 'diaries') {
 }
 
 async function loadPlayerIds() {
+    const storedPlayerId = selectedPlayerId;
     summaryLoader.style.display = 'block';
     refreshBtn.disabled = true;
     saveBtn.disabled = true;
@@ -262,7 +263,13 @@ async function loadPlayerIds() {
                 option.textContent = player.name === `Player ${player.id}` ? player.id : `${player.name} (${player.id})`;
                 playerIdSelect.appendChild(option);
             });
-            await loadAllDataForPlayer(); // Load data for the first player
+
+            if (storedPlayerId && ids.some((p: {id: string}) => p.id === storedPlayerId)) {
+                playerIdSelect.value = storedPlayerId;
+            }
+            selectedPlayerId = playerIdSelect.value;
+
+            await loadAllDataForPlayer(); // Load data for the selected player
         } else {
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_players_found', 'No player data found.'), 'info');
             summaryList.innerHTML = '';
@@ -286,6 +293,7 @@ async function loadPlayerIds() {
 }
 
 async function loadAllDataForPlayer() {
+    const storedCharacterId = selectedCharacterId;
     summaryLoader.style.display = 'block';
     summaryList.innerHTML = '';
     selectedPlayerId = playerIdSelect.value;
@@ -318,6 +326,10 @@ async function loadAllDataForPlayer() {
         allDiaries = await ipcRenderer.invoke('get-all-diaries-for-player', selectedPlayerId);
         
         populateCharacterSelect();
+        if (storedCharacterId && Array.from(characterSelect.options).some(opt => opt.value === storedCharacterId)) {
+            characterSelect.value = storedCharacterId;
+        }
+        selectedCharacterId = characterSelect.value;
         filterCurrentTabData();
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Data loaded successfully'), 'success');
         hasUnsavedChanges = false;
@@ -335,35 +347,25 @@ function populateCharacterSelect() {
     const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
 
-    let characterMap = new Map<string, string>();
+    const characterNameMap = new Map<string, string>();
     
-    // Populate character map based on active tab
-    if (activeTab === 'conversations') {
-        allSummaries.forEach(summary => {
-            if (summary.characterId) {
-                characterMap.set(summary.characterId, summary.characterName || summary.characterId);
-            }
-        });
-    } else if (activeTab === 'letters') {
-        allLetters.forEach(letter => {
-            if (letter.sender && letter.sender.id) {
-                const senderId = String(letter.sender.id);
-                characterMap.set(senderId, letter.senderName || `Character ${senderId}`);
-            }
-            if (letter.recipient && letter.recipient.id) {
-                const recipientId = String(letter.recipient.id);
-                characterMap.set(recipientId, letter.recipientName || `Character ${recipientId}`);
-            }
-        });
-    } else if (activeTab === 'diaries') {
-        allDiaries.forEach(diary => {
-            if (diary.characterId) {
-                characterMap.set(diary.characterId, diary.characterName || `Character ${diary.characterId}`);
-            }
-        });
-    }
+    allSummaries.forEach(summary => {
+        if (summary.characterId) {
+            characterNameMap.set(summary.characterId, summary.characterName || `Character ${summary.characterId}`);
+        }
+    });
+    allLetters.forEach(summary => {
+        if (summary.characterId) {
+            characterNameMap.set(summary.characterId, summary.characterName || `Character ${summary.characterId}`);
+        }
+    });
+    allDiaries.forEach(summary => {
+        if (summary.characterId) {
+            characterNameMap.set(summary.characterId, summary.characterName || `Character ${summary.characterId}`);
+        }
+    });
 
-    const sortedCharacters = [...characterMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    const sortedCharacters = [...characterNameMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
     sortedCharacters.forEach(([characterId, characterName]) => {
         const option = document.createElement('option');
         option.value = characterId;
@@ -556,8 +558,10 @@ function renderCurrentTabList() {
             const dateInput = editItem.querySelector(`#summary-edit-date-${originalIndex}`) as HTMLInputElement;
             const contentInput = editItem.querySelector(`#summary-edit-content-${originalIndex}`) as HTMLTextAreaElement;
 
-            dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
-            contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex));
+            if (dateInput && contentInput) {
+                dateInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex!));
+                contentInput.addEventListener('input', () => handleInPlaceInputChange(originalIndex!));
+            }
 
             summaryList.appendChild(editItem);
         } else {
