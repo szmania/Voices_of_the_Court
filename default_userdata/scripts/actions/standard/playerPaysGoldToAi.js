@@ -2,75 +2,86 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "playerPaysGoldToAi",
+    signature: "giveGold",
     args: [
         {
             name: "amount",
             type: "number",
             min: 1,
             desc: { 
-                en: "the amount of gold {{playerName}} pays to {{aiName}}",
-                zh: "{{playerName}}支付给{{aiName}}的金币数量",
-                ru: "количество золота, которое {{playerName}} платит {{aiName}}",
-                fr: "le montant d'or que {{playerName}} paie à {{aiName}}",
-                es: "la cantidad de oro que {{playerName}} paga a {{aiName}}",
-                de: "die Menge Gold, die {{playerName}} an {{aiName}} zahlt",
-                ja: "{{playerName}}が{{aiName}}に支払うゴールドの量",
-                ko: "{{playerName}}가 {{aiName}}에게 지불하는 골드의 양",
-                pl: "ilość złota, którą {{playerName}} płaci {{aiName}}"
+                en: "the amount of gold {{character1Name}} pays to {{character2Name}}",
+                zh: "{{character1Name}}支付给{{character2Name}}的金币数量",
+                ru: "количество золота, которое {{character1Name}} платит {{character2Name}}",
+                fr: "le montant d'or que {{character1Name}} paie à {{character2Name}}",
+                es: "la cantidad de oro que {{character1Name}} paga a {{character2Name}}",
+                de: "die Menge Gold, die {{character1Name}} an {{character2Name}} zahlt",
+                ja: "{{character1Name}}が{{character2Name}}に支払うゴールドの量",
+                ko: "{{character1Name}}가 {{character2Name}}에게 지불하는 골드의 양",
+                pl: "ilość złota, którą {{character1Name}} płaci {{character2Name}}"
             }
         }
     ],
     description: {
-        en: `Executed when {{playerName}} gives gold to {{aiName}}, only if {{aiName}} accepts it.`,
-        zh: `当{{playerName}}给{{aiName}}金币时执行，仅在明确{{aiName}}接受并收取金币时执行。`,
-        ru: `Выполняется, когда {{playerName}} дает золото {{aiName}}, только если {{aiName}} принимает его.`,
-        fr: `Exécuté lorsque {{playerName}} donne de l'or à {{aiName}}, seulement si {{aiName}} l'accepte.`,
-        es: `Ejecutado cuando {{playerName}} da oro a {{aiName}}, solo si {{aiName}} lo acepta.`,
-        de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} Gold gibt, nur wenn {{aiName}} es annimmt.`,
-        ja: `{{playerName}}が{{aiName}}にゴールドを渡すときに実行されます。{{aiName}}が受け入れた場合のみ。`,
-        ko: `{{playerName}}가 {{aiName}}에게 골드를 줄 때 실행됩니다. {{aiName}}가 수락하는 경우에만.`,
-        pl: `Wykonywane, gdy {{playerName}} daje złoto {{aiName}}, tylko jeśli {{aiName}} to zaakceptuje.`,
+        en: `Executed when a character gives gold to another, only if the recipient accepts it.`,
+        zh: `当一个角色给另一个角色金币时执行，仅在明确收款人接受并收取金币时执行。`,
+        ru: `Выполняется, когда один персонаж дает золото другому, только если получатель принимает его.`,
+        fr: `Exécuté lorsqu'un personnage donne de l'or à un autre, seulement si le destinataire l'accepte.`,
+        es: `Ejecutado cuando un personaje da oro a otro, solo si el destinatario lo acepta.`,
+        de: `Wird ausgeführt, wenn ein Charakter einem anderen Gold gibt, nur wenn der Empfänger es annimmt.`,
+        ja: `あるキャラクターが別のキャラクターにゴールドを渡すときに実行されます。受け取り人が受け入れた場合のみ。`,
+        ko: `한 캐릭터가 다른 캐릭터에게 골드를 줄 때 실행됩니다. 수령인이 수락하는 경우에만.`,
+        pl: `Wykonywane, gdy jedna postać daje złoto drugiej, tylko jeśli odbiorca to zaakceptuje.`,
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        return true;
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        return initiator ? initiator.gold >= 1 : false;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
-        runGameEffect(`
-            global_var:votcce_action_target = {
-            add_gold = ${args[0]};
-            }
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
 
-            global_var:votcce_action_source = {
-                remove_short_term_gold = ${args[0]};
-            }
-        `);
+        const amount = Number(args[0]);
+        if (initiator.gold >= amount) {
+            runGameEffect(`
+                global_var:votcce_action_target = {
+                add_gold = ${amount};
+                }
 
+                global_var:votcce_action_source = {
+                    remove_short_term_gold = ${amount};
+                }
+            `);
 
-        gameData.getPlayer().gold -= args[0];
-        gameData.getPlayer().gold += args[0];
+            initiator.gold -= amount;
+            target.gold += amount;
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `You paid {{aiName}} ${args[0]} gold.`,
-            zh: `你向{{aiName}}支付了${args[0]}金币`,
-            ru: `Вы заплатили {{aiName}} ${args[0]} золота.`,
-            fr: `Vous avez payé ${args[0]} pièces d'or à {{aiName}}.`,
-            es: `Pagaste ${args[0]} monedas de oro a {{aiName}}.`,
-            de: `Du hast {{aiName}} ${args[0]} Goldmünzen gezahlt.`,
-            ja: `あなたは{{aiName}}に${args[0]}ゴールドを支払いました.`,
-            ko: `당신은 {{aiName}}에게 ${args[0]} 골드를 지불했습니다.`,
-            pl: `Zapłaciłeś {{aiName}} ${args[0]} sztuk złota.`,
+            en: `{{character1Name}} paid {{character2Name}} ${args[0]} gold.`,
+            zh: `{{character1Name}}向{{character2Name}}支付了${args[0]}金币`,
+            ru: `{{character1Name}} заплатил {{character2Name}} ${args[0]} золота.`,
+            fr: `{{character1Name}} a payé ${args[0]} pièces d'or à {{character2Name}}.`,
+            es: `{{character1Name}} pagó ${args[0]} monedas de oro a {{character2Name}}.`,
+            de: `{{character1Name}} hat {{character2Name}} ${args[0]} Goldmünzen gezahlt.`,
+            ja: `{{character1Name}}は{{character2Name}}に${args[0]}ゴールドを支払いました.`,
+            ko: `{{character1Name}}는 {{character2Name}}에게 ${args[0]} 골드를 지불했습니다.`,
+            pl: `{{character1Name}} zapłacił {{character2Name}} ${args[0]} sztuk złota.`,
         }
     },
     chatMessageClass: "neutral-action-message"

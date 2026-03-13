@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiPaysGoldToPlayer",
+    signature: "requestGold",
     args: [
         {
             name: "amount",
@@ -22,69 +22,79 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{aiName}} pays gold to {{playerName}}, willingly or forcefully, only if {{aiName}} has enough gold.`,
-        zh: `当{{aiName}}自愿或被迫向{{playerName}}支付金币时执行，仅在{{aiName}}有足够金币支付时执行`,
-        ru: `Выполняется, когда {{aiName}} платит золото {{playerName}}, добровольно или принудительно, только если у {{aiName}} достаточно золота.`,
-        fr: `Exécuté lorsque {{aiName}} paie de l'or à {{playerName}}, de plein gré ou par la force, seulement si {{aiName}} a assez d'or.`,
-        es: `Ejecutado cuando {{aiName}} paga oro a {{playerName}}, voluntariamente o por la fuerza, solo si {{aiName}} tiene suficiente oro.`,
-        de: `Wird ausgeführt, wenn {{aiName}} {{playerName}} Gold zahlt, freiwillig oder gewaltsam, nur wenn {{aiName}} genug Gold hat.`,
-        ja: `{{aiName}}が{{playerName}}にゴールドを支払うときに実行されます。自発的または強制的に。{{aiName}}に十分なゴールドがある場合のみ。`,
-        ko: `{{aiName}}가 {{playerName}}에게 골드를 지불할 때 실행됩니다. 자발적이거나 강제로. {{aiName}}에게 충분한 골드가 있는 경우에만.`,
-        pl: `Wykonywane, gdy {{aiName}} płaci złoto {{playerName}}, dobrowolnie lub siłą, tylko jeśli {{aiName}} ma wystarczająco złota.`
+        en: `Executed when a character requests gold from another, who may pay willingly or forcefully, only if they have enough gold.`,
+        zh: `当一个角色向另一个角色请求金币时执行，对方可能会自愿或被迫支付，前提是他们有足够的金币。`,
+        ru: `Выполняется, когда один персонаж запрашивает золото у другого, который может заплатить добровольно или принудительно, только если у него достаточно золота.`,
+        fr: `Exécuté lorsqu'un personnage demande de l'or à un autre, qui peut payer de gré ou de force, seulement s'il a assez d'or.`,
+        es: `Ejecutado cuando un personaje solicita oro a otro, quien puede pagar voluntariamente o por la fuerza, solo si tiene suficiente oro.`,
+        de: `Wird ausgeführt, wenn ein Charakter von einem anderen Gold anfordert, der freiwillig oder gezwungen zahlen kann, nur wenn er genug Gold hat.`,
+        ja: `あるキャラクターが別のキャラクターにゴールドを要求したときに実行されます。相手は自発的または強制的に支払うことができ、十分なゴールドを持っている場合のみです。`,
+        ko: `한 캐릭터가 다른 캐릭터에게 골드를 요청할 때 실행되며, 상대방은 자발적이든 강제적이든 충분한 골드가 있는 경우에만 지불할 수 있습니다.`,
+        pl: `Wykonywane, gdy jedna postać prosi o złoto od drugiej, która może zapłacić dobrowolnie lub siłą, tylko jeśli ma wystarczająco złota.`
     },
     
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-		let ai = gameData.getAi();
-		return ai.gold > 20;
+    check: (gameData, initiatorId, targetId) => {
+        const target = gameData.getCharacterById(targetId);
+		return target ? target.gold > 20 : false;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
-        let ai = gameData.getAi();
-        args[1] = ai.gold
-        if (Number(args[0]) <= Number(args[1])) {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+        const amount = Number(args[0]);
+        args[1] = target.gold; // For chatMessage logic
+        if (amount <= target.gold) {
             runGameEffect(`
                 global_var:votcce_action_source = {
-                    add_gold = ${args[0]};
+                    add_gold = ${amount};
                 }
 
                 global_var:votcce_action_target = {
-                    remove_short_term_gold = ${args[0]};
+                    remove_short_term_gold = ${amount};
                 }
             `);
+            initiator.gold += amount;
+            target.gold -= amount;
         }
     },
     chatMessage: (args) => {
         if (Number(args[0]) <= Number(args[1])) {
             return {
-                en: `{{aiName}} paid you ${args[0]} gold.`,
-                zh: `{{aiName}}向你支付了${args[0]}金币`,
-                ru: `{{aiName}} заплатил вам ${args[0]} золота.`,
-    fr: `{{aiName}} vous a payé ${args[0]} pièces d'or.`,
-    es: `{{aiName}} te pagó ${args[0]} monedas de oro.`,
-    de: `{{aiName}} hat dir ${args[0]} Goldmünzen gezahlt.`,
-    ja: `{{aiName}}はあなたに${args[0]}ゴールドを支払いました。`,
-    ko: `{{aiName}}가 당신에게 ${args[0]} 골드를 지불했습니다.`,
-    pl: `{{aiName}} zapłacił ci ${args[0]} sztuk złota.`
+                en: `{{character2Name}} paid {{character1Name}} ${args[0]} gold.`,
+                zh: `{{character2Name}}向{{character1Name}}支付了${args[0]}金币`,
+                ru: `{{character2Name}} заплатил {{character1Name}} ${args[0]} золота.`,
+                fr: `{{character2Name}} a payé ${args[0]} pièces d'or à {{character1Name}}.`,
+                es: `{{character2Name}} pagó ${args[0]} monedas de oro a {{character1Name}}.`,
+                de: `{{character2Name}} hat {{character1Name}} ${args[0]} Goldmünzen gezahlt.`,
+                ja: `{{character2Name}}は{{character1Name}}に${args[0]}ゴールドを支払いました。`,
+                ko: `{{character2Name}}가 {{character1Name}}에게 ${args[0]} 골드를 지불했습니다.`,
+                pl: `{{character2Name}} zapłacił {{character1Name}} ${args[0]} sztuk złota.`
             }
         } else {
             return {
-                en: `{{aiName}} does not have enough gold to pay.`,
-                zh: `{{aiName}}没有足够的金币支付`,
-                ru: `У {{aiName}} недостаточно золота для оплаты.`,
-    fr: `{{aiName}} n'a pas assez d'or pour payer.`,
-    es: `{{aiName}} no tiene suficiente oro para pagar.`,
-    de: `{{aiName}} hat nicht genug Gold, um zu zahlen.`,
-    ja: `{{aiName}}には支払うための十分なゴールドがありません。`,
-    ko: `{{aiName}}에게 지불할 충분한 골드가 없습니다.`,
-    pl: `{{aiName}} nie ma wystarczająco złota, aby zapłacić.`
+                en: `{{character2Name}} does not have enough gold to pay {{character1Name}}.`,
+                zh: `{{character2Name}}没有足够的金币支付给{{character1Name}}`,
+                ru: `У {{character2Name}} недостаточно золота для оплаты {{character1Name}}.`,
+                fr: `{{character2Name}} n'a pas assez d'or pour payer {{character1Name}}.`,
+                es: `{{character2Name}} no tiene suficiente oro para pagar a {{character1Name}}.`,
+                de: `{{character2Name}} hat nicht genug Gold, um {{character1Name}} zu bezahlen.`,
+                ja: `{{character2Name}}には{{character1Name}}に支払うための十分なゴールドがありません。`,
+                ko: `{{character2Name}}에게는 {{character1Name}}에게 지불할 충분한 골드가 없습니다.`,
+                pl: `{{character2Name}} nie ma wystarczająco złota, aby zapłacić {{character1Name}}.`
             }
         }
     },

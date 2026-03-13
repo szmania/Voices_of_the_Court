@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "lowerOpinionOfPlayer",
+    signature: "lowerOpinion",
     args: [ 
         {
             name: "opinion",
@@ -36,8 +36,10 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) =>{
+    check: (gameData, initiatorId, targetId) =>{
         return true;
     },
 
@@ -45,35 +47,42 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
-       let ai = gameData.getAi();
-        let conversationOpinion = ai.getOpinionModifierValue("From conversations");
-        if(conversationOpinion > -50){
-            ai.setOpinionModifierValue("From conversations", conversationOpinion - args[0]);
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+        const target = gameData.getCharacterById(targetId);
+        if (!target) return;
 
-            runGameEffect(
-                `global_var:votcce_action_target = {
-                    add_opinion = {
-                        target = global_var:votcce_action_source
-                        modifier = conversation_opinion
-                        opinion = -${args[0]}
-                    }
-                }`
-            )
+        // Only modify opinion if the target is an AI character
+        if (target.id !== gameData.playerID) {
+            let conversationOpinion = target.getOpinionModifierValue("From conversations");
+            if(conversationOpinion > -50){
+                target.setOpinionModifierValue("From conversations", conversationOpinion - Number(args[0]));
+            }
         }
+
+        runGameEffect(
+            `global_var:votcce_action_target = {
+                add_opinion = {
+                    target = global_var:votcce_action_source
+                    modifier = conversation_opinion
+                    opinion = -${args[0]}
+                }
+            }`
+        )
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}}'s opinion of you decreased by ${args[0]}.`,
-            zh: `{{aiName}}对你的好感度降低了${args[0]}。`,
-            ru: `Мнение {{aiName}} о вас ухудшилось на ${args[0]}.`,
-            fr: `L'opinion de {{aiName}} à votre égard a diminué de ${args[0]}.`,
-            es: `La opinión de {{aiName}} sobre ti disminuyó en ${args[0]}.`,
-            de: `Die Meinung von {{aiName}} über dich hat sich um ${args[0]} verschlechtert.`,
-            ja: `{{aiName}}のあなたに対する評価が${args[0]}低下しました。`,
-            ko: `{{aiName}}의 당신에 대한 평가가 ${args[0]} 하락했습니다.`,
-            pl: `Opinia {{aiName}} o tobie spadła o ${args[0]}.`
+            en: `{{character2Name}}'s opinion of {{character1Name}} decreased by ${args[0]}.`,
+            zh: `{{character2Name}}对{{character1Name}}的好感度降低了${args[0]}。`,
+            ru: `Мнение {{character2Name}} о {{character1Name}} ухудшилось на ${args[0]}.`,
+            fr: `L'opinion de {{character2Name}} à l'égard de {{character1Name}} a diminué de ${args[0]}.`,
+            es: `La opinión de {{character2Name}} sobre {{character1Name}} disminuyó en ${args[0]}.`,
+            de: `Die Meinung von {{character2Name}} über {{character1Name}} hat sich um ${args[0]} verschlechtert.`,
+            ja: `{{character2Name}}の{{character1Name}}に対する評価が${args[0]}低下しました。`,
+            ko: `{{character2Name}}의 {{character1Name}}에 대한 평가가 ${args[0]} 하락했습니다.`,
+            pl: `Opinia {{character2Name}} o {{character1Name}} spadła o ${args[0]}.`
         }
     },
     chatMessageClass: "negative-action-message"
