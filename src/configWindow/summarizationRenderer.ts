@@ -405,18 +405,10 @@ function filterCurrentTabData() {
         if (selectedCharacterId === 'all') {
             filteredLetters = [...allLetters];
         } else {
-            filteredLetters = allLetters.filter(letter => {
-                const senderId = String(letter.sender.id);
-                const recipientId = String(letter.recipient.id);
-                return senderId === selectedCharacterId || recipientId === selectedCharacterId;
-            });
+            filteredLetters = allLetters.filter(summary => summary.characterId === selectedCharacterId);
         }
-        // Sort by timestamp (newest first)
-        filteredLetters.sort((a, b) => {
-            const timeA = new Date(a.timestamp).getTime();
-            const timeB = new Date(b.timestamp).getTime();
-            return timeB - timeA;
-        });
+        // Sort by date (newest first)
+        filteredLetters.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else if (activeTab === 'diaries') {
         if (selectedCharacterId === 'all') {
             filteredDiaries = [...allDiaries];
@@ -469,18 +461,14 @@ function renderCurrentTabList() {
             : filteredSummaries;
     } else if (activeTab === 'letters') {
         itemsToRender = searchTerm
-            ? filteredLetters.filter(letter => {
-                const content = letter.content || '';
-                const date = letter.timestamp || '';
-                const senderName = letter.senderName || '';
-                const recipientName = letter.recipientName || '';
-                const subject = letter.subject || '';
+            ? filteredLetters.filter(summary => {
+                const content = summary.summary || '';
+                const date = summary.date || '';
+                const characterName = summary.characterName || '';
                 const lowerCaseSearchTerm = searchTerm.toLowerCase();
                 return content.toLowerCase().includes(lowerCaseSearchTerm) ||
                        date.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       senderName.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       recipientName.toLowerCase().includes(lowerCaseSearchTerm) ||
-                       subject.toLowerCase().includes(lowerCaseSearchTerm);
+                       characterName.toLowerCase().includes(lowerCaseSearchTerm);
             })
             : filteredLetters;
     } else if (activeTab === 'diaries') {
@@ -535,15 +523,12 @@ function renderCurrentTabList() {
                     </div>
                 `;
             } else if (activeTab === 'letters') {
-                const senderName = item.senderName || `Character ${item.sender.id}`;
-                const recipientName = item.recipientName || `Character ${item.recipient.id}`;
-                const subject = item.subject || 'No Subject';
+                const characterName = item.characterName || `Character ${item.characterId}`;
 
                 editItem.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px;">${senderName} → ${recipientName}</div>
-                    <div style="margin-bottom: 5px;">${subject}</div>
-                    <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(new Date(item.timestamp).toISOString().split('T')[0])}">
-                    <textarea id="summary-edit-content-${originalIndex}" rows="5">${item.content || ''}</textarea>
+                    <div style="font-weight: bold; margin-bottom: 5px;">${characterName}</div>
+                    <input type="date" id="summary-edit-date-${originalIndex}" value="${formatDateForInput(item.date)}">
+                    <textarea id="summary-edit-content-${originalIndex}" rows="5">${item.summary || ''}</textarea>
                     <div class="edit-controls">
                         <button class="btn cancel-inplace-btn" data-i18n="summary_manager.close_btn">Close</button>
                         <button class="btn btn-success save-inplace-btn" data-i18n="summary_manager.save_btn" disabled>Save</button>
@@ -601,19 +586,16 @@ function renderCurrentTabList() {
                     <div class="summary-content">${contentHTML}</div>
                 `;
             } else if (activeTab === 'letters') {
-                const senderName = item.senderName || `Character ${item.sender.id}`;
-                const recipientName = item.recipientName || `Character ${item.recipient.id}`;
-                const subject = item.subject || 'No Subject';
+                const characterName = item.characterName || `Character ${item.characterId}`;
                 
                 // Format date for display
-                const displayDate = formatDateForDisplay(new Date(item.timestamp).toISOString());
-                const headerText = `${displayDate} - ${senderName} → ${recipientName}`;
-                const subjectHTML = highlightRegex ? subject.replace(highlightRegex, '<mark>$1</mark>') : subject;
-                const contentHTML = highlightRegex ? (item.content || '').replace(highlightRegex, '<mark>$1</mark>') : (item.content || '');
+                const displayDate = formatDateForDisplay(item.date);
+                const headerText = `${displayDate} - ${characterName}`;
+                const headerHTML = highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText;
+                const contentHTML = highlightRegex ? (item.summary || '').replace(highlightRegex, '<mark>$1</mark>') : (item.summary || '');
 
                 summaryItem.innerHTML = `
-                    <div class="summary-date">${highlightRegex ? headerText.replace(highlightRegex, '<mark>$1</mark>') : headerText}</div>
-                    <div class="summary-subject">${subjectHTML}</div>
+                    <div class="summary-date">${headerHTML}</div>
                     <div class="summary-content">${contentHTML}</div>
                 `;
             } else if (activeTab === 'diaries') {
@@ -727,34 +709,26 @@ function addNewEntry() {
 
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New summary added'), 'success');
     } else if (activeTab === 'letters') {
-        // Create a mock letter object
-        const newLetter = {
-            id: `temp_${Date.now()}`,
-            sender: { id: Number(selectedPlayerId), shortName: 'Player', fullName: 'Player Character' },
-            recipient: { id: Number(characterId), shortName: characterName.split(' ')[0], fullName: characterName },
-            subject: 'New Letter',
-            content: 'New letter content',
-            timestamp: new Date().toISOString(),
-            creationTimestamp: new Date().toISOString(),
-            isRead: false,
-            letterType: 'personal',
-            delay: 0,
-            totalDays: 0,
-            _isNew: true,
-            senderName: 'Player Character',
-            recipientName: characterName
+        // Create a mock letter summary
+        const newLetterSummary = {
+            date: today,
+            summary: 'New letter summary',
+            characterId: characterId,
+            characterName: characterName,
+            letterIds: [],
+            _isNew: true
         };
-        allLetters.unshift(newLetter);
+        allLetters.unshift(newLetterSummary);
         filterCurrentTabData();
 
         // Find the index of the new letter in the filtered list
-        const newIndex = filteredLetters.findIndex(l => l === newLetter);
+        const newIndex = filteredLetters.findIndex(l => l === newLetterSummary);
 
         if (newIndex !== -1) {
             enterEditMode(newIndex);
         }
 
-        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New letter added'), 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New letter summary added'), 'success');
     } else if (activeTab === 'diaries') {
         // Create a mock diary summary
         const newDiarySummary = {
@@ -809,13 +783,13 @@ async function deleteCurrentEntry() {
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Summary deleted'), 'success');
         } else if (activeTab === 'letters') {
             if (currentSummaryIndex >= filteredLetters.length) return;
-            const letter = filteredLetters[currentSummaryIndex];
-            const originalIndex = allLetters.findIndex(l => l === letter);
+            const summary = filteredLetters[currentSummaryIndex];
+            const originalIndex = allLetters.findIndex(l => l === summary);
             if (originalIndex !== -1) {
                 allLetters.splice(originalIndex, 1);
             }
             filterCurrentTabData();
-            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Letter deleted'), 'success');
+            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Letter summary deleted'), 'success');
         } else if (activeTab === 'diaries') {
             if (currentSummaryIndex >= filteredDiaries.length) return;
             const diary = filteredDiaries[currentSummaryIndex];
@@ -856,8 +830,8 @@ async function saveCurrentTabData() {
             await ipcRenderer.invoke('save-summary-file', selectedPlayerId, allSummaries);
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
         } else if (activeTab === 'letters') {
-            await ipcRenderer.invoke('save-all-letters', selectedPlayerId, allLetters);
-            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Letters saved successfully'), 'success');
+            await ipcRenderer.invoke('save-all-letter-summaries', selectedPlayerId, allLetters);
+            showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Letter summaries saved successfully'), 'success');
         } else if (activeTab === 'diaries') {
             await ipcRenderer.invoke('save-all-diary-summaries', selectedPlayerId, allDiaries);
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Diary summaries saved successfully'), 'success');
@@ -986,8 +960,8 @@ function handleInPlaceInputChange(index: number) {
         originalDate = formatDateForInput(item.date);
         originalContent = item.content || '';
     } else if (activeTab === 'letters') {
-        originalDate = formatDateForInput(new Date(item.timestamp).toISOString().split('T')[0]);
-        originalContent = item.content || '';
+        originalDate = formatDateForInput(item.date);
+        originalContent = item.summary || '';
     } else if (activeTab === 'diaries') {
         originalDate = formatDateForInput(item.date);
         originalContent = item.summary || '';
@@ -1106,10 +1080,8 @@ function saveInPlaceEdit() {
             allSummaries[originalIndex].content = newContent;
             delete (allSummaries[originalIndex] as any)._isNew;
         } else if (activeTab === 'letters') {
-            // For letters, we need to update the timestamp
-            const newTimestamp = new Date(newDate).toISOString();
-            allLetters[originalIndex].timestamp = newTimestamp;
-            allLetters[originalIndex].content = newContent;
+            allLetters[originalIndex].date = newDate;
+            allLetters[originalIndex].summary = newContent;
             delete (allLetters[originalIndex] as any)._isNew;
         } else if (activeTab === 'diaries') {
             allDiaries[originalIndex].date = newDate;

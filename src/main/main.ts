@@ -1305,56 +1305,37 @@ ipcMain.handle('get-all-letters-for-player', async (event, playerId: string) => 
     console.log(`IPC: Received get-all-letters-for-player event for player: ${playerId}`);
     try {
         const letterManager = LetterManager.getInstance();
-        const letters = letterManager.getAllLetters(playerId);
-        
-        // Get character map for names
-        const characterMap = await readCharacterMap(userDataPath, playerId);
-        
-        // Augment letters with character names
-        const augmentedLetters = letters.map(letter => {
-            const senderName = characterMap.get(String(letter.sender.id)) || `Character ${letter.sender.id}`;
-            const recipientName = characterMap.get(String(letter.recipient.id)) || `Character ${letter.recipient.id}`;
-            return {
-                ...letter,
-                senderName,
-                recipientName
-            };
-        });
-        
-        return augmentedLetters;
+        const summaries = letterManager.getAllLetterSummaries(playerId);
+        return summaries;
     } catch (error) {
-        console.error('Error getting letters for player:', error);
+        console.error('Error getting letter summaries for player:', error);
         return [];
     }
 });
 
-ipcMain.handle('save-all-letters', async (event, playerId: string, lettersData: any[]) => {
-    console.log(`IPC: Received save-all-letters event for player: ${playerId}`);
+ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summariesData: any[]) => {
+    console.log(`IPC: Received save-all-letter-summaries event for player: ${playerId}`);
     try {
         const letterManager = LetterManager.getInstance();
         
-        // Group letters by character
-        const lettersByCharacter: { [key: string]: any[] } = {};
-        lettersData.forEach(letter => {
-            const otherCharacterId = letter.sender.id === Number(playerId) ? String(letter.recipient.id) : String(letter.sender.id);
-            if (!lettersByCharacter[otherCharacterId]) {
-                lettersByCharacter[otherCharacterId] = [];
+        const summariesByCharacter: { [key: string]: any[] } = {};
+        summariesData.forEach(summary => {
+            const characterId = summary.characterId;
+            if (!summariesByCharacter[characterId]) {
+                summariesByCharacter[characterId] = [];
             }
-            lettersByCharacter[otherCharacterId].push(letter);
+            summariesByCharacter[characterId].push(summary);
         });
         
-        // Save each group
-        for (const [characterId, letters] of Object.entries(lettersByCharacter)) {
-            // Sort letters by date
-            letters.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            
-            const filePath = letterManager.getLetterFilePath(playerId, characterId);
-            fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+        for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
+            summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const cleanSummaries = summaries.map(({ characterId, characterName, ...rest }) => rest);
+            letterManager.saveLetterSummaries(playerId, characterId, cleanSummaries);
         }
         
         return { success: true };
     } catch (error) {
-        console.error('Error saving letters:', error);
+        console.error('Error saving letter summaries:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }
@@ -1549,28 +1530,7 @@ ipcMain.handle('import-letters-from-log', async () => {
 ipcMain.handle('get-letter-players', async () => {
     console.log('IPC: Received get-letter-players event.');
     const letterManager = LetterManager.getInstance();
-    const playerIds = letterManager.getAllPlayerIdsWithLetters();
-    const playerInfo = new Map<string, string>();
-
-    for (const pId of playerIds) {
-        const lettersForPlayer = letterManager.getAllLetters(pId);
-        if (lettersForPlayer.length > 0) {
-            let playerName: string | undefined;
-            // Try to find the player's name from any letter
-            for (const letter of lettersForPlayer) {
-                if (letter.sender && String(letter.sender.id) === pId && letter.sender.fullName) {
-                    playerName = letter.sender.fullName;
-                    break;
-                }
-                if (letter.recipient && String(letter.recipient.id) === pId && letter.recipient.fullName) {
-                    playerName = letter.recipient.fullName;
-                    break;
-                }
-            }
-            playerInfo.set(pId, playerName || `Player ${pId}`);
-        }
-    }
-    return Array.from(playerInfo.entries()).map(([id, name]) => ({ id, name }));
+    return letterManager.getAllPlayerIdsWithLetters();
 });
 
 ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {
