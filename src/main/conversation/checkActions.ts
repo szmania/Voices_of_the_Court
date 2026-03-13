@@ -162,7 +162,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                 }
 
                 if(matchedAction.chatMessageClass != null){
-                    let chatMessage = matchedAction.chatMessage(args);
+                    let chatMessage = matchedAction.chatMessage([]);
                     if (typeof chatMessage === 'object' && chatMessage !== null) {
                         chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
                     }
