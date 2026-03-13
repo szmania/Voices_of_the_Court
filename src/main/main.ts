@@ -1317,7 +1317,10 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
     console.log(`IPC: Received save-all-letter-summaries event for player: ${playerId}`);
     try {
         const letterManager = LetterManager.getInstance();
-        
+        const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
             const characterId = summary.characterId;
@@ -1325,12 +1328,22 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
                 summariesByCharacter[characterId] = [];
             }
             summariesByCharacter[characterId].push(summary);
+            existingCharIds.delete(characterId);
         });
         
         for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
             summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
             const cleanSummaries = summaries.map(({ characterId, characterName, ...rest }) => rest);
             letterManager.saveLetterSummaries(playerId, characterId, cleanSummaries);
+        }
+
+        // Delete summaries for characters that were removed
+        for (const charIdToDelete of existingCharIds) {
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            if (fs.existsSync(summaryPath)) {
+                fs.unlinkSync(summaryPath);
+                console.log(`Deleted letter summary for character ${charIdToDelete}`);
+            }
         }
         
         return { success: true };

@@ -661,7 +661,7 @@ function selectSummary(index: number) {
         if (index < 0 || index >= filteredDiaries.length) return;
         item = filteredDiaries[index];
         characterId = item.characterId || 'Unknown';
-        filePath = `${userDataPath}/diary_history/${selectedPlayerId}/${characterId}.json`;
+        filePath = `${userDataPath}/diary_summaries/${selectedPlayerId}/${characterId}.json`;
     }
 
     // Update file path

@@ -80,7 +80,7 @@ export class LetterManager {
     }
 
     public getAllPlayerIdsWithLetters(): { id: string, name: string }[] {
-        const playerFolderPath = this.letterHistoryPath;
+        const playerFolderPath = this.letterSummaryPath;
         if (!fs.existsSync(playerFolderPath)) {
             return [];
         }
@@ -89,7 +89,7 @@ export class LetterManager {
             .filter(dirent => dirent.isDirectory())
             .map(dirent => {
                 const playerId = dirent.name;
-                const mapPath = path.join(this.letterHistoryPath, '..', 'conversation_summaries', playerId, '_character_map.json');
+                const mapPath = path.join(this.letterSummaryPath, '..', 'conversation_summaries', playerId, '_character_map.json');
                 let playerName = `Player ${playerId}`;
                 if (fs.existsSync(mapPath)) {
                     try {
