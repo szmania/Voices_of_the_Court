@@ -1357,6 +1357,10 @@ ipcMain.handle('get-all-diaries-for-player', async (event, playerId: string) => 
 ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summariesData: any[]) => {
     console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
+        const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
             const characterId = summary.characterId;
@@ -1364,15 +1368,26 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
                 summariesByCharacter[characterId] = [];
             }
             summariesByCharacter[characterId].push(summary);
+            existingCharIds.delete(characterId); // Remove from set of files to delete
         });
 
+        // Save updated/new summaries
         for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
-            // A character should only have one summary file.
             if (summaries.length > 0) {
                 const latestSummary = summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
                 await saveDiarySummary(playerId, characterId, latestSummary.summary, latestSummary.date);
             }
         }
+
+        // Delete summaries for characters that were removed
+        for (const charIdToDelete of existingCharIds) {
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            if (fs.existsSync(summaryPath)) {
+                fs.unlinkSync(summaryPath);
+                console.log(`Deleted diary summary for character ${charIdToDelete}`);
+            }
+        }
+
         return { success: true };
     } catch (error) {
         console.error('Error saving diary summaries:', error);

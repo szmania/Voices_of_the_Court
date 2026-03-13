@@ -655,10 +655,8 @@ function selectSummary(index: number) {
     } else if (activeTab === 'letters') {
         if (index < 0 || index >= filteredLetters.length) return;
         item = filteredLetters[index];
-        // For letters, we use the other party's ID for the file path
-        const otherPartyId = item.sender.id === Number(selectedPlayerId) ? String(item.recipient.id) : String(item.sender.id);
-        characterId = otherPartyId;
-        filePath = `${userDataPath}/letter_history/${selectedPlayerId}/${characterId}.json`;
+        characterId = item.characterId || 'Unknown';
+        filePath = `${userDataPath}/letter_summaries/${selectedPlayerId}/${characterId}.json`;
     } else if (activeTab === 'diaries') {
         if (index < 0 || index >= filteredDiaries.length) return;
         item = filteredDiaries[index];
