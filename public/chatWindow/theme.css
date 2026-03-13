@@ -145,7 +145,7 @@ body.theme-chinese .chat-box {
     position: absolute;
     left: 15%;
     transform: translateX(-50%);
-    bottom: 21px;
+    bottom: 24px;
     z-index: 160;
     color: #d4af37;
 }
