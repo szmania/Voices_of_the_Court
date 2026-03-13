@@ -1222,7 +1222,7 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         // Get player IDs from all three sources and merge them
         const conversationPlayerIds = await getAllPlayerIds(userDataPath);
         const letterManager = LetterManager.getInstance();
-        const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters().map(id => ({ id, name: `Player ${id}` }));
+        const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
         
         // Get diary player IDs
         const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
