@@ -1492,6 +1492,12 @@ mark.current-highlight {
     align-items: center;
 }
 
+.estimated-date {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 3px;
+}
+
 .view-reply-btn {
     background-color: #3d2e1e;
     color: #cca43b;

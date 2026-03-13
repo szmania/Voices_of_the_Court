@@ -49,27 +49,28 @@ function formatDate(date: Date): string {
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
     // 1. Status for player-sent letters (OUTBOX)
     if (letter.isPlayerSender) {
-        const hasReply = allLetters.some(l => l.replyToId === letter.id);
+        const reply = allLetters.find(l => l.replyToId === letter.id);
 
         if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
 
-        const sentDay = letter.totalDays;
-        const expectedReplyDay = sentDay + (letter.delay * 2);
-        const daysDifference = expectedReplyDay - currentGameDay;
-
-        const sentDate = new Date(letter.timestamp);
-        const expectedReplyDate = new Date(sentDate.getTime());
-        expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
-
-        if (hasReply) {
-            // Case B: Reply received. Show when it was expected.
+        if (reply) {
+            // Case B: Reply received. Show when it was received for the list view.
+            const replyDate = formatDate(new Date(reply.timestamp));
             return {
                 // @ts-ignore
-                text: `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`,
-                overdue: false // Not an "overdue" state, just informational
+                text: window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate),
+                overdue: false
             };
         } else {
             // Case A: No reply yet. Show pending/overdue status.
+            const sentDay = letter.totalDays;
+            const expectedReplyDay = sentDay + (letter.delay * 2);
+            const daysDifference = expectedReplyDay - currentGameDay;
+            
+            const sentDate = new Date(letter.timestamp);
+            const expectedReplyDate = new Date(sentDate.getTime());
+            expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
+
             if (daysDifference < 0) {
                 return {
                     // @ts-ignore
@@ -526,9 +527,19 @@ function renderLetterContent(letter: Letter) {
         const replyDate = formatDate(new Date(reply.timestamp));
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
+        
+        const sentDate = new Date(letter.timestamp);
+        const expectedReplyDate = new Date(sentDate.getTime());
+        expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
+        // @ts-ignore
+        const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
+
         statusHtml = `
             <div class="letter-view-reply-status has-reply">
-                <span>${statusText}</span>
+                <div>
+                    <span>${statusText}</span>
+                    <div class="estimated-date">${estimatedText}</div>
+                </div>
                 <button class="view-reply-btn" data-reply-id="${reply.id}" data-i18n="letters.view_reply">View Reply</button>
             </div>
         `;
