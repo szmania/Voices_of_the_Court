@@ -46,6 +46,45 @@ function formatDate(date: Date): string {
     return `${day} ${month} ${year}`;
 }
 
+function getReplyStatus(letter: Letter): { text: string, overdue: boolean, expectedDate: Date } | null {
+    // Only show for letters sent by the player that are not replies themselves
+    if (!letter.isPlayerSender || letter.replyToId) {
+        return null;
+    }
+
+    // Check if there's a reply to this letter
+    const hasReply = allLetters.some(l => l.replyToId === letter.id);
+    if (hasReply) {
+        return null; // Don't show status if it's already replied to
+    }
+
+    if (currentGameDay === 0 || !letter.totalDays || !letter.delay) return null;
+
+    const sentDay = letter.totalDays;
+    const expectedReplyDay = sentDay + letter.delay;
+    const daysDifference = expectedReplyDay - currentGameDay;
+
+    const sentDate = new Date(letter.timestamp);
+    const expectedReplyDate = new Date(sentDate.getTime());
+    expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+
+    if (daysDifference < 0) {
+        return {
+            // @ts-ignore
+            text: `${window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue by')} ${-daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')}`,
+            overdue: true,
+            expectedDate: expectedReplyDate
+        };
+    } else {
+        return {
+            // @ts-ignore
+            text: `${window.LocalizationManager.getTranslation('letters.reply_expected_in', 'Reply expected in')} ${daysDifference} ${window.LocalizationManager.getTranslation('letters.days', 'days')} (${formatDate(expectedReplyDate)})`,
+            overdue: false,
+            expectedDate: expectedReplyDate
+        };
+    }
+}
+
 // State
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
@@ -55,6 +94,7 @@ let currentSearchTerm = '';
 let currentMatchIndex = -1;
 let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
+let currentGameDay = 0;
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -303,6 +343,11 @@ function renderLetters() {
 
         let sentHtml = '';
         if (pair.sent) {
+            const replyStatus = getReplyStatus(pair.sent);
+            let statusHtml = '';
+            if (replyStatus) {
+                statusHtml = `<div class="letter-item-reply-status ${replyStatus.overdue ? 'overdue' : ''}">${replyStatus.text}</div>`;
+            }
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
                     <div class="letter-item-header">
@@ -310,6 +355,7 @@ function renderLetters() {
                         <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.sent.subject}</div>
+                    ${statusHtml}
                 </div>
             `;
         } else {
@@ -368,9 +414,16 @@ function renderLetterContent(letter: Letter) {
     const letterViewContainer = document.getElementById('letter-view-container');
     if (!letterViewContainer) return;
 
+    const replyStatus = getReplyStatus(letter);
+    let statusHtml = '';
+    if (replyStatus) {
+        statusHtml = `<div class="letter-view-reply-status ${replyStatus.overdue ? 'overdue' : ''}">${replyStatus.text}</div>`;
+    }
+
     letterViewContainer.innerHTML = `
         <div class="letter-view-header">
             <h3>${letter.subject}</h3>
+            ${statusHtml}
             <div class="letter-view-meta">
                 <span><strong>From:</strong> ${letter.sender.fullName}</span>
                 <span><strong>To:</strong> ${letter.recipient.fullName}</span>
@@ -452,6 +505,11 @@ async function loadCharacters(playerId: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
+    if (allLetters.length > 0) {
+        currentGameDay = Math.max(...allLetters.map(l => l.totalDays || 0));
+    } else {
+        currentGameDay = 0;
+    }
     renderStatusSummary();
     renderLetters();
 }
