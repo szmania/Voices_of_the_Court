@@ -423,12 +423,8 @@ function filterCurrentTabData() {
         } else {
             filteredDiaries = allDiaries.filter(diary => diary.characterId === selectedCharacterId);
         }
-        // Sort by creation timestamp (newest first)
-        filteredDiaries.sort((a, b) => {
-            const timeA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : new Date(a.date).getTime();
-            const timeB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : new Date(b.date).getTime();
-            return timeB - timeA;
-        });
+        // Sort by date (newest first)
+        filteredDiaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
     
     currentSummaryIndex = -1;
