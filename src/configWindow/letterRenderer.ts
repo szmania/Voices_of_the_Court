@@ -53,16 +53,13 @@ function formatDate(date: Date): string {
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
     // 1. Status for player-sent letters (OUTBOX)
     if (letter.isPlayerSender) {
-        console.log(`[getLetterStatus] Checking player-sent letter ID: ${letter.id}`);
         const reply = allLetters.find(l => l.replyToId === letter.id);
 
         if (letter.totalDays === undefined || typeof letter.delay === 'undefined') {
-            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing totalDays or delay:`, { totalDays: letter.totalDays, delay: letter.delay });
             return null;
         }
 
         if (reply) {
-            console.log(`[getLetterStatus] Letter ${letter.id} has a reply.`);
             // Case B: Reply received. Show when it was received for the list view.
             const replyDate = formatDate(new Date(reply.timestamp));
             return {
@@ -76,14 +73,11 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const expectedReplyDay = sentDay + (letter.delay * 2);
             const daysDifference = expectedReplyDay - currentGameDay;
             
-            console.log(`[getLetterStatus] Letter ${letter.id} is PENDING.`, { sentDay, expectedReplyDay, currentGameDay, daysDifference });
-
             const sentDate = new Date(letter.timestamp);
             const expectedReplyDate = new Date(sentDate.getTime());
             expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
 
             if (daysDifference < 0) {
-                console.log(`[getLetterStatus] Letter ${letter.id} is OVERDUE.`);
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
@@ -94,8 +88,6 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 const timeElapsed = currentGameDay - sentDay; // Simplified calculation
                 const stage1End = Math.floor(totalJourneyTime * 4 / 9);
                 const stage2End = Math.floor(totalJourneyTime * 5 / 9);
-                
-                console.log(`[getLetterStatus] Letter ${letter.id} is IN-TRANSIT.`, { totalJourneyTime, timeElapsed, stage1End, stage2End });
 
                 let statusText = '';
                 let currentStage = 0;
@@ -112,8 +104,6 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     statusText = window.LocalizationManager.getTranslation('letters.journey_traveling_back', 'Reply from {character} is on its way...').replace('{character}', letter.recipient.shortName);
                     currentStage = 3;
                 }
-                
-                console.log(`[getLetterStatus] Letter ${letter.id} is in journey stage ${currentStage}.`);
 
                 return {
                     text: statusText,
@@ -484,8 +474,17 @@ function renderLetters() {
             const status = getLetterStatus(pair.sent);
             let statusHtml = '';
             if (status) {
-                // Timeline removed from list view for simplicity and to focus on detail view.
-                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+                let journeyHtml = '';
+                if (status.journey) {
+                    journeyHtml = `
+                        <div class="journey-timeline-container">
+                            <div class="journey-stage ${status.journey.currentStage >= 1 ? 'completed' : ''} ${status.journey.currentStage === 1 ? 'active' : ''}"></div>
+                            <div class="journey-stage ${status.journey.currentStage >= 2 ? 'completed' : ''} ${status.journey.currentStage === 2 ? 'active' : ''}"></div>
+                            <div class="journey-stage ${status.journey.currentStage >= 3 ? 'completed' : ''} ${status.journey.currentStage === 3 ? 'active' : ''}"></div>
+                        </div>
+                    `;
+                }
+                statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
@@ -583,25 +582,18 @@ function renderLetterContent(letter: Letter) {
     } else {
         const status = getLetterStatus(letter);
         if (status) {
-            statusHtml = `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+            let journeyHtml = '';
+            if (status.journey) {
+                journeyHtml = `
+                    <div class="journey-timeline-container">
+                        <div class="journey-stage ${status.journey.currentStage >= 1 ? 'completed' : ''} ${status.journey.currentStage === 1 ? 'active' : ''}"></div>
+                        <div class="journey-stage ${status.journey.currentStage >= 2 ? 'completed' : ''} ${status.journey.currentStage === 2 ? 'active' : ''}"></div>
+                        <div class="journey-stage ${status.journey.currentStage >= 3 ? 'completed' : ''} ${status.journey.currentStage === 3 ? 'active' : ''}"></div>
+                    </div>
+                `;
+            }
+            statusHtml = journeyHtml + `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
         }
-    }
-
-    // Determine journey timeline separately to place it at the top
-    let journeyHtml = '';
-    const statusForJourney = getLetterStatus(letter);
-    console.log(`[renderLetterContent] Status for letter ${letter.id}:`, statusForJourney);
-    if (statusForJourney && statusForJourney.journey) {
-        console.log(`[renderLetterContent] Creating timeline for letter ${letter.id}, stage ${statusForJourney.journey.currentStage}`);
-        journeyHtml = `
-            <div class="journey-timeline-container">
-                <div class="journey-stage ${statusForJourney.journey.currentStage >= 1 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 1 ? 'active' : ''}"></div>
-                <div class="journey-stage ${statusForJourney.journey.currentStage >= 2 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 2 ? 'active' : ''}"></div>
-                <div class="journey-stage ${statusForJourney.journey.currentStage >= 3 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 3 ? 'active' : ''}"></div>
-            </div>
-        `;
-    } else {
-        console.log(`[renderLetterContent] No journey timeline for letter ${letter.id}. Status:`, statusForJourney);
     }
 
     letterViewContainer.innerHTML = `
@@ -614,7 +606,6 @@ function renderLetterContent(letter: Letter) {
                 <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
             </div>
         </div>
-        ${journeyHtml}
         <div class="letter-view-body">
             ${letter.content.replace(/\n/g, '<br>')}
         </div>
