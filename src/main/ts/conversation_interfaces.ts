@@ -48,9 +48,9 @@ export interface Action{
     args: ActionArgument[],
     description: string,
     creator?: string,
-    check: (gameData: GameData) => boolean,
-    run: (arg1: GameData, arg2: (arg1: string)=> void, arg3: string[]) => void,
-    chatMessage: (arg1: string[]) => string,
+    check: (gameData: GameData, initiatorId: number, targetId: number) => boolean,
+    run: (gameData: GameData, runGameEffect: (effect: string) => void, args: string[], initiatorId: number, targetId: number) => void,
+    chatMessage: (args: string[]) => any,
     chatMessageClass: string
 }
 
@@ -58,11 +58,6 @@ export interface ActionResponse{
     actionName: string,
     chatMessage: string,
     chatMessageClass: string
-}
-
-export interface PendingAction {
-    action: Action;
-    args: string[];
 }
 
 export interface PendingAction {
