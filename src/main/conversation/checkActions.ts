@@ -12,12 +12,6 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     const character = conv.gameData.getCharacterById(initiatorId) || conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
 
-    // Check minimum messages before any action can trigger
-    const totalMessages = conv.messages.length;
-    if (totalMessages < 1) {
-        console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is 1`);
-        return [];
-    }
 
 
     let availableActions: Action[] = [];
