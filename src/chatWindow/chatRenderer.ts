@@ -158,8 +158,6 @@ async function initChat(){
         tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
-
-    return messageDiv;
 }
 
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
