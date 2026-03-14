@@ -162,13 +162,13 @@ async function initChat(){
     return messageDiv;
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void>{
-    if (message.name === 'Narrator') {
-        return;
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
+    if (message.name === 'Narrator' || message.role === 'system') {
+        return; // Do not display narrator or system messages directly
     }
 
-    if(message.content.startsWith(message.name+":")){
-        message.content = message.content.slice(message.name!.length+1);
+    if (message.content.startsWith(message.name + ":")) {
+        message.content = message.content.slice(message.name!.length + 1);
     }
 
     const messageDiv = document.createElement('div');
@@ -178,7 +178,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
         messageDiv.classList.add('historical-message');
     }
 
-    switch (message.role){
+    switch (message.role) {
         case 'user':
             messageDiv.classList.add('player-message');
             if (isHistorical) {
@@ -212,9 +212,8 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
                 messageDiv.classList.add('historical-ai-message');
             }
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
-
             break;
-    };
+    }
     chatMessages.append(messageDiv);
     // Auto-scroll to bottom after adding message
     setTimeout(() => {
