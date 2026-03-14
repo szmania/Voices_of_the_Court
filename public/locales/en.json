@@ -690,7 +690,10 @@
     "journey_stage1": "Sent",
     "journey_stage2": "Writing Reply",
     "journey_stage3": "Reply Sent",
-    "journey_stage4": "Reply Received"
+    "journey_stage4": "Reply Received",
+    "status_traveling_to": "En route to {character}",
+    "status_writing_reply": "{character} is writing",
+    "status_traveling_back": "Reply en route"
   },
   "history": {
     "header": "Conversation History Viewer",

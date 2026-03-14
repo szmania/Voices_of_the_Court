@@ -94,15 +94,15 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 let currentStage = 0;
                 if (timeElapsed <= stage1End) {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.journey_traveling_to', 'Traveling to {character}...').replace('{character}', letter.recipient.shortName);
+                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_to', 'En route to {character}').replace('{character}', letter.recipient.shortName);
                     currentStage = 1;
                 } else if (timeElapsed <= stage2End) {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.journey_writing_reply', '{character} is writing a reply...').replace('{character}', letter.recipient.shortName);
+                    statusText = window.LocalizationManager.getTranslation('letters.status_writing_reply', '{character} is writing').replace('{character}', letter.recipient.shortName);
                     currentStage = 2;
                 } else {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.journey_traveling_back', 'Reply from {character} is on its way...').replace('{character}', letter.recipient.shortName);
+                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_back', 'Reply en route');
                     currentStage = 3;
                 }
 
@@ -588,6 +588,9 @@ function renderLetterContent(letter: Letter) {
     const reply = allLetters.find(l => l.replyToId === letter.id);
 
     if (letter.isPlayerSender && reply) {
+        const status = getLetterStatus(letter);
+        const journeyHtml = renderJourneyTimeline(status);
+
         const replyDate = formatDate(new Date(reply.timestamp));
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
@@ -598,7 +601,7 @@ function renderLetterContent(letter: Letter) {
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
-        statusHtml = `
+        statusHtml = journeyHtml + `
             <div class="letter-view-reply-status has-reply">
                 <div>
                     <span>${statusText}</span>
