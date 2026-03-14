@@ -1496,6 +1496,7 @@ mark.current-highlight {
     font-size: 0.8em;
     color: #aaa;
     margin-top: 5px;
+    font-style: italic;
 }
 
 .letter-item-reply-status.overdue {
