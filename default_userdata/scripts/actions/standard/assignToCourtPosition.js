@@ -8,7 +8,7 @@ v0.1.0
 */
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
-module.exports = {
+const action = {
     signature: "assignToCourtPosition",
     args: [
         {
@@ -398,3 +398,4 @@ module.exports = {
     },
     chatMessageClass: "neutral-action-message"
 }
+module.exports = action;

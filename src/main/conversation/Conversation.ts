@@ -582,15 +582,17 @@ export class Conversation{
                     const character = this.gameData.characters.get((message as any).characterId);
                     if (!character) continue;
 
-                    const actionTarget = await this.determineActionTarget(message.content, character.id);
-                    const target = actionTarget ? actionTarget : this.gameData.getPlayer();
+                    // The initiator is the player, because the AI is responding to the player's last message.
+                    // The target is the AI that is currently responding.
+                    const initiatorId = this.gameData.playerID;
+                    const targetId = character.id;
 
                     if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                        const collectedActions = await checkActions(this, character.id, target.id);
+                        const collectedActions = await checkActions(this, initiatorId, targetId);
                         if (collectedActions.length > 0) {
                             allTurnActions.push(...collectedActions);
-                            this.actionInvolvedCharacterIds.add(character.id);
-                            if (actionTarget) this.actionInvolvedCharacterIds.add(actionTarget.id);
+                            this.actionInvolvedCharacterIds.add(initiatorId);
+                            this.actionInvolvedCharacterIds.add(targetId);
                             this.consecutiveActionsCount++;
                             this.lastActionMessageIndex = this.messages.length - 1;
                         } else {
