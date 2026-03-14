@@ -144,7 +144,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
 let selectedCharacterId: string | null = 'all';
-let sortMode: 'gameDate' | 'realDate' = 'gameDate';
+let sortMode: 'gameDate' | 'realDate' = 'realDate';
 let currentSearchTerm = '';
 let currentMatchIndex = -1;
 let matches: HTMLElement[] = [];
@@ -673,6 +673,7 @@ async function loadPlayers() {
     try {
         const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
         const players = await ipcRenderer.invoke('get-letter-players');
+        const previouslySelectedPlayerId = playerSelect.value;
         
         playerSelect.innerHTML = '';
         if (players.length === 0) {
@@ -691,6 +692,10 @@ async function loadPlayers() {
             playerSelect.appendChild(option);
         });
 
+        if (Array.from(playerSelect.options).some(opt => opt.value === previouslySelectedPlayerId)) {
+            playerSelect.value = previouslySelectedPlayerId;
+        }
+
         selectedPlayerId = playerSelect.value;
         await loadCharacters(selectedPlayerId);
         await loadLetters(selectedPlayerId);
@@ -704,6 +709,7 @@ async function loadPlayers() {
 async function loadCharacters(playerId: string) {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const characters = await ipcRenderer.invoke('get-corresponded-characters', playerId);
+    const previouslySelectedCharId = characterSelect.value;
 
     characterSelect.innerHTML = '';
     const allOption = document.createElement('option');
@@ -720,8 +726,12 @@ async function loadCharacters(playerId: string) {
         characterSelect.appendChild(option);
     });
 
-    selectedCharacterId = 'all';
-    characterSelect.value = 'all';
+    if (Array.from(characterSelect.options).some(opt => opt.value === previouslySelectedCharId)) {
+        characterSelect.value = previouslySelectedCharId;
+    } else {
+        characterSelect.value = 'all';
+    }
+    selectedCharacterId = characterSelect.value;
 }
 
 async function loadLetters(playerId: string) {
