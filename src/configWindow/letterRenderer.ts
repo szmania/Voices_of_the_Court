@@ -94,15 +94,15 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 let currentStage = 0;
                 if (timeElapsed <= stage1End) {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_to', 'En route to {character}').replace('{character}', letter.recipient.shortName);
+                    statusText = window.LocalizationManager.getTranslation('letters.status_journey_began', 'Journey to {character} began').replace('{character}', letter.recipient.shortName);
                     currentStage = 1;
                 } else if (timeElapsed <= stage2End) {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.status_writing_reply', '{character} is writing').replace('{character}', letter.recipient.shortName);
+                    statusText = window.LocalizationManager.getTranslation('letters.status_awaiting_reply', 'Awaiting reply from {character}').replace('{character}', letter.recipient.shortName);
                     currentStage = 2;
                 } else {
                     // @ts-ignore
-                    statusText = window.LocalizationManager.getTranslation('letters.status_traveling_back', 'Reply en route');
+                    statusText = window.LocalizationManager.getTranslation('letters.status_reply_en_route', 'Reply is on its way');
                     currentStage = 3;
                 }
 
