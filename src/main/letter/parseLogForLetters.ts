@@ -10,8 +10,8 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
         return [];
     }
 
-    // More efficient log reading - read the last 256KB, which should be enough for recent letters.
-    const CHUNK_SIZE = 256 * 1024; // 256KB
+    // More efficient log reading - read the last 1MB, which should be enough for recent letters and character data
+    const CHUNK_SIZE = 1024 * 1024; // 1MB
     let fileContent = '';
     let handle;
     try {
@@ -31,9 +31,29 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
     const lines = fileContent.split(/\r?\n/);
     
     const letters: Letter[] = [];
+    let characterData: any = null;
 
     for (const line of lines) {
-        if (line.includes('VOTC:LETTER')) {
+        // Look for character data that precedes VOTC:LETTER events
+        if (line.includes('VOTC:IN/;/init/;/')) {
+            // This line contains character header information
+            const parts = line.split('/;/');
+            if (parts.length >= 10) {
+                characterData = {
+                    playerId: parts[2],
+                    playerName: parts[3],
+                    recipientId: parts[4],
+                    recipientName: parts[5],
+                    gameDate: parts[6],
+                    scene: parts[7],
+                    location: parts[8],
+                    locationController: parts[9],
+                    totalDays: parseInt(parts[10]) || 0
+                };
+                console.log('Found character data header:', characterData);
+            }
+        }
+        else if (line.includes('VOTC:LETTER')) {
             const votcIndex = line.indexOf('VOTC:LETTER');
             if (votcIndex === -1) continue;
 
@@ -49,12 +69,18 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                 if(content && letterId && playerId && recipientId) {
                     const letter = Letter.fromLog(playerId, recipientId, letterId, content, characterNameMap, gameDate, delay, totalDays);
                     if (letter) {
+                        // Store the character data with the letter for richer context
+                        if (characterData) {
+                            (letter as any).characterContext = characterData;
+                        }
                         letters.push(letter);
                         // If a playerId is provided, save the letter immediately.
                         LetterManager.getInstance().saveLetter(letter, playerId);
                     }
                 }
             }
+            // Reset character data after processing the letter
+            characterData = null;
         }
     }
     

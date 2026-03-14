@@ -78,7 +78,7 @@ export class Letter implements ILetter {
 
             const timestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
 
-            return new Letter(
+            const letter = new Letter(
                 randomUUID(),
                 sender,
                 recipient,
@@ -93,6 +93,8 @@ export class Letter implements ILetter {
                 'sent',
                 true
             );
+
+            return letter;
         } catch (error) {
             console.error("Error creating letter from log:", error);
             return null;
