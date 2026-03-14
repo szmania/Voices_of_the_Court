@@ -1441,6 +1441,10 @@ ipcMain.handle('get-current-game-day', () => {
     return currentTotalDays;
 });
 
+ipcMain.handle('get-current-game-day', () => {
+    return currentTotalDays;
+});
+
 ipcMain.handle('get-character-map', async (event, playerId) => {
     console.log(`IPC: Received get-character-map event for player: ${playerId}`);
     try {
