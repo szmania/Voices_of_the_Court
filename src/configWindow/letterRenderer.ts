@@ -308,6 +308,36 @@ function cycleSearch(direction: number) {
     newMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
+function renderJourneyTimeline(status: { journey?: { currentStage: number } } | null): string {
+    if (!status || !status.journey) {
+        return '';
+    }
+    const stage = status.journey.currentStage;
+    // @ts-ignore
+    const stage1Label = window.LocalizationManager.getTranslation('letters.journey_stage1', 'Sent');
+    // @ts-ignore
+    const stage2Label = window.LocalizationManager.getTranslation('letters.journey_stage2', 'Writing Reply');
+    // @ts-ignore
+    const stage3Label = window.LocalizationManager.getTranslation('letters.journey_stage3', 'Reply Sent');
+
+    return `
+        <div class="journey-timeline">
+            <div class="journey-point stage-1 ${stage >= 1 ? 'completed' : ''} ${stage === 1 ? 'active' : ''}">
+                <div class="journey-dot"></div>
+                <div class="journey-label">${stage1Label}</div>
+            </div>
+            <div class="journey-point stage-2 ${stage >= 2 ? 'completed' : ''} ${stage === 2 ? 'active' : ''}">
+                <div class="journey-dot"></div>
+                <div class="journey-label">${stage2Label}</div>
+            </div>
+            <div class="journey-point stage-3 ${stage >= 3 ? 'completed' : ''}">
+                <div class="journey-dot"></div>
+                <div class="journey-label">${stage3Label}</div>
+            </div>
+        </div>
+    `;
+}
+
 function renderLetters() {
     const letterList = document.getElementById('letter-list');
     if (!letterList) return;
