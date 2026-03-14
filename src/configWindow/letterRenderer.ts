@@ -792,7 +792,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     refreshBtn.addEventListener('click', async () => {
         loader.style.display = 'block';
         try {
-            await ipcRenderer.invoke('import-letters-from-log');
+            // Pass the currently selected player and character to the main process.
+            // The import logic requires a specific character, so we only invoke if one is selected.
+            if (selectedPlayerId && selectedCharacterId && selectedCharacterId !== 'all') {
+                await ipcRenderer.invoke('import-letters-from-log', { 
+                    playerId: selectedPlayerId, 
+                    recipientId: selectedCharacterId 
+                });
+            }
+            // We still refresh the view even if we didn't import.
             await loadPlayers();
         } catch (error) {
             console.error("Error during manual letter import and refresh:", error);
