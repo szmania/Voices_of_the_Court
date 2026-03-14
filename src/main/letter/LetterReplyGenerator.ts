@@ -1,3 +1,4 @@
+import { BrowserWindow } from "electron";
 import { ApiConnection } from "../../shared/apiConnection";
 import { Character } from "../../shared/gameData/Character.js";
 import { GameData, Trait } from "../../shared/gameData/GameData.js";

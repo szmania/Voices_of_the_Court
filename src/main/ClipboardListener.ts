@@ -1,4 +1,4 @@
-import {clipboard, BrowserWindow} from "electron";
+import {clipboard} from "electron";
 import {EventEmitter} from 'events';
 
 export class ClipboardListener extends EventEmitter{
