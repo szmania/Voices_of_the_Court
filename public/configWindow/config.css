@@ -1531,6 +1531,12 @@ mark.current-highlight {
     margin-top: 3px;
 }
 
+.estimated-date {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 3px;
+}
+
 .view-reply-btn {
     background-color: #3d2e1e;
     color: #cca43b;
@@ -1547,6 +1553,44 @@ mark.current-highlight {
     background-color: #5a4a35;
     border-color: #cca43b;
     color: #fff;
+}
+
+.journey-timeline-container {
+    display: flex;
+    width: 100%;
+    height: 10px;
+    background-color: #2b2b2b;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 15px 0;
+    border: 1px solid #5a4a35;
+    position: relative;
+    z-index: 1;
+}
+
+.journey-stage {
+    height: 100%;
+    transition: background-color 0.3s;
+    position: relative;
+}
+
+.journey-stage:nth-child(1) { width: 44.44%; } /* 4/9 */
+.journey-stage:nth-child(2) { width: 11.11%; } /* 1/9 */
+.journey-stage:nth-child(3) { width: 44.44%; } /* 4/9 */
+
+.journey-stage.completed {
+    background-color: #5a4a35;
+}
+
+.journey-stage.active {
+    background-color: #cca43b;
+    animation: pulse-active 2s infinite;
+}
+
+@keyframes pulse-active {
+    0% { box-shadow: 0 0 3px rgba(204, 164, 59, 0.4); }
+    50% { box-shadow: 0 0 10px rgba(204, 164, 59, 0.8); }
+    100% { box-shadow: 0 0 3px rgba(204, 164, 59, 0.4); }
 }
 
 .journey-timeline-container {
