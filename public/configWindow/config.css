@@ -692,6 +692,39 @@ mark.current-highlight {
     visibility: visible;
 }
 
+#letter-thread-status[data-tooltip] {
+    position: relative;
+}
+
+#letter-thread-status[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-family: 'Gitan', sans-serif;
+    font-size: 0.8rem;
+    width: max-content;
+    max-width: 220px;
+    white-space: normal;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1001;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+#letter-thread-status[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
 .status-item .count {
     font-weight: bold;
     font-size: 1.2em;

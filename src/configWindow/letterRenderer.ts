@@ -12,7 +12,11 @@ function updateLetterThreadStatus(count: number) {
     statusEl.id = 'letter-thread-status';
     // @ts-ignore
     statusEl.textContent = `${window.LocalizationManager.getTranslation('letters.thread_status', 'Letter Thread')}: ${count}/9`;
-    statusEl.setAttribute('data-i18n-title', 'letters.tooltip_thread_status');
+    // @ts-ignore
+    const tooltipText = window.LocalizationManager.getTranslation('letters.tooltip_thread_status');
+    if (tooltipText) {
+        statusEl.setAttribute('data-tooltip', tooltipText);
+    }
 
     if (count >= 9) {
         statusEl.classList.add('full');
@@ -52,8 +56,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
         console.log(`[getLetterStatus] Checking player-sent letter ID: ${letter.id}`);
         const reply = allLetters.find(l => l.replyToId === letter.id);
 
-        if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') {
-            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing data:`, { currentGameDay, totalDays: letter.totalDays, delay: letter.delay });
+        if (currentGameDay === 0 || typeof letter.delay === 'undefined') {
+            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing game day or delay:`, { currentGameDay, delay: letter.delay });
             return null;
         }
 
