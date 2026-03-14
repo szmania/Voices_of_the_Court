@@ -1534,16 +1534,21 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 });
 
 // Letter IPC Handlers
-ipcMain.handle('import-letters-from-log', async () => {
-    console.log('IPC: Received import-letters-from-log event.');
+ipcMain.handle('import-letters-from-log', async (event, args) => {
+    console.log('IPC: Received import-letters-from-log event with args:', args);
     try {
-        const { playerId } = await getPlayerId(userDataPath);
+        const playerId = args ? args.playerId : (await getPlayerId(userDataPath)).playerId;
+
         if (playerId) {
-            const characterNameMap = await readCharacterMap(userDataPath, playerId);
-            const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-            const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
+            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            if (!gameData) {
+                console.error("Could not parse gameData for manual letter import.");
+                return { success: false, error: 'Could not parse gameData from log.' };
+            }
+            const gameDate = gameData.date;
             const letterManager = LetterManager.getInstance();
-            await letterManager.importLettersFromLog(config, gameData, playerId, gameDate);
+            const recipientId = args ? args.recipientId : undefined;
+            await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
             return { success: true };
         }
         return { success: false, error: 'Player ID not found.' };
