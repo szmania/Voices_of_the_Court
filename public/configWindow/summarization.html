@@ -200,7 +200,14 @@
             <div class="summary-list-container">
                 <div class="summary-list-header">
                   <h3 data-i18n="summary_manager.list_header">Summary List</h3>
-                  <input type="search" id="summary-manager-search" data-i18n-placeholder="summary_manager.search_placeholder" placeholder="Search summaries..." data-i18n-title="summary_manager.tooltip_search">
+                  <div class="control-group">
+                    <label for="summary-sort-order" data-i18n="letters.sort_by">Sort by:</label>
+                    <select id="summary-sort-order">
+                        <option value="gameDate" data-i18n="letters.sort_game_date">Game Date</option>
+                        <option value="realDate" data-i18n="letters.sort_real_date" selected>Real Date</option>
+                    </select>
+                    <input type="search" id="summary-manager-search" data-i18n-placeholder="summary_manager.search_placeholder" placeholder="Search summaries..." data-i18n-title="summary_manager.tooltip_search">
+                  </div>
                 </div>
                 <div id="summary-manager-summaryList" class="summary-list">
                     <!-- Summary items will be dynamically generated here -->
