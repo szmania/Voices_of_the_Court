@@ -1558,6 +1558,8 @@ mark.current-highlight {
     overflow: hidden;
     margin-bottom: 10px;
     border: 1px solid #5a4a35;
+    position: relative;
+    z-index: 1;
 }
 
 .journey-stage {
