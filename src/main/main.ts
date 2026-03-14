@@ -772,12 +772,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
 
-        const characterNameMap = await readCharacterMap(userDataPath, playerId);
         const gameDate = gameData.date;
         const letterManager = LetterManager.getInstance();
 
         // Import letters from log, which now also saves them.
-        await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate, String(gameData.aiID));
+        await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, String(gameData.aiID));
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
 
         // Get all letters for the player and find the most recent one by creation date.

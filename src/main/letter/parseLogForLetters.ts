@@ -1,8 +1,9 @@
 import fs from 'fs';
 import { Letter } from './Letter.js';
 import { LetterManager } from './LetterManager.js';
+import { GameData } from '../../shared/gameData/GameData.js';
 
-export async function parseLettersFromLog(debugLogPath: string, characterNameMap: Map<string, string>, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
+export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
     
     if (!fs.existsSync(debugLogPath)) {
@@ -31,29 +32,9 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
     const lines = fileContent.split(/\r?\n/);
     
     const letters: Letter[] = [];
-    let characterData: any = null;
 
     for (const line of lines) {
-        // Look for character data that precedes VOTC:LETTER events
-        if (line.includes('VOTC:IN/;/init/;/')) {
-            // This line contains character header information
-            const parts = line.split('/;/');
-            if (parts.length >= 10) {
-                characterData = {
-                    playerId: parts[2],
-                    playerName: parts[3],
-                    recipientId: parts[4],
-                    recipientName: parts[5],
-                    gameDate: parts[6],
-                    scene: parts[7],
-                    location: parts[8],
-                    locationController: parts[9],
-                    totalDays: parseInt(parts[10]) || 0
-                };
-                console.log('Found character data header:', characterData);
-            }
-        }
-        else if (line.includes('VOTC:LETTER')) {
+        if (line.includes('VOTC:LETTER')) {
             const votcIndex = line.indexOf('VOTC:LETTER');
             if (votcIndex === -1) continue;
 
@@ -67,20 +48,21 @@ export async function parseLettersFromLog(debugLogPath: string, characterNameMap
                 const delay = parseInt(parts[3].trim(), 10) || 0;
 
                 if(content && letterId && playerId && recipientId) {
-                    const letter = Letter.fromLog(playerId, recipientId, letterId, content, characterNameMap, gameDate, delay, totalDays);
-                    if (letter) {
-                        // Store the character data with the letter for richer context
-                        if (characterData) {
-                            (letter as any).characterContext = characterData;
+                    const sender = gameData.characters.get(Number(playerId));
+                    const recipient = gameData.characters.get(Number(recipientId));
+
+                    if (sender && recipient) {
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, gameDate, delay, totalDays);
+                        if (letter) {
+                            letters.push(letter);
+                            // If a playerId is provided, save the letter immediately.
+                            LetterManager.getInstance().saveLetter(letter, playerId);
                         }
-                        letters.push(letter);
-                        // If a playerId is provided, save the letter immediately.
-                        LetterManager.getInstance().saveLetter(letter, playerId);
+                    } else {
+                        console.error(`Could not find sender (${playerId}) or recipient (${recipientId}) in gameData for letter.`);
                     }
                 }
             }
-            // Reset character data after processing the letter
-            characterData = null;
         }
     }
     

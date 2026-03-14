@@ -51,34 +51,18 @@ export class Letter implements ILetter {
     }
 
     public static fromLog(
-        senderId: string,
-        recipientId: string,
+        sender: Character,
+        recipient: Character,
         letterId: string,
         content: string,
-        characterNameMap: Map<string, string>,
         gameDate: string,
         delay: number,
         totalDays: number
     ): Letter | null {
         try {
-            const senderName = characterNameMap.get(senderId) || `Character ${senderId}`;
-            const recipientName = characterNameMap.get(recipientId) || `Character ${recipientId}`;
-
-            const createCharacter = (id: string, name: string): Character => {
-                const data = new Array(27).fill('0');
-                data[0] = id;
-                data[1] = name; // shortName
-                data[2] = name; // fullName
-                data[18] = name.split(' ')[0]; // firstName
-                return new Character(data);
-            };
-
-            const sender = createCharacter(senderId, senderName);
-            const recipient = createCharacter(recipientId, recipientName);
-
             const timestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
 
-            const letter = new Letter(
+            return new Letter(
                 randomUUID(),
                 sender,
                 recipient,
@@ -93,8 +77,6 @@ export class Letter implements ILetter {
                 'sent',
                 true
             );
-
-            return letter;
         } catch (error) {
             console.error("Error creating letter from log:", error);
             return null;
