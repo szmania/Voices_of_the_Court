@@ -1,4 +1,4 @@
-import {clipboard} from "electron";
+import {clipboard, BrowserWindow} from "electron";
 import {EventEmitter} from 'events';
 
 export class ClipboardListener extends EventEmitter{
@@ -65,6 +65,9 @@ export class ClipboardListener extends EventEmitter{
                 break;
                 case "LETTER":
                     this.emit('VOTC:LETTER');
+                    BrowserWindow.getAllWindows().forEach(win => {
+                        win.webContents.send('letter-status-changed');
+                    });
                 break;
                 case "LETTER_ACCEPTED":
                     this.emit('VOTC:LETTER_ACCEPTED');
