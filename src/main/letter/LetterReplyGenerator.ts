@@ -194,9 +194,13 @@ export class LetterReplyGenerator {
             
             // Return the generated reply so it can be queued for delayed delivery
             return replyLetter;
-        } catch (error) {
-            console.error(`[LetterReplyGenerator] Error generating letter reply: ${error.message}`);
-            console.error(error.stack);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error(`[LetterReplyGenerator] Error generating letter reply: ${error.message}`);
+                console.error(error.stack);
+            } else {
+                console.error('[LetterReplyGenerator] An unknown error occurred during letter reply generation:', error);
+            }
             return null;
         }
     }
