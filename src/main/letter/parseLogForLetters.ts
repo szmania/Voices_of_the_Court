@@ -41,11 +41,11 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             const dataString = line.substring(votcIndex + 'VOTC:LETTER'.length);
             const parts = dataString.split('/;/').slice(1);
 
-            if (parts.length >= 4) {
+            if (parts.length >= 3) {
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
-                const totalDays = parseInt(parts[2].trim(), 10) || 0;
-                const delay = parseInt(parts[3].trim(), 10) || 0;
+                const delay = parseInt(parts[2].trim(), 10) || 0;
+                const totalDays = gameData.totalDays;
 
                 if(content && letterId && playerId && recipientId) {
                     const sender = gameData.characters.get(Number(playerId));
