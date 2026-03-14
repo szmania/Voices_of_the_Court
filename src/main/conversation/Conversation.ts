@@ -583,29 +583,19 @@ export class Conversation{
                     if (!character) continue;
 
                     const actionTarget = await this.determineActionTarget(message.content, character.id);
-                    const originalPlayerId = this.gameData.playerID;
-                    const originalAiId = this.gameData.aiID;
-                    try {
-                        this.gameData.playerID = character.id;
-                        this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
+                    const target = actionTarget ? actionTarget : this.gameData.getPlayer();
 
-                        if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                            const collectedActions = await checkActions(this);
-                            if (collectedActions.length > 0) {
-                                allTurnActions.push(...collectedActions);
-                                this.actionInvolvedCharacterIds.add(character.id);
-                                if (actionTarget) this.actionInvolvedCharacterIds.add(actionTarget.id);
-                                this.consecutiveActionsCount++;
-                                this.lastActionMessageIndex = this.messages.length - 1;
-                            } else {
-                                this.consecutiveActionsCount = 0;
-                            }
+                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                        const collectedActions = await checkActions(this, character.id, target.id);
+                        if (collectedActions.length > 0) {
+                            allTurnActions.push(...collectedActions);
+                            this.actionInvolvedCharacterIds.add(character.id);
+                            if (actionTarget) this.actionInvolvedCharacterIds.add(actionTarget.id);
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = this.messages.length - 1;
+                        } else {
+                            this.consecutiveActionsCount = 0;
                         }
-                    } catch (error) {
-                        console.error(`Error during action check for character ${character.shortName}:`, error);
-                    } finally {
-                        this.gameData.playerID = originalPlayerId;
-                        this.gameData.aiID = originalAiId;
                     }
                 }
             }
@@ -1838,21 +1828,10 @@ ${character.fullName}的发言：`
 
                 let collectedActions: ActionResponse[] = [];
                 if (this.config.actionsEnableAll) {
-                    const originalPlayerId = this.gameData.playerID;
-                    const originalAiId = this.gameData.aiID;
-                    try {
-                        this.gameData.playerID = lastRespondingCharacter.id;
-                        this.gameData.aiID = targetAI.id;
-                        collectedActions = await checkActions(this);
-                        if (collectedActions.length > 0) {
-                            this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
-                            this.actionInvolvedCharacterIds.add(targetAI.id);
-                        }
-                    } catch (error) {
-                        console.error(`Error during AI-to-AI action check for source ${lastRespondingCharacter.shortName}:`, error);
-                    } finally {
-                        this.gameData.playerID = originalPlayerId;
-                        this.gameData.aiID = originalAiId;
+                    collectedActions = await checkActions(this, lastRespondingCharacter.id, targetAI.id);
+                    if (collectedActions.length > 0) {
+                        this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
+                        this.actionInvolvedCharacterIds.add(targetAI.id);
                     }
                 }
                 let narrative = "";
@@ -1873,21 +1852,10 @@ ${character.fullName}的发言：`
 
                         let responseActions: ActionResponse[] = [];
                         if (this.config.actionsEnableAll) {
-                            const originalPlayerId = this.gameData.playerID;
-                            const originalAiId = this.gameData.aiID;
-                            try {
-                                this.gameData.playerID = targetAI.id;
-                                this.gameData.aiID = lastRespondingCharacter.id;
-                                responseActions = await checkActions(this);
-                                if (responseActions.length > 0) {
-                                    this.actionInvolvedCharacterIds.add(targetAI.id);
-                                    this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
-                                }
-                            } catch (error) {
-                                console.error(`Error during AI-to-AI action check for target ${targetAI.shortName}:`, error);
-                            } finally {
-                                this.gameData.playerID = originalPlayerId;
-                                this.gameData.aiID = originalAiId;
+                            responseActions = await checkActions(this, targetAI.id, lastRespondingCharacter.id);
+                            if (responseActions.length > 0) {
+                                this.actionInvolvedCharacterIds.add(targetAI.id);
+                                this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                             }
                         }
                         let responseNarrative = "";
