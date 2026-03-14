@@ -636,13 +636,15 @@ clipboardListener.on('VOTC:IN', async () =>{
         const historicalMetadata = conversation.historicalConversations || [];
 
         // Sanitize actions to remove non-serializable functions
-        const sanitizedActions = conversation.actions.map(action => ({
-            signature: action.signature,
-            args: action.args,
-            description: action.description,
-            creator: action.creator,
-            usesSource: (action as any).usesSource,
-            usesTarget: (action as any).usesTarget
+        const sanitizedActions = conversation.actions
+            .filter(action => action && action.signature)
+            .map(action => ({
+                signature: action.signature,
+                args: action.args,
+                description: action.description,
+                creator: action.creator,
+                usesSource: (action as any).usesSource,
+                usesTarget: (action as any).usesTarget
         }));
 
         const payload = {
