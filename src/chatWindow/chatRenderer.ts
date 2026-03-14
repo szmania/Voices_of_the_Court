@@ -116,6 +116,7 @@ let messageHistory: string[] = [];
 let historyIndex: number = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let currentHighlightIndex = -1;
+let currentConversationMessageDivs: HTMLDivElement[] = [];
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -157,6 +158,8 @@ async function initChat(){
         tokenDisplayWrapper.style.display = showTokenizerDisplay ? 'block' : 'none';
     }
     updateRegenerateButtonState();
+
+    return messageDiv;
 }
 
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void>{
@@ -425,7 +428,10 @@ chatInput.addEventListener('keydown', async function(e) {
             (message as any).targetCharacterIds = hiddenInput.value.split(',').filter(Boolean).map(Number);
         }
 
-        await displayMessage(message);
+        const messageDiv = await displayMessage(message);
+        if (messageDiv) {
+            currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
+        }
         showLoadingDots();
         ipcRenderer.send('message-send', message);
     }
@@ -754,38 +760,40 @@ clearHistoryButton.addEventListener("click", ()=>{
 });
 
 undoButton.addEventListener('click', () => {
-    const messages = Array.from(chatMessages.querySelectorAll('.message'));
-    let foundPlayerMessage = false;
-
-    // Iterate backwards to find the last player message and remove everything from there
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const msg = messages[i];
-        const isPlayer = msg.classList.contains('player-message');
-        msg.remove();
-        if (isPlayer) {
-            foundPlayerMessage = true;
+    // Find the index of the last user message in our tracked array
+    let lastUserIndex = -1;
+    for (let i = currentConversationMessageDivs.length - 1; i >= 0; i--) {
+        if (currentConversationMessageDivs[i].classList.contains('player-message')) {
+            lastUserIndex = i;
             break;
         }
     }
 
-    if (foundPlayerMessage) {
+    if (lastUserIndex !== -1) {
+        // Remove DOM elements from that index onwards
+        const divsToRemove = currentConversationMessageDivs.slice(lastUserIndex);
+        divsToRemove.forEach(div => div.remove());
+
+        // Also remove them from our tracking array
+        currentConversationMessageDivs.splice(lastUserIndex);
+
+        // Notify the backend
         ipcRenderer.send('undo-message');
     }
     updateRegenerateButtonState();
 });
 
 regenerateButton.addEventListener('click', () => {
-    const messages = Array.from(chatMessages.querySelectorAll('.message'));
-
-    // Iterate backwards from the end of the messages
-    for (let i = messages.length - 1; i >= 0; i--) {
-        const messageElement = messages[i];
-        // If it's a player message, we've gone back far enough. Stop.
-        if (messageElement.classList.contains('player-message')) {
+    // Iterate backwards through our tracked divs
+    while (currentConversationMessageDivs.length > 0) {
+        const lastDiv = currentConversationMessageDivs[currentConversationMessageDivs.length - 1];
+        if (lastDiv.classList.contains('player-message')) {
+            // We've reached the last player message, stop.
             break;
         }
-        // Otherwise, it's an AI message, an action message, or an error. Remove it.
-        messageElement.remove();
+        // It's an AI message (or something after the player message), remove it
+        lastDiv.remove();
+        currentConversationMessageDivs.pop();
     }
 
     updateRegenerateButtonState();
@@ -1370,6 +1378,7 @@ ipcRenderer.on('chat-hide', () =>{
 })
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
+    currentConversationMessageDivs = [];
     const { gameData, messages, narratives, historicalMetadata, actions } = payload;
     availableActions = actions;
     console.log(`Received ${availableActions.length} available actions from chat-start payload.`);
@@ -1550,9 +1559,8 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 });
 
 ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposedActions: ActionResponse[]) => {
-    const messages = chatMessages.querySelectorAll('.message');
-    if (messageIndex < messages.length) {
-        const messageDiv = messages[messageIndex];
+    if (messageIndex < currentConversationMessageDivs.length) {
+        const messageDiv = currentConversationMessageDivs[messageIndex];
 
         const approvalContainer = document.createElement('div');
         approvalContainer.classList.add('action-approval-container');
@@ -1610,11 +1618,16 @@ ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposed
         // Append after the message content, but inside the message div
         messageDiv.appendChild(approvalContainer);
         approvalContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        console.error(`Action approval request for invalid messageIndex: ${messageIndex}`);
     }
 });
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean, isAiToAi: boolean = false)=>{
-    await displayMessage(message);
+    const messageDiv = await displayMessage(message);
+    if (messageDiv) {
+        currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
+    }
     console.log(`wait: ${waitForActions}, isAiToAi: ${isAiToAi}`)
 
     const shouldDisableInput = !isAiToAi;
