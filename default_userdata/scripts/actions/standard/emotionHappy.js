@@ -41,8 +41,18 @@ module.exports = {
         )
     },
     chatMessage: () =>{
-        
+        return {
+            en: `{{character1Name}} feels happy.`,
+            zh: `{{character1Name}}感到高兴。`,
+            ru: `{{character1Name}} чувствует себя счастливым.`,
+            fr: `{{character1Name}} se sent heureux.`,
+            es: `{{character1Name}} se siente feliz.`,
+            de: `{{character1Name}} fühlt sich glücklich.`,
+            ja: `{{character1Name}}は幸せを感じています。`,
+            ko: `{{character1Name}}는 행복을 느낍니다.`,
+            pl: `{{character1Name}} czuje się szczęśliwy.`
+        }
     },
-    chatMessageClass: null
+    chatMessageClass: "neutral-action-message"
 }
 

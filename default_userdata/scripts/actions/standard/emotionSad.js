@@ -41,8 +41,18 @@ module.exports = {
         )
     },
     chatMessage: () =>{
-        
+        return {
+            en: `{{character1Name}} feels sad.`,
+            zh: `{{character1Name}}感到悲伤。`,
+            ru: `{{character1Name}} грустит.`,
+            fr: `{{character1Name}} se sent triste.`,
+            es: `{{character1Name}} se siente triste.`,
+            de: `{{character1Name}} ist traurig.`,
+            ja: `{{character1Name}}は悲しんでいます。`,
+            ko: `{{character1Name}}는 슬픔을 느낍니다.`,
+            pl: `{{character1Name}} jest smutny.`
+        }
     },
-    chatMessageClass: null
+    chatMessageClass: "neutral-action-message"
 }
 
