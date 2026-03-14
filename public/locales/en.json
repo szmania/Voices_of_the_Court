@@ -689,7 +689,8 @@
     "journey_traveling_back": "Reply from {character} is on its way...",
     "journey_stage1": "Sent",
     "journey_stage2": "Writing Reply",
-    "journey_stage3": "Reply Sent"
+    "journey_stage3": "Reply Sent",
+    "journey_stage4": "Reply Received"
   },
   "history": {
     "header": "Conversation History Viewer",

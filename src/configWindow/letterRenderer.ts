@@ -66,7 +66,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 // @ts-ignore
                 text: window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate),
                 overdue: false,
-                journey: { currentStage: 3 } // Journey is complete
+                journey: { currentStage: 4 } // Journey is complete
             };
         } else {
             // Case A: No reply yet. Show pending/overdue status.
@@ -320,6 +320,8 @@ function renderJourneyTimeline(status: { journey?: { currentStage: number } } | 
     const stage2Label = window.LocalizationManager.getTranslation('letters.journey_stage2', 'Writing Reply');
     // @ts-ignore
     const stage3Label = window.LocalizationManager.getTranslation('letters.journey_stage3', 'Reply Sent');
+    // @ts-ignore
+    const stage4Label = window.LocalizationManager.getTranslation('letters.journey_stage4', 'Reply Received');
 
     return `
         <div class="journey-timeline">
@@ -331,9 +333,13 @@ function renderJourneyTimeline(status: { journey?: { currentStage: number } } | 
                 <div class="journey-dot"></div>
                 <div class="journey-label">${stage2Label}</div>
             </div>
-            <div class="journey-point stage-3 ${stage >= 3 ? 'completed' : ''}">
+            <div class="journey-point stage-3 ${stage >= 3 ? 'completed' : ''} ${stage === 3 ? 'active' : ''}">
                 <div class="journey-dot"></div>
                 <div class="journey-label">${stage3Label}</div>
+            </div>
+            <div class="journey-point stage-4 ${stage >= 4 ? 'completed' : ''}">
+                <div class="journey-dot"></div>
+                <div class="journey-label">${stage4Label}</div>
             </div>
         </div>
     `;
