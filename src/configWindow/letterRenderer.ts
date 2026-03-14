@@ -56,8 +56,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
         console.log(`[getLetterStatus] Checking player-sent letter ID: ${letter.id}`);
         const reply = allLetters.find(l => l.replyToId === letter.id);
 
-        if (currentGameDay === 0 || typeof letter.delay === 'undefined') {
-            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing game day or delay:`, { currentGameDay, delay: letter.delay });
+        if (letter.totalDays === undefined || typeof letter.delay === 'undefined') {
+            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing totalDays or delay:`, { totalDays: letter.totalDays, delay: letter.delay });
             return null;
         }
 
