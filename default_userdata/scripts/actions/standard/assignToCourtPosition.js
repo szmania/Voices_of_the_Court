@@ -377,16 +377,23 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
+        const positionValue = args[0];
+        const positionOption = module.exports.args[0].options.find(opt => opt.value === positionValue);
+        
+        const positionNames = positionOption ? positionOption.display : {
+            en: positionValue, zh: positionValue, ru: positionValue, fr: positionValue, es: positionValue, de: positionValue, ja: positionValue, ko: positionValue, pl: positionValue
+        };
+
         return {
-            en: `{{character1Name}} appointed {{character2Name}} to the position of ${args[0]}.`,
-            zh: `{{character1Name}}任命{{character2Name}}为${args[0]}职位`,
-            ru: `{{character1Name}} назначил {{character2Name}} на должность ${args[0]}.`,
-            fr: `{{character1Name}} a nommé {{character2Name}} au poste de ${args[0]}.`,
-            es: `{{character1Name}} nombró a {{character2Name}} al puesto de ${args[0]}.`,
-            de: `{{character1Name}} hat {{character2Name}} zum ${args[0]} ernannt.`,
-            ja: `{{character1Name}}は{{character2Name}}を${args[0]}のポストに任命しました。`,
-            ko: `{{character1Name}}는 {{character2Name}}를 ${args[0]} 직책에 임명했습니다.`,
-            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${args[0]}.`
+            en: `{{character1Name}} appointed {{character2Name}} to the position of ${positionNames.en}.`,
+            zh: `{{character1Name}}任命{{character2Name}}为${positionNames.zh}职位`,
+            ru: `{{character1Name}} назначил {{character2Name}} на должность ${positionNames.ru}.`,
+            fr: `{{character1Name}} a nommé {{character2Name}} au poste de ${positionNames.fr}.`,
+            es: `{{character1Name}} nombró a {{character2Name}} al puesto de ${positionNames.es}.`,
+            de: `{{character1Name}} hat {{character2Name}} zum ${positionNames.de} ernannt.`,
+            ja: `{{character1Name}}は{{character2Name}}を${positionNames.ja}のポストに任命しました。`,
+            ko: `{{character1Name}}는 {{character2Name}}를 ${positionNames.ko} 직책에 임명했습니다.`,
+            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl}.`
         }
     },
     chatMessageClass: "neutral-action-message"

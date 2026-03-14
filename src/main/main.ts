@@ -1227,6 +1227,10 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                     if (chatMessage) {
                         const { parseVariables } = require('./parseVariables.js');
+                        const initiator = conversation.gameData.getCharacterById(sourceId!);
+                        const target = conversation.gameData.getCharacterById(targetId!);
+                        conversation.gameData.character1Name = initiator ? initiator.shortName : "someone";
+                        conversation.gameData.character2Name = target ? target.shortName : "someone";
                         const response: ActionResponse = {
                             actionName: action.signature,
                             chatMessage: parseVariables(chatMessage, conversation.gameData),

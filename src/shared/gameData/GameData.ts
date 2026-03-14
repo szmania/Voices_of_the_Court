@@ -108,9 +108,9 @@ export class GameData {
      * @deprecated This method is not scalable. Use getOtherCharacters() instead.
      */
     setCharacterNames(): void {
-        const nonPlayerCharacters = this.getOtherCharacters();
+        // const nonPlayerCharacters = this.getOtherCharacters();
         
-        this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
-        this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
+        // this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
+        // this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
     }
 }
