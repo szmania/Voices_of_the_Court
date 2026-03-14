@@ -71,12 +71,12 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
         } else {
             // Case A: No reply yet. Show pending/overdue status.
             const sentDay = letter.totalDays;
-            const expectedReplyDay = sentDay + (letter.delay * 2);
+            const expectedReplyDay = sentDay + letter.delay;
             const daysDifference = expectedReplyDay - currentGameDay;
             
             const sentDate = new Date(letter.timestamp);
             const expectedReplyDate = new Date(sentDate.getTime());
-            expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
+            expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
 
             if (daysDifference < 0) {
                 return {
@@ -85,7 +85,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     overdue: true,
                 };
             } else {
-                const totalJourneyTime = letter.delay * 2;
+                const totalJourneyTime = letter.delay;
                 const timeElapsed = currentGameDay - sentDay; // Simplified calculation
                 const stage1End = Math.floor(totalJourneyTime * 4 / 9);
                 const stage2End = Math.floor(totalJourneyTime * 5 / 9);
@@ -187,7 +187,7 @@ function renderStatusSummary() {
                 const hasReply = allLetters.some(reply => reply.replyToId === l.id);
                 if (hasReply) return false;
                 if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
-                const expectedReplyDay = l.totalDays + (l.delay * 2);
+                const expectedReplyDay = l.totalDays + l.delay;
                 return expectedReplyDay >= currentGameDay;
             }
             return false;
@@ -197,7 +197,7 @@ function renderStatusSummary() {
             const hasReply = allLetters.some(reply => reply.replyToId === l.id);
             if (hasReply) return false;
             if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
-            const expectedReplyDay = l.totalDays + (l.delay * 2);
+            const expectedReplyDay = l.totalDays + l.delay;
             return expectedReplyDay < currentGameDay;
         }).length,
         failed: allLetters.filter(l => l.status === 'failed').length,
@@ -588,7 +588,7 @@ function renderLetterContent(letter: Letter) {
         
         const sentDate = new Date(letter.timestamp);
         const expectedReplyDate = new Date(sentDate.getTime());
-        expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
+        expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
