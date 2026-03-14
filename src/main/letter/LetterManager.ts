@@ -2,6 +2,7 @@ import { app } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
+import { GameData } from '../../shared/gameData/GameData.js';
 import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
