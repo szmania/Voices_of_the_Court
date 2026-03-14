@@ -756,23 +756,19 @@ clipboardListener.on('VOTC:LETTER', async () => {
         LetterManager.getInstance().clearLettersFile(config);
         await sleep(250); // Wait for log to flush
 
-        const { playerId } = await getPlayerId(userDataPath);
-        if (!playerId) {
-            console.error("Could not determine player ID for VOTC:LETTER event.");
-            return;
-        }
-
         const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
         if (!gameData) {
             console.error('Failed to parse game data from debug.log for letter event.');
             return;
         }
+        const playerId = String(gameData.playerID);
+        const recipientId = String(gameData.aiID);
 
         const gameDate = gameData.date;
         const letterManager = LetterManager.getInstance();
 
         // Import letters from log, which now also saves them.
-        await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, String(gameData.aiID));
+        await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
 
         // Get all letters for the player and find the most recent one by creation date.
