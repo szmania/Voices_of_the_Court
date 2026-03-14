@@ -590,7 +590,9 @@ function renderLetterContent(letter: Letter) {
     // Determine journey timeline separately to place it at the top
     let journeyHtml = '';
     const statusForJourney = getLetterStatus(letter);
+    console.log(`[renderLetterContent] Status for letter ${letter.id}:`, statusForJourney);
     if (statusForJourney && statusForJourney.journey) {
+        console.log(`[renderLetterContent] Creating timeline for letter ${letter.id}, stage ${statusForJourney.journey.currentStage}`);
         journeyHtml = `
             <div class="journey-timeline-container">
                 <div class="journey-stage ${statusForJourney.journey.currentStage >= 1 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 1 ? 'active' : ''}"></div>
@@ -598,6 +600,8 @@ function renderLetterContent(letter: Letter) {
                 <div class="journey-stage ${statusForJourney.journey.currentStage >= 3 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 3 ? 'active' : ''}"></div>
             </div>
         `;
+    } else {
+        console.log(`[renderLetterContent] No journey timeline for letter ${letter.id}. Status:`, statusForJourney);
     }
 
     letterViewContainer.innerHTML = `
@@ -610,9 +614,9 @@ function renderLetterContent(letter: Letter) {
                 <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
             </div>
         </div>
+        ${journeyHtml}
         <div class="letter-view-body">
             ${letter.content.replace(/\n/g, '<br>')}
-            ${journeyHtml}
         </div>
     `;
 
