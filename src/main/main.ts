@@ -629,7 +629,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         gameData.characters.forEach(char => {
             characterNameMap.set(String(char.id), char.fullName);
         });
-        await conversation.letterManager.importLettersFromLog(config, characterNameMap, String(gameData.playerID), gameData.date, String(gameData.aiID));
+        await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
@@ -1543,7 +1543,7 @@ ipcMain.handle('import-letters-from-log', async () => {
             const gameDataForDate = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
             const gameDate = gameDataForDate ? gameDataForDate.date : new Date().toISOString().split('T')[0];
             const letterManager = LetterManager.getInstance();
-            await letterManager.importLettersFromLog(config, characterNameMap, playerId, gameDate);
+            await letterManager.importLettersFromLog(config, gameData, playerId, gameDate);
             return { success: true };
         }
         return { success: false, error: 'Player ID not found.' };
