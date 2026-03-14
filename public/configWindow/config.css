@@ -1549,6 +1549,12 @@ mark.current-highlight {
     color: #fff;
 }
 
+.letter-journey-container {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #3d2e1e;
+}
+
 .journey-timeline-container {
     display: flex;
     width: 100%;
