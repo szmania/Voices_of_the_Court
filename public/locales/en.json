@@ -683,9 +683,9 @@
     "estimated_reply_date_was": "Estimated reply date was",
     "reply_received_on": "Reply received on {date}",
     "view_reply": "View Reply",
-    "journey_traveling_to": "Traveling to {character}",
-    "journey_writing_reply": "Writing Reply",
-    "journey_traveling_back": "Traveling Back"
+    "journey_traveling_to": "Traveling to {character}...",
+    "journey_writing_reply": "{character} is writing a reply...",
+    "journey_traveling_back": "Reply from {character} is on its way..."
   },
   "history": {
     "header": "Conversation History Viewer",
