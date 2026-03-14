@@ -378,7 +378,7 @@ const action = {
 
     chatMessage: (args) =>{
         const positionValue = args[0];
-        const positionOption = module.exports.args[0].options.find(opt => opt.value === positionValue);
+        const positionOption = action.args[0].options.find(opt => opt.value === positionValue);
         
         const positionNames = positionOption ? positionOption.display : {
             en: positionValue, zh: positionValue, ru: positionValue, fr: positionValue, es: positionValue, de: positionValue, ja: positionValue, ko: positionValue, pl: positionValue
