@@ -63,5 +63,7 @@ export interface ActionResponse{
 export interface PendingAction {
     action: Action;
     args: string[];
+    initiatorId: number;
+    targetId: number;
 }
 

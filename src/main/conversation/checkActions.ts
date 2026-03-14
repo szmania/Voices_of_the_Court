@@ -88,7 +88,9 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
 
             pendingActionsForMessage.push({
                 action: matchedAction,
-                args: args
+                args: args,
+                initiatorId: initiatorId,
+                targetId: targetId
             });
 
             let chatMessage = matchedAction.chatMessage(args);

@@ -1153,7 +1153,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                 // Run the action to get the effect body
                 let effectBody = "";
-                action.run(conversation.gameData, (text: string) => { effectBody += text; }, actionArgs);
+                action.run(conversation.gameData, (text: string) => { effectBody += text; }, actionArgs, sourceId!, targetId!);
 
                 // Use the writer to create the full script with prelude
                 ActionEffectWriter.writeEffect(

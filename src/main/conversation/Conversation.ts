@@ -1292,16 +1292,16 @@ ${character.fullName}的发言：`
             return;
         }
 
-        const { action, args } = actionToExecute;
+        const { action, args, initiatorId, targetId } = actionToExecute;
 
         try {
             let effectBody = "";
-            action.run(this.gameData, (text: string) => { effectBody += text; }, args);
+            action.run(this.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
             ActionEffectWriter.appendEffect(
                 this.runFileManager,
                 this.gameData,
-                this.gameData.playerID,
-                this.gameData.aiID,
+                initiatorId,
+                targetId,
                 effectBody
             );
 
