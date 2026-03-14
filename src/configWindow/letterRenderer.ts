@@ -337,7 +337,7 @@ function renderJourneyTimeline(status: { journey?: { currentStage: number } } | 
                 <div class="journey-dot"></div>
                 <div class="journey-label">${stage3Label}</div>
             </div>
-            <div class="journey-point stage-4 ${stage >= 4 ? 'completed' : ''}">
+            <div class="journey-point stage-4 ${stage >= 4 ? 'completed' : ''} ${stage === 4 ? 'active' : ''}">
                 <div class="journey-dot"></div>
                 <div class="journey-label">${stage4Label}</div>
             </div>
