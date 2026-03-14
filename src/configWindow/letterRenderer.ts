@@ -181,12 +181,12 @@ function renderStatusSummary() {
         generating: allLetters.filter(l => l.status === 'generating').length,
         pending: allLetters.filter(l => {
             // AI letter pending delivery
-            if (!l.isPlayerSender && l.status === 'pending') {
+            if (!l.isPlayerSender && l.status === 'pending' && l.delivered !== true) {
                 return true;
             }
             // Player letter pending non-overdue reply
             if (l.isPlayerSender) {
-                const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
                 if (hasReply) return false;
                 if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                 const expectedReplyDay = l.totalDays + l.delay;
@@ -196,7 +196,7 @@ function renderStatusSummary() {
         }).length,
         reply_overdue: allLetters.filter(l => {
             if (!l.isPlayerSender) return false;
-            const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+            const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
             if (hasReply) return false;
             if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
             const expectedReplyDay = l.totalDays + l.delay;
@@ -370,6 +370,11 @@ function renderLetters() {
             console.warn('Skipping malformed or incomplete letter object:', l);
             return false;
         }
+        // If it's a reply FROM an AI TO the player, hide it until it's delivered.
+        if (l.replyToId && !l.isPlayerSender && l.delivered !== true) {
+            console.log(`Hiding undelivered reply letter: ${l.id}`);
+            return false;
+        }
         return true;
     });
 
@@ -392,24 +397,24 @@ function renderLetters() {
         } else if (statusFilter === 'reply_overdue') {
             characterFilteredLetters = characterFilteredLetters.filter(l => {
                 if (!l.isPlayerSender) return false;
-                const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
                 if (hasReply) return false;
                 if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
-                const expectedReplyDay = l.totalDays + (l.delay * 2);
+                const expectedReplyDay = l.totalDays + l.delay;
                 return expectedReplyDay < currentGameDay;
             });
         } else if (statusFilter === 'pending') {
             characterFilteredLetters = characterFilteredLetters.filter(l => {
                 // AI-sent letters pending delivery
-                if (!l.isPlayerSender && l.status === 'pending') {
+                if (!l.isPlayerSender && l.status === 'pending' && l.delivered !== true) {
                     return true;
                 }
                 // Player-sent letters awaiting a reply that is NOT overdue
                 if (l.isPlayerSender) {
-                    const hasReply = allLetters.some(reply => reply.replyToId === l.id);
+                    const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
                     if (hasReply) return false;
                     if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
-                    const expectedReplyDay = l.totalDays + (l.delay * 2);
+                    const expectedReplyDay = l.totalDays + l.delay;
                     return expectedReplyDay >= currentGameDay;
                 }
                 return false;
@@ -754,6 +759,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await initLocalization();
+    
+    currentGameDay = await ipcRenderer.invoke('get-current-game-day');
+    console.log(`Initial game day fetched: ${currentGameDay}`);
     // @ts-ignore
     const successMsg = window.LocalizationManager.getTranslation('letters.load_success', 'Letters data successfully loaded');
     showStatusMessage(successMsg, 'success');
@@ -857,4 +865,17 @@ ipcRenderer.on('letter-status-changed', () => {
 
 ipcRenderer.on('letter-thread-status-update', (event, count: number) => {
     updateLetterThreadStatus(count);
+});
+
+ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
+    console.log(`Received game-date-updated event: ${newTotalDays}`);
+    if (newTotalDays > currentGameDay) {
+        currentGameDay = newTotalDays;
+        // Re-render to update statuses
+        renderLetters();
+        renderStatusSummary();
+        if (selectedLetter) {
+            renderLetterContent(selectedLetter);
+        }
+    }
 });

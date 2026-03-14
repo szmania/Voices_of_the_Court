@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog, autoUpdater, Tray, Menu} from "electron";
+import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow} from "electron";
 import {ConfigWindow} from './windows/ConfigWindow.js';
 import {ChatWindow} from './windows/ChatWindow.js';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
@@ -315,6 +315,11 @@ function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
     console.log(`Game date updated to: ${currentTotalDays}`);
     checkAndDeliverLetters();
+
+    // Broadcast the date update to all renderer windows
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('game-date-updated', newTotalDays);
+    });
 }
 
 function processLogLine(line: string) {
@@ -1430,6 +1435,10 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
 ipcMain.handle('get-letter-thread-status', () => {
     console.log(`IPC: Received get-letter-thread-status. Current count: ${letterThreadCount}`);
     return letterThreadCount;
+});
+
+ipcMain.handle('get-current-game-day', () => {
+    return currentTotalDays;
 });
 
 ipcMain.handle('get-character-map', async (event, playerId) => {
