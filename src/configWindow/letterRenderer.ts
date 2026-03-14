@@ -65,7 +65,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             return {
                 // @ts-ignore
                 text: window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate),
-                overdue: false
+                overdue: false,
+                journey: { currentStage: 3 } // Journey is complete
             };
         } else {
             // Case A: No reply yet. Show pending/overdue status.
@@ -504,16 +505,7 @@ function renderLetters() {
             const status = getLetterStatus(pair.sent);
             let statusHtml = '';
             if (status) {
-                let journeyHtml = '';
-                if (status.journey) {
-                    journeyHtml = `
-                        <div class="journey-timeline-container">
-                            <div class="journey-stage ${status.journey.currentStage >= 1 ? 'completed' : ''} ${status.journey.currentStage === 1 ? 'active' : ''}"></div>
-                            <div class="journey-stage ${status.journey.currentStage >= 2 ? 'completed' : ''} ${status.journey.currentStage === 2 ? 'active' : ''}"></div>
-                            <div class="journey-stage ${status.journey.currentStage >= 3 ? 'completed' : ''} ${status.journey.currentStage === 3 ? 'active' : ''}"></div>
-                        </div>
-                    `;
-                }
+                const journeyHtml = renderJourneyTimeline(status);
                 statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
             sentHtml = `
@@ -612,16 +604,7 @@ function renderLetterContent(letter: Letter) {
     } else {
         const status = getLetterStatus(letter);
         if (status) {
-            let journeyHtml = '';
-            if (status.journey) {
-                journeyHtml = `
-                    <div class="journey-timeline-container">
-                        <div class="journey-stage ${status.journey.currentStage >= 1 ? 'completed' : ''} ${status.journey.currentStage === 1 ? 'active' : ''}"></div>
-                        <div class="journey-stage ${status.journey.currentStage >= 2 ? 'completed' : ''} ${status.journey.currentStage === 2 ? 'active' : ''}"></div>
-                        <div class="journey-stage ${status.journey.currentStage >= 3 ? 'completed' : ''} ${status.journey.currentStage === 3 ? 'active' : ''}"></div>
-                    </div>
-                `;
-            }
+            const journeyHtml = renderJourneyTimeline(status);
             statusHtml = journeyHtml + `<div class="letter-view-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
         }
     }
