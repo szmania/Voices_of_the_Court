@@ -59,8 +59,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             return null;
         }
 
-        if (reply) {
-            // Case B: Reply received. Show when it was received for the list view.
+        if (reply && reply.delivered) {
+            // Case B: Reply received and delivered.
             const replyDate = formatDate(new Date(reply.timestamp));
             return {
                 // @ts-ignore
@@ -69,7 +69,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 journey: { currentStage: 4 } // Journey is complete
             };
         } else {
-            // Case A: No reply yet. Show pending/overdue status.
+            // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
             const sentDay = letter.totalDays;
             const expectedReplyDay = sentDay + letter.delay;
             const daysDifference = expectedReplyDay - currentGameDay;
@@ -78,7 +78,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const expectedReplyDate = new Date(sentDate.getTime());
             expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
 
-            if (daysDifference < 0) {
+            if (currentGameDay > 0 && daysDifference < 0) {
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
@@ -589,7 +589,7 @@ function renderLetterContent(letter: Letter) {
     let statusHtml = '';
     const reply = allLetters.find(l => l.replyToId === letter.id);
 
-    if (letter.isPlayerSender && reply) {
+    if (letter.isPlayerSender && reply && reply.delivered) {
         const status = getLetterStatus(letter);
         const journeyHtml = renderJourneyTimeline(status);
 

@@ -251,13 +251,18 @@ let letterThreadFullNotified = false;
 
 let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
+let lastLetterSentToGame: StoredLetter | null = null;
 
 
 async function checkAndDeliverLetters() {
     const letterManager = LetterManager.getInstance();
-    for (const [letterId, storedLetter] of storedLetters.entries()) {
-        if (currentTotalDays >= storedLetter.expectedDeliveryDay) {
-            console.log(`Delivering letter ${letterId} (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
+    // Use a copy of keys to allow modification during iteration
+    const letterIds = Array.from(storedLetters.keys()); 
+    for (const letterId of letterIds) {
+        const storedLetter = storedLetters.get(letterId);
+        // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
+        if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
+            console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
             if (!gameData) {
@@ -266,12 +271,13 @@ async function checkAndDeliverLetters() {
             }
             const currentDateString = gameData.date;
 
+            // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
-            storedLetters.delete(letterId);
+            lastLetterSentToGame = storedLetter; // Track the letter sent
+            storedLetters.delete(letterId); // Remove from pending queue
 
-            if (configWindow && !configWindow.window.isDestroyed()) {
-                configWindow.window.webContents.send('letter-status-changed');
-            }
+            // Since the mod probably handles one at a time, break after sending one.
+            break; 
         }
     }
 }
@@ -678,14 +684,35 @@ clipboardListener.on('VOTC:EFFECT_ACCEPTED', async () =>{
 
 })
 
-clipboardListener.on('VOTC:LETTER_ACCEPTED', async () =>{
+clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
     console.log('ClipboardListener: VOTC:LETTER_ACCEPTED event detected.');
     try {
         LetterManager.getInstance().clearLettersFile(config);
+        if (lastLetterSentToGame) {
+            console.log(`Game confirmed delivery of letter reply for original letter: ${lastLetterSentToGame.originalLetter.id}`);
+            const letterManager = LetterManager.getInstance();
+            const replyLetter = lastLetterSentToGame.letter;
+
+            // Now officially mark as delivered and save
+            letterManager.markAsDelivered(
+                String(replyLetter.recipient.id), // Player ID
+                String(replyLetter.sender.id),   // Character ID
+                replyLetter.id
+            );
+            
+            lastLetterSentToGame = null; // Clear the tracked letter
+
+            // Notify UI of the final status change
+            if (configWindow && !configWindow.window.isDestroyed()) {
+                configWindow.window.webContents.send('letter-status-changed');
+            }
+        } else {
+            console.log('VOTC:LETTER_ACCEPTED received, but no letter was pending game confirmation.');
+        }
     } catch (error) {
-        console.error(`Failed to clear letters file: ${error}`);
+        console.error(`Failed to handle LETTER_ACCEPTED event: ${error}`);
     }
-})
+});
 
 clipboardListener.on('VOTC:BOOKMARK', async () => {
     console.log('ClipboardListener: VOTC:BOOKMARK event detected.');
@@ -770,6 +797,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
         // Import letters from log, which now also saves them.
         await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
+
+        // Refresh the letters UI to show the new letter in the outbox
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
 
         // Get all letters for the player and find the most recent one by creation date.
         const allPlayerLetters = letterManager.getAllLetters(playerId);
@@ -880,11 +912,6 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         checkAndDeliverLetters();
-
-        // Refresh the letters UI to show the new letter
-        if (configWindow && !configWindow.window.isDestroyed()) {
-            configWindow.window.webContents.send('letter-status-changed');
-        }
 
     } catch (error) {
         console.error('Error processing VOTC:LETTER event:', error);
