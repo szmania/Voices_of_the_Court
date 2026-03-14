@@ -693,7 +693,8 @@
     "journey_stage4": "Reply Received",
     "status_journey_began": "Journey to {character} began",
     "status_awaiting_reply": "Awaiting reply from {character}",
-    "status_reply_en_route": "Reply is on its way"
+    "status_reply_en_route": "Reply is on its way",
+    "estimated_reply": "Est. Reply: {date}"
   },
   "history": {
     "header": "Conversation History Viewer",

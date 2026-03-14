@@ -106,8 +106,10 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     currentStage = 3;
                 }
 
+                const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(expectedReplyDate))})`;
+
                 return {
-                    text: statusText,
+                    text: `${statusText} ${estReplyText}`,
                     overdue: false,
                     journey: { currentStage }
                 };

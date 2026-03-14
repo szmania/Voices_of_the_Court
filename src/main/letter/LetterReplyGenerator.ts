@@ -22,10 +22,12 @@ export class LetterReplyGenerator {
         this.userDataPath = userDataPath;
         
         // Create API connection
+        console.log('[LetterReplyGenerator] Creating ApiConnection...');
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
             config.textGenerationApiConnectionConfig.parameters
         );
+        console.log('[LetterReplyGenerator] ApiConnection created.');
     }
 
 
@@ -146,9 +148,10 @@ export class LetterReplyGenerator {
      */
     public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<ILetter | null> {
         try {
+            console.log('[LetterReplyGenerator] Starting letter reply generation.');
             // Build prompt
             const promptText = await this.buildLetterPrompt(gameData, letter);
-            console.log(`Generated letter prompt: ${promptText.substring(0, 200)}...`);
+            console.log(`[LetterReplyGenerator] Generated letter prompt: ${promptText.substring(0, 200)}...`);
 
             // Convert prompt to Message array format
             const messages: Message[] = [
@@ -159,34 +162,41 @@ export class LetterReplyGenerator {
             ];
 
             // Call LLM to generate reply
+            console.log('[LetterReplyGenerator] Calling LLM to generate reply...');
             const response = await this.apiConnection.complete(messages, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             });
+            console.log('[LetterReplyGenerator] LLM call complete.');
 
             if (!response || response.trim() === '') {
-                console.warn('Empty response from LLM for letter reply');
+                console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
                 return null;
             }
 
             // Escape quotes in the reply
             const escapedResponse = this.escapeQuotes(response.trim(), this.config.language);
             
-            console.log(`Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
+            console.log(`[LetterReplyGenerator] Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
             
             // Create a UUID for the reply letter *before* saving history and summary
             const replyLetterId = randomUUID();
 
             // Generate and save a summary of the letter
+            console.log('[LetterReplyGenerator] Generating and saving letter summary...');
             await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse, replyLetterId);
+            console.log('[LetterReplyGenerator] Letter summary saved.');
 
             // Save letter history immediately
+            console.log('[LetterReplyGenerator] Saving letter history...');
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
+            console.log('[LetterReplyGenerator] Letter history saved.');
             
             // Return the generated reply so it can be queued for delayed delivery
             return replyLetter;
         } catch (error) {
-            console.error(`Error generating letter reply: ${error}`);
+            console.error(`[LetterReplyGenerator] Error generating letter reply: ${error.message}`);
+            console.error(error.stack);
             return null;
         }
     }
