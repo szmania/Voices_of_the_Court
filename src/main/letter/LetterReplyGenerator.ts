@@ -194,6 +194,11 @@ export class LetterReplyGenerator {
             console.log('[LetterReplyGenerator] Letter history saved.');
             
             // Return the generated reply so it can be queued for delayed delivery
+            if (replyLetter) {
+                BrowserWindow.getAllWindows().forEach(win => {
+                    win.webContents.send('letter-status-changed');
+                });
+            }
             return replyLetter;
         } catch (error: unknown) {
             if (error instanceof Error) {
