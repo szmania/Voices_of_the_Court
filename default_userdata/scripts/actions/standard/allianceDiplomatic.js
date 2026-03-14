@@ -23,14 +23,19 @@ module.exports = {
         if (!initiator || !target) return false;
 
         let opinionOfInitiator = 0;
+        let conversationOpinion = 0;
+
         if (initiator.id === gameData.playerID) {
             opinionOfInitiator = target.opinionOfPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
             const opinionEntry = target.opinions.find(o => o.id === initiator.id);
             opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            // Simulate conversation opinion for AI-AI
+            conversationOpinion = opinionOfInitiator > 0 ? opinionOfInitiator / 2 : 0;
         }
 
-        let conv = (target.getOpinionModifierValue("From conversations")) * 2;
+        let conv = conversationOpinion * 2;
         let culture_faith = (target.faith == initiator.faith && target.culture == initiator.culture) ? 40 : ((target.faith == initiator.faith || target.culture == initiator.culture) ? 20 : 0);
 
         let score = conv + opinionOfInitiator + culture_faith;
