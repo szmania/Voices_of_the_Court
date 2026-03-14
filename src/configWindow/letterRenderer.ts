@@ -49,11 +49,16 @@ function formatDate(date: Date): string {
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
     // 1. Status for player-sent letters (OUTBOX)
     if (letter.isPlayerSender) {
+        console.log(`[getLetterStatus] Checking player-sent letter ID: ${letter.id}`);
         const reply = allLetters.find(l => l.replyToId === letter.id);
 
-        if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') return null;
+        if (currentGameDay === 0 || !letter.totalDays || typeof letter.delay === 'undefined') {
+            console.log(`[getLetterStatus] Skipping letter ${letter.id} due to missing data:`, { currentGameDay, totalDays: letter.totalDays, delay: letter.delay });
+            return null;
+        }
 
         if (reply) {
+            console.log(`[getLetterStatus] Letter ${letter.id} has a reply.`);
             // Case B: Reply received. Show when it was received for the list view.
             const replyDate = formatDate(new Date(reply.timestamp));
             return {
@@ -67,11 +72,14 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const expectedReplyDay = sentDay + (letter.delay * 2);
             const daysDifference = expectedReplyDay - currentGameDay;
             
+            console.log(`[getLetterStatus] Letter ${letter.id} is PENDING.`, { sentDay, expectedReplyDay, currentGameDay, daysDifference });
+
             const sentDate = new Date(letter.timestamp);
             const expectedReplyDate = new Date(sentDate.getTime());
             expectedReplyDate.setDate(sentDate.getDate() + (letter.delay * 2));
 
             if (daysDifference < 0) {
+                console.log(`[getLetterStatus] Letter ${letter.id} is OVERDUE.`);
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
@@ -79,9 +87,11 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 };
             } else {
                 const totalJourneyTime = letter.delay * 2;
-                const timeElapsed = totalJourneyTime - daysDifference;
+                const timeElapsed = currentGameDay - sentDay; // Simplified calculation
                 const stage1End = Math.floor(totalJourneyTime * 4 / 9);
                 const stage2End = Math.floor(totalJourneyTime * 5 / 9);
+                
+                console.log(`[getLetterStatus] Letter ${letter.id} is IN-TRANSIT.`, { totalJourneyTime, timeElapsed, stage1End, stage2End });
 
                 let statusText = '';
                 let currentStage = 0;
@@ -98,6 +108,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     statusText = window.LocalizationManager.getTranslation('letters.journey_traveling_back', 'Reply from {character} is on its way...').replace('{character}', letter.recipient.shortName);
                     currentStage = 3;
                 }
+                
+                console.log(`[getLetterStatus] Letter ${letter.id} is in journey stage ${currentStage}.`);
 
                 return {
                     text: statusText,
