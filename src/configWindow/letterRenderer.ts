@@ -592,18 +592,15 @@ function renderLetterContent(letter: Letter) {
     const statusForJourney = getLetterStatus(letter);
     if (statusForJourney && statusForJourney.journey) {
         journeyHtml = `
-            <div class="letter-journey-container">
-                <div class="journey-timeline-container">
-                    <div class="journey-stage ${statusForJourney.journey.currentStage >= 1 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 1 ? 'active' : ''}"></div>
-                    <div class="journey-stage ${statusForJourney.journey.currentStage >= 2 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 2 ? 'active' : ''}"></div>
-                    <div class="journey-stage ${statusForJourney.journey.currentStage >= 3 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 3 ? 'active' : ''}"></div>
-                </div>
+            <div class="journey-timeline-container">
+                <div class="journey-stage ${statusForJourney.journey.currentStage >= 1 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 1 ? 'active' : ''}"></div>
+                <div class="journey-stage ${statusForJourney.journey.currentStage >= 2 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 2 ? 'active' : ''}"></div>
+                <div class="journey-stage ${statusForJourney.journey.currentStage >= 3 ? 'completed' : ''} ${statusForJourney.journey.currentStage === 3 ? 'active' : ''}"></div>
             </div>
         `;
     }
 
     letterViewContainer.innerHTML = `
-        ${journeyHtml}
         <div class="letter-view-header">
             <h3>${letter.subject}</h3>
             ${statusHtml}
@@ -615,6 +612,7 @@ function renderLetterContent(letter: Letter) {
         </div>
         <div class="letter-view-body">
             ${letter.content.replace(/\n/g, '<br>')}
+            ${journeyHtml}
         </div>
     `;
 
