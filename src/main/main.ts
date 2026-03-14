@@ -625,10 +625,6 @@ clipboardListener.on('VOTC:IN', async () =>{
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
 
         // Import letters from log
-        const characterNameMap = new Map<string, string>();
-        gameData.characters.forEach(char => {
-            characterNameMap.set(String(char.id), char.fullName);
-        });
         await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
 
