@@ -1606,9 +1606,13 @@ ${character.fullName}的发言：`
             const filePath = path.join(actionsPath, 'standard', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
-            const runFunctionString = actionModule.run.toString();
-            (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
-            (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            if (actionModule.run) {
+                const runFunctionString = actionModule.run.toString();
+                (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
+                (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            } else {
+                console.warn(`Action file ${file} is missing the 'run' function.`);
+            }
             this.actions.push(actionModule);
             console.log(`Loaded standard action: ${file}`);
         }
@@ -1623,9 +1627,13 @@ ${character.fullName}的发言：`
             const filePath = path.join(actionsPath, 'custom', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
-            const runFunctionString = actionModule.run.toString();
-            (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
-            (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            if (actionModule.run) {
+                const runFunctionString = actionModule.run.toString();
+                (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
+                (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            } else {
+                console.warn(`Action file ${file} is missing the 'run' function.`);
+            }
             this.actions.push(actionModule);
             console.log(`Loaded custom action: ${file}`);
         }
