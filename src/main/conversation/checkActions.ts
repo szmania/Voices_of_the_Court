@@ -250,7 +250,7 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
 
     // Log action frequency statistics
     if (triggeredActions.length > 0) {
-        console.log(`Action frequency stats: totalMessages=${totalMessages}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
+        console.log(`Action frequency stats: totalMessages=${conv.messages.length}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
     }
 
     return triggeredActions;

@@ -15,17 +15,6 @@ export function resolveCharacters(gameData: GameData, char1Id?: number, char2Id?
     return { character1, character2 };
 }
 
-/**
- * Gets the CK3 scope variable for a character role.
- * @param role 'initiator' or 'target'.
- * @returns The scope variable string.
- */
-export function getCharacterScope(role: 'initiator' | 'target'): string {
-    if (role === 'initiator') {
-        return 'global_var:votcce_action_initiator';
-    }
-    return 'global_var:votcce_action_target';
-}
 
 /**
  * Gets the CK3 scope variable for a character role.
