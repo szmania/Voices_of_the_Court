@@ -820,12 +820,6 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
         // END NEW LOGIC
 
-        // // Check if the recipient of the latest letter is the current AI. If not, no reply is needed.
-        // if (latestLetter.recipient.id !== gameData.aiID) {
-        //     console.log(`Letter recipient (${latestLetter.recipient.id}) is not the current AI (${gameData.aiID}). No reply will be generated.`);
-        //     return;
-        // }
-
         // Check if this letter already has a reply that is not in the future
         const hasReply = allPlayerLetters.some(l =>
             l.replyToId === latestLetter.id &&
@@ -895,6 +889,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         checkAndDeliverLetters();
+
+        // Refresh the letters UI to show the new letter
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
 
     } catch (error) {
         console.error('Error processing VOTC:LETTER event:', error);
