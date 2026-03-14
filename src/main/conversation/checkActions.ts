@@ -93,14 +93,19 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
                 targetId: targetId
             });
 
+            const initiator = conv.gameData.getCharacterById(initiatorId);
+            const target = conv.gameData.getCharacterById(targetId);
+            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
+            conv.gameData.character2Name = target ? target.shortName : "someone";
+
             let chatMessage = matchedAction.chatMessage(args);
-            if (typeof chatMessage === 'object') {
+            if (typeof chatMessage === 'object' && chatMessage !== null) {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
 
             proposedActions.push({
                 actionName: matchedAction.signature,
-                chatMessage: parseVariables(chatMessage, conv.gameData),
+                chatMessage: parseVariables(chatMessage || '', conv.gameData),
                 chatMessageClass: matchedAction.chatMessageClass
             });
         }
