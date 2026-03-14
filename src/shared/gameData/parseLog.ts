@@ -69,8 +69,12 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     const lines = relevantLogBlock.split(/\r?\n/);
 
     console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);
+    console.log(`--- Relevant Log Block Start ---`);
+    console.log(relevantLogBlock);
+    console.log(`--- Relevant Log Block End ---`);
 
     for (const line of lines) {
+        console.log(`[parseLog] Processing line: ${line}`);
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
@@ -133,7 +137,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     if (!gameData) continue;
                     let char = new Character(data);
                     gameData!.characters.set(char.id, char);
-                    console.log(`Parsed character: ID=${char.id}, Name=${char.fullName}`);
+                    console.log(`[parseLog] ADDED character to map: ID=${char.id}, Name=${char.fullName}`);
                 break;
                 case "memory": 
                     if (!gameData) continue;
@@ -278,6 +282,12 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     }
 
     console.debug("Finished parsing log. Final GameData object:", gameData!);
+    if (gameData && gameData.characters) {
+        console.log(`[parseLog] Final character map size: ${gameData.characters.size}`);
+        console.log(`[parseLog] Final character map keys: ${Array.from(gameData.characters.keys()).join(', ')}`);
+    } else {
+        console.log(`[parseLog] Final gameData or characters map is null/undefined.`);
+    }
     
     // 初始化角色名称属性，供parseVariables使用
     if (gameData) {
