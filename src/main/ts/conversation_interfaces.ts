@@ -50,6 +50,7 @@ export interface Action{
     description: string,
     creator?: string,
     check: (gameData: GameData, initiatorId: number, targetId: number) => boolean,
+    preCheck?: (gameData: GameData, args: string[], initiatorId: number, targetId: number) => { success: boolean, message?: string },
     run: (gameData: GameData, runGameEffect: (effect: string) => void, args: string[], initiatorId: number, targetId: number) => void,
     chatMessage: (args: string[]) => any,
     chatMessageClass: string
