@@ -36,7 +36,7 @@
     "connection_valid": "Połączenie prawidłowe!",
     "connection_valid_warning": "Połączenie prawidłowe! Ostrzeżenie: nie można wykryć rozmiaru kontekstu, zostanie użyty nadpisany rozmiar! (nawet jeśli jest wyłączony!)",
     "path_placeholder": "Wprowadź ścieżkę folderu użytkownika CK3...",
-    "player2_info": "Pobierz Player2 i uruchom go w tle.",
+    "player2_info": "Wskazówka: Jeśli jeszcze tego nie zrobiłeś, pobierz Player2 i uruchom go w tle.",
     "player2_download_button": "Pobierz Player2",
     "player2_download_tooltip": "Pobierz aplikację Player2",
     "player2_connection_failed": "Połączenie z Player2 nie powiodło się. Pobierz aplikację Player2 ze strony player2.game, upewnij się, że działa w tle, i spróbuj ponownie. Konto nie jest wymagane."

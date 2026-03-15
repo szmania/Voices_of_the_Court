@@ -36,7 +36,7 @@
     "connection_valid": "接続は有効です！",
     "connection_valid_warning": "接続は有効です！警告：コンテキストサイズを検出できませんでした。上書きされたコンテキストサイズが使用されます！（無効に設定されていても使用されます）",
     "path_placeholder": "CK3 ユーザーフォルダのパスを入力...",
-    "player2_info": "Player2をダウンロードしてバックグラウンドで実行してください。",
+    "player2_info": "ヒント：まだダウンロードしていない場合は、Player2をダウンロードしてバックグラウンドで実行してください。",
     "player2_download_button": "Player2をダウンロード",
     "player2_download_tooltip": "Player2アプリケーションをダウンロード",
     "player2_connection_failed": "Player2の接続に失敗しました。player2.gameからPlayer2アプリをダウンロードし、バックグラウンドで実行されていることを確認してから、もう一度お試しください。アカウントは必要ありません。"

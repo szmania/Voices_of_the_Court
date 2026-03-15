@@ -36,7 +36,7 @@
     "connection_valid": "Connection valid!",
     "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)",
     "path_placeholder": "Enter CK3 user folder path...",
-    "player2_info": "Скачайте Player2 и запустите его в фоновом режиме.",
+    "player2_info": "Подсказка: Если вы еще этого не сделали, скачайте Player2 и запустите его в фоновом режиме.",
     "player2_download_button": "Скачать Player2",
     "player2_download_tooltip": "Скачать приложение Player2",
     "player2_connection_failed": "Сбой подключения к Player2. Загрузите приложение Player2 с player2.game, убедитесь, что оно запущено в фоновом режиме, и повторите попытку. Учетная запись не требуется."

@@ -36,7 +36,7 @@
     "connection_valid": "Verbindung gültig!",
     "connection_valid_warning": "Verbindung gültig! Warnung: Kontextgröße konnte nicht erkannt werden, überschriebene Kontextgröße wird verwendet! (auch wenn deaktiviert!)",
     "path_placeholder": "CK3-Benutzerordnerpfad eingeben...",
-    "player2_info": "Laden Sie Player2 herunter und führen Sie es im Hintergrund aus.",
+    "player2_info": "Hinweis: Falls Sie es noch nicht getan haben, laden Sie Player2 herunter und führen Sie es im Hintergrund aus.",
     "player2_download_button": "Player2 herunterladen",
     "player2_download_tooltip": "Laden Sie die Player2-Anwendung herunter",
     "player2_connection_failed": "Player2-Verbindung fehlgeschlagen. Bitte laden Sie die Player2-App von player2.game herunter, stellen Sie sicher, dass sie im Hintergrund läuft, und versuchen Sie es erneut. Es ist kein Konto erforderlich."
