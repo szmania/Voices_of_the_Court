@@ -5,21 +5,23 @@ module.exports = {
     signature: "emotionSad",
     args: [],
     description: {
-        en: `Executed when {{aiName}} feels sad.`,
-        zh: `当{{aiName}}感到悲伤时执行。`,
-        ru: `Выполняется, когда {{aiName}} чувствует грусть.`,
-        fr: `Exécuté lorsque {{aiName}} se sent triste.`,
-        es: `Ejecutado cuando {{aiName}} se siente triste.`,
-        de: `Wird ausgeführt, wenn {{aiName}} sich traurig fühlt.`,
-        ja: `{{aiName}}が悲しいと感じたときに実行されます。`,
-        ko: `{{aiName}}가 슬픔을 느낄 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} czuje się smutny.`
+        en: `Executed when a character feels sad.`,
+        zh: `当一个角色感到悲伤时执行。`,
+        ru: `Выполняется, когда персонаж чувствует грусть.`,
+        fr: `Exécuté lorsqu'un personnage se sent triste.`,
+        es: `Ejecutado cuando un personaje se siente triste.`,
+        de: `Wird ausgeführt, wenn ein Charakter sich traurig fühlt.`,
+        ja: `キャラクターが悲しいと感じたときに実行されます。`,
+        ko: `캐릭터가 슬픔을 느낄 때 실행됩니다.`,
+        pl: `Wykonywane, gdy postać czuje się smutna.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (conv) =>{
+    check: (gameData, initiatorId, targetId) =>{
         return true;
     },
 
@@ -27,8 +29,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(
             `set_global_variable = {
 				name = talk_pose
@@ -37,8 +41,18 @@ module.exports = {
         )
     },
     chatMessage: () =>{
-        
+        return {
+            en: `{{character1Name}} feels sad.`,
+            zh: `{{character1Name}}感到悲伤。`,
+            ru: `{{character1Name}} грустит.`,
+            fr: `{{character1Name}} se sent triste.`,
+            es: `{{character1Name}} se siente triste.`,
+            de: `{{character1Name}} ist traurig.`,
+            ja: `{{character1Name}}は悲しんでいます。`,
+            ko: `{{character1Name}}는 슬픔을 느낍니다.`,
+            pl: `{{character1Name}} jest smutny.`
+        }
     },
-    chatMessageClass: null
+    chatMessageClass: "neutral-action-message"
 }
 

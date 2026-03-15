@@ -21,57 +21,96 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}} and {{aiName}} become best friends.`,
-        zh: `当{{playerName}}和{{aiName}}成为最好的朋友时执行。`,
-        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся лучшими друзьями.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent meilleurs amis.`,
-        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en mejores amigos.`,
-        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} zu besten Freunden werden.`,
-        ja: `{{playerName}}と{{aiName}}が親友になったときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}}가 가장 친한 친구가 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się najlepszymi przyjaciółmi.`
+        en: `Executed when two characters become best friends.`,
+        zh: `当两个角色成为最好的朋友时执行。`,
+        ru: `Выполняется, когда два персонажа становятся лучшими друзьями.`,
+        fr: `Exécuté lorsque deux personnages deviennent meilleurs amis.`,
+        es: `Ejecutado cuando dos personajes se convierten en mejores amigos.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere zu besten Freunden werden.`,
+        ja: `二人のキャラクターが親友になったときに実行されます。`,
+        ko: `두 캐릭터가 가장 친한 친구가 될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie stają się najlepszymi przyjaciółmi.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
-        return !ai.relationsToPlayer.includes("Best Friend") && 
-               ai.relationsToPlayer.includes("Friend") &&
-               ai.getOpinionModifierValue("From conversations") > 50 &&
-               ai.opinionOfPlayer > 50;
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+            // No generic conversation opinion, so we'll have to make do.
+            if (opinionOfInitiator > 50) conversationOpinion = 51;
+        }
+        
+        return !relations.includes("Best Friend") && 
+               relations.includes("Friend") &&
+               conversationOpinion > 50 &&
+               opinionOfInitiator > 50;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_best_friend = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`);
 
-        // Remove Friend relation and add Best Friend
-        let ai = gameData.getAi();
-        let friendIndex = ai.relationsToPlayer.indexOf("Friend");
-        if (friendIndex !== -1) {
-            ai.relationsToPlayer.splice(friendIndex, 1);
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+        if (initiator.id === gameData.playerID) {
+            let friendIndex = target.relationsToPlayer.indexOf("Friend");
+            if (friendIndex !== -1) {
+                target.relationsToPlayer.splice(friendIndex, 1);
+            }
+            target.relationsToPlayer.push("Best Friend");
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                let friendIndex = relationEntry.relations.indexOf("Friend");
+                if (friendIndex !== -1) {
+                    relationEntry.relations.splice(friendIndex, 1);
+                }
+                relationEntry.relations.push("Best Friend");
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Best Friend"] });
+            }
         }
-        ai.relationsToPlayer.push("Best Friend");
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your best friend.`,
-            zh: `{{aiName}}成为了你最好的朋友。`,
-            ru: `{{aiName}} стал вашим лучшим другом.`,
-            fr: `{{aiName}} est devenu votre meilleur ami.`,
-            es: `{{aiName}} se convirtió en tu mejor amigo.`,
-            de: `{{aiName}} ist dein bester Freund geworden.`,
-            ja: `{{aiName}}はあなたの親友になりました。`,
-            ko: `{{aiName}}가 당신의 가장 친한 친구가 되었습니다.`,
-            pl: `{{aiName}} stał się twoim najlepszym przyjacielem.`
+            en: `{{character1Name}} and {{character2Name}} became best friends.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了最好的朋友。`,
+            ru: `{{character1Name}} и {{character2Name}} стали лучшими друзьями.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus meilleurs amis.`,
+            es: `{{character1Name}} y {{character2Name}} se convirtieron en mejores amigos.`,
+            de: `{{character1Name}} und {{character2Name}} sind beste Freunde geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}は親友になりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 가장 친한 친구가 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zostali najlepszymi przyjaciółmi.`
         }
     },
     chatMessageClass: "positive-action-message"

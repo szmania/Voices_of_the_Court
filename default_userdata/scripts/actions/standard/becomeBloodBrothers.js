@@ -21,57 +21,95 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}} and {{aiName}} become blood brothers.`,
-        zh: `当{{playerName}}和{{aiName}}成为结义兄弟时执行。`,
-        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся побратимами.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent frères de sang.`,
-        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en hermanos de sangre.`,
-        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} zu Blutsbrüdern werden.`,
-        ja: `{{playerName}}と{{aiName}}が血の盟友になったときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}}가 결의 형제가 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się braćmi krwi.`
+        en: `Executed when two characters become blood brothers.`,
+        zh: `当两个角色成为结义兄弟时执行。`,
+        ru: `Выполняется, когда два персонажа становятся побратимами.`,
+        fr: `Exécuté lorsque deux personnages deviennent frères de sang.`,
+        es: `Ejecutado cuando dos personajes se convierten en hermanos de sangre.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere zu Blutsbrüdern werden.`,
+        ja: `二人のキャラクターが血の盟友になったときに実行されます。`,
+        ko: `두 캐릭터가 결의 형제가 될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie stają się braćmi krwi.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
-        return !ai.relationsToPlayer.includes("Blood Brother") && 
-               ai.getOpinionModifierValue("From conversations") > 60 &&
-               ai.opinionOfPlayer > 70;
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+            // No generic conversation opinion, so we'll have to make do.
+            if (opinionOfInitiator > 70) conversationOpinion = 61;
+        }
+
+        return !relations.includes("Blood Brother") && 
+               conversationOpinion > 60 &&
+               opinionOfInitiator > 70;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_blood_brother = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`);
 
-        // Remove any hostile relations
-        let ai = gameData.getAi();
-        let rivalIndex = ai.relationsToPlayer.indexOf("Rival");
-        if (rivalIndex !== -1) {
-            ai.relationsToPlayer.splice(rivalIndex, 1);
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+        if (initiator.id === gameData.playerID) {
+            let rivalIndex = target.relationsToPlayer.indexOf("Rival");
+            if (rivalIndex !== -1) {
+                target.relationsToPlayer.splice(rivalIndex, 1);
+            }
+            target.relationsToPlayer.push("Blood Brother");
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                let rivalIndex = relationEntry.relations.indexOf("Rival");
+                if (rivalIndex !== -1) {
+                    relationEntry.relations.splice(rivalIndex, 1);
+                }
+                relationEntry.relations.push("Blood Brother");
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Blood Brother"] });
+            }
         }
-        
-        ai.relationsToPlayer.push("Blood Brother");
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your blood brother.`,
-            zh: `{{aiName}}成为了你的结义兄弟。`,
-            ru: `{{aiName}} стал вашим побратимом.`,
-            fr: `{{aiName}} est devenu votre frère de sang.`,
-            es: `{{aiName}} se convirtió en tu hermano de sangre.`,
-            de: `{{aiName}} ist dein Blutsbruder geworden.`,
-            ja: `{{aiName}}はあなたの血の盟友になりました。`,
-            ko: `{{aiName}}가 당신의 결의 형제가 되었습니다.`,
-            pl: `{{aiName}} stał się twoim bratem krwi.`
+            en: `{{character1Name}} and {{character2Name}} became blood brothers.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了结义兄弟。`,
+            ru: `{{character1Name}} и {{character2Name}} стали побратимами.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus frères de sang.`,
+            es: `{{character1Name}} y {{character2Name}} se convirtieron en hermanos de sangre.`,
+            de: `{{character1Name}} und {{character2Name}} sind Blutsbrüder geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}は血の盟友になりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 결의 형제가 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zostali braćmi krwi.`
         }
     },
     chatMessageClass: "positive-action-message"

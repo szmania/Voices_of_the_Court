@@ -1,7 +1,8 @@
 //this file checks the app's userdata folder.
 
-import { app} from "electron";
+import { app } from "electron";
 import path from 'path';
+import { player2GameKey } from "../shared/apiConnection";
 import { existsSync } from "original-fs";
 import fs from 'fs';
 import crypto from 'crypto';
@@ -138,6 +139,7 @@ export async function checkUserData(){
         // Set Player2 as default for new users
         if (!userConfig.textGenerationApiConnectionConfig?.connection?.type) {
             defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+            defaultConfig.textGenerationApiConnectionConfig.connection.model = 'gpt-oss-120b';
         }
 
         // Step 3.2: Perform a Deep Merge
@@ -158,7 +160,7 @@ export async function checkUserData(){
                 if (!mergedConfig[conf].connection.apiKeys.player2) {
                     mergedConfig[conf].connection.apiKeys.player2 = {};
                 }
-                mergedConfig[conf].connection.apiKeys.player2.key = "019cb2bb-6704-7d22-89e5-41ce7c765942";
+                mergedConfig[conf].connection.apiKeys.player2.key = player2GameKey;
             }
         }
 
@@ -174,6 +176,7 @@ export async function checkUserData(){
         console.log(`Config file not found at ${configPath}. Creating new config with Player2 as default.`);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
         defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+        defaultConfig.textGenerationApiConnectionConfig.connection.model = 'gpt-oss-120b';
         
         const configsToUpdate = [
             'textGenerationApiConnectionConfig',
@@ -189,7 +192,7 @@ export async function checkUserData(){
                 if (!defaultConfig[conf].connection.apiKeys.player2) {
                     defaultConfig[conf].connection.apiKeys.player2 = {};
                 }
-                defaultConfig[conf].connection.apiKeys.player2.key = "019cb2bb-6704-7d22-89e5-41ce7c765942";
+                defaultConfig[conf].connection.apiKeys.player2.key = player2GameKey;
             }
         }
         fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, '\t'));

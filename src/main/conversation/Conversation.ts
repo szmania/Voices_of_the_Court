@@ -20,9 +20,11 @@ import { readDiaryFile, saveDiaryFile, readDiarySummaries, saveDiarySummaries } 
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse} from '../ts/conversation_interfaces.js';
+import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, PendingAction} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
+import { parseVariables } from '../parseVariables.js';
+import { ActionEffectWriter } from './ActionEffectWriter.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -64,6 +66,7 @@ export class Conversation{
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
+    pendingActions: Map<string, PendingAction[]>;
 
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -130,6 +133,7 @@ export class Conversation{
         this.persistCustomQueue = false;
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
+        this.pendingActions = new Map();
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
@@ -440,6 +444,9 @@ export class Conversation{
     }
 
     pushMessage(message: Message): void{
+        if (!message.id) {
+            message.id = randomUUID();
+        }
         // If this is an AI message, try to remove a placeholder
         if (message.role === 'assistant' && (message as any).characterId) {
             const characterId = (message as any).characterId;
@@ -577,30 +584,22 @@ export class Conversation{
                     const character = this.gameData.characters.get((message as any).characterId);
                     if (!character) continue;
 
-                    const actionTarget = await this.determineActionTarget(message.content, character.id);
-                    const originalPlayerId = this.gameData.playerID;
-                    const originalAiId = this.gameData.aiID;
-                    try {
-                        this.gameData.playerID = character.id;
-                        this.gameData.aiID = actionTarget ? actionTarget.id : originalPlayerId;
+                    // The initiator is the player, because the AI is responding to the player's last message.
+                    // The target is the AI that is currently responding.
+                    const initiatorId = this.gameData.playerID;
+                    const targetId = character.id;
 
-                        if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                            const collectedActions = await checkActions(this);
-                            if (collectedActions.length > 0) {
-                                allTurnActions.push(...collectedActions);
-                                this.actionInvolvedCharacterIds.add(character.id);
-                                if (actionTarget) this.actionInvolvedCharacterIds.add(actionTarget.id);
-                                this.consecutiveActionsCount++;
-                                this.lastActionMessageIndex = this.messages.length - 1;
-                            } else {
-                                this.consecutiveActionsCount = 0;
-                            }
+                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                        const collectedActions = await checkActions(this, initiatorId, targetId);
+                        if (collectedActions.length > 0) {
+                            allTurnActions.push(...collectedActions);
+                            this.actionInvolvedCharacterIds.add(initiatorId);
+                            this.actionInvolvedCharacterIds.add(targetId);
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = this.messages.length - 1;
+                        } else {
+                            this.consecutiveActionsCount = 0;
                         }
-                    } catch (error) {
-                        console.error(`Error during action check for character ${character.shortName}:`, error);
-                    } finally {
-                        this.gameData.playerID = originalPlayerId;
-                        this.gameData.aiID = originalAiId;
                     }
                 }
             }
@@ -1284,6 +1283,61 @@ ${character.fullName}的发言：`
         }
     }
 
+    async executeApprovedAction(messageId: string, actionName: string) {
+        const pending = this.pendingActions.get(messageId);
+        if (!pending) {
+            console.error(`No pending actions found for message ID ${messageId}`);
+            return;
+        }
+
+        const actionToExecute = pending.find(p => p.action.signature === actionName);
+        if (!actionToExecute) {
+            console.error(`Action ${actionName} not found in pending actions for message ID ${messageId}`);
+            return;
+        }
+
+        const { action, args, initiatorId, targetId } = actionToExecute;
+
+        try {
+            let effectBody = "";
+            action.run(this.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
+            ActionEffectWriter.appendEffect(
+                this.runFileManager,
+                this.gameData,
+                initiatorId,
+                targetId,
+                effectBody
+            );
+
+            if (action.chatMessageClass != null) {
+                let chatMessage = action.chatMessage(args);
+                if (typeof chatMessage === 'object') {
+                    chatMessage = chatMessage[this.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                }
+                const actionResponse: ActionResponse = {
+                    actionName: action.signature,
+                    chatMessage: parseVariables(chatMessage, this.gameData),
+                    chatMessageClass: action.chatMessageClass
+                };
+                this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
+            }
+
+            console.log(`Action "${action.signature}" successfully executed after approval.`);
+        } catch (e) {
+            let errMsg = `Action error: failure in run function for action: ${action.signature}; details: `+e;
+            console.error(errMsg);
+            this.chatWindow.window.webContents.send('error-message', errMsg);
+        }
+
+        // Remove the executed action from pending
+        const updatedPending = pending.filter(p => p.action.signature !== actionName);
+        if (updatedPending.length === 0) {
+            this.pendingActions.delete(messageId);
+        } else {
+            this.pendingActions.set(messageId, updatedPending);
+        }
+    }
+
     async resummarize(){
         console.log('Starting conversation resummarization due to context limit.');
         let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)
@@ -1556,9 +1610,19 @@ ${character.fullName}的发言：`
             const filePath = path.join(actionsPath, 'standard', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
-            const runFunctionString = actionModule.run.toString();
-            (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
-            (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+
+            if (!actionModule || !actionModule.signature) {
+                console.warn(`Action file ${file} is invalid or missing a signature.`);
+                continue;
+            }
+
+            if (actionModule.run) {
+                const runFunctionString = actionModule.run.toString();
+                (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
+                (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            } else {
+                console.warn(`Action file ${file} is missing the 'run' function.`);
+            }
             this.actions.push(actionModule);
             console.log(`Loaded standard action: ${file}`);
         }
@@ -1573,9 +1637,19 @@ ${character.fullName}的发言：`
             const filePath = path.join(actionsPath, 'custom', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
-            const runFunctionString = actionModule.run.toString();
-            (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
-            (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+
+            if (!actionModule || !actionModule.signature) {
+                console.warn(`Action file ${file} is invalid or missing a signature.`);
+                continue;
+            }
+
+            if (actionModule.run) {
+                const runFunctionString = actionModule.run.toString();
+                (actionModule as any).usesSource = runFunctionString.includes('votcce_action_source');
+                (actionModule as any).usesTarget = runFunctionString.includes('votcce_action_target');
+            } else {
+                console.warn(`Action file ${file} is missing the 'run' function.`);
+            }
             this.actions.push(actionModule);
             console.log(`Loaded custom action: ${file}`);
         }
@@ -1699,6 +1773,8 @@ ${character.fullName}的发言：`
         }
     }
 
+
+
     private async checkForSummariesFromOtherPlayers(): Promise<void> {
         console.log('Checking for summaries from other players...');
         const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
@@ -1776,21 +1852,10 @@ ${character.fullName}的发言：`
 
                 let collectedActions: ActionResponse[] = [];
                 if (this.config.actionsEnableAll) {
-                    const originalPlayerId = this.gameData.playerID;
-                    const originalAiId = this.gameData.aiID;
-                    try {
-                        this.gameData.playerID = lastRespondingCharacter.id;
-                        this.gameData.aiID = targetAI.id;
-                        collectedActions = await checkActions(this);
-                        if (collectedActions.length > 0) {
-                            this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
-                            this.actionInvolvedCharacterIds.add(targetAI.id);
-                        }
-                    } catch (error) {
-                        console.error(`Error during AI-to-AI action check for source ${lastRespondingCharacter.shortName}:`, error);
-                    } finally {
-                        this.gameData.playerID = originalPlayerId;
-                        this.gameData.aiID = originalAiId;
+                    collectedActions = await checkActions(this, lastRespondingCharacter.id, targetAI.id);
+                    if (collectedActions.length > 0) {
+                        this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
+                        this.actionInvolvedCharacterIds.add(targetAI.id);
                     }
                 }
                 let narrative = "";
@@ -1811,21 +1876,10 @@ ${character.fullName}的发言：`
 
                         let responseActions: ActionResponse[] = [];
                         if (this.config.actionsEnableAll) {
-                            const originalPlayerId = this.gameData.playerID;
-                            const originalAiId = this.gameData.aiID;
-                            try {
-                                this.gameData.playerID = targetAI.id;
-                                this.gameData.aiID = lastRespondingCharacter.id;
-                                responseActions = await checkActions(this);
-                                if (responseActions.length > 0) {
-                                    this.actionInvolvedCharacterIds.add(targetAI.id);
-                                    this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
-                                }
-                            } catch (error) {
-                                console.error(`Error during AI-to-AI action check for target ${targetAI.shortName}:`, error);
-                            } finally {
-                                this.gameData.playerID = originalPlayerId;
-                                this.gameData.aiID = originalAiId;
+                            responseActions = await checkActions(this, targetAI.id, lastRespondingCharacter.id);
+                            if (responseActions.length > 0) {
+                                this.actionInvolvedCharacterIds.add(targetAI.id);
+                                this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                             }
                         }
                         let responseNarrative = "";

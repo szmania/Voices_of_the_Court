@@ -9,7 +9,7 @@ v0.1.1
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "assignAiToCouncilPosition",
+    signature: "assignToCouncilPosition",
     args: [
         {
             name: "council_position",
@@ -29,34 +29,36 @@ module.exports = {
                 { value: 'spymaster', display: { en: 'Grand Censor', zh: '大监察官', ru: 'Великий цензор', fr: 'Grand censeur', es: 'Gran censor', de: 'Großzensor', ja: '大監察官', ko: '대감찰관', pl: 'Wielki cenzor' }}
             ],
             desc: { 
-                en: "The council position to which {{playerName}} decides to appoint {{aiName}}.",
-                zh: "{{playerName}}决定将{{aiName}}任命到内阁的职位。",
-                ru: "Должность в совете, на которую {{playerName}} решает назначить {{aiName}}.",
-                fr: "Le poste au conseil auquel {{playerName}} décide de nommer {{aiName}}.",
-                es: "El puesto en el consejo al que {{playerName}} decide nombrar a {{aiName}}.",
-                de: "Der Ratsposten, zu dem {{playerName}} {{aiName}} ernennt.",
-                ja: "{{playerName}}が{{aiName}}を任命することを決めた評議会のポスト。",
-                ko: "{{playerName}}가 {{aiName}}를 임명하기로 결정한 의회 직책.",
-                pl: "Stanowisko w radzie, na które {{playerName}} decyduje się mianować {{aiName}}."
+                en: "The council position to which {{character1Name}} decides to appoint {{character2Name}}.",
+                zh: "{{character1Name}}决定将{{character2Name}}任命到内阁的职位。",
+                ru: "Должность в совете, на которую {{character1Name}} решает назначить {{character2Name}}.",
+                fr: "Le poste au conseil auquel {{character1Name}} décide de nommer {{character2Name}}.",
+                es: "El puesto en el consejo al que {{character1Name}} decide nombrar a {{character2Name}}.",
+                de: "Der Ratsposten, zu dem {{character1Name}} {{character2Name}} ernennt.",
+                ja: "{{character1Name}}が{{character2Name}}を任命することを決めた評議会のポスト。",
+                ko: "{{character1Name}}가 {{character2Name}}를 임명하기로 결정한 의회 직책.",
+                pl: "Stanowisko w radzie, na które {{character1Name}} decyduje się mianować {{character2Name}}."
             }
         }   
     ],
     description: {
-        en: `Executed when {{playerName}} appoints {{aiName}} to a council position (Chancellor, Steward, Spymaster, or Marshal).`,
-        zh: `仅在{{playerName}}宣布{{aiName}}现在被任命到其内阁时运行！警告！仅在{{playerName}}决定任命{{aiName}}为掌玺大臣、财政总管、间谍首脑、军事统帅、长史、司户、司马、察事、宰相、大司库、大将军、大监察官时执行`,
-        ru: `Выполняется, когда {{playerName}} назначает {{aiName}} на должность в совете (канцлер, управляющий, тайный советник или маршал).`,
-        fr: `Exécuté lorsque {{playerName}} nomme {{aiName}} à un poste au conseil (chancelier, intendant, maître des espions ou maréchal).`,
-        es: `Ejecutado cuando {{playerName}} nombra a {{aiName}} para un puesto en el consejo (canciller, administrador, maestro de espías o mariscal).`,
-        de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} zu einem Ratsposten ernennt (Kanzler, Verwalter, Spionagemeister oder Marschall).`,
-        ja: `{{playerName}}が{{aiName}}を評議会のポストに任命したときに実行されます（宰相、執事、スパイマスター、または元帥）。`,
-        ko: `{{playerName}}가 {{aiName}}를 의회 직책에 임명했을 때 실행됩니다 (총리, 관리인, 첩보대장 또는 원수).`,
-        pl: `Wykonywane, gdy {{playerName}} mianuje {{aiName}} na stanowisko w radzie (kanclerz, zarządca, mistrz szpiegów lub marszałek).`
+        en: `Executed when a character appoints another to a council position (Chancellor, Steward, Spymaster, or Marshal).`,
+        zh: `当一个角色任命另一个角色为议会职位（大臣、总管、间谍首脑或军事统帅）时执行。`,
+        ru: `Выполняется, когда один персонаж назначает другого на должность в совете (канцлер, управляющий, тайный советник или маршал).`,
+        fr: `Exécuté lorsqu'un personnage nomme un autre à un poste au conseil (chancelier, intendant, maître des espions ou maréchal).`,
+        es: `Ejecutado cuando un personaje nombra a otro para un puesto en el consejo (canciller, administrador, maestro de espías o mariscal).`,
+        de: `Wird ausgeführt, wenn ein Charakter einen anderen zu einem Ratsposten ernennt (Kanzler, Verwalter, Spionagemeister oder Marschall).`,
+        ja: `あるキャラクターが別のキャラクターを評議会のポストに任命したときに実行されます（宰相、執事、スパイマスター、または元帥）。`,
+        ko: `한 캐릭터가 다른 캐릭터를 의회 직책에 임명했을 때 실행됩니다 (총리, 관리인, 첩보대장 또는 원수).`,
+        pl: `Wykonywane, gdy jedna postać mianuje drugą na stanowisko w radzie (kanclerz, zarządca, mistrz szpiegów lub marszałek).`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) =>{
+    check: (gameData, initiatorId, targetId) =>{
         return true;
     },
 
@@ -64,8 +66,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         const council_position = args[0];
         switch (council_position) {
             case "chancellor":
@@ -156,15 +160,15 @@ module.exports = {
 
     chatMessage: (args) =>{
         return {
-            en: `You appointed {{aiName}} as ${args[0]} on the council.`,
-            zh: `你任命{{aiName}}为内阁的${args[0]}`,
-            ru: `Вы назначили {{aiName}} на должность ${args[0]} в совете.`,
-            fr: `Vous avez nommé {{aiName}} au poste de ${args[0]} au conseil.`,
-            es: `Nombraste a {{aiName}} como ${args[0]} en el consejo.`,
-            de: `Du hast {{aiName}} als ${args[0]} in den Rat berufen.`,
-            ja: `あなたは{{aiName}}を評議会の${args[0]}に任命しました。`,
-            ko: `당신은 {{aiName}}를 의회 ${args[0]}로 임명했습니다.`,
-            pl: `Mianowałeś {{aiName}} na stanowisko ${args[0]} w radzie.`
+            en: `{{character1Name}} appointed {{character2Name}} as ${args[0]} on the council.`,
+            zh: `{{character1Name}}任命{{character2Name}}为内阁的${args[0]}`,
+            ru: `{{character1Name}} назначил {{character2Name}} на должность ${args[0]} в совете.`,
+            fr: `{{character1Name}} a nommé {{character2Name}} au poste de ${args[0]} au conseil.`,
+            es: `{{character1Name}} nombró a {{character2Name}} como ${args[0]} en el consejo.`,
+            de: `{{character1Name}} hat {{character2Name}} als ${args[0]} in den Rat berufen.`,
+            ja: `{{character1Name}}は{{character2Name}}を評議会の${args[0]}に任命しました。`,
+            ko: `{{character1Name}}는 {{character2Name}}를 의회 ${args[0]}로 임명했습니다.`,
+            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${args[0]} w radzie.`
         }
     },
     chatMessageClass: "positive-action-message"

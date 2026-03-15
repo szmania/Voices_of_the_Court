@@ -81,34 +81,36 @@ module.exports = {
                 { value: 'japanese_city', display: { en: 'Japanese City', zh: '日本城市', ru: 'Японский город', fr: 'Ville japonaise', es: 'Ciudad japonesa', de: 'Japanische Stadt', ja: '日本の都市', ko: '일본 도시', pl: 'Japońskie miasto' }}
             ],
             desc: {
-                en: "the new location where {{aiName}} moves to",
-                zh: "{{aiName}}移动到的新位置",
-                ru: "новое место, куда переезжает {{aiName}}",
-                fr: "le nouvel endroit où {{aiName}} déménage",
-                es: "la nueva ubicación a la que se muda {{aiName}}",
-                de: "der neue Ort, an den {{aiName}} umzieht",
-                ja: "{{aiName}}が移動する新しい場所",
-                ko: "{{aiName}}가 이동하는 새로운 위치",
-                pl: "nowa lokalizacja, do której przenosi się {{aiName}}"
+                en: "the new location where {{character1Name}} moves to",
+                zh: "{{character1Name}}移动到的新位置",
+                ru: "новое место, куда переезжает {{character1Name}}",
+                fr: "le nouvel endroit où {{character1Name}} déménage",
+                es: "la nueva ubicación a la que se muda {{character1Name}}",
+                de: "der neue Ort, an den {{character1Name}} umzieht",
+                ja: "{{character1Name}}が移動する新しい場所",
+                ko: "{{character1Name}}가 이동하는 새로운 위치",
+                pl: "nowa lokalizacja, do której przenosi się {{character1Name}}"
             }
         }
     ],
     description: {
-        en: `Executed when {{aiName}} changes location.`,
-        zh: `当{{aiName}}改变位置时执行。`,
-        ru: `Выполняется, когда {{aiName}} меняет местоположение.`,
-        fr: `Exécuté lorsque {{aiName}} change de lieu.`,
-        es: `Ejecutado cuando {{aiName}} cambia de ubicación.`,
-        de: `Wird ausgeführt, wenn {{aiName}} den Ort wechselt.`,
-        ja: `{{aiName}}が場所を変更したときに実行されます。`,
-        ko: `{{aiName}}가 위치를 변경할 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} zmienia lokalizację.`
+        en: `Executed when a character changes location.`,
+        zh: `当一个角色改变位置时执行。`,
+        ru: `Выполняется, когда персонаж меняет местоположение.`,
+        fr: `Exécuté lorsqu'un personnage change de lieu.`,
+        es: `Ejecutado cuando un personaje cambia de ubicación.`,
+        de: `Wird ausgeführt, wenn ein Charakter den Ort wechselt.`,
+        ja: `キャラクターが場所を変更したときに実行されます。`,
+        ko: `캐릭터가 위치를 변경할 때 실행됩니다.`,
+        pl: `Wykonywane, gdy postać zmienia lokalizację.`
     },
 
     /**
      * @param {GameData} gameData
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
+    check: (gameData, initiatorId, targetId) => {
         return true;
     },
 
@@ -116,10 +118,12 @@ module.exports = {
      * @param {GameData} gameData
      * @param {Function} runGameEffect
      * @param {string[]} args
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`
-            global_var:votcce_action_target = {
+            global_var:votcce_action_source = {
                 move_character_to_location_effect = {
                     LOCATION = ${args[0]}
                 }
@@ -128,15 +132,15 @@ module.exports = {
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} moved to ${args[0]}.`,
-            zh: `{{aiName}}移动到了${args[0]}。`,
-            ru: `{{aiName}} переместился в ${args[0]}.`,
-            fr: `{{aiName}} s'est déplacé vers ${args[0]}.`,
-            es: `{{aiName}} se trasladó a ${args[0]}.`,
-            de: `{{aiName}} ist nach ${args[0]} gezogen.`,
-            ja: `{{aiName}}は${args[0]}に移動しました。`,
-            ko: `{{aiName}}가 ${args[0]}(으)로 이동했습니다.`,
-            pl: `{{aiName}} przeniósł się do ${args[0]}.`
+            en: `{{character1Name}} moved to ${args[0]}.`,
+            zh: `{{character1Name}}移动到了${args[0]}。`,
+            ru: `{{character1Name}} переместился в ${args[0]}.`,
+            fr: `{{character1Name}} s'est déplacé vers ${args[0]}.`,
+            es: `{{character1Name}} se trasladó a ${args[0]}.`,
+            de: `{{character1Name}} ist nach ${args[0]} gezogen.`,
+            ja: `{{character1Name}}は${args[0]}に移動しました。`,
+            ko: `{{character1Name}}가 ${args[0]}(으)로 이동했습니다.`,
+            pl: `{{character1Name}} przeniósł się do ${args[0]}.`
         }
     },
     chatMessageClass: "neutral-action-message"

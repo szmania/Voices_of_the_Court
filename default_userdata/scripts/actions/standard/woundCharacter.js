@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiInjured",
+    signature: "woundCharacter",
     args: [
         {
             name: "injuryType",
@@ -16,31 +16,36 @@ module.exports = {
                 { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen', ja: '顔面損傷', ko: '얼굴 훼손', pl: 'Zniekształcić' }}
             ],
             desc: { 
-                en: "Type of injury inflicted on {{aiName}} by {{playerName}}.",
-                zh: "{{playerName}}对{{aiName}}造成的伤害类型。",
-                ru: "Тип травмы, нанесенной {{playerName}} {{aiName}}.",
-                fr: "Type de blessure infligée à {{aiName}} par {{playerName}}.",
-                es: "Tipo de lesión infligida a {{aiName}} por {{playerName}}.",
-                de: "Art der Verletzung, die {{playerName}} {{aiName}} zufügt.",
-                ja: "{{playerName}}が{{aiName}}に与える傷害の種類。",
-                ko: "{{playerName}}가 {{aiName}}에게 가하는 부상 유형.",
-                pl: "Rodzaj obrażeń zadanych {{aiName}} przez {{playerName}}."
+                en: "Type of injury inflicted on {{character2Name}} by {{character1Name}}.",
+                zh: "{{character1Name}}对{{character2Name}}造成的伤害类型。",
+                ru: "Тип травмы, нанесенной {{character1Name}} {{character2Name}}.",
+                fr: "Type de blessure infligée à {{character2Name}} par {{character1Name}}.",
+                es: "Tipo de lesión infligida a {{character2Name}} por {{character1Name}}.",
+                de: "Art der Verletzung, die {{character1Name}} {{character2Name}} zufügt.",
+                ja: "{{character1Name}}が{{character2Name}}に与える傷害の種類。",
+                ko: "{{character1Name}}가 {{character2Name}}에게 가하는 부상 유형.",
+                pl: "Rodzaj obrażeń zadanych {{character2Name}} przez {{character1Name}}."
             }
         }
     ],
     description: {
-        en: `Executed when {{playerName}} injures {{aiName}} in various ways based on the injuryType parameter.`,
-        zh: `当{{playerName}}根据injuryType参数以各种方式伤害{{aiName}}时执行`,
-        ru: `Выполняется, когда {{playerName}} наносит увечья {{aiName}} различными способами в зависимости от параметра injuryType.`,
-        fr: `Exécuté lorsque {{playerName}} blesse {{aiName}} de diverses manières en fonction du paramètre injuryType.`,
-        es: `Ejecutado cuando {{playerName}} hiere a {{aiName}} de diversas maneras según el parámetro injuryType.`,
-        de: `Wird ausgeführt, wenn {{playerName}} {{aiName}} auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
-        ja: `{{playerName}}がinjuryTypeパラメータに基づいて様々な方法で{{aiName}}を傷つけたときに実行されます。`,
-        ko: `{{playerName}}가 injuryType 매개변수에 따라 다양한 방법으로 {{aiName}}를 다칠 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} rani {{aiName}} na różne sposoby w zależności od parametru injuryType.`
+        en: `Executed when a character injures another in various ways based on the injuryType parameter.`,
+        zh: `当一个角色根据injuryType参数以各种方式伤害另一个角色时执行`,
+        ru: `Выполняется, когда один персонаж наносит увечья другому различными способами в зависимости от параметра injuryType.`,
+        fr: `Exécuté lorsqu'un personnage blesse un autre de diverses manières en fonction du paramètre injuryType.`,
+        es: `Ejecutado cuando un personaje hiere a otro de diversas maneras según el parámetro injuryType.`,
+        de: `Wird ausgeführt, wenn ein Charakter einen anderen auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
+        ja: `あるキャラクターがinjuryTypeパラメータに基づいて様々な方法で別のキャラクターを傷つけたときに実行されます。`,
+        ko: `한 캐릭터가 injuryType 매개변수에 따라 다양한 방법으로 다른 캐릭터를 다칠 때 실행됩니다.`,
+        pl: `Wykonywane, gdy jedna postać rani drugą na różne sposoby w zależności od parametru injuryType.`
     },
     
-    check: (gameData) => {
+    /**
+     * @param {GameData} gameData
+     * @param {number} initiatorId
+     * @param {number} targetId
+     */
+    check: (gameData, initiatorId, targetId) => {
         // Always return true for now
         return true;
     },
@@ -49,9 +54,12 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
-        let ai = gameData.getAi();
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+        const ai = gameData.getCharacterById(targetId);
+        if (!ai) return;
         let injuryType = args[0]
 
         console.log(`Injury type received: ${injuryType}`); // debug log for injuryType
@@ -243,75 +251,75 @@ module.exports = {
 		switch (injuryType) {
 			case 'remove_eye':
 				return {
-					en: `You gouged out one of {{aiName}}'s eyes.`,
-					zh: `你挖去了{{aiName}}的一只眼睛。`,
-					ru: `Вы выкололи один из глаз {{aiName}}.`,
-    fr: `Vous avez crevé l'un des yeux de {{aiName}}.`,
-    es: `Le sacaste un ojo a {{aiName}}.`,
-    de: `Du hast {{aiName}} ein Auge ausgestochen.`,
-    ja: `あなたは{{aiName}}の片目をえぐり出しました。`,
-    ko: `당신은 {{aiName}}의 한쪽 눈을 도려냈습니다.`,
-    pl: `Wydłubałeś jedno z oczu {{aiName}}.`
+					en: `{{character1Name}} gouged out one of {{character2Name}}'s eyes.`,
+					zh: `{{character1Name}}挖去了{{character2Name}}的一只眼睛。`,
+					ru: `{{character1Name}} выкололи один из глаз {{character2Name}}.`,
+					fr: `{{character1Name}} a crevé l'un des yeux de {{character2Name}}.`,
+					es: `{{character1Name}} le sacó un ojo a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} ein Auge ausgestochen.`,
+					ja: `{{character1Name}}は{{character2Name}}の片目をえぐり出しました。`,
+					ko: `{{character1Name}}은 {{character2Name}}의 한쪽 눈을 도려냈습니다.`,
+					pl: `{{character1Name}} wydłubał jedno z oczu {{character2Name}}.`
 				};
 			case 'blind':
 				return {
-					en: `You blinded {{aiName}}.`,
-					zh: `你使{{aiName}}失明了。`,
-					ru: `Вы ослепили {{aiName}}.`,
-    fr: `Vous avez aveuglé {{aiName}}.`,
-    es: `Cegaste a {{aiName}}.`,
-    de: `Du hast {{aiName}} geblendet.`,
-    ja: `あなたは{{aiName}}を盲目にしました。`,
-    ko: `당신은 {{aiName}}를 실명시켰습니다.`,
-    pl: `Oślepiłeś {{aiName}}.`
+					en: `{{character1Name}} blinded {{character2Name}}.`,
+					zh: `{{character1Name}}使{{character2Name}}失明了。`,
+					ru: `{{character1Name}} ослепил {{character2Name}}.`,
+					fr: `{{character1Name}} a aveuglé {{character2Name}}.`,
+					es: `{{character1Name}} cegó a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} geblendet.`,
+					ja: `{{character1Name}}は{{character2Name}}を盲目にしました。`,
+					ko: `{{character1Name}}은 {{character2Name}}를 실명시켰습니다.`,
+					pl: `{{character1Name}} oślepił {{character2Name}}.`
 				};
 			case 'cut_leg':
 				return {
-					en: `You cut off {{aiName}}'s leg.`,
-					zh: `你砍断了{{aiName}}的腿。`,
-					ru: `Вы отрубили ногу {{aiName}}.`,
-    fr: `Vous avez coupé la jambe de {{aiName}}.`,
-    es: `Le cortaste la pierna a {{aiName}}.`,
-    de: `Du hast {{aiName}} das Bein abgeschnitten.`,
-    ja: `あなたは{{aiName}}の足を切断しました。`,
-    ko: `당신은 {{aiName}}의 다리를 잘랐습니다.`,
-    pl: `Odciąłeś nogę {{aiName}}.`
+					en: `{{character1Name}} cut off {{character2Name}}'s leg.`,
+					zh: `{{character1Name}}砍断了{{character2Name}}的腿。`,
+					ru: `{{character1Name}} отрубили ногу {{character2Name}}.`,
+					fr: `{{character1Name}} a coupé la jambe de {{character2Name}}.`,
+					es: `{{character1Name}} le cortó la pierna a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} das Bein abgeschnitten.`,
+					ja: `{{character1Name}}は{{character2Name}}の足を切断しました。`,
+					ko: `{{character1Name}}은 {{character2Name}}의 다리를 잘랐습니다.`,
+					pl: `{{character1Name}} odciął nogę {{character2Name}}.`
 				};
 			case 'cut_balls':
 				return {
-					en: `You castrated {{aiName}}.`,
-					zh: `你阉割了{{aiName}}。`,
-					ru: `Вы кастрировали {{aiName}}.`,
-    fr: `Vous avez castré {{aiName}}.`,
-    es: `Castriste a {{aiName}}.`,
-    de: `Du hast {{aiName}} kastriert.`,
-    ja: `あなたは{{aiName}}を去勢しました。`,
-    ko: `당신은 {{aiName}}를 거세했습니다.`,
-    pl: `Skastrowałeś {{aiName}}.`
+					en: `{{character1Name}} castrated {{character2Name}}.`,
+					zh: `{{character1Name}}阉割了{{character2Name}}。`,
+					ru: `{{character1Name}} кастрировал {{character2Name}}.`,
+					fr: `{{character1Name}} a castré {{character2Name}}.`,
+					es: `{{character1Name}} castró a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} kastriert.`,
+					ja: `{{character1Name}}は{{character2Name}}を去勢しました。`,
+					ko: `{{character1Name}}은 {{character2Name}}를 거세했습니다.`,
+					pl: `{{character1Name}} skastrował {{character2Name}}.`
 				};
 			case 'disfigured':
 				return {
-					en: `You disfigured {{aiName}}.`,
-					zh: `你毁容了{{aiName}}。`,
-					ru: `Вы изуродовали {{aiName}}.`,
-    fr: `Vous avez défiguré {{aiName}}.`,
-    es: `Desfiguraste a {{aiName}}.`,
-    de: `Du hast {{aiName}} entstellt.`,
-    ja: `あなたは{{aiName}}の顔を傷つけました。`,
-    ko: `당신은 {{aiName}}의 얼굴을 훼손했습니다.`,
-    pl: `Zniekształciłeś {{aiName}}.`
+					en: `{{character1Name}} disfigured {{character2Name}}.`,
+					zh: `{{character1Name}}毁容了{{character2Name}}。`,
+					ru: `{{character1Name}} изуродовали {{character2Name}}.`,
+					fr: `{{character1Name}} a défiguré {{character2Name}}.`,
+					es: `{{character1Name}} desfiguró a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} entstellt.`,
+					ja: `{{character1Name}}は{{character2Name}}の顔を傷つけました。`,
+					ko: `{{character1Name}}은 {{character2Name}}의 얼굴을 훼손했습니다.`,
+					pl: `{{character1Name}} zniekształcił {{character2Name}}.`
 				};
 			default:
 				return {
-					en: `You injured {{aiName}}.`,
-					zh: `你伤害了{{aiName}}。`,
-					ru: `Вы ранили {{aiName}}.`,
-    fr: `Vous avez blessé {{aiName}}.`,
-    es: `Heriste a {{aiName}}.`,
-    de: `Du hast {{aiName}} verletzt.`,
-    ja: `あなたは{{aiName}}を傷つけました。`,
-    ko: `당신은 {{aiName}}를 다쳤습니다.`,
-    pl: `Raniłeś {{aiName}}.`
+					en: `{{character1Name}} injured {{character2Name}}.`,
+					zh: `{{character1Name}}伤害了{{character2Name}}。`,
+					ru: `{{character1Name}} ранил {{character2Name}}.`,
+					fr: `{{character1Name}} a blessé {{character2Name}}.`,
+					es: `{{character1Name}} hirió a {{character2Name}}.`,
+					de: `{{character1Name}} hat {{character2Name}} verletzt.`,
+					ja: `{{character1Name}}は{{character2Name}}を傷つけました。`,
+					ko: `{{character1Name}}은 {{character2Name}}를 다쳤습니다.`,
+					pl: `{{character1Name}} zranił {{character2Name}}.`
 				};
 		}
 	},

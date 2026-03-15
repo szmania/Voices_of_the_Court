@@ -257,7 +257,7 @@ let lastLetterSentToGame: StoredLetter | null = null;
 async function checkAndDeliverLetters() {
     const letterManager = LetterManager.getInstance();
     // Use a copy of keys to allow modification during iteration
-    const letterIds = Array.from(storedLetters.keys()); 
+    const letterIds = Array.from(storedLetters.keys());
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
@@ -277,7 +277,7 @@ async function checkAndDeliverLetters() {
             storedLetters.delete(letterId); // Remove from pending queue
 
             // Since the mod probably handles one at a time, break after sending one.
-            break; 
+            break;
         }
     }
 }
@@ -387,6 +387,48 @@ app.on('ready',  async () => {
     diaryGenerator = new DiaryGenerator(config);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
+
+    // Tokenizer IPC handlers
+    ipcMain.handle('calculate-tokens', async (event, text: string) => {
+        try {
+            if (config?.textGenerationApiConnectionConfig?.connection) {
+                // Import ApiConnection dynamically to avoid circular dependencies
+                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const apiConnection = new ApiConnection(
+                    config.textGenerationApiConnectionConfig.connection,
+                    config.textGenerationApiConnectionConfig.parameters
+                );
+                return apiConnection.calculateTokensFromText(text);
+            }
+        } catch (error) {
+            console.error('Error calculating tokens in main:', error);
+        }
+        // Fallback: simple token estimation (rough approximation)
+        return Math.ceil((text || "").length / 4);
+    });
+
+    ipcMain.handle('get-context-limit', async () => {
+        try {
+            const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
+            const parameters = config?.textGenerationApiConnectionConfig?.parameters;
+            if (connectionConfig) {
+                // Prioritize manual overwrite if it exists and is valid
+                if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
+                    return connectionConfig.customContext;
+                }
+                // Fallback to API-detected context
+                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const apiConnection = new ApiConnection(
+                    connectionConfig,
+                    config.textGenerationApiConnectionConfig.parameters
+                );
+                return apiConnection.context || 0;
+            }
+        } catch (error) {
+            console.error('Error getting context limit in main:', error);
+        }
+        return 0;
+    });
 
 
     //logging
@@ -641,13 +683,15 @@ clipboardListener.on('VOTC:IN', async () =>{
         const historicalMetadata = conversation.historicalConversations || [];
 
         // Sanitize actions to remove non-serializable functions
-        const sanitizedActions = conversation.actions.map(action => ({
-            signature: action.signature,
-            args: action.args,
-            description: action.description,
-            creator: action.creator,
-            usesSource: (action as any).usesSource,
-            usesTarget: (action as any).usesTarget
+        const sanitizedActions = conversation.actions
+            .filter(action => action && action.signature)
+            .map(action => ({
+                signature: action.signature,
+                args: action.args,
+                description: action.description,
+                creator: action.creator,
+                usesSource: (action as any).usesSource,
+                usesTarget: (action as any).usesTarget
         }));
 
         const payload = {
@@ -702,7 +746,7 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
                 String(replyLetter.sender.id),   // Character ID
                 replyLetter.id
             );
-            
+
             lastLetterSentToGame = null; // Clear the tracked letter
 
             // Notify UI of the final status change
@@ -797,6 +841,27 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const gameDate = gameData.date;
         const letterManager = LetterManager.getInstance();
 
+        // First, update the character map with the latest data from the log
+        const summaryDirForMap = path.join(userDataPath, 'conversation_summaries', playerId);
+        const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
+        let characterNameMap: Map<string, string> = await readCharacterMap(userDataPath, playerId);
+
+        // Add all characters from the current gameData to the map
+        gameData.characters.forEach(char => {
+            if (!characterNameMap.has(String(char.id))) {
+                characterNameMap.set(String(char.id), char.fullName);
+            }
+        });
+
+        // Save the updated map back to the file
+        const mapToSave: { [key: string]: string } = {};
+        characterNameMap.forEach((name, id) => {
+            mapToSave[id] = name;
+        });
+        fs.writeFileSync(characterMapPath, JSON.stringify(mapToSave, null, '\t'));
+        console.log(`Updated character map before letter import at: ${characterMapPath}`);
+
+
         // Import letters from log, which now also saves them.
         await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
         console.log("Imported and saved letters immediately after VOTC:LETTER event.");
@@ -883,7 +948,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         }
 
         if (!replyLetter) {
-            console.error('Failed to generate letter reply');
+            console.error(`Failed to generate a reply for letter ${latestLetter.id}. The LLM may have returned an empty response.`);
             return;
         }
 
@@ -895,7 +960,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         };
 
         storedLetters.set(latestLetter.id, storedLetter);
-        console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}.`);
+        console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}. Current day: ${currentTotalDays}`);
 
         // Diary entry for AI receiving a letter and replying
         if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
@@ -1108,6 +1173,13 @@ ipcMain.on('resume-conversation', () => {
     }
 });
 
+ipcMain.on('execute-approved-action', (event, messageId: string, actionName: string) => {
+    console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
+    if (conversation) {
+        conversation.executeApprovedAction(messageId, actionName);
+    }
+});
+
 ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     console.log(`IPC: Received execute-action event for ${signature} with args:`, args);
     if (conversation) {
@@ -1146,7 +1218,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                 // Run the action to get the effect body
                 let effectBody = "";
-                action.run(conversation.gameData, (text: string) => { effectBody += text; }, actionArgs);
+                action.run(conversation.gameData, (text: string) => { effectBody += text; }, actionArgs, sourceId!, targetId!);
 
                 // Use the writer to create the full script with prelude
                 ActionEffectWriter.writeEffect(
@@ -1176,6 +1248,10 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                     if (chatMessage) {
                         const { parseVariables } = require('./parseVariables.js');
+                        const initiator = conversation.gameData.getCharacterById(sourceId!);
+                        const target = conversation.gameData.getCharacterById(targetId!);
+                        conversation.gameData.character1Name = initiator ? initiator.shortName : "someone";
+                        conversation.gameData.character2Name = target ? target.shortName : "someone";
                         const response: ActionResponse = {
                             actionName: action.signature,
                             chatMessage: parseVariables(chatMessage, conversation.gameData),
@@ -1246,32 +1322,32 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         const conversationPlayerIds = await getAllPlayerIds(userDataPath);
         const letterManager = LetterManager.getInstance();
         const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
-        
+
         // Get diary player IDs
         const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
-        
+
         // Merge all player IDs, ensuring uniqueness
         const allPlayerIds = new Map<string, { id: string, name: string }>();
-        
+
         // Add conversation player IDs
         conversationPlayerIds.forEach(player => {
             allPlayerIds.set(player.id, player);
         });
-        
+
         // Add letter player IDs
         letterPlayerIds.forEach(player => {
             if (!allPlayerIds.has(player.id)) {
                 allPlayerIds.set(player.id, player);
             }
         });
-        
+
         // Add diary player IDs
         diaryPlayerIds.forEach(player => {
             if (!allPlayerIds.has(player.id)) {
                 allPlayerIds.set(player.id, player);
             }
         });
-        
+
         const mergedPlayerIds = Array.from(allPlayerIds.values());
         return { success: true, ids: mergedPlayerIds };
     } catch (error) {
@@ -1353,7 +1429,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
             summariesByCharacter[characterId].push(summary);
             existingCharIds.delete(characterId);
         });
-        
+
         for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
             summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
             const cleanSummaries = summaries.map(({ characterId, characterName, ...rest }) => rest);
@@ -1368,7 +1444,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
                 console.log(`Deleted letter summary for character ${charIdToDelete}`);
             }
         }
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error saving letter summaries:', error);
@@ -1406,7 +1482,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
             summariesByCharacter[characterId].push(summary);
             existingCharIds.delete(characterId);
         });
-        
+
         for (const [characterId, summaries] of Object.entries(summariesByCharacter)) {
             summaries.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
             const cleanSummaries = summaries.map(({ characterName, ...rest }) => rest);
@@ -1421,7 +1497,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
             }
         }
-        
+
         return { success: true };
     } catch (error) {
         console.error('Error saving diary summaries:', error);
@@ -1626,47 +1702,6 @@ ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: {
     console.log(`Letter ${letterId} marked as read.`);
 });
 
-// Tokenizer IPC handlers
-ipcMain.handle('calculate-tokens', async (event, text: string) => {
-    try {
-        if (config?.textGenerationApiConnectionConfig?.connection) {
-            // Import ApiConnection dynamically to avoid circular dependencies
-            const { ApiConnection } = await import('../shared/apiConnection.js');
-            const apiConnection = new ApiConnection(
-                config.textGenerationApiConnectionConfig.connection,
-                config.textGenerationApiConnectionConfig.parameters
-            );
-            return apiConnection.calculateTokensFromText(text);
-        }
-    } catch (error) {
-        console.error('Error calculating tokens in main:', error);
-    }
-    // Fallback: simple token estimation (rough approximation)
-    return Math.ceil((text || "").length / 4);
-});
-
-ipcMain.handle('get-context-limit', async () => {
-    try {
-        const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
-        const parameters = config?.textGenerationApiConnectionConfig?.parameters;
-        if (connectionConfig) {
-            // Prioritize manual overwrite if it exists and is valid
-            if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
-                return connectionConfig.customContext;
-            }
-            // Fallback to API-detected context
-            const { ApiConnection } = await import('../shared/apiConnection.js');
-            const apiConnection = new ApiConnection(
-                connectionConfig,
-                config.textGenerationApiConnectionConfig.parameters
-            );
-            return apiConnection.context || 0;
-        }
-    } catch (error) {
-        console.error('Error getting context limit in main:', error);
-    }
-    return 0;
-});
 
 // 处理API配置更改事件
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {

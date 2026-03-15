@@ -39,10 +39,19 @@ export class LetterReplyGenerator {
      * @returns The constructed prompt
      */
     private async buildLetterPrompt(gameData: GameData, letter: ILetter): Promise<string> {
+        // Ensure sender and recipient from the letter are in the gameData context
+        if (!gameData.characters.has(letter.sender.id)) {
+            gameData.characters.set(letter.sender.id, letter.sender);
+        }
+        if (!gameData.characters.has(letter.recipient.id)) {
+            gameData.characters.set(letter.recipient.id, letter.recipient);
+        }
+
         const player = gameData.characters.get(letter.sender.id);
         const ai = gameData.characters.get(letter.recipient.id);
 
         if (!player || !ai) {
+            // This should now be much less likely to happen
             throw new Error('Player or AI character data not found in gameData');
         }
 

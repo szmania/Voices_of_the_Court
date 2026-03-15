@@ -23,7 +23,7 @@ function updateLetterThreadStatus(count: number) {
     } else {
         statusEl.classList.remove('full');
     }
-    
+
     letterThreadStatusContainer.innerHTML = ''; // Clear previous
     letterThreadStatusContainer.appendChild(statusEl);
     // @ts-ignore
@@ -73,7 +73,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const sentDay = letter.totalDays;
             const expectedReplyDay = sentDay + letter.delay;
             const daysDifference = expectedReplyDay - currentGameDay;
-            
+
             const sentDate = new Date(letter.timestamp);
             const expectedReplyDate = new Date(sentDate.getTime());
             expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
@@ -438,7 +438,7 @@ function renderLetters() {
     });
 
     const letterPairs: {sent?: Letter, received?: Letter}[] = [];
-    
+
     rootLetters.forEach(root => {
         const reply = repliesMap.get(root.id);
         if (root.sender.id === Number(selectedPlayerId)) {
@@ -601,7 +601,7 @@ function renderLetterContent(letter: Letter) {
         const replyDate = formatDate(new Date(reply.timestamp));
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
-        
+
         const sentDate = new Date(letter.timestamp);
         const expectedReplyDate = new Date(sentDate.getTime());
         expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
@@ -675,13 +675,13 @@ function renderLetterContent(letter: Letter) {
     }
 }
 
-async function loadPlayers() {
+async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string) {
     loader.style.display = 'block';
     try {
         const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
         const players = await ipcRenderer.invoke('get-letter-players');
         const previouslySelectedPlayerId = playerSelect.value;
-        
+
         playerSelect.innerHTML = '';
         if (players.length === 0) {
             const option = document.createElement('option');
@@ -704,7 +704,7 @@ async function loadPlayers() {
         }
 
         selectedPlayerId = playerSelect.value;
-        await loadCharacters(selectedPlayerId);
+        await loadCharacters(selectedPlayerId, currentCharacterId);
         await loadLetters(selectedPlayerId);
     } catch (error) {
         console.error("Error loading players:", error);
@@ -713,7 +713,7 @@ async function loadPlayers() {
     }
 }
 
-async function loadCharacters(playerId: string) {
+async function loadCharacters(playerId: string, currentCharacterId?: string) {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const characters = await ipcRenderer.invoke('get-corresponded-characters', playerId);
     const previouslySelectedCharId = characterSelect.value;
@@ -759,7 +759,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await initLocalization();
-    
+
     currentGameDay = await ipcRenderer.invoke('get-current-game-day');
     console.log(`Initial game day fetched: ${currentGameDay}`);
     // @ts-ignore
@@ -811,13 +811,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     refreshBtn.addEventListener('click', async () => {
         loader.style.display = 'block';
+        const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
+        const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
+        const currentPlayerId = playerSelect.value;
+        const currentCharacterId = characterSelect.value;
+
         try {
             // Pass the currently selected player and character to the main process.
             // The import logic requires a specific character, so we only invoke if one is selected.
             if (selectedPlayerId && selectedCharacterId && selectedCharacterId !== 'all') {
-                await ipcRenderer.invoke('import-letters-from-log', { 
-                    playerId: selectedPlayerId, 
-                    recipientId: selectedCharacterId 
+                await ipcRenderer.invoke('import-letters-from-log', {
+                    playerId: selectedPlayerId,
+                    recipientId: selectedCharacterId
                 });
             }
             // We still refresh the view even if we didn't import.
@@ -831,7 +836,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
-        await loadCharacters(selectedPlayerId);
+        // When player changes, reset character to 'all'
+        await loadCharacters(selectedPlayerId, 'all');
         await loadLetters(selectedPlayerId);
     });
 

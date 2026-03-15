@@ -2,29 +2,23 @@ import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
 import { convertMessagesToString } from "./promptBuilder";
 import path from 'path';
-import { Message, Action, ActionResponse } from "../ts/conversation_interfaces";
+import { Message, Action, ActionResponse, PendingAction } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
 import { ActionEffectWriter } from "./ActionEffectWriter.js";
 
-export async function checkActions(conv: Conversation): Promise<ActionResponse[]>{
-    console.log('Starting action check.');
-    const character = conv.gameData.getPlayer();
+export async function checkActions(conv: Conversation, initiatorId: number, targetId: number): Promise<ActionResponse[]>{
+    console.log(`Starting action check for initiator: ${initiatorId}, target: ${targetId}`);
+    const character = conv.gameData.getCharacterById(initiatorId) || conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
-    
-    // Check minimum messages before any action can trigger
-    const totalMessages = conv.messages.length;
-    if (totalMessages < 1) {
-        console.log(`Skipping action check: conversation has ${totalMessages} messages, minimum required is 1`);
-        return [];
-    }
-    
-    
+
+
+
     let availableActions: Action[] = [];
 
     for(let action of conv.actions){
         try{
-            if(action.check(conv.gameData)){
+            if(action.check(conv.gameData, initiatorId, targetId)){
                 availableActions.push(action)
             }
         }catch(e){
@@ -32,10 +26,10 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
-        
+
     }
     console.log(`Available actions for current context: ${availableActions.map(a => a.signature).join(', ')}`);
-    
+
     // If no actions are available, return early
     if (availableActions.length === 0) {
         console.log('No actions available for current context.');
@@ -43,7 +37,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     }
 
     let triggeredActions: ActionResponse[] = [];
-    
+
     let response;
     if(conv.actionsApiConnection.isChat()){
         let prompt = buildActionChatPrompt(conv, availableActions);
@@ -68,7 +62,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     console.log(`Extracted actions string: ${actionsString}`);
 
 
-    if(actionsString === "noop()"){
+    if(actionsString.trim() === "noop()"){
         console.log('LLM returned "noop()", no actions triggered.');
         return [];
     }
@@ -76,6 +70,59 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
     const actions = actionsString.split(',').filter(a => a.trim() !== 'noop()');
 
     //validations
+    if (conv.config.manualActionApproval) {
+        const proposedActions: ActionResponse[] = [];
+        const pendingActionsForMessage: PendingAction[] = [];
+
+        for (const actionInResponse of actions) {
+            const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
+            if (!foundActionName) continue;
+
+            const matchedAction = availableActions.find(a => a.signature === foundActionName[0]);
+            if (!matchedAction) continue;
+
+            const argsString = /\(([^)]+)\)/.exec(actionInResponse);
+            const args = argsString ? argsString[1].split(",") : [];
+
+            if (args.length !== matchedAction.args.length) continue;
+
+            pendingActionsForMessage.push({
+                action: matchedAction,
+                args: args,
+                initiatorId: initiatorId,
+                targetId: targetId
+            });
+
+            const initiator = conv.gameData.getCharacterById(initiatorId);
+            const target = conv.gameData.getCharacterById(targetId);
+            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
+            conv.gameData.character2Name = target ? target.shortName : "someone";
+
+            let chatMessage = matchedAction.chatMessage(args);
+            if (typeof chatMessage === 'object' && chatMessage !== null) {
+                chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+            }
+
+            proposedActions.push({
+                actionName: matchedAction.signature,
+                chatMessage: parseVariables(chatMessage || '', conv.gameData),
+                chatMessageClass: matchedAction.chatMessageClass
+            });
+        }
+
+        if (proposedActions.length > 0) {
+            const messageIndex = conv.messages.length - 1;
+            const message = conv.messages[messageIndex];
+            if (message.id) {
+                conv.pendingActions.set(message.id, pendingActionsForMessage);
+                conv.chatWindow.window.webContents.send('action-approval-request', message.id, proposedActions);
+                console.log(`Sent ${proposedActions.length} actions for user approval for message ${message.id}.`);
+            }
+        }
+        return [];
+    }
+
+
     for(const actionInResponse of actions){
         //validate name
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
@@ -104,12 +151,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                 console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
                 try{
                     let effectBody = "";
-                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, []);
+                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, [], initiatorId, targetId);
                     ActionEffectWriter.appendEffect(
                         conv.runFileManager,
                         conv.gameData,
-                        conv.gameData.playerID,
-                        conv.gameData.aiID,
+                        initiatorId,
+                        targetId,
                         effectBody
                     );
                 }catch(e){
@@ -120,16 +167,16 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
 
                 if(matchedAction.chatMessageClass != null){
                     let chatMessage = matchedAction.chatMessage([]);
-                    if (typeof chatMessage === 'object') {
-                        chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                    if (typeof chatMessage === 'object' && chatMessage !== null) {
+                        chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
                     }
                     triggeredActions.push({
                         actionName: matchedAction.signature,
-                        chatMessage: parseVariables(chatMessage, conv.gameData),
+                        chatMessage: parseVariables(chatMessage || '', conv.gameData),
                         chatMessageClass: matchedAction.chatMessageClass
                     })
                 }
-                
+
                 console.log(`Action "${matchedAction.signature}" successfully triggered.`);
                 continue;
             }
@@ -154,7 +201,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
                     isValidAction = false;
                     break;
                 }
-                
+
             }
             else if(matchedAction.args[0].type === "string"){
                 //TODO
@@ -167,12 +214,12 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
         console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
         try{
             let effectBody = "";
-            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args);
+            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
             ActionEffectWriter.appendEffect(
                 conv.runFileManager,
                 conv.gameData,
-                conv.gameData.playerID,
-                conv.gameData.aiID,
+                initiatorId,
+                targetId,
                 effectBody
             );
         }catch(e){
@@ -180,13 +227,17 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
-        
+
 
         if(matchedAction.chatMessageClass != null){
             let chatMessage = matchedAction.chatMessage(args);
             if (typeof chatMessage === 'object') {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
+            const initiator = conv.gameData.getCharacterById(initiatorId);
+            const target = conv.gameData.getCharacterById(targetId);
+            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
+            conv.gameData.character2Name = target ? target.shortName : "someone";
             triggeredActions.push({
                 actionName: matchedAction.signature,
                 chatMessage: parseVariables(chatMessage, conv.gameData),
@@ -194,7 +245,7 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             })
         }
         console.log(`Action "${matchedAction.signature}" successfully triggered.`);
-        
+
     }
 
     if (triggeredActions.length > 0) {
@@ -204,14 +255,14 @@ export async function checkActions(conv: Conversation): Promise<ActionResponse[]
             }`
         );
     }
-    
+
     console.log(`Final triggered actions: ${triggeredActions.map(a => a.actionName).join(', ')}`);
-    
+
     // Log action frequency statistics
     if (triggeredActions.length > 0) {
-        console.log(`Action frequency stats: totalMessages=${totalMessages}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
+        console.log(`Action frequency stats: totalMessages=${conv.messages.length}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
     }
-    
+
     return triggeredActions;
 }
 
@@ -223,15 +274,15 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     let description = "";
     try{
         delete require.cache[require.resolve(descriptionPath)];
-        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer()); 
+        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer());
     }catch(err){
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
     }
-    
+
     let listOfActions = `List of actions:`;
 
-    for(const action of actions){ 
+    for(const action of actions){
 
         let argNames: string[] = [];
         action.args.forEach( arg => { argNames.push(arg.name)})
@@ -258,7 +309,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         if (typeof description === 'object') {
             description = description[conv.config.language] || description['en'] || Object.values(description)[0];
         }
-        
+
         listOfActions += `\n- ${signature}: ${parseVariables(description, conv.gameData)} ${parseVariables(argString, conv.gameData)}`;
     }
 

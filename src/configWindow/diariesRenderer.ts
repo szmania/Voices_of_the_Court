@@ -75,13 +75,17 @@ async function init() {
 }
 
 function setupEventListeners() {
-    refreshBtn.addEventListener('click', loadPlayerIds);
+    refreshBtn.addEventListener('click', () => {
+        const currentPlayerId = playerIdSelect.value;
+        const currentCharacterId = characterSelect.value;
+        loadPlayerIds(currentPlayerId, currentCharacterId);
+    });
     saveBtn.addEventListener('click', saveAllDiaries);
     addDiaryBtn.addEventListener('click', addNewDiaryEntry);
     deleteItemBtn.addEventListener('click', deleteSelectedDiaryEntry);
     playerIdSelect.addEventListener('change', () => {
         currentPlayerId = playerIdSelect.value;
-        loadDiaries();
+        loadDiaries('all');
     });
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
@@ -137,7 +141,7 @@ const showStatus = (message: string, type: 'success' | 'error' | 'info') => {
     }, 3000);
 };
 
-async function loadPlayerIds() {
+async function loadPlayerIds(persistedPlayerId?: string, persistedCharacterId?: string) {
     showLoader(true);
     refreshBtn.disabled = true;
     saveBtn.disabled = true;
@@ -153,9 +157,14 @@ async function loadPlayerIds() {
                     option.textContent = `${player.name} (${player.id})`;
                     playerIdSelect.appendChild(option);
                 });
-                currentPlayerId = result.ids[0].id;
-                playerIdSelect.value = currentPlayerId!;
-                await loadDiaries();
+
+                if (persistedPlayerId && result.ids.some((p: { id: string; }) => p.id === persistedPlayerId)) {
+                    playerIdSelect.value = persistedPlayerId;
+                } else if (result.ids.length > 0) {
+                    playerIdSelect.value = result.ids[0].id;
+                }
+                currentPlayerId = playerIdSelect.value;
+                await loadDiaries(persistedCharacterId);
             } else {
                 showStatus('No diary data available', 'info');
                 diaryList.innerHTML = `<div class="no-summaries">No diary data available</div>`;
@@ -172,7 +181,7 @@ async function loadPlayerIds() {
     }
 }
 
-async function loadDiaries() {
+async function loadDiaries(persistedCharacterId?: string) {
     if (!currentPlayerId) return;
     showLoader(true);
     allDiaryEntries = [];
@@ -198,7 +207,7 @@ async function loadDiaries() {
                 });
             }
         }
-        await loadCharacters();
+        await loadCharacters(persistedCharacterId);
         filterAndRenderDiaries();
         showStatus('Diary data loaded successfully', 'success');
         unsavedChanges = false;
@@ -210,7 +219,7 @@ async function loadDiaries() {
     }
 }
 
-async function loadCharacters() {
+async function loadCharacters(persistedCharacterId?: string) {
     if (!currentPlayerId) return;
     const characterIds = [...new Set(allDiaryEntries.map(entry => entry.character_id))];
     
@@ -239,7 +248,13 @@ async function loadCharacters() {
         option.textContent = `${charName} (${id})`;
         characterSelect.appendChild(option);
     });
-    characterSelect.value = selectedCharacterId;
+
+    if (persistedCharacterId && Array.from(characterSelect.options).some(opt => opt.value === persistedCharacterId)) {
+        characterSelect.value = persistedCharacterId;
+    } else {
+        characterSelect.value = 'all';
+    }
+    selectedCharacterId = characterSelect.value;
 }
 
 function filterAndRenderDiaries() {

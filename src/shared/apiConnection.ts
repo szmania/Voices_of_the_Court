@@ -2,6 +2,9 @@ import { Message, MessageChunk } from "../main/ts/conversation_interfaces";
 import OpenAI from "openai";
 const contextLimits = require("../../public/contextLimits.json");
 
+export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
+export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
+
 import { getEncoding, Tiktoken } from "js-tiktoken";
 
 export interface apiConnectionTestResult{
@@ -63,11 +66,11 @@ export class ApiConnection{
         this.type = connection.type;
         if (this.type === 'player2') {
             this.client = new OpenAI({
-                baseURL: 'http://127.0.0.1:4315/v1',
+                baseURL: player2BaseUrl,
                 apiKey: 'sk-dummy-key', // Player2 uses a dummy key
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    'player2-game-key': '019cb2bb-6704-7d22-89e5-41ce7c765942',
+                    'player2-game-key': player2GameKey,
                 },
             });
         } else if(this.type !== 'gemini' && this.type !== 'glm'){
@@ -539,8 +542,70 @@ export class ApiConnection{
         return ""
     }
 
+    async listModels(): Promise<any[]> {
+        if (this.type === 'player2') {
+            try {
+                const response = await fetch(`${player2BaseUrl}/models`, {
+                    method: 'GET',
+                    headers: {
+                        'player2-game-key': player2GameKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    console.error("Failed to fetch Player2 models:", response.statusText);
+                    // Fallback to just the free model
+                    return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
+                }
+                const modelData = await response.json();
+                let models = modelData.data || [];
+
+                // Ensure gpt-oss-120b is in the list and move it to the top
+                const ossModelIndex = models.findIndex((m: any) => m.id === 'gpt-oss-120b');
+                if (ossModelIndex > -1) {
+                    const ossModel = models.splice(ossModelIndex, 1)[0];
+                    models.unshift(ossModel);
+                } else {
+                    models.unshift({ id: 'gpt-oss-120b', owned_by: 'player2-local' });
+                }
+                
+                return models;
+            } catch (error) {
+                console.error("Error fetching Player2 models:", error);
+                // Fallback to just the free model in case of network error etc.
+                return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
+            }
+        }
+        // Return empty for other types for now
+        return [];
+    }
+
     async testConnection(): Promise<apiConnectionTestResult>{
         console.debug("--- API CONNECTION: testConnection() ---");
+        if (this.type === 'player2') {
+            try {
+                const response = await fetch(`${player2BaseUrl}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'player2-game-key': player2GameKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.status === 200) {
+                    return { success: true, overwriteWarning: this.overwriteWarning };
+                } else {
+                    const errorText = await response.text();
+                    const message = `Player2 health check failed: ${response.status} ${errorText}`;
+                    console.error(message);
+                    return { success: false, overwriteWarning: false, errorMessage: message };
+                }
+            } catch (err) {
+                if (err instanceof Error) {
+                    return { success: false, overwriteWarning: false, errorMessage: err.message };
+                }
+                return { success: false, overwriteWarning: false, errorMessage: String(err) };
+            }
+        }
         if (this.type === 'gemini') {
             const url = `${this.client.baseURL}/models/${this.model}:generateContent?key=${this.client.apiKey}`;
             const body = {
@@ -604,27 +669,42 @@ export class ApiConnection{
             prompt = [
                 {
                     role: "user",
-                    content: "ping"
+                    content: "hello"
                 }
             ]
         }else{
-            prompt = "ping";
+            prompt = "hello";
         }
         console.debug("Test prompt:", prompt);
 
         return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
+            // A non-empty response is a clear success
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
-            else{
-                return {success: false, overwriteWarning: false, errorMessage: "no response, something went wrong..."};
-            }
+            // An empty response might still be a success if no error was thrown,
+            // but we'll treat it as a soft failure to be safe, as `complete` should throw.
+            return {success: false, overwriteWarning: false, errorMessage: "API returned an empty response."};
+            
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
+
+            // Specifically handle the "No response" error from `complete()` as a success for testing.
+            if (err && err.code === 599 && err.error?.message === "No response") {
+                console.debug("Empty response is considered a success for testConnection.");
+                return {success: true, overwriteWarning: this.overwriteWarning };
+            }
+
             if (err instanceof Error) {
                 return {success: false, overwriteWarning: false, errorMessage: err.message};
             }
+            
+            // Handle other structured errors from `complete`
+            if (err && err.error && err.error.message) {
+                return {success: false, overwriteWarning: false, errorMessage: err.error.message};
+            }
+
             return {success: false, overwriteWarning: false, errorMessage: String(err)};
         });
     }

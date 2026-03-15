@@ -46,6 +46,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 const totalDays =  parseInt(parts[2].trim());
                 const delay = parseInt(parts[3].trim(), 10) || 0;
+                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId; // Use sender from log if available
+                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId; // Use recipient from log if available
 
                 if(content && letterId && playerId && recipientId) {
                     const sender = gameData.characters.get(Number(playerId));

@@ -89,6 +89,10 @@ export class GameData {
         return this.characters.get(characterID);
     }
 
+    getCharacterById(id: number): Character | undefined {
+        return this.characters.get(id);
+    }
+
     /**
      * Gets all characters in the conversation except the player and the main AI.
      * @returns {Character[]} An array of other characters.
@@ -104,9 +108,9 @@ export class GameData {
      * @deprecated This method is not scalable. Use getOtherCharacters() instead.
      */
     setCharacterNames(): void {
-        const nonPlayerCharacters = this.getOtherCharacters();
+        // const nonPlayerCharacters = this.getOtherCharacters();
         
-        this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
-        this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
+        // this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
+        // this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
     }
 }

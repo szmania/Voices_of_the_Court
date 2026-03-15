@@ -6,26 +6,39 @@ module.exports = {
     args: [],
 	
     description: {
-        en: `Executed when {{aiName}} and {{playerName}} agree to form an alliance.`,
-        zh: `当{{aiName}}和{{playerName}}同意结成同盟时执行。`,
-        ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются заключить союз.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent de former une alliance.`,
-        es: `Ejecutado cuando {{aiName}} y {{playerName}} acuerdan formar una alianza.`,
-        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} sich einigen, ein Bündnis zu bilden.`,
-        ja: `{{aiName}}と{{playerName}}が同盟を結ぶことに同意したときに実行されます。`,
-        ko: `{{aiName}}와 {{playerName}}가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} zgadzają się na zawarcie sojuszu.`
+        en: `Executed when two characters agree to form an alliance.`,
+        zh: `当两个角色同意结成联盟时执行。`,
+        ru: `Выполняется, когда два персонажа соглашаются заключить союз.`,
+        fr: `Exécuté lorsque deux personnages conviennent de former une alliance.`,
+        es: `Ejecutado cuando dos personajes acuerdan formar una alianza.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere sich einigen, ein Bündnis zu bilden.`,
+        ja: `二人のキャラクターが同盟を結ぶことに同意したときに実行されます。`,
+        ko: `두 캐릭터가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie zgadzają się na zawarcie sojuszu.`
     },
 	
-    check: (gameData) => {
-        let ai = gameData.getAi();
-        let player = gameData.getPlayer();
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
 
-        let conv = (ai.getOpinionModifierValue("From conversations")) * 2;
-        let opinion = ai.opinionOfPlayer;
-        let culture_faith = (ai.faith == player.faith && ai.culture == player.culture) ? 40 : ((ai.faith == player.faith || ai.culture == player.culture) ? 20 : 0);
+        let opinionOfInitiator = 0;
+        let conversationOpinion = 0;
 
-        let score = conv + opinion + culture_faith;
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            // Simulate conversation opinion for AI-AI
+            conversationOpinion = opinionOfInitiator > 0 ? opinionOfInitiator / 2 : 0;
+        }
+
+        let conv = conversationOpinion * 2;
+        let culture_faith = (target.faith == initiator.faith && target.culture == initiator.culture) ? 40 : ((target.faith == initiator.faith || target.culture == initiator.culture) ? 20 : 0);
+
+        let score = conv + opinionOfInitiator + culture_faith;
 
         console.log(`culture & faith score: ` + culture_faith);
         console.log(`Diplomatic Alliance Score: ` + score);
@@ -46,8 +59,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
 		console.log(`Diplomatic Alliance Signed`);
         runGameEffect(`
 			global_var:votcce_action_source = { 
@@ -67,15 +82,15 @@ module.exports = {
     },
     chatMessage: () => {
         return {
-            en: `{{aiName}} and {{playerName}} formed an alliance.`,
-            zh: `{{aiName}}和{{playerName}}结成了同盟。`,
-            ru: `{{aiName}} и {{playerName}} заключили союз.`,
-            fr: `{{aiName}} et {{playerName}} ont formé une alliance.`,
-            es: `{{aiName}} y {{playerName}} formaron una alianza.`,
-            de: `{{aiName}} und {{playerName}} haben ein Bündnis gebildet.`,
-            ja: `{{aiName}}と{{playerName}}は同盟を結びました。`,
-            ko: `{{aiName}}와 {{playerName}}가 동맹을 형성했습니다.`,
-            pl: `{{aiName}} i {{playerName}} zawarli sojusz.`
+            en: `{{character1Name}} and {{character2Name}} formed an alliance.`,
+            zh: `{{character1Name}}和{{character2Name}}结成了同盟。`,
+            ru: `{{character1Name}} и {{character2Name}} заключили союз.`,
+            fr: `{{character1Name}} et {{character2Name}} ont formé une alliance.`,
+            es: `{{character1Name}} y {{character2Name}} formaron una alianza.`,
+            de: `{{character1Name}} und {{character2Name}} haben ein Bündnis gebildet.`,
+            ja: `{{character1Name}}と{{character2Name}}は同盟を結びました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 동맹을 형성했습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zawarli sojusz.`
         };
     },
     chatMessageClass: "positive-action-message"

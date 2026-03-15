@@ -21,65 +21,92 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a strong and close friendship forms between {{playerName}} and {{aiName}}.`,
-        zh: `当{{playerName}}和{{aiName}}之间形成牢固而亲密的友谊时执行。`,
-        ru: `Выполняется, когда между {{playerName}} и {{aiName}} завязывается крепкая и близкая дружба.`,
-        fr: `Exécuté lorsqu'une amitié forte et étroite se noue entre {{playerName}} et {{aiName}}.`,
-        es: `Ejecutado cuando se forma una amistad fuerte y cercana entre {{playerName}} y {{aiName}}.`,
-        de: `Wird ausgeführt, wenn sich eine starke und enge Freundschaft zwischen {{playerName}} und {{aiName}} bildet.`,
-        ja: `{{playerName}}と{{aiName}}の間に強く親密な友情が形成されたときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}} 사이에 강하고 친밀한 우정이 형성될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy między {{playerName}} a {{aiName}} zawiązuje się silna i bliska przyjaźń.`
+        en: `Executed when a strong and close friendship forms between two characters.`,
+        zh: `当两个角色之间形成牢固而亲密的友谊时执行。`,
+        ru: `Выполняется, когда между двумя персонажами завязывается крепкая и близкая дружба.`,
+        fr: `Exécuté lorsqu'une amitié forte et étroite se noue entre deux personnages.`,
+        es: `Ejecutado cuando se forma una amistad fuerte y cercana entre dos personajes.`,
+        de: `Wird ausgeführt, wenn sich eine starke und enge Freundschaft zwischen zwei Charakteren bildet.`,
+        ja: `二人のキャラクターの間に強く親密な友情が形成されたときに実行されます。`,
+        ko: `두 캐릭터 사이에 강하고 친밀한 우정이 형성될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy między dwiema postaciami zawiązuje się silna i bliska przyjaźń.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+            // Simulate conversation opinion for AI-AI
+            if (opinionOfInitiator > 0) conversationOpinion = 36;
+        }
         
-        return (ai.getOpinionModifierValue("From conversations") > 35 &&
-                ai.opinionOfPlayer > 0 &&
-                !ai.relationsToPlayer.includes("Friend"))
+        return conversationOpinion > 35 &&
+               opinionOfInitiator > 0 &&
+               !relations.includes("Friend");
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_friend = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`)
 
-        gameData.getAi().relationsToPlayer.push("Friend");
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+        if (initiator.id === gameData.playerID) {
+            if (!target.relationsToPlayer.includes("Friend")) {
+                target.relationsToPlayer.push("Friend");
+            }
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                if (!relationEntry.relations.includes("Friend")) {
+                    relationEntry.relations.push("Friend");
+                }
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Friend"] });
+            }
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your friend.`,
-            zh: `{{aiName}}成为了你的朋友。`,
-            ru: `{{aiName}} стал вашим другом.`,
-            fr: `{{aiName}} est devenu votre ami.`,
-            es: `{{aiName}} se convirtió en tu amigo.`,
-            de: `{{aiName}} ist dein Freund geworden.`,
-            ja: `{{aiName}}はあなたの友達になりました。`,
-            ko: `{{aiName}}가 당신의 친구가 되었습니다.`,
-            pl: `{{aiName}} stał się twoim przyjacielem.`
+            en: `{{character1Name}} and {{character2Name}} became friends.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了朋友。`,
+            ru: `{{character1Name}} и {{character2Name}} стали друзьями.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus amis.`,
+            es: `{{character1Name}} y {{character2Name}} se hicieron amigos.`,
+            de: `{{character1Name}} und {{character2Name}} sind Freunde geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}は友達になりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 친구가 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zostali przyjaciółmi.`
         }
     },
     chatMessageClass: "positive-action-message"
-}
-//help functions 
-function getConversationOpinionValue(opinionBreakdown){
-    let results = opinionBreakdown.filter( (opinionModifier) =>{
-        return opinionModifier.reason == "From conversations";
-    })
-
-    let conversationOpinion = 0;
-    if(results.length>0){
-        conversationOpinion = results[0].value;
-    }
-
-    return conversationOpinion;
 }

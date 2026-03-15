@@ -18,8 +18,10 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
+    check: (gameData, initiatorId, targetId) => {
         return true;
     },
 
@@ -27,8 +29,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         // No operation
     },
     chatMessage: (args) =>{

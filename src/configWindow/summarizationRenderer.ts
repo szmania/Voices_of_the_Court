@@ -190,10 +190,14 @@ async function initSummaryManager() {
 }
 
 function setupEventListeners() {
-    refreshBtn.addEventListener('click', loadPlayerIds);
+    refreshBtn.addEventListener('click', () => {
+      const currentPlayerId = playerIdSelect.value;
+      const currentCharacterId = characterSelect.value;
+      loadPlayerIds(currentPlayerId, currentCharacterId);
+    });
     saveBtn.addEventListener('click', saveCurrentTabData);
     addSummaryBtn.addEventListener('click', addNewEntry);
-    playerIdSelect.addEventListener('change', loadAllDataForPlayer);
+    playerIdSelect.addEventListener('change', () =>  loadAllDataForPlayer());
     characterSelect.addEventListener('change', filterCurrentTabData);
     summarySearchInput.addEventListener('input', () => {
         currentHighlightIndex = -1; // Reset highlight on new search
@@ -215,34 +219,34 @@ function setupTabNavigation() {
 function switchTab(tab: 'conversations' | 'letters' | 'diaries') {
     // Update active tab state
     activeTab = tab;
-    
+
     // Update UI to show active tab
     conversationTabBtn.classList.toggle('active', tab === 'conversations');
     lettersTabBtn.classList.toggle('active', tab === 'letters');
     diariesTabBtn.classList.toggle('active', tab === 'diaries');
-    
+
     // Update button labels based on active tab
     const addBtnText = window.LocalizationManager.getTranslation(
-        `summary_manager.add_${tab === 'diaries' ? 'diary' : tab === 'letters' ? 'letter' : 'summary'}`, 
+        `summary_manager.add_${tab === 'diaries' ? 'diary' : tab === 'letters' ? 'letter' : 'summary'}`,
         `Add ${tab.charAt(0).toUpperCase() + tab.slice(1).slice(0, -1)}`
     );
     addSummaryBtn.textContent = addBtnText;
-    
+
     const deleteBtnText = window.LocalizationManager.getTranslation(
-        'summary_manager.delete_btn', 
+        'summary_manager.delete_btn',
         'Delete'
     );
     deleteItemBtn.textContent = deleteBtnText;
-    
+
     // Filter and render data for the selected tab
     filterCurrentTabData();
     renderCurrentTabList();
-    
+
     // Update save button state
     updateSaveButtonState();
 }
 
-async function loadPlayerIds() {
+async function loadPlayerIds(currentPlayerId?: string, currentCharacterId?: string) {
     const storedPlayerId = selectedPlayerId;
     summaryLoader.style.display = 'block';
     refreshBtn.disabled = true;
@@ -264,12 +268,12 @@ async function loadPlayerIds() {
                 playerIdSelect.appendChild(option);
             });
 
-            if (storedPlayerId && ids.some((p: {id: string}) => p.id === storedPlayerId)) {
-                playerIdSelect.value = storedPlayerId;
+            if (currentPlayerId && Array.from(playerIdSelect.options).some(opt => opt.value === currentPlayerId)) {
+              playerIdSelect.value = currentPlayerId;
             }
             selectedPlayerId = playerIdSelect.value;
 
-            await loadAllDataForPlayer(); // Load data for the selected player
+            await loadAllDataForPlayer(currentCharacterId); // Load data for the selected player
         } else {
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.no_players_found', 'No player data found.'), 'info');
             summaryList.innerHTML = '';
@@ -292,7 +296,7 @@ async function loadPlayerIds() {
     }
 }
 
-async function loadAllDataForPlayer() {
+async function loadAllDataForPlayer(currentCharacterId?: string) {
     const storedCharacterId = selectedCharacterId;
     summaryLoader.style.display = 'block';
     summaryList.innerHTML = '';
@@ -318,20 +322,22 @@ async function loadAllDataForPlayer() {
 
         // Load conversation summaries
         allSummaries = await ipcRenderer.invoke('read-summary-file', selectedPlayerId);
-        
+
         // Load letters
+        allLetters = await ipcRenderer.invoke('get-all-letters-for-player', selectedPlayerId);
+
         allLetters = await ipcRenderer.invoke('get-all-letter-summaries-for-player', selectedPlayerId);
-        
+
         // Load diaries
         allDiaries = await ipcRenderer.invoke('get-all-diaries-for-player', selectedPlayerId);
-        
-        populateCharacterSelect();
+
+        populateCharacterSelect(currentCharacterId);
         if (storedCharacterId && Array.from(characterSelect.options).some(opt => opt.value === storedCharacterId)) {
             characterSelect.value = storedCharacterId;
         }
         selectedCharacterId = characterSelect.value;
         filterCurrentTabData();
-        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Data loaded successfully'), 'success');
+        showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.load_success', 'Summary data loaded successfully'), 'success');
         hasUnsavedChanges = false;
         updateSaveButtonState();
     } catch (error: any) {
@@ -343,12 +349,12 @@ async function loadAllDataForPlayer() {
     }
 }
 
-function populateCharacterSelect() {
+function populateCharacterSelect(currentCharacterId?: string) {
     const allCharsText = window.LocalizationManager ? window.LocalizationManager.getTranslation('summary_manager.all_characters', 'All Characters') : 'All Characters';
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
 
     const characterNameMap = new Map<string, string>();
-    
+
     allSummaries.forEach(summary => {
         if (summary.characterId) {
             characterNameMap.set(summary.characterId, summary.characterName || `Character ${summary.characterId}`);
@@ -373,12 +379,17 @@ function populateCharacterSelect() {
         characterSelect.appendChild(option);
     });
 
-    characterSelect.value = selectedCharacterId;
+    if (currentCharacterId && Array.from(characterSelect.options).some(opt => opt.value === currentCharacterId)) {
+        characterSelect.value = currentCharacterId;
+    } else {
+        characterSelect.value = 'all';
+    }
+    selectedCharacterId = characterSelect.value;
 }
 
 function filterCurrentTabData() {
     selectedCharacterId = characterSelect.value;
-    
+
     if (activeTab === 'conversations') {
         if (selectedCharacterId === 'all') {
             filteredSummaries = [...allSummaries];
@@ -420,7 +431,7 @@ function filterCurrentTabData() {
         // Sort by date (newest first)
         filteredDiaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
-    
+
     currentSummaryIndex = -1;
     resetEditor();
     renderCurrentTabList();
@@ -591,7 +602,7 @@ function renderCurrentTabList() {
                 `;
             } else if (activeTab === 'letters') {
                 const characterName = item.characterName || `Character ${item.characterId}`;
-                
+
                 // Format date for display
                 const displayDate = formatDateForDisplay(item.date);
                 const headerText = `${displayDate} - ${characterName}`;
@@ -604,7 +615,7 @@ function renderCurrentTabList() {
                 `;
             } else if (activeTab === 'diaries') {
                 const characterName = item.characterName || `Character ${item.characterId}`;
-                
+
                 // Format date for display
                 const displayDate = formatDateForDisplay(item.date);
                 const headerText = `${displayDate} - ${characterName}`;
@@ -616,7 +627,7 @@ function renderCurrentTabList() {
                     <div class="summary-content">${contentHTML}</div>
                 `;
             }
-            
+
             if (originalIndex !== undefined) {
                 summaryItem.dataset.originalIndex = originalIndex.toString();
             }
@@ -646,11 +657,11 @@ function selectSummary(index: number) {
     if (editingSummaryIndex !== -1) return;
 
     currentSummaryIndex = index;
-    
+
     let item: any;
     let characterId: string;
     let filePath: string = '';
-    
+
     if (activeTab === 'conversations') {
         if (index < 0 || index >= filteredSummaries.length) return;
         item = filteredSummaries[index];
@@ -680,17 +691,17 @@ function addNewEntry() {
     if (editingSummaryIndex !== -1) return; // Don't allow adding while another item is being edited.
     if (selectedCharacterId === 'all') {
         const errorMsg = window.LocalizationManager.getTranslation(
-            'summary_manager.select_character_to_add_error', 
+            'summary_manager.select_character_to_add_error',
             'Please select a character before adding a new entry.'
         );
         showStatusMessage(errorMsg, 'error');
         return;
     }
-    
+
     const characterId = selectedCharacterId;
     const characterName = characterSelect.options[characterSelect.selectedIndex].text;
     const today = new Date().toISOString().split('T')[0]; // Default to today in YYYY-MM-DD format
-    
+
     if (activeTab === 'conversations') {
         const newSummary = {
             date: today,
@@ -754,7 +765,7 @@ function addNewEntry() {
 
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.add_success', 'New diary summary added'), 'success');
     }
-    
+
     hasUnsavedChanges = true;
     updateSaveButtonState();
 }
@@ -763,18 +774,18 @@ function addNewEntry() {
 async function deleteCurrentEntry() {
     if (currentSummaryIndex < 0) {
         const errorMsg = window.LocalizationManager.getTranslation(
-            'summary_manager.select_to_delete_error', 
+            'summary_manager.select_to_delete_error',
             'Please select an entry to delete first'
         );
         showStatusMessage(errorMsg, 'error');
         return;
     }
-    
+
     const confirmDeleteMsg = window.LocalizationManager.getTranslation(
-        'summary_manager.confirm_delete', 
+        'summary_manager.confirm_delete',
         'Are you sure you want to delete this entry?'
     );
-    
+
     if (confirm(confirmDeleteMsg)) {
         if (activeTab === 'conversations') {
             if (currentSummaryIndex >= filteredSummaries.length) return;
@@ -804,7 +815,7 @@ async function deleteCurrentEntry() {
             filterCurrentTabData();
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.delete_success', 'Diary summary deleted'), 'success');
         }
-        
+
         hasUnsavedChanges = true;
         updateSaveButtonState();
     }
@@ -819,7 +830,7 @@ function resetEditor() {
 async function saveCurrentTabData() {
     if (!selectedPlayerId) {
         const errorMsg = window.LocalizationManager.getTranslation(
-            'summary_manager.no_player_selected_save', 
+            'summary_manager.no_player_selected_save',
             'No player selected. Cannot save.'
         );
         showStatusMessage(errorMsg, 'error');
@@ -829,7 +840,7 @@ async function saveCurrentTabData() {
     saveBtn.disabled = true;
     try {
         showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.saving', 'Saving data...'), 'info');
-        
+
         if (activeTab === 'conversations') {
             await ipcRenderer.invoke('save-summary-file', selectedPlayerId, allSummaries);
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Summaries saved successfully'), 'success');
@@ -840,7 +851,7 @@ async function saveCurrentTabData() {
             await ipcRenderer.invoke('save-all-diary-summaries', selectedPlayerId, allDiaries);
             showStatusMessage(window.LocalizationManager.getTranslation('summary_manager.save_success', 'Diary summaries saved successfully'), 'success');
         }
-        
+
         hasUnsavedChanges = false;
         updateSaveButtonState();
     } catch (error: any) {
@@ -939,7 +950,7 @@ function formatDateForInput(dateStr: string): string {
 
 function handleInPlaceInputChange(index: number) {
     if (index < 0) return;
-    
+
     let item: any;
     if (activeTab === 'conversations') {
         if (index >= filteredSummaries.length) return;
@@ -986,7 +997,7 @@ function handleInPlaceInputChange(index: number) {
 
 function cancelInPlaceEdit() {
     if (editingSummaryIndex === -1) return;
-    
+
     if (activeTab === 'conversations') {
         const entry = filteredSummaries[editingSummaryIndex];
         if (entry && (entry as any)._isNew) {
@@ -1012,14 +1023,14 @@ function cancelInPlaceEdit() {
             }
         }
     }
-    
+
     editingSummaryIndex = -1;
     filterCurrentTabData();
 }
 
 function enterEditMode(index: number) {
     if (index < 0) return;
-    
+
     // Validate index based on active tab
     let isValid = false;
     if (activeTab === 'conversations') {
@@ -1029,7 +1040,7 @@ function enterEditMode(index: number) {
     } else if (activeTab === 'diaries') {
         isValid = index < filteredDiaries.length;
     }
-    
+
     if (!isValid) return;
 
     // Exit any existing edit mode without saving
@@ -1053,7 +1064,7 @@ function enterEditMode(index: number) {
 
 function saveInPlaceEdit() {
     if (editingSummaryIndex < 0) return;
-    
+
     let item: any = null;
     let originalIndex: number = -1;
     if (activeTab === 'conversations') {
@@ -1109,7 +1120,7 @@ function saveInPlaceEdit() {
     selectSummary(justEditedIndex);
 
     const successMsg = window.LocalizationManager.getTranslation(
-        'summary_manager.update_success', 
+        'summary_manager.update_success',
         `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1).slice(0, -1)} updated`
     );
     showStatusMessage(successMsg, 'success');
