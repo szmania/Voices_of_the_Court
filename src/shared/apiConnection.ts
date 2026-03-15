@@ -607,11 +607,11 @@ export class ApiConnection{
             prompt = [
                 {
                     role: "user",
-                    content: "ping"
+                    content: "hello"
                 }
             ]
         }else{
-            prompt = "ping";
+            prompt = "hello";
         }
         console.debug("Test prompt:", prompt);
 
