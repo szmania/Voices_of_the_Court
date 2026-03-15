@@ -552,9 +552,7 @@ app.on('ready',  async () => {
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
-    })
-
-});
+    });
 
 ipcMain.on('open-external-link', (event, url: string) => {
     console.log('IPC: 打开外部链接:', url);
@@ -1748,6 +1746,7 @@ ipcMain.on('theme-changed', (event, theme: string) => {
             win.window.webContents.send('update-theme', theme);
         }
     });
+});
 });
 
 // 处理语言切换事件
