@@ -45,7 +45,7 @@ export class ClipboardListener extends EventEmitter{
         if(this.previousClipboard == currentClipboard) return;
 
         if(currentClipboard.startsWith('VOTC:')){
-            let command = currentClipboard.split(':')[1];
+            let command = currentClipboard.split(':')[1].trim();
             console.log(`VOTC command detected: ${command}`);
             switch (command){
                 case "IN":
