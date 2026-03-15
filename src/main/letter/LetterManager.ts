@@ -253,21 +253,6 @@ export class LetterManager {
         }
     }
 
-    public markAsDelivered(playerId: string, characterId: string, letterId: string): void {
-        const letters = this.getLetters(playerId, characterId);
-        const letterIndex = letters.findIndex(l => l.id === letterId);
-        if (letterIndex > -1) {
-            letters[letterIndex].delivered = true;
-            const filePath = this.getLetterFilePath(playerId, characterId);
-            try {
-                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-                console.log(`Marked letter ${letterId} as delivered.`);
-            } catch (error) {
-                console.error(`Error updating delivered status for letter ${letterId}:`, error);
-            }
-        }
-    }
-
     public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string) {
         const userFolderPath = config.userFolderPath;
         if (!userFolderPath) {
