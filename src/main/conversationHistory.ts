@@ -45,7 +45,7 @@ export async function parseConversationHistoryIdsFromLog(logFilePath: string): P
 }
 
 // 读取历史对话文件列表
-export async function getConversationHistoryFiles(playerId: string): Promise<Array<{fileName: string, modifiedTime: number}>> {
+export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[]): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
         // 构建对话历史目录路径 - 使用userdata的conversation_history目录
         const userDataPath = app.getPath('userData');
@@ -57,8 +57,29 @@ export async function getConversationHistoryFiles(playerId: string): Promise<Arr
             return [];
         }
         
+        const currentIdSet = new Set(currentCharacterIds.map(String));
+
         // 读取目录中的所有txt文件
-        const files = fs.readdirSync(conversationHistoryDir).filter(file => file.endsWith('.txt'));
+        const files = fs.readdirSync(conversationHistoryDir).filter(file => {
+            if (!file.endsWith('.txt')) return false;
+
+            const nameParts = file.replace('.txt', '').split('_');
+            if (nameParts.length < 2) return false; // Must have at least playerid and timestamp
+
+            const timestamp = nameParts.pop(); // Remove and check timestamp
+            if (isNaN(Number(timestamp))) return false;
+
+            const fileCharacterIds = new Set(nameParts);
+
+            if (fileCharacterIds.size !== currentIdSet.size) return false;
+
+            for (const id of currentIdSet) {
+                if (!fileCharacterIds.has(id)) {
+                    return false;
+                }
+            }
+            return true;
+        });
         
         // 获取每个文件的修改时间
         const filesWithStats = files.map(fileName => {

@@ -22,6 +22,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, PendingAction} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
+import { getConversationHistoryFiles } from '../conversationHistory.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
@@ -276,23 +277,13 @@ export class Conversation{
             return;
         }
 
-        const allAiCharacterIds = Array.from(this.gameData.characters.values())
-            .filter(c => c.id !== this.gameData.playerID)
-            .map(c => c.id);
+        const allCharacterIds = Array.from(this.gameData.characters.keys());
+        const historyFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds);
 
-        // Get all historical conversation files for this player and ANY AI character in the scene
-        const files = fs.readdirSync(historyDir)
-            .filter(file => {
-                if (!file.endsWith('.txt')) return false;
-                const parts = file.split('_');
-                if (parts.length < 3) return false;
-                const filePlayerId = parseInt(parts[0], 10);
-                const fileAiId = parseInt(parts[1], 10);
-                return filePlayerId === this.gameData.playerID && allAiCharacterIds.includes(fileAiId);
-            })
+        const files = historyFiles
             .map(file => ({
-                name: file,
-                time: parseInt(file.split('_')[2].split('.')[0]) || 0
+                name: file.fileName,
+                time: file.modifiedTime
             }))
             .sort((a, b) => a.time - b.time); // Sort by timestamp, oldest first
 
@@ -356,48 +347,59 @@ export class Conversation{
                 const narrativeLabelValues = Object.values(narrativeLabels);
                 const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
 
+                // Build a regex to match any of the known character names at the start of a line
+                const allChars = Array.from(this.gameData.characters.values());
+                // Also add the player name from gameData, which might be different from the character object
+                const playerChar = this.gameData.getPlayer();
+                if (playerChar) {
+                    allChars.push(playerChar);
+                }
+                const speakerNames = allChars.map(c => c.fullName).concat(allChars.map(c => c.shortName));
+                speakerNames.push(this.gameData.playerName);
+                const uniqueSpeakerNames = [...new Set(speakerNames)].filter(Boolean); // Remove empty and duplicates
+                const speakerRegex = new RegExp(`^(${uniqueSpeakerNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):`);
+
                 for (let line of lines) {
-                    line = line.trim();
-                    if (!line) continue;
-                    
-                    // Parse date from file
+                    // Metadata parsing remains the same
                     if (line.startsWith('Date:')) {
                         currentDate = line.replace('Date:', '').trim();
-                        console.log(`Found historical conversation date: ${currentDate}`);
                         continue;
                     }
-                    
-                    // Parse scene if present
                     if (line.startsWith('Scene:')) {
                         currentScene = line.replace('Scene:', '').trim();
-                        console.log(`Found historical conversation scene: ${currentScene}`);
                         continue;
                     }
-                    
-                    // Parse location if present (custom format)
                     if (line.startsWith('Location:')) {
                         currentLocation = line.replace('Location:', '').trim();
-                        console.log(`Found historical conversation location: ${currentLocation}`);
                         continue;
                     }
 
                     const narrativeMatch = line.match(narrativeRegex);
                     if (narrativeMatch) {
-                        if (messageIndex !== -1) {
+                        if (currentMessage) {
                             const narrative = line.substring(narrativeMatch[0].length).trim();
-                            this.addNarrativeToMessage(this.messages.length + messageIndex, narrative);
+                            if (!currentMessage.narrative) {
+                                currentMessage.narrative = "";
+                            }
+                            currentMessage.narrative += narrative + "\n";
                         }
                         continue;
                     }
 
-                    const colonIndex = line.indexOf(':');
-                    if (colonIndex !== -1) {
-                        const name = line.substring(0, colonIndex).trim();
-                        const messageContent = line.substring(colonIndex + 1).trim();
-                        
-                        // Add character name to the set
+                    const speakerMatch = line.match(speakerRegex);
+                    if (speakerMatch) {
+                        // This line starts a new message.
+                        // First, save the previous message if it exists.
+                        if (currentMessage) {
+                            currentMessage.content = currentMessage.content.trim();
+                            fileMessages.push(currentMessage);
+                            totalMessagesLoaded++;
+                        }
+
+                        // Now, start the new message.
+                        const name = speakerMatch[1].trim();
+                        const messageContent = line.substring(speakerMatch[0].length).trim();
                         characterNames.add(name);
-                        
                         const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
                         
                         currentMessage = {
@@ -405,16 +407,25 @@ export class Conversation{
                             name: name,
                             content: messageContent
                         };
-                        fileMessages.push(currentMessage);
-                        messageIndex = fileMessages.length - 1;
-                        totalMessagesLoaded++;
-                        
-                        // Stop if we've reached the maximum number of messages
-                        if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
-                            console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}) while loading ${fileInfo.name}.`);
-                            break;
-                        }
+                    } else if (line.trim() && currentMessage) {
+                        // This is a continuation of the current message.
+                        currentMessage.content += '\n' + line;
+                    } else if (line.trim() && !currentMessage) {
+                        // This is content before the first speaker, likely a scene description.
+                        // We can add it as a system message or just ignore. Let's ignore for now.
                     }
+
+                    // Stop if we've reached the maximum number of messages
+                    if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
+                        console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}) while loading ${fileInfo.name}.`);
+                        break;
+                    }
+                }
+                // Add the last message after the loop finishes
+                if (currentMessage) {
+                    currentMessage.content = currentMessage.content.trim();
+                    fileMessages.push(currentMessage);
+                    totalMessagesLoaded++;
                 }
                 
                 // Store this conversation's metadata and messages
@@ -1423,7 +1434,7 @@ ${character.fullName}的发言：`
         }
 
         // Process conversation messages, keeping name, content and narrative
-        const messagesToSave = this.messages.filter(msg => msg.content !== this.notSpokenYetText && msg.name !== 'Narrator');
+        const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant') && msg.content !== this.notSpokenYetText);
         const processedMessages = messagesToSave.map((msg, index) => {
           const messageData: any = {
             name: msg.name,
@@ -1474,11 +1485,13 @@ ${character.fullName}的发言：`
         });
 
         // Store the message text for generating summaries in txt format
+        const allCharacterIds = Array.from(this.gameData.characters.keys()).sort((a, b) => a - b);
+        const characterIdsString = allCharacterIds.join('_');
         const historyFile = path.join(
-          this.userDataPath,
-          'conversation_history',
-          this.gameData.playerID.toString(),
-          `${this.gameData.playerID}_${this.gameData.aiID}_${new Date().getTime()}.txt`
+            this.userDataPath,
+            'conversation_history',
+            this.gameData.playerID.toString(),
+            `${characterIdsString}_${new Date().getTime()}.txt`
         );
         fs.writeFileSync(historyFile, textContent);
         console.log(`Conversation history saved to: ${historyFile}`)
