@@ -8,7 +8,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: { 
+            desc: {
                 en: "The amount of gold the initiator ({{character1Name}}) receives from the target ({{character2Name}}).",
                 zh: "发起者（{{character1Name}}）从目标（{{character2Name}}）收到的金币数量。",
                 ru: "Количество золота, которое инициатор ({{character1Name}}) получает от цели ({{character2Name}}).",
@@ -32,9 +32,9 @@ module.exports = {
         ko: `개시자({{character1Name}})가 대상({{character2Name}})으로부터 금을 받을 때 실행됩니다.`,
         pl: `Wykonywane, gdy inicjator ({{character1Name}}) otrzymuje złoto od celu ({{character2Name}}).`
     },
-    
+
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {number} initiatorId
      * @param {number} targetId
      */
@@ -44,9 +44,9 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      * @param {number} initiatorId
      * @param {number} targetId
      */
@@ -100,7 +100,7 @@ module.exports = {
     },
     chatMessageClass: "neutral-action-message"
 }
-//Made by: Durond, refactored by PDitty
+//Made by: Durond, refactored by machiavelli
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
     signature: "receiveGold",
@@ -109,7 +109,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: { 
+            desc: {
                 en: "The amount of gold the initiator ({{character1Name}}) receives from the target ({{character2Name}}).",
                 zh: "发起者（{{character1Name}}）从目标（{{character2Name}}）收到的金币数量。",
                 ru: "Количество золота, которое инициатор ({{character1Name}}) получает от цели ({{character2Name}}).",
@@ -135,7 +135,7 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {number} initiatorId
      * @param {number} targetId
      */
@@ -165,9 +165,9 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      * @param {number} initiatorId
      * @param {number} targetId
      */
@@ -177,7 +177,7 @@ module.exports = {
         if (!initiator || !target) return;
 
         const amount = Number(args[0]);
-        
+
         runGameEffect(`
             global_var:votcce_action_source = {
                 add_gold = ${amount};
