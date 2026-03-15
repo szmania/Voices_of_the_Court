@@ -2,6 +2,9 @@ import { Message, MessageChunk } from "../main/ts/conversation_interfaces";
 import OpenAI from "openai";
 const contextLimits = require("../../public/contextLimits.json");
 
+export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
+export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
+
 import { getEncoding, Tiktoken } from "js-tiktoken";
 
 export interface apiConnectionTestResult{
@@ -63,11 +66,11 @@ export class ApiConnection{
         this.type = connection.type;
         if (this.type === 'player2') {
             this.client = new OpenAI({
-                baseURL: 'http://127.0.0.1:4315/v1',
+                baseURL: player2BaseUrl,
                 apiKey: 'sk-dummy-key', // Player2 uses a dummy key
                 dangerouslyAllowBrowser: true,
                 defaultHeaders: {
-                    'player2-game-key': '019cb2bb-6704-7d22-89e5-41ce7c765942',
+                    'player2-game-key': player2GameKey,
                 },
             });
         } else if(this.type !== 'gemini' && this.type !== 'glm'){

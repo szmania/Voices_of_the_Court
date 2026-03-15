@@ -1,6 +1,6 @@
 import {ipcRenderer } from 'electron';
 import { Config } from '../../shared/Config';
-import { ApiConnection } from '../../shared/apiConnection';
+import { ApiConnection, player2BaseUrl } from '../../shared/apiConnection';
 
 const template = document.createElement("template");
 
@@ -672,7 +672,7 @@ class ApiSelector extends HTMLElement{
             },
             player2: {
                 key: this.player2KeyInput.value,
-                baseUrl: "https://api.player2.game/v1",
+                baseUrl: player2BaseUrl,
                 model: this.player2ModelSelect.value
             },
             custom: {
@@ -845,7 +845,7 @@ class ApiSelector extends HTMLElement{
     savePlayer2Config(){
         const config = {
             type: "player2",
-            baseUrl: "https://api.player2.game/v1",
+            baseUrl: player2BaseUrl,
             key: this.player2KeyInput.value,
             model: this.player2ModelSelect.value,
             forceInstruct: false,
