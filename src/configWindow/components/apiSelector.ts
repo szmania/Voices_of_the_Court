@@ -156,13 +156,11 @@ function defineTemplate(label: string){
                 <br>
                 <input type="password" id="player2-key">
             </div>
-            <div class="input-group" style="display: none;">
-                <label for="player2-model-select" data-i18n="connection.model">Model</label>
-                <select id="player2-model-select">
-                    <option value="gpt-oss-120b">GPT-OSS-120B (Free)</option>
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    <option value="gpt-4o">GPT-4o</option>
-                </select>
+            <div class="input-group">
+                <label for="player2-model-input" data-i18n="connection.model">Model</label>
+                <input list="player2-models" id="player2-model-input" name="player2-model-input" />
+                <datalist id="player2-models">
+                </datalist>
             </div>
             <div class="input-group">
                 <p data-i18n="connection.player2_info"></p>
@@ -231,7 +229,8 @@ class ApiSelector extends HTMLElement{
     grokKeyInput: HTMLInputElement
     grokModelSelect: HTMLSelectElement
     player2KeyInput: HTMLInputElement
-    player2ModelSelect: HTMLSelectElement
+    player2ModelInput: HTMLInputElement
+    player2ModelDatalist: HTMLDataListElement
 
     oobaUrlInput: HTMLSelectElement 
     oobaUrlConnectButton: HTMLInputElement 
@@ -287,7 +286,8 @@ class ApiSelector extends HTMLElement{
         this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
         this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
         this.player2KeyInput = this.shadow.querySelector("#player2-key")!;
-        this.player2ModelSelect = this.shadow.querySelector("#player2-model-select")!;
+        this.player2ModelInput = this.shadow.querySelector("#player2-model-input")!;
+        this.player2ModelDatalist = this.shadow.querySelector("#player2-models")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
@@ -411,10 +411,10 @@ class ApiSelector extends HTMLElement{
         // 加载Player2配置
         if (apiKeys.player2) {
             this.player2KeyInput.value = apiKeys.player2.key || "";
-            this.player2ModelSelect.value = apiKeys.player2.model || "";
+            this.player2ModelInput.value = apiKeys.player2.model || "";
         } else if(apiConfig.type == "player2"){
             this.player2KeyInput.value = apiConfig.key;
-            this.player2ModelSelect.value = apiConfig.model;
+            this.player2ModelInput.value = apiConfig.model;
         }
         
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
@@ -682,7 +682,7 @@ class ApiSelector extends HTMLElement{
             player2: {
                 key: this.player2KeyInput.value,
                 baseUrl: player2BaseUrl,
-                model: this.player2ModelSelect.value
+                model: this.player2ModelInput.value
             },
             custom: {
                 key: this.customKeyInput.value,
@@ -856,7 +856,7 @@ class ApiSelector extends HTMLElement{
             type: "player2",
             baseUrl: player2BaseUrl,
             key: this.player2KeyInput.value,
-            model: this.player2ModelSelect.value,
+            model: this.player2ModelInput.value,
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
@@ -877,7 +877,7 @@ class ApiSelector extends HTMLElement{
         const config = await ipcRenderer.invoke('get-config');
         const savedModel = config[this.confID]?.connection?.model;
 
-        this.player2ModelSelect.innerHTML = ''; // Clear existing options
+        this.player2ModelDatalist.innerHTML = ''; // Clear existing options
 
         models.forEach((model: any) => {
             const option = document.createElement('option');
@@ -886,15 +886,16 @@ class ApiSelector extends HTMLElement{
             if (model.id === 'gpt-oss-120b') {
                 displayName = "GPT-OSS-120B (Free)";
             }
-            option.textContent = displayName;
-            this.player2ModelSelect.appendChild(option);
+            // For datalist, the text content of the option is not displayed, but it's good practice to set it.
+            option.textContent = displayName; 
+            this.player2ModelDatalist.appendChild(option);
         });
 
-        // Set the selected option based on saved config or default to the free model
+        // Set the input's value based on saved config or default to the free model
         if (savedModel && models.some(m => m.id === savedModel)) {
-            this.player2ModelSelect.value = savedModel;
+            this.player2ModelInput.value = savedModel;
         } else {
-            this.player2ModelSelect.value = 'gpt-oss-120b';
+            this.player2ModelInput.value = 'gpt-oss-120b';
         }
         
         // Trigger a save to update the model in the config if it was defaulted
