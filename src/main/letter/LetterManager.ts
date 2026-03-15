@@ -14,13 +14,21 @@ export class LetterManager {
     private letterSummaryPath: string;
 
     private constructor() {
-        this.letterHistoryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_history');
-        if (!fs.existsSync(this.letterHistoryPath)) {
-            fs.mkdirSync(this.letterHistoryPath, { recursive: true });
+        // Paths are initialized lazily now
+    }
+
+    private initPaths(): void {
+        if (!this.letterHistoryPath) {
+            this.letterHistoryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_history');
+            if (!fs.existsSync(this.letterHistoryPath)) {
+                fs.mkdirSync(this.letterHistoryPath, { recursive: true });
+            }
         }
-        this.letterSummaryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries');
-        if (!fs.existsSync(this.letterSummaryPath)) {
-            fs.mkdirSync(this.letterSummaryPath, { recursive: true });
+        if (!this.letterSummaryPath) {
+            this.letterSummaryPath = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries');
+            if (!fs.existsSync(this.letterSummaryPath)) {
+                fs.mkdirSync(this.letterSummaryPath, { recursive: true });
+            }
         }
     }
 
@@ -32,6 +40,7 @@ export class LetterManager {
     }
 
     public getLetterFilePath(playerId: string, characterId: string): string {
+        this.initPaths();
         const playerFolderPath = path.join(this.letterHistoryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             fs.mkdirSync(playerFolderPath, { recursive: true });
@@ -85,6 +94,7 @@ export class LetterManager {
     }
 
     public getAllPlayerIdsWithLetters(): { id: string, name: string }[] {
+        this.initPaths();
         const playerFolderPath = this.letterHistoryPath;
         if (!fs.existsSync(playerFolderPath)) {
             return [];
@@ -171,6 +181,7 @@ export class LetterManager {
     }
 
     public getLetterSummaryFilePath(playerId: string, characterId: string): string {
+        this.initPaths();
         const playerFolderPath = path.join(this.letterSummaryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             fs.mkdirSync(playerFolderPath, { recursive: true });
@@ -206,6 +217,7 @@ export class LetterManager {
     }
 
     public getAllLetterSummaries(playerId: string): (LetterSummary & { characterId: string, characterName: string })[] {
+        this.initPaths();
         const playerFolderPath = path.join(this.letterSummaryPath, playerId);
         if (!fs.existsSync(playerFolderPath)) {
             return [];
