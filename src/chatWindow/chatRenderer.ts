@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron';
 import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
+import { randomUUID } from "crypto";
 const DOMPurify = require('dompurify');
 
 const sanitizeConfig = {
