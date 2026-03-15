@@ -762,9 +762,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     currentGameDay = await ipcRenderer.invoke('get-current-game-day');
     console.log(`Initial game day fetched: ${currentGameDay}`);
-    
-    currentGameDay = await ipcRenderer.invoke('get-current-game-day');
-    console.log(`Initial game day fetched: ${currentGameDay}`);
     // @ts-ignore
     const successMsg = window.LocalizationManager.getTranslation('letters.load_success', 'Letters data successfully loaded');
     showStatusMessage(successMsg, 'success');
@@ -868,19 +865,6 @@ ipcRenderer.on('letter-status-changed', () => {
 
 ipcRenderer.on('letter-thread-status-update', (event, count: number) => {
     updateLetterThreadStatus(count);
-});
-
-ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
-    console.log(`Received game-date-updated event: ${newTotalDays}`);
-    if (newTotalDays > currentGameDay) {
-        currentGameDay = newTotalDays;
-        // Re-render to update statuses
-        renderLetters();
-        renderStatusSummary();
-        if (selectedLetter) {
-            renderLetterContent(selectedLetter);
-        }
-    }
 });
 
 ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
