@@ -1616,7 +1616,7 @@ ipcMain.handle('get-conversation-history-ids', async () => {
 ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
     console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
     try {
-        const files = await getConversationHistoryFiles(playerId);
+        const files = await getConversationHistoryFiles(playerId, []);
         return files;
     } catch (error) {
         console.error('Error getting conversation history files:', error);
