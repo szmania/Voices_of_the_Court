@@ -9,15 +9,15 @@ module.exports = {
             type: "number",
             min: 1,
             desc: { 
-                en: "the amount of gold {{character1Name}} requests from {{character2Name}}, should be always positive",
-                zh: "{{character1Name}}向{{character2Name}}请求的金币数量，应始终为正数",
-                ru: "количество золота, которое {{character1Name}} запрашивает у {{character2Name}}, всегда должно быть положительным",
-                fr: "le montant d'or que {{character1Name}} demande à {{character2Name}}, doit toujours être positif",
-                es: "la cantidad de oro que {{character1Name}} solicita a {{character2Name}}, siempre debe ser positiva",
-                de: "die Menge Gold, die {{character1Name}} von {{character2Name}} anfordert, sollte immer positiv sein",
-                ja: "{{character1Name}}が{{character2Name}}に要求するゴールドの量は常に正数である必要があります",
-                ko: "{{character1Name}}가 {{character2Name}}에게 요청하는 골드의 양은 항상 양수여야 합니다",
-                pl: "ilość złota, którą {{character1Name}} prosi od {{character2Name}}, powinna być zawsze dodatnia"
+                en: "The amount of gold the initiator ({{character1Name}}) requests from the target ({{character2Name}}).",
+                zh: "发起者（{{character1Name}}）向目标（{{character2Name}}）请求的金币数量。",
+                ru: "Количество золота, которое инициатор ({{character1Name}}) запрашивает у цели ({{character2Name}}).",
+                fr: "Le montant d'or que l'initiateur ({{character1Name}}) demande à la cible ({{character2Name}}).",
+                es: "La cantidad de oro que el iniciador ({{character1Name}}) solicita al objetivo ({{character2Name}}).",
+                de: "Die Menge an Gold, die der Initiator ({{character1Name}}) vom Ziel ({{character2Name}}) anfordert.",
+                ja: "イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）に要求するゴールドの量。",
+                ko: "개시자({{character1Name}})가 대상({{character2Name}})에게 요청하는 금의 양.",
+                pl: "Ilość złota, którą inicjator ({{character1Name}}) prosi od celu ({{character2Name}})."
             }
         }
     ],
