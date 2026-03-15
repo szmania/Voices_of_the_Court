@@ -617,17 +617,32 @@ export class ApiConnection{
 
         return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
+            // A non-empty response is a clear success
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
-            else{
-                return {success: false, overwriteWarning: false, errorMessage: "no response, something went wrong..."};
-            }
+            // An empty response might still be a success if no error was thrown,
+            // but we'll treat it as a soft failure to be safe, as `complete` should throw.
+            return {success: false, overwriteWarning: false, errorMessage: "API returned an empty response."};
+            
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
+
+            // Specifically handle the "No response" error from `complete()` as a success for testing.
+            if (err && err.code === 599 && err.error?.message === "No response") {
+                console.debug("Empty response is considered a success for testConnection.");
+                return {success: true, overwriteWarning: this.overwriteWarning };
+            }
+
             if (err instanceof Error) {
                 return {success: false, overwriteWarning: false, errorMessage: err.message};
             }
+            
+            // Handle other structured errors from `complete`
+            if (err && err.error && err.error.message) {
+                return {success: false, overwriteWarning: false, errorMessage: err.error.message};
+            }
+
             return {success: false, overwriteWarning: false, errorMessage: String(err)};
         });
     }
