@@ -1309,6 +1309,12 @@ ${character.fullName}的发言：`
                 effectBody
             );
 
+            this.runFileManager.append(`
+                global_var:talk_first_scope = {
+                    trigger_event = mcc_event_v2.9003
+                }`
+            );
+
             if (action.chatMessageClass != null) {
                 let chatMessage = action.chatMessage(args);
                 if (typeof chatMessage === 'object') {
