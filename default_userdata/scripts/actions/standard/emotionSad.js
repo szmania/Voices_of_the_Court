@@ -34,23 +34,25 @@ module.exports = {
      */
     run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(
-            `set_global_variable = {
-				name = talk_pose
-				value = flag:sad
+            `global_var:votcce_action_target = {
+                set_global_variable = {
+                    name = talk_pose
+                    value = flag:sad
+                }
             }`
         )
     },
     chatMessage: () =>{
         return {
-            en: `{{character1Name}} feels sad.`,
-            zh: `{{character1Name}}感到悲伤。`,
-            ru: `{{character1Name}} грустит.`,
-            fr: `{{character1Name}} se sent triste.`,
-            es: `{{character1Name}} se siente triste.`,
-            de: `{{character1Name}} ist traurig.`,
-            ja: `{{character1Name}}は悲しんでいます。`,
-            ko: `{{character1Name}}는 슬픔을 느낍니다.`,
-            pl: `{{character1Name}} jest smutny.`
+            en: `{{character2Name}} feels sad.`,
+            zh: `{{character2Name}}感到悲伤。`,
+            ru: `{{character2Name}} грустит.`,
+            fr: `{{character2Name}} se sent triste.`,
+            es: `{{character2Name}} se siente triste.`,
+            de: `{{character2Name}} ist traurig.`,
+            ja: `{{character2Name}}は悲しんでいます。`,
+            ko: `{{character2Name}}는 슬픔을 느낍니다.`,
+            pl: `{{character2Name}} jest smutny.`
         }
     },
     chatMessageClass: "neutral-action-message"
