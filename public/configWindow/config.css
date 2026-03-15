@@ -839,9 +839,8 @@ mark.current-highlight {
 
 /* Letter Window Styles */
 #container {
-    display: flex;
-    flex-direction: column;
     height: calc(100vh - 50px); /* Adjust based on navbar height */
+    overflow-y: auto;
 }
 
 #letter-controls {
