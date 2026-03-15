@@ -1,43 +1,79 @@
 import fs from 'fs';
 import path from 'path';
 
-export class RunFileManager{
-    path: string;
+export class RunFileManager {
+    private path: string;
 
-    constructor(userFolderPath: string){
+    constructor(userFolderPath: string) {
+        if (!userFolderPath) {
+            console.error("RunFileManager error: userFolderPath is not provided. Run file operations will be disabled.");
+            this.path = ''; 
+            return;
+        }
         this.path = path.join(userFolderPath, "run", "votc.txt");
         console.log(`RunFileManager initialized. File path: ${this.path}`);
-
         this.createRunFolder(userFolderPath);
     }
 
-    write(text: string): void{
-        fs.writeFileSync(this.path, text, 'utf-8');
+    write(text: string): void {
+        if (!this.path) {
+            console.warn('RunFileManager: Cannot write - path is not configured.');
+            return;
+        }
+        try {
+            let currentText = '';
+            if (fs.existsSync(this.path)) {
+                currentText = fs.readFileSync(this.path, 'utf-8');
+            }
 
-        console.log("Wrote to run file: "+text)
+            if (currentText.trim() === '') {
+                console.log(`RunFileManager: Run file is empty - writing new effect.`);
+                fs.writeFileSync(this.path, `${text}\nroot = {trigger_event = mcc_event_v2.9003}`, 'utf-8');
+            } else {
+                console.log(`RunFileManager: Run file is not empty - prepending new effect.`);
+                fs.writeFileSync(this.path, `${text}\n${currentText}`, 'utf-8');
+            }
+            console.log(`RunFileManager: Wrote to run file: ${text}`);
+        } catch (error) {
+            console.error(`RunFileManager: Failed to write to file ${this.path}:`, error);
+        }
     }
 
-    append(text: string): void{
-        fs.appendFileSync(this.path, text)
-        console.log("Appended to run file: "+text)
+    append(text: string): void {
+        if (!this.path) {
+            console.warn('RunFileManager: Cannot append - path is not configured.');
+            return;
+        }
+        try {
+            fs.appendFileSync(this.path, `\n${text}`, 'utf-8');
+            console.log(`RunFileManager: Appended to run file: ${text}`);
+        } catch (error) {
+            console.error(`RunFileManager: Failed to append to file ${this.path}:`, error);
+        }
     }
 
-    clear(): void{
-        fs.writeFileSync(this.path, "");
-        console.log("Run File cleared")
+    clear(): void {
+        if (!this.path) {
+            console.warn('RunFileManager: Cannot clear - path is not configured.');
+            return;
+        }
+        try {
+            fs.writeFileSync(this.path, "", 'utf-8');
+            console.log("RunFileManager: Run file cleared.");
+        } catch (error) {
+            console.error(`RunFileManager: Failed to clear file ${this.path}:`, error);
+        }
     }
 
-    createRunFolder(userFolderPath: string){
+    private createRunFolder(userFolderPath: string): void {
         const runFolderPath = path.join(userFolderPath, "run");
-        if(userFolderPath && !fs.existsSync(runFolderPath)){
-            try{
-                fs.mkdirSync(runFolderPath);
+        if (!fs.existsSync(runFolderPath)) {
+            try {
+                fs.mkdirSync(runFolderPath, { recursive: true });
                 console.log(`Created run folder at: ${runFolderPath}`);
+            } catch (err) {
+                console.error("RunFileManager error creating run folder: " + err);
             }
-            catch(err){
-                console.error("RunFileManager error creating run folder: "+err)
-            }
-
         }
     }
 }
