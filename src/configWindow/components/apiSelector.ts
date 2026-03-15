@@ -1,6 +1,6 @@
 import {ipcRenderer } from 'electron';
 import { Config } from '../../shared/Config';
-import { ApiConnection, player2BaseUrl } from '../../shared/apiConnection';
+import { ApiConnection, player2BaseUrl, Connection } from '../../shared/apiConnection';
 
 const template = document.createElement("template");
 
@@ -870,7 +870,7 @@ class ApiSelector extends HTMLElement{
     private async _populatePlayer2Models() {
         console.log("Populating Player2 models...");
         // Create a temporary connection object just for this task
-        const tempConnection = new ApiConnection({ type: 'player2' } as Connection, {} as Parameters);
+        const tempConnection = new ApiConnection({ type: 'player2' } as Connection, {} as any);
         const models = await tempConnection.listModels();
 
         // Get currently saved model to re-select it later
