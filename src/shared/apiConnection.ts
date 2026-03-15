@@ -542,6 +542,44 @@ export class ApiConnection{
         return ""
     }
 
+    async listModels(): Promise<any[]> {
+        if (this.type === 'player2') {
+            try {
+                const response = await fetch(`${player2BaseUrl}/models`, {
+                    method: 'GET',
+                    headers: {
+                        'player2-game-key': player2GameKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    console.error("Failed to fetch Player2 models:", response.statusText);
+                    // Fallback to just the free model
+                    return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
+                }
+                const modelData = await response.json();
+                let models = modelData.data || [];
+
+                // Ensure gpt-oss-120b is in the list and move it to the top
+                const ossModelIndex = models.findIndex((m: any) => m.id === 'gpt-oss-120b');
+                if (ossModelIndex > -1) {
+                    const ossModel = models.splice(ossModelIndex, 1)[0];
+                    models.unshift(ossModel);
+                } else {
+                    models.unshift({ id: 'gpt-oss-120b', owned_by: 'player2-local' });
+                }
+                
+                return models;
+            } catch (error) {
+                console.error("Error fetching Player2 models:", error);
+                // Fallback to just the free model in case of network error etc.
+                return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
+            }
+        }
+        // Return empty for other types for now
+        return [];
+    }
+
     async testConnection(): Promise<apiConnectionTestResult>{
         console.debug("--- API CONNECTION: testConnection() ---");
         if (this.type === 'gemini') {

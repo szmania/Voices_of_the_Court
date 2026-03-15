@@ -331,6 +331,10 @@ class ApiSelector extends HTMLElement{
         this.typeSelector.value = apiConfig.type;
         this.displaySelectedApiBox();
 
+        if (apiConfig.type === 'player2') {
+            this._populatePlayer2Models();
+        }
+
         // 从apiKeys字段中加载所有API类型的配置（如果存在）
         const apiKeys = apiConfig.apiKeys || {};
         
@@ -424,6 +428,10 @@ class ApiSelector extends HTMLElement{
             console.debug(confID)
 
             this.displaySelectedApiBox();
+
+            if (this.typeSelector.value === 'player2') {
+                this._populatePlayer2Models();
+            }
 
             switch(this.typeSelector.value){
                 case 'openai': 
@@ -857,6 +865,40 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'player2', config);
         ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'player2', config);
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'player2', config);
+    }
+
+    private async _populatePlayer2Models() {
+        console.log("Populating Player2 models...");
+        // Create a temporary connection object just for this task
+        const tempConnection = new ApiConnection({ type: 'player2' } as Connection, {} as Parameters);
+        const models = await tempConnection.listModels();
+
+        // Get currently saved model to re-select it later
+        const config = await ipcRenderer.invoke('get-config');
+        const savedModel = config[this.confID]?.connection?.model;
+
+        this.player2ModelSelect.innerHTML = ''; // Clear existing options
+
+        models.forEach((model: any) => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            let displayName = model.id;
+            if (model.id === 'gpt-oss-120b') {
+                displayName = "GPT-OSS-120B (Free)";
+            }
+            option.textContent = displayName;
+            this.player2ModelSelect.appendChild(option);
+        });
+
+        // Set the selected option based on saved config or default to the free model
+        if (savedModel && models.some(m => m.id === savedModel)) {
+            this.player2ModelSelect.value = savedModel;
+        } else {
+            this.player2ModelSelect.value = 'gpt-oss-120b';
+        }
+        
+        // Trigger a save to update the model in the config if it was defaulted
+        this.savePlayer2Config();
     }
 
     public updateTranslation() {
