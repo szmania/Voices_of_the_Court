@@ -111,6 +111,18 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
         }
         if(!isValidAction) continue;
 
+        // NEW: Perform pre-check if available
+        if (matchedAction.preCheck) {
+            const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newInitiatorId, newTargetId);
+            if (!preCheckResult.success) {
+                console.warn(`Action pre-check failed for "${matchedAction.signature}": ${preCheckResult.message}`);
+                if (preCheckResult.message) {
+                    conv.chatWindow.window.webContents.send('error-message', `Action '${matchedAction.signature}' cannot be executed: ${preCheckResult.message}`);
+                }
+                continue; // Skip to the next action
+            }
+        }
+
         console.log(`Executing action: ${matchedAction.signature} with initiator: ${newInitiatorId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
         try {
             let effectBody = "";
