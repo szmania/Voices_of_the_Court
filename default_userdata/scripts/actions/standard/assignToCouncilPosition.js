@@ -8,7 +8,7 @@ v0.1.1
 */
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
-module.exports = {
+const action = {
     signature: "assignToCouncilPosition",
     args: [
         {
@@ -159,16 +159,23 @@ module.exports = {
     },    
 
     chatMessage: (args) =>{
+        const positionValue = args[0];
+        const positionOption = action.args[0].options.find(opt => opt.value === positionValue);
+        
+        const positionNames = positionOption ? positionOption.display : {
+            en: positionValue, zh: positionValue, ru: positionValue, fr: positionValue, es: positionValue, de: positionValue, ja: positionValue, ko: positionValue, pl: positionValue
+        };
+
         return {
-            en: `{{character1Name}} appointed {{character2Name}} as ${args[0]} on the council.`,
-            zh: `{{character1Name}}任命{{character2Name}}为内阁的${args[0]}`,
-            ru: `{{character1Name}} назначил {{character2Name}} на должность ${args[0]} в совете.`,
-            fr: `{{character1Name}} a nommé {{character2Name}} au poste de ${args[0]} au conseil.`,
-            es: `{{character1Name}} nombró a {{character2Name}} como ${args[0]} en el consejo.`,
-            de: `{{character1Name}} hat {{character2Name}} als ${args[0]} in den Rat berufen.`,
-            ja: `{{character1Name}}は{{character2Name}}を評議会の${args[0]}に任命しました。`,
-            ko: `{{character1Name}}는 {{character2Name}}를 의회 ${args[0]}로 임명했습니다.`,
-            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${args[0]} w radzie.`
+            en: `{{character1Name}} appointed {{character2Name}} as ${positionNames.en} on the council.`,
+            zh: `{{character1Name}}任命{{character2Name}}为内阁的${positionNames.zh}`,
+            ru: `{{character1Name}} назначил {{character2Name}} на должность ${positionNames.ru} в совете.`,
+            fr: `{{character1Name}} a nommé {{character2Name}} au poste de ${positionNames.fr} au conseil.`,
+            es: `{{character1Name}} nombró a {{character2Name}} como ${positionNames.es} en el consejo.`,
+            de: `{{character1Name}} hat {{character2Name}} als ${positionNames.de} in den Rat berufen.`,
+            ja: `{{character1Name}}は{{character2Name}}を評議会の${positionNames.ja}に任命しました。`,
+            ko: `{{character1Name}}는 {{character2Name}}를 의회 ${positionNames.ko}로 임명했습니다.`,
+            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl} w radzie.`
         }
     },
     chatMessageClass: "positive-action-message"
@@ -177,3 +184,4 @@ module.exports = {
 function cleanAndLowercase(text) {
     return text.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
 }
+module.exports = action;
