@@ -139,6 +139,7 @@ export async function checkUserData(){
         // Set Player2 as default for new users
         if (!userConfig.textGenerationApiConnectionConfig?.connection?.type) {
             defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+            defaultConfig.textGenerationApiConnectionConfig.connection.model = 'gpt-oss-120b';
         }
 
         // Step 3.2: Perform a Deep Merge
@@ -175,6 +176,7 @@ export async function checkUserData(){
         console.log(`Config file not found at ${configPath}. Creating new config with Player2 as default.`);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
         defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
+        defaultConfig.textGenerationApiConnectionConfig.connection.model = 'gpt-oss-120b';
         
         const configsToUpdate = [
             'textGenerationApiConnectionConfig',

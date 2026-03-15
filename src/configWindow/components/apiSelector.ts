@@ -159,6 +159,7 @@ function defineTemplate(label: string){
             <div class="input-group" style="display: none;">
                 <label for="player2-model-select" data-i18n="connection.model">Model</label>
                 <select id="player2-model-select">
+                    <option value="gpt-oss-120b">GPT-OSS-120B (Free)</option>
                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                     <option value="gpt-4o">GPT-4o</option>
                 </select>
