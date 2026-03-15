@@ -413,6 +413,7 @@ chatInput.addEventListener('keydown', async function(e) {
         chatInput.value = '';
 
         let message: Message = {
+            id: randomUUID(),
             role: "user",
             name: playerName,
             content: messageText
@@ -1555,10 +1556,9 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     ipcRenderer.send('chat-window-ready');
 });
 
-ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposedActions: ActionResponse[]) => {
-    if (messageIndex < currentConversationMessageDivs.length) {
-        const messageDiv = currentConversationMessageDivs[messageIndex];
-
+ipcRenderer.on('action-approval-request', (event, messageId: string, proposedActions: ActionResponse[]) => {
+    const messageDiv = document.getElementById(`message-${messageId}`);
+    if (messageDiv) {
         const approvalContainer = document.createElement('div');
         approvalContainer.classList.add('action-approval-container');
 
@@ -1585,7 +1585,7 @@ ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposed
             const approveTooltip = (lm ? lm.getNestedTranslation('chat.action_approve_tooltip') : null) || 'Accept this action and apply its effects in-game.';
             approveButton.setAttribute('data-tooltip', approveTooltip);
             approveButton.onclick = () => {
-                ipcRenderer.send('execute-approved-action', messageIndex, action.actionName);
+                ipcRenderer.send('execute-approved-action', messageId, action.actionName);
                 actionPrompt.remove();
                 // If no more prompts, remove the container
                 if (approvalContainer.childElementCount === 0) {
@@ -1616,7 +1616,7 @@ ipcRenderer.on('action-approval-request', (event, messageIndex: number, proposed
         messageDiv.appendChild(approvalContainer);
         approvalContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-        console.error(`Action approval request for invalid messageIndex: ${messageIndex}`);
+        console.error(`Could not find message div with id: message-${messageId}`);
     }
 });
 

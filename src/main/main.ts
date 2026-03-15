@@ -1152,10 +1152,10 @@ ipcMain.on('resume-conversation', () => {
     }
 });
 
-ipcMain.on('execute-approved-action', (event, messageIndex: number, actionName: string) => {
+ipcMain.on('execute-approved-action', (event, messageId: string, actionName: string) => {
     console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
     if (conversation) {
-        conversation.executeApprovedAction(messageIndex, actionName);
+        conversation.executeApprovedAction(messageId, actionName);
     }
 });
 

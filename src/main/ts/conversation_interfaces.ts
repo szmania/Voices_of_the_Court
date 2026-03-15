@@ -1,6 +1,7 @@
 import { GameData } from "../../shared/gameData/GameData";
 
 export interface Message {
+    id?: string;
     role: 'system' | 'user' | 'assistant';
     name?: string,
     content: string ;

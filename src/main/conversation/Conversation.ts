@@ -66,7 +66,7 @@ export class Conversation{
     historicalConversations!: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}>; // Store historical conversation metadata
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
-    pendingActions: Map<number, PendingAction[]>;
+    pendingActions: Map<string, PendingAction[]>;
 
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -133,7 +133,6 @@ export class Conversation{
         this.persistCustomQueue = false;
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
-        this.pendingActions = new Map();
         this.pendingActions = new Map();
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
@@ -445,6 +444,9 @@ export class Conversation{
     }
 
     pushMessage(message: Message): void{
+        if (!message.id) {
+            message.id = randomUUID();
+        }
         // If this is an AI message, try to remove a placeholder
         if (message.role === 'assistant' && (message as any).characterId) {
             const characterId = (message as any).characterId;
@@ -1281,16 +1283,16 @@ ${character.fullName}的发言：`
         }
     }
 
-    async executeApprovedAction(messageIndex: number, actionName: string) {
-        const pending = this.pendingActions.get(messageIndex);
+    async executeApprovedAction(messageId: string, actionName: string) {
+        const pending = this.pendingActions.get(messageId);
         if (!pending) {
-            console.error(`No pending actions found for message index ${messageIndex}`);
+            console.error(`No pending actions found for message ID ${messageId}`);
             return;
         }
 
         const actionToExecute = pending.find(p => p.action.signature === actionName);
         if (!actionToExecute) {
-            console.error(`Action ${actionName} not found in pending actions for message index ${messageIndex}`);
+            console.error(`Action ${actionName} not found in pending actions for message ID ${messageId}`);
             return;
         }
 
@@ -1330,9 +1332,9 @@ ${character.fullName}的发言：`
         // Remove the executed action from pending
         const updatedPending = pending.filter(p => p.action.signature !== actionName);
         if (updatedPending.length === 0) {
-            this.pendingActions.delete(messageIndex);
+            this.pendingActions.delete(messageId);
         } else {
-            this.pendingActions.set(messageIndex, updatedPending);
+            this.pendingActions.set(messageId, updatedPending);
         }
     }
 

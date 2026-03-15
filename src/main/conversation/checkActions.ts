@@ -112,9 +112,12 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
 
         if (proposedActions.length > 0) {
             const messageIndex = conv.messages.length - 1;
-            conv.pendingActions.set(messageIndex, pendingActionsForMessage);
-            conv.chatWindow.window.webContents.send('action-approval-request', messageIndex, proposedActions);
-            console.log(`Sent ${proposedActions.length} actions for user approval.`);
+            const message = conv.messages[messageIndex];
+            if (message.id) {
+                conv.pendingActions.set(message.id, pendingActionsForMessage);
+                conv.chatWindow.window.webContents.send('action-approval-request', message.id, proposedActions);
+                console.log(`Sent ${proposedActions.length} actions for user approval for message ${message.id}.`);
+            }
         }
         return [];
     }
