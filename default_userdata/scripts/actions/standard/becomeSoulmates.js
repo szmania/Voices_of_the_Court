@@ -21,55 +21,96 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}} and {{aiName}} become passionate soulmates.`,
-        zh: `当{{playerName}}和{{aiName}}成为彼此的激情灵魂伴侣时执行。`,
-        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся страстными родственными душами.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent des âmes sœurs passionnées.`,
-        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en almas gemelas apasionadas.`,
-        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} zu leidenschaftlichen Seelenverwandten werden.`,
-        ja: `{{playerName}}と{{aiName}}が情熱的な魂の伴侶になったときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}}가 열정적인 영혼의 동반자가 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się namiętnymi bratnimi duszami.`
+        en: `Executed when two characters become passionate soulmates.`,
+        zh: `当两个角色成为彼此的激情灵魂伴侣时执行。`,
+        ru: `Выполняется, когда два персонажа становятся страстными родственными душами.`,
+        fr: `Exécuté lorsque deux personnages deviennent des âmes sœurs passionnées.`,
+        es: `Ejecutado cuando dos personajes se convierten en almas gemelas apasionadas.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere zu leidenschaftlichen Seelenverwandten werden.`,
+        ja: `二人のキャラクターが情熱的な魂の伴侶になったときに実行されます。`,
+        ko: `두 캐릭터가 열정적인 영혼의 동반자가 될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie stają się namiętnymi bratnimi duszami.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
-		return !(ai.relationsToPlayer.includes("Soulmate")) && ai.opinionOfPlayer > 40 && ai.getOpinionModifierValue("From conversations") > 35
-				
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+            // Simulate conversation opinion for AI-AI
+            if (opinionOfInitiator > 40) conversationOpinion = 36;
+        }
+
+		return !relations.includes("Soulmate") && opinionOfInitiator > 40 && conversationOpinion > 35;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         console.log(args[0])
-        let ai = gameData.getAi();
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_soulmate = { reason = ${args[0]} target = global_var:votcce_action_source }
-        }`)
-		ai.addTrait({
-        category: "flag",
-        name: "AlreadySoulmate",
-        desc: `${gameData.getAi().shortName} had sex recently`
-		})
-		gameData.getAi().relationsToPlayer.push("Soulmate");
+        }`);
+
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+		target.addTrait({
+            category: "flag",
+            name: "AlreadySoulmate",
+            desc: `${target.shortName} is a soulmate`
+		});
+
+        if (initiator.id === gameData.playerID) {
+            if (!target.relationsToPlayer.includes("Soulmate")) {
+                target.relationsToPlayer.push("Soulmate");
+            }
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                if (!relationEntry.relations.includes("Soulmate")) {
+                    relationEntry.relations.push("Soulmate");
+                }
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Soulmate"] });
+            }
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your soulmate.`,
-            zh: `{{aiName}}成为了你的灵魂伴侣。`,
-            ru: `{{aiName}} стал вашей родственной душой.`,
-            fr: `{{aiName}} est devenu votre âme sœur.`,
-            es: `{{aiName}} se convirtió en tu alma gemela.`,
-            de: `{{aiName}} ist dein Seelenverwandter geworden.`,
-            ja: `{{aiName}}はあなたの魂の伴侶になりました。`,
-            ko: `{{aiName}}가 당신의 영혼의 동반자가 되었습니다.`,
-            pl: `{{aiName}} stał się twoją bratnią duszą.`
+            en: `{{character1Name}} and {{character2Name}} became soulmates.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了灵魂伴侣。`,
+            ru: `{{character1Name}} и {{character2Name}} стали родственными душами.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus des âmes sœurs.`,
+            es: `{{character1Name}} y {{character2Name}} se convirtieron en almas gemelas.`,
+            de: `{{character1Name}} und {{character2Name}} sind Seelenverwandte geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}は魂の伴侶になりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 영혼의 동반자가 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} stali się bratnimi duszami.`
         }
     },
     chatMessageClass: "positive-action-message"

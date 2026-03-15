@@ -6,15 +6,15 @@ module.exports = {
     args: [],
 	
     description: {
-        en: `Executed when {{aiName}} and {{playerName}} agree to form an alliance.`,
-        zh: `当{{aiName}}和{{playerName}}同意结成同盟时执行。`,
-        ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются заключить союз.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent de former une alliance.`,
-        es: `Ejecutado cuando {{aiName}} y {{playerName}} acuerdan formar una alianza.`,
-        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} sich einigen, ein Bündnis zu bilden.`,
-        ja: `{{aiName}}と{{playerName}}が同盟を結ぶことに同意したときに実行されます。`,
-        ko: `{{aiName}}와 {{playerName}}가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} zgadzają się na zawarcie sojuszu.`
+        en: `Executed when two characters agree to form an alliance.`,
+        zh: `当两个角色同意结成联盟时执行。`,
+        ru: `Выполняется, когда два персонажа соглашаются заключить союз.`,
+        fr: `Exécuté lorsque deux personnages conviennent de former une alliance.`,
+        es: `Ejecutado cuando dos personajes acuerdan formar una alianza.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere sich einigen, ein Bündnis zu bilden.`,
+        ja: `二人のキャラクターが同盟を結ぶことに同意したときに実行されます。`,
+        ko: `두 캐릭터가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie zgadzają się na zawarcie sojuszu.`
     },
 	
     check: (gameData, initiatorId, targetId) => {

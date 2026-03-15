@@ -18,8 +18,10 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
+    check: (gameData, initiatorId, targetId) => {
         return true;
     },
 
@@ -27,8 +29,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         runGameEffect(`
         global_var:votcce_action_target = {
             add_character_flag = {
@@ -40,15 +44,15 @@ module.exports = {
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} undressed.`,
-            zh: `{{aiName}}脱去了衣服`,
-            ru: `{{aiName}} разделся.`,
-            fr: `{{aiName}} s'est déshabillé.`,
-            es: `{{aiName}} se desvistió.`,
-            de: `{{aiName}} hat sich ausgezogen.`,
-            ja: `{{aiName}}は服を脱ぎました。`,
-            ko: `{{aiName}}가 옷을 벗었습니다.`,
-            pl: `{{aiName}} rozebrał się.`,
+            en: `{{character2Name}} undressed.`,
+            zh: `{{character2Name}}脱去了衣服`,
+            ru: `{{character2Name}} разделся.`,
+            fr: `{{character2Name}} s'est déshabillé.`,
+            es: `{{character2Name}} se desvistió.`,
+            de: `{{character2Name}} hat sich ausgezogen.`,
+            ja: `{{character2Name}}は服を脱ぎました。`,
+            ko: `{{character2Name}}가 옷을 벗었습니다.`,
+            pl: `{{character2Name}} rozebrał się.`
         }
     },
     chatMessageClass: "neutral-action-message"

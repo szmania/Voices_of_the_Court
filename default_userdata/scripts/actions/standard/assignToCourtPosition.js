@@ -84,7 +84,7 @@ const action = {
     run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         const court_position = args[0];
         switch (court_position) {
-            case "御医":
+            case "court_physician":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_physician_court_position
@@ -96,7 +96,7 @@ const action = {
                     }
                 `);
                 break;
-            case "天鹅官":
+            case "keeper_of_swans":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = keeper_of_swans_court_position
@@ -108,7 +108,7 @@ const action = {
                     }
                 `);
                 break;
-            case "旅行领队":
+            case "travel_leader":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = travel_leader_court_position
@@ -120,7 +120,7 @@ const action = {
                     }
                 `);
                 break;
-            case "马厩总管":
+            case "master_of_horse":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = master_of_horse_court_position
@@ -132,7 +132,7 @@ const action = {
                     }
                 `);
                 break;
-            case "宫廷小丑":
+            case "court_jester":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_jester_court_position
@@ -144,7 +144,7 @@ const action = {
                     }
                 `);
                 break;
-            case "狩猎主管":
+            case "master_of_hunt":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = master_of_hunt_court_position
@@ -156,7 +156,7 @@ const action = {
                     }
                 `);
                 break;
-            case "大施赈官":
+            case "high_almoner":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = high_almoner_court_position
@@ -168,7 +168,7 @@ const action = {
                     }
                 `);
                 break;
-            case "执杯官":
+            case "cupbearer":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = cupbearer_court_position
@@ -180,7 +180,7 @@ const action = {
                     }
                 `);
                 break;
-            case "总管":
+            case "seneschal":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = seneschal_court_position
@@ -192,7 +192,7 @@ const action = {
                     }
                 `);
                 break;
-            case "古物收藏家":
+            case "antiquarian":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = antiquarian_court_position
@@ -204,7 +204,7 @@ const action = {
                     }
                 `);
                 break;
-            case "导师":
+            case "court_tutor":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_tutor_court_position
@@ -216,7 +216,7 @@ const action = {
                     }
                 `);
                 break;
-            case "建筑师":
+            case "royal_architect":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = royal_architect_court_position
@@ -228,7 +228,7 @@ const action = {
                     }
                 `);
                 break;
-            case "宫廷诗人":
+            case "court_poet":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_poet_court_position
@@ -240,7 +240,7 @@ const action = {
                     }
                 `);
                 break;
-            case "侍卫":
+            case "bodyguard":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = bodyguard_court_position
@@ -252,7 +252,7 @@ const action = {
                     }
                 `);
                 break;
-            case "宫廷冠军":
+            case "champion":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = champion_court_position
@@ -264,7 +264,7 @@ const action = {
                     }
                 `);
                 break;
-            case "音乐家":
+            case "court_musician":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_musician_court_position
@@ -276,7 +276,7 @@ const action = {
                     }
                 `);
                 break;
-            case "试食官":
+            case "food_taster":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = food_taster_court_position
@@ -288,7 +288,7 @@ const action = {
                     }
                 `);
                 break;
-            case "侍女":
+            case "lady_in_waiting":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = lady_in_waiting_court_position
@@ -300,7 +300,7 @@ const action = {
                     }
                 `);
                 break;
-            case "首席太监":
+            case "chief_eunuch":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = chief_eunuch_court_position
@@ -312,7 +312,7 @@ const action = {
                     }
                 `);
                 break;
-            case "宫廷园丁":
+            case "court_gardener":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = court_gardener_court_position
@@ -324,7 +324,7 @@ const action = {
                     }
                 `);
                 break;
-            case "大法官":
+            case "chief_qadi":
                 runGameEffect(`
                     revoke_court_position = {
                         court_position = chief_qadi_court_position
@@ -336,7 +336,7 @@ const action = {
                     }
                 `);
                 break;
-            case "乳母":
+            case "wet_nurse":
                 runGameEffect(`
                     if={
                         limit = {
@@ -354,7 +354,7 @@ const action = {
                         }
                 `);
                 break;
-            case "侍从官":
+            case "akolouthos":
                 runGameEffect(`
                     if = {
                     limit = {

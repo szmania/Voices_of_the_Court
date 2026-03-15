@@ -2,24 +2,26 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiLeavesConversation",
+    signature: "leaveConversation",
     args: [],
     description: {
-        en: `Executed when {{aiName}} leaves the conversation.`,
-        zh: `当{{aiName}}离开对话时执行。`,
-        ru: `Выполняется, когда {{aiName}} покидает разговор.`,
-        fr: `Exécuté lorsque {{aiName}} quitte la conversation.`,
-        es: `Ejecutado cuando {{aiName}} abandona la conversación.`,
-        de: `Wird ausgeführt, wenn {{aiName}} das Gespräch verlässt.`,
-        ja: `{{aiName}}が会話を離れたときに実行されます。`,
-        ko: `{{aiName}}가 대화를 떠날 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} opuszcza rozmowę.`
+        en: `Executed when a character leaves the conversation.`,
+        zh: `当一个角色离开对话时执行。`,
+        ru: `Выполняется, когда персонаж покидает разговор.`,
+        fr: `Exécuté lorsqu'un personnage quitte la conversation.`,
+        es: `Ejecutado cuando un personaje abandona la conversación.`,
+        de: `Wird ausgeführt, wenn ein Charakter das Gespräch verlässt.`,
+        ja: `キャラクターが会話を離れたときに実行されます。`,
+        ko: `캐릭터가 대화를 떠날 때 실행됩니다.`,
+        pl: `Wykonywane, gdy postać opuszcza rozmowę.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
+    check: (gameData, initiatorId, targetId) => {
         return true;
     },
 
@@ -27,16 +29,18 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
             runGameEffect(`
                 remove_list_global_variable = {
                     name = mcc_characters_list_v2
-                    target = global_var:votcce_action_target
+                    target = global_var:votcce_action_source
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_0 = global_var:votcce_action_target
+                        global_var:mcc_character_0 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_0
                     if = {
@@ -58,7 +62,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_1 = global_var:votcce_action_target
+                        global_var:mcc_character_1 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_1
                     if = {
@@ -80,7 +84,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_2 = global_var:votcce_action_target
+                        global_var:mcc_character_2 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_2   
                     if = {
@@ -102,7 +106,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_3 = global_var:votcce_action_target
+                        global_var:mcc_character_3 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_3
                     if = {
@@ -124,7 +128,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_4 = global_var:votcce_action_target
+                        global_var:mcc_character_4 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_4   
                     if = {
@@ -146,7 +150,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_5 = global_var:votcce_action_target
+                        global_var:mcc_character_5 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_5
                     if = {
@@ -168,7 +172,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_6 = global_var:votcce_action_target
+                        global_var:mcc_character_6 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_6
                     if = {
@@ -190,7 +194,7 @@ module.exports = {
                 } 
                 if ={
                     limit = {
-                        global_var:mcc_character_7 = global_var:votcce_action_target
+                        global_var:mcc_character_7 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_7
                     if = {
@@ -212,7 +216,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_8 = global_var:votcce_action_target
+                        global_var:mcc_character_8 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_8
                     if = {
@@ -234,7 +238,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_9 = global_var:votcce_action_target
+                        global_var:mcc_character_9 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_9
                     if = {
@@ -256,7 +260,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_10 = global_var:votcce_action_target
+                        global_var:mcc_character_10 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_10
                     if = {
@@ -278,7 +282,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_11 = global_var:votcce_action_target
+                        global_var:mcc_character_11 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_11
                     if = {
@@ -300,7 +304,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_12 = global_var:votcce_action_target
+                        global_var:mcc_character_12 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_12
                     if = {
@@ -322,7 +326,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_13 = global_var:votcce_action_target
+                        global_var:mcc_character_13 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_13
                     if = {
@@ -344,7 +348,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_14 = global_var:votcce_action_target
+                        global_var:mcc_character_14 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_14
                     if = {
@@ -366,7 +370,7 @@ module.exports = {
                 }
                 if ={
                     limit = {
-                        global_var:mcc_character_15 = global_var:votcce_action_target
+                        global_var:mcc_character_15 = global_var:votcce_action_source
                     }
                     remove_global_variable = mcc_character_15
                     if = {
@@ -390,15 +394,15 @@ module.exports = {
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} left the conversation.`,
-            zh: `{{aiName}}离开了对话。`,
-            ru: `{{aiName}} покинул разговор.`,
-            fr: `{{aiName}} a quitté la conversation.`,
-            es: `{{aiName}} abandonó la conversación.`,
-            de: `{{aiName}} hat das Gespräch verlassen.`,
-            ja: `{{aiName}}は会話を離れました。`,
-            ko: `{{aiName}}가 대화를 떠났습니다.`,
-            pl: `{{aiName}} opuścił rozmowę.`
+            en: `{{character1Name}} left the conversation.`,
+            zh: `{{character1Name}}离开了对话。`,
+            ru: `{{character1Name}} покинул разговор.`,
+            fr: `{{character1Name}} a quitté la conversation.`,
+            es: `{{character1Name}} abandonó la conversación.`,
+            de: `{{character1Name}} hat das Gespräch verlassen.`,
+            ja: `{{character1Name}}は会話を離れました。`,
+            ko: `{{character1Name}}가 대화를 떠났습니다.`,
+            pl: `{{character1Name}} opuścił rozmowę.`
         }
     },
     chatMessageClass: "neutral-action-message"

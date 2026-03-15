@@ -2,7 +2,7 @@
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 module.exports = {
-    signature: "aiAgreedToTruce",
+    signature: "agreeToTruce",
     args: [
         {
             name: "years",
@@ -22,34 +22,51 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{aiName}} and {{playerName}} agree to a mutual truce for a certain number of years.`,
-        zh: `当{{aiName}}和{{playerName}}同意达成一定年限的相互休战协议时执行。`,
-        ru: `Выполняется, когда {{aiName}} и {{playerName}} соглашаются на взаимное перемирие на определенное количество лет.`,
-        fr: `Exécuté lorsque {{aiName}} et {{playerName}} conviennent d'une trêve mutuelle pour un certain nombre d'années.`,
-        es: `Ejecutado cuando {{aiName}} y {{playerName}} acuerdan una tregua mutua por un cierto número de años.`,
-        de: `Wird ausgeführt, wenn {{aiName}} und {{playerName}} sich auf einen gegenseitigen Waffenstillstand für eine bestimmte Anzahl von Jahren einigen.`,
-        ja: `{{aiName}}と{{playerName}}が一定年数の相互休戦に同意したときに実行されます。`,
-        ko: `{{aiName}}와 {{playerName}}가 특정 년수 동안의 상호 휴전에 동의할 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{aiName}} i {{playerName}} zgadzają się na wzajemne zawieszenie broni na określoną liczbę lat.`
+        en: `Executed when two characters agree to a mutual truce for a certain number of years.`,
+        zh: `当两个角色同意达成一定年限的相互休战协议时执行。`,
+        ru: `Выполняется, когда два персонажа соглашаются на взаимное перемирие на определенное количество лет.`,
+        fr: `Exécuté lorsque deux personnages conviennent d'une trêve mutuelle pour un certain nombre d'années.`,
+        es: `Ejecutado cuando dos personajes acuerdan una tregua mutua por un cierto número de años.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere sich auf einen gegenseitigen Waffenstillstand für eine bestimmte Anzahl von Jahren einigen.`,
+        ja: `二人のキャラクターが一定年数の相互休戦に同意したときに実行されます。`,
+        ko: `두 캐릭터가 특정 년수 동안의 상호 휴전에 동의할 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie zgadzają się na wzajemne zawieszenie broni na określoną liczbę lat.`
     },
     
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        const ai = gameData.getAi();
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            // Simulate conversation opinion for AI-AI
+            if (opinionOfInitiator > 0) {
+                conversationOpinion = 15;
+            }
+        }
         
         // Only allow truce if opinion is moderately positive (>= 0)
         // and there's been meaningful conversation
-        if (ai.opinionOfPlayer >= 0) {
-            const conversationOpinion = ai.getOpinionModifierValue("From conversations");
-            
+        if (opinionOfInitiator >= 0) {
             // Only allow if conversation has built up some positive opinion (>= 15)
             // This prevents truces from happening too early in conversations
             if (conversationOpinion >= 15) {
                 // Higher opinion = higher probability of truce
                 // Range: 50% chance at opinion 0 to 80% chance at opinion 100
-                const probability = 0.5 + (ai.opinionOfPlayer / 100) * 0.3;
+                const probability = 0.5 + (opinionOfInitiator / 100) * 0.3;
                 return Math.random() < probability;
             }
         }
@@ -60,8 +77,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         let truceYears = args.length > 0 ? args[0] : 3; // Default to 3 years if not provided
 
         runGameEffect(`
@@ -90,15 +109,15 @@ module.exports = {
     chatMessage: (args) => {
         let truceYears = args.length > 0 ? args[0] : 3;
         return {
-            en: `{{aiName}} and {{playerName}} agreed to a ${truceYears}-year truce.`,
-            zh: `{{aiName}}和{{playerName}}同意了${truceYears}年的休战协议。`,
-            ru: `{{aiName}} и {{playerName}} согласились на перемирие на ${truceYears} года.`,
-            fr: `{{aiName}} et {{playerName}} ont convenu d'une trêve de ${truceYears} ans.`,
-            es: `{{aiName}} y {{playerName}} acordaron una tregua de ${truceYears} años.`,
-            de: `{{aiName}} und {{playerName}} haben sich auf einen Waffenstillstand von ${truceYears} Jahren geeinigt.`,
-            ja: `{{aiName}}と{{playerName}}は${truceYears}年間の休戦に同意しました。`,
-            ko: `{{aiName}}와 {{playerName}}가 ${truceYears}년간의 휴전에 동의했습니다.`,
-            pl: `{{aiName}} i {{playerName}} zgodzili się na zawieszenie broni na ${truceYears} lat.`
+            en: `{{character1Name}} and {{character2Name}} agreed to a ${truceYears}-year truce.`,
+            zh: `{{character1Name}}和{{character2Name}}同意了${truceYears}年的休战协议。`,
+            ru: `{{character1Name}} и {{character2Name}} согласились на перемирие на ${truceYears} года.`,
+            fr: `{{character1Name}} et {{character2Name}} ont convenu d'une trêve de ${truceYears} ans.`,
+            es: `{{character1Name}} y {{character2Name}} acordaron una tregua de ${truceYears} años.`,
+            de: `{{character1Name}} und {{character2Name}} haben sich auf einen Waffenstillstand von ${truceYears} Jahren geeinigt.`,
+            ja: `{{character1Name}}と{{character2Name}}は${truceYears}年間の休戦に同意しました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 ${truceYears}년간의 휴전에 동의했습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zgodzili się na zawieszenie broni na ${truceYears} lat.`
         };
     },
     

@@ -21,53 +21,96 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}} and {{aiName}} become lovers after a sexual encounter.`,
-        zh: `当{{playerName}}和{{aiName}}发生良好、出色或惊人的性关系并成为恋人时执行。`,
-        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся любовниками после сексуальной связи.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent amants après une relation sexuelle.`,
-        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en amantes después de un encuentro sexual.`,
-        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} nach einer sexuellen Begegnung zu Liebhabern werden.`,
-        ja: `{{playerName}}と{{aiName}}が性的な出会いの後に恋人同士になったときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}}가 성적인 만남 후에 연인이 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się kochankami po stosunku seksualnym.`
+        en: `Executed when two characters become lovers after a sexual encounter.`,
+        zh: `当两个角色发生良好、出色或惊人的性关系并成为恋人时执行。`,
+        ru: `Выполняется, когда два персонажа становятся любовниками после сексуальной связи.`,
+        fr: `Exécuté lorsque deux personnages deviennent amants après une relation sexuelle.`,
+        es: `Ejecutado cuando dos personajes se convierten en amantes después de un encuentro sexual.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere nach einer sexuellen Begegnung zu Liebhabern werden.`,
+        ja: `二人のキャラクターが性的な出会いの後に恋人同士になったときに実行されます。`,
+        ko: `두 캐릭터가 성적인 만남 후에 연인이 될 때 실행됩니다.`,
+        pl: `Wykonywane, gdy dwie postacie stają się kochankami po stosunku seksualnym.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
-        return !(ai.relationsToPlayer.includes("Lover")) && ai.getOpinionModifierValue("From conversations") > 25 && ai.opinionOfPlayer > 65
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+        let conversationOpinion = 0;
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+            conversationOpinion = target.getOpinionModifierValue("From conversations");
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+            // Simulate conversation opinion for AI-AI
+            if (opinionOfInitiator > 65) conversationOpinion = 26;
+        }
+        
+        return !relations.includes("Lover") && conversationOpinion > 25 && opinionOfInitiator > 65;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         console.log(args[0])
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_lover = { reason = ${args[0]} target = global_var:votcce_action_source }
-        }`)
-		gameData.getAi().addTrait({
-        category: "flag",
-        name: "AlreadyLover",
-        desc: `${gameData.getAi().shortName} already lover`
-		})
-		gameData.getAi().relationsToPlayer.push("Lover");
+        }`);
+
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+		target.addTrait({
+            category: "flag",
+            name: "AlreadyLover",
+            desc: `${target.shortName} already lover`
+		});
+
+        if (initiator.id === gameData.playerID) {
+            if (!target.relationsToPlayer.includes("Lover")) {
+                target.relationsToPlayer.push("Lover");
+            }
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                if (!relationEntry.relations.includes("Lover")) {
+                    relationEntry.relations.push("Lover");
+                }
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Lover"] });
+            }
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your lover.`,
-            zh: `{{aiName}}成为了你的恋人。`,
-            ru: `{{aiName}} стал вашим любовником.`,
-            fr: `{{aiName}} est devenu votre amant.`,
-            es: `{{aiName}} se convirtió en tu amante.`,
-            de: `{{aiName}} ist dein Liebhaber geworden.`,
-            ja: `{{aiName}}はあなたの恋人になりました。`,
-            ko: `{{aiName}}가 당신의 연인이 되었습니다.`,
-            pl: `{{aiName}} stał się twoim kochankiem.`
+            en: `{{character1Name}} and {{character2Name}} became lovers.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了恋人。`,
+            ru: `{{character1Name}} и {{character2Name}} стали любовниками.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus amants.`,
+            es: `{{character1Name}} y {{character2Name}} se convirtieron en amantes.`,
+            de: `{{character1Name}} und {{character2Name}} sind Liebhaber geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}は恋人同士になりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 연인이 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zostali kochankami.`
         }
     },
     chatMessageClass: "positive-action-message"

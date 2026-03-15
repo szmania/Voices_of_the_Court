@@ -21,53 +21,88 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when {{playerName}} and {{aiName}} become rivals.`,
-        zh: `当{{playerName}}和{{aiName}}成为彼此的仇人时执行。`,
-        ru: `Выполняется, когда {{playerName}} и {{aiName}} становятся соперниками.`,
-        fr: `Exécuté lorsque {{playerName}} et {{aiName}} deviennent rivaux.`,
-        es: `Ejecutado cuando {{playerName}} y {{aiName}} se convierten en rivales.`,
-        de: `Wird ausgeführt, wenn {{playerName}} und {{aiName}} zu Rivalen werden.`,
-        ja: `{{playerName}}と{{aiName}}がライバルになったときに実行されます。`,
-        ko: `{{playerName}}와 {{aiName}}가 라이벌이 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy {{playerName}} i {{aiName}} stają się rywalami.`
+        en: `Executed when two characters become rivals.`,
+        zh: `当两个角色成为彼此的仇人时执行。`,
+        ru: `Выполняется, когда два персонажа становятся соперниками.`,
+        fr: `Exécuté lorsque deux personnages deviennent rivaux.`,
+        es: `Ejecutado cuando dos personajes se convierten en rivales.`,
+        de: `Wird ausgeführt, wenn zwei Charaktere zu Rivalen werden.`,
+        ja: `二人のキャラクターがライバルになったときに実行されます。`,
+        ko: `두 캐릭터가 라이벌이 될 때 실행됩니다。`,
+        pl: `Wykonywane, gdy dwie postacie stają się rywalami.`
     },
 
     /**
      * @param {GameData} gameData 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    check: (gameData) => {
-        let ai = gameData.getAi();
+    check: (gameData, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return false;
+
+        let opinionOfInitiator = 0;
+        let relations = [];
+
+        if (initiator.id === gameData.playerID) {
+            opinionOfInitiator = target.opinionOfPlayer;
+            relations = target.relationsToPlayer;
+        } else {
+            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            relations = relationEntry ? relationEntry.relations : [];
+        }
         
-        return ( !ai.relationsToPlayer.includes("Friend") && 
-                !ai.relationsToPlayer.includes("Rival") &&
-                ai.opinionOfPlayer < 20
-                )
+        return !relations.includes("Friend") && 
+               !relations.includes("Rival") &&
+               opinionOfInitiator < 20;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
+     * @param {number} initiatorId
+     * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args) => {
+    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
         console.log(args[0])
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_rival = { reason = ${args[0]} target = global_var:votcce_action_source }
-        }`)
+        }`);
 
-        gameData.getAi().relationsToPlayer.push("Rival");
+        const initiator = gameData.getCharacterById(initiatorId);
+        const target = gameData.getCharacterById(targetId);
+        if (!initiator || !target) return;
+
+        if (initiator.id === gameData.playerID) {
+            if (!target.relationsToPlayer.includes("Rival")) {
+                target.relationsToPlayer.push("Rival");
+            }
+        } else {
+            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            if (relationEntry) {
+                if (!relationEntry.relations.includes("Rival")) {
+                    relationEntry.relations.push("Rival");
+                }
+            } else {
+                target.relationsToCharacters.push({ id: initiator.id, relations: ["Rival"] });
+            }
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `{{aiName}} became your rival.`,
-            zh: `{{aiName}}成为了你的仇人。`,
-            ru: `{{aiName}} стал вашим соперником.`,
-            fr: `{{aiName}} est devenu votre rival.`,
-            es: `{{aiName}} se convirtió en tu rival.`,
-            de: `{{aiName}} ist dein Rivale geworden.`,
-            ja: `{{aiName}}はあなたのライバルになりました。`,
-            ko: `{{aiName}}가 당신의 라이벌이 되었습니다.`,
-            pl: `{{aiName}} stał się twoim rywalem.`
+            en: `{{character1Name}} and {{character2Name}} became rivals.`,
+            zh: `{{character1Name}}和{{character2Name}}成为了仇人。`,
+            ru: `{{character1Name}} и {{character2Name}} стали соперниками.`,
+            fr: `{{character1Name}} et {{character2Name}} sont devenus rivaux.`,
+            es: `{{character1Name}} y {{character2Name}} se convirtieron en rivales.`,
+            de: `{{character1Name}} und {{character2Name}} sind zu Rivalen geworden.`,
+            ja: `{{character1Name}}と{{character2Name}}はライバルになりました。`,
+            ko: `{{character1Name}}와 {{character2Name}}가 라이벌이 되었습니다.`,
+            pl: `{{character1Name}} i {{character2Name}} zostali rywalami.`
         }
     },
     chatMessageClass: "negative-action-message"
