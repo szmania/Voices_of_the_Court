@@ -172,6 +172,9 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
+    if (message.id) {
+        messageDiv.id = `message-${message.id}`;
+    }
 
     if (isHistorical) {
         messageDiv.classList.add('historical-message');
