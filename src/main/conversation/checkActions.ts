@@ -12,12 +12,11 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     const character = conv.gameData.getCharacterById(initiatorId) || conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
 
-
-
     let availableActions: Action[] = [];
 
     for(let action of conv.actions){
         try{
+            // The check function now receives the initial context of who is talking to whom.
             if(action.check(conv.gameData, initiatorId, targetId)){
                 availableActions.push(action)
             }
@@ -26,11 +25,9 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
-
     }
     console.log(`Available actions for current context: ${availableActions.map(a => a.signature).join(', ')}`);
 
-    // If no actions are available, return early
     if (availableActions.length === 0) {
         console.log('No actions available for current context.');
         return [];
@@ -39,13 +36,12 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     let triggeredActions: ActionResponse[] = [];
 
     let response;
+    const prompt = buildActionChatPrompt(conv, availableActions);
     if(conv.actionsApiConnection.isChat()){
-        let prompt = buildActionChatPrompt(conv, availableActions);
         response = await conv.actionsApiConnection.complete(prompt, false, {} );
-    }
-    else{
-        let prompt = convertChatToTextPrompt(buildActionChatPrompt(conv, availableActions), conv.config );
-        response = await conv.actionsApiConnection.complete(prompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
+    } else {
+        let textPrompt = convertChatToTextPrompt(prompt, conv.config );
+        response = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
     }
 
     console.log(`Raw LLM response for actions: ${response}`);
@@ -61,7 +57,6 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     console.log(`Extracted rationale: ${rationale}`);
     console.log(`Extracted actions string: ${actionsString}`);
 
-
     if(actionsString.trim() === "noop()"){
         console.log('LLM returned "noop()", no actions triggered.');
         return [];
@@ -69,175 +64,81 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
 
     const actions = actionsString.split(',').filter(a => a.trim() !== 'noop()');
 
-    //validations
-    if (conv.config.manualActionApproval) {
-        const proposedActions: ActionResponse[] = [];
-        const pendingActionsForMessage: PendingAction[] = [];
-
-        for (const actionInResponse of actions) {
-            const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
-            if (!foundActionName) continue;
-
-            const matchedAction = availableActions.find(a => a.signature === foundActionName[0]);
-            if (!matchedAction) continue;
-
-            const argsString = /\(([^)]+)\)/.exec(actionInResponse);
-            const args = argsString ? argsString[1].split(",") : [];
-
-            if (args.length !== matchedAction.args.length) continue;
-
-            pendingActionsForMessage.push({
-                action: matchedAction,
-                args: args,
-                initiatorId: initiatorId,
-                targetId: targetId
-            });
-
-            const initiator = conv.gameData.getCharacterById(initiatorId);
-            const target = conv.gameData.getCharacterById(targetId);
-            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
-            conv.gameData.character2Name = target ? target.shortName : "someone";
-
-            let chatMessage = matchedAction.chatMessage(args);
-            if (typeof chatMessage === 'object' && chatMessage !== null) {
-                chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
-            }
-
-            proposedActions.push({
-                actionName: matchedAction.signature,
-                chatMessage: parseVariables(chatMessage || '', conv.gameData),
-                chatMessageClass: matchedAction.chatMessageClass
-            });
-        }
-
-        if (proposedActions.length > 0) {
-            const messageIndex = conv.messages.length - 1;
-            const message = conv.messages[messageIndex];
-            if (message.id) {
-                conv.pendingActions.set(message.id, pendingActionsForMessage);
-                conv.chatWindow.window.webContents.send('action-approval-request', message.id, proposedActions);
-                console.log(`Sent ${proposedActions.length} actions for user approval for message ${message.id}.`);
-            }
-        }
-        return [];
-    }
-
-
     for(const actionInResponse of actions){
-        //validate name
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
-
         if(!foundActionName){
             console.warn(`Action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
             continue;
         }
 
-        let matchedActions: Action[] = availableActions.filter( validAction =>{
-            return validAction.signature == foundActionName[0];
-        })
-
-
-        if(matchedActions.length == 0){
+        const matchedAction = availableActions.find(a => a.signature == foundActionName[0]);
+        if(!matchedAction){
             console.warn(`Action warning: The returned action "${foundActionName[0]}" from LLM matched none of the listed available actions. Skipping.`);
             continue;
         }
 
-        const matchedAction: Action = matchedActions[0];
-
-        //validate args
         const argsString = /\(([^)]+)\)/.exec(actionInResponse);
-        if(argsString == null){
-            if(matchedAction.args.length === 0){
-                console.log(`Executing action: ${matchedAction.signature} with no arguments.`);
-                try{
-                    let effectBody = "";
-                    matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, [], initiatorId, targetId);
-                    ActionEffectWriter.appendEffect(
-                        conv.runFileManager,
-                        conv.gameData,
-                        initiatorId,
-                        targetId,
-                        effectBody
-                    );
-                }catch(e){
-                    let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
-                    console.error(errMsg)
-                    conv.chatWindow.window.webContents.send('error-message', errMsg);
-                }
+        const allArgs = argsString ? argsString[1].split(",").map(arg => arg.trim()) : [];
 
-                if(matchedAction.chatMessageClass != null){
-                    let chatMessage = matchedAction.chatMessage([]);
-                    if (typeof chatMessage === 'object' && chatMessage !== null) {
-                        chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0] || '';
-                    }
-                    triggeredActions.push({
-                        actionName: matchedAction.signature,
-                        chatMessage: parseVariables(chatMessage || '', conv.gameData),
-                        chatMessageClass: matchedAction.chatMessageClass
-                    })
-                }
-
-                console.log(`Action "${matchedAction.signature}" successfully triggered.`);
-                continue;
-            }
-
-            console.warn(`Action warning: Response action "${actionInResponse}" had no arguments, but matched action "${matchedAction.signature}" requires arguments. Skipping.`);
+        // NEW: Expect initiator and target IDs from the LLM
+        if (allArgs.length < 2) {
+            console.warn(`Action warning: Action "${actionInResponse}" did not include initiatorId and targetId. Skipping.`);
             continue;
         }
 
-        const args = argsString![1].split(",");
+        const newInitiatorId = parseInt(allArgs[0], 10);
+        const newTargetId = parseInt(allArgs[1], 10);
+        const actionArgs = allArgs.slice(2); // The rest are the actual action arguments
 
-        if(args.length !== matchedAction.args.length){
-            console.warn(`Action warning: The matched action "${matchedAction.signature}" has a different number of arguments (${matchedAction.args.length}) than the one from the LLM response (${args.length}). Skipping.`);
+        if (isNaN(newInitiatorId) || isNaN(newTargetId)) {
+            console.warn(`Action warning: Invalid initiatorId or targetId in "${actionInResponse}". Skipping.`);
             continue;
         }
 
+        if (actionArgs.length !== matchedAction.args.length) {
+            console.warn(`Action warning: The matched action "${matchedAction.signature}" has a different number of arguments (${matchedAction.args.length}) than the one from the LLM response (${actionArgs.length}). Skipping.`);
+            continue;
+        }
+
+        // Argument type validation (can be expanded)
         let isValidAction = true;
-        for(let i =0; i<args.length;i++){
-
-            if(matchedAction.args[0].type === "number"){
-                if(isNaN(Number(args[0]))){
-                    console.warn(`Action warning: Argument "${args[0]}" for action "${matchedAction.signature}" was not a valid number. Expected type: ${matchedAction.args[0].type}. Skipping.`);
-                    isValidAction = false;
-                    break;
-                }
-
-            }
-            else if(matchedAction.args[0].type === "string"){
-                //TODO
+        for(let i = 0; i < actionArgs.length; i++){
+            if(matchedAction.args[i].type === "number" && isNaN(Number(actionArgs[i]))){
+                console.warn(`Action warning: Argument "${actionArgs[i]}" for action "${matchedAction.signature}" was not a valid number. Skipping.`);
+                isValidAction = false;
+                break;
             }
         }
-        if(!isValidAction){
-            continue;
-        }
+        if(!isValidAction) continue;
 
-        console.log(`Executing action: ${matchedAction.signature} with args: [${args.join(', ')}]`);
-        try{
+        console.log(`Executing action: ${matchedAction.signature} with initiator: ${newInitiatorId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
+        try {
             let effectBody = "";
-            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
+            // Use the LLM-provided IDs
+            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, actionArgs, newInitiatorId, newTargetId);
             ActionEffectWriter.appendEffect(
                 conv.runFileManager,
                 conv.gameData,
-                initiatorId,
-                targetId,
+                newInitiatorId,
+                newTargetId,
                 effectBody
             );
-        }catch(e){
+        } catch(e) {
             let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
             console.error(errMsg)
             conv.chatWindow.window.webContents.send('error-message', errMsg);
         }
 
-
         if(matchedAction.chatMessageClass != null){
-            let chatMessage = matchedAction.chatMessage(args);
+            let chatMessage = matchedAction.chatMessage(actionArgs);
             if (typeof chatMessage === 'object') {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
-            const initiator = conv.gameData.getCharacterById(initiatorId);
-            const target = conv.gameData.getCharacterById(targetId);
-            conv.gameData.character1Name = initiator ? initiator.shortName : "someone";
-            conv.gameData.character2Name = target ? target.shortName : "someone";
+            // Use LLM-provided IDs to get correct names
+            const initiatorChar = conv.gameData.getCharacterById(newInitiatorId);
+            const targetChar = conv.gameData.getCharacterById(newTargetId);
+            conv.gameData.character1Name = initiatorChar ? initiatorChar.shortName : "someone";
+            conv.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
             triggeredActions.push({
                 actionName: matchedAction.signature,
                 chatMessage: parseVariables(chatMessage, conv.gameData),
@@ -245,7 +146,6 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             })
         }
         console.log(`Action "${matchedAction.signature}" successfully triggered.`);
-
     }
 
     if (triggeredActions.length > 0) {
@@ -257,12 +157,6 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     }
 
     console.log(`Final triggered actions: ${triggeredActions.map(a => a.actionName).join(', ')}`);
-
-    // Log action frequency statistics
-    if (triggeredActions.length > 0) {
-        console.log(`Action frequency stats: totalMessages=${conv.messages.length}, consecutiveActionsCount=${conv.consecutiveActionsCount}, lastActionMessageIndex=${conv.lastActionMessageIndex}`);
-    }
-
     return triggeredActions;
 }
 
@@ -280,22 +174,18 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
     }
 
+    let characterList = "Characters in conversation:";
+    for (const char of conv.gameData.characters.values()) {
+        characterList += `\n- ${char.fullName} (ID: ${char.id})`;
+    }
+
     let listOfActions = `List of actions:`;
-
     for(const action of actions){
-
         let argNames: string[] = [];
         action.args.forEach( arg => { argNames.push(arg.name)})
-
+        // The LLM will now provide initiator and target, so we don't include them in the signature shown to it.
         let signature = action.signature+'('+argNames.join(', ')+')';
-
-        let argString = "";
-        if(action.args.length == 0){
-            argString = "Takes no arguments."
-        }
-        else{
-            argString = `Takes ${action.args.length} arguments: `
-        }
+        let argString = action.args.length > 0 ? `Takes ${action.args.length} arguments: ` : "Takes no arguments.";
 
         for(const arg of action.args){
             let argDesc = arg.desc;
@@ -309,32 +199,32 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         if (typeof description === 'object') {
             description = description[conv.config.language] || description['en'] || Object.values(description)[0];
         }
-
         listOfActions += `\n- ${signature}: ${parseVariables(description, conv.gameData)} ${parseVariables(argString, conv.gameData)}`;
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
-    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
-    listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>`
+    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the initiator and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
+    listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>`
 
     output.push({
         role: "system",
-        content: `Your task is to select the actions you think happened in the last replies. The actions MUST exist in the provided list. You can select multiple actions, seperate them with commas. If a function takes a value, then put it inside the brackets after the function, a function can take either 0 or 1 values. 'Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>'`
+        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the initiator's ID and the target's ID as the first two arguments, followed by any other arguments. The IDs must come from the provided character list. The actions MUST exist in the provided list. 'Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>'`
     })
 
     output.push({
         role: "user",
         content: `Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
+${characterList}
 "Prior dialogue:\n"+ ${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
 ${description}
 "Given these replies:\n${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
 })
 
-output.push({
-    role: "user",
-    content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(value), actionName2(value)</actions>"
-})
+    output.push({
+        role: "user",
+        content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>"
+    })
 
     return output;
 }

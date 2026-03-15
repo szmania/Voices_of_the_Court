@@ -1385,7 +1385,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     availableActions = actions;
     console.log(`Received ${availableActions.length} available actions from chat-start payload.`);
 
-    playerName = gameData.playerName.replace(/\s+/g, '');
+    playerName = gameData.playerName;
     aiName = gameData.aiName;
     currentGameData = gameData;
 
