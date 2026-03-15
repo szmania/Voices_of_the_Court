@@ -12,8 +12,8 @@ export class RunFileManager{
     }
 
     write(text: string): void{
-        fs.writeFileSync(this.path, text);
-    
+        fs.writeFileSync(this.path, text, 'utf-8');
+
         console.log("Wrote to run file: "+text)
     }
 
@@ -21,12 +21,12 @@ export class RunFileManager{
         fs.appendFileSync(this.path, text)
         console.log("Appended to run file: "+text)
     }
-    
+
     clear(): void{
         fs.writeFileSync(this.path, "");
         console.log("Run File cleared")
     }
-    
+
     createRunFolder(userFolderPath: string){
         const runFolderPath = path.join(userFolderPath, "run");
         if(userFolderPath && !fs.existsSync(runFolderPath)){
@@ -37,7 +37,7 @@ export class RunFileManager{
             catch(err){
                 console.error("RunFileManager error creating run folder: "+err)
             }
-            
+
         }
     }
 }
