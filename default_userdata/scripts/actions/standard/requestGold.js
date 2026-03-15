@@ -22,15 +22,15 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character requests gold from another, who may pay willingly or forcefully, only if they have enough gold.`,
-        zh: `当一个角色向另一个角色请求金币时执行，对方可能会自愿或被迫支付，前提是他们有足够的金币。`,
-        ru: `Выполняется, когда один персонаж запрашивает золото у другого, который может заплатить добровольно или принудительно, только если у него достаточно золота.`,
-        fr: `Exécuté lorsqu'un personnage demande de l'or à un autre, qui peut payer de gré ou de force, seulement s'il a assez d'or.`,
-        es: `Ejecutado cuando un personaje solicita oro a otro, quien puede pagar voluntariamente o por la fuerza, solo si tiene suficiente oro.`,
-        de: `Wird ausgeführt, wenn ein Charakter von einem anderen Gold anfordert, der freiwillig oder gezwungen zahlen kann, nur wenn er genug Gold hat.`,
-        ja: `あるキャラクターが別のキャラクターにゴールドを要求したときに実行されます。相手は自発的または強制的に支払うことができ、十分なゴールドを持っている場合のみです。`,
-        ko: `한 캐릭터가 다른 캐릭터에게 골드를 요청할 때 실행되며, 상대방은 자발적이든 강제적이든 충분한 골드가 있는 경우에만 지불할 수 있습니다.`,
-        pl: `Wykonywane, gdy jedna postać prosi o złoto od drugiej, która może zapłacić dobrowolnie lub siłą, tylko jeśli ma wystarczająco złota.`
+        en: `Executed when the initiator ({{character1Name}}) requests gold from the target ({{character2Name}}), and the target gives it.`,
+        zh: `当发起者（{{character1Name}}）向目标（{{character2Name}}）请求金币，并且目标给予时执行。`,
+        ru: `Выполняется, когда инициатор ({{character1Name}}) запрашивает золото у цели ({{character2Name}}), и цель его дает.`,
+        fr: `Exécuté lorsque l'initiateur ({{character1Name}}) demande de l'or à la cible ({{character2Name}}), et que la cible le donne.`,
+        es: `Se ejecuta cuando el iniciador ({{character1Name}}) solicita oro al objetivo ({{character2Name}}), y el objetivo se lo da.`,
+        de: `Wird ausgeführt, wenn der Initiator ({{character1Name}}) vom Ziel ({{character2Name}}) Gold anfordert und das Ziel es gibt.`,
+        ja: `イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）にゴールドを要求し、ターゲットがそれを与えたときに実行されます。`,
+        ko: `개시자({{character1Name}})가 대상({{character2Name}})에게 금을 요청하고 대상이 그것을 줄 때 실행됩니다.`,
+        pl: `Wykonywane, gdy inicjator ({{character1Name}}) prosi o złoto od celu ({{character2Name}}), a cel je daje.`
     },
     
     /**
@@ -74,15 +74,15 @@ module.exports = {
     chatMessage: (args) => {
         if (Number(args[0]) <= Number(args[1])) {
             return {
-                en: `{{character2Name}} paid {{character1Name}} ${args[0]} gold.`,
-                zh: `{{character2Name}}向{{character1Name}}支付了${args[0]}金币`,
-                ru: `{{character2Name}} заплатил {{character1Name}} ${args[0]} золота.`,
-                fr: `{{character2Name}} a payé ${args[0]} pièces d'or à {{character1Name}}.`,
-                es: `{{character2Name}} pagó ${args[0]} monedas de oro a {{character1Name}}.`,
-                de: `{{character2Name}} hat {{character1Name}} ${args[0]} Goldmünzen gezahlt.`,
-                ja: `{{character2Name}}は{{character1Name}}に${args[0]}ゴールドを支払いました。`,
-                ko: `{{character2Name}}가 {{character1Name}}에게 ${args[0]} 골드를 지불했습니다.`,
-                pl: `{{character2Name}} zapłacił {{character1Name}} ${args[0]} sztuk złota.`
+                en: `{{character2Name}} gave {{character1Name}} ${args[0]} gold.`,
+                zh: `{{character2Name}}给了{{character1Name}} ${args[0]}金币。`,
+                ru: `{{character2Name}} дал {{character1Name}} ${args[0]} золота.`,
+                fr: `{{character2Name}} a donné ${args[0]} pièces d'or à {{character1Name}}.`,
+                es: `{{character2Name}} le dio a {{character1Name}} ${args[0]} de oro.`,
+                de: `{{character2Name}} gab {{character1Name}} ${args[0]} Gold.`,
+                ja: `{{character2Name}}は{{character1Name}}に${args[0]}ゴールドを与えました。`,
+                ko: `{{character2Name}}가 {{character1Name}}에게 ${args[0]} 골드를 주었습니다.`,
+                pl: `{{character2Name}} dał {{character1Name}} ${args[0]} złota.`
             }
         } else {
             return {
