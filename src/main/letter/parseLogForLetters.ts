@@ -5,7 +5,7 @@ import { GameData } from '../../shared/gameData/GameData.js';
 
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
-    
+
     if (!fs.existsSync(debugLogPath)) {
         console.error(`Error: Log file not found at ${debugLogPath}`);
         return [];
@@ -30,7 +30,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
     }
 
     const lines = fileContent.split(/\r?\n/);
-    
+
     const letters: Letter[] = [];
 
     for (const line of lines) {
@@ -44,8 +44,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             if (parts.length >= 3) {
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
-                const delay = parseInt(parts[2].trim(), 10) || 0;
-                const totalDays = gameData.totalDays;
+                const totalDays =  parseInt(parts[2].trim());
+                const delay = parseInt(parts[3].trim(), 10) || 0;
 
                 if(content && letterId && playerId && recipientId) {
                     const sender = gameData.characters.get(Number(playerId));
@@ -65,7 +65,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             }
         }
     }
-    
+
     console.log(`Parsed ${letters.length} letters from log.`);
     return letters;
 }
