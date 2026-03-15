@@ -23,6 +23,17 @@ export interface Letter {
   status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
   delivered?: boolean;
   isPlayerSender?: boolean;
+  characterContext?: {
+    playerId: string;
+    playerName: string;
+    recipientId: string;
+    recipientName: string;
+    gameDate: string;
+    scene: string;
+    location: string;
+    locationController: string;
+    totalDays: number;
+  };
 }
 
 export interface StoredLetter {

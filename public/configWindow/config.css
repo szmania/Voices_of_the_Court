@@ -204,9 +204,7 @@ input[type=checkbox]{
 .container{
   padding: 2rem;
   padding-top: 4rem;
-  height: 100vh;
-  overflow-y: auto;
-  box-sizing: border-box;
+
   display: none;
 }
 
