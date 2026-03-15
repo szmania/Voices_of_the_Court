@@ -10,8 +10,8 @@ import { parseLettersFromLog } from './parseLogForLetters.js';
 
 export class LetterManager {
     private static instance: LetterManager;
-    private letterHistoryPath: string;
-    private letterSummaryPath: string;
+    private letterHistoryPath!: string;
+    private letterSummaryPath!: string;
 
     private constructor() {
         // Paths are initialized lazily now
