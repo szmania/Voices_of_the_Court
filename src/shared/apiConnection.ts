@@ -582,6 +582,30 @@ export class ApiConnection{
 
     async testConnection(): Promise<apiConnectionTestResult>{
         console.debug("--- API CONNECTION: testConnection() ---");
+        if (this.type === 'player2') {
+            try {
+                const response = await fetch(`${player2BaseUrl}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'player2-game-key': player2GameKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.status === 200) {
+                    return { success: true, overwriteWarning: this.overwriteWarning };
+                } else {
+                    const errorText = await response.text();
+                    const message = `Player2 health check failed: ${response.status} ${errorText}`;
+                    console.error(message);
+                    return { success: false, overwriteWarning: false, errorMessage: message };
+                }
+            } catch (err) {
+                if (err instanceof Error) {
+                    return { success: false, overwriteWarning: false, errorMessage: err.message };
+                }
+                return { success: false, overwriteWarning: false, errorMessage: String(err) };
+            }
+        }
         if (this.type === 'gemini') {
             const url = `${this.client.baseURL}/models/${this.model}:generateContent?key=${this.client.apiKey}`;
             const body = {
