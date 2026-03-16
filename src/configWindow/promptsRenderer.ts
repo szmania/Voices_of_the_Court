@@ -108,7 +108,6 @@ async function init(){
                 // Ensure all prompt textareas are editable
                 promptTextareas[key].textarea.disabled = false;
                 promptTextareas[key].textarea.addEventListener('input', handleInputChange);
-                promptTextareas[key].textarea.addEventListener('input', handleDefaultPresetEdit);
             }
         });
         
@@ -217,25 +216,6 @@ function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement)
     }
 }
 
-function findNextAvailablePresetName(): string {
-    let newName = "Custom";
-    let counter = 1;
-    while (promptPresets[newName]) {
-        counter++;
-        newName = `Custom ${counter}`;
-    }
-    return newName;
-}
-
-async function handleDefaultPresetEdit() {
-    if (promptPresetSelect.value === 'Default') {
-        const newPresetName = findNextAvailablePresetName();
-        console.log(`Default preset edited. Creating new preset: ${newPresetName}`);
-        promptPresetNameInput.value = newPresetName;
-        await saveCurrentPreset(); // This will save the current state under the new name
-    }
-}
-
 function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPath: string, fileExtension: string, fallbackFolderPath?: string, label?: string): void {
     const logPrefix = label ? `[${label}] ` : '';
     console.log(`${logPrefix}populateSelectWithFileNames: folderPath=${folderPath}, ext=${fileExtension}, fallback=${fallbackFolderPath}`);
@@ -340,8 +320,17 @@ async function handlePresetChange() {
     promptPresetNameInput.value = selectedPresetName;
 
     if (selectedPresetName === 'Default') {
-        // Always load from the default config file to ensure it's pristine
-        await restoreDefaultPrompts(false); 
+        const config = await ipcRenderer.invoke('get-config');
+        const lang = config.language || 'en';
+        const promptsForLang = config.prompts[lang] || config.prompts.en;
+        if (promptsForLang) {
+            for (const key of promptKeys) {
+                if (promptTextareas[key] && promptsForLang[key] !== undefined) {
+                    promptTextareas[key].textarea.value = promptsForLang[key];
+                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        }
     } else {
         const preset = promptPresets[selectedPresetName];
         if (preset) {
@@ -377,6 +366,13 @@ async function saveCurrentPreset() {
         alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
         return;
     }
+    if (presetName.toLowerCase() === 'default') {
+        // @ts-ignore
+        alert(window.LocalizationManager.getTranslation('prompts.save_default_preset_alert'));
+        await restoreDefaultPrompts(false);
+        return;
+    }
+
     if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
         // @ts-ignore
         const confirmMsg = window.LocalizationManager.getTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
