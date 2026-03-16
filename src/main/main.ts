@@ -202,7 +202,8 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
-    tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', 'icon.ico'));
+    const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
+    tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', iconName));
     const contextMenu = Menu.buildFromTemplate([
         {
             label: t('tray.open_config'),

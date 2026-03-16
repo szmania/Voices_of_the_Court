@@ -2,9 +2,9 @@
 const path = require('path');
 
 module.exports = {
-  outDir: 'C:/tmp',
+  outDir: process.platform === 'win32' ? 'C:/tmp' : 'out',
   packagerConfig: {
-     icon: './build/icons/icon.ico',
+    icon: './build/icons/icon', // Electron Forge will automatically use .ico for Windows and .icns for Mac
     //"asar":true
     ignore: /^(\/out|\/tests|\/logs|\/debug|\/\.)/
   },
@@ -13,6 +13,18 @@ module.exports = {
     {
       name: '@electron-forge/maker-squirrel',
       config: { loadingGif: path.join(__dirname, 'build', 'icons', 'installerPic.png')}
+    },
+    {
+      name: '@electron-forge/maker-zip',
+      platforms: ['darwin']
+    },
+    {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        format: 'ULFO',
+        name: 'VOTC_2_0-CE',
+        title: 'VOTC_2_0-CE'
+      }
     },
     {
       name: '@electron-forge/maker-deb',
@@ -24,7 +36,7 @@ module.exports = {
     },
   ],
   hooks: {
-    
+
 
   },
   publishers: [
@@ -35,7 +47,7 @@ module.exports = {
           owner: 'szmania',
           name: 'Voices_of_the_Court'
         },
-        prerelease: false
+        prerelease: true
       }
     }
   ]

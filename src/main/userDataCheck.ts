@@ -74,7 +74,7 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
             }
         }
     }
-    
+
     // 保留用户配置中不在默认配置中的特殊字段（如apiKeys）
     // 这些字段对于API配置的持久化至关重要
     const specialFields = ['apiKeys'];
@@ -83,7 +83,7 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
             merged[field] = userConfig[field];
         }
     }
-    
+
     return merged;
 }
 
@@ -96,7 +96,7 @@ export async function checkUserData(){
 
     if(!existsSync(userPath)){
         const legacyPath = path.join(path.dirname(app.getPath('userData')), "Voices of the Court");
-        
+
         if (existsSync(legacyPath)) {
             console.log(`Legacy data found at ${legacyPath}. Migrating to ${userPath}...`);
             try {
@@ -123,7 +123,7 @@ export async function checkUserData(){
     const configPath = path.join(userPath, "configs", "config.json");
     const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
     console.log(`Validating config file at: ${configPath}`);
-    
+
     if(existsSync(configPath)){
         // Step 3.1: Read Configurations
         const userConfigRaw = fs.readFileSync(configPath).toString();
@@ -144,6 +144,14 @@ export async function checkUserData(){
 
         // Step 3.2: Perform a Deep Merge
         const mergedConfig = mergeConfigsStrict(defaultConfig, userConfig);
+
+        // Set platform-specific user folder path if not set or invalid
+        const documentsPath = app.getPath('documents');
+        const defaultCk3Path = path.join(documentsPath, 'Paradox Interactive', 'Crusader Kings III');
+        if ((!mergedConfig.userFolderPath || !fs.existsSync(mergedConfig.userFolderPath)) && fs.existsSync(defaultCk3Path)) {
+            mergedConfig.userFolderPath = defaultCk3Path;
+            console.log(`User folder path updated to platform-specific default: ${defaultCk3Path}`);
+        }
 
         // Hardcode Player2 API key
         const configsToUpdate = [
@@ -177,7 +185,15 @@ export async function checkUserData(){
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
         defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';
         defaultConfig.textGenerationApiConnectionConfig.connection.model = 'gpt-oss-120b';
-        
+
+        // Set platform-specific user folder path
+        const documentsPath = app.getPath('documents');
+        const defaultCk3Path = path.join(documentsPath, 'Paradox Interactive', 'Crusader Kings III');
+        if (fs.existsSync(defaultCk3Path)) {
+            defaultConfig.userFolderPath = defaultCk3Path;
+            console.log(`Setting default user folder path to platform-specific default: ${defaultCk3Path}`);
+        }
+
         const configsToUpdate = [
             'textGenerationApiConnectionConfig',
             'actionsApiConnectionConfig',
