@@ -366,9 +366,10 @@ async function saveCurrentPreset() {
         alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
         return;
     }
-    if (presetName === 'Default') {
+    if (presetName.toLowerCase() === 'default') {
         // @ts-ignore
         alert(window.LocalizationManager.getTranslation('prompts.save_default_preset_alert'));
+        await restoreDefaultPrompts(false);
         return;
     }
 
