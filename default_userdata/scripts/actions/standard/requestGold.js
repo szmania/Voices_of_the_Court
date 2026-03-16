@@ -1,0 +1,1 @@
+// This file is deprecated and has been replaced by receiveGold.js
