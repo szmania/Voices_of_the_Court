@@ -393,10 +393,10 @@ export class Conversation{
                     const actionMatch = line.match(actionRegex);
                     if (actionMatch) {
                         if (currentMessage) {
-                            if (!currentMessage.actions) {
-                                currentMessage.actions = [];
+                            if (!(currentMessage as any).actions) {
+                                (currentMessage as any).actions = [];
                             }
-                            currentMessage.actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
+                            (currentMessage as any).actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
                         }
                         continue;
                     }
