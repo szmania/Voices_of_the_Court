@@ -20,6 +20,8 @@ let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-promp
 let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
 let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-preset-to-default")!;
 
+let statusMessage: HTMLDivElement;
+
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
@@ -48,6 +50,15 @@ function setSaveButtonState(enabled: boolean) {
         savePromptPresetBtn.style.opacity = '1';
         savePromptPresetBtn.style.cursor = 'pointer';
     }
+}
+
+function showStatusMessage(message: string, type: 'success' | 'error' | 'info') {
+    if (!statusMessage) return;
+    statusMessage.textContent = message;
+    statusMessage.className = `status-message ${type} show`;
+    setTimeout(() => {
+        statusMessage.classList.remove('show');
+    }, 3000);
 }
 
 
@@ -98,6 +109,7 @@ ipcRenderer.on('update-language', async (event, lang) => {
 
 async function init(){
     try {
+        statusMessage = document.querySelector("#status-message")!;
         addExternalLinks();
         setSaveButtonState(false); // Initially disabled
 
@@ -198,7 +210,7 @@ async function init(){
         console.error('Error in init:', error);
         // @ts-ignore
         const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
-        alert(errorMsg);
+        showStatusMessage(errorMsg, 'error');
     }
 }
 
@@ -373,7 +385,7 @@ async function saveCurrentPreset() {
 
     if (!presetName) {
         // @ts-ignore
-        alert(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'));
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'), 'error');
         return;
     }
 
@@ -397,7 +409,7 @@ async function saveCurrentPreset() {
     // @ts-ignore
     const successMsg = window.LocalizationManager.getNestedTranslation('prompts.save_preset_success', { presetName: presetName });
     // @ts-ignore
-    alert(successMsg.replace('{{presetName}}', presetName));
+    showStatusMessage(successMsg.replace('{{presetName}}', presetName), 'success');
     setSaveButtonState(false);
 
     // Re-enable textareas after saving
@@ -433,7 +445,7 @@ async function deleteSelectedPreset() {
 
     if (selectedPresetName === 'Default') {
         // @ts-ignore
-        alert(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'));
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'), 'error');
         return;
     }
 
@@ -447,7 +459,7 @@ async function deleteSelectedPreset() {
         // @ts-ignore
         let successMsg = window.LocalizationManager.getNestedTranslation('prompts.delete_preset_success', { presetName: selectedPresetName });
         // @ts-ignore
-        alert(successMsg.replace('{{presetName}}', selectedPresetName));
+        showStatusMessage(successMsg.replace('{{presetName}}', selectedPresetName), 'success');
 
         // Re-enable textareas after deleting
         promptKeys.forEach(key => {
@@ -492,9 +504,8 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         if (showConfirmation) {
             // @ts-ignore
             const successMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_success');
-            alert(successMsg);
-            // 刷新页面以显示新的值
-            location.reload();
+            showStatusMessage(successMsg, 'success');
+            setTimeout(() => location.reload(), 1500);
         } else {
             // Re-enable textareas if not reloading
             promptKeys.forEach(key => {
@@ -510,7 +521,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         console.error('Error restoring default prompts:', error);
         // @ts-ignore
         const errorMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_error', { error: error });
-        alert(errorMsg);
+        showStatusMessage(errorMsg, 'error');
     }
 }
 
