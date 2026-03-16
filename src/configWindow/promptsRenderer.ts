@@ -119,7 +119,7 @@ async function init(){
         let config = await ipcRenderer.invoke('get-config');
         promptPresets = await ipcRenderer.invoke('get-prompt-presets');
 
-        populatePresetSelector(config.activePromptPreset);
+        await populatePresetSelector(config.activePromptPreset);
         console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
         console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
@@ -295,7 +295,7 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
     }
 }
 
-function populatePresetSelector(activePreset?: string) {
+async function populatePresetSelector(activePreset?: string) {
     promptPresetSelect.innerHTML = '';
 
     // Add default option
@@ -313,7 +313,7 @@ function populatePresetSelector(activePreset?: string) {
     }
 
     promptPresetSelect.value = activePreset || 'Default';
-    handlePresetChange();
+    await handlePresetChange();
 }
 
 async function handlePresetChange() {
@@ -391,7 +391,7 @@ async function saveCurrentPreset() {
     promptPresets[presetName] = newPreset;
     await ipcRenderer.invoke('save-prompt-presets', promptPresets);
 
-    populatePresetSelector(presetName);
+    await populatePresetSelector(presetName);
     // @ts-ignore
     const successMsg = window.LocalizationManager.getTranslation('prompts.save_preset_success', { presetName: presetName });
     // @ts-ignore
@@ -424,11 +424,19 @@ async function deleteSelectedPreset() {
     if (confirm(confirmMsg)) {
         delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
-        populatePresetSelector('Default'); // Switch to default after deletion
+        await populatePresetSelector('Default'); // Switch to default after deletion
         // @ts-ignore
         let successMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_success', { presetName: selectedPresetName });
         // @ts-ignore
         alert(successMsg.replace('{{presetName}}', selectedPresetName));
+
+        // Re-enable textareas after deleting
+        promptKeys.forEach(key => {
+            if (promptTextareas[key] && promptTextareas[key].textarea) {
+                promptTextareas[key].textarea.disabled = false;
+            }
+        });
+        togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
     }
 }
 
