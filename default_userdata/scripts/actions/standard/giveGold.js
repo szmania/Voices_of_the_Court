@@ -44,6 +44,25 @@ module.exports = {
     },
 
     /**
+     * @param {GameData} gameData
+     * @param {string[]} args
+     * @param {number} initiatorId
+     * @param {number} targetId
+     * @returns {{success: boolean, message?: string}}
+     */
+    preCheck: (gameData, args, initiatorId, targetId) => {
+        const initiator = gameData.getCharacterById(initiatorId);
+        if (!initiator) {
+            return { success: false, message: "Initiator character not found." };
+        }
+        const amount = Number(args[0]);
+        if (initiator.gold < amount) {
+            return { success: false, message: `${initiator.shortName} does not have enough gold (${initiator.gold}) to give ${amount}.` };
+        }
+        return { success: true };
+    },
+
+    /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
