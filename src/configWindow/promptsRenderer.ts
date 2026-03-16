@@ -442,10 +442,6 @@ async function deleteSelectedPreset() {
         return;
     }
 
-    // @ts-ignore
-    let confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
-    confirmMsg = confirmMsg.replace('{{presetName}}', selectedPresetName);
-    
     delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         await populatePresetSelector('Default'); // Switch to default after deletion
