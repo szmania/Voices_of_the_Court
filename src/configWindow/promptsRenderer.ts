@@ -511,12 +511,8 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
 }
 
 async function resetCurrentPresetToDefault() {
-    // @ts-ignore
-    const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.reset_preset_confirm', { presetName: promptPresetSelect.value });
-    if (confirm(confirmMsg)) {
-        await restoreDefaultPrompts(false);
-        await saveCurrentPreset();
-    }
+    await restoreDefaultPrompts(false);
+    await saveCurrentPreset();
 }
 
 function addExternalLinks() {
