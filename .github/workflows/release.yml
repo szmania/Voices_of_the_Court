@@ -53,6 +53,12 @@ jobs:
           else
             echo "tag_name=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
           fi
+      - name: Create and push tag
+        continue-on-error: true
+        shell: bash
+        run: |
+          git tag ${{ steps.get_tag.outputs.tag_name }}
+          git push origin ${{ steps.get_tag.outputs.tag_name }}
       - name: Create Release and Upload Artifacts
         uses: softprops/action-gh-release@v1
         with:
