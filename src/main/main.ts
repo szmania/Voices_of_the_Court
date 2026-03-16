@@ -675,6 +675,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         console.log("New conversation started!");
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
+        await conversation.loadHistory();
 
         // Import letters from log
         await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));

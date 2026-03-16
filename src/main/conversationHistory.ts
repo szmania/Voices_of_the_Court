@@ -2,17 +2,17 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 
-// 从debuglog解析玩家ID
+// Parse player ID from debug log
 export async function parseConversationHistoryIdsFromLog(logFilePath: string): Promise<{playerId: string}> {
     try {
         if (!fs.existsSync(logFilePath)) {
-            throw new Error(`日志文件不存在: ${logFilePath}`);
+            throw new Error(`Log file does not exist: ${logFilePath}`);
         }
         
         const logContent = fs.readFileSync(logFilePath, 'utf8');
         const lines = logContent.split('\n').filter(line => line.trim());
         
-        // 查找最后一个包含VOTC:conversation_history的行
+        // Find the last line containing VOTC:conversation_history
         let conversationHistoryLine = '';
         for (let i = lines.length - 1; i >= 0; i--) {
             if (lines[i].includes('VOTC:conversation_history')) {
@@ -22,44 +22,44 @@ export async function parseConversationHistoryIdsFromLog(logFilePath: string): P
         }
         
         if (!conversationHistoryLine) {
-            throw new Error('在日志中未找到VOTC:conversation_history行');
+            throw new Error('VOTC:conversation_history line not found in log');
         }
         
-        // 解析格式: VOTC:conversation_history/;/玩家ID
+        // Parse format: VOTC:conversation_history/;/PlayerID
         const parts = conversationHistoryLine.split('/;/');
         if (parts.length < 2) {
-            throw new Error('VOTC:conversation_history行格式不正确');
+            throw new Error('VOTC:conversation_history line has incorrect format');
         }
         
         const playerId = parts[1].trim();
         
         if (!playerId) {
-            throw new Error('无法从VOTC:conversation_history行解析玩家ID');
+            throw new Error('Could not parse player ID from VOTC:conversation_history line');
         }
         
         return { playerId };
     } catch (error) {
-        console.error('解析对话历史ID错误:', error);
+        console.error('Error parsing conversation history ID:', error);
         throw error;
     }
 }
 
-// 读取历史对话文件列表
+// Read list of historical conversation files
 export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[]): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
-        // 构建对话历史目录路径 - 使用userdata的conversation_history目录
+        // Build path to conversation history directory - using userdata's conversation_history directory
         const userDataPath = app.getPath('userData');
         const conversationHistoryDir = path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
         
-        // 确保目录存在
+        // Ensure directory exists
         if (!fs.existsSync(conversationHistoryDir)) {
-            console.log(`对话历史目录不存在: ${conversationHistoryDir}`);
+            console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
             return [];
         }
         
         const currentIdSet = new Set(currentCharacterIds.map(String));
 
-        // 读取目录中的所有txt文件
+        // Read all txt files in the directory
         const files = fs.readdirSync(conversationHistoryDir).filter(file => {
             if (!file.endsWith('.txt')) return false;
 
@@ -81,7 +81,7 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
             return true;
         });
         
-        // 获取每个文件的修改时间
+        // Get modification time for each file
         const filesWithStats = files.map(fileName => {
             const filePath = path.join(conversationHistoryDir, fileName);
             const stats = fs.statSync(filePath);
@@ -91,34 +91,34 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
             };
         });
         
-        // 按修改时间降序排序（最新的在前）
+        // Sort by modification time, descending (newest first)
         filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
         
         return filesWithStats;
     } catch (error) {
-        console.error('读取对话历史文件列表错误:', error);
+        console.error('Error reading conversation history file list:', error);
         throw error;
     }
 }
 
-// 读取指定历史对话文件内容
+// Read content of a specific historical conversation file
 export async function readConversationHistoryFile(playerId: string, fileName: string): Promise<string> {
     try {
-        // 构建对话历史文件路径 - 使用userdata的conversation_history目录
+        // Build path to conversation history file - using userdata's conversation_history directory
         const userDataPath = app.getPath('userData');
         const filePath = path.join(userDataPath, 'votc_data', 'conversation_history', playerId, fileName);
         
-        // 确保文件存在
+        // Ensure file exists
         if (!fs.existsSync(filePath)) {
-            throw new Error(`对话历史文件不存在: ${filePath}`);
+            throw new Error(`Conversation history file does not exist: ${filePath}`);
         }
         
-        // 读取文件内容
+        // Read file content
         const content = fs.readFileSync(filePath, 'utf8');
         
         return content;
     } catch (error) {
-        console.error('读取对话历史文件错误:', error);
+        console.error('Error reading conversation history file:', error);
         throw error;
     }
 }

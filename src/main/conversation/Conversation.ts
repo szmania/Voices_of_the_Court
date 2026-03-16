@@ -260,7 +260,7 @@ export class Conversation{
         await this.initiateConversation();
     }
 
-    private async loadHistory(): Promise<void> {
+    public async loadHistory(): Promise<void> {
         // Check if historical conversation loading is enabled
         if (!this.config.showPreviousConversations || this.config.disableHistoricalConversations) {
             console.log('Historical conversation loading is disabled in config.');
