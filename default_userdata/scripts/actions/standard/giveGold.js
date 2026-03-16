@@ -22,15 +22,15 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when the initiator ({{character1Name}}) gives gold to the target ({{character2Name}}).`,
-        zh: `当发起者（{{character1Name}}）向目标（{{character2Name}}）提供金币时执行。`,
-        ru: `Выполняется, когда инициатор ({{character1Name}}) дает золото цели ({{character2Name}}).`,
-        fr: `Exécuté lorsque l'initiateur ({{character1Name}}) donne de l'or à la cible ({{character2Name}}).`,
-        es: `Se ejecuta cuando el iniciador ({{character1Name}}) da oro al objetivo ({{character2Name}}).`,
-        de: `Wird ausgeführt, wenn der Initiator ({{character1Name}}) dem Ziel ({{character2Name}}) Gold gibt.`,
-        ja: `イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）にゴールドを与えたときに実行されます。`,
-        ko: `개시자({{character1Name}})가 대상({{character2Name}})에게 금을 줄 때 실행됩니다.`,
-        pl: `Wykonywane, gdy inicjator ({{character1Name}}) daje złoto celowi ({{character2Name}}).`,
+        en: `Executed when one character gives gold to another. The initiator (character1) is the GIVER. The target (character2) is the RECEIVER.`,
+        zh: `当一个角色向另一个角色提供金币时执行。发起者（character1）是给予者。目标（character2）是接收者。`,
+        ru: `Выполняется, когда один персонаж дает золото другому. Инициатор (character1) - ДАЮЩИЙ. Цель (character2) - ПОЛУЧАТЕЛЬ.`,
+        fr: `Exécuté lorsqu'un personnage donne de l'or à un autre. L'initiateur (character1) est le DONNEUR. La cible (character2) est le RECEVEUR.`,
+        es: `Se ejecuta cuando un personaje da oro a otro. El iniciador (character1) es el DADOR. El objetivo (character2) es el RECEPTOR.`,
+        de: `Wird ausgeführt, wenn ein Charakter einem anderen Gold gibt. Der Initiator (character1) ist der GEBER. Das Ziel (character2) ist der EMPFÄNGER.`,
+        ja: `あるキャラクターが別のキャラクターにゴールドを与えたときに実行されます。イニシエーター（character1）は与える側です。ターゲット（character2）は受け取る側です。`,
+        ko: `한 캐릭터가 다른 캐릭터에게 금을 줄 때 실행됩니다. 개시자(character1)는 주는 사람입니다. 대상(character2)은 받는 사람입니다.`,
+        pl: `Wykonywane, gdy jedna postać daje złoto drugiej. Inicjator (character1) to DARCZYŃCA. Cel (character2) to ODBIORCA.`,
     },
 
     /**

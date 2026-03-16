@@ -22,15 +22,15 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when the initiator ({{character1Name}}) receives gold from the target ({{character2Name}}).`,
-        zh: `当发起者（{{character1Name}}）从目标（{{character2Name}}）收到金币时执行。`,
-        ru: `Выполняется, когда инициатор ({{character1Name}}) получает золото от цели ({{character2Name}}).`,
-        fr: `Exécuté lorsque l'initiateur ({{character1Name}}) reçoit de l'or de la cible ({{character2Name}}).`,
-        es: `Se ejecuta cuando el iniciador ({{character1Name}}) recibe oro del objetivo ({{character2Name}}).`,
-        de: `Wird ausgeführt, wenn der Initiator ({{character1Name}}) vom Ziel ({{character2Name}}) Gold erhält.`,
-        ja: `イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）からゴールドを受け取ったときに実行されます。`,
-        ko: `개시자({{character1Name}})가 대상({{character2Name}})으로부터 금을 받을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy inicjator ({{character1Name}}) otrzymuje złoto od celu ({{character2Name}}).`
+        en: `Executed when one character receives gold from another. The initiator (character1) is the RECEIVER. The target (character2) is the GIVER.`,
+        zh: `当一个角色从另一个角色那里收到金币时执行。发起者（character1）是接收者。目标（character2）是给予者。`,
+        ru: `Выполняется, когда один персонаж получает золото от другого. Инициатор (character1) - ПОЛУЧАТЕЛЬ. Цель (character2) - ДАЮЩИЙ.`,
+        fr: `Exécuté lorsqu'un personnage reçoit de l'or d'un autre. L'initiateur (character1) est le RECEVEUR. La cible (character2) est le DONNEUR.`,
+        es: `Se ejecuta cuando un personaje recibe oro de otro. El iniciador (character1) es el RECEPTOR. El objetivo (character2) es el DADOR.`,
+        de: `Wird ausgeführt, wenn ein Charakter von einem anderen Gold erhält. Der Initiator (character1) ist der EMPFÄNGER. Das Ziel (character2) ist der GEBER.`,
+        ja: `あるキャラクターが別のキャラクターからゴールドを受け取ったときに実行されます。イニシエーター（character1）は受け取る側です。ターゲット（character2）は与える側です。`,
+        ko: `한 캐릭터가 다른 캐릭터로부터 금을 받을 때 실행됩니다. 개시자(character1)는 받는 사람입니다. 대상(character2)은 주는 사람입니다.`,
+        pl: `Wykonywane, gdy jedna postać otrzymuje złoto od drugiej. Inicjator (character1) to ODBIORCA. Cel (character2) to DARCZYŃCA.`
     },
 
     /**
