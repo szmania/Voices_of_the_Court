@@ -595,16 +595,16 @@ export class Conversation{
                     const character = this.gameData.characters.get((message as any).characterId);
                     if (!character) continue;
 
-                    // The initiator is the player, because the AI is responding to the player's last message.
+                    // The source is the player, because the AI is responding to the player's last message.
                     // The target is the AI that is currently responding.
-                    const initiatorId = this.gameData.playerID;
+                    const sourceId = this.gameData.playerID;
                     const targetId = character.id;
 
                     if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
-                        const collectedActions = await checkActions(this, initiatorId, targetId);
+                        const collectedActions = await checkActions(this, sourceId, targetId);
                         if (collectedActions.length > 0) {
                             allTurnActions.push(...collectedActions);
-                            this.actionInvolvedCharacterIds.add(initiatorId);
+                            this.actionInvolvedCharacterIds.add(sourceId);
                             this.actionInvolvedCharacterIds.add(targetId);
                             this.consecutiveActionsCount++;
                             this.lastActionMessageIndex = this.messages.length - 1;
@@ -1307,15 +1307,15 @@ ${character.fullName}的发言：`
             return;
         }
 
-        const { action, args, initiatorId, targetId } = actionToExecute;
+        const { action, args, sourceId, targetId } = actionToExecute;
 
         try {
             let effectBody = "";
-            action.run(this.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
+            action.run(this.gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
             ActionEffectWriter.appendEffect(
                 this.runFileManager,
                 this.gameData,
-                initiatorId,
+                sourceId,
                 targetId,
                 effectBody
             );
