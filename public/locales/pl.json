@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "Nie można usunąć presetu domyślnego.",
     "delete_preset_confirm": "Czy na pewno chcesz usunąć preset \"{{presetName}}\"?",
     "delete_preset_success": "Preset \"{{presetName}}\" usunięty.",
+    "reset_preset_tooltip": "Zresetuj bieżący preset do wartości domyślnych",
     "restore_defaults_confirm": "Czy na pewno chcesz przywrócić wszystkie podpowiedzi do wartości domyślnych? Tej operacji nie można cofnąć.",
     "restore_defaults_success": "Wszystkie podpowiedzi zostały pomyślnie przywrócone do wartości domyślnych!",
     "restore_defaults_error": "Błąd podczas przywracania domyślnych podpowiedzi: {{error}}"

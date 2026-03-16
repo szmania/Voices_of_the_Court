@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "无法删除默认预设。",
     "delete_preset_confirm": "确定要删除预设“{{presetName}}”吗？",
     "delete_preset_success": "预设“{{presetName}}”已删除。",
+    "reset_preset_tooltip": "将当前预设重置为默认值",
     "restore_defaults_confirm": "确定要将所有Prompt恢复为默认值吗？此操作不可撤销。",
     "restore_defaults_success": "所有Prompt已成功恢复为默认值！",
     "restore_defaults_error": "恢复默认Prompt时出错：{{error}}"

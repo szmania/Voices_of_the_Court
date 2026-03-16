@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "デフォルトのプリセットは削除できません。",
     "delete_preset_confirm": "プリセット「{{presetName}}」を削除してもよろしいですか？",
     "delete_preset_success": "プリセット「{{presetName}}」が削除されました。",
+    "reset_preset_tooltip": "現在のプリセットをデフォルト値にリセットします",
     "restore_defaults_confirm": "すべてのプロンプトをデフォルト値に戻しますか？この操作は元に戻せません。",
     "restore_defaults_success": "すべてのプロンプトが正常にデフォルト値に復元されました！",
     "restore_defaults_error": "デフォルトのプロンプトの復元中にエラーが発生しました：{{error}}"

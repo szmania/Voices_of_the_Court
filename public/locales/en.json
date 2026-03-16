@@ -112,6 +112,7 @@
     "delete_default_preset_alert": "Cannot delete the Default preset.",
     "delete_preset_confirm": "Are you sure you want to delete the preset \"{{presetName}}\"?",
     "delete_preset_success": "Preset \"{{presetName}}\" deleted.",
+    "reset_preset_tooltip": "Reset current preset to default values",
     "restore_defaults_confirm": "Are you sure you want to restore all prompts to their default values? This action cannot be undone.",
     "restore_defaults_success": "All prompts have been successfully restored to default values!",
     "restore_defaults_error": "Error restoring default prompts: {{error}}"

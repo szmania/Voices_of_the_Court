@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "기본 프리셋은 삭제할 수 없습니다.",
     "delete_preset_confirm": "\"{{presetName}}\" 프리셋을 삭제하시겠습니까?",
     "delete_preset_success": "프리셋 \"{{presetName}}\"이(가) 삭제되었습니다.",
+    "reset_preset_tooltip": "현재 프리셋을 기본값으로 재설정",
     "restore_defaults_confirm": "모든 프롬프트를 기본값으로 복원하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "restore_defaults_success": "모든 프롬프트가 성공적으로 기본값으로 복원되었습니다!",
     "restore_defaults_error": "기본 프롬프트를 복원하는 중 오류 발생: {{error}}"

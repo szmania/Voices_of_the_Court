@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "Impossible de supprimer le préréglage par défaut.",
     "delete_preset_confirm": "Êtes-vous sûr de vouloir supprimer le préréglage \"{{presetName}}\" ?",
     "delete_preset_success": "Préréglage \"{{presetName}}\" supprimé.",
+    "reset_preset_tooltip": "Réinitialiser le préréglage actuel aux valeurs par défaut",
     "restore_defaults_confirm": "Êtes-vous sûr de vouloir restaurer tous les prompts à leurs valeurs par défaut ? Cette action est irréversible.",
     "restore_defaults_success": "Tous les prompts ont été restaurés avec succès à leurs valeurs par défaut !",
     "restore_defaults_error": "Erreur lors de la restauration des prompts par défaut : {{error}}"

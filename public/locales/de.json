@@ -112,6 +112,7 @@
     "delete_default_preset_alert": "Die Standardvoreinstellung kann nicht gelöscht werden.",
     "delete_preset_confirm": "Sind Sie sicher, dass Sie die Voreinstellung \"{{presetName}}\" löschen möchten?",
     "delete_preset_success": "Voreinstellung \"{{presetName}}\" gelöscht.",
+    "reset_preset_tooltip": "Aktuelle Voreinstellung auf Standardwerte zurücksetzen",
     "restore_defaults_confirm": "Sind Sie sicher, dass Sie alle Prompts auf ihre Standardwerte zurücksetzen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "restore_defaults_success": "Alle Prompts wurden erfolgreich auf ihre Standardwerte zurückgesetzt!",
     "restore_defaults_error": "Fehler beim Wiederherstellen der Standard-Prompts: {{error}}"
