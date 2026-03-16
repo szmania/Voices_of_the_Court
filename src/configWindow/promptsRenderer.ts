@@ -407,6 +407,14 @@ async function saveCurrentPreset() {
         }
     });
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+
+    // Re-enable textareas after saving
+    promptKeys.forEach(key => {
+        if (promptTextareas[key] && promptTextareas[key].textarea) {
+            promptTextareas[key].textarea.disabled = false;
+        }
+    });
+    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 }
 
 async function deleteSelectedPreset() {
