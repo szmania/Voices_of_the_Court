@@ -368,12 +368,6 @@ async function saveCurrentPreset() {
         alert(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'));
         return;
     }
-    if (presetName.toLowerCase() === 'default') {
-        // @ts-ignore
-        alert(window.LocalizationManager.getNestedTranslation('prompts.save_default_preset_alert'));
-        await restoreDefaultPrompts(false);
-        return;
-    }
 
     if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
         // @ts-ignore
@@ -397,6 +391,14 @@ async function saveCurrentPreset() {
     // @ts-ignore
     alert(successMsg.replace('{{presetName}}', presetName));
     setSaveButtonState(false);
+
+    // Re-enable textareas after saving
+    promptKeys.forEach(key => {
+        if (promptTextareas[key] && promptTextareas[key].textarea) {
+            promptTextareas[key].textarea.disabled = false;
+        }
+    });
+    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
     // Re-enable textareas after saving
     promptKeys.forEach(key => {
