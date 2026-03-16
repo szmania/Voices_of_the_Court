@@ -389,13 +389,6 @@ async function saveCurrentPreset() {
         return;
     }
 
-    if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
-        // @ts-ignore
-        const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-    }
 
     const newPreset: any = {};
     for (const key of promptKeys) {
@@ -452,8 +445,8 @@ async function deleteSelectedPreset() {
     // @ts-ignore
     let confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
     confirmMsg = confirmMsg.replace('{{presetName}}', selectedPresetName);
-    if (confirm(confirmMsg)) {
-        delete promptPresets[selectedPresetName];
+    
+    delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         await populatePresetSelector('Default'); // Switch to default after deletion
         // @ts-ignore
@@ -469,20 +462,12 @@ async function deleteSelectedPreset() {
         });
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
         promptPresetNameInput.focus();
-    }
 }
 
 async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
         // @ts-ignore
         const lang = window.LocalizationManager?.language || 'en';
-        if (showConfirmation) {
-            // @ts-ignore
-            const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_confirm');
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-        }
 
         console.log('Restoring default prompts...');
         
