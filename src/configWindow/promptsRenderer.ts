@@ -485,6 +485,14 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
             alert(successMsg);
             // 刷新页面以显示新的值
             location.reload();
+        } else {
+            // Re-enable textareas if not reloading
+            promptKeys.forEach(key => {
+                if (promptTextareas[key] && promptTextareas[key].textarea) {
+                    promptTextareas[key].textarea.disabled = false;
+                }
+            });
+            togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
         }
         
     } catch (error) {
