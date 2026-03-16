@@ -217,8 +217,8 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             break;
     }
 
-    if (isHistorical && message.actions) {
-        message.actions.forEach(action => {
+    if (isHistorical && (message as any).actions) {
+        (message as any).actions.forEach((action: ActionResponse) => {
             const actionDiv = document.createElement('div');
             actionDiv.classList.add('action-feedback'); // Reuse existing style
             if (action.chatMessageClass) {
