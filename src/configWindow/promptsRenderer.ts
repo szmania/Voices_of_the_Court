@@ -18,6 +18,7 @@ let promptPresetSelect: HTMLSelectElement = document.querySelector("#prompt-pres
 let promptPresetNameInput: HTMLInputElement = document.querySelector("#prompt-preset-name-input")!;
 let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-prompt-preset")!;
 let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
+let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-preset-to-default")!;
 
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
@@ -173,6 +174,7 @@ async function init(){
         promptPresetSelect.addEventListener('change', handlePresetChange);
         savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
+        resetPresetToDefaultBtn.addEventListener('click', resetCurrentPresetToDefault);
 
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
@@ -469,6 +471,15 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         // @ts-ignore
         const errorMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_error', { error: error });
         alert(errorMsg);
+    }
+}
+
+async function resetCurrentPresetToDefault() {
+    // @ts-ignore
+    const confirmMsg = window.LocalizationManager.getTranslation('prompts.reset_preset_confirm', { presetName: promptPresetSelect.value });
+    if (confirm(confirmMsg)) {
+        await restoreDefaultPrompts(false);
+        await saveCurrentPreset();
     }
 }
 
