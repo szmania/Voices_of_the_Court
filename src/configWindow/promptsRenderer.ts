@@ -419,13 +419,16 @@ async function deleteSelectedPreset() {
     }
 
     // @ts-ignore
-    const confirmMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
+    let confirmMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
+    confirmMsg = confirmMsg.replace('{{presetName}}', selectedPresetName);
     if (confirm(confirmMsg)) {
         delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         populatePresetSelector('Default'); // Switch to default after deletion
         // @ts-ignore
-        alert(window.LocalizationManager.getTranslation('prompts.delete_preset_success', { presetName: selectedPresetName }));
+        let successMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_success', { presetName: selectedPresetName });
+        // @ts-ignore
+        alert(successMsg.replace('{{presetName}}', selectedPresetName));
     }
 }
 
