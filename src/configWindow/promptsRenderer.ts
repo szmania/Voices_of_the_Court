@@ -81,6 +81,18 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
+    // Reload prompts for the new language
+    const config = await ipcRenderer.invoke('get-config');
+    const promptsForLang = config.prompts[lang] || config.prompts.en;
+    if (promptsForLang) {
+        for (const key of promptKeys) {
+            if (promptTextareas[key] && promptsForLang[key] !== undefined) {
+                promptTextareas[key].textarea.value = promptsForLang[key];
+                // Manually trigger the input event to notify the component
+                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+    }
 });
 
 async function init(){
@@ -308,7 +320,17 @@ async function handlePresetChange() {
     promptPresetNameInput.value = selectedPresetName;
 
     if (selectedPresetName === 'Default') {
-        await restoreDefaultPrompts(false); // Don't show confirmation
+        const config = await ipcRenderer.invoke('get-config');
+        const lang = config.language || 'en';
+        const promptsForLang = config.prompts[lang] || config.prompts.en;
+        if (promptsForLang) {
+            for (const key of promptKeys) {
+                if (promptTextareas[key] && promptsForLang[key] !== undefined) {
+                    promptTextareas[key].textarea.value = promptsForLang[key];
+                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+        }
     } else {
         const preset = promptPresets[selectedPresetName];
         if (preset) {
