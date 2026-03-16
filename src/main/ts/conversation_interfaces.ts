@@ -49,9 +49,9 @@ export interface Action{
     args: ActionArgument[],
     description: string,
     creator?: string,
-    check: (gameData: GameData, initiatorId: number, targetId: number) => boolean,
-    preCheck?: (gameData: GameData, args: string[], initiatorId: number, targetId: number) => { success: boolean, message?: string },
-    run: (gameData: GameData, runGameEffect: (effect: string) => void, args: string[], initiatorId: number, targetId: number) => void,
+    check: (gameData: GameData, sourceId: number, targetId: number) => boolean,
+    preCheck?: (gameData: GameData, args: string[], sourceId: number, targetId: number) => { success: boolean, message?: string },
+    run: (gameData: GameData, runGameEffect: (effect: string) => void, args: string[], sourceId: number, targetId: number) => void,
     chatMessage: (args: string[]) => any,
     chatMessageClass: string
 }
@@ -65,7 +65,7 @@ export interface ActionResponse{
 export interface PendingAction {
     action: Action;
     args: string[];
-    initiatorId: number;
+    sourceId: number;
     targetId: number;
 }
 
