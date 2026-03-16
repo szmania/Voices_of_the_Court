@@ -114,6 +114,7 @@
     "delete_default_preset_alert": "No se puede eliminar el preajuste predeterminado.",
     "delete_preset_confirm": "¿Estás seguro de que quieres eliminar el preajuste \"{{presetName}}\"?",
     "delete_preset_success": "Preajuste \"{{presetName}}\" eliminado.",
+    "reset_preset_tooltip": "Restablecer el preajuste actual a los valores predeterminados",
     "restore_defaults_confirm": "¿Estás seguro de que quieres restaurar todos los prompts a sus valores predeterminados? Esta acción no se puede deshacer.",
     "restore_defaults_success": "¡Todos los prompts se han restaurado correctamente a sus valores predeterminados!",
     "restore_defaults_error": "Error al restaurar los prompts predeterminados: {{error}}"

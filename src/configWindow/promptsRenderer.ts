@@ -423,6 +423,7 @@ async function saveCurrentPreset() {
         }
     });
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+    promptPresetNameInput.focus();
 }
 
 async function deleteSelectedPreset() {
@@ -455,6 +456,7 @@ async function deleteSelectedPreset() {
             }
         });
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+        promptPresetNameInput.focus();
     }
 }
 
@@ -501,6 +503,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
                 }
             });
             togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+            promptPresetNameInput.focus();
         }
         
     } catch (error) {
