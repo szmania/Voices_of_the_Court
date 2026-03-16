@@ -1,4 +1,4 @@
-name: Publish Electron App
+name: Publis/h Electron App
 
 on:
   workflow_dispatch:  # 👈 manual trigger
