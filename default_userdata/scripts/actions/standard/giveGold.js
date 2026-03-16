@@ -9,15 +9,15 @@ module.exports = {
             type: "number",
             min: 1,
             desc: { 
-                en: "The amount of gold the initiator ({{character1Name}}) gives to the target ({{character2Name}}).",
-                zh: "发起者（{{character1Name}}）给予目标（{{character2Name}}）的金币数量。",
-                ru: "Количество золота, которое инициатор ({{character1Name}}) дает цели ({{character2Name}}).",
-                fr: "Le montant d'or que l'initiateur ({{character1Name}}) donne à la cible ({{character2Name}}).",
-                es: "La cantidad de oro que el iniciador ({{character1Name}}) da al objetivo ({{character2Name}}).",
-                de: "Die Menge an Gold, die der Initiator ({{character1Name}}) dem Ziel ({{character2Name}}) gibt.",
-                ja: "イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）に与えるゴールドの量。",
-                ko: "개시자({{character1Name}})가 대상({{character2Name}})에게 주는 금의 양.",
-                pl: "Ilość złota, którą inicjator ({{character1Name}}) daje celowi ({{character2Name}})."
+                en: "The amount of gold the GIVER (initiator, character1) gives to the RECEIVER (target, character2).",
+                zh: "给予者（发起者，character1）给予接收者（目标，character2）的金币数量。",
+                ru: "Количество золота, которое ДАЮЩИЙ (инициатор, character1) дает ПОЛУЧАТЕЛЮ (цель, character2).",
+                fr: "Le montant d'or que le DONNEUR (initiateur, character1) donne au RECEVEUR (cible, character2).",
+                es: "La cantidad de oro que el DADOR (iniciador, character1) da al RECEPTOR (objetivo, character2).",
+                de: "Die Menge an Gold, die der GEBER (Initiator, character1) dem EMPFÄNGER (Ziel, character2) gibt.",
+                ja: "与える側（イニシエーター、character1）が受け取る側（ターゲット、character2）に与えるゴールドの量。",
+                ko: "주는 사람(개시자, character1)이 받는 사람(대상, character2)에게 주는 금의 양.",
+                pl: "Ilość złota, którą DARCZYŃCA (inicjator, character1) daje ODBIORCY (cel, character2)."
             }
         }
     ],

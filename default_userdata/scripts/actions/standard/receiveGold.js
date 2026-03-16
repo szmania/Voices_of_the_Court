@@ -9,15 +9,15 @@ module.exports = {
             type: "number",
             min: 1,
             desc: {
-                en: "The amount of gold the initiator ({{character1Name}}) receives from the target ({{character2Name}}).",
-                zh: "发起者（{{character1Name}}）从目标（{{character2Name}}）收到的金币数量。",
-                ru: "Количество золота, которое инициатор ({{character1Name}}) получает от цели ({{character2Name}}).",
-                fr: "Le montant d'or que l'initiateur ({{character1Name}}) reçoit de la cible ({{character2Name}}).",
-                es: "La cantidad de oro que el iniciador ({{character1Name}}) recibe del objetivo ({{character2Name}}).",
-                de: "Die Menge an Gold, die der Initiator ({{character1Name}}) vom Ziel ({{character2Name}}) erhält.",
-                ja: "イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）から受け取るゴールドの量。",
-                ko: "개시자({{character1Name}})가 대상({{character2Name}})으로부터 받는 금의 양.",
-                pl: "Ilość złota, którą inicjator ({{character1Name}}) otrzymuje od celu ({{character2Name}})."
+                en: "The amount of gold the RECEIVER (initiator, character1) gets from the GIVER (target, character2).",
+                zh: "接收者（发起者，character1）从给予者（目标，character2）获得的金币数量。",
+                ru: "Количество золота, которое ПОЛУЧАТЕЛЬ (инициатор, character1) получает от ДАЮЩЕГО (цель, character2).",
+                fr: "Le montant d'or que le RECEVEUR (initiateur, character1) reçoit du DONNEUR (cible, character2).",
+                es: "La cantidad de oro que el RECEPTOR (iniciador, character1) recibe del DADOR (objetivo, character2).",
+                de: "Die Menge an Gold, die der EMPFÄNGER (Initiator, character1) vom GEBER (Ziel, character2) erhält.",
+                ja: "受け取る側（イニシエーター、character1）が与える側（ターゲット、character2）から受け取るゴールドの量。",
+                ko: "받는 사람(개시자, character1)이 주는 사람(대상, character2)으로부터 받는 금의 양.",
+                pl: "Ilość złota, którą ODBIORCA (inicjator, character1) otrzymuje od DARCZYŃCY (cel, character2)."
             }
         }
     ],
