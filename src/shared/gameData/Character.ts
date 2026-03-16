@@ -182,5 +182,11 @@ export class Character {
         console.log(`Family description for ${this.fullName}: ${result}`);
         return result;
     }
+
+    static fromPlainObject(obj: any): Character {
+        const instance = new Character(new Array(27).fill(''));
+        Object.assign(instance, obj);
+        return instance;
+    }
 }
 

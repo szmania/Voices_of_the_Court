@@ -1394,7 +1394,11 @@ ipcRenderer.on('chat-hide', () =>{
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
     currentConversationMessageDivs = [];
-    const { gameData, messages, narratives, historicalMetadata, actions } = payload;
+    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions } = payload;
+
+    // Re-instantiate GameData to get methods back
+    const gameData = GameData.fromPlainObject(plainGameData);
+
     availableActions = actions;
     console.log(`Received ${availableActions.length} available actions from chat-start payload.`);
 
