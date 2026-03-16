@@ -365,19 +365,19 @@ async function saveCurrentPreset() {
 
     if (!presetName) {
         // @ts-ignore
-        alert(window.LocalizationManager.getTranslation('prompts.save_preset_empty_alert'));
+        alert(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'));
         return;
     }
     if (presetName.toLowerCase() === 'default') {
         // @ts-ignore
-        alert(window.LocalizationManager.getTranslation('prompts.save_default_preset_alert'));
+        alert(window.LocalizationManager.getNestedTranslation('prompts.save_default_preset_alert'));
         await restoreDefaultPrompts(false);
         return;
     }
 
     if (promptPresets[presetName] && presetName !== promptPresetSelect.value) {
         // @ts-ignore
-        const confirmMsg = window.LocalizationManager.getTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
+        const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.save_preset_overwrite_confirm', { presetName: presetName });
         if (!confirm(confirmMsg)) {
             return;
         }
@@ -393,7 +393,7 @@ async function saveCurrentPreset() {
 
     await populatePresetSelector(presetName);
     // @ts-ignore
-    const successMsg = window.LocalizationManager.getTranslation('prompts.save_preset_success', { presetName: presetName });
+    const successMsg = window.LocalizationManager.getNestedTranslation('prompts.save_preset_success', { presetName: presetName });
     // @ts-ignore
     alert(successMsg.replace('{{presetName}}', presetName));
     setSaveButtonState(false);
@@ -414,19 +414,19 @@ async function deleteSelectedPreset() {
 
     if (selectedPresetName === 'Default') {
         // @ts-ignore
-        alert(window.LocalizationManager.getTranslation('prompts.delete_default_preset_alert'));
+        alert(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'));
         return;
     }
 
     // @ts-ignore
-    let confirmMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
+    let confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.delete_preset_confirm', { presetName: selectedPresetName });
     confirmMsg = confirmMsg.replace('{{presetName}}', selectedPresetName);
     if (confirm(confirmMsg)) {
         delete promptPresets[selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         await populatePresetSelector('Default'); // Switch to default after deletion
         // @ts-ignore
-        let successMsg = window.LocalizationManager.getTranslation('prompts.delete_preset_success', { presetName: selectedPresetName });
+        let successMsg = window.LocalizationManager.getNestedTranslation('prompts.delete_preset_success', { presetName: selectedPresetName });
         // @ts-ignore
         alert(successMsg.replace('{{presetName}}', selectedPresetName));
 
@@ -446,7 +446,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         const lang = window.LocalizationManager?.language || 'en';
         if (showConfirmation) {
             // @ts-ignore
-            const confirmMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_confirm');
+            const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_confirm');
             if (!confirm(confirmMsg)) {
                 return;
             }
@@ -471,7 +471,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
         console.log('All prompts restored to default values successfully');
         if (showConfirmation) {
             // @ts-ignore
-            const successMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_success');
+            const successMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_success');
             alert(successMsg);
             // 刷新页面以显示新的值
             location.reload();
@@ -480,14 +480,14 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     } catch (error) {
         console.error('Error restoring default prompts:', error);
         // @ts-ignore
-        const errorMsg = window.LocalizationManager.getTranslation('prompts.restore_defaults_error', { error: error });
+        const errorMsg = window.LocalizationManager.getNestedTranslation('prompts.restore_defaults_error', { error: error });
         alert(errorMsg);
     }
 }
 
 async function resetCurrentPresetToDefault() {
     // @ts-ignore
-    const confirmMsg = window.LocalizationManager.getTranslation('prompts.reset_preset_confirm', { presetName: promptPresetSelect.value });
+    const confirmMsg = window.LocalizationManager.getNestedTranslation('prompts.reset_preset_confirm', { presetName: promptPresetSelect.value });
     if (confirm(confirmMsg)) {
         await restoreDefaultPrompts(false);
         await saveCurrentPreset();
