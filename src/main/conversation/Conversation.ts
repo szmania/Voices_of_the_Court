@@ -224,7 +224,6 @@ export class Conversation{
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
         
         this.loadConfig();
-        this.loadHistory();
 
         // Sanitize messages to remove any historical placeholders that may have leaked in.
         const currentCharacterIds = new Set(Array.from(this.gameData.characters.keys()));
