@@ -1079,6 +1079,11 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
     if (promptKeys.includes(confID)) {
         // @ts-ignore
+        if (!config.prompts[config.language]) {
+            // @ts-ignore
+            config.prompts[config.language] = {};
+        }
+        // @ts-ignore
         config.prompts[config.language][confID] = newValue;
     } else {
         // @ts-ignore

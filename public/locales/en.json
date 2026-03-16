@@ -89,6 +89,7 @@
     "diary_summary_prompt": "Diary Summary Prompt",
     "diary_summary_tooltip": "This prompt is used to summarize all diary entries for a character into a single summary.",
     "diary_for_letter_prompt": "This prompt is used to generate a diary entry based on a sent or received letter.",
+    "diary_for_letter_tooltip": "This prompt is used to generate a diary entry based on a sent or received letter.",
     "restore_defaults": "Restore Default Prompts",
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
