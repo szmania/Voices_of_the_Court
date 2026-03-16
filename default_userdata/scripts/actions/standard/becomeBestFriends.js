@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become best friends.`,
+        en: `Executed when two characters become best friends. The source (character1) and target (character2) are the two characters forming the friendship.`,
         zh: `当两个角色成为最好的朋友时执行。`,
         ru: `Выполняется, когда два персонажа становятся лучшими друзьями.`,
         fr: `Exécuté lorsque deux personnages deviennent meilleurs amis.`,

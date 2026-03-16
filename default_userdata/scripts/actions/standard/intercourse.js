@@ -5,7 +5,7 @@ module.exports = {
     signature: "intercourse",
     args: [],
     description: {
-        en: `Executed when two characters have sexual intercourse. Can be consensual or forced.`,
+        en: `Executed when two characters have sexual intercourse. The source (character1) is the initiator of the action. The target (character2) is the other participant.`,
         zh: `当两个角色发生性关系时执行，仅在性关系结束后执行。行为可以是双方自愿的或强奸。`,
         ru: `Выполняется, когда два персонажа вступают в половую связь. Может быть по обоюдному согласию или принудительно.`,
         fr: `Exécuté lorsque deux personnages ont des rapports sexuels. Peut être consensuel ou forcé.`,

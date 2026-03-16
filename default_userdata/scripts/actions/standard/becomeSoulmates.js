@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become passionate soulmates.`,
+        en: `Executed when two characters become passionate soulmates. The source (character1) and target (character2) are the two characters becoming soulmates.`,
         zh: `当两个角色成为彼此的激情灵魂伴侣时执行。`,
         ru: `Выполняется, когда два персонажа становятся страстными родственными душами.`,
         fr: `Exécuté lorsque deux personnages deviennent des âmes sœurs passionnées.`,

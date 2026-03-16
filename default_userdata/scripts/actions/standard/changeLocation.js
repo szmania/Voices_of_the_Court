@@ -94,7 +94,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character changes location.`,
+        en: `Executed when a character changes location. The source (character1) is the character who is moving. The target (character2) is not used in this action.`,
         zh: `当一个角色改变位置时执行。`,
         ru: `Выполняется, когда персонаж меняет местоположение.`,
         fr: `Exécuté lorsqu'un personnage change de lieu.`,

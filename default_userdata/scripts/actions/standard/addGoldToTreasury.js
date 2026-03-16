@@ -22,7 +22,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character's treasury receives income.`,
+        en: `Executed when a character's treasury receives income. The source (character1) is the character whose treasury receives the gold. The target (character2) is not used in this action.`,
         zh: `当一个角色的国库获得收入时执行`,
         ru: `Выполняется, когда казна персонажа получает доход.`,
         fr: `Exécuté lorsque le trésor d'un personnage reçoit des revenus.`,

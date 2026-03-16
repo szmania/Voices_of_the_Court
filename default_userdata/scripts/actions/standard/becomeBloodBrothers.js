@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become blood brothers.`,
+        en: `Executed when two characters become blood brothers. The source (character1) and target (character2) are the two characters becoming blood brothers.`,
         zh: `当两个角色成为结义兄弟时执行。`,
         ru: `Выполняется, когда два персонажа становятся побратимами.`,
         fr: `Exécuté lorsque deux personnages deviennent frères de sang.`,

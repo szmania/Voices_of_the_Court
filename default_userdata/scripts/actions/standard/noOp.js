@@ -5,7 +5,7 @@ module.exports = {
     signature: "noOp",
     args: [],
     description: {
-        en: `No operation - does nothing.`,
+        en: `No operation - does nothing. Source and target are not used.`,
         zh: `无操作 - 什么都不做。`,
         ru: `Нет операции - ничего не делает.`,
         fr: `Aucune opération - ne fait rien.`,

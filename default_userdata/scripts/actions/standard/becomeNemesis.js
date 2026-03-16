@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become nemesis.`,
+        en: `Executed when two characters become nemesis. The source (character1) and target (character2) are the two characters becoming nemeses.`,
         zh: `当两个角色成为彼此的宿敌时执行。`,
         ru: `Выполняется, когда два персонажа становятся заклятыми врагами.`,
         fr: `Exécuté lorsque deux personnages deviennent ennemis jurés.`,

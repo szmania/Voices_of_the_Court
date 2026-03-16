@@ -5,7 +5,7 @@ module.exports = {
     signature: "leaveConversation",
     args: [],
     description: {
-        en: `Executed when a character leaves the conversation.`,
+        en: `Executed when a character leaves the conversation. The source (character1) is the character who is leaving. The target (character2) is not used.`,
         zh: `当一个角色离开对话时执行。`,
         ru: `Выполняется, когда персонаж покидает разговор.`,
         fr: `Exécuté lorsqu'un personnage quitte la conversation.`,

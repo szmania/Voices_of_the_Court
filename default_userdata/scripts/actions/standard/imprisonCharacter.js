@@ -26,7 +26,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character is imprisoned by another.`,
+        en: `Executed when a character is imprisoned by another. The source (character1) is the IMPRISONER. The target (character2) is the one being IMPRISONED.`,
         zh: `当一个角色被另一个角色监禁时执行。`,
         ru: `Выполняется, когда один персонаж заключен в тюрьму другим.`,
         fr: `Exécuté lorsqu'un personnage est emprisonné par un autre.`,

@@ -22,7 +22,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters agree to a mutual truce for a certain number of years.`,
+        en: `Executed when two characters agree to a mutual truce for a certain number of years. The source (character1) and target (character2) are the two parties agreeing to the truce.`,
         zh: `当两个角色同意达成一定年限的相互休战协议时执行。`,
         ru: `Выполняется, когда два персонажа соглашаются на взаимное перемирие на определенное количество лет.`,
         fr: `Exécuté lorsque deux personnages conviennent d'une trêve mutuelle pour un certain nombre d'années.`,

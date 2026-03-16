@@ -23,7 +23,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when one character's dialogue or action significantly lowers another's opinion of them.`,
+        en: `Executed when one character's opinion of another is lowered. The source (character1) is the character whose actions are being judged. The target (character2) is the character whose opinion is LOWERING.`,
         zh: `当一个角色的对话或行动显著降低另一个角色对他们的看法时执行。`,
         ru: `Выполняется, когда диалог или действие одного персонажа значительно ухудшает мнение другого о нем.`,
         fr: `Exécuté lorsque le dialogue ou l'action d'un personnage diminue considérablement l'opinion qu'un autre a de lui.`,

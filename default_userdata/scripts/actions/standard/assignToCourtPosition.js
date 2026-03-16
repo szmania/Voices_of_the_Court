@@ -53,7 +53,7 @@ const action = {
         } 
     ],
     description: {
-        en: `Executed when a character appoints another to a court position in their court.`,
+        en: `Executed when a character appoints another to a court position in their court. The source (character1) is the RULER/APPOINTER. The target (character2) is the character being APPOINTED.`,
         zh: `当一个角色决定将另一个角色分配到其宫廷的宫廷职位时执行。`,
         ru: `Выполняется, когда один персонаж назначает другого на придворную должность в своем дворе.`,
         fr: `Exécuté lorsqu'un personnage nomme un autre à une charge curiale dans sa cour.`,

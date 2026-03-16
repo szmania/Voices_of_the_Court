@@ -5,7 +5,7 @@ module.exports = {
     signature: "employAsKnight",
     args: [],
     description: {
-        en: `Executed when a character is not a ruler and decides to join another's court as a knight.`,
+        en: `Executed when a character joins another's court as a knight. The source (character1) is the RULER/EMPLOYER. The target (character2) is the character being EMPLOYED.`,
         zh: `当一个角色不是统治者，并决定以骑士身份加入另一个角色的宫廷时执行`,
         ru: `Выполняется, когда персонаж не является правителем и решает присоединиться к двору другого в качестве рыцаря.`,
         fr: `Exécuté lorsqu'un personnage n'est pas un souverain et décide de rejoindre la cour d'un autre en tant que chevalier.`,

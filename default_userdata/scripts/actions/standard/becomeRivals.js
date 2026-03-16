@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become rivals.`,
+        en: `Executed when two characters become rivals. The source (character1) and target (character2) are the two characters becoming rivals.`,
         zh: `当两个角色成为彼此的仇人时执行。`,
         ru: `Выполняется, когда два персонажа становятся соперниками.`,
         fr: `Exécuté lorsque deux personnages deviennent rivaux.`,

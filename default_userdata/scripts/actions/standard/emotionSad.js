@@ -5,7 +5,7 @@ module.exports = {
     signature: "emotionSad",
     args: [],
     description: {
-        en: `Executed when a character feels sad.`,
+        en: `Executed when a character feels sad. The source (character1) is the character who caused the emotion. The target (character2) is the character FEELING the emotion.`,
         zh: `当一个角色感到悲伤时执行。`,
         ru: `Выполняется, когда персонаж чувствует грусть.`,
         fr: `Exécuté lorsqu'un personnage se sent triste.`,

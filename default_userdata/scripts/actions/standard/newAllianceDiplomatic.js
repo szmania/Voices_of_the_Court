@@ -6,7 +6,7 @@ module.exports = {
     args: [],
 	
     description: {
-        en: `Executed when two characters agree to form an alliance.`,
+        en: `Executed when two characters agree to form an alliance. The source (character1) and target (character2) are the two parties forming the alliance.`,
         zh: `当两个角色同意结成联盟时执行。`,
         ru: `Выполняется, когда два персонажа соглашаются заключить союз.`,
         fr: `Exécuté lorsque deux personnages conviennent de former une alliance.`,

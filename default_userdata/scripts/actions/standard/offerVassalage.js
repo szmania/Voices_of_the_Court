@@ -23,7 +23,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters discuss vassalization or its terms.`,
+        en: `Executed when one character offers vassalage to another. The source (character1) is the LIEGE offering the vassalage. The target (character2) is the character being offered vassalage.`,
         zh: `当两个角色讨论封臣化或其条款时执行。`,
         ru: `Выполняется, когда два персонажа обсуждают вассализацию или ее условия.`,
         fr: `Exécuté lorsque deux personnages discutent de la vassalisation ou de ses conditions.`,

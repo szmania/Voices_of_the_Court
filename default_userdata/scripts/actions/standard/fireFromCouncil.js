@@ -12,7 +12,7 @@ module.exports = {
     signature: "fireFromCouncil",
     args: [],
     description: {
-        en: `Executed when a character decides to fire or dismiss another character from their council.`,
+        en: `Executed when a character is fired from a council. The source (character1) is the RULER doing the firing. The target (character2) is the character being FIRED.`,
         zh: `当一个角色决定从其内阁中解雇/开除/退休另一个角色时执行。`,
         ru: `Выполняется, когда персонаж решает уволить или отстранить другого персонажа из своего совета.`,
         fr: `Exécuté lorsqu'un personnage décide de renvoyer ou de démettre un autre personnage de son conseil.`,

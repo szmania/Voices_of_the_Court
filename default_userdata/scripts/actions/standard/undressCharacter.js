@@ -5,7 +5,7 @@ module.exports = {
     signature: "undressCharacter",
     args: [],
     description: {
-        en: `Executed when a character undresses, either willingly or forcefully.`,
+        en: `Executed when a character undresses. The source (character1) is the character causing the action (can be the same as target). The target (character2) is the character who is UNDRESSING.`,
         zh: `当一个角色自愿或被迫脱去衣服时执行。`,
         ru: `Выполняется, когда персонаж раздевается, добровольно или принудительно.`,
         fr: `Exécuté lorsqu'un personnage se déshabille, de plein gré ou par la force.`,

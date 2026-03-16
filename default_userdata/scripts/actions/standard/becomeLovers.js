@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when two characters become lovers after a sexual encounter.`,
+        en: `Executed when two characters become lovers. The source (character1) and target (character2) are the two characters becoming lovers.`,
         zh: `当两个角色发生良好、出色或惊人的性关系并成为恋人时执行。`,
         ru: `Выполняется, когда два персонажа становятся любовниками после сексуальной связи.`,
         fr: `Exécuté lorsque deux personnages deviennent amants après une relation sexuelle.`,

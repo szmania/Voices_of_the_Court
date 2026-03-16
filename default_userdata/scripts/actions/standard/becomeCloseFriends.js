@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a strong and close friendship forms between two characters.`,
+        en: `Executed when a strong and close friendship forms between two characters. The source (character1) and target (character2) are the two characters forming the friendship.`,
         zh: `当两个角色之间形成牢固而亲密的友谊时执行。`,
         ru: `Выполняется, когда между двумя персонажами завязывается крепкая и близкая дружба.`,
         fr: `Exécuté lorsqu'une amitié forte et étroite se noue entre deux personnages.`,

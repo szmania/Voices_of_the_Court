@@ -29,7 +29,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character injures another in various ways based on the injuryType parameter.`,
+        en: `Executed when a character injures another. The source (character1) is the one inflicting the injury. The target (character2) is the one being INJURED.`,
         zh: `当一个角色根据injuryType参数以各种方式伤害另一个角色时执行`,
         ru: `Выполняется, когда один персонаж наносит увечья другому различными способами в зависимости от параметра injuryType.`,
         fr: `Exécuté lorsqu'un personnage blesse un autre de diverses manières en fonction du paramètre injuryType.`,

@@ -6,7 +6,7 @@ module.exports = {
     args: [],
 	
     description: {
-        en: `Executed when a character is killed by another.`,
+        en: `Executed when a character is killed by another. The source (character1) is the KILLER. The target (character2) is the character being KILLED.`,
         zh: `当一个角色被另一个角色杀死时执行。`,
         ru: `Выполняется, когда один персонаж убит другим.`,
         fr: `Exécuté lorsqu'un personnage est tué par un autre.`,

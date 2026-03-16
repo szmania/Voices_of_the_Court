@@ -21,7 +21,7 @@ module.exports = {
         }
     ],
     description: {
-        en: `Executed when a character converts to another's religion, either willingly or forcefully.`,
+        en: `Executed when a character converts to another's religion. The source (character1) is the CONVERTER (their religion is adopted). The target (character2) is the one being CONVERTED.`,
         zh: `当一个角色自愿或被迫改变信仰，皈依另一个角色的宗教时执行`,
         ru: `Выполняется, когда один персонаж переходит в религию другого, добровольно или принудительно.`,
         fr: `Exécuté lorsqu'un personnage se convertit à la religion d'un autre, de plein gré ou par la force.`,

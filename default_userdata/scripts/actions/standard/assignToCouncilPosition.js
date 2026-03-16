@@ -42,7 +42,7 @@ const action = {
         }   
     ],
     description: {
-        en: `Executed when a character appoints another to a council position (Chancellor, Steward, Spymaster, or Marshal).`,
+        en: `Executed when a character appoints another to a council position. The source (character1) is the RULER/APPOINTER. The target (character2) is the character being APPOINTED.`,
         zh: `当一个角色任命另一个角色为议会职位（大臣、总管、间谍首脑或军事统帅）时执行。`,
         ru: `Выполняется, когда один персонаж назначает другого на должность в совете (канцлер, управляющий, тайный советник или маршал).`,
         fr: `Exécuté lorsqu'un personnage nomme un autre à un poste au conseil (chancelier, intendant, maître des espions ou maréchal).`,

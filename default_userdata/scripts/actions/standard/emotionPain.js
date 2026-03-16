@@ -5,7 +5,7 @@ module.exports = {
     signature: "emotionPain",
     args: [],
     description: {
-        en: `Executed when a character feels pain or is hurt.`,
+        en: `Executed when a character feels pain or is hurt. The source (character1) is the character who caused the emotion. The target (character2) is the character FEELING the emotion.`,
         zh: `当一个角色感到痛苦或受伤时执行。`,
         ru: `Выполняется, когда персонаж чувствует боль или ранен.`,
         fr: `Exécuté lorsqu'un personnage ressent de la douleur ou est blessé.`,
