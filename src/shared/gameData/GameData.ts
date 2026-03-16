@@ -103,6 +103,23 @@ export class GameData {
         );
     }
 
+    static fromPlainObject(obj: any): GameData {
+        // Create a dummy instance because constructor requires a string array
+        const instance = new GameData(new Array(9).fill(''));
+        Object.assign(instance, obj);
+
+        // Revive the characters Map from the plain object Map
+        const characterMap = new Map<number, Character>();
+        if (obj.characters && obj.characters.entries) { // Check if it's a Map-like object
+            for (const [id, charObj] of obj.characters.entries()) {
+                const characterInstance = Character.fromPlainObject(charObj);
+                characterMap.set(id, characterInstance);
+            }
+        }
+        instance.characters = characterMap;
+        return instance;
+    }
+
     /**
      * Sets the names of non-player characters for use by parseVariables.
      * @deprecated This method is not scalable. Use getOtherCharacters() instead.
