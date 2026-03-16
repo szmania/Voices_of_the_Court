@@ -1614,19 +1614,6 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 
 // Conversation History IPC handlers
 
-
-ipcMain.handle('get-conversation-history-ids', async () => {
-    console.log('IPC: Received get-conversation-history-ids event.');
-    try {
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        const ids = await parseConversationHistoryIdsFromLog(logFilePath);
-        return ids;
-    } catch (error) {
-        console.error('Error getting conversation history IDs:', error);
-        return { playerId: null };
-    }
-});
-
 ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
     console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
     try {

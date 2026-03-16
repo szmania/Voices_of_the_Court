@@ -2,48 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 
-// Parse player ID from debug log
-export async function parseConversationHistoryIdsFromLog(logFilePath: string): Promise<{playerId: string}> {
-    try {
-        if (!fs.existsSync(logFilePath)) {
-            throw new Error(`Log file does not exist: ${logFilePath}`);
-        }
-        
-        const logContent = fs.readFileSync(logFilePath, 'utf8');
-        const lines = logContent.split('\n').filter(line => line.trim());
-        
-        // Find the last line containing VOTC:conversation_history
-        let conversationHistoryLine = '';
-        for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].includes('VOTC:conversation_history')) {
-                conversationHistoryLine = lines[i];
-                break;
-            }
-        }
-        
-        if (!conversationHistoryLine) {
-            throw new Error('VOTC:conversation_history line not found in log');
-        }
-        
-        // Parse format: VOTC:conversation_history/;/PlayerID
-        const parts = conversationHistoryLine.split('/;/');
-        if (parts.length < 2) {
-            throw new Error('VOTC:conversation_history line has incorrect format');
-        }
-        
-        const playerId = parts[1].trim();
-        
-        if (!playerId) {
-            throw new Error('Could not parse player ID from VOTC:conversation_history line');
-        }
-        
-        return { playerId };
-    } catch (error) {
-        console.error('Error parsing conversation history ID:', error);
-        throw error;
-    }
-}
-
 // Read list of historical conversation files
 export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[]): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
