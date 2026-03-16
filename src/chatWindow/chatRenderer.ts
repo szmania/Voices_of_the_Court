@@ -1454,9 +1454,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     });
 
     // Render historical conversations if they exist
-    if (messages && messages.length > 0) {
-        const narrativeMap = new Map(narratives);
-
+    if (historicalMetadata && historicalMetadata.length > 0) {
         const separator = document.createElement('div');
         separator.classList.add('historical-separator');
         separator.innerHTML = '<hr>';
@@ -1468,51 +1466,39 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         header.textContent = 'Previous Conversations:';
         chatMessages.append(header);
 
-        let messageIndex = 0;
-        if (historicalMetadata && historicalMetadata.length > 0) {
-            // Reverse the metadata array to display oldest conversations first
-            const chronologicalMetadata = historicalMetadata.slice().reverse();
+        // Display in chronological order (oldest first)
+        const chronologicalMetadata = historicalMetadata;
 
-            for (const conv of chronologicalMetadata) {
-                const convHeader = document.createElement('div');
-                convHeader.classList.add('historical-conversation-header');
-                convHeader.classList.add('message');
+        for (const conv of chronologicalMetadata) {
+            const convHeader = document.createElement('div');
+            convHeader.classList.add('historical-conversation-header');
+            convHeader.classList.add('message');
 
-                let headerText = `Date: ${conv.date}`;
-                if (conv.location) headerText += ` | Location: ${conv.location}`;
-                if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
-                convHeader.textContent = headerText;
-                chatMessages.append(convHeader);
+            let headerText = `Date: ${conv.date}`;
+            if (conv.location) headerText += ` | Location: ${conv.location}`;
+            if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
+            convHeader.textContent = headerText;
+            chatMessages.append(convHeader);
 
-                if (conv.characters && conv.characters.length > 0) {
-                    const characterDiv = document.createElement('div');
-                    characterDiv.classList.add('historical-characters', 'message');
-                    characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-                    characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
-                    chatMessages.append(characterDiv);
-                }
-
-                for (const msg of conv.messages) {
-                    await displayMessage(msg, true);
-                    const msgNarratives = narrativeMap.get(messageIndex);
-                    if (msgNarratives) {
-                        msgNarratives.forEach(n => displayNarrative(n));
-                    }
-                    messageIndex++;
-                }
-                const convSeparator = document.createElement('div');
-                convSeparator.classList.add('historical-conversation-separator');
-                convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
-                chatMessages.append(convSeparator);
+            if (conv.characters && conv.characters.length > 0) {
+                const characterDiv = document.createElement('div');
+                characterDiv.classList.add('historical-characters', 'message');
+                characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+                characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
+                chatMessages.append(characterDiv);
             }
-        } else {
-            for (let i = 0; i < messages.length; i++) {
-                await displayMessage(messages[i], true);
-                const msgNarratives = narrativeMap.get(i);
-                if (msgNarratives) {
-                    msgNarratives.forEach(n => displayNarrative(n));
+
+            for (const msg of conv.messages) {
+                await displayMessage(msg, true);
+                // Historical messages have narratives embedded in them
+                if (msg.narrative) {
+                    displayNarrative(msg.narrative);
                 }
             }
+            const convSeparator = document.createElement('div');
+            convSeparator.classList.add('historical-conversation-separator');
+            convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
+            chatMessages.append(convSeparator);
         }
     }
 
