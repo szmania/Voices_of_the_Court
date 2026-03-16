@@ -1491,7 +1491,11 @@ ${character.fullName}的发言：`
         const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
 
         processedMessages.forEach((msg, index) => {
-          textContent += `${msg.name}: ${msg.content}\n`;
+            if (msg.name) {
+                textContent += `${msg.name}: ${msg.content}\n`;
+            } else {
+                textContent += `${msg.content}\n`;
+            }
           
           // 添加旁白信息
           if (msg.narratives && msg.narratives.length > 0) {

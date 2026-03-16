@@ -454,10 +454,18 @@ export function convertMessagesToString(messages: Message[], inputSeq: string, o
     let output= "";
     for(const message of messages){
         if(message.role === 'user'){
-            output+= `${inputSeq}${message.name}:${message.content}\n`
+            if (message.name) {
+                output+= `${inputSeq}${message.name}:${message.content}\n`
+            } else {
+                output+= `${inputSeq}${message.content}\n`
+            }
         }
         else if(message.role == 'assistant'){
-            output+= `${outputSeq}${message.name}:${message.content}\n`
+            if (message.name) {
+                output+= `${outputSeq}${message.name}:${message.content}\n`
+            } else {
+                output+= `${outputSeq}${message.content}\n`
+            }
         }
         else if(message.role == 'system'){
             output+= `${inputSeq}${message.content}\n`
