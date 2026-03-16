@@ -68,6 +68,7 @@ export class Conversation{
     actionInvolvedCharacterIds: Set<number>;
     translations: any;
     pendingActions: Map<string, PendingAction[]>;
+    executedActions: Map<string, ActionResponse[]>;
 
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -135,6 +136,7 @@ export class Conversation{
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
         this.pendingActions = new Map();
+        this.executedActions = new Map();
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
@@ -346,6 +348,9 @@ export class Conversation{
                 const narrativeLabelValues = Object.values(narrativeLabels);
                 const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
 
+                const actionLabel = this.config.prompts[this.config.language]?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+                const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
+
                 // Build a regex to match any of the known character names at the start of a line
                 const allChars = Array.from(this.gameData.characters.values());
                 // Also add the player name from gameData, which might be different from the character object
@@ -381,6 +386,17 @@ export class Conversation{
                                 currentMessage.narrative = "";
                             }
                             currentMessage.narrative += narrative + "\n";
+                        }
+                        continue;
+                    }
+
+                    const actionMatch = line.match(actionRegex);
+                    if (actionMatch) {
+                        if (currentMessage) {
+                            if (!currentMessage.actions) {
+                                currentMessage.actions = [];
+                            }
+                            currentMessage.actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
                         }
                         continue;
                     }
@@ -620,6 +636,7 @@ export class Conversation{
                     if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
                         const collectedActions = await checkActions(this, sourceId, targetId);
                         if (collectedActions.length > 0) {
+                            this.executedActions.set(message.id!, collectedActions);
                             allTurnActions.push(...collectedActions);
                             this.actionInvolvedCharacterIds.add(sourceId);
                             this.actionInvolvedCharacterIds.add(targetId);
@@ -1353,6 +1370,11 @@ ${character.fullName}的发言：`
                     chatMessage: parseVariables(chatMessage, this.gameData),
                     chatMessageClass: action.chatMessageClass
                 };
+
+                const existingActions = this.executedActions.get(messageId) || [];
+                existingActions.push(actionResponse);
+                this.executedActions.set(messageId, existingActions);
+
                 this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
             }
 
@@ -1454,6 +1476,7 @@ ${character.fullName}的发言：`
         const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant') && msg.content !== this.notSpokenYetText);
         const processedMessages = messagesToSave.map((msg, index) => {
           const messageData: any = {
+            id: msg.id,
             name: msg.name,
             content: msg.content
           };
@@ -1495,6 +1518,14 @@ ${character.fullName}的发言：`
                 textContent += `${msg.name}: ${msg.content}\n`;
             } else {
                 textContent += `${msg.content}\n`;
+            }
+
+            const actions = this.executedActions.get(msg.id);
+            if (actions && actions.length > 0) {
+                const actionLabel = this.config.prompts[this.config.language]?.actionTriggeredPrompt || "[Action Triggered]:";
+                actions.forEach(action => {
+                    textContent += `${actionLabel} ${action.chatMessage}\n`;
+                });
             }
           
           // 添加旁白信息

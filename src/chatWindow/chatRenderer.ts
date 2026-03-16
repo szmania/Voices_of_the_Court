@@ -216,6 +216,19 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
             break;
     }
+
+    if (isHistorical && message.actions) {
+        message.actions.forEach(action => {
+            const actionDiv = document.createElement('div');
+            actionDiv.classList.add('action-feedback'); // Reuse existing style
+            if (action.chatMessageClass) {
+                actionDiv.classList.add(action.chatMessageClass);
+            }
+            actionDiv.innerText = action.chatMessage;
+            messageDiv.appendChild(actionDiv);
+        });
+    }
+
     chatMessages.append(messageDiv);
     // Auto-scroll to bottom after adding message
     setTimeout(() => {
@@ -1484,7 +1497,16 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
                 const characterDiv = document.createElement('div');
                 characterDiv.classList.add('historical-characters', 'message');
                 characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-                characterDiv.textContent = `Characters: ${conv.characters.join(', ')}`;
+                    
+                const playerShortName = gameData.getPlayer()?.shortName || gameData.playerName;
+                const characterString = conv.characters.map(name => {
+                    if (name === playerShortName || name === gameData.playerName) {
+                        return `${name} (You)`;
+                    }
+                    return name;
+                }).join(', ');
+
+                characterDiv.textContent = `Characters: ${characterString}`;
                 chatMessages.append(characterDiv);
             }
 

@@ -7,6 +7,7 @@ export interface Message {
     content: string ;
     narrative?: string; // Narrative property
     characterId?: number;
+    actions?: ActionResponse[];
 }
 
 
