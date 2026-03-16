@@ -18,14 +18,14 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
         // Prevent action if either character recently had sex, to avoid spam.
-        if ((initiator && initiator.hasTrait("HadSex")) || (target && target.hasTrait("HadSex"))) {
+        if ((source && source.hasTrait("HadSex")) || (target && target.hasTrait("HadSex"))) {
             return false;
         }
         return true;
@@ -35,10 +35,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         runGameEffect(`
         global_var:votcce_action_source = {
             had_sex_with_effect = {
@@ -47,14 +47,14 @@ module.exports = {
 			}
         }
     `);
-        const initiator = gameData.getCharacterById(initiatorId);
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
 
-        if (initiator) {
-            initiator.addTrait({
+        if (source) {
+            source.addTrait({
                 category: "flag",
                 name: "HadSex",
-                desc: `${initiator.shortName} had sex recently`
+                desc: `${source.shortName} had sex recently`
             });
         }
         if (target) {

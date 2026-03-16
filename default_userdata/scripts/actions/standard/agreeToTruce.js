@@ -35,38 +35,38 @@ module.exports = {
     
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
+        let opinionOfSource = 0;
         let conversationOpinion = 0;
 
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
             conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
             // Simulate conversation opinion for AI-AI
-            if (opinionOfInitiator > 0) {
+            if (opinionOfSource > 0) {
                 conversationOpinion = 15;
             }
         }
         
         // Only allow truce if opinion is moderately positive (>= 0)
         // and there's been meaningful conversation
-        if (opinionOfInitiator >= 0) {
+        if (opinionOfSource >= 0) {
             // Only allow if conversation has built up some positive opinion (>= 15)
             // This prevents truces from happening too early in conversations
             if (conversationOpinion >= 15) {
                 // Higher opinion = higher probability of truce
                 // Range: 50% chance at opinion 0 to 80% chance at opinion 100
-                const probability = 0.5 + (opinionOfInitiator / 100) * 0.3;
+                const probability = 0.5 + (opinionOfSource / 100) * 0.3;
                 return Math.random() < probability;
             }
         }
@@ -77,10 +77,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         let truceYears = args.length > 0 ? args[0] : 3; // Default to 3 years if not provided
 
         runGameEffect(`

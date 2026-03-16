@@ -19,48 +19,48 @@ module.exports = {
 	
     /**
      * @param {GameData} gameData
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
+        let opinionOfSource = 0;
         let conversationOpinion = 0;
         let religion_op = 0;
         let cultural_op = 0;
         let personal_diplo = 0;
 
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
             conversationOpinion = target.getOpinionModifierValue("From conversations");
-            const religionOpinionModifier = target.opinionBreakdownToPlayer.find(modifier => modifier.reason.includes(`${initiator.faith} is`));
+            const religionOpinionModifier = target.opinionBreakdownToPlayer.find(modifier => modifier.reason.includes(`${source.faith} is`));
             if (religionOpinionModifier) {
                 religion_op = religionOpinionModifier.value;
             }
             cultural_op = target.getOpinionModifierValue("Cultural Acceptance");
             personal_diplo = target.getOpinionModifierValue("Personal Diplomacy");
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
-            conversationOpinion = opinionOfInitiator > 0 ? opinionOfInitiator / 2 : 0; // Approximation
-            if (target.faith === initiator.faith) {
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            conversationOpinion = opinionOfSource > 0 ? opinionOfSource / 2 : 0; // Approximation
+            if (target.faith === source.faith) {
                 religion_op = 10; // Approximation
             }
-            if (target.culture === initiator.culture) {
+            if (target.culture === source.culture) {
                 cultural_op = 10; // Approximation
             }
         }
 		
-        let new_score = (75 + (opinionOfInitiator / 2) + (conversationOpinion * 2)) * (cultural_op + religion_op + personal_diplo + 100) / 100;
+        let new_score = (75 + (opinionOfSource / 2) + (conversationOpinion * 2)) * (cultural_op + religion_op + personal_diplo + 100) / 100;
         console.log(`TEST_DIPLO`)
 		console.log(`cultural_op: ` + cultural_op);
         console.log(`religion_op: ` + religion_op);
         console.log(`convo_op: ` + conversationOpinion);
         console.log(`personal_diplo: ` + personal_diplo);
-        console.log(`opinion: ` + opinionOfInitiator);
+        console.log(`opinion: ` + opinionOfSource);
         console.log(`new_score: ` + new_score);
 
         return (new_score >= 100);
@@ -70,10 +70,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         runGameEffect(`
 			global_var:votcce_action_source = { 
 				create_alliance = { 

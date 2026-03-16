@@ -34,61 +34,61 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
+        let opinionOfSource = 0;
         let relations = [];
 
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
             relations = target.relationsToPlayer;
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
-            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             relations = relationEntry ? relationEntry.relations : [];
         }
         
         return !relations.includes("Friend") && 
                !relations.includes("Rival") &&
-               opinionOfInitiator < 20;
+               opinionOfSource < 20;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         console.log(args[0])
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_rival = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`);
 
-        const initiator = gameData.getCharacterById(initiatorId);
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return;
+        if (!source || !target) return;
 
-        if (initiator.id === gameData.playerID) {
+        if (source.id === gameData.playerID) {
             if (!target.relationsToPlayer.includes("Rival")) {
                 target.relationsToPlayer.push("Rival");
             }
         } else {
-            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            let relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             if (relationEntry) {
                 if (!relationEntry.relations.includes("Rival")) {
                     relationEntry.relations.push("Rival");
                 }
             } else {
-                target.relationsToCharacters.push({ id: initiator.id, relations: ["Rival"] });
+                target.relationsToCharacters.push({ id: source.id, relations: ["Rival"] });
             }
         }
     },

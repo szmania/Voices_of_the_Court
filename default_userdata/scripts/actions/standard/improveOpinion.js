@@ -36,25 +36,25 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) =>{
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) =>{
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
 
-        if (!initiator || !target || target.id === gameData.playerID) {
+        if (!source || !target || target.id === gameData.playerID) {
             // Target cannot be the player, as we can't model player opinion.
             return false;
         }
 
         let opinionValue = 0;
-        if (initiator.id === gameData.playerID) {
-            // Target is AI, initiator is Player. Check AI's opinion of Player.
+        if (source.id === gameData.playerID) {
+            // Target is AI, source is Player. Check AI's opinion of Player.
             opinionValue = target.opinionOfPlayer;
         } else {
-            // Target is AI, initiator is also AI. Check Target's opinion of Initiator.
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
+            // Target is AI, source is also AI. Check Target's opinion of Source.
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
             opinionValue = opinionEntry ? opinionEntry.opinon : 0;
         }
 
@@ -66,16 +66,16 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) =>{
-        const initiator = gameData.getCharacterById(initiatorId);
+    run: (gameData, runGameEffect, args, sourceId, targetId) =>{
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return;
+        if (!source || !target) return;
 
-        // If the opinion target is an AI and the initiator is the player, update the in-memory GameData.
-        if (target.id !== gameData.playerID && initiator.id === gameData.playerID) {
+        // If the opinion target is an AI and the source is the player, update the in-memory GameData.
+        if (target.id !== gameData.playerID && source.id === gameData.playerID) {
             let conversationOpinion = target.getOpinionModifierValue("From conversations");
             if(conversationOpinion < 50){
                 target.setOpinionModifierValue("From conversations", conversationOpinion + Number(args[0]));

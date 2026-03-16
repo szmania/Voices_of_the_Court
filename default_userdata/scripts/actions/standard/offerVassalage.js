@@ -36,26 +36,26 @@ module.exports = {
     
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        let opinionOfSource = 0;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
         }
 
-        console.log(`PVAI: ${opinionOfInitiator} ${initiator.isLandedRuler} ${target.isLandedRuler}`)
+        console.log(`PVAI: ${opinionOfSource} ${source.isLandedRuler} ${target.isLandedRuler}`)
         
         // Check basic conditions
-        if ((opinionOfInitiator >= -30) && (initiator.isLandedRuler) && (target.isLandedRuler)){
+        if ((opinionOfSource >= -30) && (source.isLandedRuler) && (target.isLandedRuler)){
             // Check if AI has the vassalization debate score trait
             if (target.hasTrait("VassalizationDebateScore")) {
                 let targetScore = Number(target.traits.find(trait => trait.name === "VassalizationDebateScore").desc);
@@ -67,7 +67,7 @@ module.exports = {
                 return false;
             }
             else {
-                if (opinionOfInitiator > 10) {
+                if (opinionOfSource > 10) {
                     target.addTrait({
                         category: "politicalVariable",
                         name: "VassalizationDebateScore",
@@ -88,10 +88,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         const target = gameData.getCharacterById(targetId);
         if (!target) return;
         

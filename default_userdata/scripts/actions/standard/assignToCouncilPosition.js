@@ -55,10 +55,10 @@ const action = {
 
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) =>{
+    check: (gameData, sourceId, targetId) =>{
         return true;
     },
 
@@ -66,10 +66,10 @@ const action = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         const council_position = args[0];
         switch (council_position) {
             case "chancellor":

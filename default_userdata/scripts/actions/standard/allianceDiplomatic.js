@@ -17,28 +17,28 @@ module.exports = {
         pl: `Wykonywane, gdy dwie postacie zgadzają się na zawarcie sojuszu.`
     },
 	
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
+        let opinionOfSource = 0;
         let conversationOpinion = 0;
 
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
             conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
             // Simulate conversation opinion for AI-AI
-            conversationOpinion = opinionOfInitiator > 0 ? opinionOfInitiator / 2 : 0;
+            conversationOpinion = opinionOfSource > 0 ? opinionOfSource / 2 : 0;
         }
 
         let conv = conversationOpinion * 2;
-        let culture_faith = (target.faith == initiator.faith && target.culture == initiator.culture) ? 40 : ((target.faith == initiator.faith || target.culture == initiator.culture) ? 20 : 0);
+        let culture_faith = (target.faith == source.faith && target.culture == source.culture) ? 40 : ((target.faith == source.faith || target.culture == source.culture) ? 20 : 0);
 
-        let score = conv + opinionOfInitiator + culture_faith;
+        let score = conv + opinionOfSource + culture_faith;
 
         console.log(`culture & faith score: ` + culture_faith);
         console.log(`Diplomatic Alliance Score: ` + score);
@@ -59,10 +59,10 @@ module.exports = {
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
 		console.log(`Diplomatic Alliance Signed`);
         runGameEffect(`
 			global_var:votcce_action_source = { 

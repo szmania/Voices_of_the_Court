@@ -34,61 +34,61 @@ module.exports = {
 
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
-        const initiator = gameData.getCharacterById(initiatorId);
+    check: (gameData, sourceId, targetId) => {
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return false;
+        if (!source || !target) return false;
 
-        let opinionOfInitiator = 0;
+        let opinionOfSource = 0;
         let relations = [];
         let conversationOpinion = 0;
 
-        if (initiator.id === gameData.playerID) {
-            opinionOfInitiator = target.opinionOfPlayer;
+        if (source.id === gameData.playerID) {
+            opinionOfSource = target.opinionOfPlayer;
             relations = target.relationsToPlayer;
             conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
-            const opinionEntry = target.opinions.find(o => o.id === initiator.id);
-            opinionOfInitiator = opinionEntry ? opinionEntry.opinon : 0;
-            const relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            const opinionEntry = target.opinions.find(o => o.id === source.id);
+            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            const relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             relations = relationEntry ? relationEntry.relations : [];
             // No generic conversation opinion, so we'll have to make do.
-            if (opinionOfInitiator > 50) conversationOpinion = 51;
+            if (opinionOfSource > 50) conversationOpinion = 51;
         }
         
         return !relations.includes("Best Friend") && 
                relations.includes("Friend") &&
                conversationOpinion > 50 &&
-               opinionOfInitiator > 50;
+               opinionOfSource > 50;
     },
 
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
         runGameEffect(`global_var:votcce_action_target = {
             set_relation_best_friend = { reason = ${args[0]} target = global_var:votcce_action_source }
         }`);
 
-        const initiator = gameData.getCharacterById(initiatorId);
+        const source = gameData.getCharacterById(sourceId);
         const target = gameData.getCharacterById(targetId);
-        if (!initiator || !target) return;
+        if (!source || !target) return;
 
-        if (initiator.id === gameData.playerID) {
+        if (source.id === gameData.playerID) {
             let friendIndex = target.relationsToPlayer.indexOf("Friend");
             if (friendIndex !== -1) {
                 target.relationsToPlayer.splice(friendIndex, 1);
             }
             target.relationsToPlayer.push("Best Friend");
         } else {
-            let relationEntry = target.relationsToCharacters.find(r => r.id === initiator.id);
+            let relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             if (relationEntry) {
                 let friendIndex = relationEntry.relations.indexOf("Friend");
                 if (friendIndex !== -1) {
@@ -96,7 +96,7 @@ module.exports = {
                 }
                 relationEntry.relations.push("Best Friend");
             } else {
-                target.relationsToCharacters.push({ id: initiator.id, relations: ["Best Friend"] });
+                target.relationsToCharacters.push({ id: source.id, relations: ["Best Friend"] });
             }
         }
     },

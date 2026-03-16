@@ -39,29 +39,29 @@ module.exports = {
     
     /**
      * @param {GameData} gameData 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    check: (gameData, initiatorId, targetId) => {
+    check: (gameData, sourceId, targetId) => {
         const target = gameData.getCharacterById(targetId);
         if (!target) return false;
 
-        const initiator = gameData.getCharacterById(initiatorId);
-        if (!initiator) return false;
+        const source = gameData.getCharacterById(sourceId);
+        if (!source) return false;
 
-        // Check if target is already a prisoner of the initiator
-        const relationToInitiator = target.relationsToCharacters.find(r => r.id === initiatorId);
-        return !(relationToInitiator && relationToInitiator.relations.includes("Prisoner"));
+        // Check if target is already a prisoner of the source
+        const relationToSource = target.relationsToCharacters.find(r => r.id === sourceId);
+        return !(relationToSource && relationToSource.relations.includes("Prisoner"));
     },
     
     /**
      * @param {GameData} gameData 
      * @param {Function} runGameEffect
      * @param {string[]} args 
-     * @param {number} initiatorId
+     * @param {number} sourceId
      * @param {number} targetId
      */
-    run: (gameData, runGameEffect, args, initiatorId, targetId) => {
+    run: (gameData, runGameEffect, args, sourceId, targetId) => {
 		let prisonType = args && args[0] ? args[0].toString().trim() : "default";
 		
 		console.log(`prisonType (before switch): '${prisonType}'`);
