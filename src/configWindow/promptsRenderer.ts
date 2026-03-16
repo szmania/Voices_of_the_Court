@@ -321,6 +321,14 @@ async function handlePresetChange() {
     console.log(`Preset changed to: ${selectedPresetName}`);
     promptPresetNameInput.value = selectedPresetName;
 
+    // Re-enable textareas before loading new content
+    promptKeys.forEach(key => {
+        if (promptTextareas[key] && promptTextareas[key].textarea) {
+            promptTextareas[key].textarea.disabled = false;
+        }
+    });
+    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+
     if (selectedPresetName === 'Default') {
         const config = await ipcRenderer.invoke('get-config');
         const lang = config.language || 'en';
