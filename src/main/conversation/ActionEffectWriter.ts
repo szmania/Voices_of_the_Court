@@ -86,7 +86,8 @@ ordered_in_global_list = {
     effectBody: string
   ): void {
     const effect = this.composeFullEffect(gameData, sourceCharacterId, targetCharacterId, effectBody);
-    runFileManager.write(effect);
+    runFileManager.write(
+      `${effect}`);
   }
 
   /**
