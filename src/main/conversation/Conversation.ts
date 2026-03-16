@@ -458,6 +458,24 @@ export class Conversation{
         if (!message.id) {
             message.id = randomUUID();
         }
+
+        // If the user provides bracketed instructions, replace "I" or "me" with the player's name
+        // to avoid LLM confusion.
+        if (message.role === 'user' && message.content.includes('[') && message.content.includes(']')) {
+            const player = this.gameData.getPlayer();
+            if (player) {
+                const originalContent = message.content;
+                // This regex finds "I" or "me" as whole words, case-insensitively, inside square brackets.
+                message.content = originalContent.replace(/\[([^\]]*)\]/g, (match, insideBrackets) => {
+                    const replaced = insideBrackets.replace(/\b(I|me)\b/gi, player.fullName);
+                    return `[${replaced}]`;
+                });
+                if (originalContent !== message.content) {
+                    console.log(`Replaced pronouns in user instruction. Original: "${originalContent}", New: "${message.content}"`);
+                }
+            }
+        }
+
         // If this is an AI message, try to remove a placeholder
         if (message.role === 'assistant' && (message as any).characterId) {
             const characterId = (message as any).characterId;
