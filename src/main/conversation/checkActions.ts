@@ -7,9 +7,9 @@ import { parseVariables } from "../parseVariables";
 import { generateNarrative } from "./generateNarrative";
 import { ActionEffectWriter } from "./ActionEffectWriter.js";
 
-export async function checkActions(conv: Conversation, initiatorId: number, targetId: number): Promise<ActionResponse[]>{
-    console.log(`Starting action check for initiator: ${initiatorId}, target: ${targetId}`);
-    const character = conv.gameData.getCharacterById(initiatorId) || conv.gameData.getPlayer();
+export async function checkActions(conv: Conversation, sourceId: number, targetId: number): Promise<ActionResponse[]>{
+    console.log(`Starting action check for source: ${sourceId}, target: ${targetId}`);
+    const character = conv.gameData.getCharacterById(sourceId) || conv.gameData.getPlayer();
     conv.chatWindow.window.webContents.send('status-update', 'chat.status_checking_actions', { characterName: character.shortName });
 
     let availableActions: Action[] = [];
@@ -17,7 +17,7 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
     for(let action of conv.actions){
         try{
             // The check function now receives the initial context of who is talking to whom.
-            if(action.check(conv.gameData, initiatorId, targetId)){
+            if(action.check(conv.gameData, sourceId, targetId)){
                 availableActions.push(action)
             }
         }catch(e){
@@ -80,18 +80,18 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
         const argsString = /\(([^)]+)\)/.exec(actionInResponse);
         const allArgs = argsString ? argsString[1].split(",").map(arg => arg.trim()) : [];
 
-        // NEW: Expect initiator and target IDs from the LLM
+        // NEW: Expect source and target IDs from the LLM
         if (allArgs.length < 2) {
-            console.warn(`Action warning: Action "${actionInResponse}" did not include initiatorId and targetId. Skipping.`);
+            console.warn(`Action warning: Action "${actionInResponse}" did not include sourceId and targetId. Skipping.`);
             continue;
         }
 
-        const newInitiatorId = parseInt(allArgs[0], 10);
+        const newSourceId = parseInt(allArgs[0], 10);
         const newTargetId = parseInt(allArgs[1], 10);
         const actionArgs = allArgs.slice(2); // The rest are the actual action arguments
 
-        if (isNaN(newInitiatorId) || isNaN(newTargetId)) {
-            console.warn(`Action warning: Invalid initiatorId or targetId in "${actionInResponse}". Skipping.`);
+        if (isNaN(newSourceId) || isNaN(newTargetId)) {
+            console.warn(`Action warning: Invalid sourceId or targetId in "${actionInResponse}". Skipping.`);
             continue;
         }
 
@@ -113,7 +113,7 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
 
         // NEW: Perform pre-check if available
         if (matchedAction.preCheck) {
-            const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newInitiatorId, newTargetId);
+            const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newSourceId, newTargetId);
             if (!preCheckResult.success) {
                 console.warn(`Action pre-check failed for "${matchedAction.signature}": ${preCheckResult.message}`);
                 if (preCheckResult.message) {
@@ -134,7 +134,7 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             const pendingAction: PendingAction = {
                 action: matchedAction,
                 args: actionArgs,
-                initiatorId: newInitiatorId,
+                sourceId: newSourceId,
                 targetId: newTargetId
             };
 
@@ -147,9 +147,9 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             if (typeof chatMessage === 'object') {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
-            const initiatorChar = conv.gameData.getCharacterById(newInitiatorId);
+            const sourceChar = conv.gameData.getCharacterById(newSourceId);
             const targetChar = conv.gameData.getCharacterById(newTargetId);
-            conv.gameData.character1Name = initiatorChar ? initiatorChar.shortName : "someone";
+            conv.gameData.character1Name = sourceChar ? sourceChar.shortName : "someone";
             conv.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
 
             const approvalResponse: ActionResponse = {
@@ -162,15 +162,15 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             console.log(`Sent action "${matchedAction.signature}" for manual approval.`);
 
         } else { // Execute directly if manual approval is off
-            console.log(`Executing action: ${matchedAction.signature} with initiator: ${newInitiatorId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
+            console.log(`Executing action: ${matchedAction.signature} with source: ${newSourceId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
             try {
                 let effectBody = "";
                 // Use the LLM-provided IDs
-                matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, actionArgs, newInitiatorId, newTargetId);
+                matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, actionArgs, newSourceId, newTargetId);
                 ActionEffectWriter.appendEffect(
                     conv.runFileManager,
                     conv.gameData,
-                    newInitiatorId,
+                    newSourceId,
                     newTargetId,
                     effectBody
                 );
@@ -186,9 +186,9 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
                     chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
                 }
                 // Use LLM-provided IDs to get correct names
-                const initiatorChar = conv.gameData.getCharacterById(newInitiatorId);
+                const sourceChar = conv.gameData.getCharacterById(newSourceId);
                 const targetChar = conv.gameData.getCharacterById(newTargetId);
-                conv.gameData.character1Name = initiatorChar ? initiatorChar.shortName : "someone";
+                conv.gameData.character1Name = sourceChar ? sourceChar.shortName : "someone";
                 conv.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
                 triggeredActions.push({
                     actionName: matchedAction.signature,
@@ -235,7 +235,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     for(const action of actions){
         let argNames: string[] = [];
         action.args.forEach( arg => { argNames.push(arg.name)})
-        // The LLM will now provide initiator and target, so we don't include them in the signature shown to it.
+        // The LLM will now provide source and target, so we don't include them in the signature shown to it.
         let signature = action.signature+'('+argNames.join(', ')+')';
         let argString = action.args.length > 0 ? `Takes ${action.args.length} arguments: ` : "Takes no arguments.";
 
@@ -255,12 +255,12 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
-    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the initiator and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
-    listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>`
+    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
+    listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
 
     output.push({
         role: "system",
-        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the initiator's ID and the target's ID as the first two arguments. The 'initiator' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the initiator and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>'`
+        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the source's ID and the target's ID as the first two arguments. The 'source' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the source and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>'`
     })
 
     output.push({
@@ -275,7 +275,7 @@ ${listOfActions}`
 
     output.push({
         role: "user",
-        content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>"
+        content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>"
     })
 
     return output;

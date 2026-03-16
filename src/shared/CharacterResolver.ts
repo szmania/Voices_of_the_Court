@@ -4,7 +4,7 @@ import { Character } from './gameData/Character.js';
 /**
  * Resolves character objects from IDs, with fallbacks to player and primary AI.
  * @param gameData The GameData object.
- * @param char1Id The ID of the first character (initiator).
+ * @param char1Id The ID of the first character (source).
  * @param char2Id The ID of the second character (target).
  * @returns An object containing character1 and character2.
  */
@@ -18,12 +18,12 @@ export function resolveCharacters(gameData: GameData, char1Id?: number, char2Id?
 
 /**
  * Gets the CK3 scope variable for a character role.
- * @param role 'initiator' or 'target'.
+ * @param role 'source' or 'target'.
  * @returns The scope variable string.
  */
-export function getCharacterScope(role: 'initiator' | 'target'): string {
-    if (role === 'initiator') {
-        return 'global_var:votcce_action_initiator';
+export function getCharacterScope(role: 'source' | 'target'): string {
+    if (role === 'source') {
+        return 'global_var:votcce_action_source';
     }
     return 'global_var:votcce_action_target';
 }
