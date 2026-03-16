@@ -390,8 +390,18 @@ async function saveCurrentPreset() {
 
     populatePresetSelector(presetName);
     // @ts-ignore
-    alert(window.LocalizationManager.getTranslation('prompts.save_preset_success', { presetName: presetName }));
+    const successMsg = window.LocalizationManager.getTranslation('prompts.save_preset_success', { presetName: presetName });
+    // @ts-ignore
+    alert(successMsg.replace('{{presetName}}', presetName));
     setSaveButtonState(false);
+
+    // Re-enable textareas after saving
+    promptKeys.forEach(key => {
+        if (promptTextareas[key] && promptTextareas[key].textarea) {
+            promptTextareas[key].textarea.disabled = false;
+        }
+    });
+    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 }
 
 async function deleteSelectedPreset() {
