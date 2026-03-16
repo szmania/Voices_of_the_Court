@@ -393,7 +393,10 @@ export class Conversation{
                     const actionMatch = line.match(actionRegex);
                     if (actionMatch) {
                         if (currentMessage) {
-                            currentMessage.actions!.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
+                            if (!currentMessage.actions) {
+                                currentMessage.actions = [];
+                            }
+                            currentMessage.actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
                         }
                         continue;
                     }
@@ -417,8 +420,7 @@ export class Conversation{
                         currentMessage = {
                             role: role as 'user' | 'assistant',
                             name: name,
-                            content: messageContent,
-                            actions: []
+                            content: messageContent
                         };
                     } else if (line.trim() && currentMessage) {
                         // This is a continuation of the current message.
