@@ -123,41 +123,81 @@ export async function checkActions(conv: Conversation, initiatorId: number, targ
             }
         }
 
-        console.log(`Executing action: ${matchedAction.signature} with initiator: ${newInitiatorId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
-        try {
-            let effectBody = "";
-            // Use the LLM-provided IDs
-            matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, actionArgs, newInitiatorId, newTargetId);
-            ActionEffectWriter.appendEffect(
-                conv.runFileManager,
-                conv.gameData,
-                newInitiatorId,
-                newTargetId,
-                effectBody
-            );
-        } catch(e) {
-            let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
-            console.error(errMsg)
-            conv.chatWindow.window.webContents.send('error-message', errMsg);
-        }
+        // NEW: Manual Action Approval Logic
+        if (conv.config.manualActionApproval) {
+            const lastMessage = conv.messages[conv.messages.length - 1];
+            if (!lastMessage || !lastMessage.id) {
+                console.error("Cannot request action approval, last message has no ID.");
+                continue;
+            }
 
-        if(matchedAction.chatMessageClass != null){
+            const pendingAction: PendingAction = {
+                action: matchedAction,
+                args: actionArgs,
+                initiatorId: newInitiatorId,
+                targetId: newTargetId
+            };
+
+            if (!conv.pendingActions.has(lastMessage.id)) {
+                conv.pendingActions.set(lastMessage.id, []);
+            }
+            conv.pendingActions.get(lastMessage.id)!.push(pendingAction);
+
             let chatMessage = matchedAction.chatMessage(actionArgs);
             if (typeof chatMessage === 'object') {
                 chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
             }
-            // Use LLM-provided IDs to get correct names
             const initiatorChar = conv.gameData.getCharacterById(newInitiatorId);
             const targetChar = conv.gameData.getCharacterById(newTargetId);
             conv.gameData.character1Name = initiatorChar ? initiatorChar.shortName : "someone";
             conv.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
-            triggeredActions.push({
+
+            const approvalResponse: ActionResponse = {
                 actionName: matchedAction.signature,
                 chatMessage: parseVariables(chatMessage, conv.gameData),
                 chatMessageClass: matchedAction.chatMessageClass
-            })
+            };
+            
+            conv.chatWindow.window.webContents.send('action-approval-request', lastMessage.id, [approvalResponse]);
+            console.log(`Sent action "${matchedAction.signature}" for manual approval.`);
+
+        } else { // Execute directly if manual approval is off
+            console.log(`Executing action: ${matchedAction.signature} with initiator: ${newInitiatorId}, target: ${newTargetId}, args: [${actionArgs.join(', ')}]`);
+            try {
+                let effectBody = "";
+                // Use the LLM-provided IDs
+                matchedAction.run(conv.gameData, (text: string) => { effectBody += text; }, actionArgs, newInitiatorId, newTargetId);
+                ActionEffectWriter.appendEffect(
+                    conv.runFileManager,
+                    conv.gameData,
+                    newInitiatorId,
+                    newTargetId,
+                    effectBody
+                );
+            } catch(e) {
+                let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
+                console.error(errMsg)
+                conv.chatWindow.window.webContents.send('error-message', errMsg);
+            }
+
+            if(matchedAction.chatMessageClass != null){
+                let chatMessage = matchedAction.chatMessage(actionArgs);
+                if (typeof chatMessage === 'object') {
+                    chatMessage = chatMessage[conv.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                }
+                // Use LLM-provided IDs to get correct names
+                const initiatorChar = conv.gameData.getCharacterById(newInitiatorId);
+                const targetChar = conv.gameData.getCharacterById(newTargetId);
+                conv.gameData.character1Name = initiatorChar ? initiatorChar.shortName : "someone";
+                conv.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
+                triggeredActions.push({
+                    actionName: matchedAction.signature,
+                    chatMessage: parseVariables(chatMessage, conv.gameData),
+                    chatMessageClass: matchedAction.chatMessageClass
+                })
+            }
+            console.log(`Action "${matchedAction.signature}" successfully triggered.`);
         }
-        console.log(`Action "${matchedAction.signature}" successfully triggered.`);
     }
 
     if (triggeredActions.length > 0) {
@@ -220,7 +260,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
 
     output.push({
         role: "system",
-        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the initiator's ID and the target's ID as the first two arguments, followed by any other arguments. The IDs must come from the provided character list. The actions MUST exist in the provided list. 'Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>'`
+        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the initiator's ID and the target's ID as the first two arguments. The 'initiator' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the initiator and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Response format: <rationale>Reasoning.</rationale><actions>actionName1(initiatorId, targetId, value), actionName2(initiatorId, targetId, value)</actions>'`
     })
 
     output.push({

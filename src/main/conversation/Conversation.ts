@@ -135,6 +135,7 @@ export class Conversation{
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
         this.pendingActions = new Map();
+        this.pendingActions = new Map();
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
@@ -1291,6 +1292,67 @@ ${character.fullName}的发言：`
         } catch (error) {
             console.error(`Error generating message with validation prompt for ${character.fullName}: ${error}`);
             return null;
+        }
+    }
+
+    async executeApprovedAction(messageId: string, actionName: string) {
+        const pending = this.pendingActions.get(messageId);
+        if (!pending) {
+            console.error(`No pending actions found for message ID ${messageId}`);
+            return;
+        }
+
+        const actionToExecute = pending.find(p => p.action.signature === actionName);
+        if (!actionToExecute) {
+            console.error(`Action ${actionName} not found in pending actions for message ID ${messageId}`);
+            return;
+        }
+
+        const { action, args, initiatorId, targetId } = actionToExecute;
+
+        try {
+            let effectBody = "";
+            action.run(this.gameData, (text: string) => { effectBody += text; }, args, initiatorId, targetId);
+            ActionEffectWriter.appendEffect(
+                this.runFileManager,
+                this.gameData,
+                initiatorId,
+                targetId,
+                effectBody
+            );
+
+            this.runFileManager.append(`
+                global_var:talk_first_scope = {
+                    trigger_event = mcc_event_v2.9003
+                }`
+            );
+
+            if (action.chatMessageClass != null) {
+                let chatMessage = action.chatMessage(args);
+                if (typeof chatMessage === 'object') {
+                    chatMessage = chatMessage[this.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
+                }
+                const actionResponse: ActionResponse = {
+                    actionName: action.signature,
+                    chatMessage: parseVariables(chatMessage, this.gameData),
+                    chatMessageClass: action.chatMessageClass
+                };
+                this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
+            }
+
+            console.log(`Action "${action.signature}" successfully executed after approval.`);
+        } catch (e) {
+            let errMsg = `Action error: failure in run function for action: ${action.signature}; details: `+e;
+            console.error(errMsg);
+            this.chatWindow.window.webContents.send('error-message', errMsg);
+        }
+
+        // Remove the executed action from pending
+        const updatedPending = pending.filter(p => p.action.signature !== actionName);
+        if (updatedPending.length === 0) {
+            this.pendingActions.delete(messageId);
+        } else {
+            this.pendingActions.set(messageId, updatedPending);
         }
     }
 
