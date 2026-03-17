@@ -64,16 +64,12 @@ jobs:
         with:
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           files: |
+            dist/dist-macos-latest/**/*.zip
             dist/dist-macos-latest/**/*.dmg
             dist/dist-windows-latest/**/*.exe
             dist/dist-windows-latest/**/*.nupkg
             dist/dist-windows-latest/**/RELEASES
           draft: true
-            dist/**/*.zip
-            dist/**/*.dmg
-            dist/**/*.exe
-            dist/**/*.nupkg
-            dist/**/RELEASES
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_GITHUB_PAT }}

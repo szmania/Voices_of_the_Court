@@ -225,10 +225,23 @@ The Summary Manager is an interface for managing and editing game character conv
 ## 🚀 Local Setup
 
 ### 📥 Installation
-1. Download the latest version of the VOTC-CE mod
-2. Extract to your CK3 mod folder
-3. Launch CK3 and enable the mod in the launcher
-4. Run the VOTC-CE application
+
+**Windows**
+1. Download the `.exe` installer from the latest release.
+2. Run the installer and follow the on-screen instructions.
+3. Launch the VOTC-CE application.
+
+**macOS**
+1. Download the `.zip` or `.dmg` file from the latest release.
+2. If you downloaded the `.dmg`, open it and drag the application icon to your `/Applications` folder.
+3. If you downloaded the `.zip`, unzip it and drag the application icon to your `/Applications` folder.
+4. **Important First Step**: To run the app, you must bypass Apple's Gatekeeper security. Right-click (or Ctrl-click) the application icon and select **Open** from the menu.
+5. A warning dialog will appear. Click the **Open** button to confirm. You only need to do this the first time you run the application.
+
+**CK3 Mod Setup**
+1. Download the latest version of the VOTC-CE mod files (usually a `.zip` file) from the release page.
+2. Extract the contents to your CK3 mod folder (typically located at `Documents/Paradox Interactive/Crusader Kings III/mod`).
+3. Launch Crusader Kings III and enable the "Voices of the Court" mod in the launcher.
 
 ### ⚙️ Configuration
 1. Launch the application

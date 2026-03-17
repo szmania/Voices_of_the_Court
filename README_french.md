@@ -77,10 +77,23 @@ Maintenance de l'application et liens communautaires.
 ## 🚀 Installation Locale
 
 ### 📥 Installation
-1. Téléchargez la dernière version du mod VOTC-CE.
-2. Extrayez-le dans votre dossier de mods CK3.
-3. Lancez CK3 et activez le mod dans le launcher.
-4. Lancez l'application VOTC-CE.
+
+**Windows**
+1. Téléchargez le programme d'installation `.exe` depuis la dernière version.
+2. Exécutez le programme d'installation et suivez les instructions à l'écran.
+3. Lancez l'application VOTC-CE.
+
+**macOS**
+1. Téléchargez le fichier `.zip` ou `.dmg` depuis la dernière version.
+2. Si vous avez téléchargé le `.dmg`, ouvrez-le et faites glisser l'icône de l'application dans votre dossier `/Applications`.
+3. Si vous avez téléchargé le `.zip`, décompressez-le et faites glisser l'icône de l'application dans votre dossier `/Applications`.
+4. **Première étape importante**: Pour exécuter l'application, vous devez contourner la sécurité Gatekeeper d'Apple. Faites un clic droit (ou Ctrl-clic) sur l'icône de l'application et sélectionnez **Ouvrir** dans le menu.
+5. Une boîte de dialogue d'avertissement apparaîtra. Cliquez sur le bouton **Ouvrir** pour confirmer. Vous ne devez effectuer cette opération que la première fois que vous lancez l'application.
+
+**Configuration du mod CK3**
+1. Téléchargez la dernière version des fichiers du mod VOTC-CE (généralement un fichier `.zip`) depuis la page des versions.
+2. Extrayez le contenu dans votre dossier de mods CK3 (généralement situé dans `Documents/Paradox Interactive/Crusader Kings III/mod`).
+3. Lancez Crusader Kings III et activez le mod "Voices of the Court" dans le lanceur.
 
 ### 🛠️ Configuration pour le Développement Local
 1. Clonez le dépôt.
