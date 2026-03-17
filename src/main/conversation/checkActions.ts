@@ -174,6 +174,11 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                     newTargetId,
                     effectBody
                 );
+
+                // Hardcoded effect for leaveConversation
+                if (matchedAction.signature === 'leaveConversation') {
+                    conv.removeCharacter(newSourceId);
+                }
             } catch(e) {
                 let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
                 console.error(errMsg)

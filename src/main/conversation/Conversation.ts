@@ -1354,6 +1354,11 @@ ${character.fullName}的发言：`
                 effectBody
             );
 
+            // Hardcoded effect for leaveConversation
+            if (action.signature === 'leaveConversation') {
+                this.removeCharacter(sourceId);
+            }
+
             this.runFileManager.append(`
                 global_var:talk_first_scope = {
                     trigger_event = mcc_event_v2.9003
@@ -1841,6 +1846,35 @@ ${character.fullName}的发言：`
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
+        }
+    }
+
+    public removeCharacter(characterId: number): void {
+        const character = this.gameData.characters.get(characterId);
+        if (character) {
+            console.log(`Removing character ${character.shortName} (ID: ${characterId}) from conversation state.`);
+            
+            // Remove from GameData
+            this.gameData.characters.delete(characterId);
+            
+            // Remove any placeholder messages
+            const placeholderIndex = this.messages.findIndex(
+                msg => (msg as any).characterId === characterId && msg.content === this.notSpokenYetText
+            );
+            if (placeholderIndex !== -1) {
+                this.messages.splice(placeholderIndex, 1);
+            }
+    
+            // Remove from NPC queue for future turns
+            this.npcQueue = this.npcQueue.filter(c => c.id !== characterId);
+            if (this.customQueue) {
+                this.customQueue = this.customQueue.filter(c => c.id !== characterId);
+            }
+    
+            // Notify the UI to update itself
+            this.chatWindow.window.webContents.send('character-left', characterId);
+        } else {
+            console.warn(`Attempted to remove character with ID ${characterId}, but they were not found in the conversation.`);
         }
     }
 
