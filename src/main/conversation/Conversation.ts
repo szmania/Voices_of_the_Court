@@ -27,6 +27,19 @@ import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 
+function getNestedTranslationHelper(key: string, translations: any): string | undefined {
+    const keys = key.split('.');
+    let current = translations;
+    for (const k of keys) {
+        if (current && typeof current === 'object' && k in current) {
+            current = current[k];
+        } else {
+            return undefined;
+        }
+    }
+    return typeof current === 'string' ? current : undefined;
+}
+
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
     try {
@@ -95,6 +108,18 @@ export class Conversation{
         const lang = this.config.language || 'en';
         this.translations = getTranslations(lang);
         this.notSpokenYetText = this.translations.chat.not_spoken || "Has not spoken yet";
+
+        this.gameData.lang = lang;
+        (this.gameData as any).localize = (key: string, lang_unused: string, vars: any) => {
+            let translation = getNestedTranslationHelper(key, this.translations) || key;
+            if (vars) {
+                for (const varKey in vars) {
+                    translation = translation.replace(`{${varKey}}`, vars[varKey]);
+                    translation = translation.replace(`{{${varKey}}}`, vars[varKey]);
+                }
+            }
+            return translation;
+        };
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.description = "";
