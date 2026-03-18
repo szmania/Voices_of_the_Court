@@ -143,9 +143,6 @@ async function loadactions(){
     let standardFileNames = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === '.js'); 
     let customFileNames = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === '.js'); 
     
-
-    
-
     for(const fileName of standardFileNames){   
         let file  = require(path.join(actionsPath, 'standard', fileName));
         
@@ -153,9 +150,18 @@ async function loadactions(){
 
         let isChecked = !disabledActions.includes(file.signature);
 
+        let title = file.signature;
+        if (file.title) {
+            if (typeof file.title === 'object') {
+                title = file.title[config.language] || file.title['en'] || file.signature;
+            } else {
+                title = file.title;
+            }
+        }
+
         element.innerHTML = `
         <input type="checkbox" id="${file.signature}" ${isChecked? "checked" : ""}>
-        <label>${file.signature}</label>
+        <label>${title}</label>
         `
 
         actionsDiv.appendChild(element);
@@ -184,6 +190,15 @@ async function loadactions(){
                 description = description[config.language] || description['en'] || Object.values(description)[0];
             }
 
+            let title = file.signature;
+            if (file.title) {
+                if (typeof file.title === 'object') {
+                    title = file.title[config.language] || file.title['en'] || file.signature;
+                } else {
+                    title = file.title;
+                }
+            }
+
             const descLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.description') || "Description:";
             const madeByLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.made_by') || "Made by:";
             
@@ -192,7 +207,7 @@ async function loadactions(){
             }
 
             actionDescriptorDiv.innerHTML = `
-            <h3>${file.signature}</h3>
+            <h3>${title}</h3>
             <ul>
                 <li class="action-item"><b>${descLabel}</b> ${description}</li>
                 ${creatorString}
@@ -208,9 +223,18 @@ async function loadactions(){
 
         let isChecked = !disabledActions.includes(file.signature);
 
+        let title = file.signature;
+        if (file.title) {
+            if (typeof file.title === 'object') {
+                title = file.title[config.language] || file.title['en'] || file.signature;
+            } else {
+                title = file.title;
+            }
+        }
+
         element.innerHTML = `
         <input type="checkbox" id="${file.signature}" ${isChecked? "checked" : ""}>
-        <label>${file.signature}</label>
+        <label>${title}</label>
         `
 
         actionsDiv.appendChild(element);
