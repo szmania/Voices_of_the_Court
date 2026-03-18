@@ -722,7 +722,7 @@ clipboardListener.on('VOTC:IN', async () =>{
     }
 })
 
-clipboardListener.on('VOTC:EFFECT_ACCEPTED', async () =>{
+clipboardListener.on('VOTC:EFFECT_ACCEPTED', () =>{
     console.log('ClipboardListener: VOTC:EFFECT_ACCEPTED event detected.');
     if(conversation){
         conversation.runFileManager.clear();
