@@ -1852,6 +1852,16 @@ ${character.fullName}的发言：`
         const character = this.gameData.characters.get(characterId);
         if (character) {
             console.log(`Removing character ${character.shortName} (ID: ${characterId}) from conversation state.`);
+
+            // Add a system message to the chat history to inform the LLM
+            const systemMessage: Message = {
+                role: "system",
+                name: "System",
+                content: `[System note: ${character.fullName} has left the conversation and is no longer present.]`
+            };
+            this.pushMessage(systemMessage);
+            // Also send it to the UI so it's visible for debugging and context
+            this.chatWindow.window.webContents.send('message-receive', systemMessage, false);
             
             // Remove from GameData
             this.gameData.characters.delete(characterId);
