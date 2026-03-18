@@ -1369,6 +1369,10 @@ ${character.fullName}的发言：`
                 if (typeof chatMessage === 'object') {
                     chatMessage = chatMessage[this.config.language] || chatMessage['en'] || Object.values(chatMessage)[0];
                 }
+                const sourceChar = this.gameData.getCharacterById(sourceId);
+                const targetChar = this.gameData.getCharacterById(targetId);
+                this.gameData.character1Name = sourceChar ? sourceChar.shortName : "someone";
+                this.gameData.character2Name = targetChar ? targetChar.shortName : "someone";
                 const actionResponse: ActionResponse = {
                     actionName: action.signature,
                     chatMessage: parseVariables(chatMessage, this.gameData),
