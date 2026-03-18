@@ -1434,6 +1434,14 @@ ${character.fullName}的发言：`
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
         // Write a trigger event to the game (e.g., trigger conversation end event)
+        this.runFileManager.write(`
+          trigger_event = mcc_event_v2.9002
+          trigger_event = mcc_event_v2.9003
+       `);
+        setTimeout(() => {
+            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            console.log('Run file cleared after conversation end event.');
+        }, 500);
 
         // Generate and save diary entries for each character
         for (const character of this.gameData.characters.values()) {
@@ -1459,14 +1467,6 @@ ${character.fullName}的发言：`
                 }
             }
         }
-        this.runFileManager.write(`
-          trigger_event = mcc_event_v2.9002
-          trigger_event = mcc_event_v2.9003
-       `);
-        setTimeout(() => {
-            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
-            console.log('Run file cleared after conversation end event.');
-        }, 500);
 
         // Ensure the conversation_history directory exists
         const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
