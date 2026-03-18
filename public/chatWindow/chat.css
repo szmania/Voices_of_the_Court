@@ -451,72 +451,9 @@ html{
 
 .suggestions-button-wrapper {
     position: absolute;
-    left: 12.5%;
+    left: 15%;
     transform: translateX(-50%);
     bottom: -20px;
-}
-
-.suggestions-button-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 130%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    max-width: 350px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 2000;
-    border: 1px solid #5a4a35;
-    pointer-events: none;
-}
-
-.suggestions-button-wrapper:hover::after {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.1s;
-}
-
-.suggestions-button-wrapper {
-    position: relative;
-    left: 7%;
-}
-
-.suggestions-button-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 130%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    max-width: 350px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 2000;
-    border: 1px solid #5a4a35;
-    pointer-events: none;
-}
-
-.suggestions-button-wrapper:hover::after {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.1s;
 }
 
 
