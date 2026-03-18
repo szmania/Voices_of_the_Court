@@ -1438,6 +1438,10 @@ ${character.fullName}的发言：`
           trigger_event = mcc_event_v2.9002
           trigger_event = mcc_event_v2.9003
        `);
+        setTimeout(() => {
+            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            console.log('Run file cleared after conversation end event.');
+        }, 500);
 
         // Generate and save diary entries for each character
         for (const character of this.gameData.characters.values()) {
