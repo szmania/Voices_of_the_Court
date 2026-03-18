@@ -474,17 +474,42 @@ export class Conversation{
             message.id = randomUUID();
         }
 
-        // If the user provides bracketed instructions, replace "I" or "me" with the player's name
-        // to avoid LLM confusion.
+        // If the user provides bracketed instructions, replace pronouns to avoid LLM confusion.
         if (message.role === 'user' && message.content.includes('[') && message.content.includes(']')) {
             const player = this.gameData.getPlayer();
             if (player) {
                 const originalContent = message.content;
-                // This regex finds "I" or "me" as whole words, case-insensitively, inside square brackets.
+                
                 message.content = originalContent.replace(/\[([^\]]*)\]/g, (match, insideBrackets) => {
-                    const replaced = insideBrackets.replace(/\b(I|me)\b/gi, player.fullName);
-                    return `[${replaced}]`;
+                    let processedText = insideBrackets;
+
+                    // Replace "I", "me", "my" with player's name
+                    processedText = processedText.replace(/\bmy\b/gi, player.fullName + "'s");
+                    processedText = processedText.replace(/\b(I|me)\b/gi, player.fullName);
+
+                    // Determine the target for "you"
+                    let targetCharacter: Character | undefined;
+                    const otherCharacters = Array.from(this.gameData.characters.values()).filter(c => c.id !== this.gameData.playerID);
+                    const targetIds = (message as any).targetCharacterIds as number[] | undefined;
+
+                    if (targetIds && targetIds.length === 1) {
+                        // If there's an explicit single target from the UI
+                        targetCharacter = this.gameData.getCharacterById(targetIds[0]);
+                    } else if (otherCharacters.length === 1) {
+                        // If there's only one other character in the conversation
+                        targetCharacter = otherCharacters[0];
+                    }
+                    // If multiple other characters and no explicit target, "you" is ambiguous. We won't replace it.
+
+                    if (targetCharacter) {
+                        // Replace "you", "your" with target character's name
+                        processedText = processedText.replace(/\byour\b/gi, targetCharacter.fullName + "'s");
+                        processedText = processedText.replace(/\byou\b/gi, targetCharacter.fullName);
+                    }
+
+                    return `[${processedText}]`;
                 });
+
                 if (originalContent !== message.content) {
                     console.log(`Replaced pronouns in user instruction. Original: "${originalContent}", New: "${message.content}"`);
                 }
