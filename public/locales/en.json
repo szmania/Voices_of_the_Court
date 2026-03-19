@@ -835,5 +835,11 @@
     "examination_room": "Examination Room",
     "chinese_city": "Chinese City",
     "japanese_city": "Japanese City"
+  },
+  "scene_description": {
+    "default_prompt": "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.",
+    "instruction": "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:",
+    "description_label": "Current conversation information:",
+    "system_prompt": "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games."
   }
 }

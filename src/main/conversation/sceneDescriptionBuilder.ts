@@ -27,16 +27,12 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，只包含当前对话描述
-    const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt || 
-        (conv.config.language === 'zh' 
-            ? "请生成一个引人入胜的场景描述，为角色们的对话提供背景和氛围。"
-            : "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
-    
-    const instruction = conv.config.language === 'zh' 
-        ? "根据以下信息，生成一个简短、大气的第三人称场景描述（50-100字）。不要包含角色思想或对话。只描述场景和氛围："
-        : "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:";
-    
-    const descriptionLabel = conv.config.language === 'zh' ? "当前对话信息：" : "Current conversation information:";
+    const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt ||
+        (conv.translations.scene_description?.default_prompt || "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
+
+    const instruction = conv.translations.scene_description?.instruction || "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:";
+
+    const descriptionLabel = conv.translations.scene_description?.description_label || "Current conversation information:";
     
     const prompt = `${instruction}
 
@@ -46,9 +42,7 @@ ${description}
 ${sceneDescriptionPrompt}`;
 
     // 构建消息数组
-    const systemPrompt = conv.config.language === 'zh' 
-        ? "你是一个场景描述生成助手，负责为角色扮演游戏创造生动的场景氛围描述。"
-        : "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.";
+    const systemPrompt = conv.translations.scene_description?.system_prompt || "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.";
     
     const messages: Message[] = [
         {
