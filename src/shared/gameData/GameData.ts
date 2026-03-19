@@ -94,6 +94,21 @@ export class GameData {
     }
 
     /**
+     * Gets all character IDs with the player character first
+     * @returns {number[]} Array of character IDs with player ID first
+     */
+    getCharacterIdsWithPlayerFirst(): number[] {
+        const allIds = Array.from(this.characters.keys());
+        // Move player ID to the front if it exists
+        const playerIndex = allIds.indexOf(this.playerID);
+        if (playerIndex > 0) {
+            const playerId = allIds.splice(playerIndex, 1)[0];
+            allIds.unshift(playerId);
+        }
+        return allIds;
+    }
+
+    /**
      * Gets all characters in the conversation except the player and the main AI.
      * @returns {Character[]} An array of other characters.
      */
@@ -101,6 +116,21 @@ export class GameData {
         return Array.from(this.characters.values()).filter(
             char => char.id !== this.playerID && char.id !== this.aiID
         );
+    }
+
+    /**
+     * Gets all character IDs with the player character first
+     * @returns {number[]} Array of character IDs with player ID first
+     */
+    getCharacterIdsWithPlayerFirst(): number[] {
+        const allIds = Array.from(this.characters.keys());
+        // Move player ID to the front if it exists
+        const playerIndex = allIds.indexOf(this.playerID);
+        if (playerIndex > 0) {
+            const playerId = allIds.splice(playerIndex, 1)[0];
+            allIds.unshift(playerId);
+        }
+        return allIds;
     }
 
     static fromPlainObject(obj: any): GameData {
@@ -111,12 +141,32 @@ export class GameData {
         // Revive the characters Map from the plain object Map
         const characterMap = new Map<number, Character>();
         if (obj.characters && obj.characters.entries) { // Check if it's a Map-like object
+            // First, add the player character if it exists
+            const playerId = instance.playerID;
+            let playerChar: Character | undefined;
+            
             for (const [id, charObj] of obj.characters.entries()) {
                 const characterInstance = Character.fromPlainObject(charObj);
-                characterMap.set(id, characterInstance);
+                if (id === playerId) {
+                    playerChar = characterInstance;
+                } else {
+                    characterMap.set(id, characterInstance);
+                }
+            }
+            
+            // Add player character first if it was found
+            if (playerChar) {
+                const orderedMap = new Map<number, Character>();
+                orderedMap.set(playerId, playerChar);
+                // Add all other characters
+                for (const [id, char] of characterMap) {
+                    orderedMap.set(id, char);
+                }
+                instance.characters = orderedMap;
+            } else {
+                instance.characters = characterMap;
             }
         }
-        instance.characters = characterMap;
         return instance;
     }
 
