@@ -822,6 +822,17 @@ html{
       margin: 5px 20px;
   }
 
+  .historical-scene-info {
+    text-align: center;
+    font-style: italic;
+    color: #a18c61;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    padding: 4px;
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+  }
+
 /* Slash Command Autocomplete */
 .slash-command-container {
     background: #222;

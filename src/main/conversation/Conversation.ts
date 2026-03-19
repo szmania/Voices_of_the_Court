@@ -327,8 +327,8 @@ export class Conversation{
                 const lines = content.split('\n');
                 
                 let currentDate = this.gameData.date; // Default to current date
-                let currentScene = this.gameData.scene; // Default to current scene
-                let currentLocation = this.gameData.location; // Default to current location
+                let currentScene = ""; // Default to empty
+                let currentLocation = ""; // Default to empty
                 const fileMessages: Message[] = [];
                 const characterNames = new Set<string>();
                 let currentMessage: Message | null = null;
@@ -467,6 +467,11 @@ export class Conversation{
         
         // Store historical conversation metadata for later use
         this.historicalConversations = historicalConversations;
+
+        // After loading, send all conversations to the UI
+        if (this.historicalConversations.length > 0) {
+            this.chatWindow.window.webContents.send('historical-conversations-receive', this.historicalConversations);
+        }
     }
 
     pushMessage(message: Message): void{
