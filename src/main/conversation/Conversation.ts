@@ -27,19 +27,6 @@ import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 
-function getNestedTranslationHelper(key: string, translations: any): string | undefined {
-    const keys = key.split('.');
-    let current = translations;
-    for (const k of keys) {
-        if (current && typeof current === 'object' && k in current) {
-            current = current[k];
-        } else {
-            return undefined;
-        }
-    }
-    return typeof current === 'string' ? current : undefined;
-}
-
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
     try {
@@ -109,18 +96,6 @@ export class Conversation{
         this.translations = getTranslations(lang);
         this.notSpokenYetText = this.translations.chat.not_spoken || "Has not spoken yet";
 
-        this.gameData.lang = lang;
-        (this.gameData as any).localize = (key: string, lang_unused: string, vars: any) => {
-            let translation = getNestedTranslationHelper(key, this.translations) || key;
-            if (vars) {
-                for (const varKey in vars) {
-                    translation = translation.replace(`{${varKey}}`, vars[varKey]);
-                    translation = translation.replace(`{{${varKey}}}`, vars[varKey]);
-                }
-            }
-            return translation;
-        };
-
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.description = "";
         this.actions = [];
@@ -129,8 +104,8 @@ export class Conversation{
         this.description = "";
         this.actions = [];
 
-        // 如果角色数量大于等于2，为所有非玩家角色创建空白消息
-        if (gameData.characters.size >= 2) {
+        // 如果角色数量大于2，为所有非玩家角色创建空白消息
+        if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
             gameData.characters.forEach((character) => {
                 if (character.id !== gameData.playerID) {
@@ -197,17 +172,8 @@ export class Conversation{
 
         const playerSummaryPath = path.join(summariesBasePath, this.gameData.playerID.toString());
         if (!fs.existsSync(playerSummaryPath)){
-            fs.mkdirSync(playerSummaryPath, { recursive: true });
+            fs.mkdirSync(playerSummaryPath);
             console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
-        }
-
-        const historyBasePath = path.join(this.userDataPath, 'conversation_history');
-        if (!fs.existsSync(historyBasePath)) {
-            fs.mkdirSync(historyBasePath, { recursive: true });
-        }
-        const playerHistoryPath = path.join(historyBasePath, this.gameData.playerID.toString());
-        if (!fs.existsSync(playerHistoryPath)) {
-            fs.mkdirSync(playerHistoryPath, { recursive: true });
         }
         
         // Load summaries for all non-player characters
