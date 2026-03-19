@@ -422,12 +422,21 @@ export class Conversation{
                             name: name,
                             content: messageContent
                         };
-                    } else if (line.trim() && currentMessage) {
-                        // This is a continuation of the current message.
-                        currentMessage.content += '\n' + line;
-                    } else if (line.trim() && !currentMessage) {
-                        // This is content before the first speaker, likely a scene description.
-                        // We can add it as a system message or just ignore. Let's ignore for now.
+                    } else if (line.trim()) {
+                        if (currentMessage) {
+                            // This is a continuation of the current message.
+                            currentMessage.content += '\n' + line;
+                        } else {
+                            // This is content before the first speaker, likely a scene description.
+                            // Create a system message for it.
+                            const sceneDescMessage: Message = {
+                                role: 'system',
+                                name: '', // Scene descriptions don't have a speaker name
+                                content: line.trim()
+                            };
+                            fileMessages.push(sceneDescMessage);
+                            totalMessagesLoaded++;
+                        }
                     }
 
                     // Stop if we've reached the maximum number of messages
@@ -1513,7 +1522,7 @@ ${character.fullName}的发言：`
         }
 
         // Process conversation messages, keeping name, content and narrative
-        const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant') && msg.content !== this.notSpokenYetText);
+        const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system') && msg.content !== this.notSpokenYetText);
         const processedMessages = messagesToSave.map((msg, index) => {
           const messageData: any = {
             id: msg.id,
