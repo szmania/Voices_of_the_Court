@@ -6,6 +6,11 @@
 module.exports = (gameData) =>{
     const player = gameData.characters.get(gameData.playerID);
     const ai = gameData.characters.get(gameData.aiID);
+
+    if (!player || !ai) {
+        return "";
+    }
+
     const date = gameData.date;
     const lang = gameData.lang || 'en';
 

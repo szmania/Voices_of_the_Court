@@ -9,6 +9,10 @@ module.exports = (gameData) => {
     const player = gameData.characters.get(gameData.playerID);
     const ai = gameData.characters.get(gameData.aiID);
 
+    if (!player || !ai) {
+        return [];
+    }
+
     let msgs = [];
 
     // Normalize and filter personality traits
