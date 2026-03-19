@@ -22,13 +22,20 @@ module.exports = {
      * @param {number} targetId
      */
     check: (gameData, sourceId, targetId) => {
-        // Get all characters except the player
-        const allIds = Array.from(gameData.characters.keys());
-        const validTargets = allIds.filter((id) => id !== gameData.playerID);
+        const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
+        
+        // The player can always be a target to leave.
+        const validTargetIds = [gameData.playerID];
+
+        // An AI can be a target only if there is more than one AI in the conversation.
+        if (aiCharacters.length > 1) {
+            validTargetIds.push(...aiCharacters.map(c => c.id));
+        }
 
         return {
-            canExecute: validTargets.length > 1,
-            validTargetCharacterIds: validTargets
+            // The action can be executed as long as there's someone who can leave. The player can always leave.
+            canExecute: true, 
+            validTargetCharacterIds: validTargetIds
         };
     },
 

@@ -1245,7 +1245,18 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                 // Hardcoded effects for specific actions
                 if (signature === 'leaveConversation' && targetId !== null) {
-                    conversation.removeCharacter(targetId);
+                    if (targetId === conversation.gameData.playerID) {
+                        console.log('Player is leaving conversation. Ending session.');
+                        chatWindow.hide();
+                        if (conversation && conversation.isOpen) {
+                            if (conversation.gameData.totalDays) {
+                                updateCurrentDate(conversation.gameData.totalDays);
+                            }
+                            conversation.summarize();
+                        }
+                    } else {
+                        conversation.removeCharacter(targetId);
+                    }
                 }
                 if (signature === 'changeLocation') {
                     conversation.generateSceneDescription();
