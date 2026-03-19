@@ -151,7 +151,9 @@ async function loadactions(){
         let isChecked = !disabledActions.includes(file.signature);
 
         let title = file.signature;
-        if (file.title) {
+        if (file.titleKey) {
+            title = (window as any).LocalizationManager?.getNestedTranslation(file.titleKey) || file.signature;
+        } else if (file.title) {
             if (typeof file.title === 'object') {
                 title = file.title[config.language] || file.title['en'] || file.signature;
             } else {
@@ -191,7 +193,9 @@ async function loadactions(){
             }
 
             let title = file.signature;
-            if (file.title) {
+            if (file.titleKey) {
+                title = (window as any).LocalizationManager?.getNestedTranslation(file.titleKey) || file.signature;
+            } else if (file.title) {
                 if (typeof file.title === 'object') {
                     title = file.title[config.language] || file.title['en'] || file.signature;
                 } else {
@@ -224,7 +228,9 @@ async function loadactions(){
         let isChecked = !disabledActions.includes(file.signature);
 
         let title = file.signature;
-        if (file.title) {
+        if (file.titleKey) {
+            title = (window as any).LocalizationManager?.getNestedTranslation(file.titleKey) || file.signature;
+        } else if (file.title) {
             if (typeof file.title === 'object') {
                 title = file.title[config.language] || file.title['en'] || file.signature;
             } else {

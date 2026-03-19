@@ -76,17 +76,7 @@ const VALID_LOCATIONS = [
 
 module.exports = {
     signature: "changeLocation",
-    title: {
-        en: "Change Scene Location",
-        ru: "Сменить локацию сцены",
-        fr: "Changer le lieu de la scène",
-        de: "Szenenort ändern",
-        es: "Cambiar ubicación de la escena",
-        ja: "シーンの場所を変更",
-        ko: "장면 장소 변경",
-        pl: "Zmień lokalizację sceny",
-        zh: "切换场景"
-    },
+    titleKey: "actions.changeLocation.title",
     args: [
         {
             name: "location",
