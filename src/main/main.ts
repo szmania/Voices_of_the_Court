@@ -1247,6 +1247,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 if (signature === 'leaveConversation' && targetId !== null) {
                     if (targetId === conversation.gameData.playerID) {
                         console.log('Player is leaving conversation. Ending session.');
+                        chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {
                             if (conversation.gameData.totalDays) {
