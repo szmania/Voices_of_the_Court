@@ -137,6 +137,9 @@ module.exports = {
         }
 
         runGameEffect(`set_global_variable = { name = talk_scene value = flag:talk_scene_${location} }`);
+
+        gameData.scene = location;
+        gameData.location = location;
     },
     chatMessage: (args) =>{
         const location = args[0] || '';
