@@ -118,21 +118,6 @@ export class GameData {
         );
     }
 
-    /**
-     * Gets all character IDs with the player character first
-     * @returns {number[]} Array of character IDs with player ID first
-     */
-    getCharacterIdsWithPlayerFirst(): number[] {
-        const allIds = Array.from(this.characters.keys());
-        // Move player ID to the front if it exists
-        const playerIndex = allIds.indexOf(this.playerID);
-        if (playerIndex > 0) {
-            const playerId = allIds.splice(playerIndex, 1)[0];
-            allIds.unshift(playerId);
-        }
-        return allIds;
-    }
-
     static fromPlainObject(obj: any): GameData {
         // Create a dummy instance because constructor requires a string array
         const instance = new GameData(new Array(9).fill(''));
