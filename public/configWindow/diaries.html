@@ -39,7 +39,10 @@
         <h2 data-i18n="diary_manager.header">Diary Manager</h2>
         <div class="header-controls">
             <button id="diary-manager-refreshBtn" class="btn" data-i18n="diary_manager.refresh" data-i18n-title="diary_manager.tooltip_refresh">Refresh</button>
-            <button id="diary-manager-saveBtn" class="btn btn-success" data-i18n="diary_manager.save_all" data-i18n-title="diary_manager.tooltip_save_all">Save All Diaries</button>
+            <button id="diary-manager-saveBtn" class="btn btn-success" data-i18n-title="diary_manager.tooltip_save_all">
+                <span class="btn-text" data-i18n="diary_manager.save_all">Save All Diaries</span>
+                <div class="loader-inline" style="display: none;"></div>
+            </button>
         </div>
     
         <div class="info-panel">

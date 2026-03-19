@@ -31,9 +31,11 @@ let unsavedChanges = false;
 let userDataPath = '';
 let currentDiaryIndex = -1;
 let editingDiaryIndex = -1;
+let dirtyEntries = new Map<string, any>();
+let deletedEntries = new Map<string, any>();
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
-let currentSortOrder: 'gameDate' | 'realDate' = 'gameDate';
+let currentSortOrder: 'gameDate' | 'realDate' = 'realDate';
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -456,10 +458,11 @@ function enterEditMode(index: number) {
 function cancelInPlaceEdit() {
     const entry = filteredDiaries[editingDiaryIndex];
     if (entry && entry._isNew) {
-        const originalIndex = allDiaryEntries.findIndex(e => e === entry);
+        const originalIndex = allDiaryEntries.findIndex(e => e.id === entry.id);
         if (originalIndex !== -1) {
             allDiaryEntries.splice(originalIndex, 1);
         }
+        dirtyEntries.delete(entry.id);
     }
     editingDiaryIndex = -1;
     filterAndRenderDiaries();
@@ -467,7 +470,7 @@ function cancelInPlaceEdit() {
 
 async function saveInPlaceEdit(index: number) {
     const entry = filteredDiaries[index];
-    const originalIndex = allDiaryEntries.findIndex(e => e === entry);
+    const originalIndex = allDiaryEntries.findIndex(e => e.id === entry.id);
 
     const dateInput = document.getElementById(`diary-edit-date-${index}`) as HTMLInputElement;
     const locationInput = document.getElementById(`diary-edit-location-${index}`) as HTMLInputElement;
@@ -476,22 +479,25 @@ async function saveInPlaceEdit(index: number) {
     const contentInput = document.getElementById(`diary-edit-content-${index}`) as HTMLTextAreaElement;
 
     if (originalIndex !== -1) {
-        allDiaryEntries[originalIndex].date = dateInput.value;
-        allDiaryEntries[originalIndex].location = locationInput.value;
-        allDiaryEntries[originalIndex].scene = sceneInput.value;
-        allDiaryEntries[originalIndex].participants = participantsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-        allDiaryEntries[originalIndex].content = contentInput.value;
-        delete allDiaryEntries[originalIndex]._isNew;
+        const updatedEntry = allDiaryEntries[originalIndex];
+        updatedEntry.date = dateInput.value;
+        updatedEntry.location = locationInput.value;
+        updatedEntry.scene = sceneInput.value;
+        updatedEntry.participants = participantsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+        updatedEntry.content = contentInput.value;
+        delete updatedEntry._isNew;
+        
+        dirtyEntries.set(updatedEntry.id, updatedEntry);
     }
 
     editingDiaryIndex = -1;
     unsavedChanges = true;
+    updateSaveButtonState();
     
-    await saveAllDiaries();
-
     filterAndRenderDiaries();
     currentDiaryIndex = index;
     renderDiaryList();
+    showStatus('Entry updated. Click "Save All Diaries" to persist changes and update summary.', 'info');
 }
 
 function addNewDiaryEntry() {
@@ -513,6 +519,7 @@ function addNewDiaryEntry() {
         _isNew: true
     };
     allDiaryEntries.unshift(newEntry);
+    dirtyEntries.set(newEntry.id, newEntry);
     unsavedChanges = true;
     updateSaveButtonState();
     filterAndRenderDiaries();
@@ -530,16 +537,22 @@ function addNewDiaryEntry() {
 
 function deleteSelectedDiaryEntry() {
     if (currentDiaryIndex === -1) return;
-    if (confirm('Are you sure you want to delete this diary entry?')) {
+    const confirmKey = 'diary_manager.delete_confirm';
+    const confirmMessage = window.LocalizationManager.getTranslation(confirmKey, 'Are you sure you want to delete this diary entry?');
+    if (confirm(confirmMessage)) {
         const entryToDelete = filteredDiaries[currentDiaryIndex];
-        const originalIndex = allDiaryEntries.findIndex(e => e === entryToDelete);
+        
+        deletedEntries.set(entryToDelete.id, entryToDelete);
+        dirtyEntries.delete(entryToDelete.id);
+
+        const originalIndex = allDiaryEntries.findIndex(e => e.id === entryToDelete.id);
         if (originalIndex !== -1) {
             allDiaryEntries.splice(originalIndex, 1);
         }
         unsavedChanges = true;
         updateSaveButtonState();
         filterAndRenderDiaries();
-        showStatus('Diary entry deleted. Click "Save All Diaries" to persist.', 'info');
+        showStatus('Diary entry marked for deletion. Click "Save All Diaries" to persist.', 'info');
     }
 }
 
@@ -548,38 +561,67 @@ async function saveAllDiaries() {
         showStatus('No changes to save.', 'info');
         return;
     }
+    const saveBtnText = saveBtn.querySelector('.btn-text') as HTMLElement;
+    const saveBtnLoader = saveBtn.querySelector('.loader-inline') as HTMLElement;
+
     showLoader(true);
     refreshBtn.disabled = true;
     saveBtn.disabled = true;
-    try {
-        const allCharacterIds = Object.keys(characterNameMap);
 
-        for (const charId of allCharacterIds) {
-            // Filter entries for the current character
+    try {
+        const allCharacterIdsInvolved = [...new Set([
+            ...allDiaryEntries.map(e => e.character_id),
+            ...Array.from(deletedEntries.values()).map((e: any) => e.character_id),
+            ...Object.keys(characterNameMap)
+        ])];
+
+        for (const charId of allCharacterIdsInvolved) {
+            if (!charId) continue;
             const characterEntries = allDiaryEntries
                 .filter(entry => entry.character_id === charId)
                 .map(entry => {
-                    // Create a clean copy without the temporary _isNew flag
                     const { _isNew, ...rest } = entry;
                     return rest;
                 });
 
-            // Sort the entries by date
             characterEntries.sort((a: { date: string }, b: { date: string }) => new Date(b.date).getTime() - new Date(a.date).getTime());
             
             const diaryData = { diary_entries: characterEntries };
             await ipcRenderer.invoke('save-diary-file', currentPlayerId, charId, diaryData);
         }
         
+        showStatus('All diaries saved successfully!', 'success');
+
+        const edited = Array.from(dirtyEntries.values());
+        const deleted = Array.from(deletedEntries.values());
+
+        if (edited.length > 0 || deleted.length > 0) {
+            if (saveBtnText) saveBtnText.style.display = 'none';
+            if (saveBtnLoader) saveBtnLoader.style.display = 'inline-block';
+            showStatus(window.LocalizationManager.getTranslation('diary_manager.regenerating_summaries'), 'info');
+
+            await ipcRenderer.invoke('regenerate-diary-summaries', {
+                playerId: currentPlayerId,
+                editedEntries: edited,
+                deletedEntries: deleted
+            });
+
+            dirtyEntries.clear();
+            deletedEntries.clear();
+            showStatus('Summaries updated successfully!', 'success');
+        }
+        
         unsavedChanges = false;
         updateSaveButtonState();
-        showStatus('All diaries saved successfully!', 'success');
+
     } catch (error: any) {
-        showStatus('Failed to save diaries: ' + error.message, 'error');
+        showStatus('Failed to save diaries or summaries: ' + error.message, 'error');
     } finally {
         showLoader(false);
         refreshBtn.disabled = false;
         saveBtn.disabled = false;
+        if (saveBtnText) saveBtnText.style.display = 'inline-block';
+        if (saveBtnLoader) saveBtnLoader.style.display = 'none';
     }
 }
 

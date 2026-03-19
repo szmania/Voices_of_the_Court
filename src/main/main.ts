@@ -1622,6 +1622,53 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
     }
 });
 
+ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
+    console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
+    if (!diaryGenerator) {
+        diaryGenerator = new DiaryGenerator(config);
+    }
+
+    try {
+        const characterIds = new Set<string>([
+            ...editedEntries.map((e: any) => e.character_id),
+            ...deletedEntries.map((e: any) => e.character_id)
+        ]);
+
+        for (const charId of characterIds) {
+            if (!charId) continue;
+            let summaries = await readDiarySummaries(playerId, charId);
+
+            // Remove summaries for deleted entries
+            const deletedIdsForChar = new Set(deletedEntries.filter((e: any) => e.character_id === charId).map((e: any) => e.id));
+            if (deletedIdsForChar.size > 0) {
+                summaries = summaries.filter(s => !deletedIdsForChar.has(s.diaryEntryId));
+            }
+
+            // Update/add summaries for edited entries
+            const editedEntriesForChar = editedEntries.filter((e: any) => e.character_id === charId);
+            for (const entry of editedEntriesForChar) {
+                const newSummary = await diaryGenerator.summarizeDiaryEntry(entry);
+                if (newSummary) {
+                    const existingSummaryIndex = summaries.findIndex(s => s.diaryEntryId === entry.id);
+                    if (existingSummaryIndex !== -1) {
+                        summaries[existingSummaryIndex] = { ...summaries[existingSummaryIndex], ...newSummary };
+                    } else {
+                        summaries.unshift({ id: randomUUID(), ...newSummary, characterId: charId });
+                    }
+                }
+            }
+            
+            summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            await saveDiarySummaries(playerId, charId, summaries);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error regenerating diary summaries:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
 // Conversation History IPC handlers
 
 ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
