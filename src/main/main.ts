@@ -1243,6 +1243,13 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 conversation.runFileManager.append(triggerScript);
                 console.log('Appended trigger event for slash command.');
 
+                // Hardcoded effects for specific actions
+                if (signature === 'leaveConversation' && targetId !== null) {
+                    conversation.removeCharacter(targetId);
+                }
+                if (signature === 'changeLocation') {
+                    conversation.generateSceneDescription();
+                }
 
                 // Generate the chat message if it exists
                 if (action.chatMessage) {
