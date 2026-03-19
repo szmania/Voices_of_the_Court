@@ -85,7 +85,12 @@ export async function generateSceneDescription(conv: Conversation): Promise<stri
         
         // 如果生成的描述太短或为空，返回默认描述
         if (!sceneDescription || sceneDescription.length < 10) {
-            sceneDescription = `在${conv.gameData.date}，${conv.gameData.getPlayer().fullName}与${conv.gameData.getAi().fullName}在${conv.gameData.location}展开了对话。`;
+            const fallbackTemplate = conv.translations.scene_description?.fallback_description || "On {{date}}, {{playerName}} and {{aiName}} started a conversation at {{location}}.";
+            sceneDescription = fallbackTemplate
+                .replace('{{date}}', conv.gameData.date)
+                .replace('{{playerName}}', conv.gameData.getPlayer().fullName)
+                .replace('{{aiName}}', conv.gameData.getAi().fullName)
+                .replace('{{location}}', conv.gameData.location);
         }
         
         console.log(`Generated scene description: ${sceneDescription}`);
@@ -93,6 +98,11 @@ export async function generateSceneDescription(conv: Conversation): Promise<stri
     } catch (error) {
         console.error('Error generating scene description:', error);
         // 返回一个基本的场景描述作为后备
-        return `在${conv.gameData.date}，${conv.gameData.getPlayer().fullName}与${conv.gameData.getAi().fullName}在${conv.gameData.location}展开了对话。`;
+        const fallbackTemplate = conv.translations.scene_description?.fallback_description || "On {{date}}, {{playerName}} and {{aiName}} started a conversation at {{location}}.";
+        return fallbackTemplate
+            .replace('{{date}}', conv.gameData.date)
+            .replace('{{playerName}}', conv.gameData.getPlayer().fullName)
+            .replace('{{aiName}}', conv.gameData.getAi().fullName)
+            .replace('{{location}}', conv.gameData.location);
     }
 }
