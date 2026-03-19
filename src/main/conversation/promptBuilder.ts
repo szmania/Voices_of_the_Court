@@ -51,7 +51,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let chatPrompt: Message[]  = [];
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+    const isSelfTalk = (conv.gameData.playerID === conv.gameData.aiID) || (conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID));
 
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;

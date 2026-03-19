@@ -571,8 +571,10 @@ export class Conversation{
             this.aiToAiTurnLimit = 0;
             console.log('Starting generation of AI messages for all characters.');
 
+            const isNowSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
+
             // Special case for self-talk (player character is the AI character)
-            if (this.gameData.playerID === this.gameData.aiID) {
+            if (this.gameData.playerID === this.gameData.aiID || isNowSelfTalk) {
                 console.log('Self-talk session detected. Generating internal monologue for player character.');
                 const playerCharacter = this.gameData.getPlayer();
                 const messages = await this.processCharacterList([playerCharacter], false);

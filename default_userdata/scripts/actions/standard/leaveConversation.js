@@ -401,15 +401,15 @@ module.exports = {
     },
     chatMessage: (args) =>{
         return {
-            en: `{{character1Name}} left the conversation.`,
-            zh: `{{character1Name}}离开了对话。`,
-            ru: `{{character1Name}} покинул разговор.`,
-            fr: `{{character1Name}} a quitté la conversation.`,
-            es: `{{character1Name}} abandonó la conversación.`,
-            de: `{{character1Name}} hat das Gespräch verlassen.`,
-            ja: `{{character1Name}}は会話を離れました。`,
-            ko: `{{character1Name}}가 대화를 떠났습니다.`,
-            pl: `{{character1Name}} opuścił rozmowę.`
+            en: `{{character2Name}} left the conversation.`,
+            zh: `{{character2Name}}离开了对话。`,
+            ru: `{{character2Name}} покинул разговор.`,
+            fr: `{{character2Name}} a quitté la conversation.`,
+            es: `{{character2Name}} abandonó la conversación.`,
+            de: `{{character2Name}} hat das Gespräch verlassen.`,
+            ja: `{{character2Name}}は会話を離れました。`,
+            ko: `{{character2Name}}가 대화를 떠났습니다。`,
+            pl: `{{character2Name}} opuścił rozmowę.`
         }
     },
     chatMessageClass: "neutral-action-message"
