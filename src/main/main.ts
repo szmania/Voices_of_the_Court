@@ -389,35 +389,6 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
-    // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
-    if (fs.existsSync(dlcLoadPath)) {
-        try {
-            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
-            const dlcLoadJson = JSON.parse(dlcLoadContent);
-            const incompatibleMod = "mod/ugc_3346777360.mod";
-
-            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
-                console.error('Incompatible mod detected. Application will now close.');
-
-                const dialogOpts = {
-                    type: 'error' as const,
-                    buttons: [t('dialog.close_app')],
-                    title: t('dialog.incompatible_mod_title'),
-                    message: t('dialog.incompatible_mod_message'),
-                    cancelId: 0
-                };
-
-                await dialog.showMessageBox(dialogOpts);
-                // Quit the app regardless of how the dialog is closed.
-                app.quit();
-                return; // Stop further execution in the ready event.
-            }
-        } catch (err) {
-            console.error('Failed to read or parse dlc_load.json:', err);
-        }
-    }
-
     // Tokenizer IPC handlers
     ipcMain.handle('calculate-tokens', async (event, text: string) => {
         try {
@@ -688,6 +659,36 @@ let conversation: Conversation;
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+
+    // Check for incompatible mods
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    if (fs.existsSync(dlcLoadPath)) {
+        try {
+            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+            const dlcLoadJson = JSON.parse(dlcLoadContent);
+            const incompatibleMod = "mod/ugc_3346777360.mod";
+
+            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                console.error('Incompatible mod detected. Application will now close.');
+
+                const dialogOpts = {
+                    type: 'error' as const,
+                    buttons: [t('dialog.close_app')],
+                    title: t('dialog.incompatible_mod_title'),
+                    message: t('dialog.incompatible_mod_message'),
+                    cancelId: 0
+                };
+
+                await dialog.showMessageBox(dialogOpts);
+                // Quit the app regardless of how the dialog is closed.
+                app.quit();
+                return; // Stop further execution.
+            }
+        } catch (err) {
+            console.error('Failed to read or parse dlc_load.json:', err);
+        }
+    }
+
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
     try{
