@@ -41,10 +41,10 @@ export class LetterReplyGenerator {
     private async buildLetterPrompt(gameData: GameData, letter: ILetter): Promise<string> {
         // Ensure sender and recipient from the letter are in the gameData context
         if (!gameData.characters.has(letter.sender.id)) {
-            gameData.characters.set(letter.sender.id, letter.sender);
+            gameData.addCharacter(letter.sender.id, letter.sender);
         }
         if (!gameData.characters.has(letter.recipient.id)) {
-            gameData.characters.set(letter.recipient.id, letter.recipient);
+            gameData.addCharacter(letter.recipient.id, letter.recipient);
         }
 
         const player = gameData.characters.get(letter.sender.id);

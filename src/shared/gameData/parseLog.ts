@@ -136,7 +136,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 case "character": 
                     if (!gameData) continue;
                     let char = new Character(data);
-                    gameData!.characters.set(char.id, char);
+                    gameData!.addCharacter(char.id, char);
                     console.log(`[parseLog] ADDED character to map: ID=${char.id}, Name=${char.fullName}`);
                 break;
                 case "memory": 
