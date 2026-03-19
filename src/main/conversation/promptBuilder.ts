@@ -51,7 +51,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let chatPrompt: Message[]  = [];
 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-    const isSelfTalk = (conv.gameData.playerID === conv.gameData.aiID) || (conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID));
+    const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
     let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
@@ -402,7 +402,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
         content: convertMessagesToString(conv.messages, "", "")
     });
 
-    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+    const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
     const prompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
 
     let finalPrompt = parseVariables(prompt, conv.gameData);
@@ -420,7 +420,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
     let prompt: Message[] = [];
-    const isSelfTalk = conv.gameData.playerID === conv.gameData.aiID;
+    const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
     if(conv.currentSummary){
         const summaryIntro = isSelfTalk

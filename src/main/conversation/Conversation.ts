@@ -583,7 +583,7 @@ export class Conversation{
             const isNowSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
 
             // Special case for self-talk (player character is the AI character)
-            if (this.gameData.playerID === this.gameData.aiID || isNowSelfTalk) {
+            if (isNowSelfTalk) {
                 console.log('Self-talk session detected. Generating internal monologue for player character.');
                 const playerCharacter = this.gameData.getPlayer();
                 const messages = await this.processCharacterList([playerCharacter], false);
@@ -958,7 +958,7 @@ export class Conversation{
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message for character: ${character.fullName}`);
         
-        const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
+        const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
         let responseMessage: Message;
@@ -1352,7 +1352,7 @@ ${character.fullName}的发言：`
             }
             
             // 创建消息对象
-            const isSelfTalk = this.gameData.playerID === this.gameData.aiID;
+            const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
             const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
             
             const message: Message = {
