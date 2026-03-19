@@ -247,7 +247,7 @@ export class Conversation{
     public async initialize(): Promise<void> {
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
-            await this.generateInitialSceneDescription();
+            await this.generateSceneDescription(true);
         }
         
         // 如果启用了自动生成建议功能，在对话开始时生成建议
@@ -1777,11 +1777,11 @@ ${character.fullName}的发言：`
     }
 
     /**
-     * 生成初始场景描述
-     * 在对话开始时为角色提供对话背景和情境信息
+     * 生成场景描述
+     * isInitial determines if it's for the start of the conversation or a mid-conversation update.
      */
-    private async generateInitialSceneDescription(): Promise<void> {
-        console.log('Starting initial scene description generation.');
+    public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
+        console.log(`Starting scene description generation. Initial: ${isInitial}`);
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
         
         // Send status update to chat window
@@ -1799,27 +1799,32 @@ ${character.fullName}的发言：`
                     content: sceneDescription
                 };
                 
-                // Calculate the position to insert scene description (after historical conversations)
-                // Count total historical messages
-                let historicalMessageCount = 0;
-                if (this.historicalConversations) {
-                    historicalMessageCount = this.historicalConversations.reduce((total, conv) => total + conv.messages.length, 0);
+                if (isInitial) {
+                    // Calculate the position to insert scene description (after historical conversations)
+                    // Count total historical messages
+                    let historicalMessageCount = 0;
+                    if (this.historicalConversations) {
+                        historicalMessageCount = this.historicalConversations.reduce((total, conv) => total + conv.messages.length, 0);
+                    }
+                    
+                    // Insert scene description after historical messages but before current conversation
+                    this.messages.splice(historicalMessageCount, 0, sceneMessage);
+                } else {
+                    sceneMessage.id = randomUUID();
+                    this.messages.push(sceneMessage);
                 }
-                
-                // Insert scene description after historical messages but before current conversation
-                this.messages.splice(historicalMessageCount, 0, sceneMessage);
                 
                 // 发送场景描述到聊天窗口
                 this.chatWindow.window.webContents.send('scene-description', sceneDescription);
                 
-                console.log(`Initial scene description generated and inserted at position ${historicalMessageCount} (after ${historicalMessageCount} historical messages): ${sceneDescription.substring(0, 100)}...`);
+                console.log(`Scene description generated and inserted. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
                 // 发送空场景描述以清除加载状态
                 this.chatWindow.window.webContents.send('scene-description', '');
             }
         } catch (error) {
-            console.error('Error generating initial scene description:', error);
+            console.error('Error generating scene description:', error);
             // 如果生成失败，不影响对话的正常进行
             // 但仍然需要清除加载状态
             this.chatWindow.window.webContents.send('scene-description', '');
@@ -1828,8 +1833,8 @@ ${character.fullName}的发言：`
         }
         
         // 场景描述生成完成后，如果启用了自动生成建议功能，则生成建议
-        if (this.config.autoGenerateSuggestions) {
-            console.log('Scene description generation completed, now generating suggestions.');
+        if (isInitial && this.config.autoGenerateSuggestions) {
+            console.log('Initial scene description generation completed, now generating suggestions.');
             this.generateInitialSuggestions();
         }
     }

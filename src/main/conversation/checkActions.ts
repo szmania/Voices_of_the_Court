@@ -179,6 +179,11 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                 if (matchedAction.signature === 'leaveConversation') {
                     conv.removeCharacter(newTargetId);
                 }
+
+                // Regenerate scene description if location changes
+                if (matchedAction.signature === 'changeLocation') {
+                    conv.generateSceneDescription();
+                }
             } catch(e) {
                 let errMsg =`Action error: failure in run function for action: ${matchedAction.signature}; details: `+e;
                 console.error(errMsg)
