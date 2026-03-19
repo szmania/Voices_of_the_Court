@@ -1397,7 +1397,7 @@ ${character.fullName}的发言：`
 
             // Hardcoded effect for leaveConversation
             if (action.signature === 'leaveConversation') {
-                this.removeCharacter(sourceId);
+                this.removeCharacter(targetId);
             }
 
           //   this.runFileManager.append(`
