@@ -1936,6 +1936,9 @@ ${character.fullName}的发言：`
     
             // Notify the UI to update itself
             this.chatWindow.window.webContents.send('character-left', characterId);
+            
+            // Notify UI to update slash command dropdowns
+            this.chatWindow.window.webContents.send('update-character-lists', Array.from(this.gameData.characters.keys()));
         } else {
             console.warn(`Attempted to remove character with ID ${characterId}, but they were not found in the conversation.`);
         }
