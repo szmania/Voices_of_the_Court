@@ -1400,6 +1400,11 @@ ${character.fullName}的发言：`
                 this.removeCharacter(targetId);
             }
 
+            // Regenerate scene description if location changes
+            if (action.signature === 'changeLocation') {
+                this.generateSceneDescription();
+            }
+
             this.runFileManager.append(`
                 root = {trigger_event = mcc_event_v2.9003}                `
             );
