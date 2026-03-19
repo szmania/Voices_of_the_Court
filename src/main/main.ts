@@ -1238,7 +1238,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
 
                 // Append the trigger to execute the script
                 const triggerScript = `
-          trigger_event = mcc_event_v2.9003
+          root = {trigger_event = mcc_event_v2.9003}
                 `;
                 conversation.runFileManager.append(triggerScript);
                 console.log('Appended trigger event for slash command.');

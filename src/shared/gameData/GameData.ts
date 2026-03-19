@@ -58,8 +58,6 @@ export class GameData {
     character2Name: string = "";
 
     characters: Map<number,Character>
-    lang: string;
-    localize: (key: string, lang: string, vars: any) => string;
 
     constructor(data: string[]){
             this.playerID = Number(data[0]),
@@ -73,8 +71,6 @@ export class GameData {
             this.locationController = data[7],
     
             this.characters = new Map<number,Character>
-            this.lang = 'en'; // Default value
-            this.localize = (key, _, vars) => key; // Default no-op
     }
 
     getPlayer(): Character{
