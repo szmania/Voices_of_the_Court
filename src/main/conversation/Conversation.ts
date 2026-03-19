@@ -129,8 +129,8 @@ export class Conversation{
         this.description = "";
         this.actions = [];
 
-        // 如果角色数量大于2，为所有非玩家角色创建空白消息
-        if (gameData.characters.size > 2) {
+        // 如果角色数量大于等于2，为所有非玩家角色创建空白消息
+        if (gameData.characters.size >= 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
             gameData.characters.forEach((character) => {
                 if (character.id !== gameData.playerID) {
@@ -197,8 +197,17 @@ export class Conversation{
 
         const playerSummaryPath = path.join(summariesBasePath, this.gameData.playerID.toString());
         if (!fs.existsSync(playerSummaryPath)){
-            fs.mkdirSync(playerSummaryPath);
+            fs.mkdirSync(playerSummaryPath, { recursive: true });
             console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
+        }
+
+        const historyBasePath = path.join(this.userDataPath, 'conversation_history');
+        if (!fs.existsSync(historyBasePath)) {
+            fs.mkdirSync(historyBasePath, { recursive: true });
+        }
+        const playerHistoryPath = path.join(historyBasePath, this.gameData.playerID.toString());
+        if (!fs.existsSync(playerHistoryPath)) {
+            fs.mkdirSync(playerHistoryPath, { recursive: true });
         }
         
         // Load summaries for all non-player characters
