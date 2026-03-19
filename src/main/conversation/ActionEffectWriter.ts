@@ -109,8 +109,11 @@ ordered_in_global_list = {
    * The GameData.characters Map is guaranteed to be in CK3 order.
    */
   static getCharacterIndex(gameData: GameData, characterId: number): number {
+    console.log(`[ActionEffectWriter] Getting index for characterId: ${characterId}`);
     const ids = Array.from(gameData.characters.keys());
+    console.log(`[ActionEffectWriter] Character ID list from gameData: [${ids.join(', ')}]`);
     const idx = ids.indexOf(characterId);
+    console.log(`[ActionEffectWriter] Found index: ${idx}`);
     if (idx === -1) {
       throw new Error(`Character id ${characterId} not found in GameData.characters`);
     }
