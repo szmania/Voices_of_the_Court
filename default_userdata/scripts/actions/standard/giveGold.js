@@ -78,7 +78,7 @@ module.exports = {
         if (source.gold >= amount) {
             runGameEffect(`
                 global_var:votcce_action_target = {
-                add_gold = ${amount};
+                    add_gold = ${amount};
                 }
 
                 global_var:votcce_action_source = {

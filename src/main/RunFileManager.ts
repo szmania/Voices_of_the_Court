@@ -28,7 +28,8 @@ export class RunFileManager {
 
             if (currentText.trim() === '') {
                 console.log(`RunFileManager: Run file is empty - writing new effect.`);
-                fs.writeFileSync(this.path, `${text}\nroot = {trigger_event = mcc_event_v2.9003}`, 'utf-8');
+                fs.writeFileSync(this.path, `${text}\n          
+            trigger_event = mcc_event_v2.9003`, 'utf-8');
             } else {
                 console.log(`RunFileManager: Run file is not empty - prepending new effect.`);
                 fs.writeFileSync(this.path, `${text}\n${currentText}`, 'utf-8');
