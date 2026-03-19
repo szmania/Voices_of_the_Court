@@ -207,7 +207,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
 
     if (triggeredActions.length > 0) {
         conv.runFileManager.append(`
-          trigger_event = mcc_event_v2.9003
+          root = {trigger_event = mcc_event_v2.9003}
             `
         );
     }

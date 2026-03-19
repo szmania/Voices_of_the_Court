@@ -1389,10 +1389,10 @@ ${character.fullName}的发言：`
                 this.removeCharacter(sourceId);
             }
 
-            this.runFileManager.append(`
-          trigger_event = mcc_event_v2.9003
-                `
-            );
+          //   this.runFileManager.append(`
+          // trigger_event = mcc_event_v2.9003
+          //       `
+          //   );
 
             if (action.chatMessageClass != null) {
                 let chatMessage = action.chatMessage(args);
