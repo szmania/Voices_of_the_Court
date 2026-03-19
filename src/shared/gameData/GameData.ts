@@ -94,17 +94,54 @@ export class GameData {
     }
 
     /**
+     * Add a character to the characters map, ensuring player character is first
+     * @param id - Character ID
+     * @param character - Character object
+     */
+    addCharacter(id: number, character: Character): void {
+        console.log(`[GameData.addCharacter] Adding character ID: ${id}, name: ${character.fullName}`);
+        
+        // If this is the player character and map is not empty, reorder
+        if (id === this.playerID && this.characters.size > 0) {
+            console.log(`[GameData.addCharacter] This is player character, reordering map`);
+            const newMap = new Map<number, Character>();
+            newMap.set(id, character);
+            
+            // Add all existing characters
+            for (const [existingId, existingChar] of this.characters) {
+                newMap.set(existingId, existingChar);
+            }
+            
+            this.characters = newMap;
+            console.log(`[GameData.addCharacter] New character ID order: ${Array.from(this.characters.keys()).join(', ')}`);
+        } else {
+            this.characters.set(id, character);
+        }
+    }
+
+    /**
      * Gets all character IDs with the player character first
      * @returns {number[]} Array of character IDs with player ID first
      */
     getCharacterIdsWithPlayerFirst(): number[] {
         const allIds = Array.from(this.characters.keys());
+        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Raw character IDs: ${allIds.join(', ')}`);
+        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player ID: ${this.playerID}`);
+        
         // Move player ID to the front if it exists
         const playerIndex = allIds.indexOf(this.playerID);
+        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player index: ${playerIndex}`);
+        
         if (playerIndex > 0) {
             const playerId = allIds.splice(playerIndex, 1)[0];
             allIds.unshift(playerId);
+            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Moved player to front. New order: ${allIds.join(', ')}`);
+        } else if (playerIndex === 0) {
+            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player already at index 0`);
+        } else {
+            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player not found in character IDs`);
         }
+        
         return allIds;
     }
 
@@ -123,19 +160,35 @@ export class GameData {
         const instance = new GameData(new Array(9).fill(''));
         Object.assign(instance, obj);
 
-        // Revive the characters Map from the plain object Map
+        // Revive the characters Map from the plain object
         const characterMap = new Map<number, Character>();
-        if (obj.characters && obj.characters.entries) { // Check if it's a Map-like object
-            // First, add the player character if it exists
+        if (obj.characters) {
             const playerId = instance.playerID;
             let playerChar: Character | undefined;
             
-            for (const [id, charObj] of obj.characters.entries()) {
+            console.log(`[GameData.fromPlainObject] Player ID: ${playerId}`);
+            
+            // Check if obj.characters is a Map or a plain object
+            let entries: [any, any][];
+            if (obj.characters.entries && typeof obj.characters.entries === 'function') {
+                // It's a Map-like object
+                entries = Array.from(obj.characters.entries());
+            } else {
+                // It's a plain object
+                entries = Object.entries(obj.characters);
+            }
+            
+            console.log(`[GameData.fromPlainObject] Characters entries count: ${entries.length}`);
+            
+            for (const [id, charObj] of entries) {
+                const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
                 const characterInstance = Character.fromPlainObject(charObj);
-                if (id === playerId) {
+                console.log(`[GameData.fromPlainObject] Processing character ID: ${numericId}, name: ${characterInstance.fullName}`);
+                if (numericId === playerId) {
+                    console.log(`[GameData.fromPlainObject] Found player character: ${characterInstance.fullName}`);
                     playerChar = characterInstance;
                 } else {
-                    characterMap.set(id, characterInstance);
+                    characterMap.set(numericId, characterInstance);
                 }
             }
             
@@ -143,15 +196,31 @@ export class GameData {
             if (playerChar) {
                 const orderedMap = new Map<number, Character>();
                 orderedMap.set(playerId, playerChar);
+                console.log(`[GameData.fromPlainObject] Added player character ${playerChar.fullName} first to orderedMap`);
+                
                 // Add all other characters
                 for (const [id, char] of characterMap) {
                     orderedMap.set(id, char);
+                    console.log(`[GameData.fromPlainObject] Added character ${char.fullName} (ID: ${id}) to orderedMap`);
                 }
+                
+                // Log the final order
+                const finalIds = Array.from(orderedMap.keys());
+                console.log(`[GameData.fromPlainObject] Final character ID order: ${finalIds.join(', ')}`);
+                console.log(`[GameData.fromPlainObject] Player ID ${playerId} is at index: ${finalIds.indexOf(playerId)}`);
+                
                 instance.characters = orderedMap;
             } else {
+                console.log(`[GameData.fromPlainObject] Player character not found in characters map`);
                 instance.characters = characterMap;
             }
+        } else {
+            console.log(`[GameData.fromPlainObject] No characters found in obj.characters`);
         }
+        
+        // Ensure player is first
+        instance.ensurePlayerFirst();
+        
         return instance;
     }
 
@@ -164,5 +233,38 @@ export class GameData {
         
         // this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
         // this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
+    }
+
+    /**
+     * Ensure the player character is first in the characters map
+     */
+    ensurePlayerFirst(): void {
+        const playerId = this.playerID;
+        const playerChar = this.characters.get(playerId);
+        
+        if (!playerChar) {
+            console.log(`[GameData.ensurePlayerFirst] Player character ${playerId} not found in map`);
+            return;
+        }
+        
+        const currentIds = Array.from(this.characters.keys());
+        if (currentIds.length > 0 && currentIds[0] !== playerId) {
+            console.log(`[GameData.ensurePlayerFirst] Player is not first. Current order: ${currentIds.join(', ')}`);
+            
+            const newMap = new Map<number, Character>();
+            newMap.set(playerId, playerChar);
+            
+            // Add all other characters
+            for (const [id, char] of this.characters) {
+                if (id !== playerId) {
+                    newMap.set(id, char);
+                }
+            }
+            
+            this.characters = newMap;
+            console.log(`[GameData.ensurePlayerFirst] New order: ${Array.from(this.characters.keys()).join(', ')}`);
+        } else {
+            console.log(`[GameData.ensurePlayerFirst] Player is already first or map is empty`);
+        }
     }
 }
