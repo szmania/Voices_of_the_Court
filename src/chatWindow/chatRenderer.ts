@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron';
 import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
+import { Character } from '../shared/gameData/Character.js';
 import { randomUUID } from "crypto";
 const DOMPurify = require('dompurify');
 
@@ -1379,6 +1380,37 @@ function showInlineActionForm(action: any) {
 ipcRenderer.on('chat-show', () =>{
     document.body.style.display = '';
 })
+
+ipcRenderer.on('update-character-lists', (event, updatedCharacterIds: number[]) => {
+    if (!currentGameData) return;
+
+    console.log('Received update-character-lists. New IDs:', updatedCharacterIds);
+
+    const newCharacterMap = new Map<number, Character>();
+    updatedCharacterIds.forEach(id => {
+        if (currentGameData!.characters.has(id)) {
+            newCharacterMap.set(id, currentGameData!.characters.get(id)!);
+        }
+    });
+
+    currentGameData.characters = newCharacterMap;
+    console.log('Updated currentGameData.characters. New size:', currentGameData.characters.size);
+
+    // Refresh the main character targeting dropdown
+    setupCharacterTargeting(currentGameData);
+
+    // Check if an inline action form is open and refresh it
+    const openForm = document.querySelector('.inline-action-form') as HTMLElement;
+    if (openForm && openForm.dataset.signature) {
+        const signature = openForm.dataset.signature;
+        const action = availableActions.find(a => a.signature === signature);
+        if (action) {
+            console.log(`Refreshing open action form for: ${signature}`);
+            openForm.remove();
+            showInlineActionForm(action);
+        }
+    }
+});
 
 ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
     updateQueueStatus(queue, currentSpeaker);
