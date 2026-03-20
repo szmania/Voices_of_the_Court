@@ -402,14 +402,19 @@ app.on('ready',  async () => {
 
                 const dialogOpts = {
                     type: 'error' as const,
-                    buttons: [t('dialog.close_app')],
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.close_app')],
                     title: t('dialog.incompatible_mod_title'),
                     message: t('dialog.incompatible_mod_message'),
-                    cancelId: 0
+                    defaultId: 0,
+                    cancelId: 1
                 };
 
-                await dialog.showMessageBox(dialogOpts);
-                // Quit the app regardless of how the dialog is closed.
+                const { response } = await dialog.showMessageBox(dialogOpts);
+
+                if (response === 0) { // "Open Steam and Quit"
+                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                }
+                // Quit the app regardless of the choice.
                 app.quit();
                 return; // Stop further execution in the ready event.
             }
