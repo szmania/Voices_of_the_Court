@@ -402,17 +402,20 @@ app.on('ready',  async () => {
 
                 const dialogOpts = {
                     type: 'error' as const,
-                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.close_app')],
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
                     title: t('dialog.incompatible_mod_title'),
                     message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
                     defaultId: 0,
-                    cancelId: 1
+                    cancelId: 2
                 };
 
                 const { response } = await dialog.showMessageBox(dialogOpts);
 
                 if (response === 0) { // "Open Steam and Quit"
                     shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
                 }
                 // Quit the app regardless of the choice.
                 app.quit();
@@ -707,17 +710,20 @@ clipboardListener.on('VOTC:IN', async () =>{
 
                 const dialogOpts = {
                     type: 'error' as const,
-                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.close_app')],
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
                     title: t('dialog.incompatible_mod_title'),
                     message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
                     defaultId: 0,
-                    cancelId: 1
+                    cancelId: 2
                 };
 
                 const { response } = await dialog.showMessageBox(dialogOpts);
 
                 if (response === 0) { // "Open Steam and Quit"
                     shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
                 }
                 // Quit the app regardless of the choice.
                 app.quit();

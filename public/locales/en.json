@@ -594,9 +594,10 @@
     "view_website": "Visit Website",
     "init_error": "An error occurred while initializing the configuration page, please check the console log.",
     "incompatible_mod_title": "Incompatible Mod Detected",
-    "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.\n\nVoices of the Court 2.0 - Community Edition on Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139",
+    "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.",
     "close_app": "Close",
-    "open_steam_and_quit": "Open Steam and Quit"
+    "open_steam_and_quit": "Open Steam and Quit",
+    "open_discord_and_quit": "Open Discord and Quit"
   },
   "diary_manager": {
     "header": "Diary Manager",
