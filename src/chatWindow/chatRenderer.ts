@@ -177,6 +177,14 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
         messageDiv.id = `message-${message.id}`;
     }
 
+    const helpIcon = document.createElement('span');
+    helpIcon.className = 'edit-help-icon';
+    helpIcon.textContent = '❓';
+    // @ts-ignore
+    const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
+    helpIcon.setAttribute('data-tooltip', editTooltipText);
+    messageDiv.appendChild(helpIcon);
+
     if (isHistorical) {
         messageDiv.classList.add('historical-message');
     }
@@ -197,6 +205,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
         contentSpan.addEventListener('dblclick', (e) => {
             // This handler is for making the content editable and selecting a word.
             if (contentSpan.contentEditable !== 'true') {
+                messageDiv.classList.add('is-editing');
                 contentSpan.contentEditable = 'true';
                 contentSpan.innerHTML = message.content;
                 contentSpan.focus();
@@ -233,6 +242,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
         const finishEditing = async () => {
             if (contentSpan.contentEditable === 'true') {
+                messageDiv.classList.remove('is-editing');
                 contentSpan.contentEditable = 'false';
                 const newContent = contentSpan.innerText;
                 // Re-apply markdown parsing for display
@@ -327,6 +337,14 @@ function displayNarrative(narrativeMessage: Message | null) {
     messageDiv.classList.add('message', 'narrative-message', 'action-message');
     messageDiv.id = `message-${narrativeMessage.id}`;
 
+    const helpIcon = document.createElement('span');
+    helpIcon.className = 'edit-help-icon';
+    helpIcon.textContent = '❓';
+    // @ts-ignore
+    const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
+    helpIcon.setAttribute('data-tooltip', editTooltipText);
+    messageDiv.appendChild(helpIcon);
+
     const narrativeSpan = document.createElement('span');
     narrativeSpan.className = 'message-content'; // Add class for styling and selection
     narrativeSpan.innerHTML = narrativeMessage.content; // Narratives are plain text, no markdown
@@ -335,6 +353,7 @@ function displayNarrative(narrativeMessage: Message | null) {
     // Add editing capability
     narrativeSpan.addEventListener('dblclick', (e) => {
         if (narrativeSpan.contentEditable !== 'true') {
+            messageDiv.classList.add('is-editing');
             narrativeSpan.contentEditable = 'true';
             narrativeSpan.focus();
             const selection = window.getSelection();
@@ -366,6 +385,7 @@ function displayNarrative(narrativeMessage: Message | null) {
 
     const finishEditing = () => {
         if (narrativeSpan.contentEditable === 'true') {
+            messageDiv.classList.remove('is-editing');
             narrativeSpan.contentEditable = 'false';
             const newContent = narrativeSpan.innerText;
             if (newContent !== narrativeMessage.content) {
@@ -1871,6 +1891,14 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         messageDiv.classList.add('message', 'scene-description-message');
         messageDiv.id = `message-${sceneMessage.id}`;
 
+        const helpIcon = document.createElement('span');
+        helpIcon.className = 'edit-help-icon';
+        helpIcon.textContent = '❓';
+        // @ts-ignore
+        const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
+        helpIcon.setAttribute('data-tooltip', editTooltipText);
+        messageDiv.appendChild(helpIcon);
+
         const sceneDescSpan = document.createElement('span');
         sceneDescSpan.className = 'message-content'; // Add class for styling and selection
         sceneDescSpan.innerHTML = sceneMessage.content; // Scene descriptions are plain text
@@ -1880,6 +1908,7 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         // Add editing capability
         sceneDescSpan.addEventListener('dblclick', (e) => {
             if (sceneDescSpan.contentEditable !== 'true') {
+                messageDiv.classList.add('is-editing');
                 sceneDescSpan.contentEditable = 'true';
                 sceneDescSpan.focus();
                 const selection = window.getSelection();
@@ -1911,6 +1940,7 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
 
         const finishEditing = () => {
             if (sceneDescSpan.contentEditable === 'true') {
+                messageDiv.classList.remove('is-editing');
                 sceneDescSpan.contentEditable = 'false';
                 const newContent = sceneDescSpan.innerText;
                 if (newContent !== sceneMessage.content) {
