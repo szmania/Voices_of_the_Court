@@ -181,6 +181,55 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
         messageDiv.classList.add('historical-message');
     }
 
+    const nameSpan = document.createElement('strong');
+    const contentSpan = document.createElement('span');
+    contentSpan.className = 'message-content';
+    // Use parseInline for content, but don't sanitize yet to allow editing raw text
+    contentSpan.innerHTML = await marked.parseInline(message.content);
+
+
+    messageDiv.appendChild(nameSpan);
+    messageDiv.appendChild(document.createTextNode(' ')); // Add a space after the name
+    messageDiv.appendChild(contentSpan);
+
+    // Make content editable on double click, but not for historical messages
+    if (!isHistorical) {
+        contentSpan.addEventListener('dblclick', () => {
+            contentSpan.contentEditable = 'true';
+            // To edit, we want the raw text, not the HTML
+            contentSpan.innerHTML = message.content;
+            contentSpan.focus();
+        });
+
+        const finishEditing = async () => {
+            if (contentSpan.contentEditable === 'true') {
+                contentSpan.contentEditable = 'false';
+                const newContent = contentSpan.innerText;
+                // Re-apply markdown parsing for display
+                contentSpan.innerHTML = await marked.parseInline(newContent);
+
+                // Only send update if content has actually changed
+                if (newContent !== message.content) {
+                    message.content = newContent; // Update local message object
+                    ipcRenderer.send('edit-message', { messageId: message.id, newContent });
+                }
+            }
+        };
+
+        contentSpan.addEventListener('blur', finishEditing);
+        contentSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                finishEditing();
+            } else if (e.key === 'Escape') {
+                // Revert changes and finish editing
+                contentSpan.innerHTML = message.content;
+                finishEditing();
+            }
+        });
+    }
+
+
     switch (message.role) {
         case 'user':
             messageDiv.classList.add('player-message');
@@ -188,7 +237,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
                 messageDiv.classList.add('historical-player-message');
             }
             const displayName = `${message.name} (You)`;
-            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${displayName}:** ${message.content}`), sanitizeConfig);
+            nameSpan.textContent = `${displayName}:`;
 
             // Add visual indicator for targeted message
             const targetId = (message as any).targetCharacterId;
@@ -214,7 +263,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             if (isHistorical) {
                 messageDiv.classList.add('historical-ai-message');
             }
-            messageDiv.innerHTML = DOMPurify.sanitize(await marked.parseInline(`**${message.name}:** ${message.content}`), sanitizeConfig);
+            nameSpan.textContent = `${message.name}:`;
             break;
     }
 
