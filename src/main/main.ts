@@ -774,7 +774,6 @@ clipboardListener.on('VOTC:IN', async () =>{
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
-            narratives: Array.from(conversation.narratives.entries()),
             historicalMetadata: historicalMetadata,
             actions: sanitizedActions // Pass sanitized actions
         };

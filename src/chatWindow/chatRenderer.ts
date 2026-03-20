@@ -203,12 +203,15 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
                 // Manually select the word since we're interrupting the default flow.
                 const selection = window.getSelection();
-                if (document.caretRangeFromPoint) {
+                if (selection && document.caretRangeFromPoint) {
                     const range = document.caretRangeFromPoint(e.clientX, e.clientY);
                     if (range) {
-                        range.expand('word');
                         selection.removeAllRanges();
                         selection.addRange(range);
+                        // @ts-ignore
+                        selection.modify('move', 'backward', 'word');
+                        // @ts-ignore
+                        selection.modify('extend', 'forward', 'word');
                     }
                 }
             }
@@ -219,10 +222,12 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             // This handler is specifically for the triple-click to select all.
             if (e.detail === 3 && contentSpan.contentEditable === 'true') {
                 const selection = window.getSelection();
-                const range = document.createRange();
-                range.selectNodeContents(contentSpan);
-                selection.removeAllRanges();
-                selection.addRange(range);
+                if (selection) {
+                    const range = document.createRange();
+                    range.selectNodeContents(contentSpan);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
             }
         });
 
@@ -333,12 +338,15 @@ function displayNarrative(narrativeMessage: Message | null) {
             narrativeSpan.contentEditable = 'true';
             narrativeSpan.focus();
             const selection = window.getSelection();
-            if (document.caretRangeFromPoint) {
+            if (selection && document.caretRangeFromPoint) {
                 const range = document.caretRangeFromPoint(e.clientX, e.clientY);
                 if (range) {
-                    range.expand('word');
                     selection.removeAllRanges();
                     selection.addRange(range);
+                    // @ts-ignore
+                    selection.modify('move', 'backward', 'word');
+                    // @ts-ignore
+                    selection.modify('extend', 'forward', 'word');
                 }
             }
         }
@@ -347,10 +355,12 @@ function displayNarrative(narrativeMessage: Message | null) {
     narrativeSpan.addEventListener('click', (e) => {
         if (e.detail === 3 && narrativeSpan.contentEditable === 'true') {
             const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(narrativeSpan);
-            selection.removeAllRanges();
-            selection.addRange(range);
+            if (selection) {
+                const range = document.createRange();
+                range.selectNodeContents(narrativeSpan);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
         }
     });
 
@@ -1873,12 +1883,15 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
                 sceneDescSpan.contentEditable = 'true';
                 sceneDescSpan.focus();
                 const selection = window.getSelection();
-                if (document.caretRangeFromPoint) {
+                if (selection && document.caretRangeFromPoint) {
                     const range = document.caretRangeFromPoint(e.clientX, e.clientY);
                     if (range) {
-                        range.expand('word');
                         selection.removeAllRanges();
                         selection.addRange(range);
+                        // @ts-ignore
+                        selection.modify('move', 'backward', 'word');
+                        // @ts-ignore
+                        selection.modify('extend', 'forward', 'word');
                     }
                 }
             }
@@ -1887,10 +1900,12 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         sceneDescSpan.addEventListener('click', (e) => {
             if (e.detail === 3 && sceneDescSpan.contentEditable === 'true') {
                 const selection = window.getSelection();
-                const range = document.createRange();
-                range.selectNodeContents(sceneDescSpan);
-                selection.removeAllRanges();
-                selection.addRange(range);
+                if (selection) {
+                    const range = document.createRange();
+                    range.selectNodeContents(sceneDescSpan);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
             }
         });
 
