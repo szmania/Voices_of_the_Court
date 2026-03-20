@@ -278,7 +278,7 @@
     "save_btn": "Save",
     "save_all": "Save All Summaries",
     "tooltip_refresh": "Reload player IDs and summaries from disk.",
-    "tooltip_save_all": "Save all changes for all characters to their respective files.",
+    "tooltip_save_all": "Save all changes for all characters to their respective files. This will also regenerate summaries for any edited entries.",
     "tooltip_player_id": "Select the player profile to manage.",
     "tooltip_character": "Filter summaries by a specific character or view all.",
     "tooltip_summary_path": "The file path where the selected character's summary is stored.",
@@ -596,6 +596,11 @@
     "restart_now": "Restart",
     "update_ready_title": "Update Downloaded",
     "update_ready_message": "A new version has been downloaded. Please restart to apply the updates."
+    "incompatible_mod_title": "Incompatible Mod Detected",
+    "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.",
+    "close_app": "Close",
+    "open_steam_and_quit": "Open Steam and Quit",
+    "open_discord_and_quit": "Open Discord and Quit"
   },
   "diary_manager": {
     "header": "Diary Manager",
@@ -636,7 +641,8 @@
     "delete_success": "Diary entry deleted",
     "update_success": "Diary entry updated",
     "select_first": "Please select a diary entry to update first",
-    "added_new": "New diary entry added"
+    "added_new": "New diary entry added",
+    "regenerating_summaries": "Regenerating summaries for edited entries..."
   },
   "tray": {
     "open_config": "Open config window",

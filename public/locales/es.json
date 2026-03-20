@@ -280,7 +280,7 @@
     "save_btn": "Guardar",
     "save_all": "Guardar todos los resúmenes",
     "tooltip_refresh": "Recargar los ID de jugador y los resúmenes desde el disco.",
-    "tooltip_save_all": "Guardar todos los cambios de todos los personajes en sus respectivos archivos.",
+    "tooltip_save_all": "Guardar todos los cambios de todos los personajes en sus respectivos archivos. Esto también regenerará los resúmenes de las entradas editadas.",
     "tooltip_player_id": "Selecciona el perfil de jugador a gestionar.",
     "tooltip_character": "Filtrar resúmenes por un personaje específico o ver todos.",
     "tooltip_summary_path": "La ruta del archivo donde se almacena el resumen del personaje seleccionado.",
@@ -594,7 +594,12 @@
     "join_discord": "Unirse a Discord",
     "view_steam": "Ver mod de Steam",
     "view_website": "Visitar página web",
-    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola."
+    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola.",
+    "incompatible_mod_title": "Mod incompatible detectado",
+    "incompatible_mod_message": "El mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) no es compatible con 'Voices of the Court 2.0 - Community Edition'.\n\nPor favor, suscríbase y active la Community Edition, desactive el mod incompatible y reinicie la aplicación.",
+    "close_app": "Cerrar",
+    "open_steam_and_quit": "Abrir Steam y salir",
+    "open_discord_and_quit": "Abrir Discord y salir"
   },
   "diary_manager": {
     "header": "Gestor de diarios",
@@ -635,7 +640,8 @@
     "delete_success": "Entrada de diario borrada",
     "update_success": "Entrada de diario actualizada",
     "select_first": "Por favor, selecciona primero una entrada de diario para actualizar",
-    "added_new": "Nueva entrada de diario añadida"
+    "added_new": "Nueva entrada de diario añadida",
+    "regenerating_summaries": "Regenerando resúmenes para las entradas editadas..."
   },
   "tray": {
     "open_config": "Abrir ventana de configuración",

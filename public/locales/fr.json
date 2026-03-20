@@ -280,7 +280,7 @@
     "save_btn": "Enregistrer",
     "save_all": "Enregistrer tous les résumés",
     "tooltip_refresh": "Recharger les ID de joueur et les résumés depuis le disque.",
-    "tooltip_save_all": "Enregistrer toutes les modifications pour tous les personnages dans leurs fichiers respectifs.",
+    "tooltip_save_all": "Enregistrer toutes les modifications pour tous les personnages dans leurs fichiers respectifs. Cela régénérera également les résumés pour toutes les entrées modifiées.",
     "tooltip_player_id": "Sélectionnez le profil de joueur à gérer.",
     "tooltip_character": "Filtrer les résumés par un personnage spécifique ou tout afficher.",
     "tooltip_summary_path": "Le chemin du fichier où le résumé du personnage sélectionné est stocké.",
@@ -594,7 +594,12 @@
     "join_discord": "Rejoindre Discord",
     "view_steam": "Voir le mod Steam",
     "view_website": "Visiter le site web",
-    "init_error": "Une erreur s'est produite lors de l'initialisation de la page de configuration, veuillez consulter la console."
+    "init_error": "Une erreur s'est produite lors de l'initialisation de la page de configuration, veuillez consulter la console.",
+    "incompatible_mod_title": "Mod incompatible détecté",
+    "incompatible_mod_message": "Le mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) n'est pas compatible avec 'Voices of the Court 2.0 - Community Edition'.\n\nVeuillez vous abonner et activer l'Édition Communautaire, désactiver le mod incompatible et redémarrer l'application.",
+    "close_app": "Fermer",
+    "open_steam_and_quit": "Ouvrir Steam et quitter",
+    "open_discord_and_quit": "Ouvrir Discord et quitter"
   },
   "diary_manager": {
     "header": "Gestionnaire de journal",
@@ -635,7 +640,8 @@
     "delete_success": "Entrée de journal supprimée",
     "update_success": "Entrée de journal mise à jour",
     "select_first": "Veuillez d'abord sélectionner une entrée de journal à mettre à jour",
-    "added_new": "Nouvelle entrée de journal ajoutée"
+    "added_new": "Nouvelle entrée de journal ajoutée",
+    "regenerating_summaries": "Régénération des résumés pour les entrées modifiées..."
   },
   "tray": {
     "open_config": "Ouvrir la fenêtre de configuration",

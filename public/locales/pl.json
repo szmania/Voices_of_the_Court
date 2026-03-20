@@ -280,7 +280,7 @@
     "save_btn": "Zapisz",
     "save_all": "Zapisz wszystkie podsumowania",
     "tooltip_refresh": "Przeładuj identyfikatory graczy i podsumowania z dysku.",
-    "tooltip_save_all": "Zapisz wszystkie zmiany dla wszystkich postaci w ich odpowiednich plikach.",
+    "tooltip_save_all": "Zapisz wszystkie zmiany dla wszystkich postaci w ich odpowiednich plikach. Spowoduje to również ponowne wygenerowanie podsumowań dla wszystkich edytowanych wpisów.",
     "tooltip_player_id": "Wybierz profil gracza do zarządzania.",
     "tooltip_character": "Filtruj podsumowania według określonej postaci lub wyświetl wszystkie.",
     "tooltip_summary_path": "Ścieżka pliku, w którym przechowywane jest podsumowanie wybranej postaci.",
@@ -594,7 +594,12 @@
     "join_discord": "Dołącz do Discord",
     "view_steam": "Zobacz mod na Steam",
     "view_website": "Odwiedź stronę internetową",
-    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę."
+    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę.",
+    "incompatible_mod_title": "Wykryto niekompatybilny mod",
+    "incompatible_mod_message": "Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) nie jest kompatybilny z 'Voices of the Court 2.0 - Community Edition'.\n\nProszę zasubskrybować i włączyć Edycję Społecznościową, wyłączyć niekompatybilny mod i ponownie uruchomić aplikację.",
+    "close_app": "Zamknij",
+    "open_steam_and_quit": "Otwórz Steam i zamknij",
+    "open_discord_and_quit": "Otwórz Discord i zamknij"
   },
   "diary_manager": {
     "header": "Menedżer dzienników",
@@ -635,7 +640,8 @@
     "delete_success": "Wpis do dziennika usunięty",
     "update_success": "Wpis do dziennika zaktualizowany",
     "select_first": "Proszę najpierw wybrać wpis do dziennika do aktualizacji",
-    "added_new": "Dodano nowy wpis do dziennika"
+    "added_new": "Dodano nowy wpis do dziennika",
+    "regenerating_summaries": "Ponowne generowanie podsumowań dla edytowanych wpisów..."
   },
   "tray": {
     "open_config": "Otwórz okno konfiguracji",

@@ -280,7 +280,7 @@
     "save_btn": "저장",
     "save_all": "모든 요약 저장",
     "tooltip_refresh": "디스크에서 플레이어 ID와 요약을 다시 로드합니다.",
-    "tooltip_save_all": "모든 캐릭터의 모든 변경 사항을 각 파일에 저장합니다.",
+    "tooltip_save_all": "모든 캐릭터의 모든 변경 사항을 각 파일에 저장합니다. 편집된 항목에 대한 요약도 다시 생성됩니다.",
     "tooltip_player_id": "관리할 플레이어 프로필을 선택하십시오.",
     "tooltip_character": "특정 캐릭터별로 요약을 필터링하거나 모두 봅니다.",
     "tooltip_summary_path": "선택한 캐릭터의 요약이 저장된 파일 경로입니다.",
@@ -594,7 +594,12 @@
     "join_discord": "Discord 가입",
     "view_steam": "Steam 모드 보기",
     "view_website": "웹사이트 방문",
-    "init_error": "구성 페이지를 초기화하는 동안 오류가 발생했습니다. 콘솔 로그를 확인하십시오."
+    "init_error": "구성 페이지를 초기화하는 동안 오류가 발생했습니다. 콘솔 로그를 확인하십시오.",
+    "incompatible_mod_title": "호환되지 않는 모드 감지됨",
+    "incompatible_mod_message": "'Voices of the Court 2.0' 모드(mod/ugc_3346777360.mod)는 'Voices of the Court 2.0 - Community Edition'과 호환되지 않습니다.\n\n커뮤니티 에디션을 구독하고 활성화한 후, 호환되지 않는 모드를 비활성화하고 애플리케이션을 다시 시작하십시오.",
+    "close_app": "닫기",
+    "open_steam_and_quit": "Steam 열고 종료",
+    "open_discord_and_quit": "Discord 열고 종료"
   },
   "diary_manager": {
     "header": "일기 관리자",
@@ -635,7 +640,8 @@
     "delete_success": "일기 항목 삭제됨",
     "update_success": "일기 항목 업데이트됨",
     "select_first": "업데이트할 일기 항목을 먼저 선택하세요.",
-    "added_new": "새 일기 항목이 추가되었습니다."
+    "added_new": "새 일기 항목이 추가되었습니다.",
+    "regenerating_summaries": "편집된 항목에 대한 요약 다시 생성 중..."
   },
   "tray": {
     "open_config": "설정 창 열기",

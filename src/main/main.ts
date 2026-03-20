@@ -409,6 +409,43 @@ app.on('ready',  async () => {
         console.error('There was a problem updating the application', error);
     });
 
+    // Check for incompatible mods
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    if (fs.existsSync(dlcLoadPath)) {
+        try {
+            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+            const dlcLoadJson = JSON.parse(dlcLoadContent);
+            const incompatibleMod = "mod/ugc_3346777360.mod";
+
+            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                console.error('Incompatible mod detected. Application will now close.');
+
+                const dialogOpts = {
+                    type: 'error' as const,
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                    title: t('dialog.incompatible_mod_title'),
+                    message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                    defaultId: 0,
+                    cancelId: 2
+                };
+
+                const { response } = await dialog.showMessageBox(dialogOpts);
+
+                if (response === 0) { // "Open Steam and Quit"
+                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                }
+                // Quit the app regardless of the choice.
+                app.quit();
+                return; // Stop further execution in the ready event.
+            }
+        } catch (err) {
+            console.error('Failed to read or parse dlc_load.json:', err);
+        }
+    }
+
     // Tokenizer IPC handlers
     ipcMain.handle('calculate-tokens', async (event, text: string) => {
         try {
@@ -679,6 +716,44 @@ let conversation: Conversation;
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+
+    // Check for incompatible mods
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    if (fs.existsSync(dlcLoadPath)) {
+        try {
+            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+            const dlcLoadJson = JSON.parse(dlcLoadContent);
+            const incompatibleMod = "mod/ugc_3346777360.mod";
+
+            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                console.error('Incompatible mod detected. Application will now close.');
+
+                const dialogOpts = {
+                    type: 'error' as const,
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                    title: t('dialog.incompatible_mod_title'),
+                    message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                    defaultId: 0,
+                    cancelId: 2
+                };
+
+                const { response } = await dialog.showMessageBox(dialogOpts);
+
+                if (response === 0) { // "Open Steam and Quit"
+                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                }
+                // Quit the app regardless of the choice.
+                app.quit();
+                return; // Stop further execution.
+            }
+        } catch (err) {
+            console.error('Failed to read or parse dlc_load.json:', err);
+        }
+    }
+
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
     try{
@@ -1637,6 +1712,53 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
         return { success: true };
     } catch (error) {
         console.error('Error saving diary file:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
+    console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
+    if (!diaryGenerator) {
+        diaryGenerator = new DiaryGenerator(config);
+    }
+
+    try {
+        const characterIds = new Set<string>([
+            ...editedEntries.map((e: any) => e.character_id),
+            ...deletedEntries.map((e: any) => e.character_id)
+        ]);
+
+        for (const charId of characterIds) {
+            if (!charId) continue;
+            let summaries = await readDiarySummaries(playerId, charId);
+
+            // Remove summaries for deleted entries
+            const deletedIdsForChar = new Set(deletedEntries.filter((e: any) => e.character_id === charId).map((e: any) => e.id));
+            if (deletedIdsForChar.size > 0) {
+                summaries = summaries.filter(s => !deletedIdsForChar.has(s.diaryEntryId));
+            }
+
+            // Update/add summaries for edited entries
+            const editedEntriesForChar = editedEntries.filter((e: any) => e.character_id === charId);
+            for (const entry of editedEntriesForChar) {
+                const newSummary = await diaryGenerator.summarizeDiaryEntry(entry);
+                if (newSummary) {
+                    const existingSummaryIndex = summaries.findIndex(s => s.diaryEntryId === entry.id);
+                    if (existingSummaryIndex !== -1) {
+                        summaries[existingSummaryIndex] = { ...summaries[existingSummaryIndex], ...newSummary };
+                    } else {
+                        summaries.unshift({ id: randomUUID(), ...newSummary, characterId: charId });
+                    }
+                }
+            }
+
+            summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            await saveDiarySummaries(playerId, charId, summaries);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error regenerating diary summaries:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }

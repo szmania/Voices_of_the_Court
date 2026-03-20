@@ -280,7 +280,7 @@
     "save_btn": "保存",
     "save_all": "すべての要約を保存",
     "tooltip_refresh": "ディスクからプレイヤーIDと要約を再読み込みします。",
-    "tooltip_save_all": "すべてのキャラクターのすべての変更をそれぞれのファイルに保存します。",
+    "tooltip_save_all": "すべてのキャラクターのすべての変更をそれぞれのファイルに保存します。これにより、編集されたエントリの要約も再生成されます。",
     "tooltip_player_id": "管理するプレイヤープロファイルを選択します。",
     "tooltip_character": "特定のキャラクターで要約をフィルタリングするか、すべて表示します。",
     "tooltip_summary_path": "選択したキャラクターの要約が保存されているファイルパス。",
@@ -594,7 +594,12 @@
     "join_discord": "Discord に参加",
     "view_steam": "Steam モッドを表示",
     "view_website": "ウェブサイトを訪問",
-    "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。"
+    "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。",
+    "incompatible_mod_title": "互換性のないMODが検出されました",
+    "incompatible_mod_message": "MOD「Voices of the Court 2.0」（mod/ugc_3346777360.mod）は「Voices of the Court 2.0 - Community Edition」と互換性がありません。\n\nCommunity Editionを購読して有効にし、互換性のないMODを無効にして、アプリケーションを再起動してください。",
+    "close_app": "閉じる",
+    "open_steam_and_quit": "Steamを開いて終了",
+    "open_discord_and_quit": "Discordを開いて終了"
   },
   "diary_manager": {
     "header": "日記マネージャー",
@@ -635,7 +640,8 @@
     "delete_success": "日記エントリが削除されました",
     "update_success": "日記エントリが更新されました",
     "select_first": "最初に更新する日記エントリを選択してください",
-    "added_new": "新しい日記エントリが追加されました"
+    "added_new": "新しい日記エントリが追加されました",
+    "regenerating_summaries": "編集されたエントリの要約を再生成しています..."
   },
   "tray": {
     "open_config": "設定ウィンドウを開く",
