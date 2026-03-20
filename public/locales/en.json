@@ -122,7 +122,7 @@
     "mod_preset_tooltip": "Select a prompt set tailored for a specific CK3 overhaul mod. This will override the prompts below.",
     "mod_default": "Default (Vanilla)",
     "mod_agot": "A Game of Thrones",
-    "mod_rie": "Realms in Exile",
+    "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
     "mod_tfe": "The Fallen Eagle"
   },
   "settings": {
