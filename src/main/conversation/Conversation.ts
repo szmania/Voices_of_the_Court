@@ -58,7 +58,6 @@ export class Conversation{
     actions!: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
-    narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
     letterManager: LetterManager;
     letters: Map<number, ILetter[]>;
@@ -88,7 +87,6 @@ export class Conversation{
         this.gameData = gameData;
         this.messages = [];
         this.currentSummary = "";
-        this.narratives = new Map<number, string[]>(); // 初始化旁白存储
         this.config = config;
 
         // Load translations
@@ -554,21 +552,6 @@ export class Conversation{
         }
     }
 
-    // 添加旁白到指定消息
-    addNarrativeToMessage(messageIndex: number, narrative: string): void {
-        if (messageIndex >= 0 && messageIndex < this.messages.length) {
-            // 在narratives映射中存储旁白
-            const messageId = messageIndex;
-            if (!this.narratives.has(messageId)) {
-                this.narratives.set(messageId, []);
-            }
-            this.narratives.get(messageId)!.push(narrative);
-            
-            console.log(`Narrative added to message at index ${messageIndex}: ${narrative}`);
-        } else {
-            console.error(`Invalid message index: ${messageIndex}. Cannot add narrative.`);
-        }
-    }
 
     async generateAIsMessages() {
         if (this.isGenerating) {
@@ -691,15 +674,12 @@ export class Conversation{
             }
 
             // Send actions for player-directed part to re-enable user input
-            let playerNarrative = "";
+            let playerNarrative: Message | null = null;
             if (allTurnActions.length > 0 && this.config.narrativeEnable) {
                 playerNarrative = await generateNarrative(this, allTurnActions);
             }
             if (playerNarrative) {
-                const lastMessageIndex = this.messages.length - 1;
-                if (lastMessageIndex >= 0) {
-                    this.addNarrativeToMessage(lastMessageIndex, playerNarrative);
-                }
+                this.pushMessage(playerNarrative);
             }
             this.chatWindow.window.webContents.send('actions-receive', allTurnActions, playerNarrative, false);
 
@@ -1531,14 +1511,9 @@ ${character.fullName}的发言：`
           const messageData: any = {
             id: msg.id,
             name: msg.name,
-            content: msg.content
+            content: msg.content,
+            type: (msg as any).type
           };
-          
-          // 添加旁白信息（如果有）
-          const narratives = this.narratives.get(index);
-          if (narratives && narratives.length > 0) {
-            messageData.narratives = narratives;
-          }
           
           return messageData;
         });
@@ -1567,7 +1542,13 @@ ${character.fullName}的发言：`
         const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
 
         processedMessages.forEach((msg, index) => {
-            if (msg.name) {
+            if (msg.type === 'narrative' || msg.name === 'Narrator') {
+                textContent += `${narrativeLabel} ${msg.content}\n`;
+            } else if (msg.type === 'scene') {
+                // Scene descriptions are usually at the start and might not need a label in history,
+                // but for clarity we can add one.
+                textContent += `[Scene]: ${msg.content}\n`;
+            } else if (msg.name) {
                 textContent += `${msg.name}: ${msg.content}\n`;
             } else {
                 textContent += `${msg.content}\n`;
@@ -1580,11 +1561,6 @@ ${character.fullName}的发言：`
                     textContent += `${actionLabel} ${action.chatMessage}\n`;
                 });
             }
-          
-          // 添加旁白信息
-          if (msg.narratives && msg.narratives.length > 0) {
-            textContent += `${narrativeLabel} ${msg.narratives.join(`\n${narrativeLabel} `)}\n`;
-          }
           
           textContent += '\n';
         });
@@ -1799,40 +1775,30 @@ ${character.fullName}的发言：`
             if (sceneDescription && sceneDescription.trim()) {
                 // 创建场景描述消息
                 const sceneMessage: Message = {
+                    id: randomUUID(),
                     role: "system",
                     name: "",
-                    content: sceneDescription
+                    content: sceneDescription,
+                    // @ts-ignore
+                    type: 'scene'
                 };
                 
-                if (isInitial) {
-                    // Calculate the position to insert scene description (after historical conversations)
-                    // Count total historical messages
-                    let historicalMessageCount = 0;
-                    if (this.historicalConversations) {
-                        historicalMessageCount = this.historicalConversations.reduce((total, conv) => total + conv.messages.length, 0);
-                    }
-                    
-                    // Insert scene description after historical messages but before current conversation
-                    this.messages.splice(historicalMessageCount, 0, sceneMessage);
-                } else {
-                    sceneMessage.id = randomUUID();
-                    this.messages.push(sceneMessage);
-                }
+                this.pushMessage(sceneMessage);
                 
                 // 发送场景描述到聊天窗口
-                this.chatWindow.window.webContents.send('scene-description', sceneDescription);
+                this.chatWindow.window.webContents.send('scene-description', sceneMessage);
                 
-                console.log(`Scene description generated and inserted. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
+                console.log(`Scene description generated and sent. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
                 // 发送空场景描述以清除加载状态
-                this.chatWindow.window.webContents.send('scene-description', '');
+                this.chatWindow.window.webContents.send('scene-description', null);
             }
         } catch (error) {
             console.error('Error generating scene description:', error);
             // 如果生成失败，不影响对话的正常进行
             // 但仍然需要清除加载状态
-            this.chatWindow.window.webContents.send('scene-description', '');
+            this.chatWindow.window.webContents.send('scene-description', null);
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
         }
@@ -1876,7 +1842,6 @@ ${character.fullName}的发言：`
     public clearHistory(): void {
         console.log("Clearing conversation history.");
         this.messages = [];
-        this.narratives.clear();
         this.currentSummary = "";
         this.consecutiveActionsCount = 0;
         this.lastActionMessageIndex = -1;
@@ -1891,10 +1856,6 @@ ${character.fullName}的发言：`
             console.log(`Removing messages from index ${actualIndex} onwards.`);
             this.messages.splice(actualIndex);
             
-            // Clean up narratives for removed messages
-            for (let i = actualIndex; i <= this.messages.length + 1; i++) {
-                this.narratives.delete(i);
-            }
             
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
@@ -2040,14 +2001,14 @@ ${character.fullName}的发言：`
                         this.actionInvolvedCharacterIds.add(targetAI.id);
                     }
                 }
-                let narrative = "";
+                let narrativeMessage: Message | null = null;
                 if (collectedActions.length > 0 && this.config.narrativeEnable) {
-                    narrative = await generateNarrative(this, collectedActions);
-                    if (narrative) {
-                        this.addNarrativeToMessage(this.messages.length - 1, narrative);
+                    narrativeMessage = await generateNarrative(this, collectedActions);
+                    if (narrativeMessage) {
+                        this.pushMessage(narrativeMessage);
                     }
                 }
-                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative, true);
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
                 // Generate AI2 -> AI1 response
                 const targetResponseMessages = await this.processCharacterList([targetAI], false);
@@ -2064,11 +2025,11 @@ ${character.fullName}的发言：`
                                 this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                             }
                         }
-                        let responseNarrative = "";
+                        let responseNarrative: Message | null = null;
                         if (responseActions.length > 0 && this.config.narrativeEnable) {
                             responseNarrative = await generateNarrative(this, responseActions);
                             if (responseNarrative) {
-                                this.addNarrativeToMessage(this.messages.length - 1, responseNarrative);
+                                this.pushMessage(responseNarrative);
                             }
                         }
                         this.chatWindow.window.webContents.send('actions-receive', responseActions, responseNarrative, true);

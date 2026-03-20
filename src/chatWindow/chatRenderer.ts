@@ -315,17 +315,67 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     return messageDiv;
 }
 
-function displayNarrative(narrative: string) {
-    if (!narrative) return;
+function displayNarrative(narrativeMessage: Message | null) {
+    if (!narrativeMessage || !narrativeMessage.content) return;
 
     const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add('narrative-message');
-    messageDiv.classList.add('action-message'); // Narratives are tied to actions/state changes
+    messageDiv.classList.add('message', 'narrative-message', 'action-message');
+    messageDiv.id = `message-${narrativeMessage.id}`;
 
     const narrativeSpan = document.createElement('span');
-    narrativeSpan.innerText = narrative;
+    narrativeSpan.className = 'message-content'; // Add class for styling and selection
+    narrativeSpan.innerHTML = narrativeMessage.content; // Narratives are plain text, no markdown
     messageDiv.appendChild(narrativeSpan);
+
+    // Add editing capability
+    narrativeSpan.addEventListener('dblclick', (e) => {
+        if (narrativeSpan.contentEditable !== 'true') {
+            narrativeSpan.contentEditable = 'true';
+            narrativeSpan.focus();
+            const selection = window.getSelection();
+            if (document.caretRangeFromPoint) {
+                const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                if (range) {
+                    range.expand('word');
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+            }
+        }
+    });
+
+    narrativeSpan.addEventListener('click', (e) => {
+        if (e.detail === 3 && narrativeSpan.contentEditable === 'true') {
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(narrativeSpan);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    });
+
+    const finishEditing = () => {
+        if (narrativeSpan.contentEditable === 'true') {
+            narrativeSpan.contentEditable = 'false';
+            const newContent = narrativeSpan.innerText;
+            if (newContent !== narrativeMessage.content) {
+                narrativeMessage.content = newContent;
+                ipcRenderer.send('edit-message', { messageId: narrativeMessage.id, newContent });
+            }
+        }
+    };
+
+    narrativeSpan.addEventListener('blur', finishEditing);
+    narrativeSpan.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            finishEditing();
+        } else if (e.key === 'Escape') {
+            narrativeSpan.innerHTML = narrativeMessage.content; // Revert
+            finishEditing();
+        }
+    });
+
 
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1771,9 +1821,9 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
 
 })
 
-ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrative: string, isAiToAi: boolean = false) =>{
+ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], narrativeMessage: Message | null, isAiToAi: boolean = false) =>{
     displayActions(actionsResponse);
-    displayNarrative(narrative);
+    displayNarrative(narrativeMessage);
 
     const shouldEnableInput = !isAiToAi;
     removeLoadingDots(shouldEnableInput);
@@ -1794,9 +1844,9 @@ ipcRenderer.on('stream-message', (e, message: Message)=>{
     //@ts-ignore
 })
 
-ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrative: string) =>{
+ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrativeMessage: Message | null) =>{
     displayActions(actions);
-    displayNarrative(narrative);
+    displayNarrative(narrativeMessage);
     removeLoadingDots();
 })
 
@@ -1805,50 +1855,72 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
 })
 
 // 监听场景描述事件
-ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{
-    if (sceneDescription && sceneDescription.trim()) {
-        // 创建场景描述消息元素
+ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
+    if (sceneMessage && sceneMessage.content && sceneMessage.content.trim()) {
         const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message');
-        messageDiv.classList.add('scene-description-message');
+        messageDiv.classList.add('message', 'scene-description-message');
+        messageDiv.id = `message-${sceneMessage.id}`;
 
-        // 创建场景描述内容
         const sceneDescSpan = document.createElement('span');
-        sceneDescSpan.innerText = sceneDescription;
+        sceneDescSpan.className = 'message-content'; // Add class for styling and selection
+        sceneDescSpan.innerHTML = sceneMessage.content; // Scene descriptions are plain text
         sceneDescSpan.classList.add('scene-description-text');
-
         messageDiv.appendChild(sceneDescSpan);
 
-        // 尝试将场景描述插入到当前对话部分的正确位置
-        // 首先查找当前角色列表元素
-        const currentCharacters = chatMessages.querySelector('.current-characters');
-        if (currentCharacters) {
-            // 插入到当前角色列表之后
-            currentCharacters.parentNode?.insertBefore(messageDiv, currentCharacters.nextSibling);
-            console.log(`Scene description inserted after current characters: ${sceneDescription.substring(0, 50)}...`);
-        } else {
-            // 如果没有找到当前角色列表，查找当前对话标题
-            const currentHeader = chatMessages.querySelector('.current-conversation-header');
-            if (currentHeader) {
-                // 插入到当前对话标题之后
-                currentHeader.parentNode?.insertBefore(messageDiv, currentHeader.nextSibling);
-                console.log(`Scene description inserted after current conversation header: ${sceneDescription.substring(0, 50)}...`);
-            } else {
-                // 如果都没有找到，回退到插入到开头
-                chatMessages.insertBefore(messageDiv, chatMessages.firstChild);
-                console.log(`Scene description inserted at beginning (fallback): ${sceneDescription.substring(0, 50)}...`);
+        // Add editing capability
+        sceneDescSpan.addEventListener('dblclick', (e) => {
+            if (sceneDescSpan.contentEditable !== 'true') {
+                sceneDescSpan.contentEditable = 'true';
+                sceneDescSpan.focus();
+                const selection = window.getSelection();
+                if (document.caretRangeFromPoint) {
+                    const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                    if (range) {
+                        range.expand('word');
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                }
             }
-        }
+        });
 
-        // Auto-scroll to bottom after scene description is inserted
-        setTimeout(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 10);
+        sceneDescSpan.addEventListener('click', (e) => {
+            if (e.detail === 3 && sceneDescSpan.contentEditable === 'true') {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(sceneDescSpan);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
 
-        // Clear loading state AFTER scene description is inserted into DOM
+        const finishEditing = () => {
+            if (sceneDescSpan.contentEditable === 'true') {
+                sceneDescSpan.contentEditable = 'false';
+                const newContent = sceneDescSpan.innerText;
+                if (newContent !== sceneMessage.content) {
+                    sceneMessage.content = newContent;
+                    ipcRenderer.send('edit-message', { messageId: sceneMessage.id, newContent });
+                }
+            }
+        };
+
+        sceneDescSpan.addEventListener('blur', finishEditing);
+        sceneDescSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                finishEditing();
+            } else if (e.key === 'Escape') {
+                sceneDescSpan.innerHTML = sceneMessage.content; // Revert
+                finishEditing();
+            }
+        });
+
+        chatMessages.append(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
         removeLoadingDots();
     } else {
-        // If scene description is empty, still clear loading dots
         removeLoadingDots();
     }
 })
