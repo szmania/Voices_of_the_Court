@@ -1336,7 +1336,8 @@ html{
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
-    width: 200px;
+    width: auto;
+    max-width: 220px;
     white-space: normal;
     overflow-wrap: break-word;
     opacity: 0;
