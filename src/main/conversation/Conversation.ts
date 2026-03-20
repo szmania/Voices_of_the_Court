@@ -1902,15 +1902,6 @@ ${character.fullName}的发言：`
         }
     }
 
-    public editMessage(messageId: string, newContent: string): void {
-        const message = this.messages.find(m => m.id === messageId);
-        if (message) {
-            console.log(`Editing message ${messageId}. Old content: "${message.content.substring(0, 50)}...". New content: "${newContent.substring(0, 50)}..."`);
-            message.content = newContent;
-        } else {
-            console.warn(`Could not find message with ID ${messageId} to edit.`);
-        }
-    }
 
     public editMessage(messageId: string, newContent: string): void {
         const message = this.messages.find(m => m.id === messageId);
