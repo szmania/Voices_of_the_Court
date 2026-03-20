@@ -962,7 +962,8 @@ export class Conversation{
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
         // Check if we should question player actions
-        if (this.config.questionPlayerActionsChance > 0 && Math.random() < (this.config.questionPlayerActionsChance / 100)) {
+        const questioningChance = this.calculateQuestioningChance(character);
+        if (questioningChance > 0 && Math.random() < (questioningChance / 100)) {
             const questionMessage = await this.generateActionQuestioningMessage(character);
             if (questionMessage) {
                 if (sendMessageToChat) {
@@ -2185,5 +2186,44 @@ Express your questioning or concerns about these actions while staying in charac
         }
         
         return actions;
+    }
+
+    private calculateQuestioningChance(character: Character): number {
+        let chance = this.config.questionPlayerActionsChance;
+        if (chance <= 0) {
+            return 0;
+        }
+
+        console.log(`Calculating questioning chance for ${character.shortName}. Base chance: ${chance}%`);
+
+        // Trait-based modifiers (positive for more likely to question, negative for less)
+        const traitModifiers: { [key: string]: number } = {
+            'just': 20,
+            'honest': 15,
+            'honorable': 15,
+            'compassionate': 10,
+            'cynical': 10,
+            'paranoid': 25,
+            'arbitrary': -10,
+            'deceitful': -20,
+            'callous': -15,
+            'lazy': -10
+        };
+
+        for (const trait of character.traits) {
+            const traitName = trait.name.toLowerCase();
+            if (traitModifiers[traitName]) {
+                const modifier = traitModifiers[traitName];
+                chance += modifier;
+                console.log(`... applying modifier for trait '${traitName}': ${modifier}%. New chance: ${chance}%`);
+            }
+        }
+        
+        // Clamp the chance between 0 and 100
+        const finalChance = Math.max(0, Math.min(100, chance));
+        if (finalChance !== this.config.questionPlayerActionsChance) {
+            console.log(`Final questioning chance for ${character.shortName}: ${finalChance}%`);
+        }
+        return finalChance;
     }
 }
