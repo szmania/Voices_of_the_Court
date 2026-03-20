@@ -13,6 +13,9 @@ let suffixPromptTextarea: any = document.querySelector("#suffix-prompt-textarea"
 
 let restoreDefaultPromptsBtn: HTMLButtonElement = document.querySelector("#restore-default-prompts")!;
 
+// Mod Preset elements
+let modPresetSelect: HTMLSelectElement = document.querySelector("#mod-preset-select")!;
+
 // Preset elements
 let promptPresetSelect: HTMLSelectElement = document.querySelector("#prompt-preset-select")!;
 let promptPresetNameInput: HTMLInputElement = document.querySelector("#prompt-preset-name-input")!;
@@ -23,9 +26,10 @@ let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-
 let statusMessage: HTMLDivElement;
 
 const promptKeys = [
-    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
+    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
+    "actionTriggeredPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
@@ -131,6 +135,7 @@ async function init(){
         let config = await ipcRenderer.invoke('get-config');
         promptPresets = await ipcRenderer.invoke('get-prompt-presets');
 
+        await populateModPresetSelector(config.activeModPreset);
         await populatePresetSelector(config.activePromptPreset);
         console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
@@ -183,6 +188,7 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
+        modPresetSelect.addEventListener('change', handleModPresetChange);
         promptPresetSelect.addEventListener('change', handlePresetChange);
         savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
@@ -342,9 +348,16 @@ async function handlePresetChange() {
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
     if (selectedPresetName === 'Default') {
+        const selectedMod = modPresetSelect.value;
         const config = await ipcRenderer.invoke('get-config');
         const lang = config.language || 'en';
-        const promptsForLang = config.prompts[lang] || config.prompts.en;
+        let promptsForLang;
+        if (selectedMod !== 'Default' && config.mod_prompt_sets?.[selectedMod]?.[lang]) {
+            promptsForLang = config.mod_prompt_sets[selectedMod][lang];
+        } else {
+            promptsForLang = config.prompts[lang] || config.prompts.en;
+        }
+
         if (promptsForLang) {
             for (const key of promptKeys) {
                 if (promptTextareas[key] && promptsForLang[key] !== undefined) {
@@ -378,6 +391,40 @@ async function handlePresetChange() {
     setSaveButtonState(false); // Reset on preset change
 }
 
+async function populateModPresetSelector(activeModPreset?: string) {
+    modPresetSelect.innerHTML = '';
+    const config = await ipcRenderer.invoke('get-config');
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = 'Default';
+    // @ts-ignore
+    defaultOption.textContent = window.LocalizationManager.getNestedTranslation('prompts.mod_default', null, 'Default (Vanilla)');
+    modPresetSelect.appendChild(defaultOption);
+
+    if (config.mod_prompt_sets) {
+        for (const modName in config.mod_prompt_sets) {
+            const option = document.createElement('option');
+            option.value = modName;
+            // @ts-ignore
+            option.textContent = window.LocalizationManager.getNestedTranslation(`prompts.mod_${modName.toLowerCase().replace(/ /g, '_')}`, null, modName);
+            modPresetSelect.appendChild(option);
+        }
+    }
+    modPresetSelect.value = activeModPreset || 'Default';
+    await handleModPresetChange(); // To load the initial prompts
+}
+
+async function handleModPresetChange() {
+    const selectedMod = modPresetSelect.value;
+    ipcRenderer.send('config-change', 'activeModPreset', selectedMod);
+    console.log(`Mod preset changed to: ${selectedMod}`);
+
+    // If the current user preset is 'Default', we need to reload the prompts
+    if (promptPresetSelect.value === 'Default') {
+        await handlePresetChange();
+    }
+}
+
 async function saveCurrentPreset() {
     const presetName = promptPresetNameInput.value.trim();
     // @ts-ignore
@@ -386,6 +433,11 @@ async function saveCurrentPreset() {
     if (!presetName) {
         // @ts-ignore
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'), 'error');
+        return;
+    }
+    if (presetName === 'Default') {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_default_preset_alert'), 'error');
         return;
     }
 

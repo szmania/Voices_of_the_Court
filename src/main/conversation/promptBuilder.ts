@@ -10,6 +10,17 @@ import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 
+function getEffectivePrompts(conv: Conversation): any {
+    const lang = conv.config.language || 'en';
+    const activeModPreset = conv.config.activeModPreset || 'Default';
+    const defaultPrompts = conv.config.prompts[lang] || conv.config.prompts.en;
+
+    if (activeModPreset !== 'Default' && conv.config.mod_prompt_sets?.[activeModPreset]?.[lang]) {
+        return conv.config.mod_prompt_sets[activeModPreset][lang];
+    }
+    return defaultPrompts;
+}
+
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
     let output: string = "";
 
@@ -184,7 +195,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv)
+        content: createMemoryString(conv, getEffectivePrompts(conv))
     }
 
 
@@ -286,15 +297,17 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
+    const prompts = getEffectivePrompts(conv);
+
     if (!isAiToAi && !isNonTargetedResponse) {
         if (isSelfTalk) {
             chatPrompt.push({
                 role: "system",
-                content: parseVariables(conv.config.selfTalkPrompt, conv.gameData)
+                content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
             });
             console.log('Added self-talk main prompt from config.');
         } else {
-            let mainPromptText = conv.config.mainPrompt;
+            let mainPromptText = prompts.mainPrompt;
             const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
             mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
@@ -310,7 +323,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if(conv.config.enableSuffixPrompt){
         chatPrompt.push({
             role: "system",
-            content: conv.config.suffixPrompt
+            content: prompts.suffixPrompt
         })
         console.log('Added suffix prompt.');
     }
@@ -395,6 +408,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation, character: Character): Message[]{
+    const prompts = getEffectivePrompts(conv);
     let output: Message[] = [];
 
     output.push({
@@ -403,7 +417,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
     });
 
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
-    const prompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
+    const prompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
 
     let finalPrompt = parseVariables(prompt, conv.gameData);
     if (!isSelfTalk) {
@@ -419,6 +433,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 }
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
+    const prompts = getEffectivePrompts(conv);
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
@@ -438,7 +453,7 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
         content: convertMessagesToString(messagesToSummarize, "", "")
     });
 
-    const summarizePrompt = isSelfTalk ? conv.config.selfTalkSummarizePrompt : conv.config.summarizePrompt;
+    const summarizePrompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
 
     prompt.push({
         role: "system",
@@ -488,7 +503,7 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 
-export function createMemoryString(conv: Conversation): string{
+export function createMemoryString(conv: Conversation, prompts: any): string{
 
     let allMemories: Memory[] = [];
 
@@ -506,7 +521,7 @@ export function createMemoryString(conv: Conversation): string{
 
     let output ="";
     if(allMemories.length>0){
-        output = conv.config.memoriesPrompt;
+        output = prompts.memoriesPrompt;
     }
 
     let tokenCount = 0;
