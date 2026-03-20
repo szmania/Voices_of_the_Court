@@ -194,11 +194,36 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
     // Make content editable on double click, but not for historical messages
     if (!isHistorical) {
-        contentSpan.addEventListener('dblclick', () => {
-            contentSpan.contentEditable = 'true';
-            // To edit, we want the raw text, not the HTML
-            contentSpan.innerHTML = message.content;
-            contentSpan.focus();
+        contentSpan.addEventListener('dblclick', (e) => {
+            // This handler is for making the content editable and selecting a word.
+            if (contentSpan.contentEditable !== 'true') {
+                contentSpan.contentEditable = 'true';
+                contentSpan.innerHTML = message.content;
+                contentSpan.focus();
+
+                // Manually select the word since we're interrupting the default flow.
+                const selection = window.getSelection();
+                if (document.caretRangeFromPoint) {
+                    const range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                    if (range) {
+                        range.expand('word');
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                }
+            }
+            // If it's already editable, we do nothing and let the default dblclick behavior (select word) happen.
+        });
+
+        contentSpan.addEventListener('click', (e) => {
+            // This handler is specifically for the triple-click to select all.
+            if (e.detail === 3 && contentSpan.contentEditable === 'true') {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(contentSpan);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
         });
 
         const finishEditing = async () => {

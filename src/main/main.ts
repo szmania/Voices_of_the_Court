@@ -1262,13 +1262,6 @@ ipcMain.on('edit-message', (event, { messageId, newContent }) => {
     }
 });
 
-ipcMain.on('edit-message', (event, { messageId, newContent }) => {
-    console.log(`IPC: Received edit-message for ID ${messageId}.`);
-    if (conversation) {
-        conversation.editMessage(messageId, newContent);
-    }
-});
-
 ipcMain.on('execute-approved-action', (event, messageId: string, actionName: string) => {
     console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
     if (conversation) {
