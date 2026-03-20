@@ -406,7 +406,7 @@ async function populateModPresetSelector(activeModPreset?: string) {
             const option = document.createElement('option');
             option.value = modName;
             // @ts-ignore
-            option.textContent = window.LocalizationManager.getNestedTranslation(`prompts.mod_${modName.toLowerCase().replace(/ /g, '_')}`, null, modName);
+            option.textContent = window.LocalizationManager.getNestedTranslation(`prompts.mod_${modName.toLowerCase().replace(/: /g, '_').replace(/ /g, '_')}`, null, modName);
             modPresetSelect.appendChild(option);
         }
     }
