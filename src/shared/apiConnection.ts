@@ -147,7 +147,8 @@ export class ApiConnection{
         prompt: string | Message[],
         stream: boolean,
         otherArgs: object,
-        streamRelay?: (arg1: MessageChunk) => void
+        streamRelay?: (arg1: MessageChunk) => void,
+        signal?: AbortSignal
     ): Promise<string> {
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
@@ -215,7 +216,8 @@ export class ApiConnection{
                     const res = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify(requestBody),
+                        signal
                     });
 
                     if (!res.ok) {
@@ -314,7 +316,8 @@ export class ApiConnection{
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${this.client.apiKey}`
                         },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify(requestBody),
+                        signal
                     });
 
                     if (!res.ok) {
@@ -392,7 +395,7 @@ export class ApiConnection{
                         ...otherArgs
                     };
                     console.debug("Making chat completion request with body:", requestBody);
-                    let completion = await this.client.chat.completions.create(requestBody as any);
+                    let completion = await this.client.chat.completions.create(requestBody as any, { signal });
 
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
@@ -441,7 +444,7 @@ export class ApiConnection{
                         };
                         console.debug("Making OpenRouter legacy completion request with body:", requestBody);
                         //@ts-ignore
-                        completion = await this.client.chat.completions.create(requestBody as any);
+                        completion = await this.client.chat.completions.create(requestBody as any, { signal });
                     } else {
                         // Standard non-chat API
                         const requestBody = {
@@ -452,7 +455,7 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making standard completion request with body:", requestBody);
-                        completion = await this.client.completions.create(requestBody as any);
+                        completion = await this.client.completions.create(requestBody as any, { signal });
                     }
 
                     console.debug("Received API response (completion object):", completion);
@@ -494,6 +497,10 @@ export class ApiConnection{
                     return response;
                 }
             } catch (error) {
+                if (error instanceof OpenAI.APIError && error.name === 'AbortError') {
+                    console.log('API request was aborted.');
+                    throw error; // Re-throw to be handled by the caller
+                }
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);
                 // Narrow down the error type
@@ -677,6 +684,7 @@ export class ApiConnection{
         }
         console.debug("Test prompt:", prompt);
 
+        // Test connection should not be cancellable from the UI, so no signal is passed.
         return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
             // A non-empty response is a clear success

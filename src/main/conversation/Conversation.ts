@@ -76,6 +76,7 @@ export class Conversation{
     aiToAiTurnLimit: number = 0;
     persistCustomQueue: boolean;
     isGenerating: boolean;
+    abortController: AbortController | null;
 
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
         console.log('Conversation initialized.');
@@ -135,6 +136,7 @@ export class Conversation{
         this.persistCustomQueue = false;
         this.actionInvolvedCharacterIds = new Set();
         this.isGenerating = false;
+        this.abortController = null;
         this.pendingActions = new Map();
         this.executedActions = new Map();
 
@@ -576,6 +578,7 @@ export class Conversation{
             return;
         }
         this.isGenerating = true;
+        this.abortController = new AbortController();
         try {
             this.aiToAiTurnLimit = 0;
             console.log('Starting generation of AI messages for all characters.');
@@ -714,8 +717,18 @@ export class Conversation{
             if (this.config.autoGenerateSuggestions) {
                 await this.generateInitialSuggestions();
             }
-        } finally {
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.log('generateAIsMessages was cancelled.');
+                // The UI notification is handled in cancelGeneration()
+            } else {
+                console.error('An error occurred during AI message generation:', error);
+                this.chatWindow.window.webContents.send('error-message', 'An unexpected error occurred during generation.');
+            }
+        }
+        finally {
             this.isGenerating = false;
+            this.abortController = null;
         }
     }
 
@@ -939,7 +952,7 @@ export class Conversation{
 
         const content = await this.textGenApiConnection.complete(prompt, false, {
             max_tokens: this.config.maxTokens,
-        });
+        }, undefined, this.abortController?.signal);
 
         if (content) {
             const message: Message = {
@@ -1004,7 +1017,7 @@ export class Conversation{
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
                 },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined),
+                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
                 characterId: character.id
             };  
             
@@ -1019,7 +1032,7 @@ export class Conversation{
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
                 },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined),
+                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
                 characterId: character.id
             };
     
@@ -1211,7 +1224,7 @@ ${validationTranslations.instruction}`
             const response = await this.textGenApiConnection.complete(prompt, false, {
                 max_tokens: 10,
                 temperature: 0.1 // 使用较低的温度以确保一致性
-            });
+            }, undefined, this.abortController?.signal);
             
             const responseText = response.trim();
             console.log(`[DEBUG] Parsed response: ${responseText}`);
@@ -1344,7 +1357,7 @@ ${character.fullName}的发言：`
             const response = await this.textGenApiConnection.complete(prompt, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
-            });
+            }, undefined, this.abortController?.signal);
             
             if (!response || response.trim() === '') {
                 console.warn(`Empty response from LLM for character ${character.fullName}`);
@@ -1466,11 +1479,11 @@ ${character.fullName}的发言：`
                 console.log("Current summary before resummarization: "+this.currentSummary);
                 if(this.summarizationApiConnection.isChat()){
                     console.log('Using chat API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {});
+                    this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
                 }
                 else{
                     console.log('Using completion API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {});
+                    this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
                 }
                
                 console.log("New current summary after resummarization: "+this.currentSummary);
@@ -1632,7 +1645,7 @@ ${character.fullName}的发言：`
             const prompt = buildSummarizeChatPrompt(this, character);
 
             // Generate summary from this character's perspective
-            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
+            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {}, undefined, this.abortController?.signal);
 
             const newSummary: Summary = {
                 date: this.gameData.date,
@@ -1880,6 +1893,16 @@ ${character.fullName}的发言：`
         this.currentSummary = "";
         this.consecutiveActionsCount = 0;
         this.lastActionMessageIndex = -1;
+    }
+
+    public cancelGeneration(): void {
+        if (this.abortController && !this.abortController.signal.aborted) {
+            this.abortController.abort();
+            console.log('Cancellation signal sent to API request.');
+            this.isGenerating = false;
+            this.abortController = null;
+            this.chatWindow.window.webContents.send('generation-cancelled');
+        }
     }
 
     public undo(): void {

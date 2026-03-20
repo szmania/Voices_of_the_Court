@@ -88,6 +88,8 @@ let regenerateButton: HTMLButtonElement = document.querySelector('.regenerate-bu
 let regenerateButtonWrapper: HTMLDivElement = document.querySelector('#regenerate-button-wrapper')!;
 let undoButton: HTMLButtonElement = document.querySelector('.undo-button')!;
 let undoButtonWrapper: HTMLDivElement = document.querySelector('#undo-button-wrapper')!;
+let cancelButton: HTMLButtonElement = document.querySelector('.cancel-button')!;
+let cancelButtonWrapper: HTMLDivElement = document.querySelector('#cancel-button-wrapper')!;
 
 let suggestionsButton: HTMLButtonElement = document.querySelector('.suggestions-button')!;
 let suggestionsContainer: HTMLDivElement = document.querySelector('.suggestions-container')!;
@@ -459,6 +461,9 @@ async function replaceLastMessage(message: Message){
 }
 
 function showLoadingDots(disableInput: boolean = true){  //and disable chat
+    if (cancelButtonWrapper) {
+        cancelButtonWrapper.classList.remove('hidden');
+    }
     if (loadingDots) {
         return;
     }
@@ -476,6 +481,9 @@ function showLoadingDots(disableInput: boolean = true){  //and disable chat
 }
 
 function removeLoadingDots(enableInput: boolean = true){
+    if (cancelButtonWrapper) {
+        cancelButtonWrapper.classList.add('hidden');
+    }
     if (!loadingDots) {
         return;
     }
@@ -754,6 +762,10 @@ function updateStatusText(textKey: string, vars?: any) {
         queueStatusDiv.innerHTML = '';
     }
 }
+
+cancelButton.addEventListener('click', () => {
+    ipcRenderer.send('cancel-generation');
+});
 
 leaveButton.addEventListener("click", ()=>{
     hideChat();
@@ -1729,6 +1741,17 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrative: string) =
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     displayErrorMessage(errorMessage);
 })
+
+ipcRenderer.on('generation-cancelled', () => {
+    removeLoadingDots();
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message');
+    messageDiv.classList.add('error-message');
+    messageDiv.innerText = "Generation cancelled by user.";
+    chatMessages.append(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    updateRegenerateButtonState();
+});
 
 // 监听场景描述事件
 ipcRenderer.on('scene-description', (e, sceneDescription: string) =>{

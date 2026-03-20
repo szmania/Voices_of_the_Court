@@ -28,7 +28,8 @@ body.theme-chinese .chat-box {
 /* East UI主题 - Button Styles */
 .theme-chinese .undo-button,
 .theme-chinese .regenerate-button,
-.theme-chinese .leave-button {
+.theme-chinese .leave-button,
+.theme-chinese .cancel-button {
     background: transparent;
     color: #ffffff;
     border: none;
@@ -61,13 +62,18 @@ body.theme-chinese .chat-box {
     left: 50%;
 }
 
+.theme-chinese .cancel-button {
+    left: 40%;
+}
+
 .theme-chinese .leave-button {
     left: 30%;
 }
 
 .theme-chinese .undo-button:hover,
 .theme-chinese .regenerate-button:hover,
-.theme-chinese .leave-button:hover {
+.theme-chinese .leave-button:hover,
+.theme-chinese .cancel-button:hover {
     background-image: url(../assets/button3.png);
     color: #ffffff;
     box-shadow: none;
@@ -384,7 +390,8 @@ body.theme-west .chat-box {
 /* WestUI主题 - Button Styles */
 .theme-west .undo-button,
 .theme-west .regenerate-button,
-.theme-west .leave-button {
+.theme-west .leave-button,
+.theme-west .cancel-button {
     background: transparent;
     color: #a18c61;
     border: none;
@@ -417,13 +424,18 @@ body.theme-west .chat-box {
     left: 50%;
 }
 
+.theme-west .cancel-button {
+    left: 45%;
+}
+
 .theme-west .leave-button {
     left: 40%;
 }
 
 .theme-west .undo-button:hover,
 .theme-west .regenerate-button:hover,
-.theme-west .leave-button:hover {
+.theme-west .leave-button:hover,
+.theme-west .cancel-button:hover {
     background-image: url(../assets/leave_button_west1.png);
     color: #ffffff;
     box-shadow: none;

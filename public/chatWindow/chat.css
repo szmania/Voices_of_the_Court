@@ -564,7 +564,8 @@ html{
 .leave-button,
 .regenerate-button,
 .undo-button,
-.clear-history-button {
+.clear-history-button,
+.cancel-button {
     background: gray;
     color: white;
     border: solid 2px rgb(39, 33, 0);
@@ -587,10 +588,15 @@ html{
     flex: 1;
 }
 
+.button-wrapper.hidden {
+    visibility: hidden;
+}
+
 .leave-button:hover,
 .regenerate-button:hover,
 .undo-button:hover,
-.clear-history-button:hover {
+.clear-history-button:hover,
+.cancel-button:hover {
     background-color: rgb(84, 84, 84);
     color: white;
     border-color: #ffd700;
@@ -606,6 +612,14 @@ html{
     background-color: #7a2e2e;
 }
 
+.cancel-button {
+    background: #8B4513; /* SaddleBrown */
+}
+
+.cancel-button:hover {
+    background-color: #A0522D; /* Sienna */
+}
+
 .regenerate-button:disabled,
 .undo-button:disabled {
     opacity: 0.6;
@@ -619,7 +633,8 @@ html{
 .button-wrapper .regenerate-button,
 .button-wrapper .undo-button,
 .button-wrapper .clear-history-button,
-.button-wrapper .leave-button {
+.button-wrapper .leave-button,
+.button-wrapper .cancel-button {
     width: 100%;
     height: 100%;
 }
