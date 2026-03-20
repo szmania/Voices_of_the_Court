@@ -961,6 +961,18 @@ export class Conversation{
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
+        // Check if we should question player actions
+        if (this.config.questionPlayerActionsChance > 0 && Math.random() < (this.config.questionPlayerActionsChance / 100)) {
+            const questionMessage = await this.generateActionQuestioningMessage(character);
+            if (questionMessage) {
+                if (sendMessageToChat) {
+                    this.pushMessage(questionMessage);
+                    this.chatWindow.window.webContents.send('message-receive', questionMessage, this.config.actionsEnableAll);
+                }
+                return questionMessage;
+            }
+        }
+
         let responseMessage: Message;
 
         if(this.config.stream && sendMessageToChat){
@@ -2073,5 +2085,105 @@ ${character.fullName}的发言：`
             this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
             await this.generateAIsMessages();
         }
+    }
+
+    /**
+     * Generate a message where the AI character questions the player's actions
+     * based on their personality and history
+     */
+    private async generateActionQuestioningMessage(character: Character): Promise<Message | null> {
+        console.log(`Generating action questioning message for character: ${character.fullName}`);
+        
+        // Get recent player actions that might be questionable
+        const recentPlayerActions = this.getRecentPlayerActions();
+        if (recentPlayerActions.length === 0) {
+            return null;
+        }
+
+        // Build a prompt that encourages the character to question player actions
+        // based on their personality traits and relationship with the player
+        const prompt = await this.buildQuestioningPrompt(character, recentPlayerActions);
+        
+        try {
+            const response = await this.textGenApiConnection.complete(prompt, false, {
+                max_tokens: this.config.maxTokens,
+                temperature: 0.7 // Slightly higher temperature for more creative questioning
+            });
+
+            if (!response || response.trim() === '') {
+                return null;
+            }
+
+            const message: Message = {
+                role: "assistant",
+                name: character.fullName,
+                content: response.trim(),
+                characterId: character.id
+            };
+
+            return message;
+        } catch (error) {
+            console.error(`Error generating action questioning message: ${error}`);
+            return null;
+        }
+    }
+
+    /**
+     * Build a prompt for questioning player actions based on character personality
+     */
+    private async buildQuestioningPrompt(character: Character, recentActions: any[]): Promise<any[]> {
+        const prompt: any[] = [];
+        
+        // Get character description to understand their personality
+        const descriptionScriptFileName = this.config.selectedDescScript;
+        const descriptionPath = path.join(this.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+        let description = "";
+        try {
+            delete require.cache[require.resolve(descriptionPath)];
+            description = require(descriptionPath)(this.gameData, character);
+        } catch (err) {
+            console.error(`Error loading description script for questioning: ${err}`);
+        }
+
+        // Build the questioning prompt
+        prompt.push({
+            role: "system",
+            content: `You are ${character.fullName}. Based on your personality and relationship with ${this.gameData.getPlayer()?.fullName}, you have concerns about their recent actions. Express your questioning or concerns in character.`
+        });
+
+        prompt.push({
+            role: "user",
+            content: `Character: ${character.fullName}
+Personality: ${description}
+
+Recent player actions that concern you:
+${recentActions.map(action => `- ${action}`).join('\n')}
+
+Express your questioning or concerns about these actions while staying in character. Be authentic to your personality traits.`
+        });
+
+        return prompt;
+    }
+
+    /**
+     * Get recent player actions that might be questionable
+     */
+    private getRecentPlayerActions(): string[] {
+        const actions: string[] = [];
+        
+        // Look at recent messages for player actions
+        const recentMessages = this.messages.slice(-10); // Last 10 messages
+        
+        for (const message of recentMessages) {
+            if (message.role === 'user') {
+                // Extract actions from user messages
+                const actionMatch = message.content.match(/\[Action: (.*?)\]/);
+                if (actionMatch) {
+                    actions.push(actionMatch[1]);
+                }
+            }
+        }
+        
+        return actions;
     }
 }

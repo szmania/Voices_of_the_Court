@@ -68,6 +68,7 @@ export class Config{
     dynamicCharacterSelection!: boolean;
     aiToAiChatChance!: number;
     nonTargetedCharacterResponseChance!: number;
+    questionPlayerActionsChance!: number;
     validateCharacterIdentity!: boolean;
     showSuggestionsButton!: boolean;
     generateSceneDescription!: boolean;
