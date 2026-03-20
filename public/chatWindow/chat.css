@@ -1307,9 +1307,9 @@ html{
     background-color: #808080;
     color: #000;
     font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: help;
     z-index: 10;
     opacity: 0.7;
@@ -1336,8 +1336,7 @@ html{
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
-    width: max-content;
-    max-width: 300px;
+    max-width: 250px;
     white-space: normal;
     overflow-wrap: break-word;
     opacity: 0;
