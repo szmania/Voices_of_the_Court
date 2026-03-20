@@ -280,7 +280,7 @@
     "save_btn": "保存",
     "save_all": "保存所有总结",
     "tooltip_refresh": "从磁盘重新加载玩家ID和总结。",
-    "tooltip_save_all": "将所有角色的所有更改保存到各自的文件中。",
+    "tooltip_save_all": "将所有角色的所有更改保存到各自的文件中。这还将为任何已编辑的条目重新生成摘要。",
     "tooltip_player_id": "选择要管理的玩家个人资料。",
     "tooltip_character": "按特定角色筛选总结或查看全部。",
     "tooltip_summary_path": "所选角色总结的存储文件路径。",
@@ -594,7 +594,12 @@
     "join_discord": "加入 Discord",
     "view_steam": "查看 Steam 模组",
     "view_website": "访问网站",
-    "init_error": "初始化配置页面时发生错误，请查看控制台日志。"
+    "init_error": "初始化配置页面时发生错误，请查看控制台日志。",
+    "incompatible_mod_title": "检测到不兼容的模组",
+    "incompatible_mod_message": "模组 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) 与 'Voices of the Court 2.0 - 社区版' 不兼容。\n\n请订阅并启用社区版，禁用不兼容的模组，然后重新启动应用程序。",
+    "close_app": "关闭",
+    "open_steam_and_quit": "打开Steam并退出",
+    "open_discord_and_quit": "打开Discord并退出"
   },
   "diary_manager": {
     "header": "日记管理器",

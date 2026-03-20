@@ -278,7 +278,7 @@
     "save_btn": "Speichern",
     "save_all": "Alle Zusammenfassungen speichern",
     "tooltip_refresh": "Spieler-IDs und Zusammenfassungen von der Festplatte neu laden.",
-    "tooltip_save_all": "Alle Änderungen für alle Charaktere in ihren jeweiligen Dateien speichern.",
+    "tooltip_save_all": "Alle Änderungen für alle Charaktere in ihren jeweiligen Dateien speichern. Dies generiert auch Zusammenfassungen für alle bearbeiteten Einträge neu.",
     "tooltip_player_id": "Wählen Sie das zu verwaltende Spielerprofil aus.",
     "tooltip_character": "Zusammenfassungen nach einem bestimmten Charakter filtern oder alle anzeigen.",
     "tooltip_summary_path": "Der Dateipfad, in dem die Zusammenfassung des ausgewählten Charakters gespeichert ist.",
@@ -592,7 +592,12 @@
     "join_discord": "Discord beitreten",
     "view_steam": "Steam-Mod ansehen",
     "view_website": "Webseite besuchen",
-    "init_error": "Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole."
+    "init_error": "Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole.",
+    "incompatible_mod_title": "Inkompatibler Mod erkannt",
+    "incompatible_mod_message": "Der Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) ist nicht mit 'Voices of the Court 2.0 - Community Edition' kompatibel.\n\nBitte abonnieren und aktivieren Sie die Community Edition, deaktivieren Sie den inkompatiblen Mod und starten Sie die Anwendung neu.",
+    "close_app": "Schließen",
+    "open_steam_and_quit": "Steam öffnen und beenden",
+    "open_discord_and_quit": "Discord öffnen und beenden"
   },
   "diary_manager": {
     "header": "Tagebuch-Manager",
@@ -633,7 +638,8 @@
     "delete_success": "Tagebucheintrag gelöscht",
     "update_success": "Tagebucheintrag aktualisiert",
     "select_first": "Bitte wählen Sie zuerst einen Tagebucheintrag zum Aktualisieren aus",
-    "added_new": "Neuer Tagebucheintrag hinzugefügt"
+    "added_new": "Neuer Tagebucheintrag hinzugefügt",
+    "regenerating_summaries": "Zusammenfassungen für bearbeitete Einträge werden neu generiert..."
   },
   "tray": {
     "open_config": "Konfigurationsfenster öffnen",
