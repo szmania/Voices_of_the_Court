@@ -570,7 +570,7 @@
   "dialog": {
     "update_title": "Update Available",
     "update_message": "A new version ({version}) is available!",
-    "update_now": "Update Now",
+    "update_now": "Update and Restart",
     "later": "Later",
     "no_updates_title": "No Updates",
     "no_updates_message": "You are running the latest version.",
@@ -592,7 +592,10 @@
     "join_discord": "Join Discord",
     "view_steam": "View Steam Mod",
     "view_website": "Visit Website",
-    "init_error": "An error occurred while initializing the configuration page, please check the console log."
+    "init_error": "An error occurred while initializing the configuration page, please check the console log.",
+    "restart_now": "Restart",
+    "update_ready_title": "Update Downloaded",
+    "update_ready_message": "A new version has been downloaded. Please restart to apply the updates."
   },
   "diary_manager": {
     "header": "Diary Manager",
