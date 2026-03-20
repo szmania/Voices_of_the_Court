@@ -58,6 +58,7 @@
     "use_same_api": "Usar la misma API que en la pestaña de conexión",
     "parameters": "Parámetros",
     "select_actions": "Selecciona qué acciones quieres que detecte el mod:",
+    "changeLocation.title": "Cambiar ubicación de la escena",
     "reload_files": "Recargar archivos",
     "open_folder": "abrir carpeta",
     "description": "Descripción:",
@@ -195,8 +196,8 @@
     "roaming_data": "Carpeta de datos móviles",
     "roaming_data_desc": "Esta carpeta contiene tu configuración personal, scripts y resúmenes.",
     "open_roaming_data": "Abrir carpeta de datos móviles",
-    "roleplay_instruction": "Eres {characterName}. Escribe una respuesta a {playerName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.",
-    "roleplay_instruction_ai_to_ai": "Eres {sourceCharacterName}. Escribe una respuesta a {targetCharacterName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.",
+    "roleplay_instruction": "[System instruction: Eres {characterName}. Escribe una respuesta a {playerName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Eres {sourceCharacterName}. Escribe una respuesta a {targetCharacterName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -572,7 +573,7 @@
   "dialog": {
     "update_title": "Actualización disponible",
     "update_message": "¡Hay una nueva versión ({version}) disponible!",
-    "update_now": "Actualizar ahora",
+    "update_now": "Actualizar y reiniciar",
     "later": "Más tarde",
     "no_updates_title": "Sin actualizaciones",
     "no_updates_message": "Estás ejecutando la última versión.",
@@ -595,6 +596,9 @@
     "view_steam": "Ver mod de Steam",
     "view_website": "Visitar página web",
     "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola.",
+    "restart_now": "Reiniciar",
+    "update_ready_title": "Actualización descargada",
+    "update_ready_message": "Se ha descargado una nueva versión. Por favor, reinicie para aplicar las actualizaciones.",
     "incompatible_mod_title": "Mod incompatible detectado",
     "incompatible_mod_message": "El mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) no es compatible con 'Voices of the Court 2.0 - Community Edition'.\n\nPor favor, suscríbase y active la Community Edition, desactive el mod incompatible y reinicie la aplicación.",
     "close_app": "Cerrar",
@@ -845,5 +849,12 @@
     "examination_room": "Sala de examen",
     "chinese_city": "Ciudad china",
     "japanese_city": "Ciudad japonesa"
+  },
+  "scene_description": {
+    "default_prompt": "Por favor, genera una descripción de escena atractiva para proporcionar fondo y atmósfera para el diálogo de los personajes.",
+    "instruction": "Basado en la siguiente información, genera una breve descripción de escena atmosférica en tercera persona (50-100 palabras). No incluyas pensamientos ni diálogos de los personajes. Solo describe el escenario y el ambiente:",
+    "description_label": "Información de la conversación actual:",
+    "system_prompt": "Eres un asistente de generación de descripciones de escena responsable de crear descripciones vívidas de la atmósfera de la escena para juegos de rol.",
+    "fallback_description": "El {{date}}, {{playerName}} y {{aiName}} iniciaron una conversación en {{location}}."
   }
 }

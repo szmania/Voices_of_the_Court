@@ -58,6 +58,7 @@
     "use_same_api": "接続タブと同じ API を使用する",
     "parameters": "パラメーター",
     "select_actions": "モッドに検出させたいアクションを選択してください：",
+    "changeLocation.title": "シーンの場所を変更",
     "reload_files": "ファイルを再読み込み",
     "open_folder": "フォルダを開く",
     "description": "説明：",
@@ -195,8 +196,8 @@
     "roaming_data": "ローミングデータフォルダ",
     "roaming_data_desc": "このフォルダには、個人設定、スクリプト、要約が含まれています。",
     "open_roaming_data": "ローミングデータフォルダを開く",
-    "roleplay_instruction": "あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
-    "roleplay_instruction_ai_to_ai": "あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
+    "roleplay_instruction": "[System instruction: あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -572,7 +573,7 @@
   "dialog": {
     "update_title": "アップデートが利用可能",
     "update_message": "新しいバージョン（{version}）が利用可能です！",
-    "update_now": "今すぐアップデート",
+    "update_now": "アップデートして再起動",
     "later": "後で",
     "no_updates_title": "アップデートなし",
     "no_updates_message": "最新バージョンを実行しています。",
@@ -595,6 +596,9 @@
     "view_steam": "Steam モッドを表示",
     "view_website": "ウェブサイトを訪問",
     "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。",
+    "restart_now": "再起動",
+    "update_ready_title": "アップデートがダウンロードされました",
+    "update_ready_message": "新しいバージョンがダウンロードされました。アップデートを適用するには再起動してください。",
     "incompatible_mod_title": "互換性のないMODが検出されました",
     "incompatible_mod_message": "MOD「Voices of the Court 2.0」（mod/ugc_3346777360.mod）は「Voices of the Court 2.0 - Community Edition」と互換性がありません。\n\nCommunity Editionを購読して有効にし、互換性のないMODを無効にして、アプリケーションを再起動してください。",
     "close_app": "閉じる",
@@ -845,5 +849,12 @@
     "examination_room": "診察室",
     "chinese_city": "中国の都市",
     "japanese_city": "日本の都市"
+  },
+  "scene_description": {
+    "default_prompt": "キャラクターの対話の背景と雰囲気を提供するために、魅力的なシーンの説明を生成してください。",
+    "instruction": "以下の情報に基づいて、簡潔で雰囲気のある第三者のシーン説明（50〜100語）を生成してください。キャラクターの考えや対話は含めないでください。設定と雰囲気のみを説明してください：",
+    "description_label": "現在の会話情報：",
+    "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
+    "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
   }
 }

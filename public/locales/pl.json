@@ -58,6 +58,7 @@
     "use_same_api": "Użyj tego samego API co w zakładce połączenia",
     "parameters": "Parametry",
     "select_actions": "Wybierz akcje, które mod ma wykrywać:",
+    "changeLocation.title": "Zmień lokalizację sceny",
     "reload_files": "Przeładuj pliki",
     "open_folder": "otwórz folder",
     "description": "Opis:",
@@ -195,8 +196,8 @@
     "roaming_data": "Folder danych mobilnych",
     "roaming_data_desc": "Ten folder zawiera Twoją osobistą konfigurację, skrypty i podsumowania.",
     "open_roaming_data": "Otwórz folder danych mobilnych",
-    "roleplay_instruction": "Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
-    "roleplay_instruction_ai_to_ai": "Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
+    "roleplay_instruction": "[System instruction: Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -572,7 +573,7 @@
   "dialog": {
     "update_title": "Dostępna aktualizacja",
     "update_message": "Nowa wersja ({version}) jest dostępna!",
-    "update_now": "Aktualizuj teraz",
+    "update_now": "Aktualizuj i uruchom ponownie",
     "later": "Później",
     "no_updates_title": "Brak aktualizacji",
     "no_updates_message": "Używasz najnowszej wersji.",
@@ -595,6 +596,9 @@
     "view_steam": "Zobacz mod na Steam",
     "view_website": "Odwiedź stronę internetową",
     "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę.",
+    "restart_now": "Uruchom ponownie",
+    "update_ready_title": "Aktualizacja pobrana",
+    "update_ready_message": "Nowa wersja została pobrana. Uruchom ponownie, aby zastosować aktualizacje.",
     "incompatible_mod_title": "Wykryto niekompatybilny mod",
     "incompatible_mod_message": "Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) nie jest kompatybilny z 'Voices of the Court 2.0 - Community Edition'.\n\nProszę zasubskrybować i włączyć Edycję Społecznościową, wyłączyć niekompatybilny mod i ponownie uruchomić aplikację.",
     "close_app": "Zamknij",
@@ -845,5 +849,12 @@
     "examination_room": "Gabinet badań",
     "chinese_city": "Chińskie miasto",
     "japanese_city": "Japońskie miasto"
+  },
+  "scene_description": {
+    "default_prompt": "Proszę wygenerować wciągający opis sceny, aby zapewnić tło i atmosferę dla dialogu postaci.",
+    "instruction": "Na podstawie poniższych informacji wygeneruj krótki, klimatyczny opis sceny w trzeciej osobie (50-100 słów). Nie uwzględniaj myśli ani dialogów postaci. Opisz tylko otoczenie i nastrój:",
+    "description_label": "Aktualne informacje o rozmowie:",
+    "system_prompt": "Jesteś asystentem generowania opisów scen, odpowiedzialnym za tworzenie żywych opisów atmosfery scen do gier fabularnych.",
+    "fallback_description": "Dnia {{date}}, {{playerName}} i {{aiName}} rozpoczęli rozmowę w {{location}}."
   }
 }
