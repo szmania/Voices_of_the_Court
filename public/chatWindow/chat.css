@@ -1294,6 +1294,7 @@ html{
     outline: 1px solid #cca43b;
     padding: 2px 4px;
     border-radius: 2px;
+    overflow-wrap: break-word;
 }
 
 .edit-help-icon {
