@@ -452,7 +452,7 @@ html{
 
 .suggestions-button-wrapper {
     position: absolute;
-    left: 15%;
+    left: 12%;
     transform: translateX(-50%);
     bottom: -20px;
 }
