@@ -289,6 +289,7 @@ html{
 }
 
 .message{
+    position: relative;
     padding-top: 3%;
     padding-left: 1%;
     padding-right: 1%;
@@ -1231,4 +1232,28 @@ html{
 
 .queue-status .next-up {
     color: #a18c61;
+}
+
+.message .edit-help-icon {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(40,40,40,0.8);
+    color: #ccc;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    line-height: 16px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: help;
+    z-index: 10;
+    border: 1px solid #555;
+}
+
+.message.is-editing .edit-help-icon {
+    display: block;
 }
