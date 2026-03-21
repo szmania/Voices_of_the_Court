@@ -2101,20 +2101,13 @@ ${character.fullName}的发言：`
 
     /**
      * Generate a message where the AI character questions the player's actions
-     * based on their personality and history
+     * based on their personality and history.
      */
     private async generateActionQuestioningMessage(character: Character): Promise<Message | null> {
         console.log(`Generating action questioning message for character: ${character.fullName}`);
-        
-        // Get recent player actions that might be questionable
-        const recentPlayerActions = this.getRecentPlayerActions();
-        if (recentPlayerActions.length === 0) {
-            return null;
-        }
 
-        // Build a prompt that encourages the character to question player actions
-        // based on their personality traits and relationship with the player
-        const prompt = await this.buildQuestioningPrompt(character, recentPlayerActions);
+        // Build a prompt that uses the full conversation context and adds a questioning instruction.
+        const prompt = await this.buildQuestioningPrompt(character);
         
         try {
             const response = await this.textGenApiConnection.complete(prompt, false, {
@@ -2141,62 +2134,22 @@ ${character.fullName}的发言：`
     }
 
     /**
-     * Build a prompt for questioning player actions based on character personality
+     * Build a prompt for questioning player actions by appending an instruction to the main chat prompt.
      */
-    private async buildQuestioningPrompt(character: Character, recentActions: any[]): Promise<any[]> {
-        const prompt: any[] = [];
-        
-        // Get character description to understand their personality
-        const descriptionScriptFileName = this.config.selectedDescScript;
-        const descriptionPath = path.join(this.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
-        let description = "";
-        try {
-            delete require.cache[require.resolve(descriptionPath)];
-            description = require(descriptionPath)(this.gameData, character);
-        } catch (err) {
-            console.error(`Error loading description script for questioning: ${err}`);
-        }
+    private async buildQuestioningPrompt(character: Character): Promise<any[]> {
+        // Get the standard, rich prompt with full conversation context.
+        const standardPrompt = await buildChatPrompt(this, character);
 
-        // Build the questioning prompt
-        prompt.push({
+        // Add a new system instruction at the end to guide the AI's response.
+        const questioningInstruction = {
             role: "system",
-            content: `You are ${character.fullName}. Based on your personality and relationship with ${this.gameData.getPlayer()?.fullName}, you have concerns about their recent actions. Express your questioning or concerns in character.`
-        });
+            content: `Instead of directly complying, your character has reservations about the player's last statement. Based on your personality and the situation, express your hesitation, question their motives, or suggest an alternative. Your response should be in character and move the conversation forward by exploring this conflict or concern.`
+        };
 
-        prompt.push({
-            role: "user",
-            content: `Character: ${character.fullName}
-Personality: ${description}
+        standardPrompt.push(questioningInstruction);
+        console.log("Appended questioning instruction to the standard prompt.");
 
-Recent player actions that concern you:
-${recentActions.map(action => `- ${action}`).join('\n')}
-
-Express your questioning or concerns about these actions while staying in character. Be authentic to your personality traits.`
-        });
-
-        return prompt;
-    }
-
-    /**
-     * Get recent player actions that might be questionable
-     */
-    private getRecentPlayerActions(): string[] {
-        const actions: string[] = [];
-        
-        // Look at recent messages for player actions
-        const recentMessages = this.messages.slice(-10); // Last 10 messages
-        
-        for (const message of recentMessages) {
-            if (message.role === 'user') {
-                // Extract actions from user messages
-                const actionMatch = message.content.match(/\[Action: (.*?)\]/);
-                if (actionMatch) {
-                    actions.push(actionMatch[1]);
-                }
-            }
-        }
-        
-        return actions;
+        return standardPrompt;
     }
 
     private calculateQuestioningChance(character: Character): number {
