@@ -1306,7 +1306,9 @@ html{
     border-radius: 50%;
     background-color: #808080;
     color: #000;
+    font-family: sans-serif;
     font-size: 12px;
+    line-height: 1;
     align-items: center;
     justify-content: center;
     cursor: help;
