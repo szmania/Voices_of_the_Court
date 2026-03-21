@@ -53,7 +53,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     const userDataPath = path.join(app.getPath('userData'), 'votc_data');
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
-    letexampleMessagesScriptFileName: string;
+    let exampleMessagesScriptFileName: string;
     let exampleMessagesPath: string | null;
 
     const lang = conv.config.language || 'en';
