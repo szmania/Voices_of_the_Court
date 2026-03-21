@@ -595,7 +595,7 @@
     "init_error": "An error occurred while initializing the configuration page, please check the console log.",
     "restart_now": "Restart",
     "update_ready_title": "Update Downloaded",
-    "update_ready_message": "A new version has been downloaded. Please restart to apply the updates."
+    "update_ready_message": "A new version has been downloaded. Please restart to apply the updates.",
     "incompatible_mod_title": "Incompatible Mod Detected",
     "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.",
     "close_app": "Close",
