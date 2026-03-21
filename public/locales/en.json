@@ -133,6 +133,8 @@
     "dynamic_tooltip": "Use LLM to analyze conversation and select the next character to speak. The LLM will choose from a pool of characters who haven't spoken yet in the current round.",
     "nonTargetedCharacterResponseChance": "Non-targeted response chance (%)",
     "nonTargetedCharacterResponseChance_tooltip": "The chance (0-100%) that a non-targeted character will respond in a multi-character conversation after the targeted character has spoken.",
+    "questionPlayerActionsChance": "Question Player Actions Chance (%)",
+    "questionPlayerActionsChance_tooltip": "The chance (0-100%) that an AI character will question the player's actions based on their personality and the situation.",
     "validate_identity": "validate character identity",
     "validate_tooltip": "When streaming is disabled and there are more than 2 characters, validate that the generated message matches the character's identity. If validation fails, regenerate up to 3 times.",
     "show_suggestions": "show suggestions button",
