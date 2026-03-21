@@ -243,7 +243,8 @@
     "source_character": "ソースキャラクター",
     "target_character": "ターゲットキャラクター",
     "action_cancel": "キャンセル",
-    "action_execute": "実行"
+    "action_execute": "実行",
+    "edit_tooltip": "エンターキーを押すか、編集ボックスの外側をクリックして保存し、エスケープキーでキャンセルします。標準のCtrl+Z/Cmd+Zでの元に戻す操作がサポートされています。"
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",

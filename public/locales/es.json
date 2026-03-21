@@ -243,7 +243,8 @@
     "source_character": "Personaje de Origen",
     "target_character": "Personaje Objetivo",
     "action_cancel": "Cancelar",
-    "action_execute": "Ejecutar"
+    "action_execute": "Ejecutar",
+    "edit_tooltip": "Presiona Enter o haz clic fuera del cuadro de edición para guardar, Escape para cancelar. Se admite Ctrl+Z/Cmd+Z estándar para deshacer."
   },
   "narrative": {
     "fallback_prompt": "Por favor, genera una breve narrativa basada en la siguiente conversación, describiendo la atmósfera de la escena o los sentimientos internos del personaje. La narrativa debe ser concisa y vívida, con una longitud de 50-100 palabras.",
