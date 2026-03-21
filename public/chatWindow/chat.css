@@ -1307,7 +1307,6 @@ html{
     background-color: #808080;
     color: #000;
     font-size: 12px;
-    display: flex;
     align-items: center;
     justify-content: center;
     cursor: help;
