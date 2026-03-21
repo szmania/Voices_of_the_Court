@@ -58,6 +58,7 @@
     "use_same_api": "Использовать тот же API, что и во вкладке подключения",
     "parameters": "Параметры",
     "select_actions": "Выберите, какие действия должен обнаруживать мод:",
+    "changeLocation.title": "Изменить место действия",
     "reload_files": "Перезагрузить файлы",
     "open_folder": "открыть папку",
     "description": "Описание:",
@@ -195,8 +196,8 @@
     "roaming_data": "Папка перемещаемых данных",
     "roaming_data_desc": "Эта папка содержит вашу личную конфигурацию, скрипты и сводки.",
     "open_roaming_data": "Открыть папку перемещаемых данных",
-    "roleplay_instruction": "Вы {characterName}. Напишите ответ {playerName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.",
-    "roleplay_instruction_ai_to_ai": "Вы {sourceCharacterName}. Напишите ответ {targetCharacterName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.",
+    "roleplay_instruction": "[System instruction: Вы {characterName}. Напишите ответ {playerName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Вы {sourceCharacterName}. Напишите ответ {targetCharacterName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -243,7 +244,8 @@
     "source_character": "Исходный персонаж",
     "target_character": "Целевой персонаж",
     "action_cancel": "Отмена",
-    "action_execute": "Выполнить"
+    "action_execute": "Выполнить",
+    "edit_tooltip": "Нажмите Enter или щелкните вне поля редактирования, чтобы сохранить, Escape, чтобы отменить. Поддерживается стандартное сочетание клавиш Ctrl+Z/Cmd+Z для отмены."
   },
   "narrative": {
     "fallback_prompt": "Пожалуйста, создайте короткое повествование на основе следующего разговора, описывающее атмосферу сцены или внутренние чувства персонажа. Повествование должно быть кратким и ярким, длиной 50-100 слов.",
@@ -280,7 +282,7 @@
     "save_btn": "Сохранить",
     "save_all": "Сохранить все сводки",
     "tooltip_refresh": "Перезагрузить идентификаторы игроков и сводки с диска.",
-    "tooltip_save_all": "Сохранить все изменения для всех персонажей в их соответствующие файлы.",
+    "tooltip_save_all": "Сохранить все изменения для всех персонажей в их соответствующие файлы. Это также перегенерирует сводки для всех отредактированных записей.",
     "tooltip_player_id": "Выберите профиль игрока для управления.",
     "tooltip_character": "Отфильтровать сводки по определенному персонажу или просмотреть все.",
     "tooltip_summary_path": "Путь к файлу, где хранится сводка выбранного персонажа.",
@@ -572,7 +574,7 @@
   "dialog": {
     "update_title": "Доступно обновление",
     "update_message": "Доступна новая версия ({version})!",
-    "update_now": "Обновить сейчас",
+    "update_now": "Обновить и перезапустить",
     "later": "Позже",
     "no_updates_title": "Нет обновлений",
     "no_updates_message": "Вы используете последнюю версию.",
@@ -594,7 +596,15 @@
     "join_discord": "Присоединиться к Discord",
     "view_steam": "Просмотреть мод в Steam",
     "view_website": "Посетить веб-сайт",
-    "init_error": "Произошла ошибка при инициализации страницы конфигурации, проверьте консоль."
+    "init_error": "Произошла ошибка при инициализации страницы конфигурации, проверьте консоль.",
+    "restart_now": "Перезапустить",
+    "update_ready_title": "Обновление загружено",
+    "update_ready_message": "Новая версия была загружена. Пожалуйста, перезапустите, чтобы применить обновления.",
+    "incompatible_mod_title": "Обнаружен несовместимый мод",
+    "incompatible_mod_message": "Мод 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) несовместим с 'Voices of the Court 2.0 - Community Edition'.\n\nПожалуйста, подпишитесь и включите Community Edition, отключите несовместимый мод и перезапустите приложение.",
+    "close_app": "Закрыть",
+    "open_steam_and_quit": "Открыть Steam и выйти",
+    "open_discord_and_quit": "Открыть Discord и выйти"
   },
   "diary_manager": {
     "header": "Менеджер дневников",
@@ -635,7 +645,8 @@
     "delete_success": "Запись в дневнике удалена",
     "update_success": "Запись в дневнике обновлена",
     "select_first": "Пожалуйста, сначала выберите запись в дневнике для обновления",
-    "added_new": "Добавлена новая запись в дневнике"
+    "added_new": "Добавлена новая запись в дневнике",
+    "regenerating_summaries": "Перегенерация сводок для отредактированных записей..."
   },
   "tray": {
     "open_config": "Открыть окно настроек",
@@ -839,5 +850,12 @@
     "examination_room": "Смотровой кабинет",
     "chinese_city": "Китайский город",
     "japanese_city": "Японский город"
+  },
+  "scene_description": {
+    "default_prompt": "Пожалуйста, создайте увлекательное описание сцены, чтобы обеспечить фон и атмосферу для диалога персонажей.",
+    "instruction": "На основе следующей информации создайте краткое, атмосферное описание сцены от третьего лица (50-100 слов). Не включайте мысли или диалоги персонажей. Описывайте только обстановку и настроение:",
+    "description_label": "Текущая информация о разговоре:",
+    "system_prompt": "Вы — помощник по генерации описаний сцен, отвечающий за создание ярких описаний атмосферы сцен для ролевых игр.",
+    "fallback_description": "{{date}} {{playerName}} и {{aiName}} начали разговор в {{location}}."
   }
 }

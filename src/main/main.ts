@@ -389,6 +389,63 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
+    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+        const dialogOpts = {
+            type: 'info' as const,
+            buttons: [t('dialog.restart_now'), t('dialog.later')],
+            title: t('dialog.update_ready_title'),
+            message: t('dialog.update_ready_message'),
+            detail: releaseName
+        };
+
+        dialog.showMessageBox(dialogOpts).then((returnValue) => {
+            if (returnValue.response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
+
+    autoUpdater.on('error', (error) => {
+        console.error('There was a problem updating the application', error);
+    });
+
+    // Check for incompatible mods
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    if (fs.existsSync(dlcLoadPath)) {
+        try {
+            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+            const dlcLoadJson = JSON.parse(dlcLoadContent);
+            const incompatibleMod = "mod/ugc_3346777360.mod";
+
+            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                console.error('Incompatible mod detected. Application will now close.');
+
+                const dialogOpts = {
+                    type: 'error' as const,
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                    title: t('dialog.incompatible_mod_title'),
+                    message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                    defaultId: 0,
+                    cancelId: 2
+                };
+
+                const { response } = await dialog.showMessageBox(dialogOpts);
+
+                if (response === 0) { // "Open Steam and Quit"
+                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                }
+                // Quit the app regardless of the choice.
+                app.quit();
+                return; // Stop further execution in the ready event.
+            }
+        } catch (err) {
+            console.error('Failed to read or parse dlc_load.json:', err);
+        }
+    }
+
     // Tokenizer IPC handlers
     ipcMain.handle('calculate-tokens', async (event, text: string) => {
         try {
@@ -659,6 +716,44 @@ let conversation: Conversation;
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+
+    // Check for incompatible mods
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    if (fs.existsSync(dlcLoadPath)) {
+        try {
+            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+            const dlcLoadJson = JSON.parse(dlcLoadContent);
+            const incompatibleMod = "mod/ugc_3346777360.mod";
+
+            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                console.error('Incompatible mod detected. Application will now close.');
+
+                const dialogOpts = {
+                    type: 'error' as const,
+                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                    title: t('dialog.incompatible_mod_title'),
+                    message: t('dialog.incompatible_mod_message'),
+                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                    defaultId: 0,
+                    cancelId: 2
+                };
+
+                const { response } = await dialog.showMessageBox(dialogOpts);
+
+                if (response === 0) { // "Open Steam and Quit"
+                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                } else if (response === 1) { // "Open Discord and Quit"
+                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                }
+                // Quit the app regardless of the choice.
+                app.quit();
+                return; // Stop further execution.
+            }
+        } catch (err) {
+            console.error('Failed to read or parse dlc_load.json:', err);
+        }
+    }
+
     chatWindow.show();
     chatWindow.window.webContents.send('chat-show');
     try{
@@ -699,7 +794,6 @@ clipboardListener.on('VOTC:IN', async () =>{
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
-            narratives: Array.from(conversation.narratives.entries()),
             historicalMetadata: historicalMetadata,
             actions: sanitizedActions // Pass sanitized actions
         };
@@ -1180,6 +1274,13 @@ ipcMain.on('resume-conversation', () => {
     }
 });
 
+ipcMain.on('edit-message', (event, { messageId, newContent }) => {
+    console.log(`IPC: Received edit-message for ID ${messageId}.`);
+    if (conversation) {
+        conversation.editMessage(messageId, newContent);
+    }
+});
+
 ipcMain.on('execute-approved-action', (event, messageId: string, actionName: string) => {
     console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
     if (conversation) {
@@ -1244,9 +1345,9 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 console.log('Appended trigger event for slash command.');
 
                 // Hardcoded effects for specific actions
-                if (signature === 'leaveConversation' && targetId !== null) {
+                if ((signature === 'leaveConversation' || signature === 'killCharacter') && targetId !== null) {
                     if (targetId === conversation.gameData.playerID) {
-                        console.log('Player is leaving conversation. Ending session.');
+                        console.log(`Player is leaving or was killed. Ending session. Action: ${signature}`);
                         chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {
@@ -1657,7 +1758,7 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
                     }
                 }
             }
-            
+
             summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             await saveDiarySummaries(playerId, charId, summaries);
         }

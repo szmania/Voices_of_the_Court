@@ -245,7 +245,8 @@
     "source_character": "Source Character",
     "target_character": "Target Character",
     "action_cancel": "Cancel",
-    "action_execute": "Execute"
+    "action_execute": "Execute",
+    "edit_tooltip": "Press Enter or click outside of the edit box to save, Escape to cancel. Standard Ctrl+Z/Cmd+Z for undo is supported."
   },
   "narrative": {
     "fallback_prompt": "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.",
@@ -574,7 +575,7 @@
   "dialog": {
     "update_title": "Update Available",
     "update_message": "A new version ({version}) is available!",
-    "update_now": "Update Now",
+    "update_now": "Update and Restart",
     "later": "Later",
     "no_updates_title": "No Updates",
     "no_updates_message": "You are running the latest version.",
@@ -596,7 +597,15 @@
     "join_discord": "Join Discord",
     "view_steam": "View Steam Mod",
     "view_website": "Visit Website",
-    "init_error": "An error occurred while initializing the configuration page, please check the console log."
+    "init_error": "An error occurred while initializing the configuration page, please check the console log.",
+    "restart_now": "Restart",
+    "update_ready_title": "Update Downloaded",
+    "update_ready_message": "A new version has been downloaded. Please restart to apply the updates."
+    "incompatible_mod_title": "Incompatible Mod Detected",
+    "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.",
+    "close_app": "Close",
+    "open_steam_and_quit": "Open Steam and Quit",
+    "open_discord_and_quit": "Open Discord and Quit"
   },
   "diary_manager": {
     "header": "Diary Manager",
