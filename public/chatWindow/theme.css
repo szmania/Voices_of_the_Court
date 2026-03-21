@@ -1,5 +1,10 @@
 /* 主题样式定义 */
 
+.suggestions-button-wrapper {
+    position: relative;
+    left: -15px;
+}
+
 /* Config window styles */
 .info-panel {
     display: flex;
