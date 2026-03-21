@@ -578,7 +578,7 @@ export class Conversation{
 
                 const collectedActions = await checkActions(this, sourceId, targetId);
                 
-                let playerNarrative = "";
+                let playerNarrative: Message | null = null;
                 if (collectedActions.length > 0) {
                     this.executedActions.set(lastMessage.id!, collectedActions);
                     this.actionInvolvedCharacterIds.add(sourceId);
@@ -592,7 +592,7 @@ export class Conversation{
                 }
                 
                 if (playerNarrative) {
-                    this.addNarrativeToMessage(this.messages.length - 1, playerNarrative);
+                    this.pushMessage(playerNarrative);
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
 
