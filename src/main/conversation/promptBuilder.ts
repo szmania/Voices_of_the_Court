@@ -10,7 +10,7 @@ import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 
-function getEffectivePrompts(conv: Conversation): any {
+export function getEffectivePrompts(conv: Conversation): any {
     const lang = conv.config.language || 'en';
     const activeModPreset = conv.config.activeModPreset || 'Default';
     const defaultPrompts = conv.config.prompts[lang] || conv.config.prompts.en;

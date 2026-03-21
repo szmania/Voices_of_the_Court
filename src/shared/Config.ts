@@ -24,11 +24,14 @@ export interface PromptConfig {
     diaryForLetterPrompt: string;
     letterPrompt: string;
     letterSummaryPrompt: string;
+    actionTriggeredPrompt: string;
 }
 
 export class Config{
     userFolderPath!: string;
     language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' = 'en';
+    activePromptPreset!: string;
+    activeModPreset!: string;
 
     stream!: boolean;
     maxTokens!: number;
@@ -95,6 +98,8 @@ export class Config{
         ko: PromptConfig;
         pl: PromptConfig;
     };
+
+    mod_prompt_sets!: any;
 
     get mainPrompt(): string { return this.prompts[this.language].mainPrompt; }
     get summarizePrompt(): string { return this.prompts[this.language].summarizePrompt; }

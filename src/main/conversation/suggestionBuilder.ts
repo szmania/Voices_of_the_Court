@@ -1,7 +1,7 @@
 import { Conversation } from "./Conversation";
 import { Message } from "../ts/conversation_interfaces";
 import { Character } from "../../shared/gameData/Character";
-import { createMemoryString } from "./promptBuilder";
+import { createMemoryString, getEffectivePrompts } from "./promptBuilder";
 import { parseGameDate, getDateDifference } from "../../shared/dateUtils";
 import { parseVariables } from "../parseVariables";
 import path from 'path';
@@ -55,7 +55,8 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Conversation context for suggestions:', conversationContext);
     
     // 添加记忆信息，参考promptBuilder.ts中的createMemoryString函数
-    let memoryString = createMemoryString(conv);
+    const prompts = getEffectivePrompts(conv);
+    let memoryString = createMemoryString(conv, prompts);
     
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
     let summaryString = "";
