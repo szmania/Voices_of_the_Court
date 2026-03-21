@@ -58,6 +58,7 @@
     "use_same_api": "연결 탭과 동일한 API 사용",
     "parameters": "매개변수",
     "select_actions": "모드가 감지할 작업을 선택하세요:",
+    "changeLocation.title": "장면 위치 변경",
     "reload_files": "파일 새로고침",
     "open_folder": "폴더 열기",
     "description": "설명:",
@@ -195,8 +196,8 @@
     "roaming_data": "로밍 데이터 폴더",
     "roaming_data_desc": "이 폴더에는 개인 설정, 스크립트 및 요약이 포함되어 있습니다.",
     "open_roaming_data": "로밍 데이터 폴더 열기",
-    "roleplay_instruction": "당신은 {characterName}입니다. {playerName}에게 답장을 작성하십시오. 당신의 캐릭터에 대한 답장만 작성하십시오. 다른 캐릭터에 대한 답장은 쓰지 마십시오. 행동은 마크다운을 사용하세요, *이렇게*.",
-    "roleplay_instruction_ai_to_ai": "당신은 {sourceCharacterName} 입니다. {targetCharacterName} 에게 답장을 작성하십시오. 당신의 캐릭터의 답장만 작성하십시오. 다른 캐릭터의 답장은 작성하지 마십시오. 동작은 마크다운을 사용하세요, *이렇게*.",
+    "roleplay_instruction": "[System instruction: 당신은 {characterName}입니다. {playerName}에게 답장을 작성하십시오. 당신의 캐릭터에 대한 답장만 작성하십시오. 다른 캐릭터에 대한 답장은 쓰지 마십시오. 행동은 마크다운을 사용하세요, *이렇게*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: 당신은 {sourceCharacterName} 입니다. {targetCharacterName} 에게 답장을 작성하십시오. 당신의 캐릭터의 답장만 작성하십시오. 다른 캐릭터의 답장은 작성하지 마십시오. 동작은 마크다운을 사용하세요, *이렇게*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -573,7 +574,7 @@
   "dialog": {
     "update_title": "업데이트 가능",
     "update_message": "새 버전({version})을 사용할 수 있습니다!",
-    "update_now": "지금 업데이트",
+    "update_now": "업데이트 및 다시 시작",
     "later": "나중에",
     "no_updates_title": "업데이트 없음",
     "no_updates_message": "최신 버전을 실행 중입니다.",
@@ -596,6 +597,9 @@
     "view_steam": "Steam 모드 보기",
     "view_website": "웹사이트 방문",
     "init_error": "구성 페이지를 초기화하는 동안 오류가 발생했습니다. 콘솔 로그를 확인하십시오.",
+    "restart_now": "다시 시작",
+    "update_ready_title": "업데이트 다운로드됨",
+    "update_ready_message": "새 버전이 다운로드되었습니다. 업데이트를 적용하려면 다시 시작하십시오.",
     "incompatible_mod_title": "호환되지 않는 모드 감지됨",
     "incompatible_mod_message": "'Voices of the Court 2.0' 모드(mod/ugc_3346777360.mod)는 'Voices of the Court 2.0 - Community Edition'과 호환되지 않습니다.\n\n커뮤니티 에디션을 구독하고 활성화한 후, 호환되지 않는 모드를 비활성화하고 애플리케이션을 다시 시작하십시오.",
     "close_app": "닫기",
@@ -846,5 +850,12 @@
     "examination_room": "검사실",
     "chinese_city": "중국 도시",
     "japanese_city": "일본 도시"
+  },
+  "scene_description": {
+    "default_prompt": "캐릭터 대화의 배경과 분위기를 제공하기 위해 매력적인 장면 설명을 생성해 주세요.",
+    "instruction": "다음 정보를 바탕으로 간결하고 분위기 있는 3인칭 장면 설명(50-100단어)을 생성하세요. 캐릭터의 생각이나 대화는 포함하지 마세요. 설정과 분위기만 설명하세요:",
+    "description_label": "현재 대화 정보:",
+    "system_prompt": "당신은 롤플레잉 게임을 위한 생생한 장면 분위기 설명을 만드는 장면 설명 생성 도우미입니다.",
+    "fallback_description": "{{date}}에 {{playerName}}와(과) {{aiName}}이(가) {{location}}에서 대화를 시작했습니다."
   }
 }

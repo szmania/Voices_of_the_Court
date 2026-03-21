@@ -58,6 +58,7 @@
     "use_same_api": "Utiliser la même API que dans l'onglet Connexion",
     "parameters": "Paramètres",
     "select_actions": "Sélectionnez les actions que vous souhaitez que le mod détecte :",
+    "changeLocation.title": "Changer le lieu de la scène",
     "reload_files": "Recharger les fichiers",
     "open_folder": "ouvrir le dossier",
     "description": "Description :",
@@ -195,8 +196,8 @@
     "roaming_data": "Dossier de données d'itinérance",
     "roaming_data_desc": "Ce dossier contient votre configuration personnelle, vos scripts et vos résumés.",
     "open_roaming_data": "Ouvrir le dossier de données d'itinérance",
-    "roleplay_instruction": "Vous êtes {characterName}. Écrivez une réponse à {playerName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.",
-    "roleplay_instruction_ai_to_ai": "Vous êtes {sourceCharacterName}. Écrivez une réponse à {targetCharacterName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.",
+    "roleplay_instruction": "[System instruction: Vous êtes {characterName}. Écrivez une réponse à {playerName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Vous êtes {sourceCharacterName}. Écrivez une réponse à {targetCharacterName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -573,7 +574,7 @@
   "dialog": {
     "update_title": "Mise à jour disponible",
     "update_message": "Une nouvelle version ({version}) est disponible !",
-    "update_now": "Mettre à jour maintenant",
+    "update_now": "Mettre à jour et redémarrer",
     "later": "Plus tard",
     "no_updates_title": "Pas de mises à jour",
     "no_updates_message": "Vous utilisez la dernière version.",
@@ -596,6 +597,9 @@
     "view_steam": "Voir le mod Steam",
     "view_website": "Visiter le site web",
     "init_error": "Une erreur s'est produite lors de l'initialisation de la page de configuration, veuillez consulter la console.",
+    "restart_now": "Redémarrer",
+    "update_ready_title": "Mise à jour téléchargée",
+    "update_ready_message": "Une nouvelle version a été téléchargée. Veuillez redémarrer pour appliquer les mises à jour.",
     "incompatible_mod_title": "Mod incompatible détecté",
     "incompatible_mod_message": "Le mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) n'est pas compatible avec 'Voices of the Court 2.0 - Community Edition'.\n\nVeuillez vous abonner et activer l'Édition Communautaire, désactiver le mod incompatible et redémarrer l'application.",
     "close_app": "Fermer",
@@ -846,5 +850,12 @@
     "examination_room": "Salle d'examen",
     "chinese_city": "Ville chinoise",
     "japanese_city": "Ville japonaise"
+  },
+  "scene_description": {
+    "default_prompt": "Veuillez générer une description de scène captivante pour fournir un arrière-plan et une atmosphère au dialogue des personnages.",
+    "instruction": "Sur la base des informations suivantes, générez une brève description de scène atmosphérique à la troisième personne (50-100 mots). N'incluez pas les pensées ou les dialogues des personnages. Décrivez uniquement le décor et l'ambiance :",
+    "description_label": "Informations sur la conversation en cours :",
+    "system_prompt": "Vous êtes un assistant de génération de descriptions de scènes chargé de créer des descriptions d'ambiance de scènes vives pour les jeux de rôle.",
+    "fallback_description": "Le {{date}}, {{playerName}} et {{aiName}} ont entamé une conversation à {{location}}."
   }
 }

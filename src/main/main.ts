@@ -389,6 +389,26 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
+    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+        const dialogOpts = {
+            type: 'info' as const,
+            buttons: [t('dialog.restart_now'), t('dialog.later')],
+            title: t('dialog.update_ready_title'),
+            message: t('dialog.update_ready_message'),
+            detail: releaseName
+        };
+
+        dialog.showMessageBox(dialogOpts).then((returnValue) => {
+            if (returnValue.response === 0) {
+                autoUpdater.quitAndInstall();
+            }
+        });
+    });
+
+    autoUpdater.on('error', (error) => {
+        console.error('There was a problem updating the application', error);
+    });
+
     // Check for incompatible mods
     const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
     if (fs.existsSync(dlcLoadPath)) {
@@ -1738,7 +1758,7 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
                     }
                 }
             }
-            
+
             summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             await saveDiarySummaries(playerId, charId, summaries);
         }
