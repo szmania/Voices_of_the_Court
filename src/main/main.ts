@@ -1325,9 +1325,9 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 console.log('Appended trigger event for slash command.');
 
                 // Hardcoded effects for specific actions
-                if (signature === 'leaveConversation' && targetId !== null) {
+                if ((signature === 'leaveConversation' || signature === 'killCharacter') && targetId !== null) {
                     if (targetId === conversation.gameData.playerID) {
-                        console.log('Player is leaving conversation. Ending session.');
+                        console.log(`Player is leaving or was killed. Ending session. Action: ${signature}`);
                         chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {

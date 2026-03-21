@@ -1376,8 +1376,17 @@ ${character.fullName}的发言：`
             );
 
             // Hardcoded effect for leaveConversation
-            if (action.signature === 'leaveConversation') {
-                this.removeCharacter(targetId);
+            if (action.signature === 'leaveConversation' || action.signature === 'killCharacter') {
+                if (targetId === this.gameData.playerID) {
+                    console.log(`Player is leaving or was killed. Ending session. Action: ${action.signature}`);
+                    this.chatWindow.window.webContents.send('chat-hide');
+                    this.chatWindow.hide();
+                    if (this.isOpen) {
+                        this.summarize();
+                    }
+                } else {
+                    this.removeCharacter(targetId);
+                }
             }
 
             // Regenerate scene description if location changes
