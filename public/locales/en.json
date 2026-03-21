@@ -120,7 +120,8 @@
     "mod_default": "Default (Vanilla)",
     "mod_agot": "A Game of Thrones",
     "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
-    "mod_tfe": "The Fallen Eagle"
+    "mod_tfe": "The Fallen Eagle",
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
   },
   "settings": {
     "header": "Settings",
