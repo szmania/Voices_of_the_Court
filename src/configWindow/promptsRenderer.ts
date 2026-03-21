@@ -326,11 +326,18 @@ async function populatePresetSelector(activePreset?: string) {
         modSeparator.textContent = '--- Mod Presets ---';
         promptPresetSelect.appendChild(modSeparator);
 
+        const modNameLocaleKeyMap: { [key: string]: string } = {
+            "A Game of Thrones": "prompts.mod_agot",
+            "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
+            "The Fallen Eagle": "prompts.mod_tfe"
+        };
+
         for (const modName in config.mod_prompt_sets) {
             const option = document.createElement('option');
             option.value = modName;
+            const localeKey = modNameLocaleKeyMap[modName];
             // @ts-ignore
-            option.textContent = window.LocalizationManager.getNestedTranslation(`prompts.mod_${modName.toLowerCase().replace(/: /g, '_').replace(/ /g, '_')}`, null, modName);
+            option.textContent = localeKey ? window.LocalizationManager.getNestedTranslation(localeKey, null, modName) : modName;
             promptPresetSelect.appendChild(option);
         }
     }
