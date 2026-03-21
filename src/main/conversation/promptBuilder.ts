@@ -12,13 +12,16 @@ import { readDiarySummaries } from "../diaryManager.js";
 
 export function getEffectivePrompts(conv: Conversation): any {
     const lang = conv.config.language || 'en';
-    const activeModPreset = conv.config.activeModPreset || 'Default';
-    const defaultPrompts = conv.config.prompts[lang] || conv.config.prompts.en;
+    const activePreset = conv.config.activePromptPreset || 'Default';
 
-    if (activeModPreset !== 'Default' && conv.config.mod_prompt_sets?.[activeModPreset]?.[lang]) {
-        return conv.config.mod_prompt_sets[activeModPreset][lang];
+    if (conv.config.mod_prompt_sets?.[activePreset]) {
+        return conv.config.mod_prompt_sets[activePreset][lang] || conv.config.mod_prompt_sets[activePreset].en;
     }
-    return defaultPrompts;
+    
+    // For "Default" or custom presets, use the base prompts for the language.
+    // Custom presets overwrite the values in the UI, which then get saved into the main config object
+    // that the backend conversation uses.
+    return conv.config.prompts[lang] || conv.config.prompts.en;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{

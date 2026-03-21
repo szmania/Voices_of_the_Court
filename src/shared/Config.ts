@@ -31,7 +31,6 @@ export class Config{
     userFolderPath!: string;
     language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' = 'en';
     activePromptPreset!: string;
-    activeModPreset!: string;
 
     stream!: boolean;
     maxTokens!: number;
