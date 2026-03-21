@@ -132,11 +132,6 @@ async function init(){
         let config = await ipcRenderer.invoke('get-config');
         promptPresets = await ipcRenderer.invoke('get-prompt-presets');
 
-        await populatePresetSelector(config.activePromptPreset);
-        console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
-        console.log('selectedExMsgScript:', config.selectedExMsgScript);
-        console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
-
         // 初始化语言
         // @ts-ignore
         if (window.LocalizationManager) {
@@ -145,6 +140,11 @@ async function init(){
             // @ts-ignore
             window.LocalizationManager.applyTranslations();
         }
+
+        await populatePresetSelector(config.activePromptPreset);
+        console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
+        console.log('selectedExMsgScript:', config.selectedExMsgScript);
+        console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
 
         const userDataPath = await ipcRenderer.invoke('get-userdata-path');
         console.log('userDataPath:', userDataPath);
