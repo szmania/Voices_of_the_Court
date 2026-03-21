@@ -585,7 +585,7 @@ export class Conversation{
                 }
             }
 
-            if (isDirectAction) {
+            if (isDirectAction && lastMessage) {
                 console.log('Direct action detected. Bypassing conversational replies and checking for actions immediately.');
                 
                 const targetedCharacters = await this.determineTargetedCharacters();
