@@ -179,7 +179,6 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'edit-help-icon';
-    helpIcon.textContent = '?';
     // @ts-ignore
     const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
     helpIcon.setAttribute('data-tooltip', editTooltipText);
@@ -339,7 +338,6 @@ function displayNarrative(narrativeMessage: Message | null) {
 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'edit-help-icon';
-    helpIcon.textContent = '?';
     // @ts-ignore
     const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
     helpIcon.setAttribute('data-tooltip', editTooltipText);
@@ -581,6 +579,10 @@ chatInput.addEventListener('keydown', async function(e) {
             messageHistory.push(messageText);
         }
         historyIndex = messageHistory.length; // Reset index to point after the last item
+
+        if (currentGameData) {
+            ipcRenderer.send('save-prompt-history', { playerId: currentGameData.playerID.toString(), history: messageHistory });
+        }
 
         chatInput.value = '';
 
@@ -1592,6 +1594,17 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     aiName = gameData.aiName;
     currentGameData = gameData;
 
+    // Load prompt history
+    try {
+        messageHistory = await ipcRenderer.invoke('get-prompt-history', gameData.playerID.toString());
+        historyIndex = messageHistory.length;
+        console.log(`Loaded ${messageHistory.length} items from prompt history for player ${gameData.playerID}`);
+    } catch (error) {
+        console.error('Failed to load prompt history:', error);
+        messageHistory = [];
+        historyIndex = 0;
+    }
+
     // Reset character color mapping for new conversation
     characterColorMap.clear();
     nextColorIndex = 0;
@@ -1893,7 +1906,6 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
 
         const helpIcon = document.createElement('span');
         helpIcon.className = 'edit-help-icon';
-        helpIcon.textContent = '?';
         // @ts-ignore
         const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
         helpIcon.setAttribute('data-tooltip', editTooltipText);
