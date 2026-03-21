@@ -961,9 +961,20 @@ export class Conversation{
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
-        // Check if we should question player actions
+        // Check if the player's last message was a direct, factual action.
+        let isDirectAction = false;
+        const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+        if (lastMessage && lastMessage.role === 'user') {
+            // A message wrapped in [INST] is treated as a direct command that should not be questioned.
+            if (/\[INST\](.*?)\[\/INST\]/i.test(lastMessage.content)) {
+                isDirectAction = true;
+                console.log('Direct action instruction [INST] detected, bypassing questioning logic.');
+            }
+        }
+
+        // Check if we should question player actions, but only if it's not a direct action.
         const questioningChance = this.calculateQuestioningChance(character);
-        if (questioningChance > 0 && Math.random() < (questioningChance / 100)) {
+        if (!isDirectAction && questioningChance > 0 && Math.random() < (questioningChance / 100)) {
             const questionMessage = await this.generateActionQuestioningMessage(character);
             if (questionMessage) {
                 if (sendMessageToChat) {
