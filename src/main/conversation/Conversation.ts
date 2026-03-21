@@ -577,6 +577,47 @@ export class Conversation{
         }
         this.isGenerating = true;
         try {
+            const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+            let isDirectAction = false;
+            if (lastMessage && lastMessage.role === 'user') {
+                if (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content)) {
+                    isDirectAction = true;
+                }
+            }
+
+            if (isDirectAction) {
+                console.log('Direct action detected. Bypassing conversational replies and checking for actions immediately.');
+                
+                const targetedCharacters = await this.determineTargetedCharacters();
+                // If multiple targets, pick the first. If none, fallback to main AI.
+                const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
+                const sourceId = this.gameData.playerID;
+
+                const collectedActions = await checkActions(this, sourceId, targetId);
+                
+                let playerNarrative = "";
+                if (collectedActions.length > 0) {
+                    this.executedActions.set(lastMessage.id!, collectedActions);
+                    this.actionInvolvedCharacterIds.add(sourceId);
+                    this.actionInvolvedCharacterIds.add(targetId);
+                    this.consecutiveActionsCount++;
+                    this.lastActionMessageIndex = this.messages.length - 1;
+
+                    if (this.config.narrativeEnable) {
+                        playerNarrative = await generateNarrative(this, collectedActions);
+                    }
+                }
+                
+                if (playerNarrative) {
+                    this.addNarrativeToMessage(this.messages.length - 1, playerNarrative);
+                }
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
+
+                // End generation here since we handled the direct action.
+                this.isGenerating = false;
+                return;
+            }
+
             this.aiToAiTurnLimit = 0;
             console.log('Starting generation of AI messages for all characters.');
 
@@ -961,20 +1002,9 @@ export class Conversation{
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
-        // Check if the player's last message was a direct, factual action.
-        let isDirectAction = false;
-        const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
-        if (lastMessage && lastMessage.role === 'user') {
-            // A message wrapped in [], or ** is treated as a direct command that should not be questioned.
-            if (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content)) {
-                isDirectAction = true;
-                console.log('Direct action instruction detected, bypassing questioning logic.');
-            }
-        }
-
-        // Check if we should question player actions, but only if it's not a direct action.
+        // Check if we should question player actions
         const questioningChance = this.calculateQuestioningChance(character);
-        if (!isDirectAction && questioningChance > 0 && Math.random() < (questioningChance / 100)) {
+        if (questioningChance > 0 && Math.random() < (questioningChance / 100)) {
             const questionMessage = await this.generateActionQuestioningMessage(character);
             if (questionMessage) {
                 if (sendMessageToChat) {
