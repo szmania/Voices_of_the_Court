@@ -176,8 +176,17 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                 );
 
                 // Hardcoded effect for leaveConversation
-                if (matchedAction.signature === 'leaveConversation') {
-                    conv.removeCharacter(newTargetId);
+                if (matchedAction.signature === 'leaveConversation' || matchedAction.signature === 'killCharacter') {
+                    if (newTargetId === conv.gameData.playerID) {
+                        console.log(`Player is leaving or was killed. Ending session. Action: ${matchedAction.signature}`);
+                        conv.chatWindow.window.webContents.send('chat-hide');
+                        conv.chatWindow.hide();
+                        if (conv && conv.isOpen) {
+                            conv.summarize();
+                        }
+                    } else {
+                        conv.removeCharacter(newTargetId);
+                    }
                 }
 
                 // Regenerate scene description if location changes

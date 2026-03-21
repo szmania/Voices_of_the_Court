@@ -244,7 +244,8 @@
     "source_character": "源角色",
     "target_character": "目标角色",
     "action_cancel": "取消",
-    "action_execute": "执行"
+    "action_execute": "执行",
+    "edit_tooltip": "按 Enter 或在编辑框外单击以保存，按 Escape 取消。支持标准的 Ctrl+Z/Cmd+Z 撤消操作。"
   },
   "narrative": {
     "fallback_prompt": "请根据以下对话内容生成一段简短的旁白，描述场景氛围或角色的内心感受。旁白应该简洁、生动，长度控制在50-100字之间。",
@@ -644,7 +645,8 @@
     "delete_success": "日记条目已删除",
     "update_success": "日记条目已更新",
     "select_first": "请先选择要更新的日记条目",
-    "added_new": "已添加新日记条目"
+    "added_new": "已添加新日记条目",
+    "regenerating_summaries": "正在为已编辑的条目重新生成摘要..."
   },
   "tray": {
     "open_config": "打开配置窗口",

@@ -244,7 +244,8 @@
     "source_character": "Personnage Source",
     "target_character": "Personnage Cible",
     "action_cancel": "Annuler",
-    "action_execute": "Exécuter"
+    "action_execute": "Exécuter",
+    "edit_tooltip": "Appuyez sur Entrée ou cliquez en dehors de la zone d'édition pour enregistrer, Échap pour annuler. Ctrl+Z/Cmd+Z standard pour annuler est pris en charge."
   },
   "narrative": {
     "fallback_prompt": "Veuillez générer un court récit basé sur la conversation suivante, décrivant l'atmosphère de la scène ou les sentiments intérieurs du personnage. Le récit doit être concis et vivant, d'une longueur de 50 à 100 mots.",

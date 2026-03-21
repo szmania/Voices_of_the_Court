@@ -105,13 +105,13 @@ export class LetterReplyGenerator {
             const tempConversation = {
                 gameData: gameData,
                 config: {
-                    memoriesPrompt: "Relevant memories:",
                     maxMemoryTokens: 1000
                 },
                 textGenApiConnection: this.apiConnection
             } as any;
             
-            const memoryString = createMemoryString(tempConversation);
+            const prompts = { memoriesPrompt: this.config.memoriesPrompt };
+            const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
                 console.log(`Loaded memory content for letter prompt: ${memoryString.substring(0, 100)}...`);

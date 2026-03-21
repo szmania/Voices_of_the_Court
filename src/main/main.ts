@@ -794,7 +794,6 @@ clipboardListener.on('VOTC:IN', async () =>{
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
-            narratives: Array.from(conversation.narratives.entries()),
             historicalMetadata: historicalMetadata,
             actions: sanitizedActions // Pass sanitized actions
         };
@@ -1275,6 +1274,13 @@ ipcMain.on('resume-conversation', () => {
     }
 });
 
+ipcMain.on('edit-message', (event, { messageId, newContent }) => {
+    console.log(`IPC: Received edit-message for ID ${messageId}.`);
+    if (conversation) {
+        conversation.editMessage(messageId, newContent);
+    }
+});
+
 ipcMain.on('execute-approved-action', (event, messageId: string, actionName: string) => {
     console.log(`IPC: Received execute-approved-action for action: ${actionName}`);
     if (conversation) {
@@ -1339,9 +1345,9 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                 console.log('Appended trigger event for slash command.');
 
                 // Hardcoded effects for specific actions
-                if (signature === 'leaveConversation' && targetId !== null) {
+                if ((signature === 'leaveConversation' || signature === 'killCharacter') && targetId !== null) {
                     if (targetId === conversation.gameData.playerID) {
-                        console.log('Player is leaving conversation. Ending session.');
+                        console.log(`Player is leaving or was killed. Ending session. Action: ${signature}`);
                         chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {

@@ -244,7 +244,8 @@
     "source_character": "Postać źródłowa",
     "target_character": "Postać docelowa",
     "action_cancel": "Anuluj",
-    "action_execute": "Wykonaj"
+    "action_execute": "Wykonaj",
+    "edit_tooltip": "Naciśnij Enter lub kliknij poza polem edycji, aby zapisać, Escape, aby anulować. Obsługiwane jest standardowe cofanie Ctrl+Z/Cmd+Z."
   },
   "narrative": {
     "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",
