@@ -2142,7 +2142,7 @@ ${character.fullName}的发言：`
 
         // Add a new system instruction at the end to guide the AI's response.
         const questioningInstruction = {
-            role: "system",
+            role: "system" as const,
             content: `Instead of directly complying, your character has reservations about the player's last statement. Based on your personality and the situation, express your hesitation, question their motives, or suggest an alternative. Your response should be in character and move the conversation forward by exploring this conflict or concern.`
         };
 
