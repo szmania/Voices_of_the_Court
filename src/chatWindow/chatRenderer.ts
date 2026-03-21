@@ -180,7 +180,6 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'edit-help-icon';
     helpIcon.textContent = '?';
-    helpIcon.textContent = '?';
     // @ts-ignore
     const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
     helpIcon.setAttribute('data-tooltip', editTooltipText);
@@ -340,6 +339,7 @@ function displayNarrative(narrativeMessage: Message | null) {
 
     const helpIcon = document.createElement('span');
     helpIcon.className = 'edit-help-icon';
+    helpIcon.textContent = '?';
     // @ts-ignore
     const editTooltipText = window.LocalizationManager?.getNestedTranslation('chat.edit_tooltip') || 'Press Enter to save, Escape to cancel.';
     helpIcon.setAttribute('data-tooltip', editTooltipText);
