@@ -19,6 +19,7 @@ import { processBookmarkToSummary } from "./bookmarktosummary.js";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
 import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
+import { readPromptHistory, savePromptHistory } from "./promptHistory.js";
 import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
 import path from 'path';
@@ -1119,6 +1120,16 @@ ipcMain.on('message-send', async (e, message: Message) =>{
 ipcMain.handle('get-config', () => {
     console.log('IPC: Received get-config event.');
     return config
+});
+
+ipcMain.handle('get-prompt-history', async (event, playerId: string) => {
+    console.log(`IPC: Received get-prompt-history for player: ${playerId}`);
+    return await readPromptHistory(playerId);
+});
+
+ipcMain.on('save-prompt-history', (event, { playerId, history }: { playerId: string, history: string[] }) => {
+    console.log(`IPC: Received save-prompt-history for player: ${playerId}`);
+    savePromptHistory(playerId, history);
 });
 
 ipcMain.handle('get-userdata-path', () => {
