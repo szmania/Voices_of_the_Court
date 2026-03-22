@@ -121,22 +121,22 @@ module.exports = (gameData) =>{
 
     function opinion(char){
         const op = char.opinionOfPlayer;
+        const sign = op >= 0 ? '+' : '';
+        let label;
+        if(op>60) label = `${char.shortName} has a very favorable opinion of ${player.shortName}`;
+        else if(op>20) label = `${char.shortName} has a slightly positive opinion of ${player.shortName}`;
+        else if(op>-20) label = `${char.shortName} has a neutral opinion of ${player.shortName}`;
+        else if(op>-60) label = `${char.shortName} has a slight hatred towards ${player.shortName}`;
+        else label = `${char.shortName} has a very strong hatred towards ${player.shortName}`;
 
-        if(op>60){
-            return `${char.shortName} has a very favorable opinion of ${player.shortName}`
+        let result = `${label} (${sign}${op})`;
+        if(char.opinionBreakdownToPlayer && char.opinionBreakdownToPlayer.length > 0){
+            const breakdown = char.opinionBreakdownToPlayer
+                .map(m => `${m.reason}: ${m.value >= 0 ? '+' : ''}${m.value}`)
+                .join(', ');
+            result += ` [reasons: ${breakdown}]`;
         }
-        else if(op>20){
-            return `${char.shortName} has a slightly positive opinion of ${player.shortName}`
-        }
-        else if(op>-20){
-            return `${char.shortName} has a neutral opinion of ${player.shortName}`
-        }
-        else if(op>-60){
-            return `${char.shortName} has a slight hatred towards ${player.shortName}`
-        }
-        else{
-             return `${char.shortName} has a very strong hatred towards ${player.shortName}`
-        }
+        return result;
     }
     
     

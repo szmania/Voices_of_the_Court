@@ -44,7 +44,7 @@ module.exports = {
             personal_diplo = target.getOpinionModifierValue("Personal Diplomacy");
         } else {
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            opinionOfSource = opinionEntry ? opinionEntry.opinion : 0;
             conversationOpinion = opinionOfSource > 0 ? opinionOfSource / 2 : 0; // Approximation
             if (target.faith === source.faith) {
                 religion_op = 10; // Approximation

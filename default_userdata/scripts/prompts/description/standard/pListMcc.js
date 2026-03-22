@@ -209,22 +209,22 @@ module.exports = (gameData) =>{
 
     function opinion(char){
         const op = char.opinionOfPlayer;
+        const sign = op >= 0 ? '+' : '';
+        let label;
+        if(op>60) label = T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: player.shortName});
+        else if(op>20) label = T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: player.shortName});
+        else if(op>-20) label = T('opinion_neutral', {charShortName: char.shortName, playerShortName: player.shortName});
+        else if(op>-60) label = T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
+        else label = T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
 
-        if(op>60){
-            return T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: player.shortName});
+        let result = `${label} (${sign}${op})`;
+        if(char.opinionBreakdownToPlayer && char.opinionBreakdownToPlayer.length > 0){
+            const breakdown = char.opinionBreakdownToPlayer
+                .map(m => `${m.reason}: ${m.value >= 0 ? '+' : ''}${m.value}`)
+                .join(', ');
+            result += ` [reasons: ${breakdown}]`;
         }
-        else if(op>20){
-            return T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: player.shortName});
-        }
-        else if(op>-20){
-            return T('opinion_neutral', {charShortName: char.shortName, playerShortName: player.shortName});
-        }
-        else if(op>-60){
-            return T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
-        }
-        else{
-             return T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: player.shortName});
-        }
+        return result;
     }
     
     
@@ -325,17 +325,14 @@ module.exports = (gameData) =>{
                 const targetCharacter = gameData.characters.get(opinionData.id);
                 if (targetCharacter && targetCharacter.id !== char.id && targetCharacter.id !== player.id) {
                     const op = opinionData.opinion;
-                    if (op > 60) {
-                        return T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
-                    } else if (op > 20) {
-                        return T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
-                    } else if (op > -20) {
-                        return T('opinion_neutral', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
-                    } else if (op > -60) {
-                        return T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
-                    } else {
-                        return T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
-                    }
+                    const sign = op >= 0 ? '+' : '';
+                    let label;
+                    if (op > 60) label = T('opinion_very_favorable', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
+                    else if (op > 20) label = T('opinion_slightly_positive', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
+                    else if (op > -20) label = T('opinion_neutral', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
+                    else if (op > -60) label = T('opinion_slight_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
+                    else label = T('opinion_strong_hatred', {charShortName: char.shortName, playerShortName: targetCharacter.shortName});
+                    return `${label} (${sign}${op})`;
                 }
                 return null;
             })

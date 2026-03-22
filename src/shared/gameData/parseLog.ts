@@ -171,7 +171,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 break;
                 case "opinions":
                     if (!gameData) continue;
-                    gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinon: Number(data[2])});
+                    gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinion: Number(data[2])});
                     console.log(`Parsed opinion for character ID ${rootID}: targetID=${data[1]}, value=${data[2]}`);
                 break;
                 case "relations":

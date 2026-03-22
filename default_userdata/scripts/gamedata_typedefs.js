@@ -320,7 +320,7 @@ export class Character {
     relationsToPlayer: string[];
     relationsToCharacters: { id: number, relations: string[]}[];
     opinionBreakdownToPlayer: OpinionModifier[];
-    opinions: { id: number, opinon: number}[];
+    opinions: { id: number, opinion: number}[];
     relatives: Relative[];
     birthTotalDays?: number;
     // TODO: Use a proper Summary type once it's available in a shared location.

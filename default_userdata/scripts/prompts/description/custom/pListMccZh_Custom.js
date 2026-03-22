@@ -202,22 +202,22 @@ module.exports = (gameData) =>{
 
     function opinion(char){
         const op = char.opinionOfPlayer;
+        const sign = op >= 0 ? '+' : '';
+        let label;
+        if(op>60) label = `${char.shortName}对${player.shortName}有很大好感`;
+        else if(op>20) label = `${char.shortName}对${player.shortName}有轻微好感`;
+        else if(op>-20) label = `${char.shortName}对${player.shortName}态度中立`;
+        else if(op>-60) label = `${char.shortName}对${player.shortName}轻微厌恶`;
+        else label = `${char.shortName}对${player.shortName}强烈憎恨`;
 
-        if(op>60){
-            return `${char.shortName}对${player.shortName}有很大好感`
+        let result = `${label}（${sign}${op}）`;
+        if(char.opinionBreakdownToPlayer && char.opinionBreakdownToPlayer.length > 0){
+            const breakdown = char.opinionBreakdownToPlayer
+                .map(m => `${m.reason}: ${m.value >= 0 ? '+' : ''}${m.value}`)
+                .join('，');
+            result += `【原因：${breakdown}】`;
         }
-        else if(op>20){
-            return `${char.shortName}对${player.shortName}有轻微好感`
-        }
-        else if(op>-20){
-            return `${char.shortName}对${player.shortName}态度中立`
-        }
-        else if(op>-60){
-            return `${char.shortName}对${player.shortName}轻微厌恶`
-        }
-        else{
-             return `${char.shortName}对${player.shortName}强烈憎恨`
-        }
+        return result;
     }
 
     
