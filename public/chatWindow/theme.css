@@ -417,19 +417,19 @@ body.theme-west .chat-box {
 }
 
 .theme-west .undo-button {
-    left: 80%;
+    left: 20%;
 }
 
 .theme-west .regenerate-button {
-    left: 60%;
-}
-
-.theme-west .cancel-button {
     left: 40%;
 }
 
+.theme-west .cancel-button {
+    left: 60%;
+}
+
 .theme-west .leave-button {
-    left: 20%;
+    left: 80%;
 }
 
 .theme-west .undo-button:hover,
