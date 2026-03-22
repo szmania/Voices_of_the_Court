@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret, FamilyMember} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -40,7 +40,7 @@ export class Character {
     relationsToCharacters: { id: number, relations: string[]}[];
     opinionBreakdownToPlayer: OpinionModifier[];
     opinions: { id: number, opinon: number}[];
-    familyMembers: FamilyMember[];
+    relatives: Relative[];
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -79,7 +79,7 @@ export class Character {
             this.relationsToCharacters = [],
             this.opinionBreakdownToPlayer = []
             this.opinions = [];
-            this.familyMembers = [];
+            this.relatives = [];
             this.conversationSummaries = [];
     }
 
@@ -155,32 +155,58 @@ export class Character {
     }   
 
     /**
-     * Get a formatted description of the character's family relationships
-     * @returns {string} - Formatted family description or empty string if no family
+     * Get a detailed formatted description of the character's relatives, including death/marital/trait info.
+     * @returns {string} - Formatted relatives description or empty string if no relatives
      */
-    getFamilyDescription(): string {
-        console.log(`Getting family description for ${this.fullName}, familyMembers count: ${this.familyMembers.length}`);
-        if (this.familyMembers.length === 0) {
-            console.log(`No family members for ${this.fullName}, returning empty string`);
-            return "";
+    getRelativesDescription(): string {
+        const structured = this.relatives.filter(r =>
+            r.relationship === 'Parent' || r.relationship === 'Child' || r.relationship === 'Sibling'
+        );
+        if (structured.length === 0) return "";
+
+        const byRelationship = new Map<string, Relative[]>();
+        for (const rel of structured) {
+            if (!byRelationship.has(rel.relationship)) byRelationship.set(rel.relationship, []);
+            byRelationship.get(rel.relationship)!.push(rel);
         }
-        
-        const byRelationship = new Map<string, string[]>();
-        this.familyMembers.forEach(member => {
-            if (!byRelationship.has(member.relationship)) {
-                byRelationship.set(member.relationship, []);
-            }
-            byRelationship.get(member.relationship)!.push(member.name);
-        });
-        
-        const parts: string[] = [];
-        byRelationship.forEach((names, relationship) => {
-            parts.push(`${relationship}: ${names.join(", ")}`);
-        });
-        
-        const result = `Family: ${parts.join(", ")}`;
-        console.log(`Family description for ${this.fullName}: ${result}`);
-        return result;
+
+        const sectionOrder = ['Parent', 'Child', 'Sibling'];
+        const sections: string[] = [];
+
+        for (const relType of sectionOrder) {
+            const members = byRelationship.get(relType);
+            if (!members || members.length === 0) continue;
+
+            const label = relType === 'Child' ? 'Children' : relType === 'Parent' ? 'Parents' : 'Siblings';
+            const memberStrs = members.map(rel => {
+                const parts: string[] = [rel.name];
+
+                if (rel.isDeceased) {
+                    parts.push(rel.deathDate ? `deceased ${rel.deathDate}` : 'deceased');
+                } else if (rel.maritalStatus === 'is_concubine' && rel.partners.length > 0) {
+                    parts.push(`concubine of ${rel.partners[0].name}`);
+                } else if (rel.maritalStatus === 'betrothed' && rel.partners.length > 0) {
+                    parts.push(`betrothed to ${rel.partners[0].name}`);
+                } else if (rel.maritalStatus === 'unmarried') {
+                    parts.push('unmarried');
+                } else if (rel.partners.length > 0) {
+                    const spouses = rel.partners.filter(p => p.type === 'spouse').map(p => p.name);
+                    const concubines = rel.partners.filter(p => p.type === 'concubine').map(p => p.name);
+                    if (spouses.length > 0) parts.push(`married to ${spouses.join(', ')}`);
+                    if (concubines.length > 0) parts.push(`concubine(s): ${concubines.join(', ')}`);
+                }
+
+                if (rel.traits && rel.traits.length > 0) {
+                    parts.push(`traits: ${rel.traits.map(t => t.name).join(', ')}`);
+                }
+
+                return parts.length > 1 ? `${parts[0]} (${parts.slice(1).join('; ')})` : parts[0];
+            });
+
+            sections.push(`${label}: ${memberStrs.join(', ')}`);
+        }
+
+        return sections.join('; ');
     }
 
     static fromPlainObject(obj: any): Character {

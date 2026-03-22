@@ -173,13 +173,7 @@ module.exports = (gameData) =>{
     }
     
     function family(char){
-        const familyDesc = char.getFamilyDescription();
-        if(familyDesc){
-            return familyDesc;
-        }
-        else{
-            return null;
-        }
+        return char.getRelativesDescription() || null;
     }
     
     function otherTraits(char){

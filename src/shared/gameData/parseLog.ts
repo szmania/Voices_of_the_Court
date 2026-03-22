@@ -1,4 +1,4 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret} from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
@@ -219,6 +219,130 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
                     break;
+
+                // --- log_relatives: parents ---
+                case "parents":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Parent', { birthDate: data[4] });
+                    break;
+                case "parent_death": {
+                    if (!gameData) continue;
+                    const pd = findRelative(rootID, Number(data[1]));
+                    if (pd) { pd.isDeceased = true; pd.deathDate = data[3]; pd.deathReason = data[4]; }
+                    break;
+                }
+
+                // --- log_relatives: kids ---
+                case "kids":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Child', { sheHe: data[3], birthDate: data[5] });
+                    break;
+                case "kid_other_parent": {
+                    if (!gameData) continue;
+                    const kop = findRelative(rootID, Number(data[1]));
+                    if (kop) { kop.otherParentId = Number(data[2]); kop.otherParentName = data[3]; }
+                    break;
+                }
+                case "kid_death": {
+                    if (!gameData) continue;
+                    const kd = findRelative(rootID, Number(data[1]));
+                    if (kd) { kd.isDeceased = true; kd.deathDate = data[3]; kd.deathReason = data[4]; }
+                    break;
+                }
+                case "kid_trait": {
+                    if (!gameData) continue;
+                    const kt = findRelative(rootID, Number(data[1]));
+                    if (kt) kt.traits.push({ category: data[2], name: data[3], desc: data[4] });
+                    break;
+                }
+                case "kid_is_concubine": {
+                    if (!gameData) continue;
+                    const kic = findRelative(rootID, Number(data[1]));
+                    if (kic) { kic.maritalStatus = 'is_concubine'; kic.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "kid_concubine": {
+                    if (!gameData) continue;
+                    const kcon = findRelative(rootID, Number(data[1]));
+                    if (kcon) { kcon.maritalStatus = 'married'; kcon.partners.push({ id: Number(data[2]), name: data[3], type: 'concubine' }); }
+                    break;
+                }
+                case "kid_spouse": {
+                    if (!gameData) continue;
+                    const ks = findRelative(rootID, Number(data[1]));
+                    if (ks) { ks.maritalStatus = 'married'; ks.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "kid_betrothed": {
+                    if (!gameData) continue;
+                    const kb = findRelative(rootID, Number(data[1]));
+                    if (kb) { kb.maritalStatus = 'betrothed'; kb.partners.push({ id: Number(data[2]), name: data[3], type: 'betrothed' }); }
+                    break;
+                }
+                case "kid_unmarried": {
+                    if (!gameData) continue;
+                    const ku = findRelative(rootID, Number(data[1]));
+                    if (ku) ku.maritalStatus = 'unmarried';
+                    break;
+                }
+                case "kid_eob":
+                    break;
+
+                // --- log_relatives: siblings ---
+                case "siblings":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Sibling', { sheHe: data[3], birthDate: data[5] });
+                    break;
+                case "sibling_other_parent": {
+                    if (!gameData) continue;
+                    const sop = findRelative(rootID, Number(data[1]));
+                    if (sop) { sop.otherParentId = Number(data[2]); sop.otherParentName = data[3]; }
+                    break;
+                }
+                case "sibling_death": {
+                    if (!gameData) continue;
+                    const sd = findRelative(rootID, Number(data[1]));
+                    if (sd) { sd.isDeceased = true; sd.deathDate = data[3]; sd.deathReason = data[4]; }
+                    break;
+                }
+                case "sibling_trait": {
+                    if (!gameData) continue;
+                    const st = findRelative(rootID, Number(data[1]));
+                    if (st) st.traits.push({ category: data[2], name: data[3], desc: data[4] });
+                    break;
+                }
+                case "sibling_is_concubine": {
+                    if (!gameData) continue;
+                    const sic = findRelative(rootID, Number(data[1]));
+                    if (sic) { sic.maritalStatus = 'is_concubine'; sic.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "sibling_concubine": {
+                    if (!gameData) continue;
+                    const scon = findRelative(rootID, Number(data[1]));
+                    if (scon) { scon.maritalStatus = 'married'; scon.partners.push({ id: Number(data[2]), name: data[3], type: 'concubine' }); }
+                    break;
+                }
+                case "sibling_spouse": {
+                    if (!gameData) continue;
+                    const ss = findRelative(rootID, Number(data[1]));
+                    if (ss) { ss.maritalStatus = 'married'; ss.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "sibling_betrothed": {
+                    if (!gameData) continue;
+                    const sbet = findRelative(rootID, Number(data[1]));
+                    if (sbet) { sbet.maritalStatus = 'betrothed'; sbet.partners.push({ id: Number(data[2]), name: data[3], type: 'betrothed' }); }
+                    break;
+                }
+                case "sibling_unmarried": {
+                    if (!gameData) continue;
+                    const su = findRelative(rootID, Number(data[1]));
+                    if (su) su.maritalStatus = 'unmarried';
+                    break;
+                }
+                case "sibling_eob":
+                    break;
             }
         } else {
             if (line.trim() !== "") {
@@ -240,6 +364,25 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
     console.debug("Finished parsing log file. Game data loaded from last block.");
 
+    function findRelative(rootID: number, relativeID: number): Relative | undefined {
+        return gameData?.characters.get(rootID)?.relatives.find(r => r.id === relativeID);
+    }
+
+    function upsertRelative(rootID: number, id: number, name: string, relationship: string, extras?: Partial<Relative>): void {
+        if (!gameData) return;
+        const char = gameData.characters.get(rootID);
+        if (!char) return;
+        let rel = char.relatives.find(r => r.id === id);
+        if (!rel) {
+            rel = { id, name, relationship, isDeceased: false, traits: [], partners: [] };
+            char.relatives.push(rel);
+        } else {
+            if (name) rel.name = name;
+            if (relationship) rel.relationship = relationship;
+        }
+        if (extras) Object.assign(rel, extras);
+    }
+
     function commitNewRelation(charAID: number, charBID: number, relationship: string): void {
         if (!gameData || !relationship) return;
         const charA = gameData.characters.get(charAID);
@@ -248,8 +391,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             deferredRelations.push({ charAID, charBID, relationship });
             return;
         }
-        if (!charA.familyMembers.some(m => m.id === charBID && m.relationship === relationship)) {
-            charA.familyMembers.push({ id: charBID, name: charB.fullName, relationship });
+        if (!charA.relatives.some(m => m.id === charBID)) {
+            charA.relatives.push({ id: charBID, name: charB.fullName, relationship, isDeceased: false, traits: [], partners: [] });
             console.log(`Parsed family for character ${charAID} (${charA.fullName}): ${relationship} ${charB.fullName} (ID: ${charBID})`);
         }
         if (charAID === gameData.playerID) {

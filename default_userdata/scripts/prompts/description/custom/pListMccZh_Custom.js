@@ -71,10 +71,11 @@ module.exports = (gameData) =>{
         personalityTraits(player), 
         otherTraits(player), 
         marriage(player),
+        relatives(player),
         describeProwess(player),
         goldStatus(player),
         age(player),
-        `信仰： ${player.faith}`, 
+        `信仰： ${player.faith}`,
         `民族： ${player.culture}`,
     ];
     
@@ -92,9 +93,10 @@ module.exports = (gameData) =>{
         greedines(ai),
         describeProwess(ai),
         marriage(ai),
+        relatives(ai),
         goldStatus(ai),
-        age(ai), 
-        `信仰： ${ai.faith}`, 
+        age(ai),
+        `信仰： ${ai.faith}`,
         `民族： ${ai.culture}`,
     ];
     
@@ -124,9 +126,10 @@ module.exports = (gameData) =>{
                     otherTraits(value), 
                     greedines(value), 
                     describeProwess(value),
-                    marriage(value),  
+                    marriage(value),
+                    relatives(value),
                     goldStatus(value),
-                    age(value), 
+                    age(value),
                     describeProwess(value),
                     `信仰：${value.faith}`, 
                     `民族：${value.culture}`]
@@ -249,7 +252,11 @@ module.exports = (gameData) =>{
             return ``;
         }
     }
-    
+
+    function relatives(char){
+        return char.getRelativesDescription() || null;
+    }
+
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != "性格特质");
     

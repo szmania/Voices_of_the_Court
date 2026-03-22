@@ -58,10 +58,11 @@ module.exports = (gameData) =>{
         personalityTraits(player), 
         otherTraits(player), 
         marriage(player),
+        relatives(player),
         describeProwess(player),
         goldStatus(player),
         age(player),
-        `${T('faith')}: ${player.faith}`, 
+        `${T('faith')}: ${player.faith}`,
         `${T('culture')}: ${player.culture}`,
     ];
     
@@ -79,9 +80,10 @@ module.exports = (gameData) =>{
         greedines(ai),
         describeProwess(ai),
         marriage(ai),
+        relatives(ai),
         goldStatus(ai),
-        age(ai), 
-        `${T('faith')}: ${ai.faith}`, 
+        age(ai),
+        `${T('faith')}: ${ai.faith}`,
         `${T('culture')}: ${ai.culture}`,
     ];
     
@@ -111,11 +113,12 @@ module.exports = (gameData) =>{
                     otherTraits(value), 
                     greedines(value), 
                     describeProwess(value),
-                    marriage(value),  
+                    marriage(value),
+                    relatives(value),
                     goldStatus(value),
-                    age(value), 
+                    age(value),
                     describeProwess(value),
-                    `${T('faith')}: ${value.faith}`, 
+                    `${T('faith')}: ${value.faith}`,
                     `${T('culture')}: ${value.culture}`]
                 output+=`\n[${value.shortName}${T('s_persona')}: ${secondaryAiItems.join("; ")}]`;
             }
@@ -236,7 +239,11 @@ module.exports = (gameData) =>{
             return ``;
         }
     }
-    
+
+    function relatives(char){
+        return char.getRelativesDescription() || null;
+    }
+
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != T('personality_trait_category') && trait.category != "Personality Trait");
     
