@@ -7,6 +7,7 @@ import { convertChatToTextPrompt } from "./checkActions";
 import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
+import { randomUUID } from "crypto";
 
 /**
  * 生成AI旁白，基于最后一轮对话和action的return结果
@@ -14,10 +15,10 @@ import fs from 'fs';
  * @param actionResponses - 已触发的action响应列表
  * @returns 生成的旁白文本
  */
-export async function generateNarrative(conv: Conversation, actionResponses: ActionResponse[]): Promise<string> {
+export async function generateNarrative(conv: Conversation, actionResponses: ActionResponse[]): Promise<Message | null> {
     // 如果没有触发的action，返回空字符串
     if (actionResponses.length === 0) {
-        return "";
+        return null;
     }
 
     console.log('Generating AI narrative for triggered actions.');
@@ -44,7 +45,20 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
     response = response.replace(/(\r\n|\n|\r)/gm, "");
     response = response.replace(/<narrative>(.*?)<\/?narrative>/, "$1").trim();
 
-    return response;
+    if (!response) {
+        return null;
+    }
+
+    const narrativeMessage: Message = {
+        id: randomUUID(),
+        role: 'system',
+        name: 'Narrator',
+        content: response,
+        // @ts-ignore
+        type: 'narrative'
+    };
+
+    return narrativeMessage;
 }
 
 /**

@@ -58,6 +58,7 @@
     "use_same_api": "Usar la misma API que en la pestaña de conexión",
     "parameters": "Parámetros",
     "select_actions": "Selecciona qué acciones quieres que detecte el mod:",
+    "changeLocation.title": "Cambiar ubicación de la escena",
     "reload_files": "Recargar archivos",
     "open_folder": "abrir carpeta",
     "description": "Descripción:",
@@ -117,7 +118,12 @@
     "reset_preset_tooltip": "Restablecer el preajuste actual a los valores predeterminados",
     "restore_defaults_confirm": "¿Estás seguro de que quieres restaurar todos los prompts a sus valores predeterminados? Esta acción no se puede deshacer.",
     "restore_defaults_success": "¡Todos los prompts se han restaurado correctamente a sus valores predeterminados!",
-    "restore_defaults_error": "Error al restaurar los prompts predeterminados: {{error}}"
+    "restore_defaults_error": "Error al restaurar los prompts predeterminados: {{error}}",
+    "mod_default": "Predeterminado (Vanilla)",
+    "mod_agot": "Juego de Tronos",
+    "mod_lotr_realms_in_exile": "El Señor de los Anillos: Reinos en el Exilio",
+    "mod_tfe": "El Águila Caída",
+    "mod_warcraft_goa2": "Warcraft: Guardianes de Azeroth 2"
   },
   "settings": {
     "header": "Ajustes",
@@ -134,6 +140,8 @@
     "dynamic_tooltip": "Usa el LLM para analizar la conversación y seleccionar el siguiente personaje en hablar. El LLM elegirá de un grupo de personajes que aún no han hablado en la ronda actual.",
     "nonTargetedCharacterResponseChance": "Probabilidad de respuesta de personaje no objetivo (%)",
     "nonTargetedCharacterResponseChance_tooltip": "La probabilidad (0-100%) de que un personaje no objetivo responda en una conversación con varios personajes después de que el personaje objetivo haya hablado.",
+    "questionPlayerActionsChance": "Probabilidad de Cuestionar Acciones del Jugador (%)",
+    "questionPlayerActionsChance_tooltip": "La probabilidad (0-100%) de que un personaje de IA cuestione las acciones del jugador basándose en su personalidad y la situación.",
     "validate_identity": "validar identidad del personaje",
     "validate_tooltip": "Cuando el streaming está desactivado y hay más de 2 personajes, valida que el mensaje generado coincida con la identidad del personaje. Si la validación falla, regenera hasta 3 veces.",
     "show_suggestions": "mostrar botón de sugerencias",
@@ -195,8 +203,8 @@
     "roaming_data": "Carpeta de datos móviles",
     "roaming_data_desc": "Esta carpeta contiene tu configuración personal, scripts y resúmenes.",
     "open_roaming_data": "Abrir carpeta de datos móviles",
-    "roleplay_instruction": "Eres {characterName}. Escribe una respuesta a {playerName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.",
-    "roleplay_instruction_ai_to_ai": "Eres {sourceCharacterName}. Escribe una respuesta a {targetCharacterName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.",
+    "roleplay_instruction": "[System instruction: Eres {characterName}. Escribe una respuesta a {playerName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Eres {sourceCharacterName}. Escribe una respuesta a {targetCharacterName}. Escribe una respuesta solo para tu personaje. No escribas respuestas para ningún otro personaje. Usa markdown para acciones, como *esto*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -244,8 +252,10 @@
     "target_character": "Personaje Objetivo",
     "action_cancel": "Cancelar",
     "action_execute": "Ejecutar",
+    "edit_tooltip": "Presiona Enter o haz clic fuera del cuadro de edición para guardar, Escape para cancelar. Se admite Ctrl+Z/Cmd+Z estándar para deshacer.",
     "cancel_button": "CANCELAR",
-    "cancel_tooltip": "Cancelar la generación de respuesta de la IA actual."
+    "cancel_response_tooltip": "Cancelar la generación de respuesta de la IA actual.",
+    "generation_cancelled": "Generación cancelada por el usuario."
   },
   "narrative": {
     "fallback_prompt": "Por favor, genera una breve narrativa basada en la siguiente conversación, describiendo la atmósfera de la escena o los sentimientos internos del personaje. La narrativa debe ser concisa y vívida, con una longitud de 50-100 palabras.",
@@ -282,7 +292,7 @@
     "save_btn": "Guardar",
     "save_all": "Guardar todos los resúmenes",
     "tooltip_refresh": "Recargar los ID de jugador y los resúmenes desde el disco.",
-    "tooltip_save_all": "Guardar todos los cambios de todos los personajes en sus respectivos archivos.",
+    "tooltip_save_all": "Guardar todos los cambios de todos los personajes en sus respectivos archivos. Esto también regenerará los resúmenes de las entradas editadas.",
     "tooltip_player_id": "Selecciona el perfil de jugador a gestionar.",
     "tooltip_character": "Filtrar resúmenes por un personaje específico o ver todos.",
     "tooltip_summary_path": "La ruta del archivo donde se almacena el resumen del personaje seleccionado.",
@@ -574,7 +584,7 @@
   "dialog": {
     "update_title": "Actualización disponible",
     "update_message": "¡Hay una nueva versión ({version}) disponible!",
-    "update_now": "Actualizar ahora",
+    "update_now": "Actualizar y Reiniciar",
     "later": "Más tarde",
     "no_updates_title": "Sin actualizaciones",
     "no_updates_message": "Estás ejecutando la última versión.",
@@ -596,7 +606,15 @@
     "join_discord": "Unirse a Discord",
     "view_steam": "Ver mod de Steam",
     "view_website": "Visitar página web",
-    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola."
+    "init_error": "Ocurrió un error al inicializar la página de configuración, por favor revise la consola.",
+    "restart_now": "Reiniciar ahora",
+    "update_ready_title": "Actualización Descargada",
+    "update_ready_message": "Se ha descargado una nueva versión. Por favor, reinicie la aplicación para aplicar las actualizaciones.",
+    "incompatible_mod_title": "Mod Incompatible Detectado",
+    "incompatible_mod_message": "El mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) no es compatible con 'Voices of the Court 2.0 - Community Edition'.\n\nPor favor, suscríbase y active la Edición Comunitaria, desactive el mod incompatible y reinicie la aplicación.",
+    "close_app": "Cerrar Aplicación",
+    "open_steam_and_quit": "Abrir Steam y Salir",
+    "open_discord_and_quit": "Abrir Discord y Salir"
   },
   "diary_manager": {
     "header": "Gestor de diarios",
@@ -637,7 +655,8 @@
     "delete_success": "Entrada de diario borrada",
     "update_success": "Entrada de diario actualizada",
     "select_first": "Por favor, selecciona primero una entrada de diario para actualizar",
-    "added_new": "Nueva entrada de diario añadida"
+    "added_new": "Nueva entrada de diario añadida",
+    "regenerating_summaries": "Regenerando resúmenes para las entradas editadas..."
   },
   "tray": {
     "open_config": "Abrir ventana de configuración",
@@ -841,5 +860,12 @@
     "examination_room": "Sala de examen",
     "chinese_city": "Ciudad china",
     "japanese_city": "Ciudad japonesa"
+  },
+  "scene_description": {
+    "default_prompt": "Por favor, genera una descripción de escena atractiva para proporcionar fondo y atmósfera para el diálogo de los personajes.",
+    "instruction": "Basado en la siguiente información, genera una breve descripción de escena atmosférica en tercera persona (50-100 palabras). No incluyas pensamientos ni diálogos de los personajes. Solo describe el escenario y el ambiente:",
+    "description_label": "Información de la conversación actual:",
+    "system_prompt": "Eres un asistente de generación de descripciones de escena responsable de crear descripciones vívidas de la atmósfera de la escena para juegos de rol.",
+    "fallback_description": "El {{date}}, {{playerName}} y {{aiName}} iniciaron una conversación en {{location}}."
   }
 }

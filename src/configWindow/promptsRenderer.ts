@@ -23,9 +23,10 @@ let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-
 let statusMessage: HTMLDivElement;
 
 const promptKeys = [
-    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt", 
+    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
+    "actionTriggeredPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
@@ -131,11 +132,6 @@ async function init(){
         let config = await ipcRenderer.invoke('get-config');
         promptPresets = await ipcRenderer.invoke('get-prompt-presets');
 
-        await populatePresetSelector(config.activePromptPreset);
-        console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
-        console.log('selectedExMsgScript:', config.selectedExMsgScript);
-        console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
-
         // 初始化语言
         // @ts-ignore
         if (window.LocalizationManager) {
@@ -144,6 +140,11 @@ async function init(){
             // @ts-ignore
             window.LocalizationManager.applyTranslations();
         }
+
+        await populatePresetSelector(config.activePromptPreset);
+        console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
+        console.log('selectedExMsgScript:', config.selectedExMsgScript);
+        console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
 
         const userDataPath = await ipcRenderer.invoke('get-userdata-path');
         console.log('userDataPath:', userDataPath);
@@ -309,19 +310,51 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
 
 async function populatePresetSelector(activePreset?: string) {
     promptPresetSelect.innerHTML = '';
+    const config = await ipcRenderer.invoke('get-config');
 
     // Add default option
     const defaultOption = document.createElement('option');
     defaultOption.value = 'Default';
-    defaultOption.textContent = 'Default';
+    // @ts-ignore
+    defaultOption.textContent = window.LocalizationManager.getNestedTranslation('prompts.mod_default', null, 'Default (Vanilla)');
     promptPresetSelect.appendChild(defaultOption);
 
+    // Add mod presets
+    if (config.mod_prompt_sets) {
+        const modSeparator = document.createElement('option');
+        modSeparator.disabled = true;
+        modSeparator.textContent = '--- Mod Presets ---';
+        promptPresetSelect.appendChild(modSeparator);
+
+        const modNameLocaleKeyMap: { [key: string]: string } = {
+            "A Game of Thrones": "prompts.mod_agot",
+            "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
+            "The Fallen Eagle": "prompts.mod_tfe"
+        };
+
+        for (const modName in config.mod_prompt_sets) {
+            const option = document.createElement('option');
+            option.value = modName;
+            const localeKey = modNameLocaleKeyMap[modName];
+            // @ts-ignore
+            option.textContent = localeKey ? window.LocalizationManager.getNestedTranslation(localeKey, null, modName) : modName;
+            promptPresetSelect.appendChild(option);
+        }
+    }
+
     // Add custom presets
-    for (const presetName in promptPresets) {
-        const option = document.createElement('option');
-        option.value = presetName;
-        option.textContent = presetName;
-        promptPresetSelect.appendChild(option);
+    if (Object.keys(promptPresets).length > 0) {
+        const customSeparator = document.createElement('option');
+        customSeparator.disabled = true;
+        customSeparator.textContent = '--- Custom Presets ---';
+        promptPresetSelect.appendChild(customSeparator);
+
+        for (const presetName in promptPresets) {
+            const option = document.createElement('option');
+            option.value = presetName;
+            option.textContent = presetName;
+            promptPresetSelect.appendChild(option);
+        }
     }
 
     promptPresetSelect.value = activePreset || 'Default';
@@ -341,33 +374,32 @@ async function handlePresetChange() {
     });
     togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
+    const config = await ipcRenderer.invoke('get-config');
+    const lang = config.language || 'en';
+    let promptsToLoad: any = null;
+
     if (selectedPresetName === 'Default') {
-        const config = await ipcRenderer.invoke('get-config');
-        const lang = config.language || 'en';
-        const promptsForLang = config.prompts[lang] || config.prompts.en;
-        if (promptsForLang) {
-            for (const key of promptKeys) {
-                if (promptTextareas[key] && promptsForLang[key] !== undefined) {
-                    promptTextareas[key].textarea.value = promptsForLang[key];
-                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            }
-        }
+        promptsToLoad = config.prompts[lang] || config.prompts.en;
+    } else if (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]) {
+        promptsToLoad = config.mod_prompt_sets[selectedPresetName][lang] || config.mod_prompt_sets[selectedPresetName].en;
     } else {
-        const preset = promptPresets[selectedPresetName];
-        if (preset) {
-            for (const key of promptKeys) {
-                if (promptTextareas[key] && preset[key] !== undefined) {
-                    promptTextareas[key].textarea.value = preset[key];
-                    // Manually trigger the input event to notify the component
-                    promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                }
+        promptsToLoad = promptPresets[selectedPresetName];
+    }
+
+    if (promptsToLoad) {
+        for (const key of promptKeys) {
+            if (promptTextareas[key] && promptsToLoad[key] !== undefined) {
+                promptTextareas[key].textarea.value = promptsToLoad[key];
+                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
     }
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
-    deletePromptPresetBtn.disabled = (selectedPresetName === 'Default');
+
+    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
+    deletePromptPresetBtn.disabled = isProtected;
+
     if (deletePromptPresetBtn.disabled) {
         deletePromptPresetBtn.style.opacity = '0.5';
         deletePromptPresetBtn.style.cursor = 'not-allowed';
@@ -378,6 +410,7 @@ async function handlePresetChange() {
     setSaveButtonState(false); // Reset on preset change
 }
 
+
 async function saveCurrentPreset() {
     const presetName = promptPresetNameInput.value.trim();
     // @ts-ignore
@@ -386,6 +419,11 @@ async function saveCurrentPreset() {
     if (!presetName) {
         // @ts-ignore
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'), 'error');
+        return;
+    }
+    if (presetName === 'Default') {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_default_preset_alert'), 'error');
         return;
     }
 
@@ -433,10 +471,9 @@ async function saveCurrentPreset() {
 
 async function deleteSelectedPreset() {
     const selectedPresetName = promptPresetSelect.value;
-    // @ts-ignore
-    const lang = window.LocalizationManager?.language || 'en';
+    const config = await ipcRenderer.invoke('get-config');
 
-    if (selectedPresetName === 'Default') {
+    if (selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName])) {
         // @ts-ignore
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'), 'error');
         return;

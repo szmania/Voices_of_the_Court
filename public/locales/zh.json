@@ -58,6 +58,7 @@
     "use_same_api": "使用与连接选项卡相同的 API",
     "parameters": "参数",
     "select_actions": "选择您希望模组检测的动作：",
+    "changeLocation.title": "更改场景位置",
     "reload_files": "重新加载文件",
     "open_folder": "打开文件夹",
     "description": "描述：",
@@ -117,7 +118,12 @@
     "reset_preset_tooltip": "将当前预设重置为默认值",
     "restore_defaults_confirm": "确定要将所有Prompt恢复为默认值吗？此操作不可撤销。",
     "restore_defaults_success": "所有Prompt已成功恢复为默认值！",
-    "restore_defaults_error": "恢复默认Prompt时出错：{{error}}"
+    "restore_defaults_error": "恢复默认Prompt时出错：{{error}}",
+    "mod_default": "默认（原版）",
+    "mod_agot": "权力的游戏",
+    "mod_lotr_realms_in_exile": "指环王：流亡国度",
+    "mod_tfe": "堕落之鹰",
+    "mod_warcraft_goa2": "魔兽争霸：艾泽拉斯守护者2"
   },
   "settings": {
     "header": "设置",
@@ -134,6 +140,8 @@
     "dynamic_tooltip": "使用 LLM 分析对话并选择下一个发言的角色。LLM 将从当前轮次中尚未发言的角色池中进行选择。",
     "nonTargetedCharacterResponseChance": "非目标角色回应概率 (%)",
     "nonTargetedCharacterResponseChance_tooltip": "在多角色对话中，目标角色回应后，非目标角色回应的概率（0-100%）。",
+    "questionPlayerActionsChance": "质疑玩家行为概率 (%)",
+    "questionPlayerActionsChance_tooltip": "AI角色根据其性格和情境质疑玩家行为的概率（0-100%）。",
     "validate_identity": "验证角色身份",
     "validate_tooltip": "当禁用流式传输且角色超过 2 个时，验证生成的消息是否符合角色的身份。如果验证失败，最多重新生成 3 次。",
     "show_suggestions": "显示建议按钮",
@@ -244,8 +252,10 @@
     "target_character": "目标角色",
     "action_cancel": "取消",
     "action_execute": "执行",
+    "edit_tooltip": "按 Enter 或在编辑框外单击以保存，按 Escape 取消。支持标准的 Ctrl+Z/Cmd+Z 撤消操作。",
     "cancel_button": "取消",
-    "cancel_tooltip": "取消当前AI响应生成。"
+    "cancel_response_tooltip": "取消当前AI响应生成。",
+    "generation_cancelled": "用户已取消生成。"
   },
   "narrative": {
     "fallback_prompt": "请根据以下对话内容生成一段简短的旁白，描述场景氛围或角色的内心感受。旁白应该简洁、生动，长度控制在50-100字之间。",
@@ -282,7 +292,7 @@
     "save_btn": "保存",
     "save_all": "保存所有总结",
     "tooltip_refresh": "从磁盘重新加载玩家ID和总结。",
-    "tooltip_save_all": "将所有角色的所有更改保存到各自的文件中。",
+    "tooltip_save_all": "将所有角色的所有更改保存到各自的文件中。这还将为任何已编辑的条目重新生成摘要。",
     "tooltip_player_id": "选择要管理的玩家个人资料。",
     "tooltip_character": "按特定角色筛选总结或查看全部。",
     "tooltip_summary_path": "所选角色总结的存储文件路径。",
@@ -574,7 +584,7 @@
   "dialog": {
     "update_title": "可用更新",
     "update_message": "新版本 ({version}) 已发布！",
-    "update_now": "立即更新",
+    "update_now": "更新并重启",
     "later": "稍后",
     "no_updates_title": "没有更新",
     "no_updates_message": "您运行的是最新版本。",
@@ -596,7 +606,15 @@
     "join_discord": "加入 Discord",
     "view_steam": "查看 Steam 模组",
     "view_website": "访问网站",
-    "init_error": "初始化配置页面时发生错误，请查看控制台日志。"
+    "init_error": "初始化配置页面时发生错误，请查看控制台日志。",
+    "restart_now": "立即重启",
+    "update_ready_title": "更新已下载",
+    "update_ready_message": "新版本已下载。请重启应用程序以应用更新。",
+    "incompatible_mod_title": "检测到不兼容的模组",
+    "incompatible_mod_message": "模组 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) 与 'Voices of the Court 2.0 - 社区版' 不兼容。\n\n请订阅并启用社区版，禁用不兼容的模组，然后重新启动应用程序。",
+    "close_app": "关闭应用",
+    "open_steam_and_quit": "打开Steam并退出",
+    "open_discord_and_quit": "打开Discord并退出"
   },
   "diary_manager": {
     "header": "日记管理器",
@@ -637,7 +655,8 @@
     "delete_success": "日记条目已删除",
     "update_success": "日记条目已更新",
     "select_first": "请先选择要更新的日记条目",
-    "added_new": "已添加新日记条目"
+    "added_new": "已添加新日记条目",
+    "regenerating_summaries": "正在为已编辑的条目重新生成摘要..."
   },
   "tray": {
     "open_config": "打开配置窗口",
@@ -882,5 +901,12 @@
     "examination_room": "检查室",
     "chinese_city": "中国城市",
     "japanese_city": "日本城市"
+  },
+  "scene_description": {
+    "default_prompt": "请生成一个引人入胜的场景描述，为角色的对话提供背景和氛围。",
+    "instruction": "根据以下信息，生成一段简短、有氛围的第三人称场景描述（50-100字）。不要包含角色的思想或对话。只描述场景和情绪：",
+    "description_label": "当前对话信息：",
+    "system_prompt": "你是一个场景描述生成助手，负责为角色扮演游戏创建生动的场景氛围描述。",
+    "fallback_description": "在{{date}}，{{playerName}}和{{aiName}}在{{location}}开始了一段对话。"
   }
 }

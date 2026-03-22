@@ -117,7 +117,7 @@
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
-    max-width: 350px;
+    max-width: 250px;
     white-space: normal;
     overflow-wrap: break-word;
     opacity: 0;
@@ -133,15 +133,6 @@
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s; /* Small delay before hiding */
-}
-
-#character-target-wrapper::after {
-    top: 50%;
-    left: 100%;
-    bottom: auto;
-    transform: translateY(-50%);
-    margin-top: 0;
-    margin-left: 10px;
 }
 
 .search-icon:hover, .reset-button:hover {
@@ -298,6 +289,7 @@ html{
 }
 
 .message{
+    position: relative;
     padding-top: 3%;
     padding-left: 1%;
     padding-right: 1%;
@@ -451,9 +443,72 @@ html{
 
 .suggestions-button-wrapper {
     position: absolute;
-    left: 15%;
+    left: 12.5%;
     transform: translateX(-50%);
     bottom: -20px;
+}
+
+.suggestions-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
+}
+
+.suggestions-button-wrapper {
+    position: relative;
+    left: 7%;
+}
+
+.suggestions-button-wrapper::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.suggestions-button-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
 }
 
 
@@ -837,17 +892,6 @@ html{
       margin: 5px 20px;
   }
 
-  .historical-scene-info {
-    text-align: center;
-    font-style: italic;
-    color: #a18c61;
-    margin: 8px 0;
-    font-size: 0.9rem;
-    padding: 4px;
-    background-color: rgba(0,0,0,0.2);
-    border-radius: 3px;
-  }
-
 /* Slash Command Autocomplete */
 .slash-command-container {
     background: #222;
@@ -1184,9 +1228,8 @@ html{
 
 .queue-status {
     position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 40px;
+    right: 15px;
     background: rgba(15, 15, 15, 0.5);
     border: 1px solid #3d2e1e;
     padding: 5px 10px;
@@ -1195,7 +1238,6 @@ html{
     font-family: Gitan;
     font-size: 0.9rem;
     color: #c0c0c0;
-    text-align: center;
 }
 
 .queue-status .current-speaker {
@@ -1207,75 +1249,42 @@ html{
     color: #a18c61;
 }
 
-/* Action Approval Styles */
-.action-approval-container {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: rgba(40, 40, 40, 0.7);
-    border-left: 3px solid #ffc107;
-    border-radius: 3px;
+.message .edit-help-icon {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(40,40,40,0.8);
+    color: #ccc;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    line-height: 16px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: help;
+    z-index: 10;
+    border: 1px solid #555;
 }
 
-.action-prompt {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #444;
+.message.is-editing .edit-help-icon {
+    display: block;
 }
 
-.action-prompt:last-child {
-    border-bottom: none;
-}
-
-.action-prompt span {
-    flex-grow: 1;
-    margin-right: 10px;
-}
-
-.action-buttons button {
-    margin-left: 5px;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    border-radius: 2px;
-    cursor: pointer;
-    font-family: 'Gitan', sans-serif;
-    transition: all 0.2s;
-    position: relative;
-}
-
-.action-buttons button:first-child {
-    background-color: #193a19; /* Darker Green */
-    border: 1px solid #2a522a;
-    color: #c0c0c0;
-}
-
-.action-buttons button:first-child:hover {
-    background-color: #234f23;
-}
-
-.action-buttons button:last-child {
-    background-color: #4a1a1a; /* Darker Red */
-    border: 1px solid #6b2a2a;
-    color: #c0c0c0;
-}
-
-.action-buttons button:last-child:hover {
-    background-color: #6b2a2a;
-}
-
-.action-buttons button::after {
+.message .edit-help-icon::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 125%;
+    right: 0;
     background-color: #111;
     color: #fff;
     padding: 8px 12px;
     border-radius: 4px;
     font-family: Gitan;
     font-size: 0.9rem;
+    width: max-content;
     max-width: 250px;
     white-space: normal;
     overflow-wrap: break-word;
@@ -1287,7 +1296,7 @@ html{
     pointer-events: none;
 }
 
-.action-buttons button:hover::after {
+.message .edit-help-icon:hover::after {
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s;

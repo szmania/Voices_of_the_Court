@@ -58,7 +58,6 @@ export class Conversation{
     actions!: Action[];
     summaries: Map<number, Summary[]>;
     currentSummary: string;
-    narratives: Map<number, string[]>; // 存储每个消息ID对应的旁白列表
     summaryFileWatcher: SummaryFileWatcher; // 文件监控器
     letterManager: LetterManager;
     letters: Map<number, ILetter[]>;
@@ -89,7 +88,6 @@ export class Conversation{
         this.gameData = gameData;
         this.messages = [];
         this.currentSummary = "";
-        this.narratives = new Map<number, string[]>(); // 初始化旁白存储
         this.config = config;
 
         // Load translations
@@ -556,21 +554,6 @@ export class Conversation{
         }
     }
 
-    // 添加旁白到指定消息
-    addNarrativeToMessage(messageIndex: number, narrative: string): void {
-        if (messageIndex >= 0 && messageIndex < this.messages.length) {
-            // 在narratives映射中存储旁白
-            const messageId = messageIndex;
-            if (!this.narratives.has(messageId)) {
-                this.narratives.set(messageId, []);
-            }
-            this.narratives.get(messageId)!.push(narrative);
-            
-            console.log(`Narrative added to message at index ${messageIndex}: ${narrative}`);
-        } else {
-            console.error(`Invalid message index: ${messageIndex}. Cannot add narrative.`);
-        }
-    }
 
     async generateAIsMessages() {
         if (this.isGenerating) {
@@ -580,6 +563,47 @@ export class Conversation{
         this.isGenerating = true;
         this.abortController = new AbortController();
         try {
+            const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+            let isDirectAction = false;
+            if (lastMessage && lastMessage.role === 'user') {
+                if (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content)) {
+                    isDirectAction = true;
+                }
+            }
+
+            if (isDirectAction && lastMessage) {
+                console.log('Direct action detected. Bypassing conversational replies and checking for actions immediately.');
+
+                const targetedCharacters = await this.determineTargetedCharacters();
+                // If multiple targets, pick the first. If none, fallback to main AI.
+                const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
+                const sourceId = this.gameData.playerID;
+
+                const collectedActions = await checkActions(this, sourceId, targetId);
+
+                let playerNarrative: Message | null = null;
+                if (collectedActions.length > 0) {
+                    this.executedActions.set(lastMessage.id!, collectedActions);
+                    this.actionInvolvedCharacterIds.add(sourceId);
+                    this.actionInvolvedCharacterIds.add(targetId);
+                    this.consecutiveActionsCount++;
+                    this.lastActionMessageIndex = this.messages.length - 1;
+
+                    if (this.config.narrativeEnable) {
+                        playerNarrative = await generateNarrative(this, collectedActions);
+                    }
+                }
+
+                if (playerNarrative) {
+                    this.pushMessage(playerNarrative);
+                }
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
+
+                // End generation here since we handled the direct action.
+                this.isGenerating = false;
+                return;
+            }
+
             this.aiToAiTurnLimit = 0;
             console.log('Starting generation of AI messages for all characters.');
 
@@ -694,15 +718,12 @@ export class Conversation{
             }
 
             // Send actions for player-directed part to re-enable user input
-            let playerNarrative = "";
+            let playerNarrative: Message | null = null;
             if (allTurnActions.length > 0 && this.config.narrativeEnable) {
                 playerNarrative = await generateNarrative(this, allTurnActions);
             }
             if (playerNarrative) {
-                const lastMessageIndex = this.messages.length - 1;
-                if (lastMessageIndex >= 0) {
-                    this.addNarrativeToMessage(lastMessageIndex, playerNarrative);
-                }
+                this.pushMessage(playerNarrative);
             }
             this.chatWindow.window.webContents.send('actions-receive', allTurnActions, playerNarrative, false);
 
@@ -973,6 +994,19 @@ export class Conversation{
         
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
+
+        // Check if we should question player actions
+        const questioningChance = this.calculateQuestioningChance(character);
+        if (questioningChance > 0 && Math.random() < (questioningChance / 100)) {
+            const questionMessage = await this.generateActionQuestioningMessage(character);
+            if (questionMessage) {
+                if (sendMessageToChat) {
+                    this.pushMessage(questionMessage);
+                    this.chatWindow.window.webContents.send('message-receive', questionMessage, this.config.actionsEnableAll);
+                }
+                return questionMessage;
+            }
+        }
 
         let responseMessage: Message;
 
@@ -1412,8 +1446,17 @@ ${character.fullName}的发言：`
             );
 
             // Hardcoded effect for leaveConversation
-            if (action.signature === 'leaveConversation') {
-                this.removeCharacter(targetId);
+            if (action.signature === 'leaveConversation' || action.signature === 'killCharacter') {
+                if (targetId === this.gameData.playerID) {
+                    console.log(`Player is leaving or was killed. Ending session. Action: ${action.signature}`);
+                    this.chatWindow.window.webContents.send('chat-hide');
+                    this.chatWindow.hide();
+                    if (this.isOpen) {
+                        this.summarize();
+                    }
+                } else {
+                    this.removeCharacter(targetId);
+                }
             }
 
             // Regenerate scene description if location changes
@@ -1547,14 +1590,9 @@ ${character.fullName}的发言：`
           const messageData: any = {
             id: msg.id,
             name: msg.name,
-            content: msg.content
+            content: msg.content,
+            type: (msg as any).type
           };
-          
-          // 添加旁白信息（如果有）
-          const narratives = this.narratives.get(index);
-          if (narratives && narratives.length > 0) {
-            messageData.narratives = narratives;
-          }
           
           return messageData;
         });
@@ -1583,7 +1621,13 @@ ${character.fullName}的发言：`
         const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
 
         processedMessages.forEach((msg, index) => {
-            if (msg.name) {
+            if (msg.type === 'narrative' || msg.name === 'Narrator') {
+                textContent += `${narrativeLabel} ${msg.content}\n`;
+            } else if (msg.type === 'scene') {
+                // Scene descriptions are usually at the start and might not need a label in history,
+                // but for clarity we can add one.
+                textContent += `[Scene]: ${msg.content}\n`;
+            } else if (msg.name) {
                 textContent += `${msg.name}: ${msg.content}\n`;
             } else {
                 textContent += `${msg.content}\n`;
@@ -1596,12 +1640,7 @@ ${character.fullName}的发言：`
                     textContent += `${actionLabel} ${action.chatMessage}\n`;
                 });
             }
-          
-          // 添加旁白信息
-          if (msg.narratives && msg.narratives.length > 0) {
-            textContent += `${narrativeLabel} ${msg.narratives.join(`\n${narrativeLabel} `)}\n`;
-          }
-          
+
           textContent += '\n';
         });
 
@@ -1821,9 +1860,12 @@ ${character.fullName}的发言：`
             if (sceneDescription && sceneDescription.trim()) {
                 // 创建场景描述消息
                 const sceneMessage: Message = {
+                    id: randomUUID(),
                     role: "system",
                     name: "",
-                    content: sceneDescription
+                    content: sceneDescription,
+                    // @ts-ignore
+                    type: 'scene'
                 };
 
                 if (isInitial) {
@@ -1842,24 +1884,24 @@ ${character.fullName}的发言：`
                 }
 
                 // 发送场景描述到聊天窗口
-                this.chatWindow.window.webContents.send('scene-description', sceneDescription);
+                this.chatWindow.window.webContents.send('scene-description', sceneMessage);
 
-                console.log(`Scene description generated and inserted. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
+                console.log(`Scene description generated and sent. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
                 // 发送空场景描述以清除加载状态
-                this.chatWindow.window.webContents.send('scene-description', '');
+                this.chatWindow.window.webContents.send('scene-description', null);
             }
         } catch (error) {
             if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
                 console.log('Scene description generation was cancelled by user.');
                 // The UI is already handled by the 'generation-cancelled' event, so we just need to ensure loading dots are gone.
-                this.chatWindow.window.webContents.send('scene-description', ''); // Clear loading state
+                this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state
             } else {
                 console.error('Error generating scene description:', error);
                 // 如果生成失败，不影响对话的正常进行
                 // 但仍然需要清除加载状态
-                this.chatWindow.window.webContents.send('scene-description', '');
+                this.chatWindow.window.webContents.send('scene-description', null);
             }
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
@@ -1908,7 +1950,6 @@ ${character.fullName}的发言：`
     public clearHistory(): void {
         console.log("Clearing conversation history.");
         this.messages = [];
-        this.narratives.clear();
         this.currentSummary = "";
         this.consecutiveActionsCount = 0;
         this.lastActionMessageIndex = -1;
@@ -1932,16 +1973,30 @@ ${character.fullName}的发言：`
         if (lastUserIndex !== -1) {
             const actualIndex = this.messages.length - 1 - lastUserIndex;
             console.log(`Removing messages from index ${actualIndex} onwards.`);
-            this.messages.splice(actualIndex);
-            
-            // Clean up narratives for removed messages
-            for (let i = actualIndex; i <= this.messages.length + 1; i++) {
-                this.narratives.delete(i);
+            const removedMessages = this.messages.splice(actualIndex);
+
+            // Clean up actions for removed messages
+            for (const msg of removedMessages) {
+                if (msg.id) {
+                    this.pendingActions.delete(msg.id);
+                    this.executedActions.delete(msg.id);
+                }
             }
             
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
+        }
+    }
+
+
+    public editMessage(messageId: string, newContent: string): void {
+        const message = this.messages.find(m => m.id === messageId);
+        if (message) {
+            console.log(`Editing message ${messageId}. Old content: "${message.content.substring(0, 50)}...". New content: "${newContent.substring(0, 50)}..."`);
+            message.content = newContent;
+        } else {
+            console.warn(`Could not find message with ID ${messageId} to edit.`);
         }
     }
 
@@ -1959,12 +2014,14 @@ ${character.fullName}的发言：`
         // Remove all messages after the last user message
         if (actualIndex < this.messages.length - 1) {
             console.log(`Splicing messages from index ${actualIndex + 1}`);
-            this.messages.splice(actualIndex + 1);
-        }
-        
-        // Clean up narratives for removed messages
-        for (let i = actualIndex + 1; i <= this.messages.length + 5; i++) { // A bit of a buffer
-            this.narratives.delete(i);
+            const removedMessages = this.messages.splice(actualIndex + 1);
+            // Clean up actions associated with removed messages
+            for (const msg of removedMessages) {
+                if (msg.id) {
+                    this.pendingActions.delete(msg.id);
+                    this.executedActions.delete(msg.id);
+                }
+            }
         }
 
         // Reset action counter as we are re-doing this turn
@@ -2101,14 +2158,14 @@ ${character.fullName}的发言：`
                         this.actionInvolvedCharacterIds.add(targetAI.id);
                     }
                 }
-                let narrative = "";
+                let narrativeMessage: Message | null = null;
                 if (collectedActions.length > 0 && this.config.narrativeEnable) {
-                    narrative = await generateNarrative(this, collectedActions);
-                    if (narrative) {
-                        this.addNarrativeToMessage(this.messages.length - 1, narrative);
+                    narrativeMessage = await generateNarrative(this, collectedActions);
+                    if (narrativeMessage) {
+                        this.pushMessage(narrativeMessage);
                     }
                 }
-                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrative, true);
+                this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
                 // Generate AI2 -> AI1 response
                 const targetResponseMessages = await this.processCharacterList([targetAI], false);
@@ -2125,11 +2182,11 @@ ${character.fullName}的发言：`
                                 this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
                             }
                         }
-                        let responseNarrative = "";
+                        let responseNarrative: Message | null = null;
                         if (responseActions.length > 0 && this.config.narrativeEnable) {
                             responseNarrative = await generateNarrative(this, responseActions);
                             if (responseNarrative) {
-                                this.addNarrativeToMessage(this.messages.length - 1, responseNarrative);
+                                this.pushMessage(responseNarrative);
                             }
                         }
                         this.chatWindow.window.webContents.send('actions-receive', responseActions, responseNarrative, true);
@@ -2145,5 +2202,97 @@ ${character.fullName}的发言：`
             this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
             await this.generateAIsMessages();
         }
+    }
+
+    /**
+     * Generate a message where the AI character questions the player's actions
+     * based on their personality and history.
+     */
+    private async generateActionQuestioningMessage(character: Character): Promise<Message | null> {
+        console.log(`Generating action questioning message for character: ${character.fullName}`);
+
+        // Build a prompt that uses the full conversation context and adds a questioning instruction.
+        const prompt = await this.buildQuestioningPrompt(character);
+
+        try {
+            const response = await this.textGenApiConnection.complete(prompt, false, {
+                max_tokens: this.config.maxTokens,
+                temperature: 0.7 // Slightly higher temperature for more creative questioning
+            });
+
+            if (!response || response.trim() === '') {
+                return null;
+            }
+
+            const message: Message = {
+                role: "assistant",
+                name: character.fullName,
+                content: response.trim(),
+                characterId: character.id
+            };
+
+            return message;
+        } catch (error) {
+            console.error(`Error generating action questioning message: ${error}`);
+            return null;
+        }
+    }
+
+    /**
+     * Build a prompt for questioning player actions by appending an instruction to the main chat prompt.
+     */
+    private async buildQuestioningPrompt(character: Character): Promise<any[]> {
+        // Get the standard, rich prompt with full conversation context.
+        const standardPrompt = await buildChatPrompt(this, character);
+
+        // Add a new system instruction at the end to guide the AI's response.
+        const questioningInstruction = {
+            role: "system" as const,
+            content: `Instead of directly complying, your character has reservations about the player's last statement. Based on your personality and the situation, express your hesitation, question their motives, or suggest an alternative. Your response should be in character and move the conversation forward by exploring this conflict or concern.`
+        };
+
+        standardPrompt.push(questioningInstruction);
+        console.log("Appended questioning instruction to the standard prompt.");
+
+        return standardPrompt;
+    }
+
+    private calculateQuestioningChance(character: Character): number {
+        let chance = this.config.questionPlayerActionsChance;
+        if (chance <= 0) {
+            return 0;
+        }
+
+        console.log(`Calculating questioning chance for ${character.shortName}. Base chance: ${chance}%`);
+
+        // Trait-based modifiers (positive for more likely to question, negative for less)
+        const traitModifiers: { [key: string]: number } = {
+            'just': 20,
+            'honest': 15,
+            'honorable': 15,
+            'compassionate': 10,
+            'cynical': 10,
+            'paranoid': 25,
+            'arbitrary': -10,
+            'deceitful': -20,
+            'callous': -15,
+            'lazy': -10
+        };
+
+        for (const trait of character.traits) {
+            const traitName = trait.name.toLowerCase();
+            if (traitModifiers[traitName]) {
+                const modifier = traitModifiers[traitName];
+                chance += modifier;
+                console.log(`... applying modifier for trait '${traitName}': ${modifier}%. New chance: ${chance}%`);
+            }
+        }
+
+        // Clamp the chance between 0 and 100
+        const finalChance = Math.max(0, Math.min(100, chance));
+        if (finalChance !== this.config.questionPlayerActionsChance) {
+            console.log(`Final questioning chance for ${character.shortName}: ${finalChance}%`);
+        }
+        return finalChance;
     }
 }

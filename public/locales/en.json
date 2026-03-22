@@ -116,7 +116,12 @@
     "reset_preset_tooltip": "Reset current preset to default values",
     "restore_defaults_confirm": "Are you sure you want to restore all prompts to their default values? This action cannot be undone.",
     "restore_defaults_success": "All prompts have been successfully restored to default values!",
-    "restore_defaults_error": "Error restoring default prompts: {{error}}"
+    "restore_defaults_error": "Error restoring default prompts: {{error}}",
+    "mod_default": "Default (Vanilla)",
+    "mod_agot": "A Game of Thrones",
+    "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
+    "mod_tfe": "The Fallen Eagle",
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
   },
   "settings": {
     "header": "Settings",
@@ -133,6 +138,8 @@
     "dynamic_tooltip": "Use LLM to analyze conversation and select the next character to speak. The LLM will choose from a pool of characters who haven't spoken yet in the current round.",
     "nonTargetedCharacterResponseChance": "Non-targeted response chance (%)",
     "nonTargetedCharacterResponseChance_tooltip": "The chance (0-100%) that a non-targeted character will respond in a multi-character conversation after the targeted character has spoken.",
+    "questionPlayerActionsChance": "Question Player Actions Chance (%)",
+    "questionPlayerActionsChance_tooltip": "The chance (0-100%) that an AI character will question the player's actions based on their personality and the situation.",
     "validate_identity": "validate character identity",
     "validate_tooltip": "When streaming is disabled and there are more than 2 characters, validate that the generated message matches the character's identity. If validation fails, regenerate up to 3 times.",
     "show_suggestions": "show suggestions button",
@@ -242,8 +249,9 @@
     "target_character": "Target Character",
     "action_cancel": "Cancel",
     "action_execute": "Execute",
+    "edit_tooltip": "Press Enter or click outside of the edit box to save, Escape to cancel. Standard Ctrl+Z/Cmd+Z for undo is supported.",
     "cancel_button": "CANCEL",
-    "cancel_tooltip": "Cancel the current AI response generation.",
+    "cancel_response_tooltip": "Cancel the current AI response generation.",
     "generation_cancelled": "Generation cancelled by user."
   },
   "narrative": {
@@ -573,7 +581,7 @@
   "dialog": {
     "update_title": "Update Available",
     "update_message": "A new version ({version}) is available!",
-    "update_now": "Update Now",
+    "update_now": "Update and Restart",
     "later": "Later",
     "no_updates_title": "No Updates",
     "no_updates_message": "You are running the latest version.",
@@ -595,7 +603,15 @@
     "join_discord": "Join Discord",
     "view_steam": "View Steam Mod",
     "view_website": "Visit Website",
-    "init_error": "An error occurred while initializing the configuration page, please check the console log."
+    "init_error": "An error occurred while initializing the configuration page, please check the console log.",
+    "restart_now": "Restart",
+    "update_ready_title": "Update Downloaded",
+    "update_ready_message": "A new version has been downloaded. Please restart to apply the updates.",
+    "incompatible_mod_title": "Incompatible Mod Detected",
+    "incompatible_mod_message": "The mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) is not compatible with 'Voices of the Court 2.0 - Community Edition'.\n\nPlease subscribe to and enable the Community Edition, disable the incompatible mod, and restart the application.",
+    "close_app": "Close",
+    "open_steam_and_quit": "Open Steam and Quit",
+    "open_discord_and_quit": "Open Discord and Quit"
   },
   "diary_manager": {
     "header": "Diary Manager",

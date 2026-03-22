@@ -58,6 +58,7 @@
     "use_same_api": "Gleiche API wie im Verbindungs-Tab verwenden",
     "parameters": "Parameter",
     "select_actions": "Wählen Sie aus, welche Aktionen der Mod erkennen soll:",
+    "changeLocation.title": "Szenenort ändern",
     "reload_files": "Dateien neu laden",
     "open_folder": "Ordner öffnen",
     "description": "Beschreibung:",
@@ -115,7 +116,12 @@
     "reset_preset_tooltip": "Aktuelle Voreinstellung auf Standardwerte zurücksetzen",
     "restore_defaults_confirm": "Sind Sie sicher, dass Sie alle Prompts auf ihre Standardwerte zurücksetzen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
     "restore_defaults_success": "Alle Prompts wurden erfolgreich auf ihre Standardwerte zurückgesetzt!",
-    "restore_defaults_error": "Fehler beim Wiederherstellen der Standard-Prompts: {{error}}"
+    "restore_defaults_error": "Fehler beim Wiederherstellen der Standard-Prompts: {{error}}",
+    "mod_default": "Standard (Vanilla)",
+    "mod_agot": "A Game of Thrones",
+    "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
+    "mod_tfe": "The Fallen Eagle",
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
   },
   "settings": {
     "header": "Einstellungen",
@@ -132,6 +138,8 @@
     "dynamic_tooltip": "Verwendet die KI, um das Gespräch zu analysieren und den nächsten Charakter auszuwählen, der spricht. Die KI wählt aus einem Pool von Charakteren aus, die in der aktuellen Runde noch nicht gesprochen haben.",
     "nonTargetedCharacterResponseChance": "Antwortchance nicht anvisierter Charaktere (%)",
     "nonTargetedCharacterResponseChance_tooltip": "Die Wahrscheinlichkeit (0-100%), dass ein nicht anvisierter Charakter in einem Gespräch mit mehreren Charakteren antwortet, nachdem der anvisierte Charakter gesprochen hat.",
+    "questionPlayerActionsChance": "Spieleraktionen in Frage stellen (%)",
+    "questionPlayerActionsChance_tooltip": "Die Wahrscheinlichkeit (0-100%), dass ein KI-Charakter die Aktionen des Spielers basierend auf seiner Persönlichkeit und der Situation in Frage stellt.",
     "validate_identity": "Charakteridentität validieren",
     "validate_tooltip": "Wenn Streaming deaktiviert ist und mehr als 2 Charaktere vorhanden sind, wird validiert, ob die generierte Nachricht zur Identität des Charakters passt. Falls die Validierung fehlschlägt, wird bis zu 3 Mal neu generiert.",
     "show_suggestions": "Vorschlags-Schaltfläche anzeigen",
@@ -193,8 +201,8 @@
     "roaming_data": "Roaming-Datenordner",
     "roaming_data_desc": "Dieser Ordner enthält Ihre persönliche Konfiguration, Skripte und Zusammenfassungen.",
     "open_roaming_data": "Roaming-Datenordner öffnen",
-    "roleplay_instruction": "Du bist {characterName}. Schreibe eine Antwort an {playerName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.",
-    "roleplay_instruction_ai_to_ai": "Du bist {sourceCharacterName}. Schreibe eine Antwort an {targetCharacterName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.",
+    "roleplay_instruction": "[System instruction: Du bist {characterName}. Schreibe eine Antwort an {playerName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Du bist {sourceCharacterName}. Schreibe eine Antwort an {targetCharacterName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -242,8 +250,10 @@
     "target_character": "Zielcharakter",
     "action_cancel": "Abbrechen",
     "action_execute": "Ausführen",
+    "edit_tooltip": "Drücken Sie die Eingabetaste oder klicken Sie außerhalb des Bearbeitungsfeldes, um zu speichern, Escape zum Abbrechen. Standard-Strg+Z/Cmd+Z für Rückgängig wird unterstützt.",
     "cancel_button": "ABBRECHEN",
-    "cancel_tooltip": "Die aktuelle KI-Antwortgenerierung abbrechen."
+    "cancel_response_tooltip": "Die aktuelle KI-Antwortgenerierung abbrechen.",
+    "generation_cancelled": "Generierung vom Benutzer abgebrochen."
   },
   "narrative": {
     "fallback_prompt": "Bitte erstellen Sie eine kurze Erzählung basierend auf dem folgenden Gespräch, die die Atmosphäre der Szene oder die inneren Gefühle des Charakters beschreibt. Die Erzählung sollte prägnant und lebendig sein, mit einer Länge von 50-100 Wörtern.",
@@ -280,7 +290,7 @@
     "save_btn": "Speichern",
     "save_all": "Alle Zusammenfassungen speichern",
     "tooltip_refresh": "Spieler-IDs und Zusammenfassungen von der Festplatte neu laden.",
-    "tooltip_save_all": "Alle Änderungen für alle Charaktere in ihren jeweiligen Dateien speichern.",
+    "tooltip_save_all": "Alle Änderungen für alle Charaktere in ihren jeweiligen Dateien speichern. Dies generiert auch Zusammenfassungen für alle bearbeiteten Einträge neu.",
     "tooltip_player_id": "Wählen Sie das zu verwaltende Spielerprofil aus.",
     "tooltip_character": "Zusammenfassungen nach einem bestimmten Charakter filtern oder alle anzeigen.",
     "tooltip_summary_path": "Der Dateipfad, in dem die Zusammenfassung des ausgewählten Charakters gespeichert ist.",
@@ -572,7 +582,7 @@
   "dialog": {
     "update_title": "Update verfügbar",
     "update_message": "Eine neue Version ({version}) ist verfügbar!",
-    "update_now": "Jetzt aktualisieren",
+    "update_now": "Aktualisieren und Neustarten",
     "later": "Später",
     "no_updates_title": "Keine Updates",
     "no_updates_message": "Sie verwenden die neueste Version.",
@@ -594,7 +604,15 @@
     "join_discord": "Discord beitreten",
     "view_steam": "Steam-Mod ansehen",
     "view_website": "Webseite besuchen",
-    "init_error": "Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole."
+    "init_error": "Beim Initialisieren der Konfigurationsseite ist ein Fehler aufgetreten. Bitte überprüfen Sie die Konsole.",
+    "restart_now": "Jetzt neustarten",
+    "update_ready_title": "Update heruntergeladen",
+    "update_ready_message": "Eine neue Version wurde heruntergeladen. Bitte starten Sie die Anwendung neu, um die Updates zu übernehmen.",
+    "incompatible_mod_title": "Inkompatibler Mod erkannt",
+    "incompatible_mod_message": "Der Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) ist nicht mit 'Voices of the Court 2.0 - Community Edition' kompatibel.\n\nBitte abonnieren und aktivieren Sie die Community Edition, deaktivieren Sie den inkompatiblen Mod und starten Sie die Anwendung neu.",
+    "close_app": "Anwendung schließen",
+    "open_steam_and_quit": "Steam öffnen und beenden",
+    "open_discord_and_quit": "Discord öffnen und beenden"
   },
   "diary_manager": {
     "header": "Tagebuch-Manager",
@@ -635,7 +653,8 @@
     "delete_success": "Tagebucheintrag gelöscht",
     "update_success": "Tagebucheintrag aktualisiert",
     "select_first": "Bitte wählen Sie zuerst einen Tagebucheintrag zum Aktualisieren aus",
-    "added_new": "Neuer Tagebucheintrag hinzugefügt"
+    "added_new": "Neuer Tagebucheintrag hinzugefügt",
+    "regenerating_summaries": "Zusammenfassungen für bearbeitete Einträge werden neu generiert..."
   },
   "tray": {
     "open_config": "Konfigurationsfenster öffnen",
@@ -838,5 +857,12 @@
     "examination_room": "Untersuchungsraum",
     "chinese_city": "Chinesische Stadt",
     "japanese_city": "Japanische Stadt"
+  },
+  "scene_description": {
+    "default_prompt": "Bitte erstellen Sie eine ansprechende Szenenbeschreibung, um Hintergrund und Atmosphäre für den Dialog der Charaktere zu schaffen.",
+    "instruction": "Erstellen Sie auf der Grundlage der folgenden Informationen eine kurze, atmosphärische Szenenbeschreibung in der dritten Person (50-100 Wörter). Fügen Sie keine Gedanken oder Dialoge der Charaktere ein. Beschreiben Sie nur die Umgebung und die Stimmung:",
+    "description_label": "Aktuelle Gesprächsinformationen:",
+    "system_prompt": "Sie sind ein Assistent zur Generierung von Szenenbeschreibungen, der für die Erstellung lebendiger Szenenatmosphärenbeschreibungen für Rollenspiele verantwortlich ist.",
+    "fallback_description": "Am {{date}} begannen {{playerName}} und {{aiName}} ein Gespräch in {{location}}."
   }
 }

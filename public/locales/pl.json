@@ -58,6 +58,7 @@
     "use_same_api": "Użyj tego samego API co w zakładce połączenia",
     "parameters": "Parametry",
     "select_actions": "Wybierz akcje, które mod ma wykrywać:",
+    "changeLocation.title": "Zmień lokalizację sceny",
     "reload_files": "Przeładuj pliki",
     "open_folder": "otwórz folder",
     "description": "Opis:",
@@ -117,7 +118,12 @@
     "reset_preset_tooltip": "Zresetuj bieżący preset do wartości domyślnych",
     "restore_defaults_confirm": "Czy na pewno chcesz przywrócić wszystkie podpowiedzi do wartości domyślnych? Tej operacji nie można cofnąć.",
     "restore_defaults_success": "Wszystkie podpowiedzi zostały pomyślnie przywrócone do wartości domyślnych!",
-    "restore_defaults_error": "Błąd podczas przywracania domyślnych podpowiedzi: {{error}}"
+    "restore_defaults_error": "Błąd podczas przywracania domyślnych podpowiedzi: {{error}}",
+    "mod_default": "Domyślny (Vanilla)",
+    "mod_agot": "Gra o Tron",
+    "mod_lotr_realms_in_exile": "Władca Pierścieni: Krainy na Wygnaniu",
+    "mod_tfe": "Upadły Orzeł",
+    "mod_warcraft_goa2": "Warcraft: Strażnicy Azeroth 2"
   },
   "settings": {
     "header": "Ustawienia",
@@ -134,6 +140,8 @@
     "dynamic_tooltip": "Używa LLM do analizy rozmowy i wyboru kolejnej postaci do wypowiedzi. LLM wybierze z puli postaci, które jeszcze nie mówiły w danej rundzie.",
     "nonTargetedCharacterResponseChance": "Szansa na odpowiedź postaci niebędącej celem (%)",
     "nonTargetedCharacterResponseChance_tooltip": "Szansa (0-100%), że postać niebędąca celem odpowie w rozmowie wieloosobowej po wypowiedzi postaci docelowej.",
+    "questionPlayerActionsChance": "Szansa na zakwestionowanie akcji gracza (%)",
+    "questionPlayerActionsChance_tooltip": "Szansa (0-100%), że postać AI zakwestionuje akcje gracza na podstawie swojej osobowości i sytuacji.",
     "validate_identity": "waliduj tożsamość postaci",
     "validate_tooltip": "Gdy strumieniowanie jest wyłączone i jest więcej niż 2 postacie, sprawdza czy wygenerowana wiadomość pasuje do tożsamości postaci. Jeśli walidacja zawiedzie, regeneruje do 3 razy.",
     "show_suggestions": "pokaż przycisk sugestii",
@@ -195,8 +203,8 @@
     "roaming_data": "Folder danych mobilnych",
     "roaming_data_desc": "Ten folder zawiera Twoją osobistą konfigurację, skrypty i podsumowania.",
     "open_roaming_data": "Otwórz folder danych mobilnych",
-    "roleplay_instruction": "Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
-    "roleplay_instruction_ai_to_ai": "Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.",
+    "roleplay_instruction": "[System instruction: Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -244,8 +252,10 @@
     "target_character": "Postać docelowa",
     "action_cancel": "Anuluj",
     "action_execute": "Wykonaj",
+    "edit_tooltip": "Naciśnij Enter lub kliknij poza polem edycji, aby zapisać, Escape, aby anulować. Obsługiwane jest standardowe cofanie Ctrl+Z/Cmd+Z.",
     "cancel_button": "ANULUJ",
-    "cancel_tooltip": "Anuluj bieżące generowanie odpowiedzi przez AI."
+    "cancel_response_tooltip": "Anuluj bieżące generowanie odpowiedzi przez AI.",
+    "generation_cancelled": "Generowanie anulowane przez użytkownika."
   },
   "narrative": {
     "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",
@@ -282,7 +292,7 @@
     "save_btn": "Zapisz",
     "save_all": "Zapisz wszystkie podsumowania",
     "tooltip_refresh": "Przeładuj identyfikatory graczy i podsumowania z dysku.",
-    "tooltip_save_all": "Zapisz wszystkie zmiany dla wszystkich postaci w ich odpowiednich plikach.",
+    "tooltip_save_all": "Zapisz wszystkie zmiany dla wszystkich postaci w ich odpowiednich plikach. Spowoduje to również ponowne wygenerowanie podsumowań dla wszystkich edytowanych wpisów.",
     "tooltip_player_id": "Wybierz profil gracza do zarządzania.",
     "tooltip_character": "Filtruj podsumowania według określonej postaci lub wyświetl wszystkie.",
     "tooltip_summary_path": "Ścieżka pliku, w którym przechowywane jest podsumowanie wybranej postaci.",
@@ -574,7 +584,7 @@
   "dialog": {
     "update_title": "Dostępna aktualizacja",
     "update_message": "Nowa wersja ({version}) jest dostępna!",
-    "update_now": "Aktualizuj teraz",
+    "update_now": "Aktualizuj i Uruchom Ponownie",
     "later": "Później",
     "no_updates_title": "Brak aktualizacji",
     "no_updates_message": "Używasz najnowszej wersji.",
@@ -596,7 +606,15 @@
     "join_discord": "Dołącz do Discord",
     "view_steam": "Zobacz mod na Steam",
     "view_website": "Odwiedź stronę internetową",
-    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę."
+    "init_error": "Wystąpił błąd podczas inicjowania strony konfiguracji, sprawdź konsolę.",
+    "restart_now": "Uruchom ponownie teraz",
+    "update_ready_title": "Aktualizacja pobrana",
+    "update_ready_message": "Nowa wersja została pobrana. Uruchom ponownie aplikację, aby zastosować aktualizacje.",
+    "incompatible_mod_title": "Wykryto niekompatybilny mod",
+    "incompatible_mod_message": "Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) nie jest kompatybilny z 'Voices of the Court 2.0 - Community Edition'.\n\nProszę zasubskrybować i włączyć Edycję Społecznościową, wyłączyć niekompatybilny mod i ponownie uruchomić aplikację.",
+    "close_app": "Zamknij aplikację",
+    "open_steam_and_quit": "Otwórz Steam i Wyjdź",
+    "open_discord_and_quit": "Otwórz Discord i Wyjdź"
   },
   "diary_manager": {
     "header": "Menedżer dzienników",
@@ -637,7 +655,8 @@
     "delete_success": "Wpis do dziennika usunięty",
     "update_success": "Wpis do dziennika zaktualizowany",
     "select_first": "Proszę najpierw wybrać wpis do dziennika do aktualizacji",
-    "added_new": "Dodano nowy wpis do dziennika"
+    "added_new": "Dodano nowy wpis do dziennika",
+    "regenerating_summaries": "Ponowne generowanie podsumowań dla edytowanych wpisów..."
   },
   "tray": {
     "open_config": "Otwórz okno konfiguracji",
@@ -841,5 +860,12 @@
     "examination_room": "Gabinet badań",
     "chinese_city": "Chińskie miasto",
     "japanese_city": "Japońskie miasto"
+  },
+  "scene_description": {
+    "default_prompt": "Proszę wygenerować wciągający opis sceny, aby zapewnić tło i atmosferę dla dialogu postaci.",
+    "instruction": "Na podstawie poniższych informacji wygeneruj krótki, klimatyczny opis sceny w trzeciej osobie (50-100 słów). Nie uwzględniaj myśli ani dialogów postaci. Opisz tylko otoczenie i nastrój:",
+    "description_label": "Aktualne informacje o rozmowie:",
+    "system_prompt": "Jesteś asystentem generowania opisów scen, odpowiedzialnym za tworzenie żywych opisów atmosfery scen do gier fabularnych.",
+    "fallback_description": "Dnia {{date}}, {{playerName}} i {{aiName}} rozpoczęli rozmowę w {{location}}."
   }
 }

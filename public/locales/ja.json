@@ -58,6 +58,7 @@
     "use_same_api": "接続タブと同じ API を使用する",
     "parameters": "パラメーター",
     "select_actions": "モッドに検出させたいアクションを選択してください：",
+    "changeLocation.title": "シーンの場所を変更",
     "reload_files": "ファイルを再読み込み",
     "open_folder": "フォルダを開く",
     "description": "説明：",
@@ -117,7 +118,12 @@
     "reset_preset_tooltip": "現在のプリセットをデフォルト値にリセットします",
     "restore_defaults_confirm": "すべてのプロンプトをデフォルト値に戻しますか？この操作は元に戻せません。",
     "restore_defaults_success": "すべてのプロンプトが正常にデフォルト値に復元されました！",
-    "restore_defaults_error": "デフォルトのプロンプトの復元中にエラーが発生しました：{{error}}"
+    "restore_defaults_error": "デフォルトのプロンプトの復元中にエラーが発生しました：{{error}}",
+    "mod_default": "デフォルト (バニラ)",
+    "mod_agot": "A Game of Thrones",
+    "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
+    "mod_tfe": "The Fallen Eagle",
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
   },
   "settings": {
     "header": "設定",
@@ -134,6 +140,8 @@
     "dynamic_tooltip": "LLM を使用して会話を分析し、次に話すキャラクターを選択します。LLM は、現在のラウンドでまだ話していないキャラクターのプールから選択します。",
     "nonTargetedCharacterResponseChance": "非ターゲットキャラクターの応答確率 (%)",
     "nonTargetedCharacterResponseChance_tooltip": "複数キャラクターの会話で、ターゲットキャラクターが話した後に非ターゲットキャラクターが応答する確率（0-100%）。",
+    "questionPlayerActionsChance": "プレイヤーのアクションを質問する確率 (%)",
+    "questionPlayerActionsChance_tooltip": "AIキャラクターがプレイヤーのアクションをその性格や状況に基づいて質問する確率（0-100%）。",
     "validate_identity": "キャラクターのアイデンティティを検証",
     "validate_tooltip": "ストリーミングが無効で、キャラクターが 2 人より多い場合、生成されたメッセージがキャラクターのアイデンティティと一致するかどうかを検証します。検証に失敗した場合は、最大 3 回まで再生成します。",
     "show_suggestions": "提案ボタンを表示",
@@ -195,8 +203,8 @@
     "roaming_data": "ローミングデータフォルダ",
     "roaming_data_desc": "このフォルダには、個人設定、スクリプト、要約が含まれています。",
     "open_roaming_data": "ローミングデータフォルダを開く",
-    "roleplay_instruction": "あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
-    "roleplay_instruction_ai_to_ai": "あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。",
+    "roleplay_instruction": "[System instruction: あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
+    "roleplay_instruction_ai_to_ai": "[System instruction: あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
@@ -244,8 +252,10 @@
     "target_character": "ターゲットキャラクター",
     "action_cancel": "キャンセル",
     "action_execute": "実行",
+    "edit_tooltip": "エンターキーを押すか、編集ボックスの外側をクリックして保存し、エスケープキーでキャンセルします。標準のCtrl+Z/Cmd+Zでの元に戻す操作がサポートされています。",
     "cancel_button": "キャンセル",
-    "cancel_tooltip": "現在のAI応答生成をキャンセルします。"
+    "cancel_response_tooltip": "現在のAI応答生成をキャンセルします。",
+    "generation_cancelled": "ユーザーによって生成がキャンセルされました。"
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",
@@ -282,7 +292,7 @@
     "save_btn": "保存",
     "save_all": "すべての要約を保存",
     "tooltip_refresh": "ディスクからプレイヤーIDと要約を再読み込みします。",
-    "tooltip_save_all": "すべてのキャラクターのすべての変更をそれぞれのファイルに保存します。",
+    "tooltip_save_all": "すべてのキャラクターのすべての変更をそれぞれのファイルに保存します。これにより、編集されたエントリの要約も再生成されます。",
     "tooltip_player_id": "管理するプレイヤープロファイルを選択します。",
     "tooltip_character": "特定のキャラクターで要約をフィルタリングするか、すべて表示します。",
     "tooltip_summary_path": "選択したキャラクターの要約が保存されているファイルパス。",
@@ -574,7 +584,7 @@
   "dialog": {
     "update_title": "アップデートが利用可能",
     "update_message": "新しいバージョン（{version}）が利用可能です！",
-    "update_now": "今すぐアップデート",
+    "update_now": "アップデートして再起動",
     "later": "後で",
     "no_updates_title": "アップデートなし",
     "no_updates_message": "最新バージョンを実行しています。",
@@ -596,7 +606,15 @@
     "join_discord": "Discord に参加",
     "view_steam": "Steam モッドを表示",
     "view_website": "ウェブサイトを訪問",
-    "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。"
+    "init_error": "設定ページの初期化中にエラーが発生しました。コンソールログを確認してください。",
+    "restart_now": "今すぐ再起動",
+    "update_ready_title": "アップデートがダウンロードされました",
+    "update_ready_message": "新しいバージョンがダウンロードされました。アプリケーションを再起動してアップデートを適用してください。",
+    "incompatible_mod_title": "互換性のないMODが検出されました",
+    "incompatible_mod_message": "MOD「Voices of the Court 2.0」（mod/ugc_3346777360.mod）は「Voices of the Court 2.0 - Community Edition」と互換性がありません。\n\nCommunity Editionを購読して有効にし、互換性のないMODを無効にして、アプリケーションを再起動してください。",
+    "close_app": "アプリを閉じる",
+    "open_steam_and_quit": "Steamを開いて終了",
+    "open_discord_and_quit": "Discordを開いて終了"
   },
   "diary_manager": {
     "header": "日記マネージャー",
@@ -637,7 +655,8 @@
     "delete_success": "日記エントリが削除されました",
     "update_success": "日記エントリが更新されました",
     "select_first": "最初に更新する日記エントリを選択してください",
-    "added_new": "新しい日記エントリが追加されました"
+    "added_new": "新しい日記エントリが追加されました",
+    "regenerating_summaries": "編集されたエントリの要約を再生成しています..."
   },
   "tray": {
     "open_config": "設定ウィンドウを開く",
@@ -841,5 +860,12 @@
     "examination_room": "診察室",
     "chinese_city": "中国の都市",
     "japanese_city": "日本の都市"
+  },
+  "scene_description": {
+    "default_prompt": "キャラクターの対話の背景と雰囲気を提供するために、魅力的なシーンの説明を生成してください。",
+    "instruction": "以下の情報に基づいて、簡潔で雰囲気のある第三者のシーン説明（50〜100語）を生成してください。キャラクターの考えや対話は含めないでください。設定と雰囲気のみを説明してください：",
+    "description_label": "現在の会話情報：",
+    "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
+    "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
   }
 }
