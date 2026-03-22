@@ -80,15 +80,20 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
             let value = line.split('#')[0]
             switch (multiLineType){
-                case "new_relations":
-                    value = removeTooltip(value)
-                    // if (value.includes("your")) {
-
-                    //     value = value.replace("your", gameData.playerName+"'s");
-                    // }
-                    multiLineTempStorage.push(value)
-                    console.log(`Parsed multi-line new_relation: "${value}"`);
-                break;
+                case "new_relations": {
+                    const pending = multiLineTempStorage[0] as { charAID: number, charBID: number, relationship: string };
+                    // Accumulate any relationship text that fell on a continuation line
+                    const addition = removeTooltip(value);
+                    if (addition) {
+                        pending.relationship = pending.relationship
+                            ? pending.relationship + ' ' + addition
+                            : addition;
+                    }
+                    // Commit once the full relationship text is known
+                    if (line.includes('#ENDMULTILINE')) {
+                        commitNewRelation(pending.charAID, pending.charBID, pending.relationship);
+                    }
+                break; }
                 case "relations":
                     const relation = removeTooltip(value);
                     multiLineTempStorage.push(relation);
@@ -186,32 +191,17 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     if (!gameData) continue;
                     const characterA_ID = rootID;
                     const characterB_ID = Number(data[1]);
-                    
-                    let relationship = "";
-                    const parts = line.split('#');
-                    if (parts.length > 1) {
-                        relationship = removeTooltip(parts[1]);
-                    }
 
-                    if (relationship) {
-                        const characterA = gameData.characters.get(characterA_ID);
-                        const characterB = gameData.characters.get(characterB_ID);
+                    const initialRelationship = line.includes('#')
+                        ? removeTooltip(line.split('#')[1])
+                        : "";
 
-                        if (characterA && characterB) {
-                            // Avoid adding duplicates
-                            const exists = characterA.familyMembers.some(member => member.id === characterB_ID && member.relationship === relationship);
-                            if (!exists) {
-                                characterA.familyMembers.push({
-                                    id: characterB_ID,
-                                    name: characterB.fullName,
-                                    relationship: relationship
-                                });
-                                console.log(`Parsed family for character ${characterA_ID} (${characterA.fullName}): ${relationship} ${characterB.fullName} (ID: ${characterB_ID})`);
-                            }
-                        } else {
-                            if (!characterA) console.warn(`Character with ID ${characterA_ID} not found when parsing family data`);
-                            if (!characterB) console.warn(`Character with ID ${characterB_ID} not found when parsing family data`);
-                        }
+                    if (line.includes('#ENDMULTILINE')) {
+                        commitNewRelation(characterA_ID, characterB_ID, initialRelationship);
+                    } else {
+                        multiLineTempStorage = [{ charAID: characterA_ID, charBID: characterB_ID, relationship: initialRelationship }];
+                        isWaitingForMultiLine = true;
+                        multiLineType = "new_relations";
                     }
                     break;
 
@@ -235,6 +225,32 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         }
     }
     console.debug("Finished parsing log file. Game data loaded from last block.");
+
+    function commitNewRelation(charAID: number, charBID: number, relationship: string): void {
+        if (!gameData || !relationship) return;
+        const charA = gameData.characters.get(charAID);
+        const charB = gameData.characters.get(charBID);
+        if (!charA || !charB) {
+            if (!charA) console.warn(`Character with ID ${charAID} not found when parsing family data`);
+            if (!charB) console.warn(`Character with ID ${charBID} not found when parsing family data`);
+            return;
+        }
+        if (!charA.familyMembers.some(m => m.id === charBID && m.relationship === relationship)) {
+            charA.familyMembers.push({ id: charBID, name: charB.fullName, relationship });
+            console.log(`Parsed family for character ${charAID} (${charA.fullName}): ${relationship} ${charB.fullName} (ID: ${charBID})`);
+        }
+        if (charAID === gameData.playerID) {
+            if (!charB.relationsToPlayer.includes(relationship)) {
+                charB.relationsToPlayer.push(relationship);
+                console.log(`Parsed relationsToPlayer for character ${charBID} (${charB.fullName}): "${relationship}"`);
+            }
+        } else if (charBID === gameData.playerID) {
+            if (!charA.relationsToPlayer.includes(relationship)) {
+                charA.relationsToPlayer.push(relationship);
+                console.log(`Parsed relationsToPlayer for character ${charAID} (${charA.fullName}): "${relationship}"`);
+            }
+        }
+    }
 
     function parseMemory(data: string[]): Memory{
         return {
