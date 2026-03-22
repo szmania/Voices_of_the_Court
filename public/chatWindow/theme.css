@@ -452,6 +452,21 @@ body.theme-west .chat-box {
     cursor: not-allowed;
 }
 
+.theme-west .button-container {
+    display: block;
+    position: relative;
+    gap: 0;
+}
+
+.theme-west .button-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    flex: initial;
+}
+
 
 /* WestUI主题 - 输入框和文本显示框样式 */
 .theme-west .chat-input {
