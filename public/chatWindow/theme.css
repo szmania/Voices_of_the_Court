@@ -413,23 +413,8 @@ body.theme-west .chat-box {
     filter: none;
     position: absolute;
     bottom: -20px;
+    left: 50%;
     transform: translateX(-50%);
-}
-
-.theme-west .undo-button {
-    left: 20%;
-}
-
-.theme-west .regenerate-button {
-    left: 40%;
-}
-
-.theme-west .cancel-button {
-    left: 60%;
-}
-
-.theme-west .leave-button {
-    left: 80%;
 }
 
 .theme-west .undo-button:hover,
@@ -461,10 +446,22 @@ body.theme-west .chat-box {
 .theme-west .button-wrapper {
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
+    width: 180px;
     height: 100%;
-    flex: initial;
+    transform: translateX(-50%);
+}
+
+.theme-west #leave-button-wrapper {
+    left: 80%;
+}
+.theme-west #cancel-button-wrapper {
+    left: 60%;
+}
+.theme-west #regenerate-button-wrapper {
+    left: 40%;
+}
+.theme-west #undo-button-wrapper {
+    left: 20%;
 }
 
 
