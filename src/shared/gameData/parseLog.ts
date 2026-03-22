@@ -58,6 +58,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     let isWaitingForMultiLine: boolean = false;
     let multiLineType: string = ""; //relation or opinionModifier
 
+    const deferredRelations: { charAID: number, charBID: number, relationship: string }[] = [];
+
     // Efficiently find the last block by reading from the end of the file
     const relevantLogBlock = await readLastRelevantBlock(debugLogPath);
 
@@ -224,6 +226,18 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             }
         }
     }
+
+    for (const entry of deferredRelations) {
+        const charA = gameData?.characters.get(entry.charAID);
+        const charB = gameData?.characters.get(entry.charBID);
+        if (!charA || !charB) {
+            if (!charA) console.warn(`Character with ID ${entry.charAID} not found after full parse (new_relations)`);
+            if (!charB) console.warn(`Character with ID ${entry.charBID} not found after full parse (new_relations)`);
+            continue;
+        }
+        commitNewRelation(entry.charAID, entry.charBID, entry.relationship);
+    }
+
     console.debug("Finished parsing log file. Game data loaded from last block.");
 
     function commitNewRelation(charAID: number, charBID: number, relationship: string): void {
@@ -231,8 +245,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         const charA = gameData.characters.get(charAID);
         const charB = gameData.characters.get(charBID);
         if (!charA || !charB) {
-            if (!charA) console.warn(`Character with ID ${charAID} not found when parsing family data`);
-            if (!charB) console.warn(`Character with ID ${charBID} not found when parsing family data`);
+            deferredRelations.push({ charAID, charBID, relationship });
             return;
         }
         if (!charA.familyMembers.some(m => m.id === charBID && m.relationship === relationship)) {
