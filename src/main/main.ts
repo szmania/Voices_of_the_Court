@@ -254,10 +254,56 @@ let letterThreadFullNotified = false;
 let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
+let lastLetterSentToGameTime: number = 0;
+const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
+
+function rehydratePendingLetters(playerId: string): void {
+    const letterManager = LetterManager.getInstance();
+    const allLetters = letterManager.getAllLetters(playerId);
+
+    const pendingReplies = allLetters.filter(l =>
+        !l.isPlayerSender &&
+        l.status === 'pending' &&
+        l.delivered === false &&
+        l.replyToId
+    );
+
+    let rehydratedCount = 0;
+    for (const reply of pendingReplies) {
+        if (storedLetters.has(reply.replyToId!)) continue;
+
+        const original = allLetters.find(l => l.id === reply.replyToId);
+        if (!original) {
+            console.warn(`rehydratePendingLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
+            continue;
+        }
+
+        const expectedDeliveryDay = original.totalDays + original.delay;
+        storedLetters.set(original.id, {
+            letter: reply,
+            originalLetter: original,
+            expectedDeliveryDay
+        });
+        rehydratedCount++;
+        console.log(`rehydratePendingLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
+    }
+
+    if (rehydratedCount > 0) {
+        console.log(`rehydratePendingLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
+        checkAndDeliverLetters();
+    }
+}
 
 async function checkAndDeliverLetters() {
     const letterManager = LetterManager.getInstance();
+
+    // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
+    if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
+        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} — no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
+        lastLetterSentToGame = null;
+    }
+
     // Use a copy of keys to allow modification during iteration
     const letterIds = Array.from(storedLetters.keys());
     for (const letterId of letterIds) {
@@ -276,6 +322,7 @@ async function checkAndDeliverLetters() {
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
+            lastLetterSentToGameTime = Date.now();
             storedLetters.delete(letterId); // Remove from pending queue
 
             // Since the mod probably handles one at a time, break after sending one.
@@ -389,6 +436,12 @@ app.on('ready',  async () => {
     diaryGenerator = new DiaryGenerator(config);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
+
+    // Re-hydrate any pending reply letters that were not delivered before the last app restart.
+    const letterManager = LetterManager.getInstance();
+    for (const { id } of letterManager.getAllPlayerIdsWithLetters()) {
+        rehydratePendingLetters(id);
+    }
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         const dialogOpts = {
@@ -775,7 +828,6 @@ clipboardListener.on('VOTC:IN', async () =>{
 
         // Import letters from log
         await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
-
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];

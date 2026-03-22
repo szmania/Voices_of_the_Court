@@ -297,12 +297,15 @@ create_artifact = {
 \twealth = scope:wealth
 \tsave_scope_as = votc_latest_letter
 }
-scope:votc_latest_letter = {
-set_variable = { name = votc_letter_artifact value = yes}
-}
-set_global_variable = {
-\tname = votc_latest_letter
-\tvalue = scope:votc_latest_letter
+if = {
+\tlimit = { exists = scope:votc_latest_letter }
+\tscope:votc_latest_letter = {
+\t\tset_variable = { name = votc_letter_artifact value = yes}
+\t}
+\tset_global_variable = {
+\t\tname = votc_latest_letter
+\t\tvalue = scope:votc_latest_letter
+\t}
 }
 trigger_event = message_event.362`;
     
