@@ -381,6 +381,40 @@ function processLogLine(line: string) {
     }
 }
 
+async function initCurrentDateFromLog(): Promise<void> {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (!config.userFolderPath || !fs.existsSync(debugLogPath)) return;
+
+    const CHUNK_SIZE = 512 * 1024; // 512KB — enough to find a recent VOTC:DATE
+    let handle;
+    try {
+        handle = await fs.promises.open(debugLogPath, 'r');
+        const { size } = await handle.stat();
+        const position = Math.max(0, size - CHUNK_SIZE);
+        const buffer = Buffer.alloc(size - position);
+        await handle.read(buffer, 0, buffer.length, position);
+        const lines = buffer.toString('utf8').split(/\r?\n/);
+
+        const dateRegex = /VOTC:DATE\/;\/(\d+)/;
+        let latestDays = 0;
+        for (const line of lines) {
+            const match = line.match(dateRegex);
+            if (match) {
+                const days = Number(match[1]);
+                if (days > latestDays) latestDays = days;
+            }
+        }
+        if (latestDays > 0) {
+            currentTotalDays = latestDays;
+            console.log(`initCurrentDateFromLog: Initialized currentTotalDays to ${currentTotalDays} from log.`);
+        }
+    } catch (err) {
+        console.warn(`initCurrentDateFromLog: Could not read log: ${err}`);
+    } finally {
+        if (handle) await handle.close();
+    }
+}
+
 let lastSize = 0;
 function startLogTailing() {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
@@ -436,6 +470,9 @@ app.on('ready',  async () => {
     diaryGenerator = new DiaryGenerator(config);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
+
+    // Initialize the current game date from the last known VOTC:DATE in the log.
+    await initCurrentDateFromLog();
 
     // Re-hydrate any pending reply letters that were not delivered before the last app restart.
     const letterManager = LetterManager.getInstance();
@@ -823,6 +860,9 @@ clipboardListener.on('VOTC:IN', async () =>{
         }
 
         console.log("New conversation started!");
+        if (gameData.totalDays) {
+            updateCurrentDate(gameData.totalDays);
+        }
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
         await conversation.loadHistory();
 
