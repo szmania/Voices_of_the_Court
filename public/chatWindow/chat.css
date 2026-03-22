@@ -446,6 +446,7 @@ html{
     left: 12.5%;
     transform: translateX(-50%);
     bottom: -20px;
+    z-index: 201;
 }
 
 .suggestions-button-wrapper::after {
@@ -480,6 +481,7 @@ html{
 .suggestions-button-wrapper {
     position: relative;
     left: 7%;
+    z-index: 201;
 }
 
 .suggestions-button-wrapper::after {
