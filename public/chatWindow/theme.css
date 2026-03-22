@@ -412,24 +412,24 @@ body.theme-west .chat-box {
     box-shadow: none;
     filter: none;
     position: absolute;
-    bottom: -10px;
+    bottom: -20px;
     transform: translateX(-50%);
 }
 
 .theme-west .undo-button {
-    left: 52.25%;
+    left: 51.5%;
 }
 
 .theme-west .regenerate-button {
-    left: 50.75%;
+    left: 50.5%;
 }
 
 .theme-west .cancel-button {
-    left: 49.25%;
+    left: 49.5%;
 }
 
 .theme-west .leave-button {
-    left: 47.75%;
+    left: 48.5%;
 }
 
 .theme-west .undo-button:hover,
