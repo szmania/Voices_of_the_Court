@@ -64,7 +64,7 @@ ${sceneDescriptionPrompt}`;
  * @param conv 当前对话对象
  * @returns 生成的场景描述
  */
-export async function generateSceneDescription(conv: Conversation): Promise<string> {
+export async function generateSceneDescription(conv: Conversation, signal?: AbortSignal): Promise<string> {
     try {
         console.log('Starting to generate scene description...');
         
@@ -78,7 +78,7 @@ export async function generateSceneDescription(conv: Conversation): Promise<stri
         const messages = buildSceneDescriptionPrompt(conv);
         
         // 调用API生成场景描述，使用complete方法
-        const response = await conv.textGenApiConnection.complete(messages, false, {});
+        const response = await conv.textGenApiConnection.complete(messages, false, {}, undefined, signal);
         
         // 清理响应内容
         let sceneDescription = response.trim();
@@ -96,6 +96,10 @@ export async function generateSceneDescription(conv: Conversation): Promise<stri
         console.log(`Generated scene description: ${sceneDescription}`);
         return sceneDescription;
     } catch (error) {
+        if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+            console.log('Scene description generation was cancelled.');
+            throw error; // Re-throw to be handled by the caller
+        }
         console.error('Error generating scene description:', error);
         // 返回一个基本的场景描述作为后备
         const fallbackTemplate = conv.translations.scene_description?.fallback_description || "On {{date}}, {{playerName}} and {{aiName}} started a conversation at {{location}}.";

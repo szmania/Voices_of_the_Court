@@ -1148,6 +1148,13 @@ ipcMain.on('chat-stop', () =>{
 
 })
 
+ipcMain.on('cancel-generation', () => {
+    console.log('IPC: Received cancel-generation event.');
+    if (conversation) {
+        conversation.cancelGeneration();
+    }
+});
+
 ipcMain.on('clear-conversation-history', () => {
     console.log('IPC: Received clear-conversation-history event.');
     if (conversation) {
@@ -1163,6 +1170,18 @@ ipcMain.on('undo-message', () => {
     console.log('IPC: Received undo-message event.');
     if (conversation) {
         conversation.undo();
+    }
+});
+
+ipcMain.on('regenerate-response', async () => {
+    console.log('IPC: Received regenerate-response event.');
+    if (conversation) {
+        try {
+            await conversation.regenerate();
+        } catch (err) {
+            console.error('Error during regeneration:', err);
+            chatWindow.window.webContents.send('error-message', 'An error occurred during regeneration.');
+        }
     }
 });
 

@@ -497,7 +497,7 @@ export class ApiConnection{
                     return response;
                 }
             } catch (error) {
-                if (error instanceof OpenAI.APIError && error.name === 'AbortError') {
+                if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
                     console.log('API request was aborted.');
                     throw error; // Re-throw to be handled by the caller
                 }

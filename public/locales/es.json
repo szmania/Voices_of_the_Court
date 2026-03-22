@@ -243,7 +243,9 @@
     "source_character": "Personaje de Origen",
     "target_character": "Personaje Objetivo",
     "action_cancel": "Cancelar",
-    "action_execute": "Ejecutar"
+    "action_execute": "Ejecutar",
+    "cancel_button": "CANCELAR",
+    "cancel_tooltip": "Cancelar la generación de respuesta de la IA actual."
   },
   "narrative": {
     "fallback_prompt": "Por favor, genera una breve narrativa basada en la siguiente conversación, describiendo la atmósfera de la escena o los sentimientos internos del personaje. La narrativa debe ser concisa y vívida, con una longitud de 50-100 palabras.",

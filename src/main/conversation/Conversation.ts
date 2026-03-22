@@ -718,9 +718,9 @@ export class Conversation{
                 await this.generateInitialSuggestions();
             }
         } catch (error) {
-            if (error instanceof Error && error.name === 'AbortError') {
+            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
                 console.log('generateAIsMessages was cancelled.');
-                // The UI notification is handled in cancelGeneration()
+                // The UI notification is handled in cancelGeneration(), so we do nothing here.
             } else {
                 console.error('An error occurred during AI message generation:', error);
                 this.chatWindow.window.webContents.send('error-message', 'An unexpected error occurred during generation.');
@@ -1291,6 +1291,9 @@ ${validationTranslations.instruction}`
                 }
             } catch (error) {
                 console.error(`Error generating message for ${character.fullName} on attempt ${attempts}: ${error}`);
+                if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+                    throw error; // Re-throw cancellation error
+                }
             }
         }
         
@@ -1801,14 +1804,20 @@ ${character.fullName}的发言：`
     public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
         console.log(`Starting scene description generation. Initial: ${isInitial}`);
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
-        
+
         // Send status update to chat window
         this.chatWindow.window.webContents.send('status-update', 'chat.status_generating_scene');
-        
+
+        const wasGenerating = this.isGenerating;
+        if (!wasGenerating) {
+            this.isGenerating = true;
+            this.abortController = new AbortController();
+        }
+
         try {
             // 生成场景描述
-            const sceneDescription = await generateSceneDescription(this);
-            
+            const sceneDescription = await generateSceneDescription(this, this.abortController!.signal);
+
             if (sceneDescription && sceneDescription.trim()) {
                 // 创建场景描述消息
                 const sceneMessage: Message = {
@@ -1816,7 +1825,7 @@ ${character.fullName}的发言：`
                     name: "",
                     content: sceneDescription
                 };
-                
+
                 if (isInitial) {
                     // Calculate the position to insert scene description (after historical conversations)
                     // Count total historical messages
@@ -1824,17 +1833,17 @@ ${character.fullName}的发言：`
                     if (this.historicalConversations) {
                         historicalMessageCount = this.historicalConversations.reduce((total, conv) => total + conv.messages.length, 0);
                     }
-                    
+
                     // Insert scene description after historical messages but before current conversation
                     this.messages.splice(historicalMessageCount, 0, sceneMessage);
                 } else {
                     sceneMessage.id = randomUUID();
                     this.messages.push(sceneMessage);
                 }
-                
+
                 // 发送场景描述到聊天窗口
                 this.chatWindow.window.webContents.send('scene-description', sceneDescription);
-                
+
                 console.log(`Scene description generated and inserted. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
@@ -1842,14 +1851,24 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('scene-description', '');
             }
         } catch (error) {
-            console.error('Error generating scene description:', error);
-            // 如果生成失败，不影响对话的正常进行
-            // 但仍然需要清除加载状态
-            this.chatWindow.window.webContents.send('scene-description', '');
+            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+                console.log('Scene description generation was cancelled by user.');
+                // The UI is already handled by the 'generation-cancelled' event, so we just need to ensure loading dots are gone.
+                this.chatWindow.window.webContents.send('scene-description', ''); // Clear loading state
+            } else {
+                console.error('Error generating scene description:', error);
+                // 如果生成失败，不影响对话的正常进行
+                // 但仍然需要清除加载状态
+                this.chatWindow.window.webContents.send('scene-description', '');
+            }
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
+            if (!wasGenerating) {
+                this.isGenerating = false;
+                this.abortController = null;
+            }
         }
-        
+
         // 场景描述生成完成后，如果启用了自动生成建议功能，则生成建议
         if (isInitial && this.config.autoGenerateSuggestions) {
             console.log('Initial scene description generation completed, now generating suggestions.');
@@ -1902,6 +1921,7 @@ ${character.fullName}的发言：`
             this.isGenerating = false;
             this.abortController = null;
             this.chatWindow.window.webContents.send('generation-cancelled');
+            this.chatWindow.window.webContents.send('status-update', ''); // Clear status text
         }
     }
 
@@ -1923,6 +1943,35 @@ ${character.fullName}的发言：`
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
         }
+    }
+
+    public async regenerate(): Promise<void> {
+        console.log("Regenerating last AI response.");
+
+        // Find the last user message to know where the exchange started
+        const lastUserIndex = [...this.messages].reverse().findIndex(m => m.role === 'user');
+        if (lastUserIndex === -1) {
+            console.log("No user message found to regenerate from.");
+            return;
+        }
+        const actualIndex = this.messages.length - 1 - lastUserIndex;
+
+        // Remove all messages after the last user message
+        if (actualIndex < this.messages.length - 1) {
+            console.log(`Splicing messages from index ${actualIndex + 1}`);
+            this.messages.splice(actualIndex + 1);
+        }
+        
+        // Clean up narratives for removed messages
+        for (let i = actualIndex + 1; i <= this.messages.length + 5; i++) { // A bit of a buffer
+            this.narratives.delete(i);
+        }
+
+        // Reset action counter as we are re-doing this turn
+        this.consecutiveActionsCount = 0;
+
+        // Now, generate the AI response again
+        await this.generateAIsMessages();
     }
 
     public removeCharacter(characterId: number): void {

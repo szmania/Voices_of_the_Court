@@ -463,6 +463,10 @@ async function replaceLastMessage(message: Message){
 function showLoadingDots(disableInput: boolean = true){  //and disable chat
     if (cancelButtonWrapper) {
         cancelButtonWrapper.classList.remove('hidden');
+        // @ts-ignore
+        const lm = window.LocalizationManager;
+        const cancelTooltip = (lm ? lm.getNestedTranslation('chat.cancel_tooltip') : null) || "Cancel the current AI response generation.";
+        cancelButtonWrapper.setAttribute('data-tooltip', cancelTooltip);
     }
     if (loadingDots) {
         return;
@@ -721,6 +725,10 @@ function setupCharacterTargeting(gameData: GameData) {
     }
 }
 
+cancelButton.addEventListener('click', () => {
+    ipcRenderer.send('cancel-generation');
+});
+
 function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: {name: string, id: number} | null) {
     if (!queueStatusDiv) return;
 
@@ -762,10 +770,6 @@ function updateStatusText(textKey: string, vars?: any) {
         queueStatusDiv.innerHTML = '';
     }
 }
-
-cancelButton.addEventListener('click', () => {
-    ipcRenderer.send('cancel-generation');
-});
 
 leaveButton.addEventListener("click", ()=>{
     hideChat();
@@ -1430,6 +1434,9 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
 
 ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
     updateStatusText(textKey, vars);
+    if (textKey === 'chat.status_generating_scene' || textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
+        showLoadingDots(false); // Don't disable input for these background tasks
+    }
 });
 
 ipcRenderer.on('chat-hide', () =>{
@@ -1747,7 +1754,9 @@ ipcRenderer.on('generation-cancelled', () => {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add('error-message');
-    messageDiv.innerText = "Generation cancelled by user.";
+    // @ts-ignore
+    const lm = window.LocalizationManager;
+    messageDiv.innerText = (lm ? lm.getNestedTranslation('chat.generation_cancelled') : null) || "Generation cancelled by user.";
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
     updateRegenerateButtonState();

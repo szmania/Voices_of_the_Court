@@ -241,7 +241,9 @@
     "source_character": "Quellcharakter",
     "target_character": "Zielcharakter",
     "action_cancel": "Abbrechen",
-    "action_execute": "Ausführen"
+    "action_execute": "Ausführen",
+    "cancel_button": "ABBRECHEN",
+    "cancel_tooltip": "Die aktuelle KI-Antwortgenerierung abbrechen."
   },
   "narrative": {
     "fallback_prompt": "Bitte erstellen Sie eine kurze Erzählung basierend auf dem folgenden Gespräch, die die Atmosphäre der Szene oder die inneren Gefühle des Charakters beschreibt. Die Erzählung sollte prägnant und lebendig sein, mit einer Länge von 50-100 Wörtern.",

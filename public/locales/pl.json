@@ -243,7 +243,9 @@
     "source_character": "Postać źródłowa",
     "target_character": "Postać docelowa",
     "action_cancel": "Anuluj",
-    "action_execute": "Wykonaj"
+    "action_execute": "Wykonaj",
+    "cancel_button": "ANULUJ",
+    "cancel_tooltip": "Anuluj bieżące generowanie odpowiedzi przez AI."
   },
   "narrative": {
     "fallback_prompt": "Proszę wygenerować krótką narrację na podstawie poniższej rozmowy, opisującą atmosferę sceny lub wewnętrzne uczucia postaci. Narracja powinna być zwięzła i żywa, o długości 50-100 słów.",

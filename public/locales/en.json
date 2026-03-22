@@ -243,7 +243,8 @@
     "action_cancel": "Cancel",
     "action_execute": "Execute",
     "cancel_button": "CANCEL",
-    "cancel_tooltip": "Cancel the current AI response generation."
+    "cancel_tooltip": "Cancel the current AI response generation.",
+    "generation_cancelled": "Generation cancelled by user."
   },
   "narrative": {
     "fallback_prompt": "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.",

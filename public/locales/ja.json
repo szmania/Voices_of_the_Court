@@ -243,7 +243,9 @@
     "source_character": "ソースキャラクター",
     "target_character": "ターゲットキャラクター",
     "action_cancel": "キャンセル",
-    "action_execute": "実行"
+    "action_execute": "実行",
+    "cancel_button": "キャンセル",
+    "cancel_tooltip": "現在のAI応答生成をキャンセルします。"
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",

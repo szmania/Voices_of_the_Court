@@ -243,7 +243,9 @@
     "source_character": "소스 캐릭터",
     "target_character": "타겟 캐릭터",
     "action_cancel": "취소",
-    "action_execute": "실행"
+    "action_execute": "실행",
+    "cancel_button": "취소",
+    "cancel_tooltip": "현재 AI 응답 생성을 취소합니다."
   },
   "narrative": {
     "fallback_prompt": "다음 대화를 바탕으로 장면의 분위기나 캐릭터의 내면 심리를 묘사하는 짧은 내러티브를 생성해 주세요. 내러티브는 간결하고 생생해야 하며 길이는 50-100단어 사이여야 합니다.",
