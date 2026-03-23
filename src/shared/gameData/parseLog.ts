@@ -223,7 +223,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 // --- log_relatives: parents ---
                 case "parents":
                     if (!gameData) continue;
-                    upsertRelative(rootID, Number(data[1]), data[2], 'Parent', { birthDate: data[4] });
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Parent', { birthDate: data[4], birthTotalDays: Number(data[3]) });
                     break;
                 case "parent_death": {
                     if (!gameData) continue;
@@ -235,7 +235,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 // --- log_relatives: kids ---
                 case "kids":
                     if (!gameData) continue;
-                    upsertRelative(rootID, Number(data[1]), data[2], 'Child', { sheHe: data[3], birthDate: data[5] });
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Child', { sheHe: data[3], birthDate: data[5], birthTotalDays: Number(data[4]) });
                     break;
                 case "kid_other_parent": {
                     if (!gameData) continue;
@@ -291,7 +291,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 // --- log_relatives: siblings ---
                 case "siblings":
                     if (!gameData) continue;
-                    upsertRelative(rootID, Number(data[1]), data[2], 'Sibling', { sheHe: data[3], birthDate: data[5] });
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Sibling', { sheHe: data[3], birthDate: data[5], birthTotalDays: Number(data[4]) });
                     break;
                 case "sibling_other_parent": {
                     if (!gameData) continue;
@@ -362,6 +362,20 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         commitNewRelation(entry.charAID, entry.charBID, entry.relationship);
     }
 
+    // Propagate birthTotalDays to Character objects that were added after the relative log was parsed
+    if (gameData) {
+        for (const char of gameData.characters.values()) {
+            for (const rel of char.relatives) {
+                if (rel.birthTotalDays !== undefined) {
+                    const relChar = gameData.characters.get(rel.id);
+                    if (relChar && relChar.birthTotalDays === undefined) {
+                        relChar.birthTotalDays = rel.birthTotalDays;
+                    }
+                }
+            }
+        }
+    }
+
     console.debug("Finished parsing log file. Game data loaded from last block.");
 
     function findRelative(rootID: number, relativeID: number): Relative | undefined {
@@ -381,6 +395,13 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             if (relationship) rel.relationship = relationship;
         }
         if (extras) Object.assign(rel, extras);
+        // Propagate birthTotalDays to the Character object itself if it exists in the map
+        if (extras?.birthTotalDays !== undefined) {
+            const relativeChar = gameData.characters.get(id);
+            if (relativeChar && relativeChar.birthTotalDays === undefined) {
+                relativeChar.birthTotalDays = extras.birthTotalDays;
+            }
+        }
     }
 
     function commitNewRelation(charAID: number, charBID: number, relationship: string): void {

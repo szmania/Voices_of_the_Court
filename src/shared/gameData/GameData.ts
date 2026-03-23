@@ -40,6 +40,7 @@ export type Relative = {
     relationship: string; // 'Child', 'Spouse', 'Parent', 'Sibling', or game-engine relation strings
     sheHe?: string;
     birthDate?: string;
+    birthTotalDays?: number;
     isDeceased: boolean;
     deathDate?: string;
     deathReason?: string;

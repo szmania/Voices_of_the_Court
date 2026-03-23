@@ -41,6 +41,7 @@ export class Character {
     opinionBreakdownToPlayer: OpinionModifier[];
     opinions: { id: number, opinon: number}[];
     relatives: Relative[];
+    birthTotalDays?: number;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -155,10 +156,11 @@ export class Character {
     }   
 
     /**
-     * Get a detailed formatted description of the character's relatives, including death/marital/trait info.
+     * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.
+     * @param gameTotalDays - current game date in total days (used to compute relative ages)
      * @returns {string} - Formatted relatives description or empty string if no relatives
      */
-    getRelativesDescription(): string {
+    getRelativesDescription(gameTotalDays: number): string {
         const structured = this.relatives.filter(r =>
             r.relationship === 'Parent' || r.relationship === 'Child' || r.relationship === 'Sibling'
         );
@@ -170,6 +172,15 @@ export class Character {
             byRelationship.get(rel.relationship)!.push(rel);
         }
 
+        const calcAge = (birthTotalDays: number): number =>
+            Math.floor((gameTotalDays - birthTotalDays) / 365.25);
+
+        const genderWord = (sheHe: string | undefined, word: string): string => {
+            if (sheHe === 'she') return word === 'sibling' ? 'sister' : word;
+            if (sheHe === 'he')  return word === 'sibling' ? 'brother' : word;
+            return word;
+        };
+
         const sectionOrder = ['Parent', 'Child', 'Sibling'];
         const sections: string[] = [];
 
@@ -179,8 +190,22 @@ export class Character {
 
             const label = relType === 'Child' ? 'Children' : relType === 'Parent' ? 'Parents' : 'Siblings';
             const memberStrs = members.map(rel => {
-                const parts: string[] = [rel.name];
+                const parts: string[] = [];
 
+                // Build the name prefix (e.g. "older brother Heardræd")
+                if (relType === 'Sibling' && rel.birthTotalDays !== undefined && this.birthTotalDays !== undefined) {
+                    const qualifier = rel.birthTotalDays < this.birthTotalDays ? 'older' : 'younger';
+                    parts.push(`${qualifier} ${genderWord(rel.sheHe, 'sibling')} ${rel.name}`);
+                } else {
+                    parts.push(rel.name);
+                }
+
+                // Age (living relatives only)
+                if (!rel.isDeceased && rel.birthTotalDays !== undefined) {
+                    parts.push(`age ${calcAge(rel.birthTotalDays)}`);
+                }
+
+                // Death / marital status
                 if (rel.isDeceased) {
                     parts.push(rel.deathDate ? `deceased ${rel.deathDate}` : 'deceased');
                 } else if (rel.maritalStatus === 'is_concubine' && rel.partners.length > 0) {
@@ -200,7 +225,8 @@ export class Character {
                     parts.push(`traits: ${rel.traits.map(t => t.name).join(', ')}`);
                 }
 
-                return parts.length > 1 ? `${parts[0]} (${parts.slice(1).join('; ')})` : parts[0];
+                const name = parts[0];
+                return parts.length > 1 ? `${name} (${parts.slice(1).join('; ')})` : name;
             });
 
             sections.push(`${label}: ${memberStrs.join(', ')}`);

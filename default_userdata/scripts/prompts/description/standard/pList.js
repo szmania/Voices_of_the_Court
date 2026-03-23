@@ -173,7 +173,7 @@ module.exports = (gameData) =>{
     }
     
     function family(char){
-        return char.getRelativesDescription() || null;
+        return char.getRelativesDescription(gameData.totalDays) || null;
     }
     
     function otherTraits(char){

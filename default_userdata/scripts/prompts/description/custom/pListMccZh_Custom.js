@@ -254,7 +254,7 @@ module.exports = (gameData) =>{
     }
 
     function relatives(char){
-        return char.getRelativesDescription() || null;
+        return char.getRelativesDescription(gameData.totalDays) || null;
     }
 
     function otherTraits(char){
