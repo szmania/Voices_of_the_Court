@@ -1,7 +1,7 @@
 {
   "name": "voices_of_the_court_ce",
   "productName": "Voices of the Court - Community Edition",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "LLM integration into Crusader Kings 3",
   "main": "dist/main/main.js",
   "scripts": {
