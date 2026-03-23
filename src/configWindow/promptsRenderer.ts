@@ -373,7 +373,9 @@ async function handlePresetChange() {
     let promptsToLoad: any = null;
 
     if (selectedPresetName === 'Default') {
-        promptsToLoad = config.prompts[lang] || config.prompts.en;
+        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
     } else if (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]) {
         promptsToLoad = config.mod_prompt_sets[selectedPresetName][lang] || config.mod_prompt_sets[selectedPresetName].en;
     } else {
@@ -406,7 +408,7 @@ async function handlePresetChange() {
 
 
 async function saveCurrentPreset() {
-    const presetName = promptPresetNameInput.value.trim();
+    let presetName = promptPresetNameInput.value.trim();
     // @ts-ignore
     const lang = window.LocalizationManager?.language || 'en';
 
@@ -415,12 +417,22 @@ async function saveCurrentPreset() {
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_preset_empty_alert'), 'error');
         return;
     }
-    if (presetName === 'Default') {
-        // @ts-ignore
-        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.save_default_preset_alert'), 'error');
-        return;
-    }
 
+    const config = await ipcRenderer.invoke('get-config');
+    const isProtected = presetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[presetName]);
+
+    if (isProtected) {
+        let baseName = presetName;
+        let counter = 2;
+        let newPresetName = `${baseName} (${counter})`;
+
+        // Find a new name that doesn't exist in custom presets
+        while (promptPresets[newPresetName]) {
+            counter++;
+            newPresetName = `${baseName} (${counter})`;
+        }
+        presetName = newPresetName;
+    }
 
     const newPreset: any = {};
     for (const key of promptKeys) {
