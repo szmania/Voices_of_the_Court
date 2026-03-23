@@ -360,15 +360,23 @@ async function handlePresetChange() {
     console.log(`Preset changed to: ${selectedPresetName}`);
     promptPresetNameInput.value = selectedPresetName;
 
-    // Re-enable textareas before loading new content
+    const config = await ipcRenderer.invoke('get-config');
+    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
+
+    // Enable/disable textareas based on whether the preset is protected
     promptKeys.forEach(key => {
         if (promptTextareas[key] && promptTextareas[key].textarea) {
-            promptTextareas[key].textarea.disabled = false;
+            promptTextareas[key].textarea.disabled = isProtected;
         }
     });
-    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+    promptPresetNameInput.disabled = isProtected;
+    suffixPromptCheckbox.checkbox.disabled = isProtected;
 
-    const config = await ipcRenderer.invoke('get-config');
+    if (isProtected) {
+        suffixPromptTextarea.textarea.disabled = true;
+    } else {
+        togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
+    }
     const lang = config.language || 'en';
     let promptsToLoad: any = null;
 
@@ -393,7 +401,6 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
-    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
     if (deletePromptPresetBtn.disabled) {
@@ -448,14 +455,6 @@ async function saveCurrentPreset() {
     // @ts-ignore
     showStatusMessage(successMsg.replace('{{presetName}}', presetName), 'success');
     setSaveButtonState(false);
-
-    // Re-enable textareas after saving
-    promptKeys.forEach(key => {
-        if (promptTextareas[key] && promptTextareas[key].textarea) {
-            promptTextareas[key].textarea.disabled = false;
-        }
-    });
-    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
     promptPresetNameInput.focus();
 }
 
