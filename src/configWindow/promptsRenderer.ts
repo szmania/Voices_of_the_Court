@@ -25,8 +25,7 @@ let statusMessage: HTMLDivElement;
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
-    "actionTriggeredPrompt"
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
@@ -34,11 +33,6 @@ promptKeys.forEach(key => {
     promptTextareas[key] = document.querySelector(`config-textarea[confID="${key}"]`);
 });
 
-// Add diary prompt key
-promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
-
-// Add diary prompt key
-promptTextareas["diaryPrompt"] = document.querySelector(`config-textarea[confID="diaryPrompt"]`);
 
 let promptPresets: any = {};
 
@@ -442,22 +436,6 @@ async function saveCurrentPreset() {
     // @ts-ignore
     showStatusMessage(successMsg.replace('{{presetName}}', presetName), 'success');
     setSaveButtonState(false);
-
-    // Re-enable textareas after saving
-    promptKeys.forEach(key => {
-        if (promptTextareas[key] && promptTextareas[key].textarea) {
-            promptTextareas[key].textarea.disabled = false;
-        }
-    });
-    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
-
-    // Re-enable textareas after saving
-    promptKeys.forEach(key => {
-        if (promptTextareas[key] && promptTextareas[key].textarea) {
-            promptTextareas[key].textarea.disabled = false;
-        }
-    });
-    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
     // Re-enable textareas after saving
     promptKeys.forEach(key => {
