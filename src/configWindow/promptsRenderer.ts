@@ -360,23 +360,17 @@ async function handlePresetChange() {
     console.log(`Preset changed to: ${selectedPresetName}`);
     promptPresetNameInput.value = selectedPresetName;
 
-    const config = await ipcRenderer.invoke('get-config');
-    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
-
-    // Enable/disable textareas based on whether the preset is protected
+    // Re-enable textareas before loading new content
     promptKeys.forEach(key => {
         if (promptTextareas[key] && promptTextareas[key].textarea) {
-            promptTextareas[key].textarea.disabled = isProtected;
+            promptTextareas[key].textarea.disabled = false;
         }
     });
-    promptPresetNameInput.disabled = isProtected;
-    suffixPromptCheckbox.checkbox.disabled = isProtected;
+    promptPresetNameInput.disabled = false;
+    suffixPromptCheckbox.checkbox.disabled = false;
+    togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
-    if (isProtected) {
-        suffixPromptTextarea.textarea.disabled = true;
-    } else {
-        togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
-    }
+    const config = await ipcRenderer.invoke('get-config');
     const lang = config.language || 'en';
     let promptsToLoad: any = null;
 
@@ -401,6 +395,7 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
+    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
     if (deletePromptPresetBtn.disabled) {
