@@ -97,6 +97,15 @@ class LanguageSelector extends HTMLElement {
         });
 
         this.innerHTML = `
+            <style>
+                .dropdown .dropbtn {
+                    min-width: 130px;
+                    justify-content: flex-start;
+                }
+                .dropdown-content {
+                    min-width: 130px;
+                }
+            </style>
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
                     ${this.getFlagSvg(lang)}<span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : lang === 'pl' ? 'Polski' : 'Português'}</span>
