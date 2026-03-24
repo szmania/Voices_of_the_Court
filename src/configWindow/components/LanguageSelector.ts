@@ -99,50 +99,19 @@ class LanguageSelector extends HTMLElement {
         this.innerHTML = `
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
-                    ${this.getFlagSvg(lang)}
-                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : lang === 'pl' ? 'Polski' : 'Português'}</span>
+                    ${this.getFlagSvg(lang)}<span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : lang === 'pl' ? 'Polski' : 'Português'}</span>
                 </button>
                 <div class="dropdown-content" id="language-dropdown">
-                    <a href="#" data-lang="en">
-                        ${this.getFlagSvg('en')}
-                        <span class="lang-text">English</span>
-                    </a>
-                    <a href="#" data-lang="zh">
-                        ${this.getFlagSvg('zh')}
-                        <span class="lang-text">中文</span>
-                    </a>
-                    <a href="#" data-lang="ru">
-                        ${this.getFlagSvg('ru')}
-                        <span class="lang-text">Русский</span>
-                    </a>
-                    <a href="#" data-lang="fr">
-                        ${this.getFlagSvg('fr')}
-                        <span class="lang-text">Français</span>
-                    </a>
-                    <a href="#" data-lang="es">
-                        ${this.getFlagSvg('es')}
-                        <span class="lang-text">Español</span>
-                    </a>
-                    <a href="#" data-lang="de">
-                        ${this.getFlagSvg('de')}
-                        <span class="lang-text">Deutsch</span>
-                    </a>
-                    <a href="#" data-lang="ja">
-                        ${this.getFlagSvg('ja')}
-                        <span class="lang-text">日本語</span>
-                    </a>
-                    <a href="#" data-lang="ko">
-                        ${this.getFlagSvg('ko')}
-                        <span class="lang-text">한국어</span>
-                    </a>
-                    <a href="#" data-lang="pl">
-                        ${this.getFlagSvg('pl')}
-                        <span class="lang-text">Polski</span>
-                    </a>
-                    <a href="#" data-lang="pt">
-                        ${this.getFlagSvg('pt')}
-                        <span class="lang-text">Português</span>
-                    </a>
+                    <a href="#" data-lang="en">${this.getFlagSvg('en')}<span class="lang-text">English</span></a>
+                    <a href="#" data-lang="zh">${this.getFlagSvg('zh')}<span class="lang-text">中文</span></a>
+                    <a href="#" data-lang="ru">${this.getFlagSvg('ru')}<span class="lang-text">Русский</span></a>
+                    <a href="#" data-lang="fr">${this.getFlagSvg('fr')}<span class="lang-text">Français</span></a>
+                    <a href="#" data-lang="es">${this.getFlagSvg('es')}<span class="lang-text">Español</span></a>
+                    <a href="#" data-lang="de">${this.getFlagSvg('de')}<span class="lang-text">Deutsch</span></a>
+                    <a href="#" data-lang="ja">${this.getFlagSvg('ja')}<span class="lang-text">日本語</span></a>
+                    <a href="#" data-lang="ko">${this.getFlagSvg('ko')}<span class="lang-text">한국어</span></a>
+                    <a href="#" data-lang="pl">${this.getFlagSvg('pl')}<span class="lang-text">Polski</span></a>
+                    <a href="#" data-lang="pt">${this.getFlagSvg('pt')}<span class="lang-text">Português</span></a>
                 </div>
             </div>
         `;
@@ -171,8 +140,7 @@ class LanguageSelector extends HTMLElement {
                      lang === 'pl' ? 'Polski' :
                      'Português';
         btn.innerHTML = `
-            ${this.getFlagSvg(lang)}
-            <span class="lang-text">${text}</span>
+            ${this.getFlagSvg(lang)}<span class="lang-text">${text}</span>
         `;
     }
 
