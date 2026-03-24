@@ -3,6 +3,7 @@
 	"language": "en",
 	"activePromptPreset": "Default",
 	"activeModPreset": "Default",
+	"disabledMegamodNotifications": [],
 	"stream": false,
 	"maxTokens": 5000,
 	"maxMemoryTokens": 600,
