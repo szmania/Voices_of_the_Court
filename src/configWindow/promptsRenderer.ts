@@ -90,11 +90,32 @@ ipcRenderer.on('update-language', async (event, lang) => {
     }
     // Reload prompts for the new language
     const config = await ipcRenderer.invoke('get-config');
-    const promptsForLang = config.prompts[lang] || config.prompts.en;
-    if (promptsForLang) {
+    const selectedPresetName = config.activePromptPreset;
+    
+    let promptsToLoad: any = null;
+
+    if (selectedPresetName === 'Default') {
+        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
+    } else if (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]) {
+        promptsToLoad = config.mod_prompt_sets[selectedPresetName][lang] || config.mod_prompt_sets[selectedPresetName].en;
+    } else if (promptPresets[selectedPresetName]) {
+        // This is a custom preset. They are not localized. Do nothing.
+        console.log(`Language changed, but custom preset "${selectedPresetName}" is active. Prompts will not be changed.`);
+        return;
+    } else {
+        // Fallback for safety, though it shouldn't be reached if config is consistent.
+        console.warn(`Active preset "${selectedPresetName}" not found. Falling back to default prompts for new language.`);
+        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
+        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
+    }
+
+    if (promptsToLoad) {
         for (const key of promptKeys) {
-            if (promptTextareas[key] && promptsForLang[key] !== undefined) {
-                promptTextareas[key].textarea.value = promptsForLang[key];
+            if (promptTextareas[key] && promptsToLoad[key] !== undefined) {
+                promptTextareas[key].textarea.value = promptsToLoad[key];
                 // Manually trigger the input event to notify the component
                 promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
             }
