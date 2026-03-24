@@ -614,7 +614,11 @@
     "incompatible_mod_message": "Mod 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) nie jest kompatybilny z 'Voices of the Court 2.0 - Community Edition'.\n\nProszę zasubskrybować i włączyć Edycję Społecznościową, wyłączyć niekompatybilny mod i ponownie uruchomić aplikację.",
     "close_app": "Zamknij aplikację",
     "open_steam_and_quit": "Otwórz Steam i Wyjdź",
-    "open_discord_and_quit": "Otwórz Discord i Wyjdź"
+    "open_discord_and_quit": "Otwórz Discord i Wyjdź",
+    "megamod_detected_title": "Wykryto Megamod",
+    "megamod_detected_message": "Megamod \"{modName}\" jest włączony. Czy chcesz włączyć odpowiedni preset promptów?",
+    "megamod_detected_detail": "Spowoduje to skonfigurowanie promptów tak, aby pasowały do motywu i stylu megamoda.",
+    "dont_ask_again": "Nie pytaj ponownie dla tego megamoda"
   },
   "diary_manager": {
     "header": "Menedżer dzienników",

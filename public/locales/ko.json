@@ -614,7 +614,11 @@
     "incompatible_mod_message": "'Voices of the Court 2.0' 모드(mod/ugc_3346777360.mod)는 'Voices of the Court 2.0 - Community Edition'과 호환되지 않습니다.\n\n커뮤니티 에디션을 구독하고 활성화한 후, 호환되지 않는 모드를 비활성화하고 애플리케이션을 다시 시작하십시오.",
     "close_app": "앱 닫기",
     "open_steam_and_quit": "Steam 열고 종료",
-    "open_discord_and_quit": "Discord 열고 종료"
+    "open_discord_and_quit": "Discord 열고 종료",
+    "megamod_detected_title": "메가모드 감지됨",
+    "megamod_detected_message": "메가모드 \"{modName}\"이(가) 활성화되었습니다. 해당 프롬프트 프리셋을 활성화하시겠습니까?",
+    "megamod_detected_detail": "프롬프트를 메가모드의 테마와 스타일에 맞게 구성합니다.",
+    "dont_ask_again": "이 메가모드에 대해 다시 묻지 않기"
   },
   "diary_manager": {
     "header": "일기 관리자",

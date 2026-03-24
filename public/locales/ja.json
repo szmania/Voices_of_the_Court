@@ -614,7 +614,11 @@
     "incompatible_mod_message": "MOD「Voices of the Court 2.0」（mod/ugc_3346777360.mod）は「Voices of the Court 2.0 - Community Edition」と互換性がありません。\n\nCommunity Editionを購読して有効にし、互換性のないMODを無効にして、アプリケーションを再起動してください。",
     "close_app": "アプリを閉じる",
     "open_steam_and_quit": "Steamを開いて終了",
-    "open_discord_and_quit": "Discordを開いて終了"
+    "open_discord_and_quit": "Discordを開いて終了",
+    "megamod_detected_title": "メガMODが検出されました",
+    "megamod_detected_message": "メガMOD「{modName}」が有効になっています。対応するプロンプトプリセットを有効にしますか？",
+    "megamod_detected_detail": "これにより、プロンプトがメガMODのテーマとスタイルに一致するように設定されます。",
+    "dont_ask_again": "このメガMODについては今後表示しない"
   },
   "diary_manager": {
     "header": "日記マネージャー",

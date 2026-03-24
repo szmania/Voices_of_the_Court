@@ -614,7 +614,11 @@
     "incompatible_mod_message": "Мод 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) несовместим с 'Voices of the Court 2.0 - Community Edition'.\n\nПожалуйста, подпишитесь и включите Community Edition, отключите несовместимый мод и перезапустите приложение.",
     "close_app": "Закрыть приложение",
     "open_steam_and_quit": "Открыть Steam и выйти",
-    "open_discord_and_quit": "Открыть Discord и выйти"
+    "open_discord_and_quit": "Открыть Discord и выйти",
+    "megamod_detected_title": "Обнаружен Мегамод",
+    "megamod_detected_message": "Мегамод \"{modName}\" включен. Хотите включить соответствующий пресет промптов?",
+    "megamod_detected_detail": "Это настроит промпты так, чтобы они соответствовали теме и стилю мегамода.",
+    "dont_ask_again": "Больше не спрашивать для этого мегамода"
   },
   "diary_manager": {
     "header": "Менеджер дневников",
