@@ -87,6 +87,8 @@ export class Config{
     memoriesInsertDepth!: number;
     descInsertDepth!: number;
 
+    disabledMegamodNotifications!: string[];
+
     prompts!: {
         en: PromptConfig;
         zh: PromptConfig;

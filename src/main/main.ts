@@ -442,6 +442,53 @@ app.on('ready',  async () => {
                 app.quit();
                 return; // Stop further execution in the ready event.
             }
+
+            // Check for megamod presets
+            const megamodMappings: { [key: string]: { modPath: string; presetName: string } } = {
+                "LotR: Realms in Exile": { modPath: "mod/ugc_2291024373.mod", presetName: "LotR: Realms in Exile" },
+                "A Game of Thrones": { modPath: "mod/ugc_2962333032.mod", presetName: "A Game of Thrones" },
+                "The Fallen Eagle": { modPath: "mod/ugc_2243307127.mod", presetName: "The Fallen Eagle" },
+                "Warcraft: Guardians of Azeroth 2": { modPath: "mod/ugc_2949767945.mod", presetName: "Warcraft: Guardians of Azeroth 2" }
+            };
+
+            if (dlcLoadJson.enabled_mods) {
+                for (const [modName, mapping] of Object.entries(megamodMappings)) {
+                    if (dlcLoadJson.enabled_mods.includes(mapping.modPath)) {
+                        // Check if user has disabled notification for this megamod
+                        const disabledNotifications = config.disabledMegamodNotifications || [];
+                        if (!disabledNotifications.includes(modName)) {
+                            const dialogOpts = {
+                                type: 'question' as const,
+                                buttons: [t('dialog.yes'), t('dialog.no')],
+                                title: t('dialog.megamod_detected_title'),
+                                message: t('dialog.megamod_detected_message', { modName: modName }),
+                                detail: t('dialog.megamod_detected_detail'),
+                                checkboxLabel: t('dialog.dont_ask_again'),
+                                checkboxChecked: false
+                            };
+                            const { response, checkboxChecked } = await dialog.showMessageBox(dialogOpts);
+                            
+                            if (checkboxChecked) {
+                                // Add to disabled notifications list
+                                if (!config.disabledMegamodNotifications) {
+                                    config.disabledMegamodNotifications = [];
+                                }
+                                config.disabledMegamodNotifications.push(modName);
+                                config.export();
+                            }
+                            
+                            if (response === 0) {
+                                // User clicked "Yes" - enable the preset
+                                config.activePromptPreset = mapping.presetName;
+                                config.export();
+                                console.log(`Enabled megamod preset: ${mapping.presetName}`);
+                            }
+                            // Only check for one megamod at a time
+                            break;
+                        }
+                    }
+                }
+            }
         } catch (err) {
             console.error('Failed to read or parse dlc_load.json:', err);
         }
