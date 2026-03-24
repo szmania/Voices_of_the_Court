@@ -343,7 +343,8 @@ export class Conversation{
                     de: "[Erzählung]:",
                     ja: "[ナラティブ]:",
                     ko: "[내레이션]:",
-                    pl: "[Narracja]:"
+                    pl: "[Narracja]:",
+                    pt: "[Narrativa]:"
                 };
                 const narrativeLabelValues = Object.values(narrativeLabels);
                 const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
@@ -1616,7 +1617,8 @@ ${character.fullName}的发言：`
             de: "[Erzählung]:",
             ja: "[ナラティブ]:",
             ko: "[내레이션]:",
-            pl: "[Narracja]:"
+            pl: "[Narracja]:",
+            pt: "[Narrativa]:"
         };
         const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
 
