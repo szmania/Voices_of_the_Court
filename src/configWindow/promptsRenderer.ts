@@ -2,6 +2,9 @@ import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
 
+const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
+const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+
 let descScriptSelect: any = document.querySelector("#description-script-select")!;
 let exMessagesScriptSelect: any = document.querySelector("#example-messages-script-select")!;
 let bookmarkScriptSelect: any = document.querySelector("#bookmark-script-select")!;
@@ -98,8 +101,8 @@ ipcRenderer.on('update-language', async (event, lang) => {
         const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
         promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
-    } else if (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]) {
-        promptsToLoad = config.mod_prompt_sets[selectedPresetName][lang] || config.mod_prompt_sets[selectedPresetName].en;
+    } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
+        promptsToLoad = defaultConfig.mod_prompt_sets[selectedPresetName][lang] || defaultConfig.mod_prompt_sets[selectedPresetName].en;
     } else if (promptPresets[selectedPresetName]) {
         // This is a custom preset. They are not localized. Do nothing.
         console.log(`Language changed, but custom preset "${selectedPresetName}" is active. Prompts will not be changed.`);
@@ -335,7 +338,7 @@ async function populatePresetSelector(activePreset?: string) {
     promptPresetSelect.appendChild(defaultOption);
 
     // Add mod presets
-    if (config.mod_prompt_sets) {
+    if (defaultConfig.mod_prompt_sets) {
         const modSeparator = document.createElement('option');
         modSeparator.disabled = true;
         modSeparator.textContent = '--- Mod Presets ---';
@@ -344,10 +347,11 @@ async function populatePresetSelector(activePreset?: string) {
         const modNameLocaleKeyMap: { [key: string]: string } = {
             "A Game of Thrones": "prompts.mod_agot",
             "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
-            "The Fallen Eagle": "prompts.mod_tfe"
+            "The Fallen Eagle": "prompts.mod_tfe",
+            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2"
         };
 
-        for (const modName in config.mod_prompt_sets) {
+        for (const modName in defaultConfig.mod_prompt_sets) {
             const option = document.createElement('option');
             option.value = modName;
             const localeKey = modNameLocaleKeyMap[modName];
@@ -399,8 +403,8 @@ async function handlePresetChange() {
         const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
         promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
-    } else if (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]) {
-        promptsToLoad = config.mod_prompt_sets[selectedPresetName][lang] || config.mod_prompt_sets[selectedPresetName].en;
+    } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
+        promptsToLoad = defaultConfig.mod_prompt_sets[selectedPresetName][lang] || defaultConfig.mod_prompt_sets[selectedPresetName].en;
     } else {
         promptsToLoad = promptPresets[selectedPresetName];
     }
@@ -416,7 +420,7 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
-    const isProtected = selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName]);
+    const isProtected = selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
     if (deletePromptPresetBtn.disabled) {
@@ -442,7 +446,7 @@ async function saveCurrentPreset() {
     }
 
     const config = await ipcRenderer.invoke('get-config');
-    const isProtected = presetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[presetName]);
+    const isProtected = presetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[presetName]);
 
     if (isProtected) {
         let baseName = presetName;
@@ -478,7 +482,7 @@ async function deleteSelectedPreset() {
     const selectedPresetName = promptPresetSelect.value;
     const config = await ipcRenderer.invoke('get-config');
 
-    if (selectedPresetName === 'Default' || (config.mod_prompt_sets && config.mod_prompt_sets[selectedPresetName])) {
+    if (selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName])) {
         // @ts-ignore
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'), 'error');
         return;
