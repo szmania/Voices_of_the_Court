@@ -29,7 +29,7 @@ export interface PromptConfig {
 
 export class Config{
     userFolderPath!: string;
-    language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' = 'en';
+    language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' | 'pt' = 'en';
     activePromptPreset!: string;
 
     stream!: boolean;
@@ -99,6 +99,7 @@ export class Config{
         ja: PromptConfig;
         ko: PromptConfig;
         pl: PromptConfig;
+        pt: PromptConfig;
     };
 
     mod_prompt_sets!: any;

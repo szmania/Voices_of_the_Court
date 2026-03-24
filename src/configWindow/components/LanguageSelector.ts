@@ -67,6 +67,12 @@ class LanguageSelector extends HTMLElement {
                 <rect width="8" height="5" fill="#fff"/>
                 <rect width="8" height="2.5" y="2.5" fill="#dc143c"/>
             </svg>`;
+        } else if (lang === 'pt') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 6" width="20" height="13.3" style="margin-right: 8px; vertical-align: middle;">
+                <rect width="9" height="6" fill="#009b3a"/>
+                <path d="M4.5 1l-3 2 3 2 3-2z" fill="#fddf00"/>
+                <circle cx="4.5" cy="3" r="1" fill="#002776"/>
+            </svg>`;
         } else {
             return '';
         }
@@ -94,7 +100,7 @@ class LanguageSelector extends HTMLElement {
             <div class="dropdown">
                 <button class="dropbtn" id="current-language-btn">
                     ${this.getFlagSvg(lang)}
-                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : 'Polski'}</span>
+                    <span class="lang-text">${lang === 'en' ? 'English' : lang === 'zh' ? '中文' : lang === 'ru' ? 'Русский' : lang === 'fr' ? 'Français' : lang === 'es' ? 'Español' : lang === 'de' ? 'Deutsch' : lang === 'ja' ? '日本語' : lang === 'ko' ? '한국어' : lang === 'pl' ? 'Polski' : 'Português'}</span>
                 </button>
                 <div class="dropdown-content" id="language-dropdown">
                     <a href="#" data-lang="en">
@@ -133,6 +139,10 @@ class LanguageSelector extends HTMLElement {
                         ${this.getFlagSvg('pl')}
                         <span class="lang-text">Polski</span>
                     </a>
+                    <a href="#" data-lang="pt">
+                        ${this.getFlagSvg('pt')}
+                        <span class="lang-text">Português</span>
+                    </a>
                 </div>
             </div>
         `;
@@ -143,7 +153,7 @@ class LanguageSelector extends HTMLElement {
         languageDropdown.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const selectedLang = link.getAttribute('data-lang') as 'en' | 'zh';
+                const selectedLang = link.getAttribute('data-lang') as 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' | 'pt';
                 this.updateLanguage(selectedLang, currentLanguageBtn);
             });
         });
@@ -158,14 +168,15 @@ class LanguageSelector extends HTMLElement {
                      lang === 'de' ? 'Deutsch' : 
                      lang === 'ja' ? '日本語' : 
                      lang === 'ko' ? '한국어' : 
-                     'Polski';
+                     lang === 'pl' ? 'Polski' :
+                     'Português';
         btn.innerHTML = `
             ${this.getFlagSvg(lang)}
             <span class="lang-text">${text}</span>
         `;
     }
 
-    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl', btn: HTMLElement) {
+    async updateLanguage(lang: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' | 'pt', btn: HTMLElement) {
         this.updateButtonText(btn, lang);
         ipcRenderer.send('config-change', 'language', lang);
         ipcRenderer.send('language-changed', lang);
