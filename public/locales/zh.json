@@ -614,7 +614,11 @@
     "incompatible_mod_message": "模组 'Voices of the Court 2.0' (mod/ugc_3346777360.mod) 与 'Voices of the Court 2.0 - 社区版' 不兼容。\n\n请订阅并启用社区版，禁用不兼容的模组，然后重新启动应用程序。",
     "close_app": "关闭应用",
     "open_steam_and_quit": "打开Steam并退出",
-    "open_discord_and_quit": "打开Discord并退出"
+    "open_discord_and_quit": "打开Discord并退出",
+    "megamod_detected_title": "检测到大型模组",
+    "megamod_detected_message": "已启用大型模组“{modName}”。您想启用相应的大型模组预设吗？",
+    "megamod_detected_detail": "这将配置提示以匹配大型模组的主题和风格。",
+    "dont_ask_again": "不再为此大型模组显示此通知"
   },
   "diary_manager": {
     "header": "日记管理器",
