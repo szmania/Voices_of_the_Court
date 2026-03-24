@@ -102,7 +102,10 @@ ipcRenderer.on('update-language', async (event, lang) => {
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
         promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
     } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
-        promptsToLoad = defaultConfig.mod_prompt_sets[selectedPresetName][lang] || defaultConfig.mod_prompt_sets[selectedPresetName].en;
+        const megamodPrompts = defaultConfig.mod_prompt_sets[selectedPresetName];
+        const langPrompts = megamodPrompts[lang] || {};
+        const englishPrompts = megamodPrompts.en;
+        promptsToLoad = { ...englishPrompts, ...langPrompts };
     } else if (promptPresets[selectedPresetName]) {
         // This is a custom preset. They are not localized. Do nothing.
         console.log(`Language changed, but custom preset "${selectedPresetName}" is active. Prompts will not be changed.`);
@@ -404,7 +407,10 @@ async function handlePresetChange() {
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
         promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
     } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
-        promptsToLoad = defaultConfig.mod_prompt_sets[selectedPresetName][lang] || defaultConfig.mod_prompt_sets[selectedPresetName].en;
+        const megamodPrompts = defaultConfig.mod_prompt_sets[selectedPresetName];
+        const langPrompts = megamodPrompts[lang] || {};
+        const englishPrompts = megamodPrompts.en;
+        promptsToLoad = { ...englishPrompts, ...langPrompts };
     } else {
         promptsToLoad = promptPresets[selectedPresetName];
     }
