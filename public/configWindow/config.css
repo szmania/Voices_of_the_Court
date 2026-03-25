@@ -136,6 +136,27 @@ input::-webkit-inner-spin-button {
   margin:0;
 }
 
+.prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.prompt-header > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.token-count {
+    font-size: 0.9em;
+    color: #aaa;
+    margin-left: auto;
+    padding-left: 10px;
+    white-space: nowrap;
+}
+
 button{
   background-color: #591919;
   color: #e0e0e0;

@@ -25,6 +25,26 @@ let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-
 
 let statusMessage: HTMLDivElement;
 
+async function updateTokenCount(key: string) {
+    const textarea = promptTextareas[key]?.textarea;
+    const tokenCountSpan = document.getElementById(`${key}-token-count`);
+
+    if (textarea && tokenCountSpan) {
+        const text = textarea.value;
+        try {
+            const count = await ipcRenderer.invoke('calculate-tokens', text);
+            // @ts-ignore
+            const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+            tokenCountSpan.textContent = `${tokensLabel} ${count}`;
+        } catch (error) {
+            console.error(`Failed to calculate tokens for ${key}:`, error);
+            // @ts-ignore
+            const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+            tokenCountSpan.textContent = `${tokensLabel} Error`;
+        }
+    }
+}
+
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
@@ -143,6 +163,7 @@ async function init(){
                 // Ensure all prompt textareas are editable
                 promptTextareas[key].textarea.disabled = false;
                 promptTextareas[key].textarea.addEventListener('input', handleInputChange);
+                promptTextareas[key].textarea.addEventListener('input', () => updateTokenCount(key));
             }
         });
         
@@ -419,9 +440,13 @@ async function handlePresetChange() {
         for (const key of promptKeys) {
             if (promptTextareas[key] && promptsToLoad[key] !== undefined) {
                 promptTextareas[key].textarea.value = promptsToLoad[key];
+                // Manually trigger the input event to notify the component and update token count
                 promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }
+    } else {
+        // If prompts didn't load (e.g. new custom preset), still update counts for any existing text
+        promptKeys.forEach(key => updateTokenCount(key));
     }
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);

@@ -45,74 +45,129 @@
                 <div class="border" id="prompt-options">
                     
                     <div class="input-group">
-                        <label data-i18n="prompts.main_prompt"></label>
+                        <div class="prompt-header">
+                            <label data-i18n="prompts.main_prompt"></label>
+                            <span class="token-count" id="mainPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="mainPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.self_talk_prompt"></label>
+                        <div class="prompt-header">
+                            <label data-i18n="prompts.self_talk_prompt"></label>
+                            <span class="token-count" id="selfTalkPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="selfTalkPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                      <label data-i18n="prompts.summarize_prompt"></label>
-                      <config-textarea confID="summarizePrompt" rows="6"></config-textarea>
+                        <div class="prompt-header">
+                            <label data-i18n="prompts.summarize_prompt"></label>
+                            <span class="token-count" id="summarizePrompt-token-count"></span>
+                        </div>
+                        <config-textarea confID="summarizePrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.self_talk_summarize_prompt"></label>
+                        <div class="prompt-header">
+                            <label data-i18n="prompts.self_talk_summarize_prompt"></label>
+                            <span class="token-count" id="selfTalkSummarizePrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="selfTalkSummarizePrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                      <label data-i18n="prompts.memories_prompt"></label>
-                      <config-textarea confID="memoriesPrompt" rows="2"></config-textarea>
+                        <div class="prompt-header">
+                            <label data-i18n="prompts.memories_prompt"></label>
+                            <span class="token-count" id="memoriesPrompt-token-count"></span>
+                        </div>
+                        <config-textarea confID="memoriesPrompt" rows="2"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <config-checkbox id="suffix-prompt-checkbox" confID="enableSuffixPrompt" data-i18n="prompts.suffix_prompt"></config-checkbox> <tooltip-text side="top" data-i18n="prompts.suffix_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <config-checkbox id="suffix-prompt-checkbox" confID="enableSuffixPrompt" data-i18n="prompts.suffix_prompt"></config-checkbox> <tooltip-text side="top" data-i18n="prompts.suffix_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="suffixPrompt-token-count"></span>
+                        </div>
                         <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea> 
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.narrative_prompt"></label>
-                        <tooltip-text side="top" data-i18n="prompts.narrative_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.narrative_prompt"></label>
+                                <tooltip-text side="top" data-i18n="prompts.narrative_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="narrativePrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="narrativePrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.scene_description_prompt"></label>
-                        <tooltip-text side="top" data-i18n="prompts.scene_description_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.scene_description_prompt"></label>
+                                <tooltip-text side="top" data-i18n="prompts.scene_description_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="sceneDescriptionPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="sceneDescriptionPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.letter_prompt">Letter Prompt</label>
-                        <tooltip-text side="top" data-i18n="prompts.letter_tooltip">Prompt for generating letter replies.</tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.letter_prompt">Letter Prompt</label>
+                                <tooltip-text side="top" data-i18n="prompts.letter_tooltip">Prompt for generating letter replies.</tooltip-text>
+                            </div>
+                            <span class="token-count" id="letterPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="letterPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.letter_summary_prompt">Letter Summary Prompt</label>
-                        <tooltip-text side="top" data-i18n="prompts.letter_summary_tooltip">Prompt for summarizing a letter exchange.</tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.letter_summary_prompt">Letter Summary Prompt</label>
+                                <tooltip-text side="top" data-i18n="prompts.letter_summary_tooltip">Prompt for summarizing a letter exchange.</tooltip-text>
+                            </div>
+                            <span class="token-count" id="letterSummaryPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="letterSummaryPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.diary_prompt"></label>
-                        <tooltip-text side="top" data-i18n="prompts.diary_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.diary_prompt"></label>
+                                <tooltip-text side="top" data-i18n="prompts.diary_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="diaryPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="diaryPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.diary_summary_prompt"></label>
-                        <tooltip-text side="top" data-i18n="prompts.diary_summary_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.diary_summary_prompt"></label>
+                                <tooltip-text side="top" data-i18n="prompts.diary_summary_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="diarySummarizePrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="diarySummarizePrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
-                        <label data-i18n="prompts.diary_for_letter_prompt"></label>
-                        <tooltip-text side="top" data-i18n="prompts.diary_for_letter_tooltip"></tooltip-text>
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.diary_for_letter_prompt"></label>
+                                <tooltip-text side="top" data-i18n="prompts.diary_for_letter_tooltip"></tooltip-text>
+                            </div>
+                            <span class="token-count" id="diaryForLetterPrompt-token-count"></span>
+                        </div>
                         <config-textarea confID="diaryForLetterPrompt" rows="6"></config-textarea>
                     </div>
                 </div>
