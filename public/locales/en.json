@@ -95,6 +95,8 @@
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
     "select_preset": "Active Preset:",
+    "filter_by_character": "Filter by Character:",
+    "all_characters": "All Characters",
     "save_preset_tooltip": "Save current prompts as a new preset",
     "delete_preset_tooltip": "Delete the selected preset",
     "preset_name_placeholder": "Preset name...",

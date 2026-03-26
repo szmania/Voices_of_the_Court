@@ -159,6 +159,7 @@ input::-webkit-inner-spin-button {
 
 #total-token-counts {
     text-align: center;
+    padding-top: 15px;
 }
 
 .token-summary {

@@ -22,6 +22,7 @@ let promptPresetNameInput: HTMLInputElement = document.querySelector("#prompt-pr
 let savePromptPresetBtn: HTMLButtonElement = document.querySelector("#save-prompt-preset")!;
 let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-prompt-preset")!;
 let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-preset-to-default")!;
+let characterFilterSelect: HTMLSelectElement = document.querySelector("#character-filter-select")!;
 
 let statusMessage: HTMLDivElement;
 
@@ -229,6 +230,7 @@ async function init(){
             window.LocalizationManager.applyTranslations();
         }
 
+        await populateCharacterFilter();
         await populatePresetSelector(config.activePromptPreset);
         console.log('Config loaded, selectedDescScript:', config.selectedDescScript);
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
@@ -272,6 +274,7 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
+        characterFilterSelect.addEventListener('change', handlePresetChange);
         promptPresetSelect.addEventListener('change', handlePresetChange);
         savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
@@ -300,6 +303,30 @@ async function init(){
         // @ts-ignore
         const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
         showStatusMessage(errorMsg, 'error');
+    }
+}
+
+async function populateCharacterFilter() {
+    characterFilterSelect.innerHTML = '';
+
+    const allCharsOption = document.createElement('option');
+    allCharsOption.value = 'global';
+    // @ts-ignore
+    allCharsOption.textContent = window.LocalizationManager.getNestedTranslation('prompts.all_characters', null, 'All Characters');
+    characterFilterSelect.appendChild(allCharsOption);
+
+    const result = await ipcRenderer.invoke('get-all-summary-player-ids');
+    if (result.success) {
+        const players = result.ids;
+        players.forEach((player: { id: string, name: string }) => {
+            if (!player.id || !player.name) return;
+            const option = document.createElement('option');
+            option.value = player.id;
+            option.textContent = `${player.name} (${player.id})`;
+            characterFilterSelect.appendChild(option);
+        });
+    } else {
+        console.error("Failed to get player characters for filter:", result.error);
     }
 }
 
@@ -399,6 +426,7 @@ function populateSelectWithFileNames(selectElement: HTMLSelectElement, folderPat
 async function populatePresetSelector(activePreset?: string) {
     promptPresetSelect.innerHTML = '';
     const config = await ipcRenderer.invoke('get-config');
+    const selectedCharacterId = characterFilterSelect.value;
 
     // Add default option
     const defaultOption = document.createElement('option');
@@ -431,18 +459,32 @@ async function populatePresetSelector(activePreset?: string) {
         }
     }
 
-    // Add custom presets
-    if (Object.keys(promptPresets).length > 0) {
+    // Add custom presets (global and character-specific)
+    const customGlobalPresets = promptPresets['global'] || {};
+    const customCharacterPresets = promptPresets[selectedCharacterId] || {};
+
+    if (Object.keys(customGlobalPresets).length > 0 || Object.keys(customCharacterPresets).length > 0) {
         const customSeparator = document.createElement('option');
         customSeparator.disabled = true;
         customSeparator.textContent = '--- Custom Presets ---';
         promptPresetSelect.appendChild(customSeparator);
 
-        for (const presetName in promptPresets) {
+        // Add character-specific presets first
+        for (const presetName in customCharacterPresets) {
             const option = document.createElement('option');
             option.value = presetName;
             option.textContent = presetName;
             promptPresetSelect.appendChild(option);
+        }
+
+        // Add global presets if "All Characters" is selected
+        if (selectedCharacterId === 'global') {
+            for (const presetName in customGlobalPresets) {
+                const option = document.createElement('option');
+                option.value = presetName;
+                option.textContent = presetName;
+                promptPresetSelect.appendChild(option);
+            }
         }
     }
 
@@ -515,6 +557,7 @@ async function saveCurrentPreset() {
     let presetName = promptPresetNameInput.value.trim();
     // @ts-ignore
     const lang = window.LocalizationManager?.language || 'en';
+    const selectedCharacterId = characterFilterSelect.value;
 
     if (!presetName) {
         // @ts-ignore
@@ -530,8 +573,9 @@ async function saveCurrentPreset() {
         let counter = 2;
         let newPresetName = `${baseName} (${counter})`;
 
-        // Find a new name that doesn't exist in custom presets
-        while (promptPresets[newPresetName]) {
+        // Find a new name that doesn't exist in custom presets for the current scope
+        const currentScopePresets = promptPresets[selectedCharacterId] || {};
+        while (currentScopePresets[newPresetName]) {
             counter++;
             newPresetName = `${baseName} (${counter})`;
         }
@@ -543,7 +587,10 @@ async function saveCurrentPreset() {
         newPreset[key] = promptTextareas[key].textarea.value;
     }
 
-    promptPresets[presetName] = newPreset;
+    if (!promptPresets[selectedCharacterId]) {
+        promptPresets[selectedCharacterId] = {};
+    }
+    promptPresets[selectedCharacterId][presetName] = newPreset;
     await ipcRenderer.invoke('save-prompt-presets', promptPresets);
 
     await populatePresetSelector(presetName);
@@ -557,6 +604,7 @@ async function saveCurrentPreset() {
 
 async function deleteSelectedPreset() {
     const selectedPresetName = promptPresetSelect.value;
+    const selectedCharacterId = characterFilterSelect.value;
     const config = await ipcRenderer.invoke('get-config');
 
     if (selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName])) {
@@ -565,7 +613,8 @@ async function deleteSelectedPreset() {
         return;
     }
 
-    delete promptPresets[selectedPresetName];
+    if (promptPresets[selectedCharacterId] && promptPresets[selectedCharacterId][selectedPresetName]) {
+        delete promptPresets[selectedCharacterId][selectedPresetName];
         await ipcRenderer.invoke('save-prompt-presets', promptPresets);
         await populatePresetSelector('Default'); // Switch to default after deletion
         // @ts-ignore
@@ -581,6 +630,9 @@ async function deleteSelectedPreset() {
         });
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
         promptPresetNameInput.focus();
+    } else {
+        console.error(`Preset "${selectedPresetName}" not found for character scope "${selectedCharacterId}"`);
+    }
 }
 
 async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {

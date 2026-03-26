@@ -1190,13 +1190,20 @@ ipcMain.handle('get-prompt-presets', async () => {
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
-            return JSON.parse(presetsRaw);
+            const presets = JSON.parse(presetsRaw);
+            // Ensure the new structure exists
+            if (!presets.global && !Object.keys(presets).some(k => k !== 'global')) {
+                // Old flat structure detected, migrate it
+                console.log('Old preset structure detected, migrating to new structure.');
+                return { global: presets };
+            }
+            return presets;
         } catch (error) {
             console.error('Error reading prompt presets file:', error);
-            return {};
+            return { global: {} }; // Return new structure
         }
     }
-    return {};
+    return { global: {} }; // Return new structure
 });
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
