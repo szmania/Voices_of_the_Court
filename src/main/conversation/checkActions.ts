@@ -264,8 +264,8 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
             }
             argString += `${arg.name} (${arg.type}): ${argDesc}. `;
 
-            if (arg.options && Array.isArray(arg.options)) {
-                const optionValues = arg.options.map(opt => typeof opt === 'object' ? opt.value : opt).join(', ');
+            if ((arg as any).options && Array.isArray((arg as any).options)) {
+                const optionValues = (arg as any).options.map((opt: any) => typeof opt === 'object' ? opt.value : opt).join(', ');
                 argString += `Possible values: [${optionValues}]. `;
             }
         }
