@@ -95,8 +95,8 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
             continue;
         }
 
-        if (actionArgs.length !== matchedAction.args.length) {
-            console.warn(`Action warning: The matched action "${matchedAction.signature}" has a different number of arguments (${matchedAction.args.length}) than the one from the LLM response (${actionArgs.length}). Skipping.`);
+        if (actionArgs.length > matchedAction.args.length) {
+            console.warn(`Action warning: The matched action "${matchedAction.signature}" received too many arguments (${actionArgs.length}) from the LLM response, expected no more than ${matchedAction.args.length}. Skipping.`);
             continue;
         }
 
