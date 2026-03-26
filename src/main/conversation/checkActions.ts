@@ -262,7 +262,12 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
             if (typeof argDesc === 'object') {
                 argDesc = argDesc[conv.config.language] || argDesc['en'] || Object.values(argDesc)[0];
             }
-            argString += `${arg.name} (${arg.type}): ${argDesc}. `
+            argString += `${arg.name} (${arg.type}): ${argDesc}. `;
+
+            if (arg.options && Array.isArray(arg.options)) {
+                const optionValues = arg.options.map(opt => typeof opt === 'object' ? opt.value : opt).join(', ');
+                argString += `Possible values: [${optionValues}]. `;
+            }
         }
 
         let description = action.description;
