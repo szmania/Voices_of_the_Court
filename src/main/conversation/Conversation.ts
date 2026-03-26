@@ -565,15 +565,15 @@ export class Conversation{
         this.abortController = new AbortController();
         try {
             const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
-            let isDirectAction = false;
-            if (lastMessage && lastMessage.role === 'user') {
-                if (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content)) {
-                    isDirectAction = true;
-                }
-            }
 
-            if (isDirectAction && lastMessage) {
-                console.log('Direct action detected. Bypassing conversational replies and checking for actions immediately.');
+            // Determine if we should check for actions immediately, before an AI's conversational reply.
+            const userMessages = this.messages.filter(m => m.role === 'user');
+            const isFirstUserTurn = userMessages.length === 1 && lastMessage?.role === 'user';
+            const isDirectActionSyntax = lastMessage?.role === 'user' && (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content));
+
+            if (lastMessage && lastMessage.role === 'user' && (isFirstUserTurn || isDirectActionSyntax)) {
+                const reason = isFirstUserTurn ? "first user turn" : "direct action syntax";
+                console.log(`Performing immediate action check due to: ${reason}.`);
 
                 const targetedCharacters = await this.determineTargetedCharacters();
                 // If multiple targets, pick the first. If none, fallback to main AI.
@@ -582,27 +582,31 @@ export class Conversation{
 
                 const collectedActions = await checkActions(this, sourceId, targetId);
 
-                let playerNarrative: Message | null = null;
+                // If actions were found, we treat that as the "response" and bypass the normal AI chat reply.
                 if (collectedActions.length > 0) {
+                    console.log('Actions triggered on immediate check. Bypassing conversational reply.');
                     this.executedActions.set(lastMessage.id!, collectedActions);
                     this.actionInvolvedCharacterIds.add(sourceId);
                     this.actionInvolvedCharacterIds.add(targetId);
                     this.consecutiveActionsCount++;
                     this.lastActionMessageIndex = this.messages.length - 1;
 
+                    let playerNarrative: Message | null = null;
                     if (this.config.narrativeEnable) {
                         playerNarrative = await generateNarrative(this, collectedActions);
                     }
-                }
 
-                if (playerNarrative) {
-                    this.pushMessage(playerNarrative);
-                }
-                this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
+                    if (playerNarrative) {
+                        this.pushMessage(playerNarrative);
+                    }
+                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
 
-                // End generation here since we handled the direct action.
-                this.isGenerating = false;
-                return;
+                    // End generation here since we handled the direct action.
+                    this.isGenerating = false;
+                    return;
+                } else {
+                    console.log('No actions triggered on immediate check. Proceeding with normal AI response.');
+                }
             }
 
             this.aiToAiTurnLimit = 0;
