@@ -1818,6 +1818,7 @@ ipcRenderer.on('action-approval-request', (event, messageId: string, proposedAct
 
             const approveButton = document.createElement('button');
             approveButton.textContent = acceptText;
+            approveButton.classList.add('action-approve-button');
             const approveTooltip = (lm ? lm.getNestedTranslation('chat.action_approve_tooltip') : null) || 'Accept this action and apply its effects in-game.';
             approveButton.setAttribute('data-tooltip', approveTooltip);
             approveButton.onclick = () => {
@@ -1831,6 +1832,7 @@ ipcRenderer.on('action-approval-request', (event, messageId: string, proposedAct
 
             const declineButton = document.createElement('button');
             declineButton.textContent = declineText;
+            declineButton.classList.add('action-decline-button');
             const declineTooltip = (lm ? lm.getNestedTranslation('chat.action_decline_tooltip') : null) || 'Decline this action. It will not be executed.';
             declineButton.setAttribute('data-tooltip', declineTooltip);
             declineButton.onclick = () => {
