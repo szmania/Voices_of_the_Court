@@ -1301,3 +1301,59 @@ html{
     visibility: visible;
     transition-delay: 0.1s;
 }
+
+/* Action Approval Styles */
+.action-approval-container {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-prompt {
+    background-color: rgba(25, 25, 25, 0.7);
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-buttons button {
+    color: white;
+    border: solid 2px rgb(39, 33, 0);
+    font-size: 0.9rem;
+    background-image: url("../assets/button.png");
+    background-size: cover;
+    font-family: 'Gitan', sans-serif;
+    cursor: url("../assets/cursor.png"), auto;
+    transition: all 0.2s;
+    padding: 6px 12px;
+    border-radius: 2px;
+}
+
+.action-buttons button:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(204, 164, 59, 0.2);
+}
+
+.action-approve-button {
+    background-color: #2E7D32;
+}
+.action-approve-button:hover {
+    background-color: #388E3C;
+}
+
+.action-decline-button {
+    background-color: #A94442;
+}
+.action-decline-button:hover {
+    background-color: #C95452;
+}

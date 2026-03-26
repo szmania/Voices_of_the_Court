@@ -62,7 +62,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
         return [];
     }
 
-    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_])/).filter(a => a.trim() !== 'noop()');
+    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => a.trim() !== 'noop()');
 
     for(const actionInResponse of actions){
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
@@ -95,8 +95,8 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
             continue;
         }
 
-        if (actionArgs.length !== matchedAction.args.length) {
-            console.warn(`Action warning: The matched action "${matchedAction.signature}" has a different number of arguments (${matchedAction.args.length}) than the one from the LLM response (${actionArgs.length}). Skipping.`);
+        if (actionArgs.length > matchedAction.args.length) {
+            console.warn(`Action warning: The matched action "${matchedAction.signature}" received too many arguments (${actionArgs.length}) from the LLM response, expected no more than ${matchedAction.args.length}. Skipping.`);
             continue;
         }
 
@@ -262,7 +262,12 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
             if (typeof argDesc === 'object') {
                 argDesc = argDesc[conv.config.language] || argDesc['en'] || Object.values(argDesc)[0];
             }
-            argString += `${arg.name} (${arg.type}): ${argDesc}. `
+            argString += `${arg.name} (${arg.type}): ${argDesc}. `;
+
+            if ((arg as any).options && Array.isArray((arg as any).options)) {
+                const optionValues = (arg as any).options.map((opt: any) => typeof opt === 'object' ? opt.value : opt).join(', ');
+                argString += `Possible values: [${optionValues}]. `;
+            }
         }
 
         let description = action.description;
