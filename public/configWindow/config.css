@@ -287,6 +287,8 @@ input[type=checkbox]{
   border-radius: 4px;
   padding: 15px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
 }
 
 #action-descriptor h3 {
@@ -294,6 +296,17 @@ input[type=checkbox]{
   color: #cca43b;
   border-bottom: 1px solid #5a4a35;
   padding-bottom: 8px;
+}
+
+#action-descriptor-content {
+  flex-grow: 1;
+}
+
+.action-file-opener {
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid #5a4a35;
+  text-align: center;
 }
 
 #action-descriptor ul {
