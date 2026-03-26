@@ -219,13 +219,13 @@ async function loadactions(){
                 </ul>
             </div>
             <div class="action-file-opener">
-                <button id="open-action-file-btn" data-i18n="actions.open_file"></button>
+                <button id="open-action-file-btn"></button>
             </div>
             `;
-            (window as any).LocalizationManager.applyTranslationsToElement(actionDescriptorDiv);
 
-            const openFileBtn = document.getElementById('open-action-file-btn');
+            const openFileBtn = document.getElementById('open-action-file-btn') as HTMLButtonElement;
             if (openFileBtn) {
+                openFileBtn.textContent = (window as any).LocalizationManager?.getNestedTranslation('actions.open_file') || "Open File";
                 openFileBtn.addEventListener('click', () => {
                     ipcRenderer.send('open-action-file', path.join(actionsPath, 'standard', fileName));
                 });
@@ -309,13 +309,13 @@ async function loadactions(){
                 </ul>
             </div>
             <div class="action-file-opener">
-                <button id="open-action-file-btn" data-i18n="actions.open_file"></button>
+                <button id="open-action-file-btn"></button>
             </div>
             `;
-            (window as any).LocalizationManager.applyTranslationsToElement(actionDescriptorDiv);
 
-            const openFileBtn = document.getElementById('open-action-file-btn');
+            const openFileBtn = document.getElementById('open-action-file-btn') as HTMLButtonElement;
             if (openFileBtn) {
+                openFileBtn.textContent = (window as any).LocalizationManager?.getNestedTranslation('actions.open_file') || "Open File";
                 openFileBtn.addEventListener('click', () => {
                     ipcRenderer.send('open-action-file', path.join(actionsPath, 'custom', fileName));
                 });
