@@ -636,9 +636,37 @@ export class Conversation{
             const allGeneratedMessages: Message[] = [];
             const allTurnActions: ActionResponse[] = [];
 
-            // Step 1: Get and process targeted characters
+            // Determine targeted characters upfront (reused for both action detection and AI response)
             const targetedCharacters = await this.determineTargetedCharacters();
 
+            // If the player's message contains action syntax, check for actions before the AI responds.
+            // This ensures detection even if AI generation produces no messages, and avoids the old
+            // problem of skipping the AI response entirely when actions were found.
+            let playerActionsAlreadyChecked = false;
+            if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID) {
+                const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
+                if (lastMessage && lastMessage.role === 'user' &&
+                    (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content))) {
+                    console.log('Direct action detected in player message. Checking actions before AI responds.');
+                    const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
+                    const sourceId = this.gameData.playerID;
+
+                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                        const collectedActions = await checkActions(this, sourceId, targetId);
+                        if (collectedActions.length > 0) {
+                            this.executedActions.set(lastMessage.id!, collectedActions);
+                            allTurnActions.push(...collectedActions);
+                            this.actionInvolvedCharacterIds.add(sourceId);
+                            this.actionInvolvedCharacterIds.add(targetId);
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = this.messages.length - 1;
+                        }
+                    }
+                    playerActionsAlreadyChecked = true;
+                }
+            }
+
+            // Step 1: Get and process targeted characters
             if (targetedCharacters.length > 0) {
                 console.log(`Processing ${targetedCharacters.length} targeted characters.`);
                 const messages = await this.processCharacterList(targetedCharacters, false);
@@ -697,7 +725,7 @@ export class Conversation{
                 this.pushMessage(message);
                 this.chatWindow.window.webContents.send('message-receive', message, this.config.actionsEnableAll, false);
 
-                if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID) {
+                if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID && !playerActionsAlreadyChecked) {
                     const character = this.gameData.characters.get((message as any).characterId);
                     if (!character) continue;
 
