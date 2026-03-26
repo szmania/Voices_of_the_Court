@@ -62,7 +62,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
         return [];
     }
 
-    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_])/).filter(a => a.trim() !== 'noop()');
+    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => a.trim() !== 'noop()');
 
     for(const actionInResponse of actions){
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
