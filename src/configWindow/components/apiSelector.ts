@@ -714,9 +714,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'openai', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'openai', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'openai', config);
+        ipcRenderer.send('api-config-change', this.confID, 'openai', config);
     }
     
 
@@ -736,9 +734,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'ooba', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'ooba', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'ooba', config);
+        ipcRenderer.send('api-config-change', this.confID, 'ooba', config);
     }
     
 
@@ -757,9 +753,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'openrouter', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'openrouter', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'openrouter', config);
+        ipcRenderer.send('api-config-change', this.confID, 'openrouter', config);
     }   
 
     saveCustomConfig(){
@@ -776,9 +770,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'custom', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'custom', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'custom', config);
+        ipcRenderer.send('api-config-change', this.confID, 'custom', config);
     }  
 
     saveGeminiConfig(){
@@ -795,9 +787,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'gemini', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'gemini', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'gemini', config);
+        ipcRenderer.send('api-config-change', this.confID, 'gemini', config);
     }
 
     saveGlmConfig(){
@@ -814,9 +804,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         
         // 发送配置到主进程
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'glm', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'glm', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'glm', config);
+        ipcRenderer.send('api-config-change', this.confID, 'glm', config);
     }
     
     saveDeepseekConfig(){
@@ -830,9 +818,7 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'deepseek', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'deepseek', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'deepseek', config);
+        ipcRenderer.send('api-config-change', this.confID, 'deepseek', config);
     }
 
     saveGrokConfig(){
@@ -846,9 +832,7 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'grok', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'grok', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'grok', config);
+        ipcRenderer.send('api-config-change', this.confID, 'grok', config);
     }
 
     savePlayer2Config(){
@@ -862,9 +846,7 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'player2', config);
-        ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'player2', config);
-        ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'player2', config);
+        ipcRenderer.send('api-config-change', this.confID, 'player2', config);
     }
 
     private async _populatePlayer2Models() {
