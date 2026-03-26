@@ -274,7 +274,7 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
-        characterFilterSelect.addEventListener('change', handlePresetChange);
+        characterFilterSelect.addEventListener('change', () => populatePresetSelector());
         promptPresetSelect.addEventListener('change', handlePresetChange);
         savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
@@ -521,7 +521,9 @@ async function handlePresetChange() {
         const englishPrompts = megamodPrompts.en;
         promptsToLoad = { ...englishPrompts, ...langPrompts };
     } else {
-        promptsToLoad = promptPresets[selectedPresetName];
+        const selectedCharacterId = characterFilterSelect.value;
+        const presetsForScope = promptPresets[selectedCharacterId] || {};
+        promptsToLoad = presetsForScope[selectedPresetName];
     }
 
     if (promptsToLoad) {
