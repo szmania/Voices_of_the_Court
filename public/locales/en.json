@@ -62,7 +62,8 @@
     "reload_files": "Reload files",
     "open_folder": "open folder",
     "description": "Description:",
-    "made_by": "Made by:"
+    "made_by": "Made by:",
+    "open_file": "Open File"
   },
   "summarization": {
     "use_same_api": "Use the same API as in the connection tab",

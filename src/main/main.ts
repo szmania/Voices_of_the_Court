@@ -1504,6 +1504,13 @@ ipcMain.on("open-folder", (event, path) => {
     dialog.showSaveDialog(configWindow.window, { defaultPath: path, properties: []});
 });
 
+ipcMain.on('open-action-file', (event, filePath: string) => {
+    console.log(`IPC: Received open-action-file event for path: ${filePath}`);
+    shell.openPath(filePath).catch((err: any) => {
+        console.error(`Failed to open action file at ${filePath}:`, err);
+    });
+});
+
 ipcMain.on('open-roaming-data-folder', () => {
     console.log('IPC: Received open-roaming-data-folder event.');
     const roamingPath = path.join(app.getPath('userData'), 'votc_data');

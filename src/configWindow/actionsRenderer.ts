@@ -211,12 +211,25 @@ async function loadactions(){
             }
 
             actionDescriptorDiv.innerHTML = `
-            <h3>${title}</h3>
-            <ul>
-                <li class="action-item"><b>${descLabel}</b> ${description}</li>
-                ${creatorString}
-            </ul>
+            <div id="action-descriptor-content">
+                <h3>${title}</h3>
+                <ul>
+                    <li class="action-item"><b>${descLabel}</b> ${description}</li>
+                    ${creatorString}
+                </ul>
+            </div>
+            <div class="action-file-opener">
+                <button id="open-action-file-btn" data-i18n="actions.open_file"></button>
+            </div>
             `;
+            (window as any).LocalizationManager.applyTranslationsToElement(actionDescriptorDiv);
+
+            const openFileBtn = document.getElementById('open-action-file-btn');
+            if (openFileBtn) {
+                openFileBtn.addEventListener('click', () => {
+                    ipcRenderer.send('open-action-file', path.join(actionsPath, 'standard', fileName));
+                });
+            }
         });
     }
 
@@ -260,6 +273,54 @@ async function loadactions(){
             console.log(disabledActions)
             ipcRenderer.send('config-change', "disabledActions", disabledActions);
         });     
+
+        let creatorString = "";
+        
+        element.addEventListener("mouseenter", (e: any)=>{
+            let description = file.description;
+            if (typeof description === 'object') {
+                description = description[config.language] || description['en'] || Object.values(description)[0];
+            }
+
+            let title = file.signature;
+            if (file.titleKey) {
+                title = (window as any).LocalizationManager?.getNestedTranslation(file.titleKey) || file.signature;
+            } else if (file.title) {
+                if (typeof file.title === 'object') {
+                    title = file.title[config.language] || file.title['en'] || file.signature;
+                } else {
+                    title = file.title;
+                }
+            }
+
+            const descLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.description') || "Description:";
+            const madeByLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.made_by') || "Made by:";
+            
+            if(file.creator){
+                creatorString = `<li class="action-item"><b>${madeByLabel}</b> ${file.creator}</li>`;
+            }
+
+            actionDescriptorDiv.innerHTML = `
+            <div id="action-descriptor-content">
+                <h3>${title}</h3>
+                <ul>
+                    <li class="action-item"><b>${descLabel}</b> ${description}</li>
+                    ${creatorString}
+                </ul>
+            </div>
+            <div class="action-file-opener">
+                <button id="open-action-file-btn" data-i18n="actions.open_file"></button>
+            </div>
+            `;
+            (window as any).LocalizationManager.applyTranslationsToElement(actionDescriptorDiv);
+
+            const openFileBtn = document.getElementById('open-action-file-btn');
+            if (openFileBtn) {
+                openFileBtn.addEventListener('click', () => {
+                    ipcRenderer.send('open-action-file', path.join(actionsPath, 'custom', fileName));
+                });
+            }
+        });
     }
 }
 
