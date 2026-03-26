@@ -62,7 +62,8 @@
     "reload_files": "Recarregar arquivos",
     "open_folder": "abrir pasta",
     "description": "Descrição:",
-    "made_by": "Feito por:"
+    "made_by": "Feito por:",
+    "open_file": "Abrir arquivo"
   },
   "summarization": {
     "use_same_api": "Usar a mesma API da aba de conexão",
@@ -123,7 +124,10 @@
     "mod_agot": "A Guerra dos Tronos",
     "mod_lotr_realms_in_exile": "O Senhor dos Anéis: Reinos no Exílio",
     "mod_tfe": "A Águia Caída",
-    "mod_warcraft_goa2": "Warcraft: Guardiões de Azeroth 2"
+    "mod_warcraft_goa2": "Warcraft: Guardiões de Azeroth 2",
+    "total_tokens_header": "Total de Tokens",
+    "total_conversation_tokens": "Total de Tokens de Conversa:",
+    "total_letter_tokens": "Total de Tokens de Carta:"
   },
   "settings": {
     "header": "Configurações",

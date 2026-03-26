@@ -62,7 +62,8 @@
     "reload_files": "重新加载文件",
     "open_folder": "打开文件夹",
     "description": "描述：",
-    "made_by": "制作者："
+    "made_by": "制作者：",
+    "open_file": "打开文件"
   },
   "summarization": {
     "use_same_api": "使用与连接选项卡相同的 API",
@@ -123,7 +124,10 @@
     "mod_agot": "权力的游戏",
     "mod_lotr_realms_in_exile": "指环王：流亡国度",
     "mod_tfe": "堕落之鹰",
-    "mod_warcraft_goa2": "魔兽争霸：艾泽拉斯守护者2"
+    "mod_warcraft_goa2": "魔兽争霸：艾泽拉斯守护者2",
+    "total_tokens_header": "总令牌数",
+    "total_conversation_tokens": "总对话令牌数：",
+    "total_letter_tokens": "总信件令牌数："
   },
   "settings": {
     "header": "设置",

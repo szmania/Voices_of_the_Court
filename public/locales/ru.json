@@ -62,7 +62,8 @@
     "reload_files": "Перезагрузить файлы",
     "open_folder": "открыть папку",
     "description": "Описание:",
-    "made_by": "Автор:"
+    "made_by": "Автор:",
+    "open_file": "Открыть файл"
   },
   "summarization": {
     "use_same_api": "Использовать тот же API, что и во вкладке подключения",
@@ -123,7 +124,10 @@
     "mod_agot": "Игра престолов",
     "mod_lotr_realms_in_exile": "Властелин колец: Королевства в изгнании",
     "mod_tfe": "Падший орел",
-    "mod_warcraft_goa2": "Warcraft: Хранители Азерота 2"
+    "mod_warcraft_goa2": "Warcraft: Хранители Азерота 2",
+    "total_tokens_header": "Всего токенов",
+    "total_conversation_tokens": "Всего токенов разговора:",
+    "total_letter_tokens": "Всего токенов письма:"
   },
   "settings": {
     "header": "Настройки",

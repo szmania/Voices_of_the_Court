@@ -62,7 +62,8 @@
     "reload_files": "Przeładuj pliki",
     "open_folder": "otwórz folder",
     "description": "Opis:",
-    "made_by": "Autor:"
+    "made_by": "Autor:",
+    "open_file": "Otwórz plik"
   },
   "summarization": {
     "use_same_api": "Użyj tego samego API co w zakładce połączenia",
@@ -123,7 +124,10 @@
     "mod_agot": "Gra o Tron",
     "mod_lotr_realms_in_exile": "Władca Pierścieni: Krainy na Wygnaniu",
     "mod_tfe": "Upadły Orzeł",
-    "mod_warcraft_goa2": "Warcraft: Strażnicy Azeroth 2"
+    "mod_warcraft_goa2": "Warcraft: Strażnicy Azeroth 2",
+    "total_tokens_header": "Całkowita liczba tokenów",
+    "total_conversation_tokens": "Całkowita liczba tokenów konwersacji:",
+    "total_letter_tokens": "Całkowita liczba tokenów listu:"
   },
   "settings": {
     "header": "Ustawienia",

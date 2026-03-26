@@ -62,7 +62,8 @@
     "reload_files": "ファイルを再読み込み",
     "open_folder": "フォルダを開く",
     "description": "説明：",
-    "made_by": "作成者："
+    "made_by": "作成者：",
+    "open_file": "ファイルを開く"
   },
   "summarization": {
     "use_same_api": "接続タブと同じ API を使用する",
@@ -123,7 +124,10 @@
     "mod_agot": "A Game of Thrones",
     "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
     "mod_tfe": "The Fallen Eagle",
-    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2",
+    "total_tokens_header": "合計トークン",
+    "total_conversation_tokens": "合計会話トークン:",
+    "total_letter_tokens": "合計手紙トークン:"
   },
   "settings": {
     "header": "設定",

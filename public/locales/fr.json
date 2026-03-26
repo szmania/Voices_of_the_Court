@@ -62,7 +62,8 @@
     "reload_files": "Recharger les fichiers",
     "open_folder": "ouvrir le dossier",
     "description": "Description :",
-    "made_by": "Fait par :"
+    "made_by": "Fait par :",
+    "open_file": "Ouvrir le fichier"
   },
   "summarization": {
     "use_same_api": "Utiliser la même API que dans l'onglet Connexion",
@@ -123,7 +124,10 @@
     "mod_agot": "A Game of Thrones",
     "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
     "mod_tfe": "The Fallen Eagle",
-    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2",
+    "total_tokens_header": "Total des jetons",
+    "total_conversation_tokens": "Total des jetons de conversation :",
+    "total_letter_tokens": "Total des jetons de lettre :"
   },
   "settings": {
     "header": "Paramètres",
