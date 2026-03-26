@@ -25,6 +25,48 @@ let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-
 
 let statusMessage: HTMLDivElement;
 
+const conversationPromptKeys = [
+    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
+    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
+    "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+];
+const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
+
+async function updateTotalTokenCounts() {
+    const totalConversationTokensSpan = document.getElementById('total-conversation-tokens');
+    const totalLetterTokensSpan = document.getElementById('total-letter-tokens');
+
+    if (!totalConversationTokensSpan || !totalLetterTokensSpan) return;
+
+    let totalConversationTokens = 0;
+    for (const key of conversationPromptKeys) {
+        const textarea = promptTextareas[key]?.textarea;
+        if (textarea && promptTextareas[key].isConnected) { // Check if component is connected
+            const count = await ipcRenderer.invoke('calculate-tokens', textarea.value);
+            if (typeof count === 'number') {
+                totalConversationTokens += count;
+            }
+        }
+    }
+
+    let totalLetterTokens = 0;
+    for (const key of letterPromptKeys) {
+        const textarea = promptTextareas[key]?.textarea;
+        if (textarea && promptTextareas[key].isConnected) { // Check if component is connected
+            const count = await ipcRenderer.invoke('calculate-tokens', textarea.value);
+            if (typeof count === 'number') {
+                totalLetterTokens += count;
+            }
+        }
+    }
+
+    const maxTokens = await ipcRenderer.invoke('get-context-limit');
+
+    totalConversationTokensSpan.textContent = `${totalConversationTokens} / ${maxTokens}`;
+    totalLetterTokensSpan.textContent = `${totalLetterTokens} / ${maxTokens}`;
+}
+
+
 async function updateTokenCount(key: string) {
     const textarea = promptTextareas[key]?.textarea;
     const tokenCountSpan = document.getElementById(`${key}-token-count`);
@@ -36,6 +78,7 @@ async function updateTokenCount(key: string) {
             // @ts-ignore
             const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
             tokenCountSpan.textContent = `${tokensLabel} ${count}`;
+            updateTotalTokenCounts(); // Update totals whenever a single prompt changes
         } catch (error) {
             console.error(`Failed to calculate tokens for ${key}:`, error);
             // @ts-ignore
@@ -166,6 +209,9 @@ async function init(){
                 promptTextareas[key].textarea.addEventListener('input', () => updateTokenCount(key));
             }
         });
+        
+        // Initial calculation
+        setTimeout(updateTotalTokenCounts, 500); // Delay to ensure components are ready
         
         // 应用初始主题
         const savedTheme = localStorage.getItem('selectedTheme') || 'original';

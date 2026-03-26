@@ -157,6 +157,22 @@ input::-webkit-inner-spin-button {
     white-space: nowrap;
 }
 
+#total-token-counts {
+    text-align: center;
+}
+
+.token-summary {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10%;
+    font-size: 1.1em;
+}
+
+.token-summary span:first-child {
+    color: #cca43b;
+    font-weight: bold;
+}
+
 button{
   background-color: #591919;
   color: #e0e0e0;

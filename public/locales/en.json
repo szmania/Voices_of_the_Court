@@ -121,7 +121,10 @@
     "mod_agot": "A Game of Thrones",
     "mod_lotr_realms_in_exile": "LotR: Realms in Exile",
     "mod_tfe": "The Fallen Eagle",
-    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2"
+    "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2",
+    "total_tokens_header": "Total Tokens",
+    "total_conversation_tokens": "Total Conversation Tokens:",
+    "total_letter_tokens": "Total Letter Tokens:"
   },
   "settings": {
     "header": "Settings",
