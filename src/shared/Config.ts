@@ -10,23 +10,6 @@ export interface ApiConnectionConfig{
     parameters: Parameters;
 }
 
-export interface PromptConfig {
-    mainPrompt: string;
-    summarizePrompt: string;
-    memoriesPrompt: string;
-    suffixPrompt: string;
-    selfTalkPrompt: string;
-    selfTalkSummarizePrompt: string;
-    narrativePrompt: string;
-    sceneDescriptionPrompt: string;
-    diaryPrompt: string;
-    diarySummarizePrompt: string;
-    diaryForLetterPrompt: string;
-    letterPrompt: string;
-    letterSummaryPrompt: string;
-    actionTriggeredPrompt: string;
-}
-
 export class Config{
     userFolderPath!: string;
     language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' | 'pt' = 'en';
@@ -88,35 +71,6 @@ export class Config{
     descInsertDepth!: number;
 
     disabledMegamodNotifications!: string[];
-
-    prompts!: {
-        en: PromptConfig;
-        zh: PromptConfig;
-        ru: PromptConfig;
-        fr: PromptConfig;
-        es: PromptConfig;
-        de: PromptConfig;
-        ja: PromptConfig;
-        ko: PromptConfig;
-        pl: PromptConfig;
-        pt: PromptConfig;
-    };
-
-    mod_prompt_sets!: any;
-
-    get mainPrompt(): string { return this.prompts[this.language].mainPrompt; }
-    get summarizePrompt(): string { return this.prompts[this.language].summarizePrompt; }
-    get memoriesPrompt(): string { return this.prompts[this.language].memoriesPrompt; }
-    get suffixPrompt(): string { return this.prompts[this.language].suffixPrompt; }
-    get selfTalkPrompt(): string { return this.prompts[this.language].selfTalkPrompt; }
-    get selfTalkSummarizePrompt(): string { return this.prompts[this.language].selfTalkSummarizePrompt; }
-    get narrativePrompt(): string { return this.prompts[this.language].narrativePrompt; }
-    get sceneDescriptionPrompt(): string { return this.prompts[this.language].sceneDescriptionPrompt; }
-    get diaryPrompt(): string { return this.prompts[this.language].diaryPrompt; }
-    get diarySummarizePrompt(): string { return this.prompts[this.language].diarySummarizePrompt; }
-    get diaryForLetterPrompt(): string { return this.prompts[this.language].diaryForLetterPrompt; }
-    get letterPrompt(): string { return this.prompts[this.language].letterPrompt; }
-    get letterSummaryPrompt(): string { return this.prompts[this.language].letterSummaryPrompt; }
 
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;

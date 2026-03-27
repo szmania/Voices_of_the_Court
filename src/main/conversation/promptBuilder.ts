@@ -10,18 +10,27 @@ import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 
+let promptsConfig: any = null;
+function getPromptsConfig(userDataPath: string) {
+    if (promptsConfig) return promptsConfig;
+    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
+    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
+    return promptsConfig;
+}
+
 export function getEffectivePrompts(conv: Conversation): any {
+    const promptsConfig = getPromptsConfig(conv.userDataPath);
     const lang = conv.config.language || 'en';
     const activePreset = conv.config.activePromptPreset || 'Default';
 
-    if (conv.config.mod_prompt_sets?.[activePreset]) {
-        return conv.config.mod_prompt_sets[activePreset][lang] || conv.config.mod_prompt_sets[activePreset].en;
+    if (promptsConfig.mod_prompt_sets?.[activePreset]) {
+        return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
     }
     
     // For "Default" or custom presets, use the base prompts for the language.
     // Custom presets overwrite the values in the UI, which then get saved into the main config object
     // that the backend conversation uses.
-    return conv.config.prompts[lang] || conv.config.prompts.en;
+    return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
