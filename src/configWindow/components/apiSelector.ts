@@ -712,9 +712,6 @@ class ApiSelector extends HTMLElement{
         
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'openai', config);
     }
     
 
@@ -732,9 +729,6 @@ class ApiSelector extends HTMLElement{
 
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'ooba', config);
     }
     
 
@@ -785,9 +779,6 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'gemini', config);
     }
 
     saveGlmConfig(){
@@ -802,9 +793,6 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'glm', config);
     }
     
     saveDeepseekConfig(){
@@ -818,7 +806,6 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'deepseek', config);
     }
 
     saveGrokConfig(){
@@ -832,7 +819,6 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'grok', config);
     }
 
     async savePlayer2Config(){
@@ -846,7 +832,6 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'player2', config);
 
         // Add a small delay to allow the main process to save the config file, then repopulate the models.
         await new Promise(resolve => setTimeout(resolve, 250));
