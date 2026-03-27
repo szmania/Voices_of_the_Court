@@ -1303,9 +1303,26 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
                 //@ts-ignore
                 config[outerConfID][innerConfID].apiKeys = {};
             }
-            // Save the complete new value (including customModels if any) to the specific API key cache
+            
+            // Create a clean cache object to avoid circular references.
+            const valueToCache = {
+                type: newValue.type,
+                baseUrl: newValue.baseUrl,
+                key: newValue.key,
+                model: newValue.model,
+                forceInstruct: newValue.forceInstruct,
+                overwriteContext: newValue.overwriteContext,
+                customContext: newValue.customContext
+            };
+
+            if (apiType === 'player2' && newValue.apiKeys && newValue.apiKeys.player2) {
+                //@ts-ignore
+                valueToCache.customModels = newValue.apiKeys.player2.customModels;
+            }
+
+            // Save the clean value to the specific API key cache
             //@ts-ignore
-            config[outerConfID][innerConfID].apiKeys[apiType] = newValue;
+            config[outerConfID][innerConfID].apiKeys[apiType] = valueToCache;
         }
     }
 

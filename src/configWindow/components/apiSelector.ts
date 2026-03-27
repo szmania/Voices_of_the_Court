@@ -158,7 +158,7 @@ function defineTemplate(label: string){
             </div>
             <div class="input-group">
                 <label for="player2-model-input" data-i18n="connection.model">Model</label>
-                <input list="player2-models" id="player2-model-input" name="player2-model-input" />
+                <input type="text" list="player2-models" id="player2-model-input" name="player2-model-input" />
                 <datalist id="player2-models">
                 </datalist>
             </div>
