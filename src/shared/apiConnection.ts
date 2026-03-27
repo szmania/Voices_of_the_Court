@@ -552,13 +552,20 @@ export class ApiConnection{
     async listModels(): Promise<any[]> {
         if (this.type === 'player2') {
             // Player2 does not support listing models.
-            // We return a list containing the currently configured model and a default.
+            // We return a list containing the currently configured model, any saved custom models, and a default.
             const modelIds = new Set<string>();
-            
+
             if (this.model) {
                 modelIds.add(this.model);
             }
             modelIds.add('gpt-oss-120b');
+
+            // Add custom models from config
+            if (this.config.apiKeys && this.config.apiKeys.player2 && this.config.apiKeys.player2.customModels) {
+                for (const model of this.config.apiKeys.player2.customModels) {
+                    modelIds.add(model);
+                }
+            }
 
             return Array.from(modelIds).map(id => ({
                 id: id,
