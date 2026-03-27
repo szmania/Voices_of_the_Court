@@ -855,13 +855,22 @@ class ApiSelector extends HTMLElement{
 
     private async _populatePlayer2Models() {
         console.log("Populating Player2 models...");
-        // Create a temporary connection object just for this task
-        const tempConnection = new ApiConnection({ type: 'player2' } as Connection, {} as any);
+        
+        // Get the LATEST config from the main process to ensure we have the latest custom models
+        const config = await ipcRenderer.invoke('get-config');
+        const connectionConfig = config[this.confID]?.connection;
+
+        if (!connectionConfig) {
+            console.error("Could not get connection config for", this.confID);
+            return;
+        }
+
+        // Create a connection object with the LATEST config
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
         const models = await tempConnection.listModels();
 
-        // Get currently saved model to re-select it later
-        const config = await ipcRenderer.invoke('get-config');
-        const savedModel = config[this.confID]?.connection?.model;
+        // Get the currently saved model to ensure it's selected
+        const savedModel = connectionConfig.model;
 
         this.player2ModelDatalist.innerHTML = ''; // Clear existing options
 
@@ -872,20 +881,14 @@ class ApiSelector extends HTMLElement{
             if (model.id === 'gpt-oss-120b') {
                 displayName = "GPT-OSS-120B (Free)";
             }
-            // For datalist, the text content of the option is not displayed, but it's good practice to set it.
             option.textContent = displayName; 
             this.player2ModelDatalist.appendChild(option);
         });
 
-        // Set the input's value based on saved config or default to the free model
-        if (savedModel && models.some(m => m.id === savedModel)) {
+        // Set the input's value to the currently saved model.
+        if (savedModel) {
             this.player2ModelInput.value = savedModel;
-        } else {
-            this.player2ModelInput.value = 'gpt-oss-120b';
         }
-        
-        // Trigger a save to update the model in the config if it was defaulted
-        this.savePlayer2Config();
     }
 
     public updateTranslation() {
