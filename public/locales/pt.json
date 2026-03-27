@@ -39,7 +39,7 @@
     "player2_info": "Dica: Se ainda não o fez, baixe o Player2 e execute-o em segundo plano.",
     "player2_download_button": "Baixar Player2",
     "player2_download_tooltip": "Baixar o aplicativo Player2",
-    "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária."
+    "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária."
   },
   "api": {
     "openrouter": "OpenRouter",
