@@ -87,6 +87,12 @@ ipcRenderer.on('update-language', async (event, lang) => {
     }
 });
 
+// Listen for config updates
+ipcRenderer.on('config-updated', (event, newConfig) => {
+    console.log('Config updated, reloading page...');
+    location.reload();
+});
+
 async function init() {
     addExternalLinks();
     // Apply initial theme

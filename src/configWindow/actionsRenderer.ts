@@ -52,6 +52,12 @@ ipcRenderer.on('update-language', async (event, lang) => {
     }
 });
 
+// 监听配置更新
+ipcRenderer.on('config-updated', (event, newConfig) => {
+    console.log('Config updated, reloading page...');
+    location.reload();
+});
+
 async function init(){
     addExternalLinks();
     // 应用初始主题

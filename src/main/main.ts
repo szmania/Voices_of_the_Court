@@ -1273,9 +1273,34 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
             newValue.apiKeys = previous.apiKeys;
         }
     }
+
+    // Save custom player2 models
+    if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
+        if (!newValue.apiKeys) {
+            newValue.apiKeys = {};
+        }
+        if (!newValue.apiKeys.player2) {
+            newValue.apiKeys.player2 = {};
+        }
+        
+        const customModels = new Set(newValue.apiKeys.player2.customModels || []);
+
+        if (newValue.model !== 'gpt-oss-120b') {
+            customModels.add(newValue.model);
+        }
+        
+        newValue.apiKeys.player2.customModels = Array.from(customModels);
+    }
+
     //@ts-ignore
     config[outerConfID][innerConfID] = newValue;
     config.export();
+
+    // Broadcast the config update to all windows
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('config-updated', config);
+    });
+
     diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
