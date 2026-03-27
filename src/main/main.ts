@@ -1273,6 +1273,27 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
             newValue.apiKeys = previous.apiKeys;
         }
     }
+
+    // Save custom player2 models
+    if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
+        // Start with the existing custom models from the *previous* config state
+        const customModels = new Set(previous?.apiKeys?.player2?.customModels || []);
+
+        if (newValue.model !== 'gpt-oss-120b') {
+            customModels.add(newValue.model);
+        }
+        
+        // Ensure the apiKeys structure exists on newValue before assigning to it
+        if (!newValue.apiKeys) {
+            newValue.apiKeys = {};
+        }
+        if (!newValue.apiKeys.player2) {
+            newValue.apiKeys.player2 = {};
+        }
+        
+        newValue.apiKeys.player2.customModels = Array.from(customModels);
+    }
+
     //@ts-ignore
     config[outerConfID][innerConfID] = newValue;
     config.export();
