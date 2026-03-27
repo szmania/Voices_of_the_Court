@@ -551,37 +551,19 @@ export class ApiConnection{
 
     async listModels(): Promise<any[]> {
         if (this.type === 'player2') {
-            try {
-                const response = await fetch(`${player2BaseUrl}/models`, {
-                    method: 'GET',
-                    headers: {
-                        'player2-game-key': player2GameKey,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                if (!response.ok) {
-                    console.error("Failed to fetch Player2 models:", response.statusText);
-                    // Fallback to just the free model
-                    return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
-                }
-                const modelData = await response.json();
-                let models = modelData.data || [];
-
-                // Ensure gpt-oss-120b is in the list and move it to the top
-                const ossModelIndex = models.findIndex((m: any) => m.id === 'gpt-oss-120b');
-                if (ossModelIndex > -1) {
-                    const ossModel = models.splice(ossModelIndex, 1)[0];
-                    models.unshift(ossModel);
-                } else {
-                    models.unshift({ id: 'gpt-oss-120b', owned_by: 'player2-local' });
-                }
-                
-                return models;
-            } catch (error) {
-                console.error("Error fetching Player2 models:", error);
-                // Fallback to just the free model in case of network error etc.
-                return [{ id: 'gpt-oss-120b', owned_by: 'player2-local' }];
+            // Player2 does not support listing models.
+            // We return a list containing the currently configured model and a default.
+            const modelIds = new Set<string>();
+            
+            if (this.model) {
+                modelIds.add(this.model);
             }
+            modelIds.add('gpt-oss-120b');
+
+            return Array.from(modelIds).map(id => ({
+                id: id,
+                owned_by: id === 'gpt-oss-120b' ? 'player2-local' : 'player2-custom'
+            }));
         }
         // Return empty for other types for now
         return [];
