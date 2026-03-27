@@ -12,6 +12,11 @@ const TIER_HINTS = [
 	{ regex: /\bempire\b|\bimperial\b|\bemperor\b|\bempress\b/, prefix: "e_" }
 ];
 
+// Script-only deferral: first check pass for a source->target pair is skipped.
+// This helps avoid the "trigger before response, then trigger again after" pattern
+// without changing Conversation/checkActions pipeline code.
+const deferredCheckPrimedPairs = new Set();
+
 function cleanTokenInput(value) {
 	return String(value || "")
 		.toLowerCase()
@@ -131,7 +136,17 @@ module.exports = {
 	check: (gameData, sourceId, targetId) => {
 		const source = gameData.getCharacterById(sourceId);
 		const target = gameData.getCharacterById(targetId);
-		return !!source && !!target && sourceId !== targetId;
+		if (!source || !target || sourceId === targetId) {
+			return false;
+		}
+
+		const pairKey = `${sourceId}->${targetId}`;
+		if (!deferredCheckPrimedPairs.has(pairKey)) {
+			deferredCheckPrimedPairs.add(pairKey);
+			return false;
+		}
+
+		return true;
 	},
 
 	/**
