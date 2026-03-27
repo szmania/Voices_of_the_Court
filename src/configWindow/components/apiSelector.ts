@@ -503,8 +503,8 @@ class ApiSelector extends HTMLElement{
             }
         });
 
-        this.player2Div.addEventListener("change", (e:any) =>{
-            this.savePlayer2Config();
+        this.player2Div.addEventListener("change", async (e:any) =>{
+            await this.savePlayer2Config();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -835,7 +835,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.send('api-config-change', this.confID, 'grok', config);
     }
 
-    savePlayer2Config(){
+    async savePlayer2Config(){
         const config = {
             type: "player2",
             baseUrl: player2BaseUrl,
@@ -847,6 +847,10 @@ class ApiSelector extends HTMLElement{
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
         ipcRenderer.send('api-config-change', this.confID, 'player2', config);
+
+        // Add a small delay to allow the main process to save the config file, then repopulate the models.
+        await new Promise(resolve => setTimeout(resolve, 250));
+        await this._populatePlayer2Models();
     }
 
     private async _populatePlayer2Models() {
