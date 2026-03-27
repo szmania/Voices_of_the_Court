@@ -22,6 +22,7 @@ export class ChatWindow{
             ...OVERLAY_WINDOW_OPTS,
             fullscreenable: false, // 禁用全屏支持，避免与游戏窗口冲突
             transparent: true,
+            backgroundColor: process.platform === 'darwin' ? '#00000000' : undefined,
             resizable: true, // 必须设为true，否则Windows下无法切换输入法/显示候选框
             width: width,
             height: height,
