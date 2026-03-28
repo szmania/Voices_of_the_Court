@@ -329,11 +329,11 @@ function positionConfigWindow() {
 
     const chatBounds = chatWindow.window.getBounds();
     const configBounds = configWindow.window.getBounds();
-    const displayContainingChat = screen.getAllDisplays().find(d => {
+    const displayContainingChat = (screen as any).getAllDisplays().find((d: any) => {
         const chatCenter = { x: chatBounds.x + chatBounds.width / 2, y: chatBounds.y + chatBounds.height / 2 };
         return chatCenter.x >= d.bounds.x && chatCenter.x < d.bounds.x + d.bounds.width &&
                chatCenter.y >= d.bounds.y && chatCenter.y < d.bounds.y + d.bounds.height;
-    }) || screen.getPrimaryDisplay();
+    }) || (screen as any).getPrimaryDisplay();
     const display = displayContainingChat.workArea;
 
     // Try to position below
