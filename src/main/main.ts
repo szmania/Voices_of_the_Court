@@ -196,6 +196,7 @@ if(app.isPackaged){
 
 let configWindow: ConfigWindow;
 let chatWindow: ChatWindow;
+let configWindow: ConfigWindow;
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
@@ -680,6 +681,10 @@ app.on('ready',  async () => {
     configWindow = new ConfigWindow();
     console.log('ConfigWindow created.');
     chatWindow = new ChatWindow();
+    configWindow = new ConfigWindow();
+
+    chatWindow.window.on('move', positionConfigWindow);
+    chatWindow.window.on('resize', positionConfigWindow);
     console.log('ChatWindow created.');
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');

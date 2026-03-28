@@ -3,6 +3,7 @@ import path from 'path';
 
 export class ConfigWindow{
     window: BrowserWindow;
+    isShown: boolean = false;
 
     constructor(){
         this.window = new BrowserWindow({
@@ -10,6 +11,9 @@ export class ConfigWindow{
             height: 600,
             minWidth: 1280,
             minHeight: 600,
+            frame: false,
+            transparent: true,
+            show: false,
             webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -18,15 +22,39 @@ export class ConfigWindow{
         })
 
         if(!app.isPackaged){
-            this.window.webContents.openDevTools();
+            this.window.webContents.openDevTools({ mode: 'detach' });
         }
         
 
         this.window.loadFile('./public/configWindow/connection.html')
         this.window.removeMenu();
 
-        console.log("Config window opened!")
+        console.log("Config window created!")
     }
 
+    show() {
+        this.window.show();
+        this.isShown = true;
+    }
 
+    hide() {
+        this.window.hide();
+        this.isShown = false;
+    }
+
+    minimize() {
+        this.hide();
+    }
+
+    restore() {
+        this.show();
+    }
+
+    toggle() {
+        if (this.isShown) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    }
 }
