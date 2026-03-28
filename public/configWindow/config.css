@@ -203,6 +203,11 @@ select{
   font-family: 'Gitan', sans-serif;
 }
 
+select option {
+  background: #000000;
+  color: #e0e0e0;
+}
+
 input{
   background-color: #1a1a1a;
   color: #e0e0e0;
