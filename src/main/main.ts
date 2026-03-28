@@ -196,7 +196,6 @@ if(app.isPackaged){
 
 let configWindow: ConfigWindow;
 let chatWindow: ChatWindow;
-let configWindow: ConfigWindow;
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
@@ -518,7 +517,7 @@ app.on('ready',  async () => {
                                 checkboxChecked: false
                             };
                             const { response, checkboxChecked } = await dialog.showMessageBox(dialogOpts);
-                            
+
                             if (checkboxChecked) {
                                 // Add to disabled notifications list
                                 if (!config.disabledMegamodNotifications) {
@@ -527,7 +526,7 @@ app.on('ready',  async () => {
                                 config.disabledMegamodNotifications.push(modName);
                                 config.export();
                             }
-                            
+
                             if (response === 0) {
                                 // User clicked "Yes" - enable the preset
                                 config.activePromptPreset = mapping.presetName;
@@ -1320,7 +1319,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -1335,13 +1334,13 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
         if (!newValue.apiKeys) newValue.apiKeys = {};
         if (!newValue.apiKeys.player2) newValue.apiKeys.player2 = {};
-        
+
         const customModels = new Set(newValue.apiKeys.player2.customModels || []);
 
         if (newValue.model !== 'gpt-oss-120b') {
             customModels.add(newValue.model);
         }
-        
+
         newValue.apiKeys.player2.customModels = Array.from(customModels);
     }
 
@@ -1358,7 +1357,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
                 //@ts-ignore
                 config[outerConfID][innerConfID].apiKeys = {};
             }
-            
+
             // Create a clean cache object to avoid circular references.
             const valueToCache = {
                 type: newValue.type,
