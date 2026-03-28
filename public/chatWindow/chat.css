@@ -477,41 +477,6 @@ html{
     transition-delay: 0.1s;
 }
 
-.suggestions-button-wrapper {
-    position: relative;
-    left: 7%;
-}
-
-.suggestions-button-wrapper::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 130%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #111;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Gitan;
-    font-size: 0.9rem;
-    max-width: 250px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    z-index: 2000;
-    border: 1px solid #5a4a35;
-    pointer-events: none;
-}
-
-.suggestions-button-wrapper:hover::after {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.1s;
-}
-
-
 /* Token Display Styles */
 .input-footer {
     display: flex;
@@ -1168,7 +1133,7 @@ html{
     display: none; /* Controlled by JS */
     justify-content: center;
     width: 100%;
-    margin-top: -45px; /* Move it up more */
+    margin-top: 0;
     margin-bottom: 15px; /* Add some space below */
     position: relative;
     z-index: 200; /* Ensure it's above button container */

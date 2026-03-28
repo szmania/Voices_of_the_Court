@@ -859,14 +859,20 @@ function setupCharacterTargeting(gameData: GameData) {
         valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
         hiddenInput.value = '';
 
+        // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
+        const freshValueDiv = valueDiv.cloneNode(true) as HTMLDivElement;
+        valueDiv.replaceWith(freshValueDiv);
+        const freshOptionsDiv = optionsDiv.cloneNode(true) as HTMLDivElement;
+        optionsDiv.replaceWith(freshOptionsDiv);
+
         // Toggle dropdown
-        valueDiv.addEventListener('click', (e) => {
+        freshValueDiv.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent the global listener from closing it immediately
-            optionsDiv.style.display = optionsDiv.style.display === 'block' ? 'none' : 'block';
+            freshOptionsDiv.style.display = freshOptionsDiv.style.display === 'block' ? 'none' : 'block';
         });
 
         // Prevent dropdown from closing when clicking inside
-        optionsDiv.addEventListener('click', (e) => {
+        freshOptionsDiv.addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
