@@ -8,6 +8,7 @@ import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
 import path from 'path';
 import fs from 'fs';
+import fs from 'fs';
 
 /**
  * 构建用于生成场景描述的提示词
