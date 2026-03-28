@@ -28,7 +28,9 @@
 
 /* Custom tooltips for header icons */
 .search-container::after,
-.reset-button-wrapper::after {
+.reset-button-wrapper::after,
+.config-button-wrapper::after,
+#minimized-config-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
     top: 120%; /* Move below the icons to avoid being cut off by window edge */
@@ -97,7 +99,9 @@
 }
 
 .search-container:hover::after,
-.reset-button-wrapper:hover::after {
+.reset-button-wrapper:hover::after,
+.config-button-wrapper:hover::after,
+#minimized-config-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     z-index: 2000;

@@ -1697,6 +1697,14 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
     // Initialize chat UI elements (this clears the display)
     initChat();
+
+    // Set tooltips for config buttons
+    const configButtonWrapper = document.getElementById('config-button-wrapper')!;
+    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
+    if (window.LocalizationManager) {
+        configButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
+        minimizedConfigButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+    }
     updateSuggestionsContainerStyle();
 
     // Get context limit once per chat session

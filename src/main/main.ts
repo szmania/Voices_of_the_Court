@@ -736,6 +736,8 @@ app.on('ready',  async () => {
     console.log('ConfigWindow created.');
     chatWindow = new ChatWindow();
     configWindow = new ConfigWindow();
+    configWindow.show();
+    configWindow.window.center();
 
     chatWindow.window.on('move', positionConfigWindow);
     chatWindow.window.on('resize', positionConfigWindow);
