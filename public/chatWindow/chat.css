@@ -14,7 +14,7 @@
     position: relative;
 }
 
-.search-icon, .reset-button, .config-button {
+.search-icon, .reset-button, .config-button, .minimized-config-button {
     background: rgba(15, 15, 15, 0.8);
     border: 1px solid #3d2e1e;
     color: #808080;
@@ -159,7 +159,7 @@
     display: block;
 }
 
-.config-button-wrapper {
+.config-button-wrapper, #minimized-config-button-wrapper {
     position: relative;
 }
 
