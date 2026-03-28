@@ -10,7 +10,7 @@ import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
-import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames} from './promptBuilder.js';
+import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { generateNarrative } from './generateNarrative.js';
@@ -239,7 +239,7 @@ export class Conversation{
         this.checkForSummariesFromOtherPlayers();
 
         // Initialize diary generator
-        this.diaryGenerator = new DiaryGenerator(this.config);
+        this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath);
     }
 
 
@@ -349,7 +349,7 @@ export class Conversation{
                 const narrativeLabelValues = Object.values(narrativeLabels);
                 const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
 
-                const actionLabel = (this.config.prompts[this.config.language] as any)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+                const actionLabel = getEffectivePrompts(this)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
                 const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
 
                 // Build a regex to match any of the known character names at the start of a line
@@ -1641,7 +1641,7 @@ ${character.fullName}的发言：`
 
             const actions = this.executedActions.get(msg.id);
             if (actions && actions.length > 0) {
-                const actionLabel = (this.config.prompts[this.config.language] as any)?.actionTriggeredPrompt || "[Action Triggered]:";
+                const actionLabel = getEffectivePrompts(this)?.actionTriggeredPrompt || "[Action Triggered]:";
                 actions.forEach(action => {
                     textContent += `${actionLabel} ${action.chatMessage}\n`;
                 });

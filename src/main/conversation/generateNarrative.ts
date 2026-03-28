@@ -4,6 +4,7 @@ import { convertMessagesToString } from "./promptBuilder";
 import { Message, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { convertChatToTextPrompt } from "./checkActions";
+import { getEffectivePrompts } from "./promptBuilder";
 import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';
@@ -93,7 +94,8 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
     
     // 使用配置中的narrativePrompt，并替换变量
     const fallbackPrompt = narrativeTranslations.fallback_prompt || "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.";
-    const promptTemplate = conv.config.narrativePrompt || fallbackPrompt;
+    const effectivePrompts = getEffectivePrompts(conv);
+    const promptTemplate = effectivePrompts.narrativePrompt || fallbackPrompt;
     const promptContent = parseVariables(promptTemplate, conv.gameData);
 
     const lastRoundDialogueLabel = narrativeTranslations.last_round_dialogue || "Last round of dialogue:";
