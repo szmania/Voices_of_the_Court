@@ -14,7 +14,7 @@
     position: relative;
 }
 
-.search-icon, .reset-button {
+.search-icon, .reset-button, .config-button {
     background: rgba(15, 15, 15, 0.8);
     border: 1px solid #3d2e1e;
     color: #808080;
@@ -157,6 +157,17 @@
 
 .search-container:hover .search-dropdown {
     display: block;
+}
+
+.config-button-wrapper {
+    position: relative;
+}
+
+.config-button:hover {
+    background-color: #2b2b2b;
+    border-color: #5a4a35;
+    color: #a0a0a0;
+    opacity: 1;
 }
 
 .search-input {

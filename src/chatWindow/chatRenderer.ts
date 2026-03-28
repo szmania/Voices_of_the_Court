@@ -97,6 +97,7 @@ let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list'
 let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-close')!;
 let searchInput: HTMLInputElement = document.querySelector('.search-input')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
+let configButton: HTMLButtonElement = document.querySelector('#config-button')!;
 let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display-wrapper')!;
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
@@ -1127,6 +1128,10 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
             chatBox.style.left = initialWindowState.left;
         }
         ipcRenderer.send('reset-window-position');
+    });
+
+    configButton.addEventListener('click', () => {
+        ipcRenderer.send('request-config-toggle');
     });
 
 // 监听配置变更
