@@ -816,8 +816,8 @@ export class Conversation{
             ].filter(Boolean).map(n => n.toLowerCase());
 
             const player = this.gameData.getPlayer();
-            if (player && player.familyMembers) {
-                const relationshipToPlayer = player.familyMembers.find(m => m.id === character.id);
+            if (player && player.relatives) {
+                const relationshipToPlayer = player.relatives.find(m => m.id === character.id);
                 if (relationshipToPlayer && relationshipToPlayer.relationship) {
                     checkables.push(relationshipToPlayer.relationship.toLowerCase());
                 }

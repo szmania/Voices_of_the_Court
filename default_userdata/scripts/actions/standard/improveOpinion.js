@@ -55,7 +55,7 @@ module.exports = {
         } else {
             // Target is AI, source is also AI. Check Target's opinion of Source.
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionValue = opinionEntry ? opinionEntry.opinon : 0;
+            opinionValue = opinionEntry ? opinionEntry.opinion : 0;
         }
 
         // Simplified check from original: only improve an already non-negative opinion.
