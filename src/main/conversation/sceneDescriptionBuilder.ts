@@ -4,6 +4,7 @@
  */
 
 import { Conversation } from "./Conversation";
+import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
 import path from 'path';
 
