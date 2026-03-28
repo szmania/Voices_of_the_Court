@@ -325,6 +325,56 @@ function updateCurrentDate(newTotalDays: number) {
     });
 }
 
+function positionConfigWindow() {
+    if (!chatWindow || !configWindow || !configWindow.isShown) return;
+
+    const chatBounds = chatWindow.window.getBounds();
+    const configBounds = configWindow.window.getBounds();
+    const display = screen.getDisplayMatching(chatBounds).workArea;
+
+    // Try to position below
+    if (chatBounds.y + chatBounds.height + configBounds.height <= display.y + display.height) {
+        configWindow.window.setBounds({
+            x: chatBounds.x,
+            y: chatBounds.y + chatBounds.height,
+            width: chatBounds.width,
+            height: configBounds.height
+        });
+    }
+    // Else, try to position to the right
+    else if (chatBounds.x + chatBounds.width + configBounds.width <= display.x + display.width) {
+        configWindow.window.setBounds({
+            x: chatBounds.x + chatBounds.width,
+            y: chatBounds.y,
+            width: configBounds.width,
+            height: chatBounds.height
+        });
+    }
+    // Else, just center it as a fallback
+    else {
+        configWindow.window.center();
+    }
+}
+
+ipcMain.on('request-config-toggle', () => {
+    configWindow.toggle();
+    if (configWindow.isShown) {
+        positionConfigWindow();
+    }
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: configWindow.isShown });
+});
+
+ipcMain.on('request-config-minimize', () => {
+    configWindow.minimize();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: true });
+});
+
+ipcMain.on('request-config-restore', () => {
+    configWindow.restore();
+    positionConfigWindow();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
+});
+
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
