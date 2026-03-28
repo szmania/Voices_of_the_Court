@@ -303,22 +303,30 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     const prompts = getEffectivePrompts(conv);
 
     if (!isAiToAi && !isNonTargetedResponse) {
-        if (isSelfTalk) {
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
-            });
-            console.log('Added self-talk main prompt from config.');
-        } else {
-            let mainPromptText = prompts.mainPrompt;
-            const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
-            mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
+        const originalAiId = conv.gameData.aiID;
+        try {
+            // Temporarily set the AI to the current speaker for variable parsing
+            conv.gameData.aiID = character.id;
+            if (isSelfTalk) {
+                chatPrompt.push({
+                    role: "system",
+                    content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
+                });
+                console.log('Added self-talk main prompt from config.');
+            } else {
+                let mainPromptText = prompts.mainPrompt;
+                const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
+                mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(mainPromptText, conv.gameData)
-            });
-            console.log('Added standard main prompt.');
+                chatPrompt.push({
+                    role: "system",
+                    content: parseVariables(mainPromptText, conv.gameData)
+                });
+                console.log('Added standard main prompt.');
+            }
+        } finally {
+            // Restore the original AI ID
+            conv.gameData.aiID = originalAiId;
         }
     }
 
