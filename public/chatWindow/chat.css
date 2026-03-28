@@ -8,6 +8,7 @@
     top: 5px;
     right: 15px;
     z-index: 300;
+    pointer-events: auto;
 }
 
 .search-container, .reset-button-wrapper {
@@ -33,8 +34,9 @@
 #minimized-config-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    top: 120%; /* Move below the icons to avoid being cut off by window edge */
-    right: -80px; /* Shifted further right to avoid covering dropdown */
+    top: 125%;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #111;
     color: #fff;
     padding: 5px 8px;
@@ -52,19 +54,6 @@
     pointer-events: none;
 }
 
-/* Ensure tooltips on the right edge don't go off-screen */
-.chat-header .search-container::after {
-    left: 110%; /* Position to the right of the button */
-    top: 0;
-    right: auto;
-    transform: none;
-}
-
-.chat-header .reset-button-wrapper::after {
-    right: 0;
-    left: auto;
-    transform: none;
-}
 
 /* Ensure suggestions tooltip doesn't go off-screen on the left */
 .suggestions-button-wrapper::after,

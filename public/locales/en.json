@@ -15,7 +15,8 @@
     "language_tooltip": "Select application language",
     "discord_tooltip": "Join our Discord",
     "steam_tooltip": "View on Steam Workshop",
-    "website_tooltip": "Visit our Website"
+    "website_tooltip": "Visit our Website",
+    "close": "Close"
   },
   "diaries": {
     "header": "Diaries",

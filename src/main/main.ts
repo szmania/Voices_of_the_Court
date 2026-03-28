@@ -379,6 +379,13 @@ ipcMain.on('request-config-restore', () => {
     chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
 });
 
+ipcMain.on('request-config-close', () => {
+    if (configWindow) {
+        configWindow.hide();
+        chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: false });
+    }
+});
+
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);

@@ -26,7 +26,7 @@ export class ConfigWindow{
         }
         
 
-        this.window.loadFile('./public/configWindow/connection.html')
+        this.window.loadFile('./public/configWindow/connection.html', { query: { source: 'chat' } });
         this.window.removeMenu();
 
         console.log("Config window created!")
