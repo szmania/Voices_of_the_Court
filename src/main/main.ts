@@ -194,9 +194,9 @@ if(app.isPackaged){
 
 
 
+let chatWindow: ChatWindow;
 let configWindow: ConfigWindow; // This will be the frameless, in-chat window
 let mainConfigWindow: BrowserWindow | null = null; // This will be the framed, startup window
-let chatWindow: ChatWindow;
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
@@ -378,6 +378,13 @@ ipcMain.on('request-config-restore', () => {
     configWindow.restore();
     positionConfigWindow();
     chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
+});
+
+ipcMain.on('request-config-close', () => {
+    if (configWindow) {
+        configWindow.hide();
+        chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: false });
+    }
 });
 
 ipcMain.on('request-config-close', () => {
@@ -738,6 +745,26 @@ app.on('ready',  async () => {
         } else if (returnValue.response === 2) {
             shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
         }
+    });
+
+    // Create and show the main, framed config window on startup
+    mainConfigWindow = new BrowserWindow({
+        width: 1280,
+        height: 600,
+        minWidth: 1280,
+        minHeight: 600,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            preload: path.join(__dirname, '..', 'preload.js'),
+        }
+    });
+    mainConfigWindow.loadFile('./public/configWindow/connection.html');
+    if(!app.isPackaged){
+        mainConfigWindow.webContents.openDevTools();
+    }
+    mainConfigWindow.on('closed', () => {
+        mainConfigWindow = null;
     });
 
     // Create and show the main, framed config window on startup
