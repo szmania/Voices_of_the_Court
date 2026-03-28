@@ -45,18 +45,6 @@ export class DiaryGenerator {
         return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
     }
 
-    private getEffectivePrompts() {
-        const promptsConfig = getPromptsConfig(this.userDataPath);
-        const lang = this.config.language || 'en';
-        const activePreset = this.config.activePromptPreset || 'Default';
-    
-        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-        }
-        
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
-    }
-
     private buildDiaryPrompt(gameData: GameData, conversation: Conversation, characterId: string): string {
         const character = gameData.getCharacter(parseInt(characterId, 10));
         if (!character) {

@@ -28,16 +28,7 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，只包含当前对话描述
-    const promptsPath = path.join(conv.userDataPath, 'configs', 'default_prompts.json');
-    const promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    const lang = conv.config.language || 'en';
-    const activePreset = conv.config.activePromptPreset || 'Default';
-    let effectivePrompts;
-    if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-        effectivePrompts = promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-    } else {
-        effectivePrompts = promptsConfig.prompts[lang] || promptsConfig.prompts.en;
-    }
+    const effectivePrompts = getEffectivePrompts(conv);
     const sceneDescriptionPrompt = effectivePrompts.sceneDescriptionPrompt ||
         (conv.translations.scene_description?.default_prompt || "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
 
