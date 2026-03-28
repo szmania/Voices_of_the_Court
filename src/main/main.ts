@@ -1276,7 +1276,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     //@ts-ignore
     config[outerConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
