@@ -1265,16 +1265,67 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
+    
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
-    // Preserve existing API keys when updating the connection block
+
+    // Preserve the entire apiKeys object from the previous state if it's not in the new value.
     if (innerConfID === 'connection' && previous && typeof previous === 'object') {
         if (!newValue.apiKeys && previous.apiKeys) {
             newValue.apiKeys = previous.apiKeys;
         }
     }
+
+    // Save custom player2 models
+    if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
+        if (!newValue.apiKeys) newValue.apiKeys = {};
+        if (!newValue.apiKeys.player2) newValue.apiKeys.player2 = {};
+        
+        const customModels = new Set(newValue.apiKeys.player2.customModels || []);
+
+        if (newValue.model !== 'gpt-oss-120b') {
+            customModels.add(newValue.model);
+        }
+        
+        newValue.apiKeys.player2.customModels = Array.from(customModels);
+    }
+
+    // Update the active configuration
     //@ts-ignore
     config[outerConfID][innerConfID] = newValue;
+
+    // Also update the specific entry in apiKeys to keep it in sync
+    if (innerConfID === 'connection') {
+        const apiType = newValue.type;
+        if (apiType) {
+            //@ts-ignore
+            if (!config[outerConfID][innerConfID].apiKeys) {
+                //@ts-ignore
+                config[outerConfID][innerConfID].apiKeys = {};
+            }
+            
+            // Create a clean cache object to avoid circular references.
+            const valueToCache = {
+                type: newValue.type,
+                baseUrl: newValue.baseUrl,
+                key: newValue.key,
+                model: newValue.model,
+                forceInstruct: newValue.forceInstruct,
+                overwriteContext: newValue.overwriteContext,
+                customContext: newValue.customContext
+            };
+
+            if (apiType === 'player2' && newValue.apiKeys && newValue.apiKeys.player2) {
+                //@ts-ignore
+                valueToCache.customModels = newValue.apiKeys.player2.customModels;
+            }
+
+            // Save the clean value to the specific API key cache
+            //@ts-ignore
+            config[outerConfID][innerConfID].apiKeys[apiType] = valueToCache;
+        }
+    }
+
     config.export();
     diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){

@@ -19,7 +19,7 @@
       "type": "player2",
       "baseUrl": "https://api.player2.game/v1",
       "key": "",
-      "model": "gpt-3.5-turbo",
+      "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
       "customContext": 90000

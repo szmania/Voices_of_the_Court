@@ -39,7 +39,7 @@
     "player2_info": "Hint: If you haven't already, download Player2 and run it in the background.",
     "player2_download_button": "Download Player2",
     "player2_download_tooltip": "Download the Player2 application",
-    "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from player2.game, ensure it is running in the background, and try again. No account is necessary."
+    "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary."
   },
   "api": {
     "openrouter": "OpenRouter",

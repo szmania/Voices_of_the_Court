@@ -158,7 +158,7 @@ function defineTemplate(label: string){
             </div>
             <div class="input-group">
                 <label for="player2-model-input" data-i18n="connection.model">Model</label>
-                <input list="player2-models" id="player2-model-input" name="player2-model-input" />
+                <input type="text" list="player2-models" id="player2-model-input" name="player2-model-input" />
                 <datalist id="player2-models">
                 </datalist>
             </div>
@@ -503,8 +503,8 @@ class ApiSelector extends HTMLElement{
             }
         });
 
-        this.player2Div.addEventListener("change", (e:any) =>{
-            this.savePlayer2Config();
+        this.player2Div.addEventListener("change", async (e:any) =>{
+            await this.savePlayer2Config();
         })
 
         this.testConnectionButton.addEventListener('click', async (e:any) =>{
@@ -712,9 +712,6 @@ class ApiSelector extends HTMLElement{
         
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'openai', config);
     }
     
 
@@ -732,9 +729,6 @@ class ApiSelector extends HTMLElement{
 
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'ooba', config);
     }
     
 
@@ -785,9 +779,6 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'gemini', config);
     }
 
     saveGlmConfig(){
@@ -802,9 +793,6 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
-        // 发送配置到主进程
-        ipcRenderer.send('api-config-change', this.confID, 'glm', config);
     }
     
     saveDeepseekConfig(){
@@ -818,7 +806,6 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'deepseek', config);
     }
 
     saveGrokConfig(){
@@ -832,10 +819,9 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'grok', config);
     }
 
-    savePlayer2Config(){
+    async savePlayer2Config(){
         const config = {
             type: "player2",
             baseUrl: player2BaseUrl,
@@ -846,18 +832,30 @@ class ApiSelector extends HTMLElement{
             customContext: this.customContextNumber.value
         };
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        ipcRenderer.send('api-config-change', this.confID, 'player2', config);
+
+        // Add a small delay to allow the main process to save the config file, then repopulate the models.
+        await new Promise(resolve => setTimeout(resolve, 250));
+        await this._populatePlayer2Models();
     }
 
     private async _populatePlayer2Models() {
         console.log("Populating Player2 models...");
-        // Create a temporary connection object just for this task
-        const tempConnection = new ApiConnection({ type: 'player2' } as Connection, {} as any);
+        
+        // Get the LATEST config from the main process to ensure we have the latest custom models
+        const config = await ipcRenderer.invoke('get-config');
+        const connectionConfig = config[this.confID]?.connection;
+
+        if (!connectionConfig) {
+            console.error("Could not get connection config for", this.confID);
+            return;
+        }
+
+        // Create a connection object with the LATEST config
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
         const models = await tempConnection.listModels();
 
-        // Get currently saved model to re-select it later
-        const config = await ipcRenderer.invoke('get-config');
-        const savedModel = config[this.confID]?.connection?.model;
+        // Get the currently saved model to ensure it's selected
+        const savedModel = connectionConfig.model;
 
         this.player2ModelDatalist.innerHTML = ''; // Clear existing options
 
@@ -868,20 +866,14 @@ class ApiSelector extends HTMLElement{
             if (model.id === 'gpt-oss-120b') {
                 displayName = "GPT-OSS-120B (Free)";
             }
-            // For datalist, the text content of the option is not displayed, but it's good practice to set it.
             option.textContent = displayName; 
             this.player2ModelDatalist.appendChild(option);
         });
 
-        // Set the input's value based on saved config or default to the free model
-        if (savedModel && models.some(m => m.id === savedModel)) {
+        // Set the input's value to the currently saved model.
+        if (savedModel) {
             this.player2ModelInput.value = savedModel;
-        } else {
-            this.player2ModelInput.value = 'gpt-oss-120b';
         }
-        
-        // Trigger a save to update the model in the config if it was defaulted
-        this.savePlayer2Config();
     }
 
     public updateTranslation() {
