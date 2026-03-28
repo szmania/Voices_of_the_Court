@@ -80,8 +80,8 @@ export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playe
         const stream = fs.createReadStream(logFilePath, { encoding: 'utf8' });
         let lastPlayerId: string | null = null;
 
-        stream.on('data', (chunk: string) => {
-            const lines = chunk.split('\n');
+        stream.on('data', (chunk: string | Buffer) => {
+            const lines = chunk.toString().split('\n');
             for (const line of lines) {
                 if (line.includes("VOTC:PLAYER_ID")) {
                     const parts = line.split('/');
