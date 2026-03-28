@@ -740,16 +740,34 @@ app.on('ready',  async () => {
         }
     });
 
-    configWindow = new ConfigWindow();
-    console.log('ConfigWindow created.');
+    // Create and show the main, framed config window on startup
+    mainConfigWindow = new BrowserWindow({
+        width: 1280,
+        height: 600,
+        minWidth: 1280,
+        minHeight: 600,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            preload: path.join(__dirname, '..', 'preload.js'),
+        }
+    });
+    mainConfigWindow.loadFile('./public/configWindow/connection.html');
+    if(!app.isPackaged){
+        mainConfigWindow.webContents.openDevTools();
+    }
+    mainConfigWindow.on('closed', () => {
+        mainConfigWindow = null;
+    });
+
     chatWindow = new ChatWindow();
-    configWindow = new ConfigWindow();
-    configWindow.show();
-    configWindow.window.center();
+    console.log('ChatWindow created.');
+    configWindow = new ConfigWindow(); // This is the frameless window for in-chat use
+    console.log('ConfigWindow created.');
 
     chatWindow.window.on('move', positionConfigWindow);
     chatWindow.window.on('resize', positionConfigWindow);
-    console.log('ChatWindow created.');
+    
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
 
