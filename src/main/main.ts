@@ -194,7 +194,8 @@ if(app.isPackaged){
 
 
 
-let configWindow: ConfigWindow;
+let configWindow: ConfigWindow; // This will be the frameless, in-chat window
+let mainConfigWindow: BrowserWindow | null = null; // This will be the framed, startup window
 let chatWindow: ChatWindow;
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
