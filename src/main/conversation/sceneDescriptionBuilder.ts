@@ -34,10 +34,13 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
 
     const descriptionLabel = conv.translations.scene_description?.description_label || "Current conversation information:";
     
+    const sceneLabel = conv.translations.scene_description?.scene_label || "Scene";
+    const sceneLine = conv.gameData.scene ? `${sceneLabel}: ${conv.gameData.scene}\n` : "";
+
     const prompt = `${instruction}
 
 ${descriptionLabel}
-${description}
+${sceneLine}${description}
 
 ${sceneDescriptionPrompt}`;
 
