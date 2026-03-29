@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret, FamilyMember} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -39,8 +39,9 @@ export class Character {
     relationsToPlayer: string[];
     relationsToCharacters: { id: number, relations: string[]}[];
     opinionBreakdownToPlayer: OpinionModifier[];
-    opinions: { id: number, opinon: number}[];
-    familyMembers: FamilyMember[];
+    opinions: { id: number, opinion: number}[];
+    relatives: Relative[];
+    birthTotalDays?: number;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -79,7 +80,7 @@ export class Character {
             this.relationsToCharacters = [],
             this.opinionBreakdownToPlayer = []
             this.opinions = [];
-            this.familyMembers = [];
+            this.relatives = [];
             this.conversationSummaries = [];
     }
 
@@ -155,32 +156,83 @@ export class Character {
     }   
 
     /**
-     * Get a formatted description of the character's family relationships
-     * @returns {string} - Formatted family description or empty string if no family
+     * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.
+     * @param gameTotalDays - current game date in total days (used to compute relative ages)
+     * @returns {string} - Formatted relatives description or empty string if no relatives
      */
-    getFamilyDescription(): string {
-        console.log(`Getting family description for ${this.fullName}, familyMembers count: ${this.familyMembers.length}`);
-        if (this.familyMembers.length === 0) {
-            console.log(`No family members for ${this.fullName}, returning empty string`);
-            return "";
+    getRelativesDescription(gameTotalDays: number): string {
+        const structured = this.relatives.filter(r =>
+            r.relationship === 'Parent' || r.relationship === 'Child' || r.relationship === 'Sibling'
+        );
+        if (structured.length === 0) return "";
+
+        const byRelationship = new Map<string, Relative[]>();
+        for (const rel of structured) {
+            if (!byRelationship.has(rel.relationship)) byRelationship.set(rel.relationship, []);
+            byRelationship.get(rel.relationship)!.push(rel);
         }
-        
-        const byRelationship = new Map<string, string[]>();
-        this.familyMembers.forEach(member => {
-            if (!byRelationship.has(member.relationship)) {
-                byRelationship.set(member.relationship, []);
-            }
-            byRelationship.get(member.relationship)!.push(member.name);
-        });
-        
-        const parts: string[] = [];
-        byRelationship.forEach((names, relationship) => {
-            parts.push(`${relationship}: ${names.join(", ")}`);
-        });
-        
-        const result = `Family: ${parts.join(", ")}`;
-        console.log(`Family description for ${this.fullName}: ${result}`);
-        return result;
+
+        const calcAge = (birthTotalDays: number): number =>
+            Math.floor((gameTotalDays - birthTotalDays) / 365.25);
+
+        const genderWord = (sheHe: string | undefined, word: string): string => {
+            if (sheHe === 'she') return word === 'sibling' ? 'sister' : word;
+            if (sheHe === 'he')  return word === 'sibling' ? 'brother' : word;
+            return word;
+        };
+
+        const sectionOrder = ['Parent', 'Child', 'Sibling'];
+        const sections: string[] = [];
+
+        for (const relType of sectionOrder) {
+            const members = byRelationship.get(relType);
+            if (!members || members.length === 0) continue;
+
+            const label = relType === 'Child' ? 'Children' : relType === 'Parent' ? 'Parents' : 'Siblings';
+            const memberStrs = members.map(rel => {
+                const parts: string[] = [];
+
+                // Build the name prefix (e.g. "older brother Heardræd")
+                if (relType === 'Sibling' && rel.birthTotalDays !== undefined && this.birthTotalDays !== undefined) {
+                    const qualifier = rel.birthTotalDays < this.birthTotalDays ? 'older' : 'younger';
+                    parts.push(`${qualifier} ${genderWord(rel.sheHe, 'sibling')} ${rel.name}`);
+                } else {
+                    parts.push(rel.name);
+                }
+
+                // Age (living relatives only)
+                if (!rel.isDeceased && rel.birthTotalDays !== undefined) {
+                    parts.push(`age ${calcAge(rel.birthTotalDays)}`);
+                }
+
+                // Death / marital status
+                if (rel.isDeceased) {
+                    parts.push(rel.deathDate ? `deceased ${rel.deathDate}` : 'deceased');
+                } else if (rel.maritalStatus === 'is_concubine' && rel.partners.length > 0) {
+                    parts.push(`concubine of ${rel.partners[0].name}`);
+                } else if (rel.maritalStatus === 'betrothed' && rel.partners.length > 0) {
+                    parts.push(`betrothed to ${rel.partners[0].name}`);
+                } else if (rel.maritalStatus === 'unmarried') {
+                    parts.push('unmarried');
+                } else if (rel.partners.length > 0) {
+                    const spouses = rel.partners.filter(p => p.type === 'spouse').map(p => p.name);
+                    const concubines = rel.partners.filter(p => p.type === 'concubine').map(p => p.name);
+                    if (spouses.length > 0) parts.push(`married to ${spouses.join(', ')}`);
+                    if (concubines.length > 0) parts.push(`concubine(s): ${concubines.join(', ')}`);
+                }
+
+                if (rel.traits && rel.traits.length > 0) {
+                    parts.push(`traits: ${rel.traits.map(t => t.name).join(', ')}`);
+                }
+
+                const name = parts[0];
+                return parts.length > 1 ? `${name} (${parts.slice(1).join('; ')})` : name;
+            });
+
+            sections.push(`${label}: ${memberStrs.join(', ')}`);
+        }
+
+        return sections.join('; ');
     }
 
     static fromPlainObject(obj: any): Character {

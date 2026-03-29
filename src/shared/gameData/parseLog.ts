@@ -1,4 +1,4 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret} from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
@@ -58,6 +58,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     let isWaitingForMultiLine: boolean = false;
     let multiLineType: string = ""; //relation or opinionModifier
 
+    const deferredRelations: { charAID: number, charBID: number, relationship: string }[] = [];
+
     // Efficiently find the last block by reading from the end of the file
     const relevantLogBlock = await readLastRelevantBlock(debugLogPath);
 
@@ -80,15 +82,20 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
             let value = line.split('#')[0]
             switch (multiLineType){
-                case "new_relations":
-                    value = removeTooltip(value)
-                    // if (value.includes("your")) {
-
-                    //     value = value.replace("your", gameData.playerName+"'s");
-                    // }
-                    multiLineTempStorage.push(value)
-                    console.log(`Parsed multi-line new_relation: "${value}"`);
-                break;
+                case "new_relations": {
+                    const pending = multiLineTempStorage[0] as { charAID: number, charBID: number, relationship: string };
+                    // Accumulate any relationship text that fell on a continuation line
+                    const addition = removeTooltip(value);
+                    if (addition) {
+                        pending.relationship = pending.relationship
+                            ? pending.relationship + ' ' + addition
+                            : addition;
+                    }
+                    // Commit once the full relationship text is known
+                    if (line.includes('#ENDMULTILINE')) {
+                        commitNewRelation(pending.charAID, pending.charBID, pending.relationship);
+                    }
+                break; }
                 case "relations":
                     const relation = removeTooltip(value);
                     multiLineTempStorage.push(relation);
@@ -164,7 +171,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 break;
                 case "opinions":
                     if (!gameData) continue;
-                    gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinon: Number(data[2])});
+                    gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinion: Number(data[2])});
                     console.log(`Parsed opinion for character ID ${rootID}: targetID=${data[1]}, value=${data[2]}`);
                 break;
                 case "relations":
@@ -186,32 +193,17 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     if (!gameData) continue;
                     const characterA_ID = rootID;
                     const characterB_ID = Number(data[1]);
-                    
-                    let relationship = "";
-                    const parts = line.split('#');
-                    if (parts.length > 1) {
-                        relationship = removeTooltip(parts[1]);
-                    }
 
-                    if (relationship) {
-                        const characterA = gameData.characters.get(characterA_ID);
-                        const characterB = gameData.characters.get(characterB_ID);
+                    const initialRelationship = line.includes('#')
+                        ? removeTooltip(line.split('#')[1])
+                        : "";
 
-                        if (characterA && characterB) {
-                            // Avoid adding duplicates
-                            const exists = characterA.familyMembers.some(member => member.id === characterB_ID && member.relationship === relationship);
-                            if (!exists) {
-                                characterA.familyMembers.push({
-                                    id: characterB_ID,
-                                    name: characterB.fullName,
-                                    relationship: relationship
-                                });
-                                console.log(`Parsed family for character ${characterA_ID} (${characterA.fullName}): ${relationship} ${characterB.fullName} (ID: ${characterB_ID})`);
-                            }
-                        } else {
-                            if (!characterA) console.warn(`Character with ID ${characterA_ID} not found when parsing family data`);
-                            if (!characterB) console.warn(`Character with ID ${characterB_ID} not found when parsing family data`);
-                        }
+                    if (line.includes('#ENDMULTILINE')) {
+                        commitNewRelation(characterA_ID, characterB_ID, initialRelationship);
+                    } else {
+                        multiLineTempStorage = [{ charAID: characterA_ID, charBID: characterB_ID, relationship: initialRelationship }];
+                        isWaitingForMultiLine = true;
+                        multiLineType = "new_relations";
                     }
                     break;
 
@@ -227,6 +219,130 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
                     break;
+
+                // --- log_relatives: parents ---
+                case "parents":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Parent', { birthDate: data[4], birthTotalDays: Number(data[3]) });
+                    break;
+                case "parent_death": {
+                    if (!gameData) continue;
+                    const pd = findRelative(rootID, Number(data[1]));
+                    if (pd) { pd.isDeceased = true; pd.deathDate = data[3]; pd.deathReason = data[4]; }
+                    break;
+                }
+
+                // --- log_relatives: kids ---
+                case "kids":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Child', { sheHe: data[3], birthDate: data[5], birthTotalDays: Number(data[4]) });
+                    break;
+                case "kid_other_parent": {
+                    if (!gameData) continue;
+                    const kop = findRelative(rootID, Number(data[1]));
+                    if (kop) { kop.otherParentId = Number(data[2]); kop.otherParentName = data[3]; }
+                    break;
+                }
+                case "kid_death": {
+                    if (!gameData) continue;
+                    const kd = findRelative(rootID, Number(data[1]));
+                    if (kd) { kd.isDeceased = true; kd.deathDate = data[3]; kd.deathReason = data[4]; }
+                    break;
+                }
+                case "kid_trait": {
+                    if (!gameData) continue;
+                    const kt = findRelative(rootID, Number(data[1]));
+                    if (kt) kt.traits.push({ category: data[2], name: data[3], desc: data[4] });
+                    break;
+                }
+                case "kid_is_concubine": {
+                    if (!gameData) continue;
+                    const kic = findRelative(rootID, Number(data[1]));
+                    if (kic) { kic.maritalStatus = 'is_concubine'; kic.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "kid_concubine": {
+                    if (!gameData) continue;
+                    const kcon = findRelative(rootID, Number(data[1]));
+                    if (kcon) { kcon.maritalStatus = 'married'; kcon.partners.push({ id: Number(data[2]), name: data[3], type: 'concubine' }); }
+                    break;
+                }
+                case "kid_spouse": {
+                    if (!gameData) continue;
+                    const ks = findRelative(rootID, Number(data[1]));
+                    if (ks) { ks.maritalStatus = 'married'; ks.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "kid_betrothed": {
+                    if (!gameData) continue;
+                    const kb = findRelative(rootID, Number(data[1]));
+                    if (kb) { kb.maritalStatus = 'betrothed'; kb.partners.push({ id: Number(data[2]), name: data[3], type: 'betrothed' }); }
+                    break;
+                }
+                case "kid_unmarried": {
+                    if (!gameData) continue;
+                    const ku = findRelative(rootID, Number(data[1]));
+                    if (ku) ku.maritalStatus = 'unmarried';
+                    break;
+                }
+                case "kid_eob":
+                    break;
+
+                // --- log_relatives: siblings ---
+                case "siblings":
+                    if (!gameData) continue;
+                    upsertRelative(rootID, Number(data[1]), data[2], 'Sibling', { sheHe: data[3], birthDate: data[5], birthTotalDays: Number(data[4]) });
+                    break;
+                case "sibling_other_parent": {
+                    if (!gameData) continue;
+                    const sop = findRelative(rootID, Number(data[1]));
+                    if (sop) { sop.otherParentId = Number(data[2]); sop.otherParentName = data[3]; }
+                    break;
+                }
+                case "sibling_death": {
+                    if (!gameData) continue;
+                    const sd = findRelative(rootID, Number(data[1]));
+                    if (sd) { sd.isDeceased = true; sd.deathDate = data[3]; sd.deathReason = data[4]; }
+                    break;
+                }
+                case "sibling_trait": {
+                    if (!gameData) continue;
+                    const st = findRelative(rootID, Number(data[1]));
+                    if (st) st.traits.push({ category: data[2], name: data[3], desc: data[4] });
+                    break;
+                }
+                case "sibling_is_concubine": {
+                    if (!gameData) continue;
+                    const sic = findRelative(rootID, Number(data[1]));
+                    if (sic) { sic.maritalStatus = 'is_concubine'; sic.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "sibling_concubine": {
+                    if (!gameData) continue;
+                    const scon = findRelative(rootID, Number(data[1]));
+                    if (scon) { scon.maritalStatus = 'married'; scon.partners.push({ id: Number(data[2]), name: data[3], type: 'concubine' }); }
+                    break;
+                }
+                case "sibling_spouse": {
+                    if (!gameData) continue;
+                    const ss = findRelative(rootID, Number(data[1]));
+                    if (ss) { ss.maritalStatus = 'married'; ss.partners.push({ id: Number(data[2]), name: data[3], type: 'spouse' }); }
+                    break;
+                }
+                case "sibling_betrothed": {
+                    if (!gameData) continue;
+                    const sbet = findRelative(rootID, Number(data[1]));
+                    if (sbet) { sbet.maritalStatus = 'betrothed'; sbet.partners.push({ id: Number(data[2]), name: data[3], type: 'betrothed' }); }
+                    break;
+                }
+                case "sibling_unmarried": {
+                    if (!gameData) continue;
+                    const su = findRelative(rootID, Number(data[1]));
+                    if (su) su.maritalStatus = 'unmarried';
+                    break;
+                }
+                case "sibling_eob":
+                    break;
             }
         } else {
             if (line.trim() !== "") {
@@ -234,7 +350,84 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             }
         }
     }
+
+    for (const entry of deferredRelations) {
+        const charA = gameData?.characters.get(entry.charAID);
+        const charB = gameData?.characters.get(entry.charBID);
+        if (!charA || !charB) {
+            if (!charA) console.warn(`Character with ID ${entry.charAID} not found after full parse (new_relations)`);
+            if (!charB) console.warn(`Character with ID ${entry.charBID} not found after full parse (new_relations)`);
+            continue;
+        }
+        commitNewRelation(entry.charAID, entry.charBID, entry.relationship);
+    }
+
+    // Propagate birthTotalDays to Character objects that were added after the relative log was parsed
+    if (gameData) {
+        for (const char of gameData.characters.values()) {
+            for (const rel of char.relatives) {
+                if (rel.birthTotalDays !== undefined) {
+                    const relChar = gameData.characters.get(rel.id);
+                    if (relChar && relChar.birthTotalDays === undefined) {
+                        relChar.birthTotalDays = rel.birthTotalDays;
+                    }
+                }
+            }
+        }
+    }
+
     console.debug("Finished parsing log file. Game data loaded from last block.");
+
+    function findRelative(rootID: number, relativeID: number): Relative | undefined {
+        return gameData?.characters.get(rootID)?.relatives.find(r => r.id === relativeID);
+    }
+
+    function upsertRelative(rootID: number, id: number, name: string, relationship: string, extras?: Partial<Relative>): void {
+        if (!gameData) return;
+        const char = gameData.characters.get(rootID);
+        if (!char) return;
+        let rel = char.relatives.find(r => r.id === id);
+        if (!rel) {
+            rel = { id, name, relationship, isDeceased: false, traits: [], partners: [] };
+            char.relatives.push(rel);
+        } else {
+            if (name) rel.name = name;
+            if (relationship) rel.relationship = relationship;
+        }
+        if (extras) Object.assign(rel, extras);
+        // Propagate birthTotalDays to the Character object itself if it exists in the map
+        if (extras?.birthTotalDays !== undefined) {
+            const relativeChar = gameData.characters.get(id);
+            if (relativeChar && relativeChar.birthTotalDays === undefined) {
+                relativeChar.birthTotalDays = extras.birthTotalDays;
+            }
+        }
+    }
+
+    function commitNewRelation(charAID: number, charBID: number, relationship: string): void {
+        if (!gameData || !relationship) return;
+        const charA = gameData.characters.get(charAID);
+        const charB = gameData.characters.get(charBID);
+        if (!charA || !charB) {
+            deferredRelations.push({ charAID, charBID, relationship });
+            return;
+        }
+        if (!charA.relatives.some(m => m.id === charBID)) {
+            charA.relatives.push({ id: charBID, name: charB.fullName, relationship, isDeceased: false, traits: [], partners: [] });
+            console.log(`Parsed family for character ${charAID} (${charA.fullName}): ${relationship} ${charB.fullName} (ID: ${charBID})`);
+        }
+        if (charAID === gameData.playerID) {
+            if (!charB.relationsToPlayer.includes(relationship)) {
+                charB.relationsToPlayer.push(relationship);
+                console.log(`Parsed relationsToPlayer for character ${charBID} (${charB.fullName}): "${relationship}"`);
+            }
+        } else if (charBID === gameData.playerID) {
+            if (!charA.relationsToPlayer.includes(relationship)) {
+                charA.relationsToPlayer.push(relationship);
+                console.log(`Parsed relationsToPlayer for character ${charAID} (${charA.fullName}): "${relationship}"`);
+            }
+        }
+    }
 
     function parseMemory(data: string[]): Memory{
         return {

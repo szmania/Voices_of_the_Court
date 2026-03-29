@@ -49,7 +49,7 @@ module.exports = {
             opinionOfSource = target.opinionOfPlayer;
         } else {
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            opinionOfSource = opinionEntry ? opinionEntry.opinion : 0;
         }
 
         console.log(`PVAI: ${opinionOfSource} ${source.isLandedRuler} ${target.isLandedRuler}`)

@@ -52,7 +52,7 @@ module.exports = {
             conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            opinionOfSource = opinionEntry ? opinionEntry.opinion : 0;
             const relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             relations = relationEntry ? relationEntry.relations : [];
             // No generic conversation opinion, so we'll have to make do.

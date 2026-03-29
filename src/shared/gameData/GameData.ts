@@ -28,11 +28,27 @@ export type Secret = {
     category: string
 }
 
-export type FamilyMember = {
+export type RelativePartner = {
     id: number;
     name: string;
-    relationship: string; // 'Child', 'Spouse', 'Parent', 'Sibling'
-    characterId?: number;
+    type: 'spouse' | 'concubine' | 'betrothed';
+}
+
+export type Relative = {
+    id: number;
+    name: string;
+    relationship: string; // 'Child', 'Spouse', 'Parent', 'Sibling', or game-engine relation strings
+    sheHe?: string;
+    birthDate?: string;
+    birthTotalDays?: number;
+    isDeceased: boolean;
+    deathDate?: string;
+    deathReason?: string;
+    traits: { category: string; name: string; desc: string }[];
+    maritalStatus?: 'married' | 'is_concubine' | 'betrothed' | 'unmarried';
+    partners: RelativePartner[];
+    otherParentId?: number;
+    otherParentName?: string;
 }
 
 /** 
