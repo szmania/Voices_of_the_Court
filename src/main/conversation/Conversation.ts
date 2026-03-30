@@ -1581,6 +1581,7 @@ ${character.fullName}的发言：`
     async summarize() {
         console.log('Starting end-of-conversation summarization process.');
         this.isOpen = false;
+        this.cancelGeneration(); // Cancel any ongoing generation.
         // Write a trigger event to the game (e.g., trigger conversation end event)
         this.runFileManager.write(`
           trigger_event = mcc_event_v2.9002
