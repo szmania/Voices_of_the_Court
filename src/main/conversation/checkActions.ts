@@ -71,7 +71,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
             continue;
         }
 
-        const matchedAction = availableActions.find(a => a.signature == foundActionName[0]);
+        const matchedAction = availableActions.find(a => a.signature.toLowerCase() == foundActionName[0].toLowerCase());
         if(!matchedAction){
             console.warn(`Action warning: The returned action "${foundActionName[0]}" from LLM matched none of the listed available actions. Skipping.`);
             continue;

@@ -1558,6 +1558,9 @@ function showInlineActionForm(action: any) {
 }
 
 ipcRenderer.on('chat-show', () =>{
+    if (chatMessages) {
+        chatMessages.innerHTML = '';
+    }
     document.body.style.display = '';
 })
 
