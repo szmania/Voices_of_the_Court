@@ -625,14 +625,23 @@ function renderLetterContent(letter: Letter) {
         }
     }
 
+    let metaHtml = `
+        <span><strong>From:</strong> ${letter.sender.fullName}</span>
+        <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+        <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
+    `;
+
+    // If it's a received letter with a delivery date, show it.
+    if (!letter.isPlayerSender && letter.deliveryTimestamp) {
+        metaHtml += `<span><strong>Received on:</strong> ${formatDate(new Date(letter.deliveryTimestamp))}</span>`;
+    }
+
     letterViewContainer.innerHTML = `
         <div class="letter-view-header">
             <h3>${letter.subject}</h3>
             ${statusHtml}
             <div class="letter-view-meta">
-                <span><strong>From:</strong> ${letter.sender.fullName}</span>
-                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
-                <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
+                ${metaHtml}
             </div>
         </div>
         <div class="letter-view-body">

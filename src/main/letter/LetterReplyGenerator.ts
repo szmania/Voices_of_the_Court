@@ -261,6 +261,13 @@ export class LetterReplyGenerator {
                 return null;
             }
     
+            // Calculate the approximate date the AI would have written the reply.
+            // Let's assume it's halfway through the total delay period.
+            const originalTimestamp = new Date(originalLetter.timestamp);
+            const replyWriteDelay = Math.ceil(originalLetter.delay / 2); // Simple approximation
+            const replyTimestamp = new Date(originalTimestamp.getTime());
+            replyTimestamp.setDate(originalTimestamp.getDate() + replyWriteDelay);
+
             const replyLetter = new Letter(
                 replyLetterId,
                 ai, // sender is the AI
@@ -268,10 +275,10 @@ export class LetterReplyGenerator {
                 `Re: ${originalLetter.subject}`,
                 replyContent,
                 LetterType.PERSONAL,
-                new Date(gameData.date.replace(/\./g, '-')),
+                replyTimestamp, // Use the calculated reply date
                 false, // It's a new letter, so not read by the player yet
                 originalLetter.delay,
-                gameData.totalDays,
+                originalLetter.totalDays + replyWriteDelay, // The "day number" when the reply was written
                 originalLetter.id,
                 'pending',
                 false
