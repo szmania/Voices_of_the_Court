@@ -296,16 +296,16 @@ module.exports = {
 	chatMessage: (args) => {
 		const displayTitle = formatTitleKeyForDisplay(args[0]);
 		return {
-			en: `{{character1Name}} attempted to grant the landed title ${displayTitle} to {{character2Name}}.`,
-			zh: `{{character1Name}}尝试将领地头衔${displayTitle}授予{{character2Name}}。`,
-			ru: `{{character1Name}} попытался(лась) передать земельный титул ${displayTitle} персонажу {{character2Name}}.`,
-			fr: `{{character1Name}} a tente d'accorder le titre foncier ${displayTitle} a {{character2Name}}.`,
-			es: `{{character1Name}} intento conceder el titulo territorial ${displayTitle} a {{character2Name}}.`,
-			de: `{{character1Name}} versuchte, den Landtitel ${displayTitle} an {{character2Name}} zu uebertragen.`,
-			ja: `{{character1Name}}は領地称号${displayTitle}を{{character2Name}}に授与しようとしました。`,
-			ko: `{{character1Name}}가 영지 작위 ${displayTitle}을(를) {{character2Name}}에게 수여하려고 했습니다.`,
-			pl: `{{character1Name}} probowal(a) przekazac tytul ziemski ${displayTitle} postaci {{character2Name}}.`,
-			pt: `{{character1Name}} tentou conceder o titulo territorial ${displayTitle} para {{character2Name}}.`
+			en: `{{character1Name}} granted the landed title ${displayTitle} to {{character2Name}}.`,
+			zh: `{{character1Name}}将领地头衔${displayTitle}授予了{{character2Name}}。`,
+			ru: `{{character1Name}} передал(а) земельный титул ${displayTitle} персонажу {{character2Name}}.`,
+			fr: `{{character1Name}} a accordé le titre foncier ${displayTitle} à {{character2Name}}.`,
+			es: `{{character1Name}} concedió el título territorial ${displayTitle} a {{character2Name}}.`,
+			de: `{{character1Name}} hat den Landtitel ${displayTitle} an {{character2Name}} übertragen.`,
+			ja: `{{character1Name}}は領地称号${displayTitle}を{{character2Name}}に授与しました。`,
+			ko: `{{character1Name}}가 영지 작위 ${displayTitle}을(를) {{character2Name}}에게 수여했습니다.`,
+			pl: `{{character1Name}} przekazał(a) tytuł ziemski ${displayTitle} postaci {{character2Name}}.`,
+			pt: `{{character1Name}} concedeu o título territorial ${displayTitle} para {{character2Name}}.`
 		};
 	},
 
