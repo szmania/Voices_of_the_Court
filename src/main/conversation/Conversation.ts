@@ -1729,7 +1729,8 @@ ${character.fullName}的发言：`
             const prompt = buildSummarizeChatPrompt(this, character);
 
             // Generate summary from this character's perspective
-            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {}, undefined, this.abortController?.signal);
+            // Do not pass the abortController signal here to ensure summarization is not cancelled.
+            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
 
             const newSummary: Summary = {
                 date: this.gameData.date,
