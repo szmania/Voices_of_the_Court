@@ -69,9 +69,9 @@ export class Letter implements ILetter {
         totalDays: number
     ): Letter | null {
         try {
-            const deliveryTimestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
-            const writtenTimestamp = new Date(deliveryTimestamp);
-            writtenTimestamp.setDate(writtenTimestamp.getDate() - totalDays);
+            const deliveryTimestamp = gameDate ? new Date(gameDate.replace(/\./g, '-') + 'T12:00:00Z') : new Date();
+            const writtenTimestamp = new Date(deliveryTimestamp.getTime());
+            writtenTimestamp.setUTCDate(writtenTimestamp.getUTCDate() - totalDays);
 
             return new Letter(
                 randomUUID(),
