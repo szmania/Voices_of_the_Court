@@ -142,13 +142,13 @@ module.exports = {
 			return false;
 		}
 
-		const pairKey = `${sourceId}->${targetId}`;
-		console.log(`[grantLandedTitle.check] Using pairKey: ${pairKey}`);
-		if (!deferredCheckPrimedPairs.has(pairKey)) {
-			deferredCheckPrimedPairs.add(pairKey);
-			console.log(`[grantLandedTitle.check] First check for this pair. Deferring and returning false.`);
-			return false;
-		}
+		// const pairKey = `${sourceId}->${targetId}`;
+		// console.log(`[grantLandedTitle.check] Using pairKey: ${pairKey}`);
+		// if (!deferredCheckPrimedPairs.has(pairKey)) {
+		// 	deferredCheckPrimedPairs.add(pairKey);
+		// 	console.log(`[grantLandedTitle.check] First check for this pair. Deferring and returning false.`);
+		// 	return false;
+		// }
 
 		console.log(`[grantLandedTitle.check] Second check for this pair. Returning true.`);
 		return true;
