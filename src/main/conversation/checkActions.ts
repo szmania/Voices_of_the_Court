@@ -111,9 +111,9 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
         }
         if(!isValidAction) continue;
 
-      // Duplicate action check for the current turn
-      const normalizedArgs = actionArgs.map(arg => String(arg).trim().toLowerCase().replace(/"/g, ''));
-      const actionKey = `${matchedAction.signature.toLowerCase()}:${newSourceId}:${newTargetId}:${normalizedArgs.join(',')}`;
+      // Duplicate action check for the current turn. Key is based on signature, source, and target, ignoring args
+      // to prevent LLM hallucinations on args from causing duplicate triggers.
+      const actionKey = `${matchedAction.signature.toLowerCase()}:${newSourceId}:${newTargetId}`;
       if (conv.currentTurnTriggeredActions.has(actionKey)) {
         console.warn(`Action warning: Duplicate action "${actionKey}" detected in the same turn. Skipping.`);
         continue;
