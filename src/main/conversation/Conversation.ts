@@ -678,10 +678,10 @@ export class Conversation{
             // Step 1: Get and process targeted characters
             if (targetedCharacters.length > 0) {
                 console.log(`Processing ${targetedCharacters.length} targeted characters.`);
-                const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
-                allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
-                allTurnActions.push(...actions);
-                for (const message of messages) {
+                const result = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
+                allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
+                allTurnActions.push(...result.actions);
+                for (const message of result.messages) {
                     if (message) {
                         respondedCharacterIds.add((message as any).characterId);
                     }
@@ -691,10 +691,10 @@ export class Conversation{
                 console.log('No specific targets. Processing one random character from the queue.');
                 const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
                 if (shuffledQueue.length > 0) {
-                    const { messages, actions } = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
-                    allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
-                    allTurnActions.push(...actions);
-                    for (const message of messages) {
+                    const result = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
+                    allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
+                    allTurnActions.push(...result.actions);
+                    for (const message of result.messages) {
                         if (message) {
                             respondedCharacterIds.add((message as any).characterId);
                         }
