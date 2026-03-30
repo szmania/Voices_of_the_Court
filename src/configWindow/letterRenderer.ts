@@ -752,11 +752,8 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
-    if (allLetters.length > 0) {
-        currentGameDay = Math.max(...allLetters.map(l => l.totalDays || 0));
-    } else {
-        currentGameDay = 0;
-    }
+    // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
+    // and should not be derived from letter data here, as it causes bugs with date calculations.
     renderStatusSummary();
     renderLetters();
 }
