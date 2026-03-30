@@ -7,7 +7,7 @@ declare global {
 }
 
 // Main page elements
-const useConnectionAPI: HTMLInputElement = document.querySelector<HTMLInputElement>("#use-connection-api")!;
+const useConnectionAPI: HTMLElement = document.querySelector<HTMLElement>("#use-connection-api")!;
 const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
 
 // Summary Manager Elements
@@ -107,10 +107,12 @@ async function init() {
     toggleApiSelector(config.summarizationUseTextGenApi);
 
     useConnectionAPI.addEventListener('change', () => {
-        // Directly access the 'checked' property of the custom element.
-        // The event's target might not be the input element itself.
+        // Access the actual input element within the custom element's shadow DOM
         // @ts-ignore
-        toggleApiSelector(useConnectionAPI.checked);
+        const internalCheckbox = useConnectionAPI.shadowRoot.querySelector('input');
+        if (internalCheckbox) {
+            toggleApiSelector(internalCheckbox.checked);
+        }
     });
 
     initSummaryManager();
