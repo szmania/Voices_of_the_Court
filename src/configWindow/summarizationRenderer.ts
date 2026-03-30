@@ -104,19 +104,19 @@ async function init() {
         window.LocalizationManager.applyTranslations();
     }
 
-    toggleApiSelector();
+    toggleApiSelector(config.summarizationUseTextGenApi);
 
     useConnectionAPI.addEventListener('change', () => {
-        toggleApiSelector();
+        // @ts-ignore
+        toggleApiSelector(useConnectionAPI.checked);
     });
 
     initSummaryManager();
     setupTabNavigation();
 }
 
-function toggleApiSelector() {
-    //@ts-ignore
-    if (useConnectionAPI.checked) {
+function toggleApiSelector(isChecked: boolean) {
+    if (isChecked) {
         apiSelector.style.opacity = "0.5";
         apiSelector.style.pointerEvents = "none";
     } else {
