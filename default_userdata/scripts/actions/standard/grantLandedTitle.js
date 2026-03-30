@@ -12,10 +12,6 @@ const TIER_HINTS = [
 	{ regex: /\bempire\b|\bimperial\b|\bemperor\b|\bempress\b/, prefix: "e_" }
 ];
 
-// Script-only deferral: first check pass for a source->target pair is skipped.
-// This helps avoid the "trigger before response, then trigger again after" pattern
-// without changing Conversation/checkActions pipeline code.
-const deferredCheckPrimedPairs = new Set();
 
 function cleanTokenInput(value) {
 	return String(value || "")
@@ -134,23 +130,13 @@ module.exports = {
 	 * @param {number} targetId
 	 */
 	check: (gameData, sourceId, targetId) => {
-		console.log(`[grantLandedTitle.check] Checking with sourceId: ${sourceId}, targetId: ${targetId}`);
 		const source = gameData.getCharacterById(sourceId);
 		const target = gameData.getCharacterById(targetId);
 		if (!source || !target || sourceId === targetId) {
-			console.log(`[grantLandedTitle.check] Failing because source/target is missing or the same. Source: ${!!source}, Target: ${!!target}, IDs equal: ${sourceId === targetId}`);
 			return false;
 		}
-
-		// const pairKey = `${sourceId}->${targetId}`;
-		// console.log(`[grantLandedTitle.check] Using pairKey: ${pairKey}`);
-		// if (!deferredCheckPrimedPairs.has(pairKey)) {
-		// 	deferredCheckPrimedPairs.add(pairKey);
-		// 	console.log(`[grantLandedTitle.check] First check for this pair. Deferring and returning false.`);
-		// 	return false;
-		// }
-
-		console.log(`[grantLandedTitle.check] Second check for this pair. Returning true.`);
+		// The deferred check was preventing the action from being available on the first pass.
+		// It's removed to ensure actions are checked correctly on immediate user prompts.
 		return true;
 	},
 
