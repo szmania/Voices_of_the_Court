@@ -416,12 +416,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             charA.relatives.push({ id: charBID, name: charB.fullName, relationship, isDeceased: false, traits: [], partners: [] });
             console.log(`Parsed family for character ${charAID} (${charA.fullName}): ${relationship} ${charB.fullName} (ID: ${charBID})`);
         }
-        if (charAID === gameData.playerID) {
-            if (!charB.relationsToPlayer.includes(relationship)) {
-                charB.relationsToPlayer.push(relationship);
-                console.log(`Parsed relationsToPlayer for character ${charBID} (${charB.fullName}): "${relationship}"`);
-            }
-        } else if (charBID === gameData.playerID) {
+        if (charBID === gameData.playerID) {
             if (!charA.relationsToPlayer.includes(relationship)) {
                 charA.relationsToPlayer.push(relationship);
                 console.log(`Parsed relationsToPlayer for character ${charAID} (${charA.fullName}): "${relationship}"`);
