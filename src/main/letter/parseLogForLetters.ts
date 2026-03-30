@@ -3,6 +3,16 @@ import { Letter } from './Letter.js';
 import { LetterManager } from './LetterManager.js';
 import { GameData } from '../../shared/gameData/GameData.js';
 
+function totalDaysToDateString(totalDays: number): string {
+    if (totalDays <= 0) {
+        const now = new Date();
+        return `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}`;
+    }
+    const date = new Date('0001-01-01T12:00:00Z');
+    date.setDate(date.getDate() + totalDays - 1);
+    return `${date.getUTCFullYear()}.${date.getUTCMonth() + 1}.${date.getUTCDate()}`;
+}
+
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
@@ -54,7 +64,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     const recipient = gameData.characters.get(Number(recipientId));
 
                     if (sender && recipient) {
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, gameDate, delay, totalDays);
+                        const correctedGameDate = totalDaysToDateString(gameData.totalDays);
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, totalDays);
                         if (letter) {
                             letters.push(letter);
                             // If a playerId is provided, save the letter immediately.
