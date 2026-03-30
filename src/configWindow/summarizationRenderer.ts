@@ -124,8 +124,8 @@ function toggleApiSelector(isChecked: boolean) {
         apiSelector.style.opacity = "0.5";
         apiSelector.style.pointerEvents = "none";
     } else {
-        apiSelector.style.opacity = "1";
-        apiSelector.style.pointerEvents = "auto";
+        apiSelector.style.opacity = "";
+        apiSelector.style.pointerEvents = "";
     }
 }
 
