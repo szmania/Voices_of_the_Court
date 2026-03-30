@@ -956,22 +956,21 @@ export class Conversation{
                 this.pushMessage(message);
                 this.chatWindow.window.webContents.send('message-receive', message, this.config.actionsEnableAll, false);
 
-                // Check for actions
-                if (performActionCheck && this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID && !playerActionsAlreadyChecked) {
-                    const sourceId = this.gameData.playerID;
-                    const targetId = character.id;
+                // Check for actions initiated by the AI character's response.
+                if (performActionCheck && this.config.actionsEnableAll) {
+                    const sourceId = character.id; // The AI is the source.
+                    const actionTarget = await this.determineActionTarget(message.content, sourceId);
+                    const targetId = actionTarget ? actionTarget.id : this.gameData.playerID; // Target is player or another AI.
 
-                    if (this.consecutiveActionsCount < this.config.maxConsecutiveActions) {
+                    if (sourceId !== targetId) {
+                        console.log(`[processCharacterList] Checking for AI-initiated actions. Source: ${sourceId}, Target: ${targetId}`);
                         const collectedActions = await checkActions(this, sourceId, targetId);
                         if (collectedActions.length > 0) {
-                            this.executedActions.set(message.id!, collectedActions);
+                            const existingActions = this.executedActions.get(message.id!) || [];
+                            this.executedActions.set(message.id!, [...existingActions, ...collectedActions]);
                             allTurnActions.push(...collectedActions);
                             this.actionInvolvedCharacterIds.add(sourceId);
                             this.actionInvolvedCharacterIds.add(targetId);
-                            this.consecutiveActionsCount++;
-                            this.lastActionMessageIndex = this.messages.length - 1;
-                        } else {
-                            this.consecutiveActionsCount = 0;
                         }
                     }
                 }
