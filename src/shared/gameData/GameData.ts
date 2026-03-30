@@ -123,9 +123,9 @@ export class GameData {
      * Gets all character IDs with the player character first
      * @returns {number[]} Array of character IDs with player ID first
      */
-    getCharacterIdsWithPlayerFirst(): number[] {
+    getCharacterIds(): number[] {
         const allIds = Array.from(this.characters.keys());
-        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Returning character IDs in map order: ${allIds.join(', ')}`);
+        console.log(`[GameData.getCharacterIds] Returning character IDs in map order: ${allIds.join(', ')}`);
         return allIds;
     }
 

@@ -334,7 +334,7 @@ export class Conversation{
                 let currentScene = ""; // Default to empty
                 let currentLocation = ""; // Default to empty
                 const fileMessages: Message[] = [];
-                const characterNames = new Set<string>();
+                const characterNames: string[] = [];
                 let currentMessage: Message | null = null;
                 let messageIndex = -1;
 
@@ -419,7 +419,9 @@ export class Conversation{
                         // Now, start the new message.
                         const name = speakerMatch[1].trim();
                         const messageContent = line.substring(speakerMatch[0].length).trim();
-                        characterNames.add(name);
+                        if (!characterNames.includes(name)) {
+                            characterNames.push(name);
+                        }
                         const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
                         
                         currentMessage = {
@@ -463,7 +465,7 @@ export class Conversation{
                         date: currentDate,
                         scene: currentScene,
                         location: currentLocation,
-                        characters: Array.from(characterNames),
+                        characters: characterNames,
                         messages: fileMessages
                     });
                 }
@@ -1687,7 +1689,7 @@ ${character.fullName}的发言：`
         });
 
         // Store the message text for generating summaries in txt format
-        const allCharacterIds = Array.from(this.gameData.characters.keys()).sort((a, b) => a - b);
+        const allCharacterIds = Array.from(this.gameData.characters.keys());
         const characterIdsString = allCharacterIds.join('_');
         const historyFile = path.join(
             this.userDataPath,
