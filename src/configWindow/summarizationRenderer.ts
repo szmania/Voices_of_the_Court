@@ -107,12 +107,16 @@ async function init() {
     toggleApiSelector(config.summarizationUseTextGenApi);
 
     useConnectionAPI.addEventListener('change', () => {
-        // Access the actual input element within the custom element's shadow DOM
-        // @ts-ignore
-        const internalCheckbox = useConnectionAPI.shadowRoot.querySelector('input');
-        if (internalCheckbox) {
-            toggleApiSelector(internalCheckbox.checked);
-        }
+        // Use a small timeout to allow the custom element's internal state to update
+        // before we read the 'checked' property from its shadow DOM. This is a common
+        // pattern for working with web components that have internal state.
+        setTimeout(() => {
+            // @ts-ignore
+            const internalCheckbox = useConnectionAPI.shadowRoot.querySelector('input');
+            if (internalCheckbox) {
+                toggleApiSelector(internalCheckbox.checked);
+            }
+        }, 0);
     });
 
     initSummaryManager();
