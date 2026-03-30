@@ -976,11 +976,28 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             const letterManager = LetterManager.getInstance();
             const replyLetter = lastLetterSentToGame.letter;
 
+            // Get current game date to record the delivery
+            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            if (!gameData) {
+                console.error(`Could not parse game data to mark letter as delivered.`);
+                // Fallback: use current real-world date. Not ideal, but better than nothing.
+                letterManager.markAsDelivered(
+                    String(replyLetter.recipient.id),
+                    String(replyLetter.sender.id),
+                    replyLetter.id,
+                    new Date()
+                );
+                lastLetterSentToGame = null; // Clear the tracked letter
+                return;
+            }
+            const deliveryDate = new Date(gameData.date.replace(/\./g, '-'));
+
             // Now officially mark as delivered and save
             letterManager.markAsDelivered(
                 String(replyLetter.recipient.id), // Player ID
                 String(replyLetter.sender.id),   // Character ID
-                replyLetter.id
+                replyLetter.id,
+                deliveryDate
             );
 
             lastLetterSentToGame = null; // Clear the tracked letter
