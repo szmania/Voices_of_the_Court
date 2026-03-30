@@ -1776,6 +1776,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
         const playerID = currentGameData.playerID;
+        // Display characters in the order they appear in the map, which is now the game's order.
         const characterNames = Array.from(currentGameData.characters.values()).map(c => {
             if (c.id === playerID) {
                 return `${c.shortName} (You)`;
