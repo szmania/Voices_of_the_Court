@@ -573,6 +573,10 @@ export class Conversation{
         this.isGenerating = true;
         this.abortController = new AbortController();
         try {
+            // Ensure NPC queue is filled before determining targets.
+            this.fillNpcQueue();
+            const targetedCharacters = await this.determineTargetedCharacters();
+
             const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
 
             // Determine if we should check for actions immediately, before an AI's conversational reply.
@@ -584,7 +588,6 @@ export class Conversation{
                 const reason = isFirstUserTurn ? "first user turn" : "direct action syntax";
                 console.log(`Performing immediate action check due to: ${reason}.`);
 
-                const targetedCharacters = await this.determineTargetedCharacters();
                 // If multiple targets, pick the first. If none, fallback to main AI.
                 const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
                 const sourceId = this.gameData.playerID;
@@ -639,14 +642,9 @@ export class Conversation{
                 return;
             }
 
-            this.fillNpcQueue();
-
             const respondedCharacterIds = new Set<number>();
             const allGeneratedMessages: Message[] = [];
             const allTurnActions: ActionResponse[] = [];
-
-            // Determine targeted characters upfront (reused for both action detection and AI response)
-            const targetedCharacters = await this.determineTargetedCharacters();
 
             // If the player's message contains action syntax, check for actions before the AI responds.
             // This ensures detection even if AI generation produces no messages, and avoids the old
