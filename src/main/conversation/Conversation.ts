@@ -721,9 +721,9 @@ export class Conversation{
             }
 
             if (respondingCharacters.length > 0) {
-                const { messages, actions } = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked);
-                allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
-                allTurnActions.push(...actions);
+                const result = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked);
+                allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
+                allTurnActions.push(...result.actions);
             }
 
             // Clear queue display after all characters in this turn have been processed
@@ -2211,8 +2211,8 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
                 // Generate AI2 -> AI1 response
-                const { messages } = await this.processCharacterList([targetAI], false, false, false);
-                for (const responseMsg of messages) {
+                const result = await this.processCharacterList([targetAI], false, false, false);
+                for (const responseMsg of result.messages) {
                     if (responseMsg) {
                         this.pushMessage(responseMsg);
                         this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll, true);
