@@ -467,7 +467,7 @@ app.on('ready',  async () => {
     }
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
-    diaryGenerator = new DiaryGenerator(config);
+    diaryGenerator = new DiaryGenerator(config, userDataPath);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -1344,7 +1344,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1419,7 +1419,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1431,7 +1431,7 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1960,7 +1960,7 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
     console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
     if (!diaryGenerator) {
-        diaryGenerator = new DiaryGenerator(config);
+        diaryGenerator = new DiaryGenerator(config, userDataPath);
     }
 
     try {

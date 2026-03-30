@@ -4,8 +4,10 @@
  */
 
 import { Conversation } from "./Conversation";
+import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
 import path from 'path';
+import fs from 'fs';
 
 /**
  * 构建用于生成场景描述的提示词
@@ -27,7 +29,8 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，只包含当前对话描述
-    const sceneDescriptionPrompt = conv.config.sceneDescriptionPrompt ||
+    const effectivePrompts = getEffectivePrompts(conv);
+    const sceneDescriptionPrompt = effectivePrompts.sceneDescriptionPrompt ||
         (conv.translations.scene_description?.default_prompt || "Please generate an engaging scene description to provide background and atmosphere for the characters' dialogue.");
 
     const instruction = conv.translations.scene_description?.instruction || "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:";
