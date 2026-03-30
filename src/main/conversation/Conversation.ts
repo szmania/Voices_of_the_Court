@@ -677,6 +677,7 @@ export class Conversation{
 
             // Step 1: Get and process targeted characters
             if (targetedCharacters.length > 0) {
+                console.log(`Processing ${targetedCharacters.length} targeted characters.`);
                 const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
                 allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                 allTurnActions.push(...actions);
