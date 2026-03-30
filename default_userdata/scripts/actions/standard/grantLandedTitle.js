@@ -130,9 +130,11 @@ module.exports = {
 	 * @param {number} targetId
 	 */
 	check: (gameData, sourceId, targetId) => {
+		console.log(`[grantLandedTitle.check] Checking with sourceId: ${sourceId}, targetId: ${targetId}`);
 		const source = gameData.getCharacterById(sourceId);
 		const target = gameData.getCharacterById(targetId);
 		if (!source || !target || sourceId === targetId) {
+			console.log(`[grantLandedTitle.check] Failing because source/target is missing or the same. Source: ${!!source}, Target: ${!!target}, IDs equal: ${sourceId === targetId}`);
 			return false;
 		}
 		// The deferred check was preventing the action from being available on the first pass.
