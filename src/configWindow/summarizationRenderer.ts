@@ -7,7 +7,8 @@ declare global {
 }
 
 // Main page elements
-const useConnectionAPI: HTMLElement = document.querySelector<HTMLElement>("#use-connection-api")!;
+//@ts-ignore
+const useConnectionAPI: HTMLInputElement = document.querySelector("#use-connection-api")!.checkbox;
 const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
 
 // Summary Manager Elements
@@ -104,32 +105,24 @@ async function init() {
         window.LocalizationManager.applyTranslations();
     }
 
-    toggleApiSelector(config.summarizationUseTextGenApi);
+    toggleApiSelector();
 
     useConnectionAPI.addEventListener('change', () => {
-        // Use a small timeout to allow the custom element's internal state to update
-        // before we read the 'checked' property from its shadow DOM. This is a common
-        // pattern for working with web components that have internal state.
-        setTimeout(() => {
-            // @ts-ignore
-            const internalCheckbox = useConnectionAPI.shadowRoot.querySelector('input');
-            if (internalCheckbox) {
-                toggleApiSelector(internalCheckbox.checked);
-            }
-        }, 0);
+        toggleApiSelector();
     });
 
     initSummaryManager();
     setupTabNavigation();
 }
 
-function toggleApiSelector(isChecked: boolean) {
-    if (isChecked) {
+function toggleApiSelector() {
+    //@ts-ignore
+    if (useConnectionAPI.checked) {
         apiSelector.style.opacity = "0.5";
         apiSelector.style.pointerEvents = "none";
     } else {
-        apiSelector.style.opacity = "";
-        apiSelector.style.pointerEvents = "";
+        apiSelector.style.opacity = "1";
+        apiSelector.style.pointerEvents = "auto";
     }
 }
 
