@@ -162,6 +162,14 @@ export class GameData {
     }
 
     /**
+     * Gets all character IDs in their current map order.
+     * @returns {number[]} Array of character IDs.
+     */
+    getCharacterIds(): number[] {
+        return Array.from(this.characters.keys());
+    }
+
+    /**
      * Gets all characters in the conversation except the player and the main AI.
      * @returns {Character[]} An array of other characters.
      */
