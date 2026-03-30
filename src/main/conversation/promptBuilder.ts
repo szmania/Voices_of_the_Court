@@ -416,10 +416,18 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             .replace(/{playerName}/g, replyToName);
     }
 
-    chatPrompt.push({
-        role: "system",
-        content: roleplayInstruction
-    });
+    // Append the final instruction to the last user/system message to avoid role alternation errors.
+    const lastPromptMessage = chatPrompt.length > 0 ? chatPrompt[chatPrompt.length - 1] : null;
+    if (lastPromptMessage && (lastPromptMessage.role === 'user' || lastPromptMessage.role === 'system')) {
+        lastPromptMessage.content += `\n\n${roleplayInstruction}`;
+        console.log('Appended roleplay instruction to the last message.');
+    } else {
+        chatPrompt.push({
+            role: "system",
+            content: roleplayInstruction
+        });
+        console.log('Pushed roleplay instruction as a new system message.');
+    }
 
     console.log(`Final chat prompt message count: ${chatPrompt.length}`);
     return chatPrompt;
@@ -431,11 +439,6 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
     const prompts = getEffectivePrompts(conv);
     let output: Message[] = [];
 
-    output.push({
-        role: "system",
-        content: convertMessagesToString(conv.messages, "", "")
-    });
-
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
     const prompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
 
@@ -444,9 +447,11 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
         finalPrompt += `\nSummarize from the perspective of ${character.fullName}.`;
     }
 
+    const combinedSystemContent = `${convertMessagesToString(conv.messages, "", "")}\n\n${finalPrompt}`;
+
     output.push({
         role: "system",
-        content: finalPrompt
+        content: combinedSystemContent
     });
 
     return output;
@@ -457,27 +462,22 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
+    let systemContent = "";
     if(conv.currentSummary){
         const summaryIntro = isSelfTalk
             ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-
-        prompt.push({
-            role: "system",
-            content: summaryIntro + conv.currentSummary
-        });
+        systemContent += `${summaryIntro}${conv.currentSummary}\n\n`;
     }
 
-    prompt.push({
-        role: "system",
-        content: convertMessagesToString(messagesToSummarize, "", "")
-    });
+    systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;
 
     const summarizePrompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
+    systemContent += parseVariables(summarizePrompt, conv.gameData);
 
     prompt.push({
         role: "system",
-        content: parseVariables(summarizePrompt, conv.gameData)
+        content: systemContent
     });
 
     return prompt;
