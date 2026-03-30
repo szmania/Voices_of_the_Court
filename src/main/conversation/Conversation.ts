@@ -585,36 +585,44 @@ export class Conversation{
                 console.log(`Performing immediate action check due to: ${reason}.`);
 
                 const targetedCharacters = await this.determineTargetedCharacters();
-                // If multiple targets, pick the first. If none, fallback to main AI.
-                const targetId = targetedCharacters.length > 0 ? targetedCharacters[0].id : this.gameData.aiID;
-                const sourceId = this.gameData.playerID;
+                // Only perform immediate action check if there is a clear target.
+                if (targetedCharacters.length > 0) {
+                    // If multiple targets, pick the first.
+                    const targetId = targetedCharacters[0].id;
+                    const sourceId = this.gameData.playerID;
 
-                const collectedActions = await checkActions(this, sourceId, targetId);
+                    // Don't check if source and target are the same.
+                    if (sourceId !== targetId) {
+                        const collectedActions = await checkActions(this, sourceId, targetId);
 
-                // If actions were found, we treat that as the "response" and bypass the normal AI chat reply.
-                if (collectedActions.length > 0) {
-                    console.log('Actions triggered on immediate check. Bypassing conversational reply.');
-                    this.executedActions.set(lastMessage.id!, collectedActions);
-                    this.actionInvolvedCharacterIds.add(sourceId);
-                    this.actionInvolvedCharacterIds.add(targetId);
-                    this.consecutiveActionsCount++;
-                    this.lastActionMessageIndex = this.messages.length - 1;
+                        // If actions were found, we treat that as the "response" and bypass the normal AI chat reply.
+                        if (collectedActions.length > 0) {
+                            console.log('Actions triggered on immediate check. Bypassing conversational reply.');
+                            this.executedActions.set(lastMessage.id!, collectedActions);
+                            this.actionInvolvedCharacterIds.add(sourceId);
+                            this.actionInvolvedCharacterIds.add(targetId);
+                            this.consecutiveActionsCount++;
+                            this.lastActionMessageIndex = this.messages.length - 1;
 
-                    let playerNarrative: Message | null = null;
-                    if (this.config.narrativeEnable) {
-                        playerNarrative = await generateNarrative(this, collectedActions);
+                            let playerNarrative: Message | null = null;
+                            if (this.config.narrativeEnable) {
+                                playerNarrative = await generateNarrative(this, collectedActions);
+                            }
+
+                            if (playerNarrative) {
+                                this.pushMessage(playerNarrative);
+                            }
+                            this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
+
+                            // End generation here since we handled the direct action.
+                            this.isGenerating = false;
+                            return;
+                        } else {
+                            console.log('No actions triggered on immediate check. Proceeding with normal AI response.');
+                        }
                     }
-
-                    if (playerNarrative) {
-                        this.pushMessage(playerNarrative);
-                    }
-                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, playerNarrative, false);
-
-                    // End generation here since we handled the direct action.
-                    this.isGenerating = false;
-                    return;
                 } else {
-                    console.log('No actions triggered on immediate check. Proceeding with normal AI response.');
+                    console.log('No specific target found for immediate action check. Proceeding with normal AI response.');
                 }
             }
 
