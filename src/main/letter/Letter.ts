@@ -17,6 +17,7 @@ export class Letter implements ILetter {
     replyToId?: string;
     status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
     delivered?: boolean;
+    deliveryTimestamp?: Date;
 
     constructor(
         id: string,
@@ -32,7 +33,8 @@ export class Letter implements ILetter {
         replyToId?: string,
         status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read',
         delivered?: boolean,
-        creationTimestamp?: Date
+        creationTimestamp?: Date,
+        deliveryTimestamp?: Date
     ) {
         this.id = id;
         this.sender = sender;
@@ -48,6 +50,7 @@ export class Letter implements ILetter {
         this.replyToId = replyToId;
         this.status = status;
         this.delivered = delivered;
+        this.deliveryTimestamp = deliveryTimestamp;
     }
 
     public static fromLog(
@@ -75,7 +78,9 @@ export class Letter implements ILetter {
                 totalDays,
                 undefined,
                 'sent',
-                true
+                true,
+                undefined,
+                timestamp // For player-sent letters from log, delivery is immediate
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

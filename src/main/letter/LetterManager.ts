@@ -250,15 +250,16 @@ export class LetterManager {
         return allSummaries;
     }
 
-    public markAsDelivered(playerId: string, characterId: string, letterId: string): void {
+    public markAsDelivered(playerId: string, characterId: string, letterId: string, deliveryDate: Date): void {
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
             letters[letterIndex].delivered = true;
+            letters[letterIndex].deliveryTimestamp = deliveryDate;
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
                 fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-                console.log(`Marked letter ${letterId} as delivered.`);
+                console.log(`Marked letter ${letterId} as delivered on ${deliveryDate}.`);
             } catch (error) {
                 console.error(`Error updating delivered status for letter ${letterId}:`, error);
             }

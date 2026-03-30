@@ -61,7 +61,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
 
         if (reply && reply.delivered) {
             // Case B: Reply received and delivered.
-            const replyDate = formatDate(new Date(reply.timestamp));
+            const replyDate = formatDate(new Date(reply.deliveryTimestamp || reply.timestamp));
             return {
                 // @ts-ignore
                 text: window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate),
@@ -598,7 +598,7 @@ function renderLetterContent(letter: Letter) {
         const status = getLetterStatus(letter);
         const journeyHtml = renderJourneyTimeline(status);
 
-        const replyDate = formatDate(new Date(reply.timestamp));
+        const replyDate = formatDate(new Date(reply.deliveryTimestamp || reply.timestamp));
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
 
