@@ -68,6 +68,7 @@ export class Conversation{
     translations: any;
     pendingActions: Map<string, PendingAction[]>;
     executedActions: Map<string, ActionResponse[]>;
+    currentTurnTriggeredActions: Set<string>;
 
     npcQueue: Character[];
     customQueue: Character[] | null;
@@ -139,6 +140,7 @@ export class Conversation{
         this.abortController = null;
         this.pendingActions = new Map();
         this.executedActions = new Map();
+        this.currentTurnTriggeredActions = new Set<string>();
         this.isGeneratingScene = false;
         this.pendingPlayerRequest = false;
 
@@ -557,7 +559,8 @@ export class Conversation{
         // Reset consecutive actions counter when player sends a message
         if (message.role === "user") {
             this.consecutiveActionsCount = 0;
-            console.log('Player message sent, resetting consecutive actions count.');
+            this.currentTurnTriggeredActions.clear();
+            console.log('Player message sent, resetting consecutive actions count and duplicate action check.');
         }
     }
 
