@@ -106,8 +106,11 @@ async function init() {
 
     toggleApiSelector(config.summarizationUseTextGenApi);
 
-    useConnectionAPI.addEventListener('change', (event: any) => {
-        toggleApiSelector(event.target.checked);
+    useConnectionAPI.addEventListener('change', () => {
+        // Directly access the 'checked' property of the custom element.
+        // The event's target might not be the input element itself.
+        // @ts-ignore
+        toggleApiSelector(useConnectionAPI.checked);
     });
 
     initSummaryManager();
