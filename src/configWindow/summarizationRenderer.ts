@@ -106,9 +106,8 @@ async function init() {
 
     toggleApiSelector(config.summarizationUseTextGenApi);
 
-    useConnectionAPI.addEventListener('change', () => {
-        // @ts-ignore
-        toggleApiSelector(useConnectionAPI.checked);
+    useConnectionAPI.addEventListener('change', (event: any) => {
+        toggleApiSelector(event.target.checked);
     });
 
     initSummaryManager();
