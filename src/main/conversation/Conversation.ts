@@ -76,6 +76,8 @@ export class Conversation{
     persistCustomQueue: boolean;
     isGenerating: boolean;
     abortController: AbortController | null;
+    isGeneratingScene: boolean;
+    pendingPlayerRequest: boolean;
 
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
         console.log('Conversation initialized.');
@@ -137,6 +139,8 @@ export class Conversation{
         this.abortController = null;
         this.pendingActions = new Map();
         this.executedActions = new Map();
+        this.isGeneratingScene = false;
+        this.pendingPlayerRequest = false;
 
         const diariesBasePath = path.join(this.userDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
@@ -557,6 +561,11 @@ export class Conversation{
 
 
     async generateAIsMessages() {
+        if (this.isGeneratingScene) {
+            console.log('Scene is currently generating. Queuing player request to be processed after.');
+            this.pendingPlayerRequest = true;
+            return;
+        }
         if (this.isGenerating) {
             console.log('Already generating AI messages, skipping new request.');
             return;
@@ -1881,6 +1890,7 @@ ${character.fullName}的发言：`
         // Send status update to chat window
         this.chatWindow.window.webContents.send('status-update', 'chat.status_generating_scene');
 
+        this.isGeneratingScene = true;
         const wasGenerating = this.isGenerating;
         if (!wasGenerating) {
             this.isGenerating = true;
@@ -1939,9 +1949,17 @@ ${character.fullName}的发言：`
             }
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
+            this.isGeneratingScene = false;
             if (!wasGenerating) {
                 this.isGenerating = false;
                 this.abortController = null;
+            }
+
+            // If a player message came in while the scene was generating, process it now.
+            if (this.pendingPlayerRequest) {
+                console.log('Processing queued player request after scene generation finished.');
+                this.pendingPlayerRequest = false;
+                this.generateAIsMessages();
             }
         }
 

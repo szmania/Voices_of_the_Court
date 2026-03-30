@@ -1598,9 +1598,7 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
 
 ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
     updateStatusText(textKey, vars);
-    if (textKey === 'chat.status_generating_scene') {
-        showLoadingDots(true); // Disable input while scene is being created.
-    } else if (textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
+    if (textKey === 'chat.status_generating_scene' || textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
         showLoadingDots(false); // Don't disable input for these background tasks
     }
 });
