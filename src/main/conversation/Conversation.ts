@@ -628,7 +628,7 @@ export class Conversation{
                 console.log('Self-talk session detected. Generating internal monologue for player character.');
                 const playerCharacter = this.gameData.getPlayer();
                 const messages = await this.processCharacterList([playerCharacter], false);
-                for (const message of messages) {
+                for (const message of messages.messages) {
                     if (message) {
                         this.pushMessage(message);
                         this.chatWindow.window.webContents.send('message-receive', message, false);
@@ -677,28 +677,27 @@ export class Conversation{
 
             // Step 1: Get and process targeted characters
             if (targetedCharacters.length > 0) {
-                console.log(`Processing ${targetedCharacters.length} targeted characters.`);
-                const result = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
-                allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
-                allTurnActions.push(...result.actions);
-                for (const message of result.messages) {
-                    if (message) {
-                        respondedCharacterIds.add((message as any).characterId);
+                const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
+                allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
+                allTurnActions.push(...actions);
+                messages.forEach(msg => {
+                    if (msg) {
+                        respondedCharacterIds.add((msg as any).characterId);
                     }
-                }
+                });
             } else {
                 // If no one is targeted, one random character responds
                 console.log('No specific targets. Processing one random character from the queue.');
                 const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
                 if (shuffledQueue.length > 0) {
-                    const result = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
-                    allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
-                    allTurnActions.push(...result.actions);
-                    for (const message of result.messages) {
-                        if (message) {
-                            respondedCharacterIds.add((message as any).characterId);
+                    const { messages, actions } = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
+                    allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
+                    allTurnActions.push(...actions);
+                    messages.forEach(msg => {
+                        if (msg) {
+                            respondedCharacterIds.add((msg as any).characterId);
                         }
-                    }
+                    });
                 }
             }
 
@@ -721,9 +720,9 @@ export class Conversation{
             }
 
             if (respondingCharacters.length > 0) {
-                const result = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked);
-                allGeneratedMessages.push(...result.messages.filter(m => m !== null) as Message[]);
-                allTurnActions.push(...result.actions);
+                const { messages, actions } = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked);
+                allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
+                allTurnActions.push(...actions);
             }
 
             // Clear queue display after all characters in this turn have been processed
@@ -2211,8 +2210,8 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
                 // Generate AI2 -> AI1 response
-                const result = await this.processCharacterList([targetAI], false, false, false);
-                for (const responseMsg of result.messages) {
+                const { messages } = await this.processCharacterList([targetAI], false, false, false);
+                for (const responseMsg of messages) {
                     if (responseMsg) {
                         this.pushMessage(responseMsg);
                         this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll, true);
