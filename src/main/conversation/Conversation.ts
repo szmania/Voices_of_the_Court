@@ -681,11 +681,11 @@ export class Conversation{
                 const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
                 allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                 allTurnActions.push(...actions);
-                messages.forEach(msg => {
-                    if (msg) {
-                        respondedCharacterIds.add((msg as any).characterId);
+                for (const message of messages) {
+                    if (message) {
+                        respondedCharacterIds.add((message as any).characterId);
                     }
-                });
+                }
             } else {
                 // If no one is targeted, one random character responds
                 console.log('No specific targets. Processing one random character from the queue.');
@@ -694,11 +694,11 @@ export class Conversation{
                     const { messages, actions } = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
                     allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                     allTurnActions.push(...actions);
-                    messages.forEach(msg => {
-                        if (msg) {
-                            respondedCharacterIds.add((msg as any).characterId);
+                    for (const message of messages) {
+                        if (message) {
+                            respondedCharacterIds.add((message as any).characterId);
                         }
-                    });
+                    }
                 }
             }
 
