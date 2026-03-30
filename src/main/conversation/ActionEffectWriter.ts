@@ -106,11 +106,11 @@ ordered_in_global_list = {
 
   /**
    * Compute 0-based position for character id in the ordered list.
-   * Uses getCharacterIdsWithPlayerFirst() to ensure player character is first.
+   * Uses getCharacterIds() character id list matches the positions in ck3.
    */
   static getCharacterIndex(gameData: GameData, characterId: number): number {
     console.log(`[ActionEffectWriter] Getting index for characterId: ${characterId}`);
-    const ids = gameData.getCharacterIdsWithPlayerFirst();
+    const ids = gameData.getCharacterIds();
     console.log(`[ActionEffectWriter] Character ID list from gameData (with player first): [${ids.join(', ')}]`);
     const idx = ids.indexOf(characterId);
     console.log(`[ActionEffectWriter] Found index: ${idx}`);
