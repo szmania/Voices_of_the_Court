@@ -50,7 +50,13 @@ export class Letter implements ILetter {
         this.replyToId = replyToId;
         this.status = status;
         this.delivered = delivered;
-        this.deliveryTimestamp = deliveryTimestamp;
+
+        if (deliveryTimestamp && timestamp && deliveryTimestamp < timestamp) {
+            console.warn(`Delivery timestamp for letter ${id} is before its written timestamp. Adjusting delivery timestamp to be same as written timestamp.`);
+            this.deliveryTimestamp = timestamp;
+        } else {
+            this.deliveryTimestamp = deliveryTimestamp;
+        }
     }
 
     public static fromLog(
@@ -63,7 +69,9 @@ export class Letter implements ILetter {
         totalDays: number
     ): Letter | null {
         try {
-            const timestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
+            const deliveryTimestamp = gameDate ? new Date(gameDate.replace(/\./g, '-')) : new Date();
+            const writtenTimestamp = new Date(deliveryTimestamp);
+            writtenTimestamp.setDate(writtenTimestamp.getDate() - totalDays);
 
             return new Letter(
                 randomUUID(),
@@ -72,7 +80,7 @@ export class Letter implements ILetter {
                 letterId,
                 content,
                 LetterType.UNKNOWN,
-                timestamp,
+                writtenTimestamp,
                 false,
                 delay,
                 totalDays,
@@ -80,7 +88,7 @@ export class Letter implements ILetter {
                 'sent',
                 true,
                 undefined,
-                timestamp // For player-sent letters from log, delivery is immediate
+                deliveryTimestamp // For player-sent letters from log, delivery is immediate
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);
