@@ -833,7 +833,17 @@ export class Conversation{
             if (player && player.relatives) {
                 const relationshipToPlayer = player.relatives.find(m => m.id === character.id);
                 if (relationshipToPlayer && relationshipToPlayer.relationship) {
-                    checkables.push(relationshipToPlayer.relationship.toLowerCase());
+                    const relationship = relationshipToPlayer.relationship.toLowerCase();
+                    checkables.push(relationship);
+                    if (relationship === 'child') {
+                        // The character object from gameData should have gender info.
+                        // We assume 'sheHe' property exists based on its usage elsewhere.
+                        if (character.sheHe.toLowerCase() === 'he') {
+                            checkables.push('son');
+                        } else if (character.sheHe.toLowerCase() === 'she') {
+                            checkables.push('daughter');
+                        }
+                    }
                 }
             }
 
