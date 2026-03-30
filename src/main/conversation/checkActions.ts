@@ -111,10 +111,20 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
         }
         if(!isValidAction) continue;
 
-        // NEW: Perform pre-check if available
-        if (matchedAction.preCheck) {
-            const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newSourceId, newTargetId);
-            if (!preCheckResult.success) {
+      // Duplicate action check for the current turn
+      const normalizedArgs = actionArgs.map(arg => String(arg).trim().toLowerCase().replace(/"/g, ''));
+      const actionKey = `${matchedAction.signature.toLowerCase()}:${newSourceId}:${newTargetId}:${normalizedArgs.join(',')}`;
+      if (conv.currentTurnTriggeredActions.has(actionKey)) {
+        console.warn(`Action warning: Duplicate action "${actionKey}" detected in the same turn. Skipping.`);
+        continue;
+      }
+      // If not a duplicate, add it to the set before processing.
+      conv.currentTurnTriggeredActions.add(actionKey);
+      console.log(`[checkActions] Added action to duplicate check set: ${actionKey}`);
+      // NEW: Perform pre-check if available
+      if (matchedAction.preCheck) {
+        const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newSourceId, newTargetId);
+        if (!preCheckResult.success) {
                 console.warn(`Action pre-check failed for "${matchedAction.signature}": ${preCheckResult.message}`);
                 if (preCheckResult.message) {
                     conv.chatWindow.window.webContents.send('error-message', `Action '${matchedAction.signature}' cannot be executed: ${preCheckResult.message}`);
