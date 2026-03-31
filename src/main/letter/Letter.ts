@@ -73,9 +73,16 @@ export class Letter implements ILetter {
     ): Letter | null {
         try {
             // The written timestamp is the date the letter was sent.
-            const writtenTimestamp = new Date(gameDate.replace(/\./g, '-') + 'T12:00:00Z');
+            const dateParts = gameDate.split('.').map(Number);
+            if (dateParts.length !== 3 || dateParts.some(isNaN)) {
+                console.error(`Invalid gameDate format provided to Letter.fromLog: ${gameDate}`);
+                return null;
+            }
+            const [year, month, day] = dateParts;
+            // Month is 0-indexed in JavaScript Date, and we use UTC to avoid timezone issues.
+            const writtenTimestamp = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
             if (isNaN(writtenTimestamp.getTime())) {
-                console.error(`Invalid gameDate provided to Letter.fromLog: ${gameDate}`);
+                console.error(`Could not create valid date from gameDate: ${gameDate}`);
                 return null;
             }
 
