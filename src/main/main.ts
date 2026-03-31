@@ -1205,7 +1205,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
 
-        const expectedDeliveryDay = latestLetter.totalDays + latestLetter.delay;
+        const expectedDeliveryDay = gameData.totalDays + latestLetter.delay;
         const storedLetter: StoredLetter = {
             letter: replyLetter,
             originalLetter: latestLetter,
