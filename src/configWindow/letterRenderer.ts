@@ -522,11 +522,17 @@ function renderLetters() {
             if (status) {
                 statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
+            let deliveryDateHtml = '';
+            if (pair.received.deliveryTimestamp) {
+                deliveryDateHtml = `<span class="letter-item-date received-on" style="display: block;">Received on: ${formatDate(new Date(pair.received.deliveryTimestamp))}</span>`;
+            }
+
             receivedHtml = `
                 <div class="letter-item received" data-letter-id="${pair.received.id}">
                     <div class="letter-item-header">
                         <span class="letter-item-party">From: ${pair.received.sender.shortName}</span>
-                        <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
+                        <span class="letter-item-date">Written: ${formatDate(new Date(pair.received.timestamp))}</span>
+                        ${deliveryDateHtml}
                     </div>
                     <div class="letter-item-subject">${pair.received.subject}</div>
                     ${statusHtml}
@@ -538,10 +544,13 @@ function renderLetters() {
         if (pair.sent) {
             const status = getLetterStatus(pair.sent);
             let statusHtml = '';
+            let journeyHtml = '';
+
             if (status) {
-                const journeyHtml = renderJourneyTimeline(status);
-                statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+                journeyHtml = renderJourneyTimeline(status);
+                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
+
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
                     <div class="letter-item-header">
@@ -549,6 +558,7 @@ function renderLetters() {
                         <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.sent.subject}</div>
+                    ${journeyHtml}
                     ${statusHtml}
                 </div>
             `;
