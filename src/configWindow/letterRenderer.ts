@@ -43,11 +43,28 @@ function showStatusMessage(message: string, type = 'info') {
 }
 
 function formatDate(date: Date): string {
+    if (!date || isNaN(date.getTime())) {
+        // @ts-ignore
+        return window.LocalizationManager.getTranslation('letters.invalid_date', 'Invalid Date');
+    }
     const day = date.getDate();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
+}
+
+function dateToTotalDays(date: Date): number {
+    if (!date || isNaN(date.getTime())) return 0;
+    // Year 1, Month 0 (Jan), Day 1
+    const startDate = new Date(Date.UTC(1, 0, 1, 0, 0, 0));
+    // Get the date part of the target date in UTC
+    const targetDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
+    const diffTime = targetDate.getTime() - startDate.getTime();
+    if (isNaN(diffTime)) return 0;
+    // Get difference in days and add 1 because game days are 1-indexed
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays + 1;
 }
 
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
@@ -70,23 +87,23 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             };
         } else {
             // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
-            const sentDay = letter.totalDays;
+            const deliveryDate = new Date(letter.deliveryTimestamp!);
+            const sentDay = dateToTotalDays(deliveryDate);
             const expectedReplyDay = sentDay + letter.delay;
             const daysDifference = expectedReplyDay - currentGameDay;
 
-            const sentDate = new Date(letter.timestamp);
-            const expectedReplyDate = new Date(sentDate.getTime());
-            expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+            const expectedReplyDate = new Date(deliveryDate.getTime());
+            expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
 
-            if (currentGameDay > 0 && daysDifference < 0) {
+            if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
                     overdue: true,
                 };
-            } else {
+            } else if (sentDay > 0) {
                 const totalJourneyTime = letter.delay;
-                const timeElapsed = currentGameDay - sentDay; // Simplified calculation
+                const timeElapsed = currentGameDay - sentDay;
                 const stage1End = Math.floor(totalJourneyTime * 4 / 9);
                 const stage2End = Math.floor(totalJourneyTime * 5 / 9);
 
