@@ -8,7 +8,10 @@ function totalDaysToDateString(totalDays: number): string {
         const now = new Date();
         return `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}`;
     }
-    const date = new Date('0001-01-01T12:00:00Z');
+    // Start at Jan 1, Year 1 AD, at noon UTC.
+    const date = new Date(Date.UTC(1, 0, 1, 12, 0, 0));
+    // Add the total number of days. JavaScript's Date object handles the year/month rollovers.
+    // We subtract 1 because totalDays is 1-indexed (day 1 is the first day).
     date.setUTCDate(date.getUTCDate() + totalDays - 1);
     return `${date.getUTCFullYear()}.${date.getUTCMonth() + 1}.${date.getUTCDate()}`;
 }
