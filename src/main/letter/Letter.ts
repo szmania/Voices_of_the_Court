@@ -39,8 +39,8 @@ export class Letter implements ILetter {
         expectedDeliveryDate?: Date
     ) {
         this.id = id;
-        this.sender = sender;
-        this.recipient = recipient;
+        this.sender = JSON.parse(JSON.stringify(sender));
+        this.recipient = JSON.parse(JSON.stringify(recipient));
         this.subject = subject;
         this.content = content;
         this.timestamp = timestamp;
