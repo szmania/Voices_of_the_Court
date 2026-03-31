@@ -95,10 +95,15 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const expectedReplyDate = new Date(deliveryDate.getTime());
             expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
 
+            // @ts-ignore
+            const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(expectedReplyDate))})`;
+
             if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
+                // @ts-ignore
+                const overdueText = window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue');
                 return {
                     // @ts-ignore
-                    text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
+                    text: `${overdueText}. ${estReplyText}`,
                     overdue: true,
                     journey: { currentStage: 3 }
                 };
@@ -123,8 +128,6 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     statusText = window.LocalizationManager.getTranslation('letters.status_reply_en_route', 'Reply is on its way');
                     currentStage = 3;
                 }
-
-                const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(expectedReplyDate))})`;
 
                 return {
                     text: `${statusText} ${estReplyText}`,
