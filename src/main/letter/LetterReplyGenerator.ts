@@ -304,12 +304,19 @@ export class LetterReplyGenerator {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
     
-            // Add original letter if not present
-            if (!history.find(l => l.id === originalLetter.id)) {
+            // Add original letter if not present (using a more robust duplicate check)
+            const isOriginalDuplicate = history.some(l =>
+                l.subject === originalLetter.subject &&
+                l.totalDays === originalLetter.totalDays &&
+                l.sender.id === originalLetter.sender.id &&
+                l.recipient.id === originalLetter.recipient.id
+            );
+            if (!isOriginalDuplicate) {
                 history.push(originalLetter);
             }
-            // Add reply letter if not present
-            if (!history.find(l => l.id === replyLetter.id)) {
+
+            // Add reply letter if not present (UUID check is fine here as it's brand new)
+            if (!history.some(l => l.id === replyLetter.id)) {
                 history.push(replyLetter);
             }
             

@@ -123,21 +123,24 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                 };
             } else if (sentDay > 0) {
                 const timeElapsed = currentGameDay - sentDay;
-                const stage1End = Math.floor(totalJourneyTime * 4 / 9);
-                // If the reply has been generated, we know the exact day the AI "finished writing". Otherwise, estimate it.
-                const stage2End = reply ? (reply.totalDays - sentDay) : Math.floor(totalJourneyTime * 5 / 9);
+                const stage1End = Math.floor(totalJourneyTime * 4 / 9); // Letter arrives at recipient
+                const stage2End = Math.floor(totalJourneyTime * 5 / 9); // AI finishes writing reply
 
                 let statusText = '';
                 let currentStage = 0;
+
                 if (timeElapsed <= stage1End) {
+                    // Stage 1: Letter is traveling to the recipient.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_journey_began', 'Journey to {character} began').replace('{character}', letter.recipient.shortName);
                     currentStage = 1;
                 } else if (timeElapsed <= stage2End) {
+                    // Stage 2: Recipient has the letter and is writing a reply.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_awaiting_reply', 'Awaiting reply from {character}').replace('{character}', letter.recipient.shortName);
                     currentStage = 2;
                 } else {
+                    // Stage 3: The reply is generated and is on its way back to the player.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_reply_en_route', 'Reply is on its way');
                     currentStage = 3;
