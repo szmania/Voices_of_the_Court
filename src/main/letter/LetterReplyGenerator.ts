@@ -271,7 +271,6 @@ export class LetterReplyGenerator {
             // AI writes the reply after stage 2 of the journey.
             const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
             const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
-            const replyTimestamp = new Date(originalLetter.timestamp);
             replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
 
             // The player is expected to receive the reply after the full delay.
