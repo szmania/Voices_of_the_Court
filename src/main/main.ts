@@ -990,11 +990,7 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
                 lastLetterSentToGame = null; // Clear the tracked letter
                 return;
             }
-            const dateParts = gameData.date.split('.');
-            const year = dateParts[0].padStart(4, '0');
-            const month = dateParts[1].padStart(2, '0');
-            const day = dateParts[2].padStart(2, '0');
-            const deliveryDate = new Date(`${year}-${month}-${day}T12:00:00Z`);
+            const deliveryDate = new Date(gameData.date.replace(/\./g, '-'));
 
             // Now officially mark as delivered and save
             letterManager.markAsDelivered(
