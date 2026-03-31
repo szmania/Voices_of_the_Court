@@ -261,16 +261,11 @@ export class LetterReplyGenerator {
                 return null;
             }
     
-            // Calculate the approximate date the AI would have written the reply.
-            // Let's assume it's halfway through the total delay period.
-            const originalTimestamp = new Date(originalLetter.timestamp);
-            const replyWriteDelay = Math.ceil(originalLetter.delay / 2); // Simple approximation
-            const replyTimestamp = new Date(originalTimestamp.getTime());
-            replyTimestamp.setDate(originalTimestamp.getDate() + replyWriteDelay);
-
             // AI writes the reply after stage 2 of the journey.
             const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
             const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
+            
+            const replyTimestamp = new Date(originalLetter.timestamp);
             replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
 
             // The player is expected to receive the reply after the full delay.
