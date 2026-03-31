@@ -164,11 +164,20 @@ export class LetterManager {
             history = this.getLetters(playerId, otherCharacterId);
         }
 
-        // Avoid duplicates
-        if (!history.find(l => l.id === letter.id)) {
+        // Avoid duplicates by checking for a letter with the same subject (e.g., letter_5),
+        // sent on the same day, between the same two characters.
+        const isDuplicate = history.some(l =>
+            l.subject === letter.subject &&
+            l.totalDays === letter.totalDays &&
+            l.sender.id === letter.sender.id &&
+            l.recipient.id === letter.recipient.id
+        );
+
+        if (!isDuplicate) {
             history.push(letter);
             // Sort by date
             history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            console.log(`Saved new unique letter: ${letter.subject} from day ${letter.totalDays}`);
         }
 
         try {

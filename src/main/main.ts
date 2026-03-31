@@ -1944,8 +1944,36 @@ ipcMain.handle('get-diary-ids', async () => {
 ipcMain.handle('get-all-diary-player-ids', async () => {
     console.log('IPC: Received get-all-diary-player-ids event.');
     try {
-        const ids = await getAllDiaryPlayerIds(userDataPath);
-        return { success: true, ids: ids };
+        const players = await getAllDiaryPlayerIds(userDataPath);
+
+        const playerTimestamps = await Promise.all(players.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const characterIds = await getDiaryFiles(player.id);
+                for (const charId of characterIds) {
+                    const diaryData = await readDiaryFile(player.id, charId);
+                    if (diaryData && diaryData.diary_entries) {
+                        for (const entry of diaryData.diary_entries) {
+                            if (entry.creationTimestamp) {
+                                const timestamp = new Date(entry.creationTimestamp).getTime();
+                                if (timestamp > latestTimestamp) {
+                                    latestTimestamp = timestamp;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing diaries for player ${player.id}:`, e);
+            }
+            return { ...player, latestTimestamp };
+        }));
+
+        playerTimestamps.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        const sortedPlayers = playerTimestamps.map(({ id, name }) => ({ id, name }));
+
+        return { success: true, ids: sortedPlayers };
     } catch (error) {
         console.error('Error getting all diary player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
