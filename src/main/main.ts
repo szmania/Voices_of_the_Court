@@ -258,7 +258,7 @@ let lastLetterSentToGameTime: number = 0;
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
-function rehydratePendingLetters(playerId: string): void {
+function rehydratePendingReplyLetters(playerId: string): void {
     const letterManager = LetterManager.getInstance();
     const allLetters = letterManager.getAllLetters(playerId);
 
@@ -275,7 +275,7 @@ function rehydratePendingLetters(playerId: string): void {
 
         const original = allLetters.find(l => l.id === reply.replyToId);
         if (!original) {
-            console.warn(`rehydratePendingLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
+            console.warn(`rehydratePendingReplyLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
             continue;
         }
 
@@ -286,11 +286,11 @@ function rehydratePendingLetters(playerId: string): void {
             expectedDeliveryDay
         });
         rehydratedCount++;
-        console.log(`rehydratePendingLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
+        console.log(`rehydratePendingReplyLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
     }
 
     if (rehydratedCount > 0) {
-        console.log(`rehydratePendingLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
+        console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
         checkAndDeliverLetters();
     }
 }
@@ -497,7 +497,7 @@ app.on('ready',  async () => {
     // Re-hydrate any pending reply letters that were not delivered before the last app restart.
     const letterManager = LetterManager.getInstance();
     for (const { id } of letterManager.getAllPlayerIdsWithLetters()) {
-        rehydratePendingLetters(id);
+        rehydratePendingReplyLetters(id);
     }
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
@@ -1224,7 +1224,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
 
-        const expectedDeliveryDay = gameData.totalDays + latestLetter.delay;
+        const expectedDeliveryDay = latestLetter.totalDays + latestLetter.delay;
         const storedLetter: StoredLetter = {
             letter: replyLetter,
             originalLetter: latestLetter,
