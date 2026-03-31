@@ -619,9 +619,9 @@ function renderLetterContent(letter: Letter) {
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
 
-        const sentDate = new Date(letter.timestamp);
-        const expectedReplyDate = new Date(sentDate.getTime());
-        expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+        const deliveryDate = new Date(letter.deliveryTimestamp!);
+        const expectedReplyDate = new Date(deliveryDate.getTime());
+        expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
