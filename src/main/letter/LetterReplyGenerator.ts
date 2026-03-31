@@ -222,6 +222,10 @@ export class LetterReplyGenerator {
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
             console.log('[LetterReplyGenerator] Letter history saved.');
             
+            // Update original letter status back to 'sent' since reply is now pending
+            const letterManager = LetterManager.getInstance();
+            letterManager.updateLetterStatus(String(letter.sender.id), String(letter.recipient.id), letter.id, 'sent');
+
             // Return the generated reply so it can be queued for delayed delivery
             if (replyLetter) {
                 BrowserWindow.getAllWindows().forEach(win => {
@@ -261,6 +265,17 @@ export class LetterReplyGenerator {
                 return null;
             }
     
+            // AI writes the reply after stage 2 of the journey.
+            const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
+            const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
+            
+            const replyTimestamp = new Date(originalLetter.timestamp);
+            replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
+
+            // The player is expected to receive the reply after the full delay.
+            const expectedPlayerDeliveryDate = new Date(originalLetter.timestamp);
+            expectedPlayerDeliveryDate.setUTCDate(expectedPlayerDeliveryDate.getUTCDate() + originalLetter.delay);
+
             const replyLetter = new Letter(
                 replyLetterId,
                 ai, // sender is the AI
@@ -268,13 +283,16 @@ export class LetterReplyGenerator {
                 `Re: ${originalLetter.subject}`,
                 replyContent,
                 LetterType.PERSONAL,
-                new Date(gameData.date.replace(/\./g, '-')),
+                replyTimestamp, // Use the calculated reply date
                 false, // It's a new letter, so not read by the player yet
                 originalLetter.delay,
-                gameData.totalDays,
+                replyWrittenDay, // The "day number" when the reply was written
                 originalLetter.id,
                 'pending',
-                false
+                false,
+                undefined, // creationTimestamp
+                undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
+                expectedPlayerDeliveryDate // When the player should receive it
             );
     
             // Atomically update the history file
@@ -286,12 +304,19 @@ export class LetterReplyGenerator {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
     
-            // Add original letter if not present
-            if (!history.find(l => l.id === originalLetter.id)) {
+            // Add original letter if not present (using a more robust duplicate check)
+            const isOriginalDuplicate = history.some(l =>
+                l.subject === originalLetter.subject &&
+                l.totalDays === originalLetter.totalDays &&
+                l.sender.id === originalLetter.sender.id &&
+                l.recipient.id === originalLetter.recipient.id
+            );
+            if (!isOriginalDuplicate) {
                 history.push(originalLetter);
             }
-            // Add reply letter if not present
-            if (!history.find(l => l.id === replyLetter.id)) {
+
+            // Add reply letter if not present (UUID check is fine here as it's brand new)
+            if (!history.some(l => l.id === replyLetter.id)) {
                 history.push(replyLetter);
             }
             

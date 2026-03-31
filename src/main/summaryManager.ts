@@ -14,7 +14,7 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
             return [];
         }
 
-        const playerDirs = fs.readdirSync(summaryDir, { withFileTypes: true })
+        const playerDirsData = fs.readdirSync(summaryDir, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => {
                 const playerId = dirent.name;
@@ -34,7 +34,28 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
                 return { id: playerId, name: playerName };
             });
 
-        return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
+        const playerTimestamps = await Promise.all(playerDirsData.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const summaries = await readSummaryFile(userDataPath, player.id);
+                for (const summary of summaries) {
+                    if ((summary as any).creationTimestamp) {
+                        const timestamp = new Date((summary as any).creationTimestamp).getTime();
+                        if (timestamp > latestTimestamp) {
+                            latestTimestamp = timestamp;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing summaries for player ${player.id}:`, e);
+            }
+            return { ...player, latestTimestamp };
+        }));
+
+        playerTimestamps.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        return playerTimestamps.map(({ id, name }) => ({ id, name }));
+
     } catch (error) {
         console.error('Error getting all player IDs from summaries:', error);
         throw error;

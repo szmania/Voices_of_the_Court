@@ -258,7 +258,7 @@ let lastLetterSentToGameTime: number = 0;
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
-function rehydratePendingLetters(playerId: string): void {
+function rehydratePendingReplyLetters(playerId: string): void {
     const letterManager = LetterManager.getInstance();
     const allLetters = letterManager.getAllLetters(playerId);
 
@@ -275,7 +275,7 @@ function rehydratePendingLetters(playerId: string): void {
 
         const original = allLetters.find(l => l.id === reply.replyToId);
         if (!original) {
-            console.warn(`rehydratePendingLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
+            console.warn(`rehydratePendingReplyLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
             continue;
         }
 
@@ -286,11 +286,11 @@ function rehydratePendingLetters(playerId: string): void {
             expectedDeliveryDay
         });
         rehydratedCount++;
-        console.log(`rehydratePendingLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
+        console.log(`rehydratePendingReplyLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
     }
 
     if (rehydratedCount > 0) {
-        console.log(`rehydratePendingLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
+        console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
         checkAndDeliverLetters();
     }
 }
@@ -329,6 +329,26 @@ async function checkAndDeliverLetters() {
             break;
         }
     }
+}
+
+function totalDaysToDateString(totalDays: number): string {
+    const year = Math.floor(totalDays / 365);
+    const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
+
+    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let day = dayOfYear;
+    let month = 1;
+
+    for (let i = 0; i < monthDays.length; i++) {
+        if (day <= monthDays[i]) {
+            month = i + 1;
+            break;
+        }
+        day -= monthDays[i];
+    }
+
+    // Returns "867.10.22"
+    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
 function removeLettersAfterDate(cutoffDate: number): void {
@@ -477,7 +497,7 @@ app.on('ready',  async () => {
     // Re-hydrate any pending reply letters that were not delivered before the last app restart.
     const letterManager = LetterManager.getInstance();
     for (const { id } of letterManager.getAllPlayerIdsWithLetters()) {
-        rehydratePendingLetters(id);
+        rehydratePendingReplyLetters(id);
     }
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
@@ -976,11 +996,16 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             const letterManager = LetterManager.getInstance();
             const replyLetter = lastLetterSentToGame.letter;
 
+            // Use the reliable currentTotalDays to create the delivery date
+            const deliveryDateString = totalDaysToDateString(currentTotalDays);
+            const deliveryDate = new Date(deliveryDateString.replace(/\./g, '-'));
+
             // Now officially mark as delivered and save
             letterManager.markAsDelivered(
                 String(replyLetter.recipient.id), // Player ID
                 String(replyLetter.sender.id),   // Character ID
-                replyLetter.id
+                replyLetter.id,
+                deliveryDate
             );
 
             lastLetterSentToGame = null; // Clear the tracked letter
@@ -1071,6 +1096,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
             console.error('Failed to parse game data from debug.log for letter event.');
             return;
         }
+
+        // Overwrite stale date from parseLog with the fresh, tailed date
+        gameData.totalDays = currentTotalDays;
+        gameData.date = totalDaysToDateString(currentTotalDays);
+
         const playerId = String(gameData.playerID);
         const recipientId = String(gameData.aiID);
 
@@ -1157,6 +1187,12 @@ clipboardListener.on('VOTC:LETTER', async () => {
         if (hasReply) {
             console.log(`Letter ${latestLetter.id} already has a reply that is not in the future. No new reply will be generated.`);
             return;
+        }
+
+        // Mark original letter as 'generating'
+        letterManager.updateLetterStatus(playerId, recipientId, latestLetter.id, 'generating');
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
         }
 
         if (gameData.totalDays) {
@@ -1914,8 +1950,36 @@ ipcMain.handle('get-diary-ids', async () => {
 ipcMain.handle('get-all-diary-player-ids', async () => {
     console.log('IPC: Received get-all-diary-player-ids event.');
     try {
-        const ids = await getAllDiaryPlayerIds(userDataPath);
-        return { success: true, ids: ids };
+        const players = await getAllDiaryPlayerIds(userDataPath);
+
+        const playerTimestamps = await Promise.all(players.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const characterIds = await getDiaryFiles(player.id);
+                for (const charId of characterIds) {
+                    const diaryData = await readDiaryFile(player.id, charId);
+                    if (diaryData && diaryData.diary_entries) {
+                        for (const entry of diaryData.diary_entries) {
+                            if (entry.creationTimestamp) {
+                                const timestamp = new Date(entry.creationTimestamp).getTime();
+                                if (timestamp > latestTimestamp) {
+                                    latestTimestamp = timestamp;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing diaries for player ${player.id}:`, e);
+            }
+            return { ...player, latestTimestamp };
+        }));
+
+        playerTimestamps.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        const sortedPlayers = playerTimestamps.map(({ id, name }) => ({ id, name }));
+
+        return { success: true, ids: sortedPlayers };
     } catch (error) {
         console.error('Error getting all diary player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
