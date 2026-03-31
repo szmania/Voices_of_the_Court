@@ -4,16 +4,23 @@ import { LetterManager } from './LetterManager.js';
 import { GameData } from '../../shared/gameData/GameData.js';
 
 function totalDaysToDateString(totalDays: number): string {
-    if (totalDays <= 0) {
-        const now = new Date();
-        return `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}`;
+    const year = Math.floor(totalDays / 365);
+    const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
+
+    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let day = dayOfYear;
+    let month = 1;
+
+    for (let i = 0; i < monthDays.length; i++) {
+        if (day <= monthDays[i]) {
+            month = i + 1;
+            break;
+        }
+        day -= monthDays[i];
     }
-    // Start at Jan 1, Year 1 AD, at noon UTC.
-    const date = new Date(Date.UTC(1, 0, 1, 12, 0, 0));
-    // Add the total number of days. JavaScript's Date object handles the year/month rollovers.
-    // We subtract 1 because totalDays is 1-indexed (day 1 is the first day).
-    date.setUTCDate(date.getUTCDate() + totalDays - 1);
-    return `${date.getUTCFullYear()}.${date.getUTCMonth() + 1}.${date.getUTCDate()}`;
+
+    // Returns "867.10.22"
+    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
