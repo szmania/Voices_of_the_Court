@@ -100,6 +100,7 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
                     overdue: true,
+                    journey: { currentStage: 3 }
                 };
             } else if (sentDay > 0) {
                 const totalJourneyTime = letter.delay;
