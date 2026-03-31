@@ -69,7 +69,16 @@ export class Letter implements ILetter {
         totalDays: number
     ): Letter | null {
         try {
-            const deliveryTimestamp = gameDate ? new Date(gameDate.replace(/\./g, '-') + 'T12:00:00Z') : new Date();
+            let deliveryTimestamp: Date;
+            if (gameDate) {
+                const parts = gameDate.split('.');
+                const year = parts[0].padStart(4, '0');
+                const month = parts[1].padStart(2, '0');
+                const day = parts[2].padStart(2, '0');
+                deliveryTimestamp = new Date(`${year}-${month}-${day}T12:00:00Z`);
+            } else {
+                deliveryTimestamp = new Date();
+            }
             const writtenTimestamp = new Date(deliveryTimestamp.getTime());
             writtenTimestamp.setUTCDate(writtenTimestamp.getUTCDate() - totalDays);
 
