@@ -254,12 +254,19 @@ export class LetterManager {
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
-            letters[letterIndex].delivered = true;
-            letters[letterIndex].deliveryTimestamp = deliveryDate;
+            const letter = letters[letterIndex];
+            letter.delivered = true;
+            // Safeguard: A letter cannot be delivered before it was written.
+            if (deliveryDate < letter.timestamp) {
+                console.warn(`Delivery date for letter ${letterId} is before its written date. Adjusting delivery date.`);
+                letter.deliveryTimestamp = new Date(letter.timestamp);
+            } else {
+                letter.deliveryTimestamp = deliveryDate;
+            }
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
                 fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-                console.log(`Marked letter ${letterId} as delivered on ${deliveryDate}.`);
+                console.log(`Marked letter ${letterId} as delivered on ${letter.deliveryTimestamp}.`);
             } catch (error) {
                 console.error(`Error updating delivered status for letter ${letterId}:`, error);
             }

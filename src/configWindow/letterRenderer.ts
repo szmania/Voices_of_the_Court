@@ -87,19 +87,20 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             };
         } else {
             // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
-            const deliveryDate = new Date(letter.deliveryTimestamp!);
-            const sentDay = dateToTotalDays(deliveryDate);
+            const sentDate = new Date(letter.timestamp);
+            const sentDay = letter.totalDays; // Use the day number it was sent
             const expectedReplyDay = sentDay + letter.delay;
             const daysDifference = expectedReplyDay - currentGameDay;
 
-            const expectedReplyDate = new Date(deliveryDate.getTime());
-            expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
+            const expectedReplyDate = new Date(sentDate.getTime());
+            expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
 
             if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
                     overdue: true,
+                    journey: { currentStage: 3 } // If overdue, reply should be on its way
                 };
             } else if (sentDay > 0) {
                 const totalJourneyTime = letter.delay;
