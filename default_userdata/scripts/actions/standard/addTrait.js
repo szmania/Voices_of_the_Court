@@ -139,16 +139,16 @@ module.exports = {
     }
   ],
   description: {
-    en: "Adds a long-term trait to a character when dialogue implies a personality or status change. The target (character2) receives the trait. Spanish trigger examples: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    zh: "当对话暗示人格或地位发生变化时，为角色添加一个长期特质。目标（character2）接收该特质。西班牙语触发示例：'se vuelve valiente'，'se ha vuelto paranoico'。",
-    ru: "Добавляет долгосрочную черту персонажу, когда диалог подразумевает изменение личности или статуса. Цель (character2) получает черту. Примеры триггеров на испанском: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    fr: "Ajoute un trait à long terme à un personnage lorsque le dialogue implique un changement de personnalité ou de statut. La cible (character2) reçoit le trait. Exemples de déclencheurs en espagnol : 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    es: "Añade un rasgo a largo plazo a un personaje cuando el diálogo implica un cambio de personalidad o estado. El objetivo (character2) recibe el rasgo. Ejemplos de activación en español: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    de: "Fügt einem Charakter ein langfristiges Merkmal hinzu, wenn der Dialog eine Persönlichkeits- oder Statusänderung impliziert. Das Ziel (character2) erhält das Merkmal. Spanische Auslöserbeispiele: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    ja: "対話が性格や地位の変化を示唆する場合に、キャラクターに長期的な特性を追加します。ターゲット（character2）がその特性を受け取ります。スペイン語のトリガー例：「se vuelve valiente」、「se ha vuelto paranoico」。",
-    ko: "대화가 성격이나 상태의 변화를 암시할 때 캐릭터에게 장기적인 특성을 추가합니다. 대상(character2)이 특성을 받습니다. 스페인어 트리거 예: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    pl: "Dodaje długoterminową cechę postaci, gdy dialog sugeruje zmianę osobowości lub statusu. Cel (character2) otrzymuje cechę. Hiszpańskie przykłady wyzwalaczy: 'se vuelve valiente', 'se ha vuelto paranoico'.",
-    pt: "Adiciona um traço de longo prazo a um personagem quando o diálogo implica uma mudança de personalidade ou status. O alvo (character2) recebe o traço. Exemplos de gatilho em espanhol: 'se vuelve valiente', 'se ha vuelto paranoico'."
+    en: "Adds a trait to a character. The source (character1) provides context, while the target (character2) receives the trait.",
+    zh: "为一个角色添加一个特质。源（character1）提供背景，而目标（character2）接收该特质。",
+    ru: "Добавляет черту персонажу. Источник (персонаж 1) предоставляет контекст, а цель (персонаж 2) получает черту.",
+    fr: "Ajoute un trait à un personnage. La source (personnage 1) fournit le contexte, tandis que la cible (personnage 2) reçoit le trait.",
+    es: "Añade un rasgo a un personaje. El origen (character1) proporciona el contexto, mientras que el objetivo (character2) recibe el rasgo.",
+    de: "Fügt einem Charakter ein Merkmal hinzu. Die Quelle (Charakter 1) liefert den Kontext, während das Ziel (Charakter 2) das Merkmal erhält.",
+    ja: "キャラクターに特性を追加します。ソース（キャラクター1）がコンテキストを提供し、ターゲット（キャラクター2）が特性を受け取ります。",
+    ko: "캐릭터에 특성을 추가합니다. 소스(캐릭터 1)는 컨텍스트를 제공하고 대상(캐릭터 2)은 특성을 받습니다.",
+    pl: "Dodaje cechę postaci. Źródło (postać 1) dostarcza kontekstu, a cel (postać 2) otrzymuje cechę.",
+    pt: "Adiciona um traço a um personagem. A fonte (personagem 1) fornece o contexto, enquanto o alvo (personagem 2) recebe o traço."
   },
 
   /**

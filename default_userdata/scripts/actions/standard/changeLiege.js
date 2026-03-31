@@ -5,16 +5,16 @@ module.exports = {
     isDestructive: true,
     args: [],
     description: {
-        en: "A vassal (character1) changes their liege to a new ruler (character2).",
-        zh: "封臣（character1）将其领主更换为新的统治者（character2）。",
-        ru: "Вассал (персонаж 1) меняет своего сюзерена на нового правителя (персонаж 2).",
-        fr: "Un vassal (personnage 1) change son suzerain pour un nouveau dirigeant (personnage 2).",
-        es: "Un vasallo (personaje 1) cambia su señor por un nuevo gobernante (personaje 2).",
-        de: "Ein Vasall (Charakter 1) wechselt seinen Lehnsherrn zu einem neuen Herrscher (Charakter 2).",
-        ja: "家臣（キャラクター1）が主君を新しい支配者（キャラクター2）に変更します。",
-        ko: "가신(캐릭터 1)이 자신의 군주를 새로운 통치자(캐릭터 2)로 변경합니다.",
-        pl: "Wasal (postać 1) zmienia swojego suwerena na nowego władcę (postać 2).",
-        pt: "Um vassalo (personagem 1) muda seu suserano para um novo governante (personagem 2)."
+        en: "A vassal (the source, character1) changes their liege to a new ruler (the target, character2).",
+        zh: "一个封臣（源，character1）将他的领主换成一个新的统治者（目标，character2）。",
+        ru: "Вассал (источник, персонаж 1) меняет своего сюзерена на нового правителя (цель, персонаж 2).",
+        fr: "Un vassal (la source, personnage 1) change son suzerain pour un nouveau dirigeant (la cible, personnage 2).",
+        es: "Un vasallo (el origen, character1) cambia su señor por un nuevo gobernante (el objetivo, character2).",
+        de: "Ein Vasall (die Quelle, Charakter 1) wechselt seinen Lehnsherrn zu einem neuen Herrscher (dem Ziel, Charakter 2).",
+        ja: "家臣（ソース、キャラクター1）が主君を新しい支配者（ターゲット、キャラクター2）に変更します。",
+        ko: "가신(소스, 캐릭터 1)이 자신의 군주를 새로운 통치자(대상, 캐릭터 2)로 변경합니다.",
+        pl: "Wasal (źródło, postać 1) zmienia swojego suwerena na nowego władcę (cel, postać 2).",
+        pt: "Um vassalo (a fonte, personagem 1) muda seu suserano para um novo governante (o alvo, personagem 2)."
     },
 
     /**
