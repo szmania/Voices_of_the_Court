@@ -268,6 +268,16 @@ export class LetterReplyGenerator {
             const replyTimestamp = new Date(originalTimestamp.getTime());
             replyTimestamp.setDate(originalTimestamp.getDate() + replyWriteDelay);
 
+            // AI writes the reply after stage 2 of the journey.
+            const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
+            const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
+            const replyTimestamp = new Date(originalLetter.timestamp);
+            replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
+
+            // The player is expected to receive the reply after the full delay.
+            const expectedPlayerDeliveryDate = new Date(originalLetter.timestamp);
+            expectedPlayerDeliveryDate.setUTCDate(expectedPlayerDeliveryDate.getUTCDate() + originalLetter.delay);
+
             const replyLetter = new Letter(
                 replyLetterId,
                 ai, // sender is the AI
@@ -278,10 +288,13 @@ export class LetterReplyGenerator {
                 replyTimestamp, // Use the calculated reply date
                 false, // It's a new letter, so not read by the player yet
                 originalLetter.delay,
-                originalLetter.totalDays + replyWriteDelay, // The "day number" when the reply was written
+                replyWrittenDay, // The "day number" when the reply was written
                 originalLetter.id,
                 'pending',
-                false
+                false,
+                undefined, // creationTimestamp
+                undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
+                expectedPlayerDeliveryDate // When the player should receive it
             );
     
             // Atomically update the history file

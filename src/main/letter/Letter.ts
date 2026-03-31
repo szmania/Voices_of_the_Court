@@ -18,6 +18,7 @@ export class Letter implements ILetter {
     status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
     delivered?: boolean;
     deliveryTimestamp?: Date;
+    expectedDeliveryDate?: Date;
 
     constructor(
         id: string,
@@ -34,7 +35,8 @@ export class Letter implements ILetter {
         status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read',
         delivered?: boolean,
         creationTimestamp?: Date,
-        deliveryTimestamp?: Date
+        deliveryTimestamp?: Date,
+        expectedDeliveryDate?: Date
     ) {
         this.id = id;
         this.sender = sender;
@@ -50,6 +52,7 @@ export class Letter implements ILetter {
         this.replyToId = replyToId;
         this.status = status;
         this.delivered = delivered;
+        this.expectedDeliveryDate = expectedDeliveryDate;
 
         if (deliveryTimestamp && timestamp && deliveryTimestamp < timestamp) {
             console.warn(`Delivery timestamp for letter ${id} is before its written timestamp. Adjusting delivery timestamp to be same as written timestamp.`);
@@ -65,7 +68,7 @@ export class Letter implements ILetter {
         letterId: string,
         content: string,
         gameDate: string, // Date string when SENT
-        delay: number,    // Travel time
+        delay: number,    // Travel time (totalJourneyTime)
         totalDays: number // Game day number when SENT
     ): Letter | null {
         try {
@@ -76,9 +79,10 @@ export class Letter implements ILetter {
                 return null;
             }
 
-            // The delivery timestamp is when the AI receives it.
+            // The delivery timestamp (when AI receives it) is after stage 1 of the journey.
+            const stage1EndDays = Math.floor(delay * 4 / 9);
             const deliveryTimestamp = new Date(writtenTimestamp.getTime());
-            deliveryTimestamp.setUTCDate(writtenTimestamp.getUTCDate() + delay);
+            deliveryTimestamp.setUTCDate(writtenTimestamp.getUTCDate() + stage1EndDays);
 
             return new Letter(
                 randomUUID(),
@@ -93,9 +97,10 @@ export class Letter implements ILetter {
                 totalDays, // The day number it was sent
                 undefined, // replyToId
                 'sent', // status
-                true, // The player's letter is considered 'delivered' to the AI after the delay. The journey tracking handles the rest.
+                false, // It's not delivered to the AI instantly, the journey tracks this.
                 undefined, // creationTimestamp (real world)
-                deliveryTimestamp // Correct delivery date
+                deliveryTimestamp, // When the AI will receive it
+                deliveryTimestamp // For a player-sent letter, expected is same as actual.
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

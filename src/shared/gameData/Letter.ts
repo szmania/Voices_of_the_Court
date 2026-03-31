@@ -30,4 +30,5 @@ export interface Letter {
   characterName?: string;
   delivered?: boolean;
   deliveryDate?: Date;
+  expectedDeliveryDate?: Date;
 }

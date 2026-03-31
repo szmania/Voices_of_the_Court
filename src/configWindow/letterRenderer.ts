@@ -87,13 +87,19 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             };
         } else {
             // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
-            const sentDate = new Date(letter.timestamp);
-            const sentDay = letter.totalDays; // Use the day number it was sent
-            const expectedReplyDay = sentDay + letter.delay;
-            const daysDifference = expectedReplyDay - currentGameDay;
+            const sentDay = letter.totalDays;
+            const totalJourneyTime = letter.delay;
 
-            const expectedReplyDate = new Date(sentDate.getTime());
-            expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+            // Find the reply letter if it exists
+            const reply = allLetters.find(l => l.replyToId === letter.id);
+            
+            // Calculate the expected reply date. Use the reply's date if it exists, otherwise estimate from original.
+            const expectedReplyDate = reply && reply.expectedDeliveryDate 
+                ? new Date(reply.expectedDeliveryDate)
+                : new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + totalJourneyTime));
+
+            const expectedReplyDay = sentDay + totalJourneyTime;
+            const daysDifference = expectedReplyDay - currentGameDay;
 
             if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
                 return {
@@ -103,10 +109,10 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     journey: { currentStage: 3 } // If overdue, reply should be on its way
                 };
             } else if (sentDay > 0) {
-                const totalJourneyTime = letter.delay;
                 const timeElapsed = currentGameDay - sentDay;
                 const stage1End = Math.floor(totalJourneyTime * 4 / 9);
-                const stage2End = Math.floor(totalJourneyTime * 5 / 9);
+                // If the reply has been generated, we know the exact day the AI "finished writing". Otherwise, estimate it.
+                const stage2End = reply ? (reply.totalDays - sentDay) : Math.floor(totalJourneyTime * 5 / 9);
 
                 let statusText = '';
                 let currentStage = 0;
@@ -620,9 +626,7 @@ function renderLetterContent(letter: Letter) {
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
 
-        const sentDate = new Date(letter.timestamp);
-        const expectedReplyDate = new Date(sentDate.getTime());
-        expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+        const expectedReplyDate = reply.expectedDeliveryDate ? new Date(reply.expectedDeliveryDate) : new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + letter.delay));
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
