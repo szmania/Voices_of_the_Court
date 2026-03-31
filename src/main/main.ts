@@ -331,6 +331,26 @@ async function checkAndDeliverLetters() {
     }
 }
 
+function totalDaysToDateString(totalDays: number): string {
+    const year = Math.floor(totalDays / 365);
+    const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
+
+    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let day = dayOfYear;
+    let month = 1;
+
+    for (let i = 0; i < monthDays.length; i++) {
+        if (day <= monthDays[i]) {
+            month = i + 1;
+            break;
+        }
+        day -= monthDays[i];
+    }
+
+    // Returns "867.10.22"
+    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
+}
+
 function removeLettersAfterDate(cutoffDate: number): void {
     const lettersToRemove: string[] = [];
 
@@ -976,21 +996,9 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             const letterManager = LetterManager.getInstance();
             const replyLetter = lastLetterSentToGame.letter;
 
-            // Get current game date to record the delivery
-            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-            if (!gameData) {
-                console.error(`Could not parse game data to mark letter as delivered.`);
-                // Fallback: use current real-world date. Not ideal, but better than nothing.
-                letterManager.markAsDelivered(
-                    String(replyLetter.recipient.id),
-                    String(replyLetter.sender.id),
-                    replyLetter.id,
-                    new Date()
-                );
-                lastLetterSentToGame = null; // Clear the tracked letter
-                return;
-            }
-            const deliveryDate = new Date(gameData.date.replace(/\./g, '-'));
+            // Use the reliable currentTotalDays to create the delivery date
+            const deliveryDateString = totalDaysToDateString(currentTotalDays);
+            const deliveryDate = new Date(deliveryDateString.replace(/\./g, '-'));
 
             // Now officially mark as delivered and save
             letterManager.markAsDelivered(
@@ -1088,6 +1096,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
             console.error('Failed to parse game data from debug.log for letter event.');
             return;
         }
+
+        // Overwrite stale date from parseLog with the fresh, tailed date
+        gameData.totalDays = currentTotalDays;
+        gameData.date = totalDaysToDateString(currentTotalDays);
+
         const playerId = String(gameData.playerID);
         const recipientId = String(gameData.aiID);
 
