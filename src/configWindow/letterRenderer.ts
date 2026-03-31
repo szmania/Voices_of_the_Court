@@ -95,17 +95,11 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             const expectedReplyDate = new Date(deliveryDate.getTime());
             expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
 
-            // @ts-ignore
-            const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(expectedReplyDate))})`;
-
             if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
-                // @ts-ignore
-                const overdueText = window.LocalizationManager.getTranslation('letters.reply_overdue', 'Reply overdue');
                 return {
                     // @ts-ignore
-                    text: `${overdueText}. ${estReplyText}`,
+                    text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
                     overdue: true,
-                    journey: { currentStage: 3 }
                 };
             } else if (sentDay > 0) {
                 const totalJourneyTime = letter.delay;
@@ -128,6 +122,8 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
                     statusText = window.LocalizationManager.getTranslation('letters.status_reply_en_route', 'Reply is on its way');
                     currentStage = 3;
                 }
+
+                const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(expectedReplyDate))})`;
 
                 return {
                     text: `${statusText} ${estReplyText}`,
@@ -522,17 +518,11 @@ function renderLetters() {
             if (status) {
                 statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
-            let deliveryDateHtml = '';
-            if (pair.received.deliveryTimestamp) {
-                deliveryDateHtml = `<span class="letter-item-date received-on" style="display: block;">Received on: ${formatDate(new Date(pair.received.deliveryTimestamp))}</span>`;
-            }
-
             receivedHtml = `
                 <div class="letter-item received" data-letter-id="${pair.received.id}">
                     <div class="letter-item-header">
                         <span class="letter-item-party">From: ${pair.received.sender.shortName}</span>
-                        <span class="letter-item-date">Written: ${formatDate(new Date(pair.received.timestamp))}</span>
-                        ${deliveryDateHtml}
+                        <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.received.subject}</div>
                     ${statusHtml}
@@ -544,13 +534,10 @@ function renderLetters() {
         if (pair.sent) {
             const status = getLetterStatus(pair.sent);
             let statusHtml = '';
-            let journeyHtml = '';
-
             if (status) {
-                journeyHtml = renderJourneyTimeline(status);
-                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+                const journeyHtml = renderJourneyTimeline(status);
+                statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
-
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
                     <div class="letter-item-header">
@@ -558,7 +545,6 @@ function renderLetters() {
                         <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.sent.subject}</div>
-                    ${journeyHtml}
                     ${statusHtml}
                 </div>
             `;
@@ -633,9 +619,9 @@ function renderLetterContent(letter: Letter) {
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
 
-        const deliveryDate = new Date(letter.deliveryTimestamp!);
-        const expectedReplyDate = new Date(deliveryDate.getTime());
-        expectedReplyDate.setDate(deliveryDate.getDate() + letter.delay);
+        const sentDate = new Date(letter.timestamp);
+        const expectedReplyDate = new Date(sentDate.getTime());
+        expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
