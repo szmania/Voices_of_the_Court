@@ -64,40 +64,38 @@ export class Letter implements ILetter {
         recipient: Character,
         letterId: string,
         content: string,
-        gameDate: string,
-        delay: number,
-        totalDays: number
+        gameDate: string, // Date string when SENT
+        delay: number,    // Travel time
+        totalDays: number // Game day number when SENT
     ): Letter | null {
         try {
-            let deliveryTimestamp: Date;
-            if (gameDate) {
-                const parts = gameDate.split('.');
-                const year = parts[0].padStart(4, '0');
-                const month = parts[1].padStart(2, '0');
-                const day = parts[2].padStart(2, '0');
-                deliveryTimestamp = new Date(`${year}-${month}-${day}T12:00:00Z`);
-            } else {
-                deliveryTimestamp = new Date();
+            // The written timestamp is the date the letter was sent.
+            const writtenTimestamp = new Date(gameDate.replace(/\./g, '-') + 'T12:00:00Z');
+            if (isNaN(writtenTimestamp.getTime())) {
+                console.error(`Invalid gameDate provided to Letter.fromLog: ${gameDate}`);
+                return null;
             }
-            const writtenTimestamp = new Date(deliveryTimestamp.getTime());
-            writtenTimestamp.setUTCDate(writtenTimestamp.getUTCDate() - totalDays);
+
+            // The delivery timestamp is when the AI receives it.
+            const deliveryTimestamp = new Date(writtenTimestamp.getTime());
+            deliveryTimestamp.setUTCDate(writtenTimestamp.getUTCDate() + delay);
 
             return new Letter(
                 randomUUID(),
                 sender,
                 recipient,
-                letterId,
+                letterId, // subject
                 content,
                 LetterType.UNKNOWN,
-                writtenTimestamp,
-                false,
-                delay,
-                totalDays,
-                undefined,
-                'sent',
-                true,
-                undefined,
-                deliveryTimestamp // For player-sent letters from log, delivery is immediate
+                writtenTimestamp, // Correct written date
+                false, // isRead
+                delay, // The travel time
+                totalDays, // The day number it was sent
+                undefined, // replyToId
+                'sent', // status
+                true, // The player's letter is considered 'delivered' to the AI after the delay. The journey tracking handles the rest.
+                undefined, // creationTimestamp (real world)
+                deliveryTimestamp // Correct delivery date
             );
         } catch (error) {
             console.error("Error creating letter from log:", error);

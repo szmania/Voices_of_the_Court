@@ -65,7 +65,6 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 const writtenDateInDays = parseInt(parts[2].trim());
-                const travelTime = gameData.totalDays > writtenDateInDays ? gameData.totalDays - writtenDateInDays : 0;
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : playerId; // Use sender from log if available
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId; // Use recipient from log if available
@@ -76,7 +75,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
 
                     if (sender && recipient) {
                         const correctedGameDate = totalDaysToDateString(gameData.totalDays);
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, travelTime);
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
                             letters.push(letter);
                             // If a playerId is provided, save the letter immediately.
