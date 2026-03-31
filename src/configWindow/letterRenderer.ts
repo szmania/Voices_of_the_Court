@@ -722,7 +722,6 @@ async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string
             return;
         }
 
-        players.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
         players.forEach((player: {id: string, name: string}) => {
             const option = document.createElement('option');
             option.value = player.id;

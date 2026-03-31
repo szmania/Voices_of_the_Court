@@ -116,10 +116,22 @@ export class LetterManager {
                         console.error(`Error reading character map for player ${playerId}:`, e);
                     }
                 }
-                return { id: playerId, name: playerName };
+
+                const allLetters = this.getAllLetters(playerId);
+                let latestTimestamp = 0;
+                if (allLetters.length > 0) {
+                    const timestamps = allLetters.map(l => l.creationTimestamp ? new Date(l.creationTimestamp).getTime() : 0);
+                    latestTimestamp = Math.max(0, ...timestamps.filter(t => !isNaN(t)));
+                }
+
+                return { id: playerId, name: playerName, latestTimestamp };
             });
 
-        return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
+        // Sort by the latest timestamp in descending order
+        playerDirs.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        // Return only id and name, as expected by the caller
+        return playerDirs.map(({ id, name }) => ({ id, name }));
     }
 
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
