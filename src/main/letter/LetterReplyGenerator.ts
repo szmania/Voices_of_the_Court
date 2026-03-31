@@ -222,6 +222,10 @@ export class LetterReplyGenerator {
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
             console.log('[LetterReplyGenerator] Letter history saved.');
             
+            // Update original letter status back to 'sent' since reply is now pending
+            const letterManager = LetterManager.getInstance();
+            letterManager.updateLetterStatus(String(letter.sender.id), String(letter.recipient.id), letter.id, 'sent');
+
             // Return the generated reply so it can be queued for delayed delivery
             if (replyLetter) {
                 BrowserWindow.getAllWindows().forEach(win => {

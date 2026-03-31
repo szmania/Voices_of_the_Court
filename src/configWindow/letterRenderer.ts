@@ -76,6 +76,19 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             return null;
         }
 
+        // If reply is actively being generated, show stage 2.
+        if (letter.status === 'generating' && !reply) {
+            const estReplyDate = new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + letter.delay));
+            // @ts-ignore
+            const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(estReplyDate))})`;
+            return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.status_awaiting_reply', 'Awaiting reply from {character}').replace('{character}', letter.recipient.shortName)} ${estReplyText}`,
+                overdue: false,
+                journey: { currentStage: 2 }
+            };
+        }
+
         if (reply && reply.delivered) {
             // Case B: Reply received and delivered.
             const replyDate = formatDate(new Date(reply.deliveryTimestamp || reply.timestamp));

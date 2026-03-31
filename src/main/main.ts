@@ -1189,6 +1189,12 @@ clipboardListener.on('VOTC:LETTER', async () => {
             return;
         }
 
+        // Mark original letter as 'generating'
+        letterManager.updateLetterStatus(playerId, recipientId, latestLetter.id, 'generating');
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
+
         if (gameData.totalDays) {
             updateCurrentDate(gameData.totalDays);
         }

@@ -394,4 +394,21 @@ trigger_event = message_event.362`;
     
         return allLetters[0];
     }
+
+    public updateLetterStatus(playerId: string, characterId: string, letterId: string, status: 'generating' | 'pending' | 'sent' | 'failed' | 'read'): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            letters[letterIndex].status = status;
+            const filePath = this.getLetterFilePath(playerId, characterId);
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                console.log(`Updated status of letter ${letterId} to ${status}`);
+            } catch (error) {
+                console.error(`Error updating letter status for letter ${letterId}:`, error);
+            }
+        } else {
+            console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update status.`);
+        }
+    }
 }
