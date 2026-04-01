@@ -10,18 +10,27 @@ import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 
+let promptsConfig: any = null;
+function getPromptsConfig(userDataPath: string) {
+    if (promptsConfig) return promptsConfig;
+    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
+    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
+    return promptsConfig;
+}
+
 export function getEffectivePrompts(conv: Conversation): any {
+    const promptsConfig = getPromptsConfig(conv.userDataPath);
     const lang = conv.config.language || 'en';
     const activePreset = conv.config.activePromptPreset || 'Default';
 
-    if (conv.config.mod_prompt_sets?.[activePreset]) {
-        return conv.config.mod_prompt_sets[activePreset][lang] || conv.config.mod_prompt_sets[activePreset].en;
+    if (promptsConfig.mod_prompt_sets?.[activePreset]) {
+        return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
     }
     
     // For "Default" or custom presets, use the base prompts for the language.
     // Custom presets overwrite the values in the UI, which then get saved into the main config object
     // that the backend conversation uses.
-    return conv.config.prompts[lang] || conv.config.prompts.en;
+    return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
@@ -303,22 +312,30 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     const prompts = getEffectivePrompts(conv);
 
     if (!isAiToAi && !isNonTargetedResponse) {
-        if (isSelfTalk) {
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
-            });
-            console.log('Added self-talk main prompt from config.');
-        } else {
-            let mainPromptText = prompts.mainPrompt;
-            const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
-            mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
+        const originalAiId = conv.gameData.aiID;
+        try {
+            // Temporarily set the AI to the current speaker for variable parsing
+            conv.gameData.aiID = character.id;
+            if (isSelfTalk) {
+                chatPrompt.push({
+                    role: "system",
+                    content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
+                });
+                console.log('Added self-talk main prompt from config.');
+            } else {
+                let mainPromptText = prompts.mainPrompt;
+                const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
+                mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
-            chatPrompt.push({
-                role: "system",
-                content: parseVariables(mainPromptText, conv.gameData)
-            });
-            console.log('Added standard main prompt.');
+                chatPrompt.push({
+                    role: "system",
+                    content: parseVariables(mainPromptText, conv.gameData)
+                });
+                console.log('Added standard main prompt.');
+            }
+        } finally {
+            // Restore the original AI ID
+            conv.gameData.aiID = originalAiId;
         }
     }
 
@@ -399,10 +416,18 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             .replace(/{playerName}/g, replyToName);
     }
 
-    chatPrompt.push({
-        role: "system",
-        content: roleplayInstruction
-    });
+    // Append the final instruction to the last user/system message to avoid role alternation errors.
+    const lastPromptMessage = chatPrompt.length > 0 ? chatPrompt[chatPrompt.length - 1] : null;
+    if (lastPromptMessage && (lastPromptMessage.role === 'user' || lastPromptMessage.role === 'system')) {
+        lastPromptMessage.content += `\n\n${roleplayInstruction}`;
+        console.log('Appended roleplay instruction to the last message.');
+    } else {
+        chatPrompt.push({
+            role: "system",
+            content: roleplayInstruction
+        });
+        console.log('Pushed roleplay instruction as a new system message.');
+    }
 
     console.log(`Final chat prompt message count: ${chatPrompt.length}`);
     return chatPrompt;
@@ -414,11 +439,6 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
     const prompts = getEffectivePrompts(conv);
     let output: Message[] = [];
 
-    output.push({
-        role: "system",
-        content: convertMessagesToString(conv.messages, "", "")
-    });
-
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
     const prompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
 
@@ -427,9 +447,11 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
         finalPrompt += `\nSummarize from the perspective of ${character.fullName}.`;
     }
 
+    const combinedSystemContent = `${convertMessagesToString(conv.messages, "", "")}\n\n${finalPrompt}`;
+
     output.push({
         role: "system",
-        content: finalPrompt
+        content: combinedSystemContent
     });
 
     return output;
@@ -440,27 +462,22 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
+    let systemContent = "";
     if(conv.currentSummary){
         const summaryIntro = isSelfTalk
             ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-
-        prompt.push({
-            role: "system",
-            content: summaryIntro + conv.currentSummary
-        });
+        systemContent += `${summaryIntro}${conv.currentSummary}\n\n`;
     }
 
-    prompt.push({
-        role: "system",
-        content: convertMessagesToString(messagesToSummarize, "", "")
-    });
+    systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;
 
     const summarizePrompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
+    systemContent += parseVariables(summarizePrompt, conv.gameData);
 
     prompt.push({
         role: "system",
-        content: parseVariables(summarizePrompt, conv.gameData)
+        content: systemContent
     });
 
     return prompt;

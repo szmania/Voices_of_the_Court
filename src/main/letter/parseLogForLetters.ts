@@ -3,6 +3,26 @@ import { Letter } from './Letter.js';
 import { LetterManager } from './LetterManager.js';
 import { GameData } from '../../shared/gameData/GameData.js';
 
+function totalDaysToDateString(totalDays: number): string {
+    const year = Math.floor(totalDays / 365);
+    const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
+
+    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let day = dayOfYear;
+    let month = 1;
+
+    for (let i = 0; i < monthDays.length; i++) {
+        if (day <= monthDays[i]) {
+            month = i + 1;
+            break;
+        }
+        day -= monthDays[i];
+    }
+
+    // Returns "867.10.22"
+    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
+}
+
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
@@ -44,7 +64,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             if (parts.length >= 3) {
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
-                const totalDays =  parseInt(parts[2].trim());
+                const writtenDateInDays = parseInt(parts[2].trim());
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : playerId; // Use sender from log if available
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId; // Use recipient from log if available
@@ -54,7 +74,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     const recipient = gameData.characters.get(Number(recipientId));
 
                     if (sender && recipient) {
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, gameDate, delay, totalDays);
+                        const correctedGameDate = totalDaysToDateString(gameData.totalDays);
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
                             letters.push(letter);
                             // If a playerId is provided, save the letter immediately.

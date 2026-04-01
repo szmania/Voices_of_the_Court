@@ -39,7 +39,7 @@
     "player2_info": "Astuce : Si ce n'est pas déjà fait, téléchargez Player2 et exécutez-le en arrière-plan.",
     "player2_download_button": "Télécharger Player2",
     "player2_download_tooltip": "Télécharger l'application Player2",
-    "player2_connection_failed": "La connexion à Player2 a échoué. Veuillez télécharger l'application Player2 depuis player2.game, vous assurer qu'elle fonctionne en arrière-plan et réessayer. Aucun compte n'est nécessaire."
+    "player2_connection_failed": "La connexion à Player2 a échoué. Veuillez télécharger l'application Player2 depuis https://player2.game, vous assurer qu'elle fonctionne en arrière-plan et réessayer. Aucun compte n'est nécessaire."
   },
   "api": {
     "openrouter": "OpenRouter",

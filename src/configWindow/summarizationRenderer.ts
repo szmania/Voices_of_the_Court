@@ -7,7 +7,8 @@ declare global {
 }
 
 // Main page elements
-const useConnectionAPI: HTMLInputElement = document.querySelector<HTMLInputElement>("#use-connection-api")!;
+//@ts-ignore
+const useConnectionAPI: HTMLInputElement = document.querySelector("#use-connection-api")!.checkbox;
 const apiSelector: HTMLElement = document.querySelector("#api-selector")!;
 
 // Summary Manager Elements
@@ -260,7 +261,6 @@ async function loadPlayerIds(currentPlayerId?: string, currentCharacterId?: stri
 
         playerIdSelect.innerHTML = '';
         if (ids && ids.length > 0) {
-            ids.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
             ids.forEach((player: {id: string, name: string}) => {
                 const option = document.createElement('option');
                 option.value = player.id;

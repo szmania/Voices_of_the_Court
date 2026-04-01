@@ -50,7 +50,7 @@ module.exports = {
             relations = target.relationsToPlayer;
         } else {
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            opinionOfSource = opinionEntry ? opinionEntry.opinion : 0;
             const relationEntry = target.relationsToCharacters.find(r => r.id === source.id);
             relations = relationEntry ? relationEntry.relations : [];
         }

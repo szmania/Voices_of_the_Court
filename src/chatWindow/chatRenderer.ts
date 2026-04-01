@@ -859,14 +859,20 @@ function setupCharacterTargeting(gameData: GameData) {
         valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
         hiddenInput.value = '';
 
+        // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
+        const freshValueDiv = valueDiv.cloneNode(true) as HTMLDivElement;
+        valueDiv.replaceWith(freshValueDiv);
+        const freshOptionsDiv = optionsDiv.cloneNode(true) as HTMLDivElement;
+        optionsDiv.replaceWith(freshOptionsDiv);
+
         // Toggle dropdown
-        valueDiv.addEventListener('click', (e) => {
+        freshValueDiv.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent the global listener from closing it immediately
-            optionsDiv.style.display = optionsDiv.style.display === 'block' ? 'none' : 'block';
+            freshOptionsDiv.style.display = freshOptionsDiv.style.display === 'block' ? 'none' : 'block';
         });
 
         // Prevent dropdown from closing when clicking inside
-        optionsDiv.addEventListener('click', (e) => {
+        freshOptionsDiv.addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
@@ -1552,6 +1558,9 @@ function showInlineActionForm(action: any) {
 }
 
 ipcRenderer.on('chat-show', () =>{
+    if (chatMessages) {
+        chatMessages.innerHTML = '';
+    }
     document.body.style.display = '';
 })
 
@@ -1770,6 +1779,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
         const playerID = currentGameData.playerID;
+        // Display characters in the order they appear in the map, which is now the game's order.
         const characterNames = Array.from(currentGameData.characters.values()).map(c => {
             if (c.id === playerID) {
                 return `${c.shortName} (You)`;

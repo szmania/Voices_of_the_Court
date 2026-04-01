@@ -13,6 +13,14 @@ import { Letter } from "./Letter.js";
 import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 
+let promptsConfig: any = null;
+function getPromptsConfig(userDataPath: string) {
+    if (promptsConfig) return promptsConfig;
+    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
+    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
+    return promptsConfig;
+}
+
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
@@ -29,6 +37,18 @@ export class LetterReplyGenerator {
             config.textGenerationApiConnectionConfig.parameters
         );
         console.log('[LetterReplyGenerator] ApiConnection created.');
+    }
+
+    private getEffectivePrompts() {
+        const promptsConfig = getPromptsConfig(this.userDataPath);
+        const lang = this.config.language || 'en';
+        const activePreset = this.config.activePromptPreset || 'Default';
+    
+        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
+            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
+        }
+        
+        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
     }
 
 
@@ -110,7 +130,7 @@ export class LetterReplyGenerator {
                 textGenApiConnection: this.apiConnection
             } as any;
             
-            const prompts = { memoriesPrompt: this.config.memoriesPrompt };
+            const prompts = { memoriesPrompt: this.getEffectivePrompts().memoriesPrompt };
             const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
@@ -122,7 +142,7 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        let prompt = this.config.letterPrompt || "You are playing as {{aiName}}.\n\n{{characterDescription}}\n\n{{conversationSummary}}{{letterSummaryContent}}{{memoryContent}}You have received a letter from {{playerName}} with the following content:\n\"{{letterContent}}\"\n\nThe letter requires a reply in {{language}}.\n\nPlease write a suitable reply based on your character's personality, background, relationship with the sender, relevant memories, and the current game situation. The reply should:\n1. Be written in {{language}}\n2. Reflect your character's personality and stance\n3. Respond to the main content of the letter\n4. Have a tone that is appropriate for your identity and relationship with the sender\n5. Be of moderate length and clearly expressed\n6. Appropriately reference relevant memory content to make the reply more aligned with the character's background\n\nPlease write the reply content directly, without adding any explanation or description.";
+        let prompt = this.getEffectivePrompts().letterPrompt || "You are playing as {{aiName}}.\n\n{{characterDescription}}\n\n{{conversationSummary}}{{letterSummaryContent}}{{memoryContent}}You have received a letter from {{playerName}} with the following content:\n\"{{letterContent}}\"\n\nThe letter requires a reply in {{language}}.\n\nPlease write a suitable reply based on your character's personality, background, relationship with the sender, relevant memories, and the current game situation. The reply should:\n1. Be written in {{language}}\n2. Reflect your character's personality and stance\n3. Respond to the main content of the letter\n4. Have a tone that is appropriate for your identity and relationship with the sender\n5. Be of moderate length and clearly expressed\n6. Appropriately reference relevant memory content to make the reply more aligned with the character's background\n\nPlease write the reply content directly, without adding any explanation or description.";
 
         prompt = prompt.replace('{{aiName}}', ai.fullName)
                        .replace('{{characterDescription}}', characterDescription)
@@ -202,6 +222,10 @@ export class LetterReplyGenerator {
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
             console.log('[LetterReplyGenerator] Letter history saved.');
             
+            // Update original letter status back to 'sent' since reply is now pending
+            const letterManager = LetterManager.getInstance();
+            letterManager.updateLetterStatus(String(letter.sender.id), String(letter.recipient.id), letter.id, 'sent');
+
             // Return the generated reply so it can be queued for delayed delivery
             if (replyLetter) {
                 BrowserWindow.getAllWindows().forEach(win => {
@@ -241,6 +265,17 @@ export class LetterReplyGenerator {
                 return null;
             }
     
+            // AI writes the reply after stage 2 of the journey.
+            const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
+            const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
+            
+            const replyTimestamp = new Date(originalLetter.timestamp);
+            replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
+
+            // The player is expected to receive the reply after the full delay.
+            const expectedPlayerDeliveryDate = new Date(originalLetter.timestamp);
+            expectedPlayerDeliveryDate.setUTCDate(expectedPlayerDeliveryDate.getUTCDate() + originalLetter.delay);
+
             const replyLetter = new Letter(
                 replyLetterId,
                 ai, // sender is the AI
@@ -248,13 +283,16 @@ export class LetterReplyGenerator {
                 `Re: ${originalLetter.subject}`,
                 replyContent,
                 LetterType.PERSONAL,
-                new Date(gameData.date.replace(/\./g, '-')),
+                replyTimestamp, // Use the calculated reply date
                 false, // It's a new letter, so not read by the player yet
                 originalLetter.delay,
-                gameData.totalDays,
+                replyWrittenDay, // The "day number" when the reply was written
                 originalLetter.id,
                 'pending',
-                false
+                false,
+                undefined, // creationTimestamp
+                undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
+                expectedPlayerDeliveryDate // When the player should receive it
             );
     
             // Atomically update the history file
@@ -266,12 +304,19 @@ export class LetterReplyGenerator {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
     
-            // Add original letter if not present
-            if (!history.find(l => l.id === originalLetter.id)) {
+            // Add original letter if not present (using a more robust duplicate check)
+            const isOriginalDuplicate = history.some(l =>
+                l.subject === originalLetter.subject &&
+                l.totalDays === originalLetter.totalDays &&
+                l.sender.id === originalLetter.sender.id &&
+                l.recipient.id === originalLetter.recipient.id
+            );
+            if (!isOriginalDuplicate) {
                 history.push(originalLetter);
             }
-            // Add reply letter if not present
-            if (!history.find(l => l.id === replyLetter.id)) {
+
+            // Add reply letter if not present (UUID check is fine here as it's brand new)
+            if (!history.some(l => l.id === replyLetter.id)) {
                 history.push(replyLetter);
             }
             
@@ -305,7 +350,7 @@ export class LetterReplyGenerator {
             }
 
             // Build summary generation prompt
-            let summaryPrompt = this.config.letterSummaryPrompt || "Please generate a concise summary based on the following letter exchange:\n\nPlayer {{playerName}}'s letter:\n\"{{playerLetterContent}}\"\n\nCharacter {{aiName}}'s reply:\n\"{{aiReplyContent}}\"\n\nPlease generate a concise summary describing the main content of this letter exchange. The summary should:\n1. Be concise and clear, not exceeding 100 words\n2. Highlight the core content of the letter exchange\n3. Reflect the relationship and interaction characteristics between the characters\n\nPlease write the summary content directly, without adding any explanation or description.";
+            let summaryPrompt = this.getEffectivePrompts().letterSummaryPrompt || "Please generate a concise summary based on the following letter exchange:\n\nPlayer {{playerName}}'s letter:\n\"{{playerLetterContent}}\"\n\nCharacter {{aiName}}'s reply:\n\"{{aiReplyContent}}\"\n\nPlease generate a concise summary describing the main content of this letter exchange. The summary should:\n1. Be concise and clear, not exceeding 100 words\n2. Highlight the core content of the letter exchange\n3. Reflect the relationship and interaction characteristics between the characters\n\nPlease write the summary content directly, without adding any explanation or description.";
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
                                          .replace('{{playerLetterContent}}', originalLetter.content)

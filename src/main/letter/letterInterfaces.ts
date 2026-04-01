@@ -22,6 +22,8 @@ export interface Letter {
   replyToId?: string;
   status?: 'generating' | 'pending' | 'sent' | 'failed' | 'read';
   delivered?: boolean;
+  deliveryTimestamp?: Date;
+  expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
   characterContext?: {
     playerId: string;

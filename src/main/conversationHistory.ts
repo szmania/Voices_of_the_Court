@@ -22,13 +22,14 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
             if (!file.endsWith('.txt')) return false;
 
             const nameParts = file.replace('.txt', '').split('_');
-            if (nameParts.length < 2) return false; // Must have at least playerid and timestamp
+            if (nameParts.length < 2) return false; // Must have at least one character id and a timestamp
 
             const timestamp = nameParts.pop(); // Remove and check timestamp
             if (isNaN(Number(timestamp))) return false;
 
             const fileCharacterIds = new Set(nameParts);
 
+            // Check if the set of character IDs in the filename matches the current conversation's character IDs.
             if (fileCharacterIds.size !== currentIdSet.size) return false;
 
             for (const id of currentIdSet) {

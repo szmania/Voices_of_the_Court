@@ -39,7 +39,7 @@
     "player2_info": "提示：如果尚未下载，请下载Player2并在后台运行。",
     "player2_download_button": "下载Player2",
     "player2_download_tooltip": "下载Player2应用程序",
-    "player2_connection_failed": "Player2 连接失败。请从 player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。"
+    "player2_connection_failed": "Player2 连接失败。请从 https://player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。"
   },
   "api": {
     "openrouter": "OpenRouter",
