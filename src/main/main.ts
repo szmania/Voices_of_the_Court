@@ -240,14 +240,17 @@ const createTray = () => {
         tray.setToolTip(t('tray.tooltip'));
         tray.setContextMenu(contextMenu);
 
-    tray.on('click', ()=>{
-        if(configWindow.window.isDestroyed()){
-            configWindow = new ConfigWindow();
-        }
-        else if(configWindow.window.isMinimized()){
-            configWindow.window.focus();
-        }
-    });
+        tray.on('click', ()=>{
+            if(configWindow.window.isDestroyed()){
+                configWindow = new ConfigWindow();
+            }
+            else if(configWindow.window.isMinimized()){
+                configWindow.window.focus();
+            }
+        });
+    } catch (error) {
+        console.error("Failed to create tray icon:", error);
+    }
 };
 
 let clipboardListener = new ClipboardListener();
