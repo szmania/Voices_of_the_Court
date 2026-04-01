@@ -203,35 +203,45 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
+
+    // 1. 动态获取正确的图标文件名
     const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
-    tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', iconName));
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: t('tray.open_config'),
-            click: () => {
-                if(configWindow.window.isDestroyed()){
-                    configWindow = new ConfigWindow();
+
+    // 2. 使用 app.getAppPath() 获取更准确的项目根路径，替代 __dirname
+    const iconPath = path.join(app.getAppPath(), 'build', 'icons', iconName);
+
+    // 3. 增加 try...catch 容错处理。这样即使打包后托盘图标真的丢失了，软件核心功能依然能正常启动
+    try {
+        tray = new Tray(iconPath);
+
+        const contextMenu = Menu.buildFromTemplate([
+            {
+                label: t('tray.open_config'),
+                click: () => {
+                    if(configWindow.window.isDestroyed()){
+                        configWindow = new ConfigWindow();
+                    }
+                    else if(configWindow.window.isMinimized()){
+                        configWindow.window.focus();
+                    }
                 }
-                else if(configWindow.window.isMinimized()){
-                    configWindow.window.focus();
+            },
+            {
+                label: t('tray.check_updates'),
+                click: () => {
+                    checkForUpdates();
                 }
-            }
-        },
-        {
-            label: t('tray.check_updates'),
-            click: () => {
-                checkForUpdates();
-            }
-        },
-        {
-            label: t('tray.exit'),
-            click: () => {
-                app.quit();
-            }
-        },
-    ]);
-    tray.setToolTip(t('tray.tooltip'));
-    tray.setContextMenu(contextMenu);
+            },
+            {
+                label: t('tray.exit'),
+                click: () => {
+                    app.quit();
+                }
+            },
+        ]);
+
+        tray.setToolTip(t('tray.tooltip'));
+        tray.setContextMenu(contextMenu);
 
     tray.on('click', ()=>{
         if(configWindow.window.isDestroyed()){
