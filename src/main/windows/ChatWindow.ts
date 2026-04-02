@@ -20,18 +20,27 @@ export class ChatWindow{
 
         this.window = new BrowserWindow({
             ...OVERLAY_WINDOW_OPTS,
-            fullscreenable: false, // 禁用全屏支持，避免与游戏窗口冲突
+            // 【新增】：如果是 Mac，强制使用 panel 类型
+            type: process.platform === 'darwin' ? 'panel' : undefined,
+            fullscreenable: false,
             transparent: true,
-            backgroundColor: process.platform === 'darwin' ? '#00000000' : undefined,
-            resizable: true, // 必须设为true，否则Windows下无法切换输入法/显示候选框
+            resizable: true,
+            frame: false, // 确保没有系统边框
             width: width,
             height: height,
             webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            preload: path.join(__dirname, '..', 'preload.js'),
+                nodeIntegration: true,
+                contextIsolation: false,
+                preload: path.join(__dirname, '..', 'preload.js'),
             }       
         })
+
+        // 【新增】：Mac 专属，强行刺穿全屏 Space 的屏障
+        if (process.platform === 'darwin') {
+            this.window.setAlwaysOnTop(true, 'screen-saver', 1);
+            this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+            this.window.setIgnoreMouseEvents(false);
+        }
 
         //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
         
@@ -95,14 +104,28 @@ export class ChatWindow{
         this.interval = setInterval(()=>{
             try {
                 let win = ActiveWindow.getActiveWindow();
-               // console.log(win.title)
 
-                if(win.title === "Crusader Kings III" || win.title === "Voices of the Court 2.0 - Community Edition - Chat"){
+                // 检查是否是游戏或者聊天窗口本身
+                let isGameActive = win.title === "Crusader Kings III" || win.title === "Voices of the Court 2.0 - Community Edition - Chat";
+
+                // 【修复】：在 Mac 全屏下，有时候 win.title 可能为空或者无法获取，
+                // 如果直接 minimize 会导致窗口永远弹不出来。
+                // 我们加一个判断，如果是 Mac 平台，就不那么激进地 minimize
+                if(isGameActive){
                     OverlayController.activateOverlay();
                     //this.window.webContents.send('chat-show');
                 }else{
-                    this.window.minimize();
-                    //this.window.webContents.send('chat-hide');
+                    // 只有在 Windows 上，或者明确知道切到了别的应用时才最小化
+                    if (process.platform !== 'darwin') {
+                        this.window.minimize();
+                    } else {
+                        // 在 Mac 上，与其最小化，不如暂时隐藏或者直接不管，
+                        // 因为 panel 类型的窗口不会干扰 Mac 本身的操作。
+                        // 如果你希望切出游戏时聊天框不挡视线，可以用 this.window.hide() 代替 minimize
+                        if (this.isShown) {
+                           // this.window.hide(); // 你可以取消注释这行来测试效果
+                        }
+                    }
                 }
             } catch (err) {
                 console.error("Failed to get active window:", err);
