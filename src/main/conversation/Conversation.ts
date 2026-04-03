@@ -764,6 +764,10 @@ export class Conversation{
         finally {
             this.isGenerating = false;
             this.abortController = null;
+
+            // After the turn, calculate the new base prompt size and send it to the UI
+            const newBaseTokens = await this.calculateBasePromptTokens();
+            this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
         }
     }
 
@@ -2298,6 +2302,31 @@ ${character.fullName}的发言：`
         console.log("Appended questioning instruction to the standard prompt.");
 
         return standardPrompt;
+    }
+
+    public async calculateBasePromptTokens(): Promise<number> {
+        try {
+            // We need a character to build the prompt for. Let's use the main AI.
+            const mainAiCharacter = this.gameData.getCharacter(this.gameData.aiID);
+            if (!mainAiCharacter) {
+                console.warn("Cannot calculate base prompt tokens: main AI character not found.");
+                return 0;
+            }
+    
+            // Build a prompt as if we were about to generate a message for this character.
+            // We pass a copy of the current messages.
+            const prompt = await buildChatPrompt(this, mainAiCharacter, this.messages.slice(0));
+    
+            // Calculate tokens from this prompt.
+            const text = convertMessagesToString(prompt, "", "");
+            const tokenCount = this.textGenApiConnection.calculateTokensFromText(text);
+            
+            console.log(`Calculated base prompt tokens: ${tokenCount}`);
+            return tokenCount;
+        } catch (error) {
+            console.error("Error calculating base prompt tokens:", error);
+            return 0;
+        }
     }
 
     private calculateQuestioningChance(character: Character): number {

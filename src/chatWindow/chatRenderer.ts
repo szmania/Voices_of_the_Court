@@ -122,6 +122,7 @@ let allHighlightMarks: HTMLElement[] = [];
 let currentHighlightIndex = -1;
 let currentConversationMessageDivs: HTMLDivElement[] = [];
 let displayedMessageIds = new Set<string>();
+let basePromptTokens = 0;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -484,19 +485,20 @@ function updateTokenCount(text: string) {
         return;
     }
 
-    // Calculate token count using the ApiConnection's calculateTokensFromText method
-    // We'll need to get this from the main process
-    ipcRenderer.invoke('calculate-tokens', text).then((tokenCount: number) => {
+    // Calculate token count for the user's input and add it to the base prompt size
+    ipcRenderer.invoke('calculate-tokens', text).then((userInputTokenCount: number) => {
+        const totalTokens = basePromptTokens + userInputTokenCount;
+
         // @ts-ignore
         const lm = window.LocalizationManager;
         const tokensLabel = (lm ? lm.getNestedTranslation('chat.tokenizer_tokens') : null) || 'Tokens:';
-        tokenCountElement.textContent = `${tokensLabel} ${tokenCount}`;
+        tokenCountElement.textContent = `${tokensLabel} ${totalTokens}`;
 
         if (contextLimit > 0) {
             contextLimitElement.textContent = `/${contextLimit}`;
 
             // Add warning/critical classes based on usage percentage
-            const usagePercentage = (tokenCount / contextLimit) * 100;
+            const usagePercentage = (totalTokens / contextLimit) * 100;
             tokenDisplayWrapper.classList.remove('warning', 'critical');
 
             if (usagePercentage > 90) {
@@ -1703,7 +1705,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         // Initial update for tokenizer if visible
         if (showTokenizerDisplay) {
-            updateTokenCount(chatInput.value);
+            updateTokenCount(chatInput.value); // Call with empty input to show base count
         }
     });
 
@@ -1921,6 +1923,12 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     removeLoadingDots(shouldEnableInput);
     updateStatusText('');
 })
+
+ipcRenderer.on('update-base-tokens', (e, count: number) => {
+    console.log(`Received updated base token count: ${count}`);
+    basePromptTokens = count;
+    updateTokenCount(chatInput.value); // Refresh the display with the new base
+});
 
 ipcRenderer.on('stream-start', async (e, gameData)=>{
     let streamMessage = document.createElement('div');

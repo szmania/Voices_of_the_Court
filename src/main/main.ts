@@ -965,13 +965,17 @@ clipboardListener.on('VOTC:IN', async () =>{
                 usesTarget: (action as any).usesTarget
         }));
 
+        // Calculate base prompt tokens
+        const basePromptTokens = await conversation.calculateBasePromptTokens();
+
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
             historicalMetadata: historicalMetadata,
-            actions: sanitizedActions // Pass sanitized actions
+            actions: sanitizedActions, // Pass sanitized actions
+            basePromptTokens: basePromptTokens
         };
-        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
         chatWindow.window.webContents.send('chat-start', payload);
 
         // Wait for the chat window to be ready before starting the conversation flow
