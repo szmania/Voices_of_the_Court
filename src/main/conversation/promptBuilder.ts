@@ -437,7 +437,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     let contextLimit = 90000; // A safe fallback
     const connConfig = conv.config.textGenerationApiConnectionConfig.connection;
     if (connConfig.overwriteContext && connConfig.customContext > 0) {
-        contextLimit = connConfig.customContext;
+        contextLimit = Number(connConfig.customContext);
     } else if (conv.textGenApiConnection.context && conv.textGenApiConnection.context > 0) {
         contextLimit = conv.textGenApiConnection.context;
     }

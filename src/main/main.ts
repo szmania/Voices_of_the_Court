@@ -639,7 +639,7 @@ app.on('ready',  async () => {
             if (connectionConfig) {
                 // 1. Prioritize manual overwrite if it exists and is valid
                 if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
-                    return connectionConfig.customContext;
+                    return Number(connectionConfig.customContext);
                 }
 
                 // 2. Fallback to API-detected context
@@ -1478,6 +1478,11 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
 //dear god...
 ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested-nested event. Outer ID: ${outerConfID}, Middle ID: ${middleConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
+    
+    if (innerConfID === 'customContext') {
+        newValue = parseInt(newValue, 10) || 0;
+    }
+
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
