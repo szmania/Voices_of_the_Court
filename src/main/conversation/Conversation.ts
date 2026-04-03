@@ -10,7 +10,7 @@ import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
 import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
-import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts} from './promptBuilder.js';
+import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts, convertMessagesToString} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { generateNarrative } from './generateNarrative.js';

@@ -652,12 +652,17 @@ app.on('ready',  async () => {
                 if (detectedContext > 0) {
                     return detectedContext;
                 }
+
+                // 3. If API detection fails, use custom context if available
+                if (connectionConfig.customContext > 0) {
+                    return Number(connectionConfig.customContext);
+                }
             }
         } catch (error) {
             console.error('Error getting context limit in main:', error);
         }
-        // 3. If all else fails, return a safe default
-        return 90000;
+        // 4. If all else fails, return a safe default
+        return 8192;
     });
 
 
