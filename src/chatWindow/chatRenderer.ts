@@ -121,6 +121,7 @@ let historyIndex: number = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let currentHighlightIndex = -1;
 let currentConversationMessageDivs: HTMLDivElement[] = [];
+let displayedMessageIds = new Set<string>();
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -968,7 +969,13 @@ undoButton.addEventListener('click', () => {
     if (lastUserIndex !== -1) {
         // Remove DOM elements from that index onwards
         const divsToRemove = currentConversationMessageDivs.slice(lastUserIndex);
-        divsToRemove.forEach(div => div.remove());
+        divsToRemove.forEach(div => {
+            if (div.id) {
+                const messageId = div.id.replace('message-', '');
+                displayedMessageIds.delete(messageId);
+            }
+            div.remove();
+        });
 
         // Also remove them from our tracking array
         currentConversationMessageDivs.splice(lastUserIndex);
@@ -1611,6 +1618,7 @@ ipcRenderer.on('chat-hide', () =>{
 })
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
+    displayedMessageIds.clear();
     currentConversationMessageDivs = [];
     const { gameData: plainGameData, messages, narratives, historicalMetadata, actions } = payload;
 
@@ -1869,6 +1877,14 @@ ipcRenderer.on('action-approval-request', (event, messageId: string, proposedAct
 });
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean, isAiToAi: boolean = false)=>{
+    if (message.id && displayedMessageIds.has(message.id)) {
+        console.warn(`Duplicate message with ID ${message.id} blocked.`);
+        return;
+    }
+    if (message.id) {
+        displayedMessageIds.add(message.id);
+    }
+
     const messageDiv = await displayMessage(message);
     if (messageDiv) {
         currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
