@@ -636,24 +636,28 @@ app.on('ready',  async () => {
     ipcMain.handle('get-context-limit', async () => {
         try {
             const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
-            const parameters = config?.textGenerationApiConnectionConfig?.parameters;
             if (connectionConfig) {
-                // Prioritize manual overwrite if it exists and is valid
+                // 1. Prioritize manual overwrite if it exists and is valid
                 if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
                     return connectionConfig.customContext;
                 }
-                // Fallback to API-detected context
+
+                // 2. Fallback to API-detected context
                 const { ApiConnection } = await import('../shared/apiConnection.js');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
                     config.textGenerationApiConnectionConfig.parameters
                 );
-                return apiConnection.context || 0;
+                const detectedContext = apiConnection.context || 0;
+                if (detectedContext > 0) {
+                    return detectedContext;
+                }
             }
         } catch (error) {
             console.error('Error getting context limit in main:', error);
         }
-        return 0;
+        // 3. If all else fails, return a safe default
+        return 90000;
     });
 
 

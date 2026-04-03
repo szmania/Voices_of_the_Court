@@ -354,16 +354,13 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if (isInitiatingAiToAi) {
         // Case 1: AI 1 is initiating a conversation with AI 2
         const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
-        chatPrompt.push({
-            role: "system",
-            content: contextSwitchTemplate
-        });
-        console.log('Added AI-to-AI context switch message.');
-
         const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
-        roleplayInstruction = aiToAiInitiateTemplate
+
+        // Combine into a single instruction to save tokens
+        roleplayInstruction = `${contextSwitchTemplate}\n\n${aiToAiInitiateTemplate}`
             .replace(/{sourceCharacterName}/g, character.fullName)
             .replace(/{targetCharacterName}/g, replyToName);
+        console.log('Combined AI-to-AI context switch and initiate message.');
 
         const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
         const narratorPrompt = narratorPromptTemplate
@@ -430,6 +427,43 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     }
 
     console.log(`Final chat prompt message count: ${chatPrompt.length}`);
+
+    // Enforce context limit by trimming older messages if necessary
+    const calculateTotalTokens = (prompt: Message[]): number => {
+        const text = convertMessagesToString(prompt, "", "");
+        return conv.textGenApiConnection.calculateTokensFromText(text);
+    };
+
+    let contextLimit = 90000; // A safe fallback
+    const connConfig = conv.config.textGenerationApiConnectionConfig.connection;
+    if (connConfig.overwriteContext && connConfig.customContext > 0) {
+        contextLimit = connConfig.customContext;
+    } else if (conv.textGenApiConnection.context && conv.textGenApiConnection.context > 0) {
+        contextLimit = conv.textGenApiConnection.context;
+    }
+
+    let totalTokens = calculateTotalTokens(chatPrompt);
+
+    if (totalTokens > contextLimit) {
+        console.warn(`Prompt exceeds context limit. Tokens: ${totalTokens}, Limit: ${contextLimit}. Trimming...`);
+
+        const trimStartIndex = chatPrompt.findIndex(m => m.content === "[Start a new chat]") + 1;
+        const nonTrimmableSuffixLength = 3; // Protect the last few instructional messages
+
+        if (trimStartIndex > 0) {
+            while (totalTokens > contextLimit) {
+                const trimmableSectionEnd = chatPrompt.length - nonTrimmableSuffixLength;
+                if (trimStartIndex >= trimmableSectionEnd) {
+                    console.warn("Cannot trim further. No trimmable messages left.");
+                    break;
+                }
+                chatPrompt.splice(trimStartIndex, 1);
+                totalTokens = calculateTotalTokens(chatPrompt);
+            }
+        }
+        console.log(`Trimming complete. Final token count: ${totalTokens}, Message count: ${chatPrompt.length}`);
+    }
+
     return chatPrompt;
 }
 
