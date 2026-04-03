@@ -2224,30 +2224,17 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
                 // Generate AI2 -> AI1 response
-                const { messages } = await this.processCharacterList([targetAI], false, false, false);
-                for (const responseMsg of messages) {
-                    if (responseMsg) {
-                        this.pushMessage(responseMsg);
-                        this.chatWindow.window.webContents.send('message-receive', responseMsg, this.config.actionsEnableAll, true);
+                const { actions } = await this.processCharacterList([targetAI], false, false, true);
 
-                        let responseActions: ActionResponse[] = [];
-                        if (this.config.actionsEnableAll) {
-                            responseActions = await checkActions(this, targetAI.id, lastRespondingCharacter.id);
-                            if (responseActions.length > 0) {
-                                this.actionInvolvedCharacterIds.add(targetAI.id);
-                                this.actionInvolvedCharacterIds.add(lastRespondingCharacter.id);
-                            }
-                        }
-                        let responseNarrative: Message | null = null;
-                        if (responseActions.length > 0 && this.config.narrativeEnable) {
-                            responseNarrative = await generateNarrative(this, responseActions);
-                            if (responseNarrative) {
-                                this.pushMessage(responseNarrative);
-                            }
-                        }
-                        this.chatWindow.window.webContents.send('actions-receive', responseActions, responseNarrative, true);
+                // The message is pushed and sent inside processCharacterList. Now, handle the actions.
+                let responseNarrative: Message | null = null;
+                if (actions.length > 0 && this.config.narrativeEnable) {
+                    responseNarrative = await generateNarrative(this, actions);
+                    if (responseNarrative) {
+                        this.pushMessage(responseNarrative);
                     }
                 }
+                this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
     }
