@@ -1619,10 +1619,12 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
     displayedMessageIds.clear();
     currentConversationMessageDivs = [];
-    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions } = payload;
+    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+
+    basePromptTokens = initialBaseTokens || 0;
 
     // Re-instantiate GameData to get methods back
     const gameData = GameData.fromPlainObject(plainGameData);
