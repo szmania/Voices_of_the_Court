@@ -31,11 +31,10 @@
 
       <config-api-selector confID="textGenerationApiConnectionConfig"></config-api-selector>
 
-      
-
-      
-        
-      
+      <div class="context-limit-description" style="margin-top: 15px; padding: 10px; background-color: rgba(0,0,0,0.2); border: 1px solid #5a4a35; border-radius: 4px; font-size: 0.9em; color: #c0c0c0;">
+        <p data-i18n="config.context_limit_desc_1" style="margin: 0 0 8px 0;">The context limit is the maximum number of tokens the model can handle. The application attempts to auto-detect this limit from the API.</p>
+        <p data-i18n="config.context_limit_desc_2" style="margin: 0;">You can manually override this by enabling "Overwrite Context Limit" and setting a "Custom Context Limit". If a conversation prompt exceeds the limit, the oldest messages and summaries will be automatically trimmed to fit.</p>
+      </div>
     </div>
 
     <script>require("../../dist/shared/LocalizationManager.js")</script>

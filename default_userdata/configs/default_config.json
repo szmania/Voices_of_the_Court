@@ -22,7 +22,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 90000
     },
     "parameters": {
       "temperature": 0.8,
@@ -39,7 +39,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 90000
     },
     "parameters": {
       "temperature": 0.5,
@@ -56,7 +56,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 90000
     },
     "parameters": {
       "temperature": 0.5,
