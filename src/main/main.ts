@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow} from "electron";
+import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen} from "electron";
 import {ConfigWindow} from './windows/ConfigWindow.js';
 import {ChatWindow} from './windows/ChatWindow.js';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
@@ -438,6 +438,42 @@ function positionConfigWindow() {
     }
 }
 
+function positionConfigWindow() {
+    if (!chatWindow || !configWindow || !configWindow.isShown) return;
+
+    const chatBounds = chatWindow.window.getBounds();
+    const configBounds = configWindow.window.getBounds();
+    const displayContainingChat = (screen as any).getAllDisplays().find((d: any) => {
+        const chatCenter = { x: chatBounds.x + chatBounds.width / 2, y: chatBounds.y + chatBounds.height / 2 };
+        return chatCenter.x >= d.bounds.x && chatCenter.x < d.bounds.x + d.bounds.width &&
+               chatCenter.y >= d.bounds.y && chatCenter.y < d.bounds.y + d.bounds.height;
+    }) || (screen as any).getPrimaryDisplay();
+    const display = displayContainingChat.workArea;
+
+    // Try to position below
+    if (chatBounds.y + chatBounds.height + configBounds.height <= display.y + display.height) {
+        configWindow.window.setBounds({
+            x: chatBounds.x,
+            y: chatBounds.y + chatBounds.height,
+            width: chatBounds.width,
+            height: configBounds.height
+        });
+    }
+    // Else, try to position to the right
+    else if (chatBounds.x + chatBounds.width + configBounds.width <= display.x + display.width) {
+        configWindow.window.setBounds({
+            x: chatBounds.x + chatBounds.width,
+            y: chatBounds.y,
+            width: configBounds.width,
+            height: chatBounds.height
+        });
+    }
+    // Else, just center it as a fallback
+    else {
+        configWindow.window.center();
+    }
+}
+
 ipcMain.on('request-config-toggle', () => {
     configWindow.toggle();
     if (configWindow.isShown) {
@@ -457,11 +493,23 @@ ipcMain.on('request-config-restore', () => {
     chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
 });
 
-ipcMain.on('request-config-close', () => {
-    if (configWindow) {
-        configWindow.hide();
-        chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: false });
+ipcMain.on('request-config-toggle', () => {
+    configWindow.toggle();
+    if (configWindow.isShown) {
+        positionConfigWindow();
     }
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: configWindow.isShown });
+});
+
+ipcMain.on('request-config-minimize', () => {
+    configWindow.minimize();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: true });
+});
+
+ipcMain.on('request-config-restore', () => {
+    configWindow.restore();
+    positionConfigWindow();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
 });
 
 ipcMain.on('request-config-close', () => {
