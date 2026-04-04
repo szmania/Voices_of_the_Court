@@ -866,6 +866,7 @@ app.on('ready',  async () => {
         }
     });
     mainConfigWindow.loadFile('./public/configWindow/connection.html');
+    mainConfigWindow.removeMenu();
     if(!app.isPackaged){
         mainConfigWindow.webContents.openDevTools();
     }
