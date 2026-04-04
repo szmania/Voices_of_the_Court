@@ -74,7 +74,7 @@ input::-webkit-inner-spin-button {
   text-align: center;
   float: left;
   order:1;
-  flex-grow:1;
+  flex-grow: 0;
   min-width: 100px;
 }
 
