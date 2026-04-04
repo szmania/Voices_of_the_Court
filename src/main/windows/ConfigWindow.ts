@@ -13,7 +13,7 @@ export class ConfigWindow{
             minWidth: 1280,
             minHeight: 600,
             frame: false,
-            transparent: true,
+            transparent: false,
             show: false,
             webPreferences: {
             nodeIntegration: true,

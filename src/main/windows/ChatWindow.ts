@@ -110,14 +110,8 @@ export class ChatWindow{
                 const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
                 const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
-                // 【修复】：在 Mac 全屏下，有时候 win.title 可能为空或者无法获取，
-                // 如果直接 minimize 会导致窗口永远弹不出来。
-                // 我们加一个判断，如果是 Mac 平台，就不那么激进地 minimize
-                if (isGameActive || isChatActive) {
+                if (isGameActive || isChatActive || isConfigActive) {
                     OverlayController.activateOverlay();
-                } else if (isConfigActive) {
-                    // Config window is active, do nothing. This prevents the chat from minimizing
-                    // and avoids a focus fight where the overlay tries to activate itself.
                 } else {
                     // 只有在 Windows 上，或者明确知道切到了别的应用时才最小化
                     if (process.platform !== 'darwin') {
