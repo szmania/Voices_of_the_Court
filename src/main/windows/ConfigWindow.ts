@@ -5,8 +5,10 @@ export class ConfigWindow{
     window: BrowserWindow;
     isShown: boolean = false;
 
-    constructor(){
+    constructor(parentWindow: BrowserWindow){
         this.window = new BrowserWindow({
+            parent: parentWindow,
+            modal: false,
             title: "Voices of the Court 2.0 - Community Edition",
             width: 1280,
             height: 600,

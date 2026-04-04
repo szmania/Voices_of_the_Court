@@ -404,31 +404,18 @@ function updateCurrentDate(newTotalDays: number) {
 
 
 function positionConfigWindow() {
-    if (!chatWindow || !configWindow || !configWindow.isShown) return;
+    if (!configWindow || !configWindow.isShown) return;
 
-    const chatBounds = chatWindow.window.getBounds();
-    const display = screen.getDisplayMatching(chatBounds);
-    const workArea = display.workArea;
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workArea;
 
     const PADDING = 20;
-    const configWidth = 1280;
-    const configHeight = workArea.height - (2 * PADDING);
-
-    const chatIsOnLeft = (chatBounds.x + chatBounds.width / 2) < (workArea.x + workArea.width / 2);
-
-    let newX: number;
-
-    if (chatIsOnLeft) {
-        // Chat is on the left, so place config window on the right.
-        newX = workArea.x + workArea.width - configWidth - PADDING;
-    } else {
-        // Chat is on the right, so place config window on the left.
-        newX = workArea.x + PADDING;
-    }
+    const configWidth = 1000; // A more reasonable default width
+    const configHeight = height - (2 * PADDING);
 
     configWindow.window.setBounds({
-        x: Math.round(newX),
-        y: Math.round(workArea.y + PADDING),
+        x: Math.round(width - configWidth - PADDING),
+        y: Math.round(PADDING),
         width: configWidth,
         height: configHeight
     });
@@ -890,7 +877,7 @@ app.on('ready',  async () => {
 
     chatWindow = new ChatWindow();
     console.log('ChatWindow created.');
-    configWindow = new ConfigWindow(); // This is the frameless window for in-chat use
+    configWindow = new ConfigWindow(chatWindow.window); // This is the frameless window for in-chat use
     console.log('ConfigWindow created.');
 
     chatWindow.window.on('move', positionConfigWindow);
