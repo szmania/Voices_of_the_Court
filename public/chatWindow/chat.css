@@ -163,6 +163,17 @@
     opacity: 1;
 }
 
+.config-button-wrapper, #minimized-config-button-wrapper {
+    position: relative;
+}
+
+.config-button:hover {
+    background-color: #2b2b2b;
+    border-color: #5a4a35;
+    color: #a0a0a0;
+    opacity: 1;
+}
+
 .search-input {
     width: 100%;
     background: #1a1a1a;
