@@ -2,6 +2,8 @@ import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
 
+const defaultPromptsPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_prompts.json');
+const defaultPrompts = JSON.parse(fs.readFileSync(defaultPromptsPath, 'utf-8'));
 const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
 const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
 
@@ -162,11 +164,9 @@ ipcRenderer.on('update-language', async (event, lang) => {
     let promptsToLoad: any = null;
 
     if (selectedPresetName === 'Default') {
-        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
-        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
-        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
-    } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultConfig.mod_prompt_sets[selectedPresetName];
+        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+    } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
+        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
         const langPrompts = megamodPrompts[lang] || {};
         const englishPrompts = megamodPrompts.en;
         promptsToLoad = { ...englishPrompts, ...langPrompts };
@@ -177,9 +177,7 @@ ipcRenderer.on('update-language', async (event, lang) => {
     } else {
         // Fallback for safety, though it shouldn't be reached if config is consistent.
         console.warn(`Active preset "${selectedPresetName}" not found. Falling back to default prompts for new language.`);
-        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
-        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
-        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
+        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
     }
 
     if (promptsToLoad) {
@@ -436,7 +434,7 @@ async function populatePresetSelector(activePreset?: string) {
     promptPresetSelect.appendChild(defaultOption);
 
     // Add mod presets
-    if (defaultConfig.mod_prompt_sets) {
+    if (defaultPrompts.mod_prompt_sets) {
         const modSeparator = document.createElement('option');
         modSeparator.disabled = true;
         modSeparator.textContent = '--- Mod Presets ---';
@@ -449,7 +447,7 @@ async function populatePresetSelector(activePreset?: string) {
             "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2"
         };
 
-        for (const modName in defaultConfig.mod_prompt_sets) {
+        for (const modName in defaultPrompts.mod_prompt_sets) {
             const option = document.createElement('option');
             option.value = modName;
             const localeKey = modNameLocaleKeyMap[modName];
@@ -512,11 +510,9 @@ async function handlePresetChange() {
     let promptsToLoad: any = null;
 
     if (selectedPresetName === 'Default') {
-        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
-        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
-        promptsToLoad = defaultConfig.prompts[lang] || defaultConfig.prompts.en;
-    } else if (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultConfig.mod_prompt_sets[selectedPresetName];
+        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+    } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
+        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
         const langPrompts = megamodPrompts[lang] || {};
         const englishPrompts = megamodPrompts.en;
         promptsToLoad = { ...englishPrompts, ...langPrompts };
@@ -568,7 +564,7 @@ async function saveCurrentPreset() {
     }
 
     const config = await ipcRenderer.invoke('get-config');
-    const isProtected = presetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[presetName]);
+    const isProtected = presetName === 'Default' || (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[presetName]);
 
     if (isProtected) {
         let baseName = presetName;
@@ -609,7 +605,7 @@ async function deleteSelectedPreset() {
     const selectedCharacterId = characterFilterSelect.value;
     const config = await ipcRenderer.invoke('get-config');
 
-    if (selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName])) {
+    if (selectedPresetName === 'Default' || (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName])) {
         // @ts-ignore
         showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.delete_default_preset_alert'), 'error');
         return;
@@ -644,11 +640,7 @@ async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
 
         console.log('Restoring default prompts...');
         
-        const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
-        const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
-        const defaultPrompts = defaultConfig.prompts;
-        
-        const promptsToApply = defaultPrompts[lang] || defaultPrompts.en;
+        const promptsToApply = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
 
         for (const [key, value] of Object.entries(promptsToApply)) {
             if (promptTextareas[key]) {

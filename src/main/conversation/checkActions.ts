@@ -71,7 +71,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
             continue;
         }
 
-        const matchedAction = availableActions.find(a => a.signature == foundActionName[0]);
+        const matchedAction = availableActions.find(a => a.signature.toLowerCase() == foundActionName[0].toLowerCase());
         if(!matchedAction){
             console.warn(`Action warning: The returned action "${foundActionName[0]}" from LLM matched none of the listed available actions. Skipping.`);
             continue;
@@ -111,10 +111,20 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
         }
         if(!isValidAction) continue;
 
-        // NEW: Perform pre-check if available
-        if (matchedAction.preCheck) {
-            const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newSourceId, newTargetId);
-            if (!preCheckResult.success) {
+      // Duplicate action check for the current turn. Key is based on signature, source, and target, ignoring args
+      // to prevent LLM hallucinations on args from causing duplicate triggers.
+      const actionKey = `${matchedAction.signature.toLowerCase()}:${newSourceId}:${newTargetId}`;
+      if (conv.currentTurnTriggeredActions.has(actionKey)) {
+        console.warn(`Action warning: Duplicate action "${actionKey}" detected in the same turn. Skipping.`);
+        continue;
+      }
+      // If not a duplicate, add it to the set before processing.
+      conv.currentTurnTriggeredActions.add(actionKey);
+      console.log(`[checkActions] Added action to duplicate check set: ${actionKey}`);
+      // NEW: Perform pre-check if available
+      if (matchedAction.preCheck) {
+        const preCheckResult = matchedAction.preCheck(conv.gameData, actionArgs, newSourceId, newTargetId);
+        if (!preCheckResult.success) {
                 console.warn(`Action pre-check failed for "${matchedAction.signature}": ${preCheckResult.message}`);
                 if (preCheckResult.message) {
                     conv.chatWindow.window.webContents.send('error-message', `Action '${matchedAction.signature}' cannot be executed: ${preCheckResult.message}`);
@@ -283,22 +293,17 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
 
     output.push({
         role: "system",
-        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the source's ID and the target's ID as the first two arguments. The 'source' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the source and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>'`
+        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the source's ID and the target's ID as the first two arguments. The 'source' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the source and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
     })
 
     output.push({
         role: "user",
-        content: `Choose the most relevant actions that you think happened in the provided dialogue based on the last messages.
+        content: `Based on the following dialogue, choose the most relevant actions.
 ${characterList}
 "Prior dialogue:\n"+ ${convertMessagesToString(conv.messages.slice(conv.messages.length-8, conv.messages.length-2), "", "")}
 ${description}
 "Given these replies:\n${convertMessagesToString(conv.messages.slice(conv.messages.length-2), "", "")}
 ${listOfActions}`
-})
-
-    output.push({
-        role: "user",
-        content: "Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>"
     })
 
     return output;

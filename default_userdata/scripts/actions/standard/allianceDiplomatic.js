@@ -30,7 +30,7 @@ module.exports = {
             conversationOpinion = target.getOpinionModifierValue("From conversations");
         } else {
             const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionOfSource = opinionEntry ? opinionEntry.opinon : 0;
+            opinionOfSource = opinionEntry ? opinionEntry.opinion : 0;
             // Simulate conversation opinion for AI-AI
             conversationOpinion = opinionOfSource > 0 ? opinionOfSource / 2 : 0;
         }

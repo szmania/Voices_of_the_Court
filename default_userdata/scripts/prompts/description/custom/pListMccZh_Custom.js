@@ -71,10 +71,11 @@ module.exports = (gameData) =>{
         personalityTraits(player), 
         otherTraits(player), 
         marriage(player),
+        relatives(player),
         describeProwess(player),
         goldStatus(player),
         age(player),
-        `信仰： ${player.faith}`, 
+        `信仰： ${player.faith}`,
         `民族： ${player.culture}`,
     ];
     
@@ -92,9 +93,10 @@ module.exports = (gameData) =>{
         greedines(ai),
         describeProwess(ai),
         marriage(ai),
+        relatives(ai),
         goldStatus(ai),
-        age(ai), 
-        `信仰： ${ai.faith}`, 
+        age(ai),
+        `信仰： ${ai.faith}`,
         `民族： ${ai.culture}`,
     ];
     
@@ -124,9 +126,10 @@ module.exports = (gameData) =>{
                     otherTraits(value), 
                     greedines(value), 
                     describeProwess(value),
-                    marriage(value),  
+                    marriage(value),
+                    relatives(value),
                     goldStatus(value),
-                    age(value), 
+                    age(value),
                     describeProwess(value),
                     `信仰：${value.faith}`, 
                     `民族：${value.culture}`]
@@ -199,22 +202,22 @@ module.exports = (gameData) =>{
 
     function opinion(char){
         const op = char.opinionOfPlayer;
+        const sign = op >= 0 ? '+' : '';
+        let label;
+        if(op>60) label = `${char.shortName}对${player.shortName}有很大好感`;
+        else if(op>20) label = `${char.shortName}对${player.shortName}有轻微好感`;
+        else if(op>-20) label = `${char.shortName}对${player.shortName}态度中立`;
+        else if(op>-60) label = `${char.shortName}对${player.shortName}轻微厌恶`;
+        else label = `${char.shortName}对${player.shortName}强烈憎恨`;
 
-        if(op>60){
-            return `${char.shortName}对${player.shortName}有很大好感`
+        let result = `${label}（${sign}${op}）`;
+        if(char.opinionBreakdownToPlayer && char.opinionBreakdownToPlayer.length > 0){
+            const breakdown = char.opinionBreakdownToPlayer
+                .map(m => `${m.reason}: ${m.value >= 0 ? '+' : ''}${m.value}`)
+                .join('，');
+            result += `【原因：${breakdown}】`;
         }
-        else if(op>20){
-            return `${char.shortName}对${player.shortName}有轻微好感`
-        }
-        else if(op>-20){
-            return `${char.shortName}对${player.shortName}态度中立`
-        }
-        else if(op>-60){
-            return `${char.shortName}对${player.shortName}轻微厌恶`
-        }
-        else{
-             return `${char.shortName}对${player.shortName}强烈憎恨`
-        }
+        return result;
     }
 
     
@@ -249,7 +252,11 @@ module.exports = (gameData) =>{
             return ``;
         }
     }
-    
+
+    function relatives(char){
+        return char.getRelativesDescription(gameData.totalDays) || null;
+    }
+
     function otherTraits(char){
         let otherTraits = char.traits.filter((trait) => trait.category != "性格特质");
     

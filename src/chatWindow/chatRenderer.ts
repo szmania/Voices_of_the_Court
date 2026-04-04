@@ -123,6 +123,8 @@ let historyIndex: number = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let currentHighlightIndex = -1;
 let currentConversationMessageDivs: HTMLDivElement[] = [];
+let displayedMessageIds = new Set<string>();
+let basePromptTokens = 0;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -485,19 +487,20 @@ function updateTokenCount(text: string) {
         return;
     }
 
-    // Calculate token count using the ApiConnection's calculateTokensFromText method
-    // We'll need to get this from the main process
-    ipcRenderer.invoke('calculate-tokens', text).then((tokenCount: number) => {
+    // Calculate token count for the user's input and add it to the base prompt size
+    ipcRenderer.invoke('calculate-tokens', text).then((userInputTokenCount: number) => {
+        const totalTokens = basePromptTokens + userInputTokenCount;
+
         // @ts-ignore
         const lm = window.LocalizationManager;
         const tokensLabel = (lm ? lm.getNestedTranslation('chat.tokenizer_tokens') : null) || 'Tokens:';
-        tokenCountElement.textContent = `${tokensLabel} ${tokenCount}`;
+        tokenCountElement.textContent = `${tokensLabel} ${totalTokens}`;
 
         if (contextLimit > 0) {
             contextLimitElement.textContent = `/${contextLimit}`;
 
             // Add warning/critical classes based on usage percentage
-            const usagePercentage = (tokenCount / contextLimit) * 100;
+            const usagePercentage = (totalTokens / contextLimit) * 100;
             tokenDisplayWrapper.classList.remove('warning', 'critical');
 
             if (usagePercentage > 90) {
@@ -861,14 +864,20 @@ function setupCharacterTargeting(gameData: GameData) {
         valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
         hiddenInput.value = '';
 
+        // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
+        const freshValueDiv = valueDiv.cloneNode(true) as HTMLDivElement;
+        valueDiv.replaceWith(freshValueDiv);
+        const freshOptionsDiv = optionsDiv.cloneNode(true) as HTMLDivElement;
+        optionsDiv.replaceWith(freshOptionsDiv);
+
         // Toggle dropdown
-        valueDiv.addEventListener('click', (e) => {
+        freshValueDiv.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent the global listener from closing it immediately
-            optionsDiv.style.display = optionsDiv.style.display === 'block' ? 'none' : 'block';
+            freshOptionsDiv.style.display = freshOptionsDiv.style.display === 'block' ? 'none' : 'block';
         });
 
         // Prevent dropdown from closing when clicking inside
-        optionsDiv.addEventListener('click', (e) => {
+        freshOptionsDiv.addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
@@ -964,7 +973,13 @@ undoButton.addEventListener('click', () => {
     if (lastUserIndex !== -1) {
         // Remove DOM elements from that index onwards
         const divsToRemove = currentConversationMessageDivs.slice(lastUserIndex);
-        divsToRemove.forEach(div => div.remove());
+        divsToRemove.forEach(div => {
+            if (div.id) {
+                const messageId = div.id.replace('message-', '');
+                displayedMessageIds.delete(messageId);
+            }
+            div.remove();
+        });
 
         // Also remove them from our tracking array
         currentConversationMessageDivs.splice(lastUserIndex);
@@ -1578,6 +1593,9 @@ function showInlineActionForm(action: any) {
 }
 
 ipcRenderer.on('chat-show', () =>{
+    if (chatMessages) {
+        chatMessages.innerHTML = '';
+    }
     document.body.style.display = '';
 })
 
@@ -1627,9 +1645,12 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[] }) => {
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
+    displayedMessageIds.clear();
     currentConversationMessageDivs = [];
-    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions } = payload;
+    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+
+    basePromptTokens = initialBaseTokens || 0;
 
     // Re-instantiate GameData to get methods back
     const gameData = GameData.fromPlainObject(plainGameData);
@@ -1720,7 +1741,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         // Initial update for tokenizer if visible
         if (showTokenizerDisplay) {
-            updateTokenCount(chatInput.value);
+            updateTokenCount(chatInput.value); // Call with empty input to show base count
         }
     });
 
@@ -1804,6 +1825,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         characterDiv.classList.add('current-characters', 'message');
         characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
         const playerID = currentGameData.playerID;
+        // Display characters in the order they appear in the map, which is now the game's order.
         const characterNames = Array.from(currentGameData.characters.values()).map(c => {
             if (c.id === playerID) {
                 return `${c.shortName} (You)`;
@@ -1893,6 +1915,14 @@ ipcRenderer.on('action-approval-request', (event, messageId: string, proposedAct
 });
 
 ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: boolean, isAiToAi: boolean = false)=>{
+    if (message.id && displayedMessageIds.has(message.id)) {
+        console.warn(`Duplicate message with ID ${message.id} blocked.`);
+        return;
+    }
+    if (message.id) {
+        displayedMessageIds.add(message.id);
+    }
+
     const messageDiv = await displayMessage(message);
     if (messageDiv) {
         currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
@@ -1929,6 +1959,12 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     removeLoadingDots(shouldEnableInput);
     updateStatusText('');
 })
+
+ipcRenderer.on('update-base-tokens', (e, count: number) => {
+    console.log(`Received updated base token count: ${count}`);
+    basePromptTokens = count;
+    updateTokenCount(chatInput.value); // Refresh the display with the new base
+});
 
 ipcRenderer.on('stream-start', async (e, gameData)=>{
     let streamMessage = document.createElement('div');

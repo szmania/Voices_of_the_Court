@@ -130,12 +130,6 @@ export async function checkUserData(){
         const userConfig = JSON.parse(userConfigRaw);
         const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigDestPath).toString());
 
-        // Migration for selfTalkPrompt
-        if (userConfig.selfTalkPrompt === "default.js") {
-            userConfig.selfTalkPrompt = defaultConfig.selfTalkPrompt;
-            console.log("Migrated selfTalkPrompt from 'default.js' to default prompt string.");
-        }
-
         // Set Player2 as default for new users
         if (!userConfig.textGenerationApiConnectionConfig?.connection?.type) {
             defaultConfig.textGenerationApiConnectionConfig.connection.type = 'player2';

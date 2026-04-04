@@ -43,11 +43,28 @@ function showStatusMessage(message: string, type = 'info') {
 }
 
 function formatDate(date: Date): string {
+    if (!date || isNaN(date.getTime())) {
+        // @ts-ignore
+        return window.LocalizationManager.getTranslation('letters.invalid_date', 'Invalid Date');
+    }
     const day = date.getDate();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
+}
+
+function dateToTotalDays(date: Date): number {
+    if (!date || isNaN(date.getTime())) return 0;
+    // Year 1, Month 0 (Jan), Day 1
+    const startDate = new Date(Date.UTC(1, 0, 1, 0, 0, 0));
+    // Get the date part of the target date in UTC
+    const targetDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0));
+    const diffTime = targetDate.getTime() - startDate.getTime();
+    if (isNaN(diffTime)) return 0;
+    // Get difference in days and add 1 because game days are 1-indexed
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays + 1;
 }
 
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
@@ -59,9 +76,22 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             return null;
         }
 
+        // If reply is actively being generated, show stage 2.
+        if (letter.status === 'generating' && !reply) {
+            const estReplyDate = new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + letter.delay));
+            // @ts-ignore
+            const estReplyText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply', 'Est. Reply: {date}').replace('{date}', formatDate(estReplyDate))})`;
+            return {
+                // @ts-ignore
+                text: `${window.LocalizationManager.getTranslation('letters.status_awaiting_reply', 'Awaiting reply from {character}').replace('{character}', letter.recipient.shortName)} ${estReplyText}`,
+                overdue: false,
+                journey: { currentStage: 2 }
+            };
+        }
+
         if (reply && reply.delivered) {
             // Case B: Reply received and delivered.
-            const replyDate = formatDate(new Date(reply.timestamp));
+            const replyDate = formatDate(new Date(reply.deliveryTimestamp || reply.timestamp));
             return {
                 // @ts-ignore
                 text: window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate),
@@ -71,36 +101,46 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
         } else {
             // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
             const sentDay = letter.totalDays;
-            const expectedReplyDay = sentDay + letter.delay;
+            const totalJourneyTime = letter.delay;
+
+            // Find the reply letter if it exists
+            const reply = allLetters.find(l => l.replyToId === letter.id);
+            
+            // Calculate the expected reply date. Use the reply's date if it exists, otherwise estimate from original.
+            const expectedReplyDate = reply && reply.expectedDeliveryDate 
+                ? new Date(reply.expectedDeliveryDate)
+                : new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + totalJourneyTime));
+
+            const expectedReplyDay = sentDay + totalJourneyTime;
             const daysDifference = expectedReplyDay - currentGameDay;
 
-            const sentDate = new Date(letter.timestamp);
-            const expectedReplyDate = new Date(sentDate.getTime());
-            expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
-
-            if (currentGameDay > 0 && daysDifference < 0) {
+            if (currentGameDay > 0 && sentDay > 0 && daysDifference < 0) {
                 return {
                     // @ts-ignore
                     text: `${window.LocalizationManager.getTranslation('letters.reply_overdue_since', 'Reply overdue since')} ${formatDate(expectedReplyDate)}`,
                     overdue: true,
+                    journey: { currentStage: 3 } // If overdue, reply should be on its way
                 };
-            } else {
-                const totalJourneyTime = letter.delay;
-                const timeElapsed = currentGameDay - sentDay; // Simplified calculation
-                const stage1End = Math.floor(totalJourneyTime * 4 / 9);
-                const stage2End = Math.floor(totalJourneyTime * 5 / 9);
+            } else if (sentDay > 0) {
+                const timeElapsed = currentGameDay - sentDay;
+                const stage1End = Math.floor(totalJourneyTime * 4 / 9); // Letter arrives at recipient
+                const stage2End = Math.floor(totalJourneyTime * 5 / 9); // AI finishes writing reply
 
                 let statusText = '';
                 let currentStage = 0;
+
                 if (timeElapsed <= stage1End) {
+                    // Stage 1: Letter is traveling to the recipient.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_journey_began', 'Journey to {character} began').replace('{character}', letter.recipient.shortName);
                     currentStage = 1;
                 } else if (timeElapsed <= stage2End) {
+                    // Stage 2: Recipient has the letter and is writing a reply.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_awaiting_reply', 'Awaiting reply from {character}').replace('{character}', letter.recipient.shortName);
                     currentStage = 2;
                 } else {
+                    // Stage 3: The reply is generated and is on its way back to the player.
                     // @ts-ignore
                     statusText = window.LocalizationManager.getTranslation('letters.status_reply_en_route', 'Reply is on its way');
                     currentStage = 3;
@@ -598,13 +638,11 @@ function renderLetterContent(letter: Letter) {
         const status = getLetterStatus(letter);
         const journeyHtml = renderJourneyTimeline(status);
 
-        const replyDate = formatDate(new Date(reply.timestamp));
+        const replyDate = formatDate(new Date(reply.deliveryTimestamp || reply.timestamp));
         // @ts-ignore
         const statusText = window.LocalizationManager.getTranslation('letters.reply_received_on', 'Reply received on {date}').replace('{date}', replyDate);
 
-        const sentDate = new Date(letter.timestamp);
-        const expectedReplyDate = new Date(sentDate.getTime());
-        expectedReplyDate.setDate(sentDate.getDate() + letter.delay);
+        const expectedReplyDate = reply.expectedDeliveryDate ? new Date(reply.expectedDeliveryDate) : new Date(new Date(letter.timestamp).setDate(new Date(letter.timestamp).getDate() + letter.delay));
         // @ts-ignore
         const estimatedText = `(${window.LocalizationManager.getTranslation('letters.estimated_reply_date_was', 'Estimated reply date was')} ${formatDate(expectedReplyDate)})`;
 
@@ -625,14 +663,23 @@ function renderLetterContent(letter: Letter) {
         }
     }
 
+    let metaHtml = `
+        <span><strong>From:</strong> ${letter.sender.fullName}</span>
+        <span><strong>To:</strong> ${letter.recipient.fullName}</span>
+        <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
+    `;
+
+    // If it's a received letter with a delivery date, show it.
+    if (!letter.isPlayerSender && letter.deliveryTimestamp) {
+        metaHtml += `<span><strong>Received on:</strong> ${formatDate(new Date(letter.deliveryTimestamp))}</span>`;
+    }
+
     letterViewContainer.innerHTML = `
         <div class="letter-view-header">
             <h3>${letter.subject}</h3>
             ${statusHtml}
             <div class="letter-view-meta">
-                <span><strong>From:</strong> ${letter.sender.fullName}</span>
-                <span><strong>To:</strong> ${letter.recipient.fullName}</span>
-                <span><strong>Date:</strong> ${formatDate(new Date(letter.timestamp))}</span>
+                ${metaHtml}
             </div>
         </div>
         <div class="letter-view-body">
@@ -691,7 +738,6 @@ async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string
             return;
         }
 
-        players.sort((a: { name: string; }, b: { name: string; }) => a.name.localeCompare(b.name));
         players.forEach((player: {id: string, name: string}) => {
             const option = document.createElement('option');
             option.value = player.id;
@@ -743,11 +789,8 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
-    if (allLetters.length > 0) {
-        currentGameDay = Math.max(...allLetters.map(l => l.totalDays || 0));
-    } else {
-        currentGameDay = 0;
-    }
+    // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
+    // and should not be derived from letter data here, as it causes bugs with date calculations.
     renderStatusSummary();
     renderLetters();
 }

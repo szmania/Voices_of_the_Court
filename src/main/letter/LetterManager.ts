@@ -116,10 +116,22 @@ export class LetterManager {
                         console.error(`Error reading character map for player ${playerId}:`, e);
                     }
                 }
-                return { id: playerId, name: playerName };
+
+                const allLetters = this.getAllLetters(playerId);
+                let latestTimestamp = 0;
+                if (allLetters.length > 0) {
+                    const timestamps = allLetters.map(l => l.creationTimestamp ? new Date(l.creationTimestamp).getTime() : 0);
+                    latestTimestamp = Math.max(0, ...timestamps.filter(t => !isNaN(t)));
+                }
+
+                return { id: playerId, name: playerName, latestTimestamp };
             });
 
-        return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
+        // Sort by the latest timestamp in descending order
+        playerDirs.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        // Return only id and name, as expected by the caller
+        return playerDirs.map(({ id, name }) => ({ id, name }));
     }
 
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
@@ -152,11 +164,20 @@ export class LetterManager {
             history = this.getLetters(playerId, otherCharacterId);
         }
 
-        // Avoid duplicates
-        if (!history.find(l => l.id === letter.id)) {
+        // Avoid duplicates by checking for a letter with the same subject (e.g., letter_5),
+        // sent on the same day, between the same two characters.
+        const isDuplicate = history.some(l =>
+            l.subject === letter.subject &&
+            l.totalDays === letter.totalDays &&
+            l.sender.id === letter.sender.id &&
+            l.recipient.id === letter.recipient.id
+        );
+
+        if (!isDuplicate) {
             history.push(letter);
             // Sort by date
             history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            console.log(`Saved new unique letter: ${letter.subject} from day ${letter.totalDays}`);
         }
 
         try {
@@ -250,15 +271,23 @@ export class LetterManager {
         return allSummaries;
     }
 
-    public markAsDelivered(playerId: string, characterId: string, letterId: string): void {
+    public markAsDelivered(playerId: string, characterId: string, letterId: string, deliveryDate: Date): void {
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
-            letters[letterIndex].delivered = true;
+            const letter = letters[letterIndex];
+            letter.delivered = true;
+            // Safeguard: A letter cannot be delivered before it was written.
+            if (deliveryDate < letter.timestamp) {
+                console.warn(`Delivery date for letter ${letterId} is before its written date. Adjusting delivery date.`);
+                letter.deliveryTimestamp = new Date(letter.timestamp);
+            } else {
+                letter.deliveryTimestamp = deliveryDate;
+            }
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
                 fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-                console.log(`Marked letter ${letterId} as delivered.`);
+                console.log(`Marked letter ${letterId} as delivered on ${letter.deliveryTimestamp}.`);
             } catch (error) {
                 console.error(`Error updating delivered status for letter ${letterId}:`, error);
             }
@@ -297,12 +326,15 @@ create_artifact = {
 \twealth = scope:wealth
 \tsave_scope_as = votc_latest_letter
 }
-scope:votc_latest_letter = {
-set_variable = { name = votc_letter_artifact value = yes}
-}
-set_global_variable = {
-\tname = votc_latest_letter
-\tvalue = scope:votc_latest_letter
+if = {
+\tlimit = { exists = scope:votc_latest_letter }
+\tscope:votc_latest_letter = {
+\t\tset_variable = { name = votc_letter_artifact value = yes}
+\t}
+\tset_global_variable = {
+\t\tname = votc_latest_letter
+\t\tvalue = scope:votc_latest_letter
+\t}
 }
 trigger_event = message_event.362`;
     
@@ -361,5 +393,22 @@ trigger_event = message_event.362`;
         });
     
         return allLetters[0];
+    }
+
+    public updateLetterStatus(playerId: string, characterId: string, letterId: string, status: 'generating' | 'pending' | 'sent' | 'failed' | 'read'): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            letters[letterIndex].status = status;
+            const filePath = this.getLetterFilePath(playerId, characterId);
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                console.log(`Updated status of letter ${letterId} to ${status}`);
+            } catch (error) {
+                console.error(`Error updating letter status for letter ${letterId}:`, error);
+            }
+        } else {
+            console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update status.`);
+        }
     }
 }

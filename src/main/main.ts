@@ -204,44 +204,54 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
+    
     const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
-    tray = new Tray(path.join(__dirname, '..', '..', 'build', 'icons', iconName));
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: t('tray.open_config'),
-            click: () => {
-                if(configWindow.window.isDestroyed()){
-                    configWindow = new ConfigWindow();
-                }
-                else if(configWindow.window.isMinimized()){
-                    configWindow.window.focus();
-                }
-            }
-        },
-        {
-            label: t('tray.check_updates'),
-            click: () => {
-                checkForUpdates();
-            }
-        },
-        {
-            label: t('tray.exit'),
-            click: () => {
-                app.quit();
-            }
-        },
-    ]);
-    tray.setToolTip(t('tray.tooltip'));
-    tray.setContextMenu(contextMenu);
+    
+    const iconPath = path.join(app.getAppPath(), 'build', 'icons', iconName);
+    
+    try {
+        tray = new Tray(iconPath);
 
-    tray.on('click', ()=>{
-        if(configWindow.window.isDestroyed()){
-            configWindow = new ConfigWindow();
-        }
-        else if(configWindow.window.isMinimized()){
-            configWindow.window.focus();
-        }
-    });
+        const contextMenu = Menu.buildFromTemplate([
+            {
+                label: t('tray.open_config'),
+                click: () => {
+                    if(configWindow.window.isDestroyed()){
+                        configWindow = new ConfigWindow();
+                    }
+                    else if(configWindow.window.isMinimized()){
+                        configWindow.window.focus();
+                    }
+                }
+            },
+            {
+                label: t('tray.check_updates'),
+                click: () => {
+                    checkForUpdates();
+                }
+            },
+            {
+                label: t('tray.exit'),
+                click: () => {
+                    app.quit();
+                }
+            },
+        ]);
+
+        tray.setToolTip(t('tray.tooltip'));
+        tray.setContextMenu(contextMenu);
+
+        tray.on('click', ()=>{
+            if(configWindow.window.isDestroyed()){
+                configWindow = new ConfigWindow();
+            }
+            else if(configWindow.window.isMinimized()){
+                configWindow.window.focus();
+            }
+        });
+    } catch (error) {
+        console.error("Failed to create tray icon:", error);
+    }
 };
 
 let clipboardListener = new ClipboardListener();
@@ -255,10 +265,56 @@ let letterThreadFullNotified = false;
 let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
+let lastLetterSentToGameTime: number = 0;
+const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
+
+function rehydratePendingReplyLetters(playerId: string): void {
+    const letterManager = LetterManager.getInstance();
+    const allLetters = letterManager.getAllLetters(playerId);
+
+    const pendingReplies = allLetters.filter(l =>
+        !l.isPlayerSender &&
+        l.status === 'pending' &&
+        l.delivered === false &&
+        l.replyToId
+    );
+
+    let rehydratedCount = 0;
+    for (const reply of pendingReplies) {
+        if (storedLetters.has(reply.replyToId!)) continue;
+
+        const original = allLetters.find(l => l.id === reply.replyToId);
+        if (!original) {
+            console.warn(`rehydratePendingReplyLetters: Could not find original letter ${reply.replyToId} for pending reply ${reply.id}`);
+            continue;
+        }
+
+        const expectedDeliveryDay = original.totalDays + original.delay;
+        storedLetters.set(original.id, {
+            letter: reply,
+            originalLetter: original,
+            expectedDeliveryDay
+        });
+        rehydratedCount++;
+        console.log(`rehydratePendingReplyLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
+    }
+
+    if (rehydratedCount > 0) {
+        console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
+        checkAndDeliverLetters();
+    }
+}
 
 async function checkAndDeliverLetters() {
     const letterManager = LetterManager.getInstance();
+
+    // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
+    if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
+        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} — no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
+        lastLetterSentToGame = null;
+    }
+
     // Use a copy of keys to allow modification during iteration
     const letterIds = Array.from(storedLetters.keys());
     for (const letterId of letterIds) {
@@ -277,12 +333,33 @@ async function checkAndDeliverLetters() {
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
+            lastLetterSentToGameTime = Date.now();
             storedLetters.delete(letterId); // Remove from pending queue
 
             // Since the mod probably handles one at a time, break after sending one.
             break;
         }
     }
+}
+
+function totalDaysToDateString(totalDays: number): string {
+    const year = Math.floor(totalDays / 365);
+    const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
+
+    const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let day = dayOfYear;
+    let month = 1;
+
+    for (let i = 0; i < monthDays.length; i++) {
+        if (day <= monthDays[i]) {
+            month = i + 1;
+            break;
+        }
+        day -= monthDays[i];
+    }
+
+    // Returns "867.10.22"
+    return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
 function removeLettersAfterDate(cutoffDate: number): void {
@@ -404,6 +481,40 @@ function processLogLine(line: string) {
     }
 }
 
+async function initCurrentDateFromLog(): Promise<void> {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (!config.userFolderPath || !fs.existsSync(debugLogPath)) return;
+
+    const CHUNK_SIZE = 512 * 1024; // 512KB — enough to find a recent VOTC:DATE
+    let handle;
+    try {
+        handle = await fs.promises.open(debugLogPath, 'r');
+        const { size } = await handle.stat();
+        const position = Math.max(0, size - CHUNK_SIZE);
+        const buffer = Buffer.alloc(size - position);
+        await handle.read(buffer, 0, buffer.length, position);
+        const lines = buffer.toString('utf8').split(/\r?\n/);
+
+        const dateRegex = /VOTC:DATE\/;\/(\d+)/;
+        let latestDays = 0;
+        for (const line of lines) {
+            const match = line.match(dateRegex);
+            if (match) {
+                const days = Number(match[1]);
+                if (days > latestDays) latestDays = days;
+            }
+        }
+        if (latestDays > 0) {
+            currentTotalDays = latestDays;
+            console.log(`initCurrentDateFromLog: Initialized currentTotalDays to ${currentTotalDays} from log.`);
+        }
+    } catch (err) {
+        console.warn(`initCurrentDateFromLog: Could not read log: ${err}`);
+    } finally {
+        if (handle) await handle.close();
+    }
+}
+
 let lastSize = 0;
 function startLogTailing() {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
@@ -456,9 +567,18 @@ app.on('ready',  async () => {
     }
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
-    diaryGenerator = new DiaryGenerator(config);
+    diaryGenerator = new DiaryGenerator(config, userDataPath);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
+
+    // Initialize the current game date from the last known VOTC:DATE in the log.
+    await initCurrentDateFromLog();
+
+    // Re-hydrate any pending reply letters that were not delivered before the last app restart.
+    const letterManager = LetterManager.getInstance();
+    for (const { id } of letterManager.getAllPlayerIdsWithLetters()) {
+        rehydratePendingReplyLetters(id);
+    }
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         const dialogOpts = {
@@ -586,24 +706,33 @@ app.on('ready',  async () => {
     ipcMain.handle('get-context-limit', async () => {
         try {
             const connectionConfig = config?.textGenerationApiConnectionConfig?.connection;
-            const parameters = config?.textGenerationApiConnectionConfig?.parameters;
             if (connectionConfig) {
-                // Prioritize manual overwrite if it exists and is valid
+                // 1. Prioritize manual overwrite if it exists and is valid
                 if (connectionConfig.overwriteContext && connectionConfig.customContext > 0) {
-                    return connectionConfig.customContext;
+                    return Number(connectionConfig.customContext);
                 }
-                // Fallback to API-detected context
+
+                // 2. Fallback to API-detected context
                 const { ApiConnection } = await import('../shared/apiConnection.js');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
                     config.textGenerationApiConnectionConfig.parameters
                 );
-                return apiConnection.context || 0;
+                const detectedContext = apiConnection.context || 0;
+                if (detectedContext > 0) {
+                    return detectedContext;
+                }
+
+                // 3. If API detection fails, use custom context if available
+                if (connectionConfig.customContext > 0) {
+                    return Number(connectionConfig.customContext);
+                }
             }
         } catch (error) {
             console.error('Error getting context limit in main:', error);
         }
-        return 0;
+        // 4. If all else fails, return a safe default
+        return 8192;
     });
 
 
@@ -931,12 +1060,14 @@ clipboardListener.on('VOTC:IN', async () =>{
         }
 
         console.log("New conversation started!");
+        if (gameData.totalDays) {
+            updateCurrentDate(gameData.totalDays);
+        }
         conversation = new Conversation(gameData, config, chatWindow, userDataPath);
         await conversation.loadHistory();
 
         // Import letters from log
         await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
-
 
         // Consolidate chat-start and chat-history into a single event to prevent race conditions
         const historicalMetadata = conversation.historicalConversations || [];
@@ -953,13 +1084,17 @@ clipboardListener.on('VOTC:IN', async () =>{
                 usesTarget: (action as any).usesTarget
         }));
 
+        // Calculate base prompt tokens
+        const basePromptTokens = await conversation.calculateBasePromptTokens();
+
         const payload = {
             gameData: conversation.gameData,
             messages: conversation.messages,
             historicalMetadata: historicalMetadata,
-            actions: sanitizedActions // Pass sanitized actions
+            actions: sanitizedActions, // Pass sanitized actions
+            basePromptTokens: basePromptTokens
         };
-        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions.`);
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
         chatWindow.window.webContents.send('chat-start', payload);
 
         // Wait for the chat window to be ready before starting the conversation flow
@@ -998,11 +1133,16 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             const letterManager = LetterManager.getInstance();
             const replyLetter = lastLetterSentToGame.letter;
 
+            // Use the reliable currentTotalDays to create the delivery date
+            const deliveryDateString = totalDaysToDateString(currentTotalDays);
+            const deliveryDate = new Date(deliveryDateString.replace(/\./g, '-'));
+
             // Now officially mark as delivered and save
             letterManager.markAsDelivered(
                 String(replyLetter.recipient.id), // Player ID
                 String(replyLetter.sender.id),   // Character ID
-                replyLetter.id
+                replyLetter.id,
+                deliveryDate
             );
 
             lastLetterSentToGame = null; // Clear the tracked letter
@@ -1093,6 +1233,11 @@ clipboardListener.on('VOTC:LETTER', async () => {
             console.error('Failed to parse game data from debug.log for letter event.');
             return;
         }
+
+        // Overwrite stale date from parseLog with the fresh, tailed date
+        gameData.totalDays = currentTotalDays;
+        gameData.date = totalDaysToDateString(currentTotalDays);
+
         const playerId = String(gameData.playerID);
         const recipientId = String(gameData.aiID);
 
@@ -1179,6 +1324,12 @@ clipboardListener.on('VOTC:LETTER', async () => {
         if (hasReply) {
             console.log(`Letter ${latestLetter.id} already has a reply that is not in the future. No new reply will be generated.`);
             return;
+        }
+
+        // Mark original letter as 'generating'
+        letterManager.updateLetterStatus(playerId, recipientId, latestLetter.id, 'generating');
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
         }
 
         if (gameData.totalDays) {
@@ -1366,7 +1517,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1441,7 +1592,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1450,10 +1601,15 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
 //dear god...
 ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested-nested event. Outer ID: ${outerConfID}, Middle ID: ${middleConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
+    
+    if (innerConfID === 'customContext') {
+        newValue = parseInt(newValue, 10) || 0;
+    }
+
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1936,8 +2092,36 @@ ipcMain.handle('get-diary-ids', async () => {
 ipcMain.handle('get-all-diary-player-ids', async () => {
     console.log('IPC: Received get-all-diary-player-ids event.');
     try {
-        const ids = await getAllDiaryPlayerIds(userDataPath);
-        return { success: true, ids: ids };
+        const players = await getAllDiaryPlayerIds(userDataPath);
+
+        const playerTimestamps = await Promise.all(players.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const characterIds = await getDiaryFiles(player.id);
+                for (const charId of characterIds) {
+                    const diaryData = await readDiaryFile(player.id, charId);
+                    if (diaryData && diaryData.diary_entries) {
+                        for (const entry of diaryData.diary_entries) {
+                            if (entry.creationTimestamp) {
+                                const timestamp = new Date(entry.creationTimestamp).getTime();
+                                if (timestamp > latestTimestamp) {
+                                    latestTimestamp = timestamp;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing diaries for player ${player.id}:`, e);
+            }
+            return { ...player, latestTimestamp };
+        }));
+
+        playerTimestamps.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
+
+        const sortedPlayers = playerTimestamps.map(({ id, name }) => ({ id, name }));
+
+        return { success: true, ids: sortedPlayers };
     } catch (error) {
         console.error('Error getting all diary player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1982,7 +2166,7 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
     console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
     if (!diaryGenerator) {
-        diaryGenerator = new DiaryGenerator(config);
+        diaryGenerator = new DiaryGenerator(config, userDataPath);
     }
 
     try {

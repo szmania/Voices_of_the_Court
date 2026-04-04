@@ -1,5 +1,6 @@
 
 const path = require('path');
+const { execSync } = require('child_process');
 
 module.exports = {
   outDir: process.platform === 'win32' ? 'C:/tmp' : 'out',
@@ -36,8 +37,20 @@ module.exports = {
     },
   ],
   hooks: {
-
-
+    postPackage: (forgeConfig, packageResult) => {
+      // This hook is used to remove the quarantine attribute from the app bundle on macOS
+      // which causes the "damaged file" error.
+      if (packageResult.platform === 'darwin') {
+        const appPath = packageResult.outputPaths[0];
+        console.log(`Running xattr -cr on ${appPath} to prevent "damaged file" error.`);
+        try {
+          execSync(`xattr -cr "${appPath}"`);
+          console.log('Successfully removed quarantine attribute.');
+        } catch (error) {
+          console.error('Failed to remove quarantine attribute:', error);
+        }
+      }
+    }
   },
   publishers: [
     {
