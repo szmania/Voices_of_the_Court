@@ -217,7 +217,7 @@ const createTray = () => {
                 label: t('tray.open_config'),
                 click: () => {
                     if(configWindow.window.isDestroyed()){
-                        configWindow = new ConfigWindow();
+                        configWindow = new ConfigWindow(chatWindow.window);
                     }
                     else if(configWindow.window.isMinimized()){
                         configWindow.window.focus();
@@ -243,7 +243,7 @@ const createTray = () => {
 
         tray.on('click', ()=>{
             if(configWindow.window.isDestroyed()){
-                configWindow = new ConfigWindow();
+                configWindow = new ConfigWindow(chatWindow.window);
             }
             else if(configWindow.window.isMinimized()){
                 configWindow.window.focus();
