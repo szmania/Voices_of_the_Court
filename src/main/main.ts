@@ -61,7 +61,7 @@ else {
 app.on('second-instance', (event, commandLine, workingDirectory) => {
     console.log('Second instance detected. Focusing the existing window.');
     if(configWindow.window.isDestroyed()){
-        configWindow = new ConfigWindow();
+        configWindow = new ConfigWindow(chatWindow.window);
     }
     else if(configWindow.window.isMinimized()){
         configWindow.window.focus();
