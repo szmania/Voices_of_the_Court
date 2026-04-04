@@ -106,7 +106,7 @@ export class ChatWindow{
                 let win = ActiveWindow.getActiveWindow();
 
                 // 检查是否是游戏或者聊天窗口本身
-                let isGameActive = win.title === "Crusader Kings III" || win.title === "Voices of the Court 2.0 - Community Edition - Chat";
+                let isGameActive = win.title === "Crusader Kings III" || win.title === "Voices of the Court 2.0 - Community Edition - Chat" || win.title === "Voices of the Court 2.0 - Community Edition";
 
                 // 【修复】：在 Mac 全屏下，有时候 win.title 可能为空或者无法获取，
                 // 如果直接 minimize 会导致窗口永远弹不出来。
