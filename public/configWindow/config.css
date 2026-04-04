@@ -51,6 +51,7 @@ input::-webkit-inner-spin-button {
   top: 0px;
   width:100%;
   z-index: 10;
+  -webkit-app-region: drag; /* Make the navbar draggable */
 }
 
 .navbar ul {
@@ -87,6 +88,7 @@ input::-webkit-inner-spin-button {
   border-right: 1px solid #3d2e1e;
   transition: all 0.2s;
   background-color: #2d2d2d;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .navbar li a:hover {
@@ -452,6 +454,7 @@ language-selector {
   width: 100%;
   border-right: 1px solid #3d2e1e;
   transition: all 0.2s;
+  -webkit-app-region: no-drag; /* Make dropdown clickable */
 }
 
 .dropbtn:hover {
@@ -509,6 +512,7 @@ language-selector {
   color: #b8860b;
   font-size: 22px; /* For the globe icon */
   text-decoration: none;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .social-links-li a.discord-link {

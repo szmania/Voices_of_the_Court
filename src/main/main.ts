@@ -410,27 +410,28 @@ function positionConfigWindow() {
     const display = screen.getDisplayMatching(chatBounds);
     const workArea = display.workArea;
 
+    const PADDING = 20; // 20px padding from screen edges
+    const configWidth = 1280; // Desired width
+    const configHeight = workArea.height - (2 * PADDING); // Almost full height with padding
+
     const chatIsOnLeft = (chatBounds.x + chatBounds.width / 2) < (workArea.x + workArea.width / 2);
 
-    const halfWidth = Math.floor(workArea.width / 2);
+    let newX: number;
 
     if (chatIsOnLeft) {
-        // Chat is on left, put config on right
-        configWindow.window.setBounds({
-            x: workArea.x + halfWidth,
-            y: workArea.y,
-            width: halfWidth,
-            height: workArea.height
-        });
+        // Chat is on the left, so place config window on the right.
+        newX = workArea.x + workArea.width - configWidth - PADDING;
     } else {
-        // Chat is on right, put config on left
-        configWindow.window.setBounds({
-            x: workArea.x,
-            y: workArea.y,
-            width: halfWidth,
-            height: workArea.height
-        });
+        // Chat is on the right, so place config window on the left.
+        newX = workArea.x + PADDING;
     }
+
+    configWindow.window.setBounds({
+        x: Math.round(newX),
+        y: Math.round(workArea.y + PADDING),
+        width: configWidth,
+        height: configHeight
+    });
 }
 
 
