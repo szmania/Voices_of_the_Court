@@ -1146,29 +1146,6 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
         ipcRenderer.send('reset-window-position');
     });
 
-    configButton.addEventListener('click', () => {
-        ipcRenderer.send('request-config-toggle');
-    });
-
-    minimizedConfigButton.addEventListener('click', () => {
-        ipcRenderer.send('request-config-restore');
-    });
-
-    ipcRenderer.on('config-window-toggled', (event, { isShown, minimized }) => {
-        const configButtonWrapper = document.getElementById('config-button-wrapper')!;
-        const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
-
-        if (isShown) {
-            configButtonWrapper.style.display = 'none';
-            minimizedConfigButtonWrapper.style.display = 'none';
-        } else if (minimized) {
-            configButtonWrapper.style.display = 'none';
-            minimizedConfigButtonWrapper.style.display = 'block';
-        } else {
-            configButtonWrapper.style.display = 'block';
-            minimizedConfigButtonWrapper.style.display = 'none';
-        }
-    });
 
     configButton.addEventListener('click', () => {
         ipcRenderer.send('request-config-toggle');

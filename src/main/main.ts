@@ -407,35 +407,29 @@ function positionConfigWindow() {
     if (!chatWindow || !configWindow || !configWindow.isShown) return;
 
     const chatBounds = chatWindow.window.getBounds();
-    const configBounds = configWindow.window.getBounds();
-    const displayContainingChat = (screen as any).getAllDisplays().find((d: any) => {
-        const chatCenter = { x: chatBounds.x + chatBounds.width / 2, y: chatBounds.y + chatBounds.height / 2 };
-        return chatCenter.x >= d.bounds.x && chatCenter.x < d.bounds.x + d.bounds.width &&
-               chatCenter.y >= d.bounds.y && chatCenter.y < d.bounds.y + d.bounds.height;
-    }) || (screen as any).getPrimaryDisplay();
-    const display = displayContainingChat.workArea;
+    const display = screen.getDisplayMatching(chatBounds);
+    const workArea = display.workArea;
 
-    // Try to position below
-    if (chatBounds.y + chatBounds.height + configBounds.height <= display.y + display.height) {
+    const chatIsOnLeft = (chatBounds.x + chatBounds.width / 2) < (workArea.x + workArea.width / 2);
+
+    const halfWidth = Math.floor(workArea.width / 2);
+
+    if (chatIsOnLeft) {
+        // Chat is on left, put config on right
         configWindow.window.setBounds({
-            x: chatBounds.x,
-            y: chatBounds.y + chatBounds.height,
-            width: chatBounds.width,
-            height: configBounds.height
+            x: workArea.x + halfWidth,
+            y: workArea.y,
+            width: halfWidth,
+            height: workArea.height
         });
-    }
-    // Else, try to position to the right
-    else if (chatBounds.x + chatBounds.width + configBounds.width <= display.x + display.width) {
+    } else {
+        // Chat is on right, put config on left
         configWindow.window.setBounds({
-            x: chatBounds.x + chatBounds.width,
-            y: chatBounds.y,
-            width: configBounds.width,
-            height: chatBounds.height
+            x: workArea.x,
+            y: workArea.y,
+            width: halfWidth,
+            height: workArea.height
         });
-    }
-    // Else, just center it as a fallback
-    else {
-        configWindow.window.center();
     }
 }
 
