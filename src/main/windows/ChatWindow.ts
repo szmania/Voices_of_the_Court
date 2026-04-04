@@ -112,18 +112,6 @@ export class ChatWindow{
 
                 if (isGameActive || isChatActive || isConfigActive) {
                     OverlayController.activateOverlay();
-                } else {
-                    // 只有在 Windows 上，或者明确知道切到了别的应用时才最小化
-                    if (process.platform !== 'darwin') {
-                        this.window.minimize();
-                    } else {
-                        // 在 Mac 上，与其最小化，不如暂时隐藏或者直接不管，
-                        // 因为 panel 类型的窗口不会干扰 Mac 本身的操作。
-                        // 如果你希望切出游戏时聊天框不挡视线，可以用 this.window.hide() 代替 minimize
-                        if (this.isShown) {
-                           // this.window.hide(); // 你可以取消注释这行来测试效果
-                        }
-                    }
                 }
             } catch (err) {
                 console.error("Failed to get active window:", err);

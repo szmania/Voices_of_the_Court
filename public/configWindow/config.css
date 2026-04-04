@@ -67,7 +67,7 @@ input::-webkit-inner-spin-button {
   float: left;
   display:flex;
   flex-direction:row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .navbar li {
@@ -1035,6 +1035,7 @@ mark.current-highlight {
   color: #b8860b;
   font-size: 22px; /* For the globe icon */
   text-decoration: none;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .social-links-li a.discord-link {

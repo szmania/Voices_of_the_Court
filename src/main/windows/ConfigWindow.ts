@@ -10,9 +10,10 @@ export class ConfigWindow{
             title: "Voices of the Court 2.0 - Community Edition",
             width: 1280,
             height: 600,
-            minWidth: 1280,
+            minWidth: 800,
             minHeight: 600,
             frame: false,
+            resizable: true,
             transparent: false,
             show: false,
             webPreferences: {
