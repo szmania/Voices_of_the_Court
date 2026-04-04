@@ -404,31 +404,17 @@ function updateCurrentDate(newTotalDays: number) {
 
 
 function positionConfigWindow() {
-    if (!chatWindow || !configWindow || !configWindow.isShown) return;
+    if (!configWindow || !configWindow.isShown) return;
 
-    const chatBounds = chatWindow.window.getBounds();
-    const display = screen.getDisplayMatching(chatBounds);
-    const workArea = display.workArea;
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workArea;
 
-    const PADDING = 20; // 20px padding from screen edges
-    const configWidth = 1280; // Desired width
-    const configHeight = workArea.height - (2 * PADDING); // Almost full height with padding
-
-    const chatIsOnLeft = (chatBounds.x + chatBounds.width / 2) < (workArea.x + workArea.width / 2);
-
-    let newX: number;
-
-    if (chatIsOnLeft) {
-        // Chat is on the left, so place config window on the right.
-        newX = workArea.x + workArea.width - configWidth - PADDING;
-    } else {
-        // Chat is on the right, so place config window on the left.
-        newX = workArea.x + PADDING;
-    }
+    const configWidth = 1000;
+    const configHeight = height - 80; // A bit of padding top/bottom
 
     configWindow.window.setBounds({
-        x: Math.round(newX),
-        y: Math.round(workArea.y + PADDING),
+        x: Math.round(width - configWidth - 40), // Position on the right with padding
+        y: 40,
         width: configWidth,
         height: configHeight
     });

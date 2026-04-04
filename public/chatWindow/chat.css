@@ -89,8 +89,7 @@
 
 .search-container:hover::after,
 .reset-button-wrapper:hover::after,
-.config-button-wrapper:hover::after,
-#minimized-config-button-wrapper:hover::after {
+.config-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     z-index: 2000;
@@ -152,14 +151,14 @@
     display: block;
 }
 
-.config-button-wrapper, #minimized-config-button-wrapper {
+.config-button-wrapper {
     position: relative;
 }
 
-.config-button:hover {
+.config-button:hover, .config-button.active {
     background-color: #2b2b2b;
-    border-color: #5a4a35;
-    color: #a0a0a0;
+    border-color: #cca43b;
+    color: #fff;
     opacity: 1;
 }
 

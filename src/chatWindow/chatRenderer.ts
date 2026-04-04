@@ -1151,23 +1151,15 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
         ipcRenderer.send('request-config-toggle');
     });
 
-    minimizedConfigButton.addEventListener('click', () => {
-        ipcRenderer.send('request-config-restore');
-    });
-
-    ipcRenderer.on('config-window-toggled', (event, { isShown, minimized }) => {
-        const configButtonWrapper = document.getElementById('config-button-wrapper')!;
-        const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
-
+    // This logic is now simplified. The button is always visible.
+    // The main process will handle showing/hiding the window.
+    // The 'minimized' state is removed for simplicity for now.
+    ipcRenderer.on('config-window-toggled', (event, { isShown }) => {
+        // We can add visual feedback here if needed, e.g., changing button color
         if (isShown) {
-            configButtonWrapper.style.display = 'none';
-            minimizedConfigButtonWrapper.style.display = 'none';
-        } else if (minimized) {
-            configButtonWrapper.style.display = 'none';
-            minimizedConfigButtonWrapper.style.display = 'block';
+            configButton.classList.add('active');
         } else {
-            configButtonWrapper.style.display = 'block';
-            minimizedConfigButtonWrapper.style.display = 'none';
+            configButton.classList.remove('active');
         }
     });
 

@@ -7,6 +7,7 @@ export class ConfigWindow{
 
     constructor(){
         this.window = new BrowserWindow({
+            title: "Voices of the Court 2.0 - Community Edition",
             width: 1280,
             height: 600,
             minWidth: 1280,
