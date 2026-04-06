@@ -30,7 +30,7 @@ module.exports = {
 
         // Action is only available if there is a direct liege-vassal relationship
         const isLiegeVassal = source.liege === target.fullName || source.liege === target.shortName || 
-                              target.liege === source.fullName || target.liege === target.shortName;
+                              target.liege === source.fullName || target.liege === source.shortName;
                               
         return !!isLiegeVassal;
     },
@@ -54,7 +54,7 @@ module.exports = {
         }
 
         const isLiegeVassal = source.liege === target.fullName || source.liege === target.shortName || 
-                              target.liege === source.fullName || target.liege === target.shortName;
+                              target.liege === source.fullName || target.liege === source.shortName;
 
         if (!isLiegeVassal) {
             return { success: false, message: "Granting independence requires a liege-vassal relationship between the two characters." };
@@ -82,7 +82,7 @@ module.exports = {
         if (source.liege === target.fullName || source.liege === target.shortName) {
             vassalGlobalVar = "global_var:votcce_action_source";
             vassal = source;
-        } else if (target.liege === source.fullName || target.liege === target.shortName) {
+        } else if (target.liege === source.fullName || target.liege === source.shortName) {
             vassalGlobalVar = "global_var:votcce_action_target";
             vassal = target;
         }
