@@ -444,7 +444,8 @@ async function populatePresetSelector(activePreset?: string) {
             "A Game of Thrones": "prompts.mod_agot",
             "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
             "The Fallen Eagle": "prompts.mod_tfe",
-            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2"
+            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2",
+            "Elder Kings 2": "prompts.mod_elder_kings_2"
         };
 
         for (const modName in defaultPrompts.mod_prompt_sets) {
