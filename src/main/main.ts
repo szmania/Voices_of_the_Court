@@ -568,7 +568,8 @@ app.on('ready',  async () => {
                 "LotR: Realms in Exile": { modPath: "mod/ugc_2291024373.mod", presetName: "LotR: Realms in Exile" },
                 "A Game of Thrones": { modPath: "mod/ugc_2962333032.mod", presetName: "A Game of Thrones" },
                 "The Fallen Eagle": { modPath: "mod/ugc_2243307127.mod", presetName: "The Fallen Eagle" },
-                "Warcraft: Guardians of Azeroth 2": { modPath: "mod/ugc_2949767945.mod", presetName: "Warcraft: Guardians of Azeroth 2" }
+                "Warcraft: Guardians of Azeroth 2": { modPath: "mod/ugc_2949767945.mod", presetName: "Warcraft: Guardians of Azeroth 2" },
+                "Elder Kings 2": { modPath: "mod/ugc_2887120253.mod", presetName: "Elder Kings 2" }
             };
 
             if (dlcLoadJson.enabled_mods) {
