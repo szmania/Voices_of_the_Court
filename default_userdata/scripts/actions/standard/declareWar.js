@@ -1,5 +1,6 @@
-/** @import { GameData, Character } from '../../gamedata_typedefs.js' */
+//Made by: unknown,adjusted by patrick
 
+/** @import { GameData, Character } from '../../gamedata_typedefs.js' */
 function sanitizeScriptKey(input) {
   return String(input || "").replace(/[^a-zA-Z0-9_]/g, "");
 }
@@ -146,10 +147,14 @@ module.exports = {
     const manualTargetTitle = sanitizeScriptKey(rawTargetTitle);
     const inferredTargetTitle = inferTargetTitleKey(targetCharacter);
     const isClaimLikeCb = casusBelli.includes("claim");
+    
+    // Some CBs (like independence or liberty) do not take a target_title at all and will invalidate if one is provided.
+    const noTargetCbList = ["independence_war", "independence_faction_war", "liberty_war", "liberty_faction_war"];
+    const isNoTargetCb = noTargetCbList.includes(casusBelli);
 
     const autoPickClaimTarget = isClaimLikeCb && !manualTargetTitle;
     const targetTitle = autoPickClaimTarget ? "" : (manualTargetTitle || inferredTargetTitle);
-    const hasTargetTitle = !!targetTitle;
+    const hasTargetTitle = !!targetTitle && !isNoTargetCb;
 
     const titleLine = hasTargetTitle ? `\n        target_title = title:${targetTitle}` : "";
     const claimantLine = isClaimLikeCb ? "\n        claimant = global_var:votcce_action_source" : "";
