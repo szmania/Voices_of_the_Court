@@ -1358,6 +1358,17 @@ ipcMain.handle('get-prompt-presets', async () => {
     return { global: {} }; // Return new structure
 });
 
+ipcMain.handle('get-default-prompts', async () => {
+  const defaultPromptsPath = path.join(app.getAppPath(), 'default_userdata', 'configs', 'default_prompts.json');
+  try {
+    const data = fs.readFileSync(defaultPromptsPath, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Failed to read default_prompts.json:', error);
+    return null;
+  }
+});
+
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
     const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');

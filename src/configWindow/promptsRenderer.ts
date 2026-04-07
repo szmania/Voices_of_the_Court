@@ -2,10 +2,10 @@ import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
 
-const defaultPromptsPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_prompts.json');
-const defaultPrompts = JSON.parse(fs.readFileSync(defaultPromptsPath, 'utf-8'));
 const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
 const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+
+let defaultPrompts: any;
 
 let descScriptSelect: any = document.querySelector("#description-script-select")!;
 let exMessagesScriptSelect: any = document.querySelector("#example-messages-script-select")!;
@@ -193,6 +193,14 @@ ipcRenderer.on('update-language', async (event, lang) => {
 
 async function init(){
     try {
+        defaultPrompts = await ipcRenderer.invoke('get-default-prompts');
+        if (!defaultPrompts) {
+            console.error("Failed to load default prompts from main process.");
+            // @ts-ignore
+            const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+            showStatusMessage(errorMsg, 'error');
+            return;
+        }
         statusMessage = document.querySelector("#status-message")!;
         addExternalLinks();
         setSaveButtonState(false); // Initially disabled
