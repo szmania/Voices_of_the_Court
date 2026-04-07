@@ -2,10 +2,10 @@ import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
 
-const defaultPromptsPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_prompts.json');
-const defaultPrompts = JSON.parse(fs.readFileSync(defaultPromptsPath, 'utf-8'));
 const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
 const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+
+let defaultPrompts: any;
 
 let descScriptSelect: any = document.querySelector("#description-script-select")!;
 let exMessagesScriptSelect: any = document.querySelector("#example-messages-script-select")!;
@@ -193,6 +193,14 @@ ipcRenderer.on('update-language', async (event, lang) => {
 
 async function init(){
     try {
+        defaultPrompts = await ipcRenderer.invoke('get-default-prompts');
+        if (!defaultPrompts) {
+            console.error("Failed to load default prompts from main process.");
+            // @ts-ignore
+            const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+            showStatusMessage(errorMsg, 'error');
+            return;
+        }
         statusMessage = document.querySelector("#status-message")!;
         addExternalLinks();
         setSaveButtonState(false); // Initially disabled
@@ -444,7 +452,8 @@ async function populatePresetSelector(activePreset?: string) {
             "A Game of Thrones": "prompts.mod_agot",
             "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
             "The Fallen Eagle": "prompts.mod_tfe",
-            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2"
+            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2",
+            "Elder Kings 2": "prompts.mod_elder_kings_2"
         };
 
         for (const modName in defaultPrompts.mod_prompt_sets) {
@@ -537,7 +546,7 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
-    const isProtected = selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]);
+    const isProtected = selectedPresetName === 'Default' || (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
     if (deletePromptPresetBtn.disabled) {

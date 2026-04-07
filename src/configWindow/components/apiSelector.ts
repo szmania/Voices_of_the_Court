@@ -20,6 +20,7 @@ function defineTemplate(label: string){
             <option value="glm" data-i18n="api.glm">GLM</option>
             <option value="deepseek" data-i18n="api.deepseek">DeepSeek</option>
             <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
+            <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
             <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
         </select> 
@@ -149,6 +150,20 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="nvidia-menu">
+            <h2 data-i18n="api.nvidia">NVIDIA NIM</h2>
+            <div class="input-group">
+                <label for="api-key" data-i18n="connection.api_key">API Key</label>
+                <br>
+                <input type="password" id="nvidia-key">
+            </div>
+            <div class="input-group">
+                <label for="nvidia-model" data-i18n="connection.model">Model</label>
+                <input type="text" id="nvidia-model">
+                <a href="https://build.nvidia.com/explore/discover" target="_blank" data-i18n="connection.browse_models">Browse models..</a>
+            </div>
+        </div>
+
         <div id="player2-menu">
             <h2 data-i18n="api.player2">Player2</h2>
             <div class="input-group" style="display: none;">
@@ -215,6 +230,7 @@ class ApiSelector extends HTMLElement{
     glmDiv: HTMLDivElement
     deepseekDiv: HTMLDivElement
     grokDiv: HTMLDivElement
+    nvidiaDiv: HTMLDivElement
     player2Div: HTMLDivElement
 
     openaiKeyInput: HTMLInputElement 
@@ -228,6 +244,8 @@ class ApiSelector extends HTMLElement{
     deepseekKeyInput: HTMLInputElement
     grokKeyInput: HTMLInputElement
     grokModelSelect: HTMLSelectElement
+    nvidiaKeyInput: HTMLInputElement
+    nvidiaModelInput: HTMLInputElement
     player2KeyInput: HTMLInputElement
     player2ModelInput: HTMLInputElement
     player2ModelDatalist: HTMLDataListElement
@@ -272,6 +290,7 @@ class ApiSelector extends HTMLElement{
         this.glmDiv = this.shadow.querySelector("#glm-menu")!;
         this.deepseekDiv = this.shadow.querySelector("#deepseek-menu")!;
         this.grokDiv = this.shadow.querySelector("#grok-menu")!;
+        this.nvidiaDiv = this.shadow.querySelector("#nvidia-menu")!;
         this.player2Div = this.shadow.querySelector("#player2-menu")!;
 
         this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
@@ -285,6 +304,8 @@ class ApiSelector extends HTMLElement{
         this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
         this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
         this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
+        this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")!;
+        this.nvidiaModelInput = this.shadow.querySelector("#nvidia-model")!;
         this.player2KeyInput = this.shadow.querySelector("#player2-key")!;
         this.player2ModelInput = this.shadow.querySelector("#player2-model-input")!;
         this.player2ModelDatalist = this.shadow.querySelector("#player2-models")!;
@@ -408,6 +429,15 @@ class ApiSelector extends HTMLElement{
             this.grokModelSelect.value = apiConfig.model;
         }
 
+        // 加载NVIDIA配置
+        if (apiKeys.nvidia) {
+            this.nvidiaKeyInput.value = apiKeys.nvidia.key || "";
+            this.nvidiaModelInput.value = apiKeys.nvidia.model || "";
+        } else if(apiConfig.type == "nvidia"){
+            this.nvidiaKeyInput.value = apiConfig.key;
+            this.nvidiaModelInput.value = apiConfig.model;
+        }
+
         // 加载Player2配置
         if (apiKeys.player2) {
             this.player2KeyInput.value = apiKeys.player2.key || "";
@@ -455,6 +485,9 @@ class ApiSelector extends HTMLElement{
                 case 'grok':
                     this.saveGrokConfig();
                 break;
+                case 'nvidia':
+                    this.saveNvidiaConfig();
+                break;
                 case 'player2':
                     this.savePlayer2Config();
                 break;
@@ -495,6 +528,10 @@ class ApiSelector extends HTMLElement{
 
         this.grokDiv.addEventListener("change", (e:any) =>{
             this.saveGrokConfig();
+        })
+
+        this.nvidiaDiv.addEventListener("change", (e:any) =>{
+            this.saveNvidiaConfig();
         })
 
         this.player2Div.addEventListener("click", (e:any) =>{
@@ -594,6 +631,7 @@ class ApiSelector extends HTMLElement{
         this.glmDiv.style.display = "none";
         this.deepseekDiv.style.display = "none";
         this.grokDiv.style.display = "none";
+        this.nvidiaDiv.style.display = "none";
         this.player2Div.style.display = "none";
 
         switch (this.typeSelector.value) {
@@ -621,6 +659,9 @@ class ApiSelector extends HTMLElement{
             case 'grok':
                 this.grokDiv.style.display = "block";
                 break;
+            case 'nvidia':
+                this.nvidiaDiv.style.display = "block";
+                break;
             case 'player2':
                 this.player2Div.style.display = "block";
                 break;
@@ -638,6 +679,7 @@ class ApiSelector extends HTMLElement{
         this.saveGlmConfig();
         this.saveDeepseekConfig();
         this.saveGrokConfig();
+        this.saveNvidiaConfig();
         this.savePlayer2Config();
         this.saveCustomConfig();
         
@@ -678,6 +720,11 @@ class ApiSelector extends HTMLElement{
                 key: this.grokKeyInput.value,
                 baseUrl: "https://api.x.ai/v1",
                 model: this.grokModelSelect.value
+            },
+            nvidia: {
+                key: this.nvidiaKeyInput.value,
+                baseUrl: "https://integrate.api.nvidia.com/v1",
+                model: this.nvidiaModelInput.value
             },
             player2: {
                 key: this.player2KeyInput.value,
@@ -814,6 +861,19 @@ class ApiSelector extends HTMLElement{
             baseUrl: "https://api.x.ai/v1",
             key: this.grokKeyInput.value,
             model: this.grokModelSelect.value,
+            forceInstruct: false,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+    }
+
+    saveNvidiaConfig(){
+        const config = {
+            type: "nvidia",
+            baseUrl: "https://integrate.api.nvidia.com/v1",
+            key: this.nvidiaKeyInput.value,
+            model: this.nvidiaModelInput.value,
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
