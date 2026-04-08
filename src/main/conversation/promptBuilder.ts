@@ -179,7 +179,25 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
         // Add a temporary localize function to gameData for the script to use
         (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
-            return LocalizationManager.getInstance().getNestedTranslation(key, vars);
+            const keys = key.split('.');
+            let result = conv.translations;
+            for (const k of keys) {
+                if (result === undefined || result === null) {
+                    return key; // fallback to key if path is invalid
+                }
+                result = result[k];
+            }
+
+            if (typeof result === 'string') {
+                if (vars) {
+                    for (const varKey in vars) {
+                        result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), vars[varKey]);
+                    }
+                }
+                return result;
+            }
+            
+            return key; // fallback to key if not a string
         };
 
         if (isAiToAi && targetCharacter) {
