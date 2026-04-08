@@ -9,6 +9,7 @@ import { app } from 'electron';
 import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
+import { LocalizationManager } from "../../shared/LocalizationManager.js";
 
 let promptsConfig: any = null;
 function getPromptsConfig(userDataPath: string) {
@@ -94,7 +95,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
     }
 
-    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
+    const roleplayInstructionTemplate = (translations.system && translations.system.roleplay_instruction) || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
 
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
 
@@ -176,6 +177,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     try{
         delete require.cache[require.resolve(descriptionPath)];
 
+        // Add a temporary localize function to gameData for the script to use
+        (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
+            return LocalizationManager.getInstance().getNestedTranslation(key, vars);
+        };
+
         if (isAiToAi && targetCharacter) {
             // For AI-to-AI, temporarily set player/ai to source/target
             conv.gameData.playerID = character.id;
@@ -187,6 +193,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
         // Pass character to the script
         description = require(descriptionPath)(conv.gameData, character);
+
+        // Clean up the temporary function
+        delete (conv.gameData as any).localize;
 
         console.log(`Description script '${descriptionScriptFileName}' loaded successfully for ${character.fullName}.`);
     }catch(err){
@@ -357,8 +366,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     if (isInitiatingAiToAi) {
         // Case 1: AI 1 is initiating a conversation with AI 2
-        const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
-        const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        const contextSwitchTemplate = (translations.system && translations.system.ai_to_ai_context_switch) || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
+        const aiToAiInitiateTemplate = (translations.system && translations.system.roleplay_instruction_ai_to_ai_initiate) || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
 
         // Combine into a single instruction to save tokens
         roleplayInstruction = `${contextSwitchTemplate}\n\n${aiToAiInitiateTemplate}`
@@ -366,7 +375,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             .replace(/{targetCharacterName}/g, replyToName);
         console.log('Combined AI-to-AI context switch and initiate message.');
 
-        const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
+        const narratorPromptTemplate = (translations.system && translations.system.ai_to_ai_narrator_prompt) || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
         const narratorPrompt = narratorPromptTemplate
             .replace(/{sourceCharacterName}/g, character.shortName)
             .replace(/{targetCharacterName}/g, replyToName);
@@ -380,12 +389,12 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     } else if (isAiToAi) {
         // Case 2: AI 2 is replying to AI 1
-        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        const aiToAiTemplate = (translations.system && translations.system.roleplay_instruction_ai_to_ai) || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
         roleplayInstruction = aiToAiTemplate
             .replace(/{sourceCharacterName}/g, character.fullName)
             .replace(/{targetCharacterName}/g, replyToName);
 
-        const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
+        const narratorReplyPromptTemplate = (translations.system && translations.system.ai_to_ai_narrator_reply_prompt) || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
         const narratorPrompt = narratorReplyPromptTemplate
             .replace(/{sourceCharacterName}/g, character.shortName)
             .replace(/{targetCharacterName}/g, replyToName);
@@ -398,7 +407,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log('Added AI-to-AI narrator reply prompt.');
 
     } else if (isNonTargetedResponse) {
-        const nonTargetedTemplate = translations.system.ai_to_ai_narrator_non_targeted_prompt || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
+        const nonTargetedTemplate = (translations.system && translations.system.ai_to_ai_narrator_non_targeted_prompt) || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
         const narratorPrompt = nonTargetedTemplate.replace(/{sourceCharacterName}/g, character.shortName);
         chatPrompt.push({
             role: "user",
