@@ -323,6 +323,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     chatPrompt = chatPrompt.concat(messages);
 
     const prompts = getEffectivePrompts(conv);
+    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[lang] || getPromptsConfig(conv.userDataPath).prompts.en);
 
     if (!isAiToAi && !isNonTargetedResponse) {
         const originalAiId = conv.gameData.aiID;
@@ -332,11 +333,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             if (isSelfTalk) {
                 chatPrompt.push({
                     role: "system",
-                    content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
+                    content: parseVariables(prompts.selfTalkPrompt || defaultPrompts.selfTalkPrompt, conv.gameData)
                 });
                 console.log('Added self-talk main prompt from config.');
             } else {
-                let mainPromptText = prompts.mainPrompt;
+                let mainPromptText = prompts.mainPrompt || defaultPrompts.mainPrompt;
                 const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
                 mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
@@ -356,7 +357,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if(conv.config.enableSuffixPrompt){
         chatPrompt.push({
             role: "system",
-            content: prompts.suffixPrompt
+            content: prompts.suffixPrompt || defaultPrompts.suffixPrompt
         })
         console.log('Added suffix prompt.');
     }
@@ -484,10 +485,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
 export function buildSummarizeChatPrompt(conv: Conversation, character: Character): Message[]{
     const prompts = getEffectivePrompts(conv);
+    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
     let output: Message[] = [];
 
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
-    const prompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
+    const prompt = isSelfTalk ? (prompts.selfTalkSummarizePrompt || defaultPrompts.selfTalkSummarizePrompt) : (prompts.summarizePrompt || defaultPrompts.summarizePrompt);
 
     let finalPrompt = parseVariables(prompt, conv.gameData);
     if (!isSelfTalk) {
@@ -506,6 +508,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
     const prompts = getEffectivePrompts(conv);
+    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
@@ -519,7 +522,7 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
 
     systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;
 
-    const summarizePrompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
+    const summarizePrompt = isSelfTalk ? (prompts.selfTalkSummarizePrompt || defaultPrompts.selfTalkSummarizePrompt) : (prompts.summarizePrompt || defaultPrompts.summarizePrompt);
     systemContent += parseVariables(summarizePrompt, conv.gameData);
 
     prompt.push({
@@ -571,6 +574,7 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 export function createMemoryString(conv: Conversation, prompts: any): string{
+    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
 
     let allMemories: Memory[] = [];
 
@@ -588,7 +592,7 @@ export function createMemoryString(conv: Conversation, prompts: any): string{
 
     let output ="";
     if(allMemories.length>0){
-        output = prompts.memoriesPrompt;
+        output = prompts.memoriesPrompt || defaultPrompts.memoriesPrompt;
     }
 
     let tokenCount = 0;
