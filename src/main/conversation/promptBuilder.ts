@@ -23,14 +23,18 @@ export function getEffectivePrompts(conv: Conversation): any {
     const lang = conv.config.language || 'en';
     const activePreset = conv.config.activePromptPreset || 'Default';
 
+    // 1. Check for built-in mod presets
     if (promptsConfig.mod_prompt_sets?.[activePreset]) {
         return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
     }
     
-    // For "Default" or custom presets, use the base prompts for the language.
-    // Custom presets overwrite the values in the UI, which then get saved into the main config object
-    // that the backend conversation uses.
-    return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
+    // 2. Check for the "Default" preset
+    if (activePreset === 'Default') {
+        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
+    }
+
+    // 3. Otherwise, it's a custom preset. The prompt values are stored directly on the config object.
+    return conv.config;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
