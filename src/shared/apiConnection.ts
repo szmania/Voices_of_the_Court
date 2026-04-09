@@ -52,6 +52,17 @@ export class ApiConnection{
     constructor(connection: Connection, parameters: Parameters){
         console.debug("--- API CONNECTION: Constructor ---");
         const redactedConnection = { ...connection, key: '[REDACTED]' };
+        if (redactedConnection.apiKeys) {
+            const redactedApiKeys: { [key: string]: any } = {};
+            for (const key in redactedConnection.apiKeys) {
+                if (redactedConnection.apiKeys[key] && typeof redactedConnection.apiKeys[key] === 'object' && 'key' in redactedConnection.apiKeys[key]) {
+                    redactedApiKeys[key] = { ...redactedConnection.apiKeys[key], key: '[REDACTED]' };
+                } else {
+                    redactedApiKeys[key] = redactedConnection.apiKeys[key];
+                }
+            }
+            redactedConnection.apiKeys = redactedApiKeys;
+        }
         console.debug("Received connection:", redactedConnection);
         console.debug("Received parameters:", parameters);
 
