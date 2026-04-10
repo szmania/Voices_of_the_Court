@@ -12,7 +12,7 @@ import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
 import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
-import { getPromptsConfig } from "../conversation/promptBuilder.js";
+import { getEffectivePrompts } from "../conversation/promptBuilder.js";
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -30,18 +30,6 @@ export class LetterReplyGenerator {
             config.textGenerationApiConnectionConfig.parameters
         );
         console.log('[LetterReplyGenerator] ApiConnection created.');
-    }
-
-    private getEffectivePrompts() {
-        const promptsConfig = getPromptsConfig(this.userDataPath);
-        const lang = this.config.language || 'en';
-        const activePreset = this.config.activePromptPreset || 'Default';
-    
-        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-        }
-        
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
     }
 
 
@@ -135,9 +123,8 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        const effectivePrompts = this.getEffectivePrompts();
-        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
-        let prompt = effectivePrompts.letterPrompt || defaultPrompts.letterPrompt;
+        const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+        let prompt = effectivePrompts.letterPrompt;
 
         prompt = prompt.replace('{{aiName}}', ai.fullName)
                        .replace('{{characterDescription}}', characterDescription)
@@ -345,9 +332,8 @@ export class LetterReplyGenerator {
             }
 
             // Build summary generation prompt
-            const effectivePrompts = this.getEffectivePrompts();
-            const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
-            let summaryPrompt = effectivePrompts.letterSummaryPrompt || defaultPrompts.letterSummaryPrompt;
+            const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+            let summaryPrompt = effectivePrompts.letterSummaryPrompt;
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
                                          .replace('{{playerLetterContent}}', originalLetter.content)

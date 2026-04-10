@@ -8,7 +8,6 @@ import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
 import path from 'path';
 import fs from 'fs';
-import { getPromptsConfig } from "./promptBuilder.js";
 
 /**
  * 构建用于生成场景描述的提示词
@@ -30,11 +29,10 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，只包含当前对话描述
-    const effectivePrompts = getEffectivePrompts(conv);
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
+    const effectivePrompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     
     // The configurable prompt from the UI is the main system instruction.
-    const systemPromptContent = effectivePrompts.sceneDescriptionPrompt || defaultPrompts.sceneDescriptionPrompt;
+    const systemPromptContent = effectivePrompts.sceneDescriptionPrompt;
 
     // Supporting labels can remain localized.
     const descriptionLabel = conv.translations.scene_description?.description_label || "Current conversation information:";

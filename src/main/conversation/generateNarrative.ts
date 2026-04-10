@@ -93,9 +93,8 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
     const actionResults = actionResponses.map(action => action.chatMessage).join("\n");
     
     // 使用配置中的narrativePrompt，并替换变量
-    const effectivePrompts = getEffectivePrompts(conv);
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
-    const promptTemplate = effectivePrompts.narrativePrompt || defaultPrompts.narrativePrompt;
+    const effectivePrompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const promptTemplate = effectivePrompts.narrativePrompt;
     const promptContent = parseVariables(promptTemplate, conv.gameData);
 
     const lastRoundDialogueLabel = narrativeTranslations.last_round_dialogue || "Last round of dialogue:";

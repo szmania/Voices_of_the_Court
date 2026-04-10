@@ -1615,7 +1615,7 @@ ${character.fullName}的发言：`
                     await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
                     
                     // Re-summarize the diary with the new entry
-                    const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry);
+                    const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
                     if (summaryResult) {
                         const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
                         summaries.unshift({ id: randomUUID(), ...summaryResult });

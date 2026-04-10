@@ -10,6 +10,7 @@ import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
+import { GameData } from "../../shared/gameData/GameData.js";
 
 let promptsConfig: any = null;
 export function getPromptsConfig(userDataPath: string) {
@@ -19,23 +20,64 @@ export function getPromptsConfig(userDataPath: string) {
     return promptsConfig;
 }
 
-export function getEffectivePrompts(conv: Conversation): any {
-    const promptsConfig = getPromptsConfig(conv.userDataPath);
-    const lang = conv.config.language || 'en';
-    const activePreset = conv.config.activePromptPreset || 'Default';
+let customPresets: any = null;
+function getCustomPresets(userDataPath: string) {
+    // For simplicity, we don't cache this so it can be reloaded if changed.
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    if (fs.existsSync(presetsPath)) {
+        try {
+            return JSON.parse(fs.readFileSync(presetsPath, 'utf-8'));
+        } catch (e) {
+            console.error("Error parsing prompt_presets.json:", e);
+            return {};
+        }
+    }
+    return {};
+}
+
+export function getEffectivePrompts(config: Config, userDataPath: string, gameData: GameData): any {
+    const defaultPromptsConfig = getPromptsConfig(userDataPath);
+    const customPresetsConfig = getCustomPresets(userDataPath);
+
+    const lang = config.language || 'en';
+    const activePreset = config.activePromptPreset || 'Default';
 
     // 1. Check for built-in mod presets
-    if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-        return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
+    if (defaultPromptsConfig.mod_prompt_sets?.[activePreset]) {
+        const modPrompts = defaultPromptsConfig.mod_prompt_sets[activePreset];
+        const langPrompts = modPrompts[lang] || {};
+        const englishPrompts = modPrompts.en;
+        return { ...englishPrompts, ...langPrompts };
     }
     
     // 2. Check for the "Default" preset
     if (activePreset === 'Default') {
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
+        return defaultPromptsConfig.prompts[lang] || defaultPromptsConfig.prompts.en;
     }
 
-    // 3. Otherwise, it's a custom preset. The prompt values are stored directly on the config object.
-    return conv.config;
+    // 3. It's a custom preset. Find it, checking character-specific scope first.
+    const playerId = gameData.playerID.toString();
+    const characterPresets = customPresetsConfig[playerId] || {};
+    const globalPresets = customPresetsConfig['global'] || {};
+
+    let selectedPresetObject = null;
+
+    if (characterPresets[activePreset]) {
+        selectedPresetObject = characterPresets[activePreset];
+    } else if (globalPresets[activePreset]) {
+        selectedPresetObject = globalPresets[activePreset];
+    }
+
+    const defaultLangPrompts = defaultPromptsConfig.prompts[lang] || defaultPromptsConfig.prompts.en;
+
+    if (selectedPresetObject) {
+        // Merge custom preset over the default language prompts to provide fallbacks.
+        return { ...defaultLangPrompts, ...selectedPresetObject };
+    }
+
+    // 4. Fallback to default if the custom preset is active but not found
+    console.warn(`Active custom preset "${activePreset}" not found. Falling back to default prompts.`);
+    return defaultLangPrompts;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
@@ -178,27 +220,29 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         delete require.cache[require.resolve(descriptionPath)];
 
         // Add a temporary localize function to gameData for the script to use
-        (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
-            const keys = key.split('.');
-            let result = conv.translations;
-            for (const k of keys) {
-                if (result === undefined || result === null) {
-                    return key; // fallback to key if path is invalid
-                }
-                result = result[k];
-            }
-
-            if (typeof result === 'string') {
-                if (vars) {
-                    for (const varKey in vars) {
-                        result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), vars[varKey]);
+        if (conv.translations) {
+            (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
+                const keys = key.split('.');
+                let result = conv.translations;
+                for (const k of keys) {
+                    if (result === undefined || result === null) {
+                        return key; // fallback to key if path is invalid
                     }
+                    result = result[k];
                 }
-                return result;
-            }
+
+                if (typeof result === 'string') {
+                    if (vars) {
+                        for (const varKey in vars) {
+                            result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), vars[varKey]);
+                        }
+                    }
+                    return result;
+                }
             
-            return key; // fallback to key if not a string
-        };
+                return key; // fallback to key if not a string
+            };
+        }
 
         if (isAiToAi && targetCharacter) {
             // For AI-to-AI, temporarily set player/ai to source/target
@@ -238,7 +282,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv, getEffectivePrompts(conv))
+        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
     }
 
 
@@ -340,8 +384,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
-    const prompts = getEffectivePrompts(conv);
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[lang] || getPromptsConfig(conv.userDataPath).prompts.en);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
 
     if (!isAiToAi && !isNonTargetedResponse) {
         const originalAiId = conv.gameData.aiID;
@@ -351,11 +394,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             if (isSelfTalk) {
                 chatPrompt.push({
                     role: "system",
-                    content: parseVariables(prompts.selfTalkPrompt || defaultPrompts.selfTalkPrompt, conv.gameData)
+                    content: parseVariables(prompts.selfTalkPrompt, conv.gameData)
                 });
                 console.log('Added self-talk main prompt from config.');
             } else {
-                let mainPromptText = prompts.mainPrompt || defaultPrompts.mainPrompt;
+                let mainPromptText = prompts.mainPrompt;
                 const characterNames = Array.from(conv.gameData.characters.values()).map(c => c.shortName).join(', ');
                 mainPromptText = mainPromptText.replace(/{{characterNames}}/g, characterNames);
 
@@ -375,7 +418,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if(conv.config.enableSuffixPrompt){
         chatPrompt.push({
             role: "system",
-            content: prompts.suffixPrompt || defaultPrompts.suffixPrompt
+            content: prompts.suffixPrompt
         })
         console.log('Added suffix prompt.');
     }
@@ -502,12 +545,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation, character: Character): Message[]{
-    const prompts = getEffectivePrompts(conv);
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     let output: Message[] = [];
 
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
-    const prompt = isSelfTalk ? (prompts.selfTalkSummarizePrompt || defaultPrompts.selfTalkSummarizePrompt) : (prompts.summarizePrompt || defaultPrompts.summarizePrompt);
+    const prompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
 
     let finalPrompt = parseVariables(prompt, conv.gameData);
     if (!isSelfTalk) {
@@ -525,8 +567,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 }
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
-    const prompts = getEffectivePrompts(conv);
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
@@ -540,7 +581,7 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
 
     systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;
 
-    const summarizePrompt = isSelfTalk ? (prompts.selfTalkSummarizePrompt || defaultPrompts.selfTalkSummarizePrompt) : (prompts.summarizePrompt || defaultPrompts.summarizePrompt);
+    const summarizePrompt = isSelfTalk ? prompts.selfTalkSummarizePrompt : prompts.summarizePrompt;
     systemContent += parseVariables(summarizePrompt, conv.gameData);
 
     prompt.push({
@@ -592,8 +633,6 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 export function createMemoryString(conv: Conversation, prompts: any): string{
-    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
-
     let allMemories: Memory[] = [];
 
     conv.gameData.characters.forEach((value, key) => {
@@ -610,7 +649,7 @@ export function createMemoryString(conv: Conversation, prompts: any): string{
 
     let output ="";
     if(allMemories.length>0){
-        output = prompts.memoriesPrompt || defaultPrompts.memoriesPrompt;
+        output = prompts.memoriesPrompt;
     }
 
     let tokenCount = 0;

@@ -10,7 +10,7 @@ import { LetterManager } from "../letter/LetterManager";
 import { randomUUID } from "crypto";
 import * as path from "path";
 import * as fs from "fs";
-import { getPromptsConfig } from "../conversation/promptBuilder.js";
+import { getEffectivePrompts } from "../conversation/promptBuilder.js";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
@@ -24,18 +24,6 @@ export class DiaryGenerator {
             config.textGenerationApiConnectionConfig.connection,
             config.textGenerationApiConnectionConfig.parameters
         );
-    }
-
-    private getEffectivePrompts() {
-        const promptsConfig = getPromptsConfig(this.userDataPath);
-        const lang = this.config.language || 'en';
-        const activePreset = this.config.activePromptPreset || 'Default';
-    
-        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-        }
-        
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
     }
 
     private buildDiaryPrompt(gameData: GameData, conversation: Conversation, characterId: string): string {
@@ -79,8 +67,7 @@ export class DiaryGenerator {
           return null;
         }
 
-        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
-        const diaryPrompt = this.getEffectivePrompts().diaryPrompt || defaultPrompts.diaryPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
 
         if (!diaryPrompt) {
           return null;
@@ -121,9 +108,7 @@ export class DiaryGenerator {
     }
 
     public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
-        const effectivePrompts = this.getEffectivePrompts();
-        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
-        const diaryPrompt = effectivePrompts.diaryForLetterPrompt || defaultPrompts.diaryForLetterPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryForLetterPrompt;
         if (!diaryPrompt) return null;
 
         const replacedPrompt = diaryPrompt
@@ -153,13 +138,12 @@ export class DiaryGenerator {
         };
     }
 
-    public async summarizeDiaryEntry(diaryEntry: DiaryEntry): Promise<{ summary: string, date: string, diaryEntryId: string } | null> {
+    public async summarizeDiaryEntry(diaryEntry: DiaryEntry, gameData: GameData): Promise<{ summary: string, date: string, diaryEntryId: string } | null> {
         if (!diaryEntry) {
             return null;
         }
 
-        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
-        const diarySummarizePrompt = this.getEffectivePrompts().diarySummarizePrompt || defaultPrompts.diarySummarizePrompt;
+        const diarySummarizePrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diarySummarizePrompt;
         if (!diarySummarizePrompt) {
             return null;
         }

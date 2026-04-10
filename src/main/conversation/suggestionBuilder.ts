@@ -55,7 +55,7 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Conversation context for suggestions:', conversationContext);
     
     // 添加记忆信息，参考promptBuilder.ts中的createMemoryString函数
-    const prompts = getEffectivePrompts(conv);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     let memoryString = createMemoryString(conv, prompts);
     
     // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
