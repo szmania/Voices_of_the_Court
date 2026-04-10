@@ -548,6 +548,15 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
+    if (promptsToLoad) {
+        for (const key of promptKeys) {
+            if (promptsToLoad[key] !== undefined) {
+                // Send the change to the main process to update the live config
+                ipcRenderer.send('config-change', key, promptsToLoad[key]);
+            }
+        }
+    }
+
     const isProtected = selectedPresetName === 'Default' || (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
