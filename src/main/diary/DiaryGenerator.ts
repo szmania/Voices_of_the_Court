@@ -86,7 +86,8 @@ export class DiaryGenerator {
           return null;
         }
 
-        const diaryPrompt = this.getEffectivePrompts().diaryPrompt;
+        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
+        const diaryPrompt = this.getEffectivePrompts().diaryPrompt || defaultPrompts.diaryPrompt;
 
         if (!diaryPrompt) {
           return null;
@@ -128,7 +129,8 @@ export class DiaryGenerator {
 
     public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
         const effectivePrompts = this.getEffectivePrompts();
-        const diaryPrompt = effectivePrompts.diaryForLetterPrompt;
+        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
+        const diaryPrompt = effectivePrompts.diaryForLetterPrompt || defaultPrompts.diaryForLetterPrompt;
         if (!diaryPrompt) return null;
 
         const replacedPrompt = diaryPrompt
@@ -163,7 +165,8 @@ export class DiaryGenerator {
             return null;
         }
 
-        const diarySummarizePrompt = this.getEffectivePrompts().diarySummarizePrompt;
+        const defaultPrompts = (getPromptsConfig(this.userDataPath).prompts[this.config.language || 'en'] || getPromptsConfig(this.userDataPath).prompts.en);
+        const diarySummarizePrompt = this.getEffectivePrompts().diarySummarizePrompt || defaultPrompts.diarySummarizePrompt;
         if (!diarySummarizePrompt) {
             return null;
         }
