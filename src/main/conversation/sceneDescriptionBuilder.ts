@@ -32,33 +32,28 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     // 构建提示词，只包含当前对话描述
     const effectivePrompts = getEffectivePrompts(conv);
     const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
-    const sceneDescriptionPrompt = effectivePrompts.sceneDescriptionPrompt || defaultPrompts.sceneDescriptionPrompt;
-
-    const instruction = conv.translations.scene_description?.instruction || "Based on the following information, generate a brief, atmospheric, third-person scene description (50-100 words). Do not include character thoughts or dialogue. Only describe the setting and mood:";
-
-    const descriptionLabel = conv.translations.scene_description?.description_label || "Current conversation information:";
     
+    // The configurable prompt from the UI is the main system instruction.
+    const systemPromptContent = effectivePrompts.sceneDescriptionPrompt || defaultPrompts.sceneDescriptionPrompt;
+
+    // Supporting labels can remain localized.
+    const descriptionLabel = conv.translations.scene_description?.description_label || "Current conversation information:";
     const sceneLabel = conv.translations.scene_description?.scene_label || "Scene";
     const sceneLine = conv.gameData.scene ? `${sceneLabel}: ${conv.gameData.scene}\n` : "";
 
-    const prompt = `${instruction}
-
-${descriptionLabel}
-${sceneLine}${description}
-
-${sceneDescriptionPrompt}`;
+    // The user prompt provides the context for the system instruction.
+    const userPromptContent = `${descriptionLabel}
+${sceneLine}${description}`;
 
     // 构建消息数组
-    const systemPrompt = conv.translations.scene_description?.system_prompt || "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.";
-    
     const messages: Message[] = [
         {
             role: "system",
-            content: systemPrompt
+            content: systemPromptContent
         },
         {
             role: "user",
-            content: prompt
+            content: userPromptContent
         }
     ];
     
