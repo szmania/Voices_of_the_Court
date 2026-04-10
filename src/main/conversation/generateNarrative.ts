@@ -93,9 +93,9 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
     const actionResults = actionResponses.map(action => action.chatMessage).join("\n");
     
     // 使用配置中的narrativePrompt，并替换变量
-    const fallbackPrompt = narrativeTranslations.fallback_prompt || "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.";
     const effectivePrompts = getEffectivePrompts(conv);
-    const promptTemplate = effectivePrompts.narrativePrompt || fallbackPrompt;
+    const defaultPrompts = (getPromptsConfig(conv.userDataPath).prompts[conv.config.language || 'en'] || getPromptsConfig(conv.userDataPath).prompts.en);
+    const promptTemplate = effectivePrompts.narrativePrompt || defaultPrompts.narrativePrompt;
     const promptContent = parseVariables(promptTemplate, conv.gameData);
 
     const lastRoundDialogueLabel = narrativeTranslations.last_round_dialogue || "Last round of dialogue:";
