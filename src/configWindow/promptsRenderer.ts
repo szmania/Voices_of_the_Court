@@ -537,6 +537,8 @@ async function handlePresetChange() {
                 promptTextareas[key].textarea.value = promptsToLoad[key];
                 // Manually trigger the input event to notify the component and update token count
                 promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                // Send the change to the main process to update the live config
+                ipcRenderer.send('config-change', key, promptsToLoad[key]);
             }
         }
     } else {
