@@ -10,14 +10,7 @@ import { LetterManager } from "../letter/LetterManager";
 import { randomUUID } from "crypto";
 import * as path from "path";
 import * as fs from "fs";
-
-let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
-}
+import { getPromptsConfig } from "../conversation/promptBuilder.js";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;

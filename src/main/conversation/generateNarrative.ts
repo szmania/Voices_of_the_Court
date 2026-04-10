@@ -4,7 +4,7 @@ import { convertMessagesToString } from "./promptBuilder";
 import { Message, ActionResponse } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
 import { convertChatToTextPrompt } from "./checkActions";
-import { getEffectivePrompts } from "./promptBuilder";
+import { getEffectivePrompts, getPromptsConfig } from "./promptBuilder";
 import path from 'path';
 import { app } from 'electron';
 import fs from 'fs';

@@ -8,14 +8,7 @@ import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
 import path from 'path';
 import fs from 'fs';
-
-let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
-}
+import { getPromptsConfig } from "./promptBuilder.js";
 
 /**
  * 构建用于生成场景描述的提示词

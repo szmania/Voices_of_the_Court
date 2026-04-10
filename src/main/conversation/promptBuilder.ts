@@ -12,7 +12,7 @@ import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 
 let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
+export function getPromptsConfig(userDataPath: string) {
     if (promptsConfig) return promptsConfig;
     const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
     promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
