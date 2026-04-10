@@ -580,11 +580,23 @@ async function saveCurrentPreset() {
         let counter = 2;
         let newPresetName = `${baseName} (${counter})`;
 
-        // Find a new name that doesn't exist in custom presets for the current scope
-        const currentScopePresets = promptPresets[selectedCharacterId] || {};
-        while (currentScopePresets[newPresetName]) {
-            counter++;
-            newPresetName = `${baseName} (${counter})`;
+        // Check for uniqueness across ALL scopes to avoid confusion
+        let isGloballyUnique = false;
+        while (!isGloballyUnique) {
+            let nameFound = false;
+            for (const scopeId in promptPresets) {
+                if (promptPresets[scopeId] && promptPresets[scopeId][newPresetName]) {
+                    nameFound = true;
+                    break;
+                }
+            }
+
+            if (nameFound) {
+                counter++;
+                newPresetName = `${baseName} (${counter})`;
+            } else {
+                isGloballyUnique = true;
+            }
         }
         presetName = newPresetName;
     }
