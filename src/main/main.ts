@@ -1233,7 +1233,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, playerCharacter, latestLetter.content, 'sent');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(playerCharacter.id), newEntry);
-                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry, gameData);
                     if (summaryResult) {
                         const summaries = await readDiarySummaries(String(gameData.playerID), String(playerCharacter.id));
                         summaries.unshift({ id: randomUUID(), ...summaryResult });
@@ -1265,7 +1265,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
                 const newEntry = await diaryGenerator.generateDiaryEntryForLetter(gameData, aiCharacter, replyLetter.content, 'received');
                 if (newEntry) {
                     await saveDiaryFile(String(gameData.playerID), String(aiCharacter.id), newEntry);
-                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry);
+                    const summaryResult = await diaryGenerator.summarizeDiaryEntry(newEntry, gameData);
                     if (summaryResult) {
                         const summaries = await readDiarySummaries(String(gameData.playerID), String(aiCharacter.id));
                         summaries.unshift({ id: randomUUID(), ...summaryResult });
@@ -2073,6 +2073,7 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
             ...deletedEntries.map((e: any) => e.character_id)
         ]);
 
+        const mockGameData = { playerID: parseInt(playerId, 10) } as GameData;
         for (const charId of characterIds) {
             if (!charId) continue;
             let summaries = await readDiarySummaries(playerId, charId);
@@ -2086,7 +2087,7 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
             // Update/add summaries for edited entries
             const editedEntriesForChar = editedEntries.filter((e: any) => e.character_id === charId);
             for (const entry of editedEntriesForChar) {
-                const newSummary = await diaryGenerator.summarizeDiaryEntry(entry);
+                const newSummary = await diaryGenerator.summarizeDiaryEntry(entry, mockGameData);
                 if (newSummary) {
                     const existingSummaryIndex = summaries.findIndex(s => s.diaryEntryId === entry.id);
                     if (existingSummaryIndex !== -1) {
