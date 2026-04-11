@@ -355,7 +355,7 @@ export class Conversation{
                 const narrativeLabelValues = Object.values(narrativeLabels);
                 const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
 
-                const actionLabel = getEffectivePrompts(this)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+                const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
                 const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
 
                 // Build a regex to match any of the known character names at the start of a line
@@ -1685,7 +1685,7 @@ ${character.fullName}的发言：`
 
             const actions = this.executedActions.get(msg.id);
             if (actions && actions.length > 0) {
-                const actionLabel = getEffectivePrompts(this)?.actionTriggeredPrompt || "[Action Triggered]:";
+                const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
                 actions.forEach(action => {
                     textContent += `${actionLabel} ${action.chatMessage}\n`;
                 });

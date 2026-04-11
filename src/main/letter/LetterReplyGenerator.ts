@@ -111,7 +111,7 @@ export class LetterReplyGenerator {
                 textGenApiConnection: this.apiConnection
             } as any;
             
-            const prompts = { memoriesPrompt: this.getEffectivePrompts().memoriesPrompt };
+            const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.userDataPath, gameData).memoriesPrompt };
             const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;

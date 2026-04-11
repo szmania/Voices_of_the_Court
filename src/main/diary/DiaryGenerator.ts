@@ -36,7 +36,7 @@ export class DiaryGenerator {
             .map(msg => `${msg.name}: ${msg.content}`)
             .join('\n');
 
-        let prompt = this.getEffectivePrompts().diaryPrompt;
+        let prompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
