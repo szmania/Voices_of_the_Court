@@ -82,6 +82,8 @@
     "narrative_tooltip": "This prompt is used to generate AI narrative descriptions after actions are triggered. The narrative provides atmospheric descriptions of events in the game.",
     "scene_description_prompt": "Scene Description prompt",
     "scene_description_tooltip": "This prompt is used to generate the initial scene description at the start of conversation. It provides background and atmosphere for character interactions.",
+    "action_prompt": "Action Prompt",
+    "action_prompt_tooltip": "This prompt instructs the AI on how to detect and format game actions based on the conversation.",
     "letter_prompt": "Letter Prompt",
     "letter_tooltip": "Prompt for generating letter replies.",
     "letter_summary_prompt": "Letter Summary Prompt",

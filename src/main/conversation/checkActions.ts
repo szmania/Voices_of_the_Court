@@ -1,6 +1,6 @@
 import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
-import { convertMessagesToString } from "./promptBuilder";
+import { convertMessagesToString, getEffectivePrompts } from "./promptBuilder";
 import path from 'path';
 import { Message, Action, ActionResponse, PendingAction } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
@@ -291,9 +291,11 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
     listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
 
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+
     output.push({
         role: "system",
-        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the source's ID and the target's ID as the first two arguments. The 'source' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the source and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
+        content: prompts.actionPrompt
     })
 
     output.push({

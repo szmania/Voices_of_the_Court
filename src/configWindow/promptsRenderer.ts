@@ -31,6 +31,7 @@ let statusMessage: HTMLDivElement;
 const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
+    "actionPrompt",
     "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
 ];
 const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
@@ -94,6 +95,7 @@ async function updateTokenCount(key: string) {
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
+    "actionPrompt",
     "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
 ];
 
