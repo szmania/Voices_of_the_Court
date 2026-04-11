@@ -8,10 +8,10 @@
   "maxTokens": 5000,
   "maxMemoryTokens": 600,
   "percentOfContextToSummarize": 40,
-  "selectedDescScript": "standard\\pList.js",
-  "selectedExMsgScript": "standard\\aliChat.js",
+  "selectedDescScript": "standard/pList.js",
+  "selectedExMsgScript": "standard/aliChat.js",
   "selectedBookmarkScript": "",
-  "selectedSelfTalkExMsgScript": "standard\\default.js",
+  "selectedSelfTalkExMsgScript": "self-talk/default.js",
   "inputSequence": "[INST]",
   "outputSequence": "[/INST]",
   "textGenerationApiConnectionConfig": {
