@@ -14,7 +14,8 @@
     "letterPrompt": "你正在扮演{{aiName}}。\n\n{{characterDescription}}\n\n{{conversationSummary}}{{letterSummaryContent}}{{memoryContent}}你收到了一封来自{{playerName}}的信件，内容如下：\n\"{{letterContent}}\"\n\n信件要求使用{{language}}进行回复。\n\n请根据你的角色性格、背景、与写信人的关系、相关记忆内容，以及当前的游戏情境，写一封合适的回信。回信应该：\n1. 使用{{language}}书写\n2. 体现你的角色性格和立场\n3. 回应信件中的主要内容\n4. 语气要符合你的身份和与写信人的关系\n5. 长度适中，表达清晰\n6. 适当参考相关记忆内容，使回信更加贴合角色背景\n\n请直接写出回信内容，不要添加任何解释或说明。",
     "letterSummaryPrompt": "请根据以下信件往来内容生成一个简洁的总结：\n\n玩家{{playerName}}的来信：\n\"{{playerLetterContent}}\"\n\n角色{{aiName}}的回信：\n\"{{aiReplyContent}}\"\n\n请生成一个简洁的总结，描述这次信件往来的主要内容。总结应该：\n1. 简洁明了，不超过100字\n2. 突出信件往来的核心内容\n3. 体现角色之间的关系和互动特点\n\n请直接写出总结内容，不要添加任何解释或说明。",
     "actionPrompt": "你的任务是从列表中选择在最后几条回复中发生的动作。对于每个动作，你必须提供来源的ID和目标的ID作为前两个参数。“来源”是执行动作的角色。“目标”是动作作用的角色。仔细阅读每个动作的描述，以了解该特定动作的来源和目标是谁。ID必须来自提供的角色列表。动作必须存在于提供的列表中。选择最相关的动作。响应格式：<rationale>理由。</rationale><actions>动作名称1(来源ID, 目标ID, 值), 动作名称2(来源ID, 目标ID, 值)</actions>",
-    "actionTriggeredPrompt": "[触发的动作]:"
+    "actionTriggeredPrompt": "[触发的动作]:",
+    "suggestionPrompt": "你是一个负责为角色扮演游戏中的玩家生成适当回应建议的助手。根据以下对话情境和角色信息，为玩家角色{{characterName}}生成3-5个回应建议。建议应：\n1. 符合角色的个性和当前情境。\n2. 提供简单直接的回复（如“我同意”、“多告诉我一些”）和能够推动情节发展的更深入、更有创意的选项。\n3. 简洁自然，以第一人称视角书写。\n4. 每条建议不超过20个词。\n\n{{description}}\n\n{{memoryString}}\n\n{{summaryString}}\n\n对话情境：\n{{conversationContext}}\n\n玩家角色建议（仅提供建议，每行一条）："
   },
   "mod_prompt_sets": {
     "A Game of Thrones": {
