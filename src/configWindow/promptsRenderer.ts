@@ -527,7 +527,29 @@ async function handlePresetChange() {
     } else {
         const selectedCharacterId = characterFilterSelect.value;
         const presetsForScope = promptPresets[selectedCharacterId] || {};
-        promptsToLoad = presetsForScope[selectedPresetName];
+        const customPreset = presetsForScope[selectedPresetName];
+
+        if (customPreset) {
+            const originalKeys = Object.keys(customPreset);
+            // Merge with default prompts to fill in any missing keys
+            promptsToLoad = { ...defaultPrompts.prompts, ...customPreset };
+            const mergedKeys = Object.keys(promptsToLoad);
+
+            // If new keys were added, it means the preset was outdated. Save it back.
+            if (mergedKeys.length > originalKeys.length) {
+                console.log(`Updating custom preset "${selectedPresetName}" with missing default keys.`);
+                if (!promptPresets[selectedCharacterId]) {
+                    promptPresets[selectedCharacterId] = {};
+                }
+                promptPresets[selectedCharacterId][selectedPresetName] = promptsToLoad;
+                await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+                // @ts-ignore
+                const updateMsg = window.LocalizationManager.getNestedTranslation('prompts.preset_updated_with_defaults', { presetName: selectedPresetName }, `Preset "${selectedPresetName}" was updated with new default prompt fields.`);
+                showStatusMessage(updateMsg, 'info');
+            }
+        } else {
+            promptsToLoad = null; // Preset not found
+        }
     }
 
     if (promptsToLoad) {
