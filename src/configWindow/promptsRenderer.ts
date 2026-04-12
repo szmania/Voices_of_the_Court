@@ -32,7 +32,7 @@ const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
     "actionPrompt", "actionTriggeredPrompt",
-    "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt", "suggestionPrompt"
 ];
 const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
 
@@ -96,7 +96,8 @@ const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
     "actionPrompt", "actionTriggeredPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
+    "suggestionPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};

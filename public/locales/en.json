@@ -96,6 +96,8 @@
     "diary_summary_tooltip": "This prompt is used to summarize all diary entries for a character into a single summary.",
     "diary_for_letter_prompt": "This prompt is used to generate a diary entry based on a sent or received letter.",
     "diary_for_letter_tooltip": "This prompt is used to generate a diary entry based on a sent or received letter.",
+    "suggestion_prompt": "Suggestion Prompt",
+    "suggestion_prompt_tooltip": "This prompt is used to generate response suggestions for the player.",
     "restore_defaults": "Restore Default Prompts",
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
@@ -787,14 +789,6 @@
   },
   "suggestion_builder": {
     "summary_header": "Here are the dates and summaries of previous conversations:",
-    "prompt_header": "Based on the following conversation context and character information, generate 3-5 short and appropriate response suggestions for the player character {characterName}. Suggestions should:",
-    "prompt_rule1": "1. Match the character's personality and current situation",
-    "prompt_rule2": "2. Have diverse tones (e.g., inquiring, agreeing, disagreeing, neutral)",
-    "prompt_rule3": "3. Be concise and natural",
-    "prompt_rule4": "4. Each suggestion should not exceed 15 words",
-    "prompt_context_header": "Conversation Context:",
-    "prompt_suggestions_header": "Player Character Suggestions (provide only the suggestions, one per line):",
-    "system_message": "You are an assistant responsible for generating appropriate player response suggestions for a role-playing game.",
     "default_suggestion1": "I understand.",
     "default_suggestion2": "Tell me more.",
     "default_suggestion3": "What do you mean?"

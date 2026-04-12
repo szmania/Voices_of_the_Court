@@ -31,85 +31,66 @@ function getTranslations(lang: string): any {
 export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Building suggestion prompt...');
 
-    const translations = getTranslations(conv.config.language);
-    const suggestionTranslations = translations.suggestion_builder;
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const suggestionPromptTemplate = prompts.suggestionPrompt;
+
+    if (!suggestionPromptTemplate) {
+        console.error("Suggestion prompt template is missing from the configuration.");
+        return [];
+    }
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
     const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
-    try{
+    try {
         delete require.cache[require.resolve(descriptionPath)];
-        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer()); 
-    }catch(err){
+        description = require(descriptionPath)(conv.gameData, conv.gameData.getPlayer());
+    } catch (err) {
         console.error(`Description script error for '${descriptionScriptFileName}': ${err}`);
         conv.chatWindow.window.webContents.send('error-message', `Error in description script '${descriptionScriptFileName}'.`);
     }
-    
-    // 获取玩家和AI角色信息
+
     const playerCharacter = conv.gameData.getPlayer();
     const aiCharacter = conv.gameData.getAi();
-    
-    // 获取最近的对话历史，用于上下文
-    const recentMessages = conv.messages.slice(-10); // 获取最近10条消息
+
+    const recentMessages = conv.messages.slice(-10);
     const conversationContext = recentMessages.map(m => `${m.name}: ${m.content}`).join('\n');
     console.log('Conversation context for suggestions:', conversationContext);
-    
-    // 添加记忆信息，参考promptBuilder.ts中的createMemoryString函数
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+
     let memoryString = createMemoryString(conv, prompts);
-    
-    // 添加摘要信息，参考promptBuilder.ts中的摘要处理逻辑
+
     let summaryString = "";
-    // 获取当前AI角色的摘要，而不是玩家角色的摘要
     const characterSummaries = conv.summaries.get(aiCharacter.id) || [];
-    
-    if(characterSummaries.length > 0){
-        summaryString = suggestionTranslations.summary_header + "\n";
-        
+    if (characterSummaries.length > 0) {
+        const summaryHeader = "Here are the dates and summaries of previous conversations:"; // Fallback
+        summaryString = summaryHeader + "\n";
+
         const summariesToProcess = [...characterSummaries];
         summariesToProcess.reverse();
-        
         const currentGameDate = parseGameDate(conv.gameData.date);
-        
-        for(let summary of summariesToProcess){
+
+        for (let summary of summariesToProcess) {
             const summaryDate = parseGameDate(summary.date);
-            
-            // Include summary if its date is unknown OR if it's in the past/present.
-            if(!summaryDate || (currentGameDate && summaryDate <= currentGameDate)){
+            if (!summaryDate || (currentGameDate && summaryDate <= currentGameDate)) {
                 const timeAgo = getDateDifference(summary.date, conv.gameData.date);
                 summaryString += `${summary.date} (${timeAgo}): ${summary.content}\n`;
             }
         }
     }
-    
-    // 构建提示词，请求生成推荐输入语句
-    const promptHeader = suggestionTranslations.prompt_header.replace('{characterName}', playerCharacter.shortName);
-    const prompt = `${promptHeader}
-${suggestionTranslations.prompt_rule1}
-${suggestionTranslations.prompt_rule2}
-${suggestionTranslations.prompt_rule3}
-${suggestionTranslations.prompt_rule4}
 
-${description}
+    // Replace placeholders in the new suggestion prompt template
+    let promptContent = parseVariables(suggestionPromptTemplate, conv.gameData);
+    promptContent = promptContent
+        .replace(/{{characterName}}/g, playerCharacter.shortName)
+        .replace(/{{description}}/g, description)
+        .replace(/{{memoryString}}/g, memoryString)
+        .replace(/{{summaryString}}/g, summaryString)
+        .replace(/{{conversationContext}}/g, conversationContext);
 
-${memoryString ? memoryString + "\n" : ""}
-
-${summaryString ? summaryString + "\n" : ""}
-
-${suggestionTranslations.prompt_context_header}
-${conversationContext}
-
-${suggestionTranslations.prompt_suggestions_header}`;
-
-    // 构建消息数组，参考promptBuilder.ts中的结构
     const messages: Message[] = [
         {
-            role: "system",
-            content: suggestionTranslations.system_message
-        },
-        {
             role: "user",
-            content: prompt
+            content: promptContent
         }
     ];
 
