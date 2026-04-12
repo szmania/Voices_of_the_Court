@@ -31,7 +31,7 @@ let statusMessage: HTMLDivElement;
 const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "actionPrompt",
+    "actionPrompt", "actionTriggeredPrompt",
     "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
 ];
 const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
@@ -95,7 +95,7 @@ async function updateTokenCount(key: string) {
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "actionPrompt",
+    "actionPrompt", "actionTriggeredPrompt",
     "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
 ];
 
@@ -199,7 +199,7 @@ async function init(){
         if (!defaultPrompts) {
             console.error("Failed to load default prompts from main process.");
             // @ts-ignore
-            const errorMsg = window.LocalizationManager.getTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+            const errorMsg = window.LocalizationManager.getNestedTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
             showStatusMessage(errorMsg, 'error');
             return;
         }
@@ -521,12 +521,9 @@ async function handlePresetChange() {
     let promptsToLoad: any = null;
 
     if (selectedPresetName === 'Default') {
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+        promptsToLoad = defaultPrompts.prompts;
     } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
-        const langPrompts = megamodPrompts[lang] || {};
-        const englishPrompts = megamodPrompts.en;
-        promptsToLoad = { ...englishPrompts, ...langPrompts };
+        promptsToLoad = { ...defaultPrompts.prompts, ...defaultPrompts.mod_prompt_sets[selectedPresetName] };
     } else {
         const selectedCharacterId = characterFilterSelect.value;
         const presetsForScope = promptPresets[selectedCharacterId] || {};
@@ -658,12 +655,9 @@ async function deleteSelectedPreset() {
 
 async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
-        // @ts-ignore
-        const lang = window.LocalizationManager?.language || 'en';
-
         console.log('Restoring default prompts...');
         
-        const promptsToApply = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+        const promptsToApply = defaultPrompts.prompts;
 
         for (const [key, value] of Object.entries(promptsToApply)) {
             if (promptTextareas[key]) {
