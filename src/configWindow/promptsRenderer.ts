@@ -160,38 +160,16 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
-    // Reload prompts for the new language
-    const config = await ipcRenderer.invoke('get-config');
-    const selectedPresetName = config.activePromptPreset;
-    
-    let promptsToLoad: any = null;
 
-    if (selectedPresetName === 'Default') {
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
-    } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
-        const langPrompts = megamodPrompts[lang] || {};
-        const englishPrompts = megamodPrompts.en;
-        promptsToLoad = { ...englishPrompts, ...langPrompts };
-    } else if (promptPresets[selectedPresetName]) {
-        // This is a custom preset. They are not localized. Do nothing.
-        console.log(`Language changed, but custom preset "${selectedPresetName}" is active. Prompts will not be changed.`);
+    // Reload the default prompts for the new language
+    defaultPrompts = await ipcRenderer.invoke('get-default-prompts');
+    if (!defaultPrompts) {
+        console.error("Failed to reload default prompts for new language.");
         return;
-    } else {
-        // Fallback for safety, though it shouldn't be reached if config is consistent.
-        console.warn(`Active preset "${selectedPresetName}" not found. Falling back to default prompts for new language.`);
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
     }
 
-    if (promptsToLoad) {
-        for (const key of promptKeys) {
-            if (promptTextareas[key] && promptsToLoad[key] !== undefined) {
-                promptTextareas[key].textarea.value = promptsToLoad[key];
-                // Manually trigger the input event to notify the component
-                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }
-    }
+    // Re-apply the currently selected preset logic, which will use the new `defaultPrompts`
+    await handlePresetChange();
 });
 
 async function init(){
