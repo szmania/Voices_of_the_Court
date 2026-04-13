@@ -1047,7 +1047,9 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
     // 推荐输入语句功能事件处理
     suggestionsButton.addEventListener('click', () => {
-        ipcRenderer.send('get-suggestions')
+        suggestionsButton.classList.add('loading');
+        suggestionsButton.disabled = true;
+        ipcRenderer.send('get-suggestions');
     })
 
     suggestionsClose.addEventListener('click', () => {
@@ -1056,6 +1058,8 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
 
     // 监听推荐输入语句响应
     ipcRenderer.on('suggestions-response', (event, suggestions) => {
+        suggestionsButton.classList.remove('loading');
+        suggestionsButton.disabled = false;
         displaySuggestions(suggestions)
     })
 
