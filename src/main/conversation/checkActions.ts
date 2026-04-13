@@ -65,6 +65,10 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => !a.trim().toLowerCase().startsWith('noop'));
 
     for(const actionInResponse of actions){
+        // Skip manual approval for noop actions that might have slipped through
+        if (actionInResponse.trim().toLowerCase().startsWith('noop')) {
+            continue;
+        }
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
         if(!foundActionName){
             console.warn(`Action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
@@ -135,6 +139,11 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
 
         // NEW: Manual Action Approval Logic
         if (conv.config.manualActionApproval) {
+            // Skip approval for noop actions
+            if (matchedAction.signature.toLowerCase().startsWith('noop')) {
+                console.log('Skipping approval for noop action.');
+                continue;
+            }
             const lastMessage = conv.messages[conv.messages.length - 1];
             if (!lastMessage || !lastMessage.id) {
                 console.error("Cannot request action approval, last message has no ID.");
