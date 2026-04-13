@@ -126,14 +126,14 @@ export class LetterReplyGenerator {
         const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
         let prompt = effectivePrompts.letterPrompt;
 
-        prompt = prompt.replace('{{aiName}}', ai.fullName)
-                       .replace('{{characterDescription}}', characterDescription)
-                       .replace('{{conversationSummary}}', conversationSummary)
-                       .replace('{{letterSummaryContent}}', letterSummaryContent)
-                       .replace('{{memoryContent}}', memoryContent)
-                       .replace('{{playerName}}', player.fullName)
-                       .replace('{{letterContent}}', letter.content)
-                       .replace(/{{language}}/g, this.config.language);
+        prompt = prompt.replace('{{aiName}}', ai?.fullName || '')
+                       .replace('{{characterDescription}}', characterDescription || '')
+                       .replace('{{conversationSummary}}', conversationSummary || '')
+                       .replace('{{letterSummaryContent}}', letterSummaryContent || '')
+                       .replace('{{memoryContent}}', memoryContent || '')
+                       .replace('{{playerName}}', player?.fullName || '')
+                       .replace('{{letterContent}}', letter?.content || '')
+                       .replace(/{{language}}/g, this.config.language || 'en');
 
         return prompt;
     }
