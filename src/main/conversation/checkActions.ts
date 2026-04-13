@@ -57,12 +57,12 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     console.log(`Extracted rationale: ${rationale}`);
     console.log(`Extracted actions string: ${actionsString}`);
 
-    if(actionsString.trim() === "noop()"){
+    if(actionsString.trim().toLowerCase().startsWith("noop")){
         console.log('LLM returned "noop()", no actions triggered.');
         return [];
     }
 
-    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => a.trim() !== 'noop()');
+    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => !a.trim().toLowerCase().startsWith('noop'));
 
     for(const actionInResponse of actions){
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
