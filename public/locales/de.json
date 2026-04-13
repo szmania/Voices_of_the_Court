@@ -92,6 +92,8 @@
     "diary_summary_tooltip": "Dieser Prompt wird verwendet, um alle Tagebucheinträge für einen Charakter in einer einzigen Zusammenfassung zusammenzufassen.",
     "diary_for_letter_prompt": "Dieser Prompt wird verwendet, um einen Tagebucheintrag basierend auf einem gesendeten oder empfangenen Brief zu erstellen.",
     "diary_for_letter_tooltip": "Dieser Prompt wird verwendet, um einen Tagebucheintrag basierend auf einem gesendeten oder empfangenen Brief zu erstellen.",
+    "suggestion_prompt": "Vorschlags-Prompt",
+    "suggestion_prompt_tooltip": "Dieser Prompt wird verwendet, um Antwortvorschläge für den Spieler zu generieren.",
     "restore_defaults": "Standard-Prompts wiederherstellen",
     "restore_tooltip": "Klicken Sie auf diese Schaltfläche, um alle Prompts auf ihre Standardwerte zurückzusetzen",
     "presets_header": "Prompt-Voreinstellungen",
