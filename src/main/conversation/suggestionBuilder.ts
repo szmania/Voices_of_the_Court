@@ -79,13 +79,13 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     }
 
     // Replace placeholders in the new suggestion prompt template
-    let promptContent = parseVariables(suggestionPromptTemplate, conv.gameData);
-    promptContent = promptContent
-        .replace(/{{characterName}}/g, (playerCharacter && playerCharacter.shortName) ? playerCharacter.shortName : '')
-        .replace(/{{description}}/g, description || '')
-        .replace(/{{memoryString}}/g, memoryString || '')
-        .replace(/{{summaryString}}/g, summaryString || '')
-        .replace(/{{conversationContext}}/g, conversationContext || '');
+    let promptContent = suggestionPromptTemplate
+      .replace(/{{characterName}}/g, (playerCharacter && playerCharacter.shortName) ? playerCharacter.shortName : '')
+      .replace(/{{description}}/g, description || '')
+      .replace(/{{memoryString}}/g, memoryString || '')
+      .replace(/{{summaryString}}/g, summaryString || '')
+      .replace(/{{conversationContext}}/g, conversationContext || '');
+    promptContent = parseVariables(promptContent, conv.gameData);
 
     const messages: Message[] = [
         {
