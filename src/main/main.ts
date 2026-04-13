@@ -1359,14 +1359,29 @@ ipcMain.handle('get-prompt-presets', async () => {
 });
 
 ipcMain.handle('get-default-prompts', async () => {
-  const defaultPromptsPath = path.join(app.getAppPath(), 'default_userdata', 'configs', 'default_prompts.json');
-  try {
-    const data = fs.readFileSync(defaultPromptsPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Failed to read default_prompts.json:', error);
-    return null;
-  }
+    const lang = config.language || 'en';
+    const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
+    const promptsPath = path.join(promptsDir, `${lang}.json`);
+    const fallbackPath = path.join(promptsDir, 'en.json');
+    let finalPath = promptsPath;
+
+    if (!fs.existsSync(promptsPath)) {
+        console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
+        finalPath = fallbackPath;
+    }
+    
+    if (!fs.existsSync(finalPath)) {
+        console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
+        return null;
+    }
+
+    try {
+        const data = fs.readFileSync(finalPath, 'utf-8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error(`Failed to read or parse prompt file ${finalPath}:`, error);
+        return null;
+    }
 });
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {

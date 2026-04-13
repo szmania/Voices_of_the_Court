@@ -12,12 +12,28 @@ import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 import { GameData } from "../../shared/gameData/GameData.js";
 
-let promptsConfig: any = null;
-export function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
+export function getPromptsConfig(userDataPath: string, lang: string = 'en'): any {
+    const promptsDir = path.join(userDataPath, 'configs', 'prompts');
+    const promptsPath = path.join(promptsDir, `${lang}.json`);
+    const fallbackPath = path.join(promptsDir, 'en.json');
+    let finalPath = promptsPath;
+
+    if (!fs.existsSync(promptsPath)) {
+        console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
+        finalPath = fallbackPath;
+    }
+    
+    if (!fs.existsSync(finalPath)) {
+        console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
+        return { prompts: {}, mod_prompt_sets: {} };
+    }
+
+    try {
+        return JSON.parse(fs.readFileSync(finalPath, 'utf-8'));
+    } catch (e) {
+        console.error(`Error parsing prompt file ${finalPath}:`, e);
+        return { prompts: {}, mod_prompt_sets: {} };
+    }
 }
 
 let customPresets: any = null;
@@ -36,23 +52,20 @@ function getCustomPresets(userDataPath: string) {
 }
 
 export function getEffectivePrompts(config: Config, userDataPath: string, gameData: GameData): any {
-    const defaultPromptsConfig = getPromptsConfig(userDataPath);
+    const lang = config.language || 'en';
+    const defaultPromptsConfig = getPromptsConfig(userDataPath, lang);
     const customPresetsConfig = getCustomPresets(userDataPath);
 
-    const lang = config.language || 'en';
     const activePreset = config.activePromptPreset || 'Default';
 
     // 1. Check for built-in mod presets
     if (defaultPromptsConfig.mod_prompt_sets?.[activePreset]) {
-        const modPrompts = defaultPromptsConfig.mod_prompt_sets[activePreset];
-        const langPrompts = modPrompts[lang] || {};
-        const englishPrompts = modPrompts.en;
-        return { ...englishPrompts, ...langPrompts };
+        return { ...defaultPromptsConfig.prompts, ...defaultPromptsConfig.mod_prompt_sets[activePreset] };
     }
     
     // 2. Check for the "Default" preset
     if (activePreset === 'Default') {
-        return defaultPromptsConfig.prompts[lang] || defaultPromptsConfig.prompts.en;
+        return defaultPromptsConfig.prompts;
     }
 
     // 3. It's a custom preset. Find it, checking character-specific scope first.
@@ -68,7 +81,7 @@ export function getEffectivePrompts(config: Config, userDataPath: string, gameDa
         selectedPresetObject = globalPresets[activePreset];
     }
 
-    const defaultLangPrompts = defaultPromptsConfig.prompts[lang] || defaultPromptsConfig.prompts.en;
+    const defaultLangPrompts = defaultPromptsConfig.prompts;
 
     if (selectedPresetObject) {
         // Merge custom preset over the default language prompts to provide fallbacks.
