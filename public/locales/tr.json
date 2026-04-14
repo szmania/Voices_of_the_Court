@@ -3,7 +3,7 @@
     "title": "Voices of the Court 2.0 - Community Edition"
   },
   "nav": {
-    "connection": "Connection",
+    "connection": "Bağlantı",
     "actions": "Actions",
     "summarization": "Summarization",
     "diaries": "Diaries",
@@ -12,7 +12,7 @@
     "settings": "Settings",
     "system": "System",
     "help": "Help",
-    "language_tooltip": "Select application language",
+    "language_tooltip": "Uygulama dilini seçin",
     "discord_tooltip": "Join our Discord",
     "steam_tooltip": "View on Steam Workshop",
     "website_tooltip": "Visit our Website"
@@ -22,24 +22,24 @@
     "description": "Manage diary entries for characters."
   },
   "connection": {
-    "ck3_path": "CK3 user folder path",
-    "select_folder": "Select Folder",
-    "path_tooltip": "Here you need to select the CK3 folder where your user data are stored, not where the game files are! By default it stored in your user documents, inside the Paradox interactive folder",
+    "ck3_path": "CK3 kullanıcı klasörü yolu",
+    "select_folder": "Klasör Seç",
+    "path_tooltip": "Burada oyun dosyalarının değil, kullanıcı verilerinizin depolandığı CK3 klasörünü seçmeniz gerekiyor! Varsayılan olarak kullanıcı belgelerinizdeki Paradox Interactive klasörü içinde saklanır",
     "api_label": "API",
-    "api_key": "API Key",
+    "api_key": "API Anahtarı",
     "model": "Model",
-    "server_url": "Server URL",
-    "force_instruct": "Force Instruct mode",
-    "browse_models": "Browse models..",
-    "overwrite_context": "Overwrite context size",
-    "test_connection": "Test Connection",
-    "connection_valid": "Connection valid!",
-    "connection_valid_warning": "Connection valid! Warning: context size couldn't be detected, overwrite context size will be used! (even if disabled!)",
-    "path_placeholder": "Enter CK3 user folder path...",
-    "player2_info": "Hint: If you haven't already, download Player2 and run it in the background.",
-    "player2_download_button": "Download Player2",
-    "player2_download_tooltip": "Download the Player2 application",
-    "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary."
+    "server_url": "Sunucu URL'si",
+    "force_instruct": "Zorla Talimat modu",
+    "browse_models": "Modelleri gözat..",
+    "overwrite_context": "Bağlam boyutunu üzerine yaz",
+    "test_connection": "Bağlantıyı Test Et",
+    "connection_valid": "Bağlantı geçerli!",
+    "connection_valid_warning": "Bağlantı geçerli! Uyarı: bağlam boyutu algılanamadı, üzerine yazma bağlam boyutu kullanılacak! (devre dışı bırakılmış olsa bile!)",
+    "path_placeholder": "CK3 kullanıcı klasörü yolunu girin...",
+    "player2_info": "İpucu: Henüz yapmadıysanız, Player2'yi indirin ve arka planda çalıştırın.",
+    "player2_download_button": "Player2'yi İndir",
+    "player2_download_tooltip": "Player2 uygulamasını indirin",
+    "player2_connection_failed": "Player2 bağlantısı başarısız oldu. Lütfen Player2 uygulamasını https://player2.game adresinden indirin, arka planda çalıştığından emin olun ve tekrar deneyin. Hesap gerekli değildir."
   },
   "api": {
     "openrouter": "OpenRouter",
