@@ -48,18 +48,8 @@ module.exports = {
             return false;
         }
 
-        let opinionValue = 0;
-        if (source.id === gameData.playerID) {
-            // Target is AI, source is Player. Check AI's opinion of Player.
-            opinionValue = target.opinionOfPlayer;
-        } else {
-            // Target is AI, source is also AI. Check Target's opinion of Source.
-            const opinionEntry = target.opinions.find(o => o.id === source.id);
-            opinionValue = opinionEntry ? opinionEntry.opinion : 0;
-        }
-
-        // Simplified check from original: only improve an already non-negative opinion.
-        return opinionValue > 0;
+        // Allow opinion to be improved even if it's currently negative.
+        return true;
     },
 
     /**
