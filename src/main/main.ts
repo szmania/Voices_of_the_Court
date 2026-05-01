@@ -16,7 +16,7 @@ import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager.js";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
 import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { readPromptHistory, savePromptHistory } from "./promptHistory.js";
@@ -260,7 +260,7 @@ let diaryGenerator: DiaryGenerator;
 let letterThreadCount = 0;
 let letterThreadFullNotified = false;
 
-
+let currentSessionPlayerId: string | null = null;
 let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
@@ -946,6 +946,14 @@ clipboardListener.on('VOTC:IN', async () =>{
           throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
         }
 
+        // Clear pending letters if the player character has changed
+        if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
+            console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
+            storedLetters.clear();
+            lastLetterSentToGame = null; // Also clear any letter pending game confirmation
+        }
+        currentSessionPlayerId = String(gameData.playerID);
+
         console.log("New conversation started!");
         if (gameData.totalDays) {
             updateCurrentDate(gameData.totalDays);
@@ -1132,8 +1140,6 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const letterManager = LetterManager.getInstance();
 
         // First, update the character map with the latest data from the log
-        const summaryDirForMap = path.join(userDataPath, 'conversation_summaries', playerId);
-        const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
         let characterNameMap: Map<string, string> = await readCharacterMap(userDataPath, playerId);
 
         // Add all characters from the current gameData to the map
@@ -1148,8 +1154,8 @@ clipboardListener.on('VOTC:LETTER', async () => {
         characterNameMap.forEach((name, id) => {
             mapToSave[id] = name;
         });
-        fs.writeFileSync(characterMapPath, JSON.stringify(mapToSave, null, '\t'));
-        console.log(`Updated character map before letter import at: ${characterMapPath}`);
+        await saveCharacterMap(userDataPath, playerId, mapToSave);
+        console.log(`Updated character map before letter import for player ${playerId}`);
 
 
         // Import letters from log, which now also saves them.
