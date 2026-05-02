@@ -174,6 +174,8 @@
     "manual_approval_tooltip": "If enabled, actions triggered by the AI must be manually approved by the user in the chat window before they are executed.",
     "summaries_depth": "Summaries insert depth",
     "memories_depth": "Memories insert depth",
+    "max_summaries": "Max Summaries",
+    "max_summaries_tooltip": "The maximum number of summaries (conversation, letter, diary) to include in the prompt. Helps control token count.",
     "desc_depth": "Char desc insert depth",
     "ai_start": "AI can start conversation",
     "ai_start_tooltip": "Allows the AI to initiate the conversation. The chance is determined by the percentage field below.",
