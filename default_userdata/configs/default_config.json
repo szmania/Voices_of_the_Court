@@ -99,7 +99,7 @@
   "showTokenizerDisplay": true,
   "earlyAccessUpdates": true,
   "lastAnnouncementVersion": "",
-  "summariesInsertDepth": 4,
+  "summariesInsertDepth": 6,
   "memoriesInsertDepth": 5,
   "descInsertDepth": 4,
   "enableSuffixPrompt": false
