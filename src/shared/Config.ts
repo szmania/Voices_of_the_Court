@@ -62,6 +62,7 @@ export class Config{
     showPreviousConversations!: boolean;
     disableHistoricalConversations!: boolean;
     maxHistoricalConversations!: number;
+    maxSummaries!: number;
     showTokenizerDisplay!: boolean;
     checkForUpdatesOnStartup!: boolean;
     earlyAccessUpdates!: boolean;
