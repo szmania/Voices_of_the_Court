@@ -40,9 +40,7 @@ export class DiaryGenerator {
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
-        // @ts-ignore
-        const depth = this.config.summaries_insert_depth || 3;
-        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId).slice(0, depth);
+        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId).slice(0, this.config.maxSummaries);
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
             const allSummaries = letterSummaries.map((summary, index) =>
