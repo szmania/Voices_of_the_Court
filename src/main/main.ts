@@ -2137,7 +2137,7 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
 ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
     console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
     try {
-        const files = await getConversationHistoryFiles(playerId, []);
+        const files = await getConversationHistoryFiles(playerId, [], 0);
         return files;
     } catch (error) {
         console.error('Error getting conversation history files:', error);

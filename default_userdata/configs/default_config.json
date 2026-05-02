@@ -71,6 +71,7 @@
   "manualActionApproval": true,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
+  "maxHistoricalConversations": 10,
   "narrativeEnable": true,
   "disabledActions": [
     "woundCharacter",
@@ -98,7 +99,7 @@
   "showTokenizerDisplay": true,
   "earlyAccessUpdates": true,
   "lastAnnouncementVersion": "",
-  "summariesInsertDepth": 6,
+  "summariesInsertDepth": 4,
   "memoriesInsertDepth": 5,
   "descInsertDepth": 4,
   "enableSuffixPrompt": false

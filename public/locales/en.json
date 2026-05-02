@@ -160,6 +160,8 @@
     "show_suggestions_tooltip": "Show or hide the suggestions button in the chat window. Controls whether to display the recommended input statements feature.",
     "disable_historical": "disable historical conversations",
     "disable_historical_tooltip": "Disable loading of historical conversations that prepopulate the chat window with previous conversations with that character.",
+    "max_historical_conversations": "Max historical conversations",
+    "max_historical_conversations_tooltip": "The maximum number of historical conversation files to load. Helps prevent lag with characters that have a long history. Set to 0 for no limit.",
     "generate_scene": "generate scene description",
     "generate_scene_tooltip": "Generate scene description at the start of conversation to provide context and background for characters.",
     "auto_suggestions": "auto generate suggestions",

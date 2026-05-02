@@ -285,7 +285,7 @@ export class Conversation{
         }
 
         const allCharacterIds = Array.from(this.gameData.characters.keys());
-        const historyFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds);
+        const historyFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds, this.config.maxHistoricalConversations);
 
         const files = historyFiles
             .map(file => ({
