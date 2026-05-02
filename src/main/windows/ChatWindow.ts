@@ -1,10 +1,17 @@
 
 import {  app, BrowserWindow, ipcMain, screen} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
-import ActiveWindow from '@paymoapp/active-window';
 import path from 'path';
 
-ActiveWindow.initialize();
+// Do not import @paymoapp/active-window on Linux. Loading it calls XSetErrorHandler()
+// at require() time (inside the native addon's Init function), which replaces
+// Electron/Chromium's global X11 error handler process-wide and silently breaks
+// clipboard.readText() in the main process.
+let ActiveWindow: any = null;
+if (process.platform !== 'linux') {
+    ActiveWindow = require('@paymoapp/active-window').default;
+    ActiveWindow.initialize();
+}
 
 export class ChatWindow{
     window: BrowserWindow;
@@ -103,6 +110,7 @@ export class ChatWindow{
 
         this.interval = setInterval(()=>{
             try {
+                if (!ActiveWindow) return;
                 let win = ActiveWindow.getActiveWindow();
 
                 // 检查是否是游戏或者聊天窗口本身
@@ -140,7 +148,7 @@ export class ChatWindow{
         OverlayController.focusTarget();
         this.isShown = false;
 
-        ActiveWindow.unsubscribe(this.windowWatchId);
+        if (ActiveWindow) ActiveWindow.unsubscribe(this.windowWatchId);
 
         clearInterval(this.interval);
     }

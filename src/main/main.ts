@@ -253,7 +253,7 @@ const createTray = () => {
     }
 };
 
-let clipboardListener = new ClipboardListener();
+let clipboardListener: ClipboardListener;
 let config: Config;
 let diaryGenerator: DiaryGenerator;
 
@@ -822,6 +822,7 @@ app.on('ready',  async () => {
         app.quit()
     });
 
+    clipboardListener = new ClipboardListener();
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
