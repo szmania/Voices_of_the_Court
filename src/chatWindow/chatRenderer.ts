@@ -650,6 +650,9 @@ function removeLoadingDots(enableInput: boolean = true){
         cancelButtonWrapper.classList.add('hidden');
     }
     if (!loadingDots) {
+        if (enableInput) {
+            chatInput.disabled = false;
+        }
         return;
     }
     console.log(`removeLoadingDots() called, enableInput: ${enableInput}`);
@@ -1904,7 +1907,7 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     // Clear loading dots if this is an AI message and we're not waiting for actions
     // This handles the case where AI speaks first in a conversation
     if (message.role === "assistant" && !waitForActions) {
-        removeLoadingDots(shouldDisableInput);
+        removeLoadingDots(true);
     }
 
     // Always keep loading dots visible until actions are received
@@ -1926,7 +1929,7 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     displayNarrative(narrativeMessage);
 
     const shouldEnableInput = !isAiToAi;
-    removeLoadingDots(shouldEnableInput);
+    removeLoadingDots(true);
     updateStatusText('');
 })
 
