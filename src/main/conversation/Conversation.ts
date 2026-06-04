@@ -2193,6 +2193,9 @@ ${character.fullName}的发言：`
         }
 
         this.aiToAiTurnLimit++;
+
+        // Notify the frontend that all generation is complete to re-enable the input field.
+        this.chatWindow.window.webContents.send('generation-finished');
         const lastRespondingCharacter = this.gameData.characters.get((initialMessages[initialMessages.length - 1] as any).characterId);
         if (!lastRespondingCharacter) return;
 
