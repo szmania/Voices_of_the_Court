@@ -139,9 +139,11 @@ Eylemler sayfası, oyunda algılanabilir eylemleri ve bunlara karşılık gelen 
 - Geliştirme modu: `npm run start`
 - Paketleme: `npm run make`
 
-## Emeği Geçenler ve Atıflar
+### Original Creators and Supporters
+Durond (Original Creator), the VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
-Bu proje, **VOTC / AliChat** tabanlı bir türev çalışmadır. Orijinal VOTC ve VOTC 2.0 ekiplerine, Çinli geliştirme topluluğuna (Lisiyuan233, zhaowendao2005 vb.) ve tüm Community Edition bakımcılarına teşekkür ederiz.
+### Continued Development
+Special thanks to MrAndroPc, the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
 
 ### Lisans
 Bu proje **GNU Genel Kamu Lisansı v3.0 (GPLv3)** altında lisanslanmıştır. Orijinal materyallerin bir kısmı CC BY-SA 4.0 altında sunulduğu için, bu türev çalışma da uyumlu olan GPLv3 ile lisanslanmaya devam etmektedir.

@@ -299,10 +299,10 @@ npx electron-rebuild
 This project is a derivative work based on VOTC / AliChat. We would like to extend our deep gratitude to the developers who kept this project alive and pushed the boundaries of AI in Crusader Kings III:
 
 ### Original Creators and Supporters
-The VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
+Durond (Original Creator), the VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
-Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
+Special thanks to MrAndroPc, the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
 
 ### Community Edition Maintainers
 The VOTC-CE team and contributors.
