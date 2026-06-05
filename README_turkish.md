@@ -143,7 +143,7 @@ Eylemler sayfası, oyunda algılanabilir eylemleri ve bunlara karşılık gelen 
 Durond (Original Creator), the VOTC, VOTC 2.0 Team and community contributors for their contributions to the project.
 
 ### Continued Development
-Special thanks to the Chinese development community, including Lisiyuan233, zhaowendao2005, MrAndroPc, and others who provided critical updates and support.
+Special thanks to MrAndroPc, the Chinese development community, including Lisiyuan233, zhaowendao2005, and others who provided critical updates and support.
 
 ### Lisans
 Bu proje **GNU Genel Kamu Lisansı v3.0 (GPLv3)** altında lisanslanmıştır. Orijinal materyallerin bir kısmı CC BY-SA 4.0 altında sunulduğu için, bu türev çalışma da uyumlu olan GPLv3 ile lisanslanmaya devam etmektedir.

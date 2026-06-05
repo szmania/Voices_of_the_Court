@@ -302,7 +302,7 @@ Este projeto é um trabalho derivado baseado no VOTC / AliChat. Gostaríamos de 
 Durond (Criador Original), a equipa do VOTC, VOTC 2.0 e os contribuidores da comunidade pelas suas contribuições para o projeto.
 
 ### Desenvolvimento Contínuo
-Agradecimentos especiais à comunidade de desenvolvimento chinesa, including Lisiyuan233, zhaowendao2005, MrAndroPc, e outros que forneceram atualizações e suporte críticos.
+Agradecimentos especiais a MrAndroPc, à comunidade de desenvolvimento chinesa, incluindo Lisiyuan233, zhaowendao2005, e outros que forneceram atualizações e suporte críticos.
 
 ### Mantenedores da Edição Comunitária
 A equipa do VOTC-CE e contribuidores.
