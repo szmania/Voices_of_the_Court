@@ -569,19 +569,22 @@ export class Conversation{
         if (this.isGeneratingScene) {
             console.log('Scene is currently generating. Queuing player request to be processed after.');
             this.pendingPlayerRequest = true;
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
+            return;
+        }
+        if (this.isGenerating) {
+            console.log('Already generating AI messages, skipping new request.');
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
             return;
         }
         if (this.isGenerating) {
             console.log('Already generating AI messages, skipping new request.');
             return;
-        try {
         }
+
         this.isGenerating = true;
-        }
-        finally {
-            // Ensure the input field is re-enabled after generation, regardless of success or failure.
-            this.chatWindow.window.webContents.send('generation-finished', true);
-        }
         this.abortController = new AbortController();
         try {
             // Ensure NPC queue is filled before determining targets.
@@ -770,6 +773,9 @@ export class Conversation{
         finally {
             this.isGenerating = false;
             this.abortController = null;
+
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
 
             // After the turn, calculate the new base prompt size and send it to the UI
             const newBaseTokens = await this.calculateBasePromptTokens();
@@ -2199,7 +2205,6 @@ ${character.fullName}的发言：`
         }
         this.aiToAiTurnLimit++;
 
-        // Notify the frontend that all generation is complete to re-enable the input field.
         const lastRespondingCharacter = this.gameData.characters.get((initialMessages[initialMessages.length - 1] as any).characterId);
         if (!lastRespondingCharacter) return;
 
