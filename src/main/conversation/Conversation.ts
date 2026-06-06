@@ -2197,9 +2197,6 @@ ${character.fullName}的发言：`
         if (initialMessages.length === 0 || this.aiToAiTurnLimit >= 2 || !shouldTalkToAi) {
             return;
         }
-        // Notify the frontend that all generation is complete to re-enable the input field.
-        this.chatWindow.window.webContents.send('generation-finished', true);
-
         this.aiToAiTurnLimit++;
 
         // Notify the frontend that all generation is complete to re-enable the input field.
@@ -2251,6 +2248,8 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
+        // Notify the frontend that all generation is complete to re-enable the input field.
+        this.chatWindow.window.webContents.send('generation-finished', true);
     }
 
     public async initiateConversation(){
