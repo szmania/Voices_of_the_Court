@@ -7,7 +7,7 @@
   "stream": false,
   "maxTokens": 5000,
   "maxMemoryTokens": 600,
-  "maxSummaries": 10,
+  "maxSummaries": 8,
   "percentOfContextToSummarize": 40,
   "selectedDescScript": "standard/pList.js",
   "selectedExMsgScript": "standard/aliChat.js",
@@ -84,7 +84,7 @@
   "manualActionApproval": true,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
-  "maxHistoricalConversations": 10,
+  "maxHistoricalConversations": 8,
   "narrativeEnable": true,
   "disabledActions": [
     "woundCharacter",
