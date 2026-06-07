@@ -579,10 +579,6 @@ export class Conversation{
             this.chatWindow.window.webContents.send('generation-finished', true);
             return;
         }
-        if (this.isGenerating) {
-            console.log('Already generating AI messages, skipping new request.');
-            return;
-        }
 
         this.isGenerating = true;
         this.abortController = new AbortController();
@@ -1988,16 +1984,21 @@ ${character.fullName}的发言：`
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
             this.isGeneratingScene = false;
-            if (!wasGenerating) {
-                this.isGenerating = false;
-                this.abortController = null;
-            }
 
             // If a player message came in while the scene was generating, process it now.
             if (this.pendingPlayerRequest) {
                 console.log('Processing queued player request after scene generation finished.');
                 this.pendingPlayerRequest = false;
+                // Ensure the main generation lock is released before starting the new generation.
+                this.isGenerating = false;
+                this.abortController = null;
                 this.generateAIsMessages();
+            } else {
+                // If no pending request, just reset the state if we were the ones who set it.
+                if (!wasGenerating) {
+                    this.isGenerating = false;
+                    this.abortController = null;
+                }
             }
         }
 
