@@ -685,7 +685,52 @@ function renderLetterContent(letter: Letter) {
         <div class="letter-view-body">
             ${letter.content.replace(/\n/g, '<br>')}
         </div>
+        <div class="letter-view-controls">
+            <button id="letter-delete-btn" class="btn btn-danger" data-i18n="letters.delete">Delete</button>
+        </div>
     `;
+
+    const deleteBtn = letterViewContainer.querySelector('#letter-delete-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            if (!selectedLetter || !selectedPlayerId) return;
+
+            // @ts-ignore
+            const confirmDelete = confirm(window.LocalizationManager.getTranslation('letters.confirm_delete', 'Are you sure you want to permanently delete this letter? This action cannot be undone.'));
+            if (confirmDelete) {
+                const otherPartyId = selectedLetter.sender.id === Number(selectedPlayerId)
+                    ? String(selectedLetter.recipient.id)
+                    : String(selectedLetter.sender.id);
+
+                loader.style.display = 'block';
+                try {
+                    const result = await ipcRenderer.invoke('delete-letter', {
+                        playerId: selectedPlayerId,
+                        characterId: otherPartyId,
+                        letterId: selectedLetter.id
+                    });
+
+                    if (result.success) {
+                        // @ts-ignore
+                        showStatusMessage(window.LocalizationManager.getTranslation('letters.delete_success', 'Letter deleted successfully.'), 'success');
+                        selectedLetter = null;
+                        // @ts-ignore
+                        letterViewContainer.innerHTML = `<p data-i18n="letters.select">${window.LocalizationManager.getTranslation('letters.select', 'Select a letter to read.')}</p>`;
+                        // Reload letters
+                        await loadLetters(selectedPlayerId);
+                    } else {
+                        // @ts-ignore
+                        showStatusMessage(window.LocalizationManager.getTranslation('letters.delete_failed', 'Failed to delete letter: {error}').replace('{error}', result.error), 'error');
+                    }
+                } catch (error: any) {
+                    // @ts-ignore
+                    showStatusMessage(window.LocalizationManager.getTranslation('letters.delete_failed', 'Failed to delete letter: {error}').replace('{error}', error.message), 'error');
+                } finally {
+                    loader.style.display = 'none';
+                }
+            }
+        });
+    }
 
     const viewReplyBtn = letterViewContainer.querySelector('.view-reply-btn');
     if (viewReplyBtn) {

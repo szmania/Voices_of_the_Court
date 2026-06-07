@@ -1306,7 +1306,8 @@ mark.current-highlight {
 }
 
 #summary-manager-container .btn-danger,
-#diary-manager-container .btn-danger {
+#diary-manager-container .btn-danger,
+.letter-view-controls .btn-danger {
     background-color: #8b0000;
     border-color: #ff0000;
 }
@@ -1580,6 +1581,13 @@ mark.current-highlight {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.letter-view-controls {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #5a4a35;
+    text-align: right;
 }
 
 .estimated-date {
