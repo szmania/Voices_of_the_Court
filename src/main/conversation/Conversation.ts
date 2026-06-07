@@ -740,6 +740,9 @@ export class Conversation{
             // Clear queue display after all characters in this turn have been processed
             this.chatWindow.window.webContents.send('queue-update', [], null);
 
+            // Immediately re-enable the user's input before generating narrative
+            this.chatWindow.window.webContents.send('generation-finished', true);
+
             // Send actions for player-directed part to re-enable user input
             let playerNarrative: Message | null = null;
             if (allTurnActions.length > 0 && this.config.narrativeEnable) {
