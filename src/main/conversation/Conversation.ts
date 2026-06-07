@@ -955,7 +955,6 @@ export class Conversation{
 
     async processCharacterList(characterList: Character[], isNonTargeted: boolean, playerActionsAlreadyChecked: boolean = false, performActionCheck: boolean = true): Promise<{ messages: (Message | null)[], actions: ActionResponse[] }> {
         const generatedMessages: (Message | null)[] = [];
-        const allTurnActions: ActionResponse[] = [];
 
         for (const character of characterList) {
             if (this.isPaused) {
@@ -981,25 +980,41 @@ export class Conversation{
                 // Check for actions initiated by the AI character's response.
                 if (performActionCheck && this.config.actionsEnableAll) {
                     const sourceId = character.id; // The AI is the source.
-                    const actionTarget = await this.determineActionTarget(message.content, sourceId);
-                    const targetId = actionTarget ? actionTarget.id : this.gameData.playerID; // Target is player or another AI.
+                    this.determineActionTarget(message.content, sourceId).then(actionTarget => {
+                        const targetId = actionTarget ? actionTarget.id : this.gameData.playerID; // Target is player or another AI.
 
-                    if (sourceId !== targetId) {
-                        console.log(`[processCharacterList] Checking for AI-initiated actions. Source: ${sourceId}, Target: ${targetId}`);
-                        const collectedActions = await checkActions(this, sourceId, targetId);
-                        if (collectedActions.length > 0) {
-                            const existingActions = this.executedActions.get(message.id!) || [];
-                            this.executedActions.set(message.id!, [...existingActions, ...collectedActions]);
-                            allTurnActions.push(...collectedActions);
-                            this.actionInvolvedCharacterIds.add(sourceId);
-                            this.actionInvolvedCharacterIds.add(targetId);
+                        if (sourceId !== targetId) {
+                            console.log(`[processCharacterList] Checking for AI-initiated actions in background. Source: ${sourceId}, Target: ${targetId}`);
+                            // Don't await this. Let it run in the background so the UI isn't blocked.
+                            checkActions(this, sourceId, targetId).then(async (collectedActions) => {
+                                if (collectedActions.length > 0) {
+                                    const existingActions = this.executedActions.get(message.id!) || [];
+                                    this.executedActions.set(message.id!, [...existingActions, ...collectedActions]);
+                                    this.actionInvolvedCharacterIds.add(sourceId);
+                                    this.actionInvolvedCharacterIds.add(targetId);
+
+                                    // Generate narrative here since we have the actions.
+                                    let narrativeMessage: Message | null = null;
+                                    if (this.config.narrativeEnable) {
+                                        narrativeMessage = await generateNarrative(this, collectedActions);
+                                        if (narrativeMessage) {
+                                            this.pushMessage(narrativeMessage);
+                                        }
+                                    }
+                                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, false);
+                                }
+                            }).catch(err => {
+                                console.error(`Error during background action check for message ${message.id}:`, err);
+                            });
                         }
-                    }
+                    });
                 }
             }
         }
 
-        return { messages: generatedMessages, actions: allTurnActions };
+        // Actions are now handled async, so we return an empty array.
+        // Player-initiated actions are handled separately in generateAIsMessages.
+        return { messages: generatedMessages, actions: [] };
     }
 
     pause(): void {
