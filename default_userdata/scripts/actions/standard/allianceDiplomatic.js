@@ -14,7 +14,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere sich einigen, ein Bündnis zu bilden.`,
         ja: `二人のキャラクターが同盟を結ぶことに同意したときに実行されます。`,
         ko: `두 캐릭터가 동맹을 형성하기로 동의했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie zgadzają się na zawarcie sojuszu.`
+        pl: `Wykonywane, gdy dwie postacie zgadzają się na zawarcie sojuszu.`,
+        pt: `Executado quando dois personagens concordam em formar uma aliança. A fonte (character1) e o alvo (character2) são as duas partes que formam a aliança.`,
+        tr: `İki karakter bir ittifak kurmayı kabul ettiğinde çalıştırılır. Kaynak (character1) ve hedef (character2), ittifakı kuran iki taraftır.`
     },
 	
     check: (gameData, sourceId, targetId) => {
@@ -90,7 +92,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} haben ein Bündnis gebildet.`,
             ja: `{{character1Name}}と{{character2Name}}は同盟を結びました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 동맹을 형성했습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} zawarli sojusz.`
+            pl: `{{character1Name}} i {{character2Name}} zawarli sojusz.`,
+            pt: `{{character1Name}} e {{character2Name}} formaram uma aliança.`,
+            tr: `{{character1Name}} ve {{character2Name}}, bir ittifak kurdu.`
         };
     },
     chatMessageClass: "positive-action-message"

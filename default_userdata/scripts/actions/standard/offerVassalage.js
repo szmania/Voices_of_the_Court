@@ -18,7 +18,9 @@ module.exports = {
                 de: "Gibt die Akzeptanz der Vasallisierung von {{character2Name}} durch {{character1Name}} an. Positive Werte bedeuten Akzeptanz, negative Werte Ablehnung.",
                 ja: "{{character2Name}}の{{character1Name}}による封臣化の受容度を指定します。正の値は受諾、負の値は拒否を意味します。",
                 ko: "{{character2Name}}의 {{character1Name}}에 의한 봉신화 수용도를 지정합니다. 양수 값은 수락, 음수 값은 거부를 의미합니다.",
-                pl: "Określa akceptację wasalizacji {{character2Name}} przez {{character1Name}}. Wartości dodatnie oznaczają akceptację, a ujemne odrzucenie."
+                pl: "Określa akceptację wasalizacji {{character2Name}} przez {{character1Name}}. Wartości dodatnie oznaczają akceptację, a ujemne odrzucenie.",
+                pt: "Especifica a aceitação da vassalização de {{character2Name}} por {{character1Name}}. Valores positivos significam aceitação, valores negativos significam rejeição.",
+                tr: "{{character1Name}} tarafından {{character2Name}}'nin vasallık kabulünü belirtir. Pozitif değerler kabulü, negatif değerler reddi ifade eder."
             }
         }
     ],
@@ -32,6 +34,8 @@ module.exports = {
         ja: `二人のキャラクターが封臣化またはその条件について議論するときに実行されます。`,
         ko: `두 캐릭터가 봉신화 또는 그 조건에 대해 논의할 때 실행됩니다.`,
         pl: `Wykonywane, gdy dwie postacie dyskutują o wasalizacji lub jej warunkach.`,
+        pt: `Executado quando um personagem oferece vassalagem a outro. A fonte (character1) é o SENHOR que oferece a vassalagem. O alvo (character2) é o personagem a quem a vassalagem é oferecida.`,
+        tr: `Bir karakter başka birine vasallık teklif ettiğinde çalıştırılır. Kaynak (character1) vasallığı teklif eden EFENDİ'dir. Hedef (character2) vasallığı teklif edilen karakterdir.`
     },
     
     /**
@@ -141,6 +145,8 @@ module.exports = {
                 ja: `{{character2Name}}は{{character1Name}}の封臣になることに同意しました。`,
                 ko: `{{character2Name}}가 {{character1Name}}의 봉신이 되는 데 동의했습니다.`,
                 pl: `{{character2Name}} zgodził się zostać wasalem {{character1Name}}.`,
+                pt: `{{character2Name}} concordou em tornar-se vassalo de {{character1Name}}.`,
+                tr: `{{character2Name}}, {{character1Name}}'nin vasalı olmayı kabul etti.`
             };
         } else {
             console.log(`PVAIchat: else`)
@@ -154,6 +160,8 @@ module.exports = {
                 ja: `受容スコア: ${score} | 封臣化は>30の場合、交渉決裂は<-20の場合`,
                 ko: `수용 점수: ${score} | 봉신화는 >30일 경우, 협상 결렬은 <-20일 경우`,
                 pl: `Wynik akceptacji: ${score} | Wasalizacja jeśli >30, załamanie jeśli <-20`,
+                pt: `Pontuação de aceitação: ${score} | Vassalização se >30, colapso se <-20`,
+                tr: `Kabul puanı: ${score} | Vasallık >30, çöküş <-20`
             };
         }
     },

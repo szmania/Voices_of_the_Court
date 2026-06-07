@@ -14,6 +14,8 @@ module.exports = {
         ja: `キャラクターが服を脱いだときに実行されます。自発的または強制的に。`,
         ko: `캐릭터가 옷을 벗을 때 실행됩니다. 자발적이거나 강제로.`,
         pl: `Wykonywane, gdy postać rozbiera się, dobrowolnie lub siłą.`,
+        pt: `Executado quando um personagem se despe, voluntariamente ou à força. A fonte (character1) é o personagem que causa a ação (pode ser o mesmo que o alvo). O alvo (character2) é o personagem que está SE DESPIRINDO.`,
+        tr: `Bir karakter soyunduğunda çalıştırılır, gönüllü olarak veya zorla. Kaynak (character1) eyleme neden olan karakterdir (hedef ile aynı olabilir). Hedef (character2) SOYUNAN karakterdir.`
     },
 
     /**
@@ -52,7 +54,9 @@ module.exports = {
             de: `{{character2Name}} hat sich ausgezogen.`,
             ja: `{{character2Name}}は服を脱ぎました。`,
             ko: `{{character2Name}}가 옷을 벗었습니다.`,
-            pl: `{{character2Name}} rozebrał się.`
+            pl: `{{character2Name}} rozebrał się.`,
+            pt: `{{character2Name}} se despiu.`,
+            tr: `{{character2Name}} soyundu.`
         }
     },
     chatMessageClass: "neutral-action-message"

@@ -118,7 +118,8 @@ module.exports = {
         ja: "ターゲットキャラクターに追加する特性キー（例：'brave'、'lustful'、'ambitious'）。スペイン語の意図：「ganar rasgo」、「adquirir rasgo」、「se vuelve」。",
         ko: "대상 캐릭터에 추가할 특성 키(예: 'brave', 'lustful', 'ambitious'). 스페인어 의도: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
         pl: "Klucz cechy do dodania postaci docelowej (np. 'brave', 'lustful', 'ambitious'). Hiszpański zamiar: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
-        pt: "Chave de traço para adicionar ao personagem alvo (por exemplo, 'brave', 'lustful', 'ambitious'). Intenção em espanhol: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'."
+        pt: "Chave de traço para adicionar ao personagem alvo (por exemplo, 'brave', 'lustful', 'ambitious'). Intenção em espanhol: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
+        tr: "Hedef karaktere eklenecek özellik anahtarı (örn. 'brave', 'lustful', 'ambitious'). İspanyolca niyet: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'."
       }
     },
     {
@@ -134,7 +135,8 @@ module.exports = {
         ja: "この特性が追加される理由を説明する、会話の文脈からのオプションの短い理由。スペイン語の例：「tras la batalla」、「por su conducta」。",
         ko: "이 특성이 추가되는 이유를 설명하는 대화 컨텍스트의 선택적 짧은 이유. 스페인어 예: 'tras la batalla', 'por su conducta'.",
         pl: "Opcjonalny krótki powód z kontekstu rozmowy opisujący, dlaczego ta cecha jest dodawana. Hiszpańskie przykłady: 'tras la batalla', 'por su conducta'.",
-        pt: "Razão curta opcional do contexto da conversa descrevendo por que este traço está sendo adicionado. Exemplos em espanhol: 'tras la batalla', 'por su conducta'."
+        pt: "Razão curta opcional do contexto da conversa descrevendo por que este traço está sendo adicionado. Exemplos em espanhol: 'tras la batalla', 'por su conducta'.",
+        tr: "İsteğe bağlı kısa sebep, konuşma bağlamında bu özelliğin neden eklendiğini açıklar. İspanyolca örnekler: 'tras la batalla', 'por su conducta'."
       }
     }
   ],
@@ -148,7 +150,8 @@ module.exports = {
     ja: "キャラクターに特性を追加します。ソース（キャラクター1）がコンテキストを提供し、ターゲット（キャラクター2）が特性を受け取ります。",
     ko: "캐릭터에 특성을 추가합니다. 소스(캐릭터 1)는 컨텍스트를 제공하고 대상(캐릭터 2)은 특성을 받습니다.",
     pl: "Dodaje cechę postaci. Źródło (postać 1) dostarcza kontekstu, a cel (postać 2) otrzymuje cechę.",
-    pt: "Adiciona um traço a um personagem. A fonte (personagem 1) fornece o contexto, enquanto o alvo (personagem 2) recebe o traço."
+    pt: "Adiciona um traço a um personagem. A fonte (personagem 1) fornece o contexto, enquanto o alvo (personagem 2) recebe o traço.",
+    tr: "Bir karaktere bir özellik ekler. Kaynak (character1) bağlam sağlar, hedef (character2) ise özelliği alır."
   },
 
   /**
@@ -238,7 +241,8 @@ module.exports = {
       ja: `{{character2Name}}は特性${traitKey}を獲得しました。`,
       ko: `{{character2Name}}님이 ${traitKey} 특성을 획득했습니다.`,
       pl: `{{character2Name}} zyskał(a) cechę ${traitKey}.`,
-      pt: `{{character2Name}} ganhou o traço ${traitKey}.`
+      pt: `{{character2Name}} ganhou o traço ${traitKey}.`,
+      tr: `{{character2Name}}, ${traitKey} özelliğini kazandı.`
     };
   },
 

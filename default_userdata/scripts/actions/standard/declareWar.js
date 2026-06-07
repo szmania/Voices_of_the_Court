@@ -42,7 +42,8 @@ module.exports = {
         ja: `戦争の大義名分。デフォルトは'claim_cb'です。スペイン語の意図：「declarar la guerra」、「casus belli」。`,
         ko: `전쟁 명분. 기본값은 'claim_cb'입니다. 스페인어 의도: "declarar la guerra", "casus belli".`,
         pl: `Casus belli dla wojny. Domyślnie 'claim_cb'. Hiszpański zamiar: "declarar la guerra", "casus belli".`,
-        pt: `Casus belli para a guerra. O padrão é 'claim_cb'. Intenção em espanhol: "declarar la guerra", "casus belli".`
+        pt: `Casus belli para a guerra. O padrão é 'claim_cb'. Intenção em espanhol: "declarar la guerra", "casus belli".`,
+        tr: `Savaş için casus belli. Varsayılan olarak 'claim_cb'. İspanyolca niyet: "declarar la guerra", "casus belli".`
       }
     },
     {
@@ -58,7 +59,8 @@ module.exports = {
         ja: `戦争目標のオプションのCK3称号キー（例：c_kings_landing）。省略した場合、請求戦争のために有効な称号が自動的に選択されます。スペイン語の意図：「titulo objetivo」、「por el condado」。`,
         ko: `전쟁 목표에 대한 선택적 CK3 타이틀 키(예: c_kings_landing). 생략하면 청구 전쟁에 유효한 타이틀이 자동으로 선택됩니다. 스페인어 의도: 'titulo objetivo', 'por el condado'.`,
         pl: "Opcjonalny klucz tytułu CK3 dla celu wojny (np. c_kings_landing). Jeśli pominięty, dla wojen o roszczenia zostanie automatycznie wybrany prawidłowy tytuł. Hiszpański zamiar: 'titulo objetivo', 'por el condado'.",
-        pt: "Chave de título opcional do CK3 para o objetivo da guerra (por exemplo, c_kings_landing). Se omitido, um título válido é escolhido automaticamente para guerras de reivindicação. Intenção em espanhol: 'titulo objetivo', 'por el condado'."
+        pt: "Chave de título opcional do CK3 para o objetivo da guerra (por exemplo, c_kings_landing). Se omitido, um título válido é escolhido automaticamente para guerras de reivindicação. Intenção em espanhol: 'titulo objetivo', 'por el condado'.",
+        tr: "Savaş hedefi için isteğe bağlı CK3 başlık anahtarı (örneğin, c_kings_landing). Atlanırsa, talep savaşları için otomatik olarak geçerli bir başlık seçilir. İspanyolca niyet: 'titulo objetivo', 'por el condado'."
       }
     },
     {
@@ -74,7 +76,8 @@ module.exports = {
           ja: "オプションのカスタムCBキー。casusBelliが「custom」に設定されている場合にのみ使用されます。スペイン語の例：「mi_cb_personalizado」。",
           ko: "선택적 사용자 정의 CB 키. casusBelli가 'custom'으로 설정된 경우에만 사용됩니다. 스페인어 예: 'mi_cb_personalizado'.",
           pl: "Opcjonalny niestandardowy klucz CB. Używany tylko, gdy casusBelli jest ustawione na 'custom'. Hiszpańskie przykłady: 'mi_cb_personalizado'.",
-          pt: "Chave de CB personalizada opcional. Usado apenas quando casusBelli é definido como 'custom'. Exemplos em espanhol: 'mi_cb_personalizado'."
+          pt: "Chave de CB personalizada opcional. Usado apenas quando casusBelli é definido como 'custom'. Exemplos em espanhol: 'mi_cb_personalizado'.",
+          tr: "İsteğe bağlı özel CB anahtarı. Yalnızca casusBelli 'custom' olarak ayarlandığında kullanılır. İspanyolca örnekler: 'mi_cb_personalizado'."
         }
     }
   ],
@@ -88,7 +91,8 @@ module.exports = {
     ja: "ある支配者（キャラクター1）が別の支配者（キャラクター2）に宣戦布告します。これは大規模な軍事的エスカレーションのためのものです。ソースは攻撃側、ターゲットは防御側です。",
     ko: "한 통치자(캐릭터 1)가 다른 통치자(캐릭터 2)에게 전쟁을 선포합니다. 이것은 주요 군사적 확대를 위한 것입니다. 소스는 공격자이고 대상은 방어자입니다.",
     pl: "Jeden władca (postać 1) wypowiada wojnę drugiemu (postać 2). Dotyczy to poważnych eskalacji militarnych. Źródłem jest atakujący, celem jest obrońca.",
-    pt: "Um governante (personagem 1) declara guerra a outro (personagem 2). Isso é para grandes escaladas militares. A fonte é o atacante, o alvo é o defensor."
+    pt: "Um governante (personagem 1) declara guerra a outro (personagem 2). Isso é para grandes escaladas militares. A fonte é o atacante, o alvo é o defensor.",
+    tr: "Bir hükümdar (karakter 1) diğerine (karakter 2) savaş ilan eder. Bu büyük askeri yükselmeler içindir. Kaynak saldırgandır, hedef savunucudur."
   },
 
   /**
@@ -180,7 +184,8 @@ module.exports = {
       ja: `{{character1Name}}は{{character2Name}}に宣戦布告しました（開戦事由：${cb}）。`,
       ko: `{{character1Name}}이(가) {{character2Name}}에게 전쟁을 선포했습니다 (전쟁 명분: ${cb}).`,
       pl: `{{character1Name}} wypowiedział(a) wojnę {{character2Name}} (Casus Belli: ${cb}).`,
-      pt: `{{character1Name}} declarou guerra a {{character2Name}} (Casus Belli: ${cb}).`
+      pt: `{{character1Name}} declarou guerra a {{character2Name}} (Casus Belli: ${cb}).`,
+      tr: `{{character1Name}}, {{character2Name}}'ye savaş ilan etti (Casus Belli: ${cb}).`
     };
   },
 

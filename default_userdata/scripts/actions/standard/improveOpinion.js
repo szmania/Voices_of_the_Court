@@ -18,7 +18,9 @@ module.exports = {
                 de: "die Anzahl der Meinungswerte, um die sich die Beziehung verbessert.",
                 ja: "関係が改善する意見値の数。",
                 ko: "관계가 개선되는 평가 값의 수.",
-                pl: "liczba wartości opinii, o które poprawia się relacja."
+                pl: "liczba wartości opinii, o które poprawia się relacja.",
+                pt: "o número de valores de opinião com que a relação melhora.",
+                tr: "ilişkinin iyileştiği görüş değerlerinin sayısı."
             }
         }
     ],
@@ -31,7 +33,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn der Dialog oder die Handlung eines Charakters die Meinung eines anderen über ihn erheblich verbessert.`,
         ja: `あるキャラクターの対話または行動が、別のキャラクターの彼らに対する評価を大幅に向上させたときに実行されます。`,
         ko: `한 캐릭터의 대화나 행동이 다른 캐릭터의 그들에 대한 평가를 크게 개선할 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dialog lub działanie jednej postaci znacząco poprawia opinię drugiej o niej.`
+        pl: `Wykonywane, gdy dialog lub działanie jednej postaci znacząco poprawia opinię drugiej o niej.`,
+        pt: `Executado quando o diálogo ou ação de um personagem melhora significativamente a opinião que outro tem dele.`,
+        tr: `Bir karakterin diyaloğu veya eylemi başka birinin ona olan görüşünü önemli ölçüde iyileştirdiğinde çalıştırılır.`
     },
 
     /**
@@ -93,7 +97,9 @@ module.exports = {
             de: `Die Meinung von {{character2Name}} über {{character1Name}} hat sich um ${args[0]} verbessert.`,
             ja: `{{character2Name}}の{{character1Name}}に対する評価が${args[0]}上昇しました。`,
             ko: `{{character2Name}}의 {{character1Name}}에 대한 평가가 ${args[0]} 상승했습니다.`,
-            pl: `Opinia {{character2Name}} o {{character1Name}} wzrosła o ${args[0]}.`
+            pl: `Opinia {{character2Name}} o {{character1Name}} wzrosła o ${args[0]}.`,
+            pt: `A opinião de {{character2Name}} sobre {{character1Name}} aumentou em ${args[0]}.`,
+            tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} arttı.`
         }
     },
     chatMessageClass: "positive-action-message"

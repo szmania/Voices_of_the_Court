@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter das Gespräch verlässt.`,
         ja: `キャラクターが会話を離れたときに実行されます。`,
         ko: `캐릭터가 대화를 떠날 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać opuszcza rozmowę.`
+        pl: `Wykonywane, gdy postać opuszcza rozmowę.`,
+        pt: `Executado quando um personagem deixa a conversa. O alvo (character2) é o personagem que está saindo. A fonte (character1) não é usada.`,
+        tr: `Bir karakter konuşmadan ayrıldığında çalıştırılır. Hedef (character2) ayrılan karakterdir. Kaynak (character1) kullanılmaz.`
     },
 
     /**
@@ -416,7 +418,9 @@ module.exports = {
             de: `{{character2Name}} hat das Gespräch verlassen.`,
             ja: `{{character2Name}}は会話を離れました。`,
             ko: `{{character2Name}}가 대화를 떠났습니다。`,
-            pl: `{{character2Name}} opuścił rozmowę.`
+            pl: `{{character2Name}} opuścił rozmowę.`,
+            pt: `{{character2Name}} deixou a conversa.`,
+            tr: `{{character2Name}}, konuşmadan ayrıldı.`
         }
     },
     chatMessageClass: "neutral-action-message"
