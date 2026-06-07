@@ -15,7 +15,8 @@ module.exports = {
         ja: "家臣に独立を与えます（主君を外します）。平和裏に独立を認めるか、要求を受け入れる場合に使用します。拒否する場合は、代わりに independence_war を使って declareWar を実行してください。",
         ko: "봉신에게 독립을 부여합니다(군주를 제거합니다). 평화롭게 독립을 부여하거나 독립 요구를 수락할 때 사용하십시오. 거절할 경우 independence_war와 함께 declareWar를 사용하십시오.",
         pl: "Nadaje niepodległość wasalowi (usuwa jego seniora). Użyj tego, aby pokojowo przyznać niepodległość lub zaakceptować żądanie. W przypadku odmowy użyj declareWar z casus_belli independence_war.",
-        pt: "Concede a independência a um vassalo (remove seu suserano). Use isso para conceder a independência pacificamente ou aceitar uma exigência de independência. Se for rejeitada, use declareWar com o casus_belli independence_war."
+        pt: "Concede a independência a um vassalo (remove seu suserano). Use isso para conceder a independência pacificamente ou aceitar uma exigência de independência. Se for rejeitada, use declareWar com o casus_belli independence_war.",
+        tr: "Bir vassala bağımsızlık verir (efendisini kaldırır). Bunu barışçıl bir şekilde bağımsızlık vermek veya bağımsızlık talebini kabul etmek için kullanın. Reddedilirse, declareWar'ı independence_war casus_belli ile kullanın."
     },
  
     /**
@@ -119,7 +120,8 @@ module.exports = {
             ja: `{{character1Name}} と {{character2Name}} の間の主君・家臣関係が解消されました。`,
             ko: `{{character1Name}}과 {{character2Name}} 사이의 군주-봉신 관계가 해소되었습니다.`,
             pl: `Relacja senior-wasal między {{character1Name}} a {{character2Name}} została rozwiązana.`,
-            pt: `A relação suserano-vassalo entre {{character1Name}} e {{character2Name}} foi dissolvida.` 
+            pt: `A relação suserano-vassalo entre {{character1Name}} e {{character2Name}} foi dissolvida.`,
+            tr: `{{character1Name}} ve {{character2Name}} arasındaki efendi-vassal ilişkisi feshedildi.`
         };
     },
 

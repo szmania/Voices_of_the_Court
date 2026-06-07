@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere Geschlechtsverkehr haben. Kann einvernehmlich oder gewaltsam sein.`,
         ja: `二人のキャラクターが性的な交渉を持ったときに実行されます。合意の上か強制的かもしれません。`,
         ko: `두 캐릭터가 성관계를 가질 때 실행됩니다. 합의하거나 강제일 수 있습니다.`,
-        pl: `Wykonywane, gdy dwie postacie odbywają stosunek seksualny. Może być dobrowolny lub wymuszony.`
+        pl: `Wykonywane, gdy dwie postacie odbywają stosunek seksualny. Może być dobrowolny lub wymuszony.`,
+        pt: `Executado quando dois personagens têm relações sexuais. Pode ser consensual ou forçado.`,
+        tr: `İki karakter cinsel ilişkiye girdiğinde çalıştırılır. Rıza ile veya zorla olabilir.`
     },
 
     /**
@@ -75,7 +77,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} hatten Geschlechtsverkehr.`,
             ja: `{{character1Name}}と{{character2Name}}は性的な交渉を持ちました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 성관계를 가졌습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} odbyli stosunek seksualny.`
+            pl: `{{character1Name}} i {{character2Name}} odbyli stosunek seksualny.`,
+            pt: `{{character1Name}} e {{character2Name}} tiveram relações sexuais.`,
+            tr: `{{character1Name}} ve {{character2Name}}, cinsel ilişkiye girdi.`
         }
     },
     chatMessageClass: "neutral-action-message"

@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter Schmerzen empfindet oder verletzt ist.`,
         ja: `キャラクターが痛みを感じたり、傷ついたときに実行されます。`,
         ko: `캐릭터가 고통을 느끼거나 다쳤을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać czuje ból lub jest ranna.`
+        pl: `Wykonywane, gdy postać czuje ból lub jest ranna.`,
+        pt: `Executado quando um personagem sente dor ou está ferido.`,
+        tr: `Bir karakter ağrı hissettiğinde veya yaralandığında çalıştırılır.`
     },
 
     /**
@@ -52,7 +54,9 @@ module.exports = {
             de: `{{character2Name}} hat Schmerzen.`,
             ja: `{{character2Name}}は痛みを感じています。`,
             ko: `{{character2Name}}는 고통을 느낍니다.`,
-            pl: `{{character2Name}} odczuwa ból.`
+            pl: `{{character2Name}} odczuwa ból.`,
+            pt: `{{character2Name}} está com dor.`,
+            tr: `{{character2Name}} ağrı içinde.`
         }
     },
     chatMessageClass: "neutral-action-message"

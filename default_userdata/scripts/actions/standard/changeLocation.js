@@ -91,7 +91,9 @@ module.exports = {
                 de: "Der neue Ort, zu dem die Szene wechseln soll.",
                 ja: "シーンを切り替える新しい場所。",
                 ko: "장면을 변경할 새 위치.",
-                pl: "Nowa lokalizacja, na którą ma się zmienić scena."
+                pl: "Nowa lokalizacja, na którą ma się zmienić scena.",
+                pt: "O novo local para mudar a cena.",
+                tr: "Sahneyi değiştirmek için yeni konum."
             }
         }
     ],
@@ -104,7 +106,9 @@ module.exports = {
         de: `Ändert den Szenenhintergrund.`,
         ja: `シーンの背景を変更します。`,
         ko: `장면 배경을 변경합니다.`,
-        pl: `Zmienia tło sceny.`
+        pl: `Zmienia tło sceny.`,
+        pt: `Muda o cenário de fundo.`,
+        tr: `Sahne arka planını değiştirir.`
     },
 
     /**
@@ -153,7 +157,9 @@ module.exports = {
             de: `Szene geändert zu ${locationName}`,
             ja: `シーンが ${locationName} に変更されました`,
             ko: `장면이 ${locationName}(으)로 변경되었습니다`,
-            pl: `Scena zmieniona na ${locationName}`
+            pl: `Scena zmieniona na ${locationName}`,
+            pt: `Cena mudada para ${locationName}`,
+            tr: `Sahne ${locationName} olarak değiştirildi`
         }
     },
     chatMessageClass: "neutral-action-message"

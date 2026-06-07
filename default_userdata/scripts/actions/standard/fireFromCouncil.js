@@ -20,7 +20,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter beschließt, einen anderen Charakter aus seinem Rat zu entlassen oder abzusetzen.`,
         ja: `あるキャラクターが別のキャラクターを評議会から解雇または解任することを決めたときに実行されます。`,
         ko: `한 캐릭터가 다른 캐릭터를 의회에서 해고하거나 해임하기로 결정했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać decyduje się zwolnić lub odwołać inną postać z rady.`
+        pl: `Wykonywane, gdy postać decyduje się zwolnić lub odwołać inną postać z rady.`,
+        pt: `Executado quando um personagem decide demitir ou destituir outro personagem do seu conselho.`,
+        tr: `Bir karakter başka birini konseyinden kovmaya veya azletmeye karar verdiğinde çalıştırılır.`
     },
 
     /**
@@ -73,7 +75,9 @@ module.exports = {
             de: `{{character1Name}} hat {{character2Name}} aus dem Rat entlassen.`,
             ja: `{{character1Name}}は{{character2Name}}を評議会から解雇しました。`,
             ko: `{{character1Name}}가 {{character2Name}}를 의회에서 해고했습니다.`,
-            pl: `{{character1Name}} zwolnił {{character2Name}} z rady.`
+            pl: `{{character1Name}} zwolnił {{character2Name}} z rady.`,
+            pt: `{{character1Name}} demitiu {{character2Name}} do conselho.`,
+            tr: `{{character1Name}}, {{character2Name}}'yi konseyden kovdu.`
         }
     },
     chatMessageClass: "negative-action-message"

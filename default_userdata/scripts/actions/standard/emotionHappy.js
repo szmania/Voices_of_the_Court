@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter sich glücklich fühlt.`,
         ja: `キャラクターが幸せを感じたときに実行されます。`,
         ko: `캐릭터가 행복을 느낄 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać czuje się szczęśliwa.`
+        pl: `Wykonywane, gdy postać czuje się szczęśliwa.`,
+        pt: `Executado quando um personagem se sente feliz.`,
+        tr: `Bir karakter mutlu hissettiğinde çalıştırılır.`
     },
 
     /**
@@ -52,7 +54,9 @@ module.exports = {
             de: `{{character2Name}} fühlt sich glücklich.`,
             ja: `{{character2Name}}は幸せを感じています。`,
             ko: `{{character2Name}}는 행복을 느낍니다.`,
-            pl: `{{character2Name}} czuje się szczęśliwy.`
+            pl: `{{character2Name}} czuje się szczęśliwy.`,
+            pt: `{{character2Name}} sente-se feliz.`,
+            tr: `{{character2Name}} mutlu hissediyor.`
         }
     },
     chatMessageClass: "neutral-action-message"
