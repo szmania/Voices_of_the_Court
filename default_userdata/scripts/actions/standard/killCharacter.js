@@ -15,6 +15,10 @@ module.exports = {
         ja: `あるキャラクターが別のキャラクターに殺されたときに実行されます。`,
         ko: `한 캐릭터가 다른 캐릭터에게 살해당했을 때 실행됩니다.`,
         pl: `Wykonywane, gdy jedna postać zostaje zabita przez inną.`,
+        pt: `Executado quando um personagem é morto por outro. A fonte (character1) é o ASSASSINO. O alvo (character2) é o personagem sendo MORTO.`,
+        tr: `Bir karakter başka biri tarafından öldürüld以下 is the continuation of the assistant's response:
+
+ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (character2) ÖLDÜRÜLEN karakterdir.`
     },
 
     /**
@@ -52,6 +56,8 @@ module.exports = {
             ja: `{{character2Name}}は{{character1Name}}に殺されました。`,
             ko: `{{character2Name}}가 {{character1Name}}에게 살해당했습니다.`,
             pl: `{{character2Name}} został zabity przez {{character1Name}}.`,
+            pt: `{{character2Name}} foi morto por {{character1Name}}.`,
+            tr: `{{character2Name}}, {{character1Name}} tarafından öldürüldü.`
         };
     },
     chatMessageClass: "negative-action-message"
