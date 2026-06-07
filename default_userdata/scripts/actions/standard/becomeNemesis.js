@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu Erzfeinden gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
                 ja: "彼らが宿敵になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 천적이 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali śmiertelnymi wrogami. (napisz w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali śmiertelnymi wrogami. (napisz w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se inimigos mortais. (escreva no passado).",
+                tr: "onların birbirinin düşmanı olmasına neden olan sebep (olay). (geçmiş zamanda yazın)."
             }
         }
     ],
