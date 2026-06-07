@@ -118,7 +118,8 @@ module.exports = {
         ja: "ターゲットキャラクターに追加する特性キー（例：'brave'、'lustful'、'ambitious'）。スペイン語の意図：「ganar rasgo」、「adquirir rasgo」、「se vuelve」。",
         ko: "대상 캐릭터에 추가할 특성 키(예: 'brave', 'lustful', 'ambitious'). 스페인어 의도: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
         pl: "Klucz cechy do dodania postaci docelowej (np. 'brave', 'lustful', 'ambitious'). Hiszpański zamiar: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
-        pt: "Chave de traço para adicionar ao personagem alvo (por exemplo, 'brave', 'lustful', 'ambitious'). Intenção em espanhol: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'."
+        pt: "Chave de traço para adicionar ao personagem alvo (por exemplo, 'brave', 'lustful', 'ambitious'). Intenção em espanhol: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'.",
+        tr: "Hedef karaktere eklenecek özellik anahtarı (örn. 'brave', 'lustful', 'ambitious'). İspanyolca niyet: 'ganar rasgo', 'adquirir rasgo', 'se vuelve'."
       }
     },
     {

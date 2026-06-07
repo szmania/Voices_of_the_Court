@@ -116,12 +116,14 @@ module.exports = {
             en: `{{character1Name}} and {{character2Name}} agreed to a ${truceYears}-year truce.`,
             zh: `{{character1Name}}和{{character2Name}}同意了${truceYears}年的休战协议。`,
             ru: `{{character1Name}} и {{character2Name}} согласились на перемирие на ${truceYears} года.`,
-            fr: `{{character1Name}} et {{character2Name}} ont convenu d'une trêve de ${truceYears} ans.`,
+            fr: `{{character1Name}} et {{ Kenshiro2Name}} ont convenu d'une trêve de ${truceYears} ans.`,
             es: `{{character1Name}} y {{character2Name}} acordaron una tregua de ${truceYears} años.`,
             de: `{{character1Name}} und {{character2Name}} haben sich auf einen Waffenstillstand von ${truceYears} Jahren geeinigt.`,
             ja: `{{character1Name}}と{{character2Name}}は${truceYears}年間の休戦に同意しました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 ${truceYears}년간의 휴전에 동의했습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} zgodzili się na zawieszenie broni na ${truceYears} lat.`
+            pl: `{{character1Name}} i {{character2Name}} zgodzili się na zawieszenie broni na ${truceYears} lat.`,
+            pt: `{{character1Name}} e {{character2Name}} concordaram com uma trégua de ${truceYears} anos.`,
+            tr: `{{character1Name}} ve {{character2Name}}, ${truceYears} yıllık bir ateşkes konusunda anlaştı.`
         };
     },
     
