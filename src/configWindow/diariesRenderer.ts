@@ -112,12 +112,13 @@ function applyTheme(theme: string) {
     }
 }
 
-ipcRenderer.on('update-theme', (event, theme) => {
+const themeUpdateHandler = (event, theme) => {
     applyTheme(theme);
     localStorage.setItem('selectedTheme', theme);
-});
+};
+ipcRenderer.on('update-theme', themeUpdateHandler);
 
-ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event, lang) => {
     if (window.LocalizationManager) {
         await window.LocalizationManager.loadTranslations(lang);
         window.LocalizationManager.applyTranslations();
@@ -128,7 +129,13 @@ ipcRenderer.on('update-language', async (event, lang) => {
             renderDiaryList();
         }
     }
-});
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-theme', themeUpdateHandler);
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
 const showLoader = (show: boolean) => {
     if (loader) loader.style.display = show ? 'block' : 'none';

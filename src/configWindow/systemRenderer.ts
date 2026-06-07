@@ -58,12 +58,13 @@ function applyTheme(theme: string, broadcast: boolean = true) {
     }
 }
 
-// 监听来自主进程的主题更新通知
-ipcRenderer.on('update-theme', (event, theme) => {
+const themeUpdateHandler = (event, theme) => {
     themeSelector.value = theme;
     applyTheme(theme, false);
     localStorage.setItem('selectedTheme', theme);
-});
+};
+// 监听来自主进程的主题更新通知
+ipcRenderer.on('update-theme', themeUpdateHandler);
 
 // 页面加载时恢复之前的主题和语言选择
 document.addEventListener('DOMContentLoaded', async () => {
@@ -98,12 +99,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         ipcRenderer.send('select-user-folder');
     })
 
-    ipcRenderer.on('select-user-folder-success', (event, path) =>{
+    const userFolderSuccessHandler = (event, path) => {
         if(!path || path == "") return;
 
         runPathInput.value = path;
         ipcRenderer.send('config-change', "userFolderPath", runPathInput.value);
-    })
+    };
+    ipcRenderer.on('select-user-folder-success', userFolderSuccessHandler);
+
+    window.addEventListener('beforeunload', () => {
+        ipcRenderer.removeListener('update-theme', themeUpdateHandler);
+        ipcRenderer.removeListener('select-user-folder-success', userFolderSuccessHandler);
+    }, { once: true });
     
     const lang = config.language || 'en';
     
