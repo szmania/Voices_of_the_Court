@@ -21,8 +21,7 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
-ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event, lang) => {
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -30,7 +29,12 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
-});
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
 async function init(){
     addExternalLinks();
