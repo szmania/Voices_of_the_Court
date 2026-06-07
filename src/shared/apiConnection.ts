@@ -25,10 +25,10 @@ export interface Connection{
 }
 
 export interface Parameters{
-    temperature: number,
-	frequency_penalty: number,
-	presence_penalty: number,
-	top_p: number,
+    temperature?: number,
+	frequency_penalty?: number,
+	presence_penalty?: number,
+	top_p?: number,
 }
 
 let encoder: Tiktoken | null = null;
@@ -49,7 +49,7 @@ export class ApiConnection{
     config: Connection; // 保存原始配置对象，包括apiKeys
 
 
-    constructor(connection: Connection, parameters: Parameters){
+    constructor(connection: Connection, parameters: any){
         console.debug("--- API CONNECTION: Constructor ---");
         
         // Create a deep copy for logging to ensure original object is not modified.
@@ -104,7 +104,21 @@ export class ApiConnection{
         }
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
-        this.parameters = parameters;
+        
+        const apiParams: Parameters = {};
+        if (parameters.enableTemperature) {
+            apiParams.temperature = parameters.temperature;
+        }
+        if (parameters.enableFrequencyPenalty) {
+            apiParams.frequency_penalty = parameters.frequency_penalty;
+        }
+        if (parameters.enablePresencePenalty) {
+            apiParams.presence_penalty = parameters.presence_penalty;
+        }
+        if (parameters.enableTopP) {
+            apiParams.top_p = parameters.top_p;
+        }
+        this.parameters = apiParams;
 
 
         let modelName = this.model
@@ -432,6 +446,15 @@ export class ApiConnection{
                         if (choice) {
                             // Prefer chat message content, fall back to text field if provided
                             response = choice.message?.content ?? choice.text ?? "";
+
+                            // @ts-ignore
+                            const isTest = otherArgs && otherArgs.isTestConnection;
+
+                            // Fallback for some Vertex AI models that return content in a different field during test.
+                            if (!response && isTest && choice.message?.reasoning_content) {
+                                console.debug("Found response in 'reasoning_content' field during test connection.");
+                                response = choice.message.reasoning_content;
+                            }
                         }
                     }
 
@@ -685,7 +708,7 @@ export class ApiConnection{
         console.debug("Test prompt:", prompt);
 
         // Test connection should not be cancellable from the UI, so no signal is passed.
-        return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
+        return this.complete(prompt, false, {max_tokens: 10, isTestConnection: true}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
             // A non-empty response is a clear success
             if(resp){

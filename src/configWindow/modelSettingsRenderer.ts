@@ -1,5 +1,5 @@
 
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 document.getElementById("container")!.style.display = "block";
 
@@ -18,8 +18,7 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
-ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -27,7 +26,12 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
-});
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
 // 应用初始主题
 const savedTheme = localStorage.getItem('selectedTheme') || 'original';

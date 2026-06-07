@@ -569,12 +569,17 @@ export class Conversation{
         if (this.isGeneratingScene) {
             console.log('Scene is currently generating. Queuing player request to be processed after.');
             this.pendingPlayerRequest = true;
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
             return;
         }
         if (this.isGenerating) {
             console.log('Already generating AI messages, skipping new request.');
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
             return;
         }
+
         this.isGenerating = true;
         this.abortController = new AbortController();
         try {
@@ -731,6 +736,9 @@ export class Conversation{
             // Clear queue display after all characters in this turn have been processed
             this.chatWindow.window.webContents.send('queue-update', [], null);
 
+            // Immediately re-enable the user's input before generating narrative
+            this.chatWindow.window.webContents.send('generation-finished', true);
+
             // Send actions for player-directed part to re-enable user input
             let playerNarrative: Message | null = null;
             if (allTurnActions.length > 0 && this.config.narrativeEnable) {
@@ -764,6 +772,9 @@ export class Conversation{
         finally {
             this.isGenerating = false;
             this.abortController = null;
+
+            // Notify the frontend that generation is complete to re-enable the input field.
+            this.chatWindow.window.webContents.send('generation-finished', true);
 
             // After the turn, calculate the new base prompt size and send it to the UI
             const newBaseTokens = await this.calculateBasePromptTokens();
@@ -940,7 +951,6 @@ export class Conversation{
 
     async processCharacterList(characterList: Character[], isNonTargeted: boolean, playerActionsAlreadyChecked: boolean = false, performActionCheck: boolean = true): Promise<{ messages: (Message | null)[], actions: ActionResponse[] }> {
         const generatedMessages: (Message | null)[] = [];
-        const allTurnActions: ActionResponse[] = [];
 
         for (const character of characterList) {
             if (this.isPaused) {
@@ -966,25 +976,41 @@ export class Conversation{
                 // Check for actions initiated by the AI character's response.
                 if (performActionCheck && this.config.actionsEnableAll) {
                     const sourceId = character.id; // The AI is the source.
-                    const actionTarget = await this.determineActionTarget(message.content, sourceId);
-                    const targetId = actionTarget ? actionTarget.id : this.gameData.playerID; // Target is player or another AI.
+                    this.determineActionTarget(message.content, sourceId).then(actionTarget => {
+                        const targetId = actionTarget ? actionTarget.id : this.gameData.playerID; // Target is player or another AI.
 
-                    if (sourceId !== targetId) {
-                        console.log(`[processCharacterList] Checking for AI-initiated actions. Source: ${sourceId}, Target: ${targetId}`);
-                        const collectedActions = await checkActions(this, sourceId, targetId);
-                        if (collectedActions.length > 0) {
-                            const existingActions = this.executedActions.get(message.id!) || [];
-                            this.executedActions.set(message.id!, [...existingActions, ...collectedActions]);
-                            allTurnActions.push(...collectedActions);
-                            this.actionInvolvedCharacterIds.add(sourceId);
-                            this.actionInvolvedCharacterIds.add(targetId);
+                        if (sourceId !== targetId) {
+                            console.log(`[processCharacterList] Checking for AI-initiated actions in background. Source: ${sourceId}, Target: ${targetId}`);
+                            // Don't await this. Let it run in the background so the UI isn't blocked.
+                            checkActions(this, sourceId, targetId).then(async (collectedActions) => {
+                                if (collectedActions.length > 0) {
+                                    const existingActions = this.executedActions.get(message.id!) || [];
+                                    this.executedActions.set(message.id!, [...existingActions, ...collectedActions]);
+                                    this.actionInvolvedCharacterIds.add(sourceId);
+                                    this.actionInvolvedCharacterIds.add(targetId);
+
+                                    // Generate narrative here since we have the actions.
+                                    let narrativeMessage: Message | null = null;
+                                    if (this.config.narrativeEnable) {
+                                        narrativeMessage = await generateNarrative(this, collectedActions);
+                                        if (narrativeMessage) {
+                                            this.pushMessage(narrativeMessage);
+                                        }
+                                    }
+                                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, false);
+                                }
+                            }).catch(err => {
+                                console.error(`Error during background action check for message ${message.id}:`, err);
+                            });
                         }
-                    }
+                    });
                 }
             }
         }
 
-        return { messages: generatedMessages, actions: allTurnActions };
+        // Actions are now handled async, so we return an empty array.
+        // Player-initiated actions are handled separately in generateAIsMessages.
+        return { messages: generatedMessages, actions: [] };
     }
 
     pause(): void {
@@ -1958,16 +1984,21 @@ ${character.fullName}的发言：`
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
             this.isGeneratingScene = false;
-            if (!wasGenerating) {
-                this.isGenerating = false;
-                this.abortController = null;
-            }
 
             // If a player message came in while the scene was generating, process it now.
             if (this.pendingPlayerRequest) {
                 console.log('Processing queued player request after scene generation finished.');
                 this.pendingPlayerRequest = false;
+                // Ensure the main generation lock is released before starting the new generation.
+                this.isGenerating = false;
+                this.abortController = null;
                 this.generateAIsMessages();
+            } else {
+                // If no pending request, just reset the state if we were the ones who set it.
+                if (!wasGenerating) {
+                    this.isGenerating = false;
+                    this.abortController = null;
+                }
             }
         }
 
@@ -2191,8 +2222,8 @@ ${character.fullName}的发言：`
         if (initialMessages.length === 0 || this.aiToAiTurnLimit >= 2 || !shouldTalkToAi) {
             return;
         }
-
         this.aiToAiTurnLimit++;
+
         const lastRespondingCharacter = this.gameData.characters.get((initialMessages[initialMessages.length - 1] as any).characterId);
         if (!lastRespondingCharacter) return;
 
@@ -2241,6 +2272,8 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
+        // Notify the frontend that all generation is complete to re-enable the input field.
+        this.chatWindow.window.webContents.send('generation-finished', true);
     }
 
     public async initiateConversation(){
