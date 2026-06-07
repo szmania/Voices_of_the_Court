@@ -2224,6 +2224,12 @@ ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: {
     console.log(`Letter ${letterId} marked as read.`);
 });
 
+ipcMain.handle('delete-letter', async (event, { playerId, characterId, letterId }) => {
+    console.log(`Received delete-letter request for player ${playerId}, char ${characterId}, letter ${letterId}`);
+    const letterManager = LetterManager.getInstance();
+    return letterManager.deleteLetter(playerId, characterId, letterId);
+});
+
 
 // 处理API配置更改事件
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {
