@@ -18,7 +18,9 @@ module.exports = {
                 de: "Gibt die Akzeptanz der Vasallisierung von {{character2Name}} durch {{character1Name}} an. Positive Werte bedeuten Akzeptanz, negative Werte Ablehnung.",
                 ja: "{{character2Name}}の{{character1Name}}による封臣化の受容度を指定します。正の値は受諾、負の値は拒否を意味します。",
                 ko: "{{character2Name}}의 {{character1Name}}에 의한 봉신화 수용도를 지정합니다. 양수 값은 수락, 음수 값은 거부를 의미합니다.",
-                pl: "Określa akceptację wasalizacji {{character2Name}} przez {{character1Name}}. Wartości dodatnie oznaczają akceptację, a ujemne odrzucenie."
+                pl: "Określa akceptację wasalizacji {{character2Name}} przez {{character1Name}}. Wartości dodatnie oznaczają akceptację, a ujemne odrzucenie.",
+                pt: "Especifica a aceitação da vassalização de {{character2Name}} por {{character1Name}}. Valores positivos significam aceitação, valores negativos significam rejeição.",
+                tr: "{{character1Name}} tarafından {{character2Name}}'nin vasallık kabulünü belirtir. Pozitif değerler kabulü, negatif değerler reddi ifade eder."
             }
         }
     ],
