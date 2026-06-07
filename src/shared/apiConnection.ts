@@ -432,6 +432,15 @@ export class ApiConnection{
                         if (choice) {
                             // Prefer chat message content, fall back to text field if provided
                             response = choice.message?.content ?? choice.text ?? "";
+
+                            // @ts-ignore
+                            const isTest = otherArgs && otherArgs.isTestConnection;
+
+                            // Fallback for some Vertex AI models that return content in a different field during test.
+                            if (!response && isTest && choice.message?.reasoning_content) {
+                                console.debug("Found response in 'reasoning_content' field during test connection.");
+                                response = choice.message.reasoning_content;
+                            }
                         }
                     }
 
@@ -685,7 +694,7 @@ export class ApiConnection{
         console.debug("Test prompt:", prompt);
 
         // Test connection should not be cancellable from the UI, so no signal is passed.
-        return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
+        return this.complete(prompt, false, {max_tokens: 10, isTestConnection: true}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
             // A non-empty response is a clear success
             if(resp){
