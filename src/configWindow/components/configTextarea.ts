@@ -41,7 +41,7 @@ class ConfigTextarea extends HTMLElement{
     rows: number;
     cols: number;
     placeholder: string;
-    languageUpdateHandler: () => void;
+    languageUpdateHandler!: () => void;
 
     constructor(){
         super();

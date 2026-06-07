@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 declare global {
     interface Window {
@@ -112,13 +112,13 @@ function applyTheme(theme: string) {
     }
 }
 
-const themeUpdateHandler = (event, theme) => {
+const themeUpdateHandler = (event: IpcRendererEvent, theme: string) => {
     applyTheme(theme);
     localStorage.setItem('selectedTheme', theme);
 };
 ipcRenderer.on('update-theme', themeUpdateHandler);
 
-const languageUpdateHandler = async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     if (window.LocalizationManager) {
         await window.LocalizationManager.loadTranslations(lang);
         window.LocalizationManager.applyTranslations();

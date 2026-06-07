@@ -1,4 +1,4 @@
-import { ipcRenderer} from 'electron';
+import { ipcRenderer, IpcRendererEvent} from 'electron';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
@@ -58,7 +58,7 @@ function applyTheme(theme: string, broadcast: boolean = true) {
     }
 }
 
-const themeUpdateHandler = (event, theme) => {
+const themeUpdateHandler = (event: IpcRendererEvent, theme: string) => {
     themeSelector.value = theme;
     applyTheme(theme, false);
     localStorage.setItem('selectedTheme', theme);
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ipcRenderer.send('select-user-folder');
     })
 
-    const userFolderSuccessHandler = (event, path) => {
+    const userFolderSuccessHandler = (event: IpcRendererEvent, path: string) => {
         if(!path || path == "") return;
 
         runPathInput.value = path;

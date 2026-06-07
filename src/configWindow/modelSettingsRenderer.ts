@@ -1,5 +1,5 @@
 
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 document.getElementById("container")!.style.display = "block";
 
@@ -18,7 +18,7 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
-const languageUpdateHandler = async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
