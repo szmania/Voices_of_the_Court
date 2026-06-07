@@ -17,7 +17,9 @@ module.exports = {
                 de: "Erforderliches Argument. Gibt die Anzahl der Jahre an, die der Waffenstillstand dauert. Standardmäßig 3 Jahre, wenn nicht angegeben.",
                 ja: "必須引数。休戦が続く年数を指定します。指定されない場合はデフォルトで3年になります。",
                 ko: "필수 인수. 휴전이 지속되는 년수를 지정합니다. 제공되지 않으면 기본값은 3년입니다.",
-                pl: "Wymagany argument. Określa liczbę lat, przez które trwa zawieszenie broni. Domyślnie 3 lata, jeśli nie podano."
+                pl: "Wymagany argument. Określa liczbę lat, przez które trwa zawieszenie broni. Domyślnie 3 lata, jeśli nie podano.",
+                pt: "Argumento obrigatório. Especifica o número de anos que a trégua dura. Define 3 anos como padrão se não fornecido.",
+                tr: "Gerekli argüman. Ateşkesin sürdüğü yıl sayısını belirtir. Belirtilmezse varsayılan olarak 3 yıl ayarlanır."
             }
         }
     ],
@@ -30,7 +32,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere sich auf einen gegenseitigen Waffenstillstand für eine bestimmte Anzahl von Jahren einigen.`,
         ja: `二人のキャラクターが一定年数の相互休戦に同意したときに実行されます。`,
         ko: `두 캐릭터가 특정 년수 동안의 상호 휴전에 동의할 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie zgadzają się na wzajemne zawieszenie broni na określoną liczbę lat.`
+        pl: `Wykonywane, gdy dwie postacie zgadzają się na wzajemne zawieszenie broni na określoną liczbę lat.`,
+        pt: `Executado quando dois personagens concordam com uma trégua mútua por um certo número de anos. A fonte (character1) e o alvo (character2) são as duas partes que concordam com a trégua.`,
+        tr: `İki karakter belirli bir yıl sayısı için karşılıklı ateşkese anlaştığında çalıştırılır. Kaynak (character1) ve hedef (character2), ateşkese anlaşan iki taraftır.`
     },
     
     /**

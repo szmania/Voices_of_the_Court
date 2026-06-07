@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu Liebhabern gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
                 ja: "彼らが恋人同士になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 연인이 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali kochankami. (napisz w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali kochankami. (napisz w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se amantes. (escreva no passado).",
+                tr: "onların sevgili olmasına neden olan sebep (olay). (geçmiş zamanda yazın)."
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere nach einer sexuellen Begegnung zu Liebhabern werden.`,
         ja: `二人のキャラクターが性的な出会いの後に恋人同士になったときに実行されます。`,
         ko: `두 캐릭터가 성적인 만남 후에 연인이 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie stają się kochankami po stosunku seksualnym.`
+        pl: `Wykonywane, gdy dwie postacie stają się kochankami po stosunku seksualnym.`,
+        pt: `Executado quando dois personagens tornam-se amantes. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam amantes.`,
+        tr: `İki karakter sevgili olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), sevgili olan iki karakterdir.`
     },
 
     /**
@@ -110,7 +114,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} sind Liebhaber geworden.`,
             ja: `{{character1Name}}と{{character2Name}}は恋人同士になりました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 연인이 되었습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} zostali kochankami.`
+            pl: `{{character1Name}} i {{character2Name}} zostali kochankami.`,
+            pt: `{{character1Name}} e {{character2Name}} tornaram-se amantes.`,
+            tr: `{{character1Name}} ve {{character2Name}}, sevgili oldular.`
         }
     },
     chatMessageClass: "positive-action-message"
