@@ -187,7 +187,7 @@ export class LetterManager {
         }
     }
 
-    public markAsRead(playerId: string, characterId: string, letterId: string): void {
+    public markAsRead(playerId: string, characterId: string, letterId: string, config: Config): void {
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
@@ -195,11 +195,10 @@ export class LetterManager {
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
                 fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-            } catch (error) {
-                console.error(`Error updating letter status for letter ${letterId}:`, error);
-            }
-        }
-    }
+                const letter = letters[letterIndex];
+                if (letter.associatedAction?.triggerOn === 'read') {
+                    LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
+                }
 
     public getLetterSummaryFilePath(playerId: string, characterId: string): string {
         this.initPaths();
@@ -372,7 +371,7 @@ trigger_event = message_event.362`;
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
         // Pass gameData to parseLettersFromLog so it can save letters immediately.
-        const newLetters = await parseLettersFromLog(debugLogPath, gameData, gameDate, playerId, recipientId);
+        const newLetters = await parseLettersFromLog(debugLogPath, gameData, gameDate, config, playerId, recipientId);
 
         if (newLetters.length > 0) {
             console.log(`Imported and saved ${newLetters.length} new letters.`);

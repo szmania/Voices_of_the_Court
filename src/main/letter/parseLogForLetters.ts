@@ -23,7 +23,7 @@ function totalDaysToDateString(totalDays: number): string {
     return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
-export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
+export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
     if (!fs.existsSync(debugLogPath)) {
@@ -77,6 +77,9 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const correctedGameDate = totalDaysToDateString(gameData.totalDays);
                         const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
+                            if (letter.associatedAction?.triggerOn === 'receive') {
+                                LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
+                            }
                             letters.push(letter);
                             // The player is the sender of the letter being imported from the log
                             LetterManager.getInstance().saveLetter(letter, senderIdFromLog);

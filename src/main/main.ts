@@ -826,7 +826,9 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
-    startLogTailing();
+import { LetterActionTrigger } from './letter/LetterActionTrigger.js';
+
+function startLogTailing() {
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -1042,6 +1044,10 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             );
 
             lastLetterSentToGame = null; // Clear the tracked letter
+
+            if (replyLetter.associatedAction?.triggerOn === 'send') {
+              LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
+            }
 
             // Notify UI of the final status change
             if (configWindow && !configWindow.window.isDestroyed()) {
@@ -1265,6 +1271,9 @@ clipboardListener.on('VOTC:LETTER', async () => {
         storedLetters.set(latestLetter.id, storedLetter);
         console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}. Current day: ${currentTotalDays}`);
 
+        if (replyLetter.associatedAction?.triggerOn === 'send') {
+          LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
+        }
         // Diary entry for AI receiving a letter and replying
         if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
             const aiCharacter = gameData.getCharacter(replyLetter.sender.id);
