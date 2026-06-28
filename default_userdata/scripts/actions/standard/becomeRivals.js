@@ -111,7 +111,8 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, rakip oldular.`
         }
     },
-    chatMessageClass: "negative-action-message"
+chatMessageClass: "negative-action-message",
+    canPerformAtDistance: true
 }
 //help functions 
 function getConversationOpinionValue(opinionBreakdown){

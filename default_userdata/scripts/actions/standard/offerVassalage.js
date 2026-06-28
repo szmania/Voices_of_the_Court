@@ -166,5 +166,6 @@ module.exports = {
         }
     },
     
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
+    canPerformAtDistance: true
 };

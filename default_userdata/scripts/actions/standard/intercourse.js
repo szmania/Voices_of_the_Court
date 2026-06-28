@@ -82,5 +82,6 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, cinsel ilişkiye girdi.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: false
 }

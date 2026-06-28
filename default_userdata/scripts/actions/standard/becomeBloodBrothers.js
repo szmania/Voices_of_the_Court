@@ -118,5 +118,6 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, kan kardeşi oldular.`
         }
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
+    canPerformAtDistance: true
 }

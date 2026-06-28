@@ -91,5 +91,6 @@ module.exports = {
             tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} azaldı.`
         }
     },
-    chatMessageClass: "negative-action-message"
+chatMessageClass: "negative-action-message",
+    canPerformAtDistance: true
 }

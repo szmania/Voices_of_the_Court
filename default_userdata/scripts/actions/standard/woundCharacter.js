@@ -340,5 +340,6 @@ module.exports = {
 		}
 	},
 		
-    chatMessageClass: "negative-action-message"
+chatMessageClass: "negative-action-message",
+    canPerformAtDistance: false
 };

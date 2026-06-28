@@ -163,5 +163,6 @@ module.exports = {
             tr: `Sahne ${locationName} olarak değiştirildi`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: false
 };

@@ -107,5 +107,6 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, bir ittifak kurdu.`
         };
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
+    canPerformAtDistance: true
 }

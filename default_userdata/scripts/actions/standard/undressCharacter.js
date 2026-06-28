@@ -59,5 +59,6 @@ module.exports = {
             tr: `{{character2Name}} soyundu.`
         }
     },
-    chatMessageClass: "neutral-action-message",
+chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: false
 }

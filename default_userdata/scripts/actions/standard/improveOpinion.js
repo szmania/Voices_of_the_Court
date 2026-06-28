@@ -102,5 +102,6 @@ module.exports = {
             tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} arttı.`
         }
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
+    canPerformAtDistance: true
 }
