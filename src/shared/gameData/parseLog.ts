@@ -1,4 +1,4 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative } from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
