@@ -306,6 +306,11 @@ function rehydratePendingReplyLetters(playerId: string): void {
 }
 
 async function checkAndDeliverLetters() {
+    if (currentTotalDays === 0) {
+        console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
+        return;
+    }
+
     const letterManager = LetterManager.getInstance();
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
@@ -324,11 +329,13 @@ async function checkAndDeliverLetters() {
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
             if (!gameData) {
+                console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
+            }
+            if (!gameData) {
                 console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
                 continue;
             }
-            const currentDateString = gameData.date;
-
+            const currentDateString = gameData ? gameData.date : totalDaysToDateString(currentTotalDays);
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
