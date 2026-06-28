@@ -126,7 +126,6 @@ module.exports = {
 		tr: "Bir karakter başka birine topraklı bir unvan verdiğinde çalıştırılır. Kaynak (character1) VEREN'dir. Hedef (character2) ALAN'dır."
 	},
   canPerformAtDistance: true,
-
 	/**
 	 * @param {GameData} gameData
 	 * @param {number} sourceId

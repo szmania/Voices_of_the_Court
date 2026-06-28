@@ -38,7 +38,6 @@ module.exports = {
         tr: `Bir karakterin diyaloğu veya eylemi başka birinin ona olan görüşünü önemli ölçüde iyileştirdiğinde çalıştırılır.`
     },
   canPerformAtDistance: true,
-
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

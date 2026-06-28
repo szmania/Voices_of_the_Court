@@ -41,7 +41,6 @@ module.exports = {
         tr: `Bir karakter başka biri tarafından hapsedildiğinde çalıştırılır.`
     },
   canPerformAtDistance: false,
-    
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

@@ -18,7 +18,6 @@ module.exports = {
         tr: `İki karakter cinsel ilişkiye girdiğinde çalıştırılır. Rıza ile veya zorla olabilir.`
     },
   canPerformAtDistance: false,
-
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

@@ -19,7 +19,6 @@ module.exports = {
         tr: "Bir vassala bağımsızlık verir (efendisini kaldırır). Bunu barışçıl bir şekilde bağımsızlık vermek veya bağımsızlık talebini kabul etmek için kullanın. Reddedilirse, declareWar'ı independence_war casus_belli ile kullanın."
     },
   canPerformAtDistance: true,
- 
     /**
      * @param {GameData} gameData
      * @param {number} sourceId
