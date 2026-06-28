@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se rivais. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam rivais.`,
         tr: `İki karakter rakip olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), rakip olan iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

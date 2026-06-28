@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem se sente preocupado.`,
         tr: `Bir karakter endişeli hissettiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

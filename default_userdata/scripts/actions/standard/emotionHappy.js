@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem se sente feliz.`,
         tr: `Bir karakter mutlu hissettiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

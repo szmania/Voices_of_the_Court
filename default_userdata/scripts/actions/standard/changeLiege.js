@@ -17,7 +17,7 @@ module.exports = {
         pt: "Um vassalo (a fonte, personagem 1) muda seu suserano para um novo governante (o alvo, personagem 2).",
         tr: "Bir vassal (kaynak, karakter 1) efendisini yeni bir hükümdara (hedef, karakter 2) değiştirir."
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData
      * @param {number} sourceId

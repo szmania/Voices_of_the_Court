@@ -94,7 +94,7 @@ module.exports = {
     pt: "Um governante (personagem 1) declara guerra a outro (personagem 2). Isso é para grandes escaladas militares. A fonte é o atacante, o alvo é o defensor.",
     tr: "Bir hükümdar (karakter 1) diğerine (karakter 2) savaş ilan eder. Bu büyük askeri yükselmeler içindir. Kaynak saldırgandır, hedef savunucudur."
   },
-
+  canPerformAtDistance: true,
   /**
    * @param {GameData} gameData
    * @param {number} sourceId

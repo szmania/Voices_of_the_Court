@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem que não é governante decide se juntar à corte de outro como cavaleiro.`,
         tr: `Bir hükümdar olmayan karakter başka birinin sarayına şövalye olarak katılmaya karar verdiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
