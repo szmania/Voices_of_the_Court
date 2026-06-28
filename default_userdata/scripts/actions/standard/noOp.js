@@ -17,7 +17,7 @@ module.exports = {
         pt: `Nenhuma operação - não faz nada.`,
         tr: `İşlem yok - hiçbir şey yapmaz.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -53,5 +53,4 @@ module.exports = {
         }
     },
     chatMessageClass: "neutral-action-message",
-    canPerformAtDistance: true
 }

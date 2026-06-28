@@ -37,7 +37,7 @@ module.exports = {
         pt: `Executado quando um personagem oferece vassalagem a outro. A fonte (character1) é o SENHOR que oferece a vassalagem. O alvo (character2) é o personagem a quem a vassalagem é oferecida.`,
         tr: `Bir karakter başka birine vasallık teklif ettiğinde çalıştırılır. Kaynak (character1) vasallığı teklif eden EFENDİ'dir. Hedef (character2) vasallığı teklif edilen karakterdir.`
     },
-    
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

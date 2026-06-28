@@ -43,7 +43,7 @@ module.exports = {
         pt: `Executado quando um personagem fere outro. A fonte (character1) é quem inflige o ferimento. O alvo (character2) é quem está sendo FERIDO.`,
         tr: `Bir karakter başka birini yaraladığında çalıştırılır. Kaynak (character1) yaralayan kişidir. Hedef (character2) YARALANAN kişidir.`
     },
-    
+  canPerformAtDistance: false,
     /**
      * @param {GameData} gameData
      * @param {number} sourceId
