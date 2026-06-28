@@ -17,6 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem sente dor ou está ferido.`,
         tr: `Bir karakter ağrı hissettiğinde veya yaralandığında çalıştırılır.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData 

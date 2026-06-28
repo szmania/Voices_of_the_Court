@@ -37,6 +37,7 @@ module.exports = {
         pt: `Executado quando o diálogo ou ação de um personagem melhora significativamente a opinião que outro tem dele.`,
         tr: `Bir karakterin diyaloğu veya eylemi başka birinin ona olan görüşünü önemli ölçüde iyileştirdiğinde çalıştırılır.`
     },
+  canPerformAtDistance: true,
 
     /**
      * @param {GameData} gameData 

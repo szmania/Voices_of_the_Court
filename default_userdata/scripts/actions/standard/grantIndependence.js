@@ -18,6 +18,7 @@ module.exports = {
         pt: "Concede a independência a um vassalo (remove seu suserano). Use isso para conceder a independência pacificamente ou aceitar uma exigência de independência. Se for rejeitada, use declareWar com o casus_belli independence_war.",
         tr: "Bir vassala bağımsızlık verir (efendisini kaldırır). Bunu barışçıl bir şekilde bağımsızlık vermek veya bağımsızlık talebini kabul etmek için kullanın. Reddedilirse, declareWar'ı independence_war casus_belli ile kullanın."
     },
+  canPerformAtDistance: true,
  
     /**
      * @param {GameData} gameData

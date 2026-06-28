@@ -125,6 +125,7 @@ module.exports = {
 		pt: "Executado quando um personagem concede um titulo territorial a outro. A fonte (character1) e quem CONCEDE. O alvo (character2) e o RECEPTOR.",
 		tr: "Bir karakter başka birine topraklı bir unvan verdiğinde çalıştırılır. Kaynak (character1) VEREN'dir. Hedef (character2) ALAN'dır."
 	},
+  canPerformAtDistance: true,
 
 	/**
 	 * @param {GameData} gameData

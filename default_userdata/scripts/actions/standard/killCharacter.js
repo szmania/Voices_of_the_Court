@@ -20,6 +20,7 @@ module.exports = {
 
 ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (character2) ÖLDÜRÜLEN karakterdir.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData

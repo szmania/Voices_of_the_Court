@@ -40,6 +40,7 @@ module.exports = {
         pt: `Executado quando um personagem é preso por outro.`,
         tr: `Bir karakter başka biri tarafından hapsedildiğinde çalıştırılır.`
     },
+  canPerformAtDistance: false,
     
     /**
      * @param {GameData} gameData 

@@ -110,6 +110,7 @@ module.exports = {
         pt: `Muda o cenário de fundo.`,
         tr: `Sahne arka planını değiştirir.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData

@@ -17,6 +17,7 @@ module.exports = {
         pt: `Executado quando dois personagens têm relações sexuais. Pode ser consensual ou forçado.`,
         tr: `İki karakter cinsel ilişkiye girdiğinde çalıştırılır. Rıza ile veya zorla olabilir.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData 

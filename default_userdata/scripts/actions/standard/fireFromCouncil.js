@@ -24,6 +24,7 @@ module.exports = {
         pt: `Executado quando um personagem decide demitir ou destituir outro personagem do seu conselho.`,
         tr: `Bir karakter başka birini konseyinden kovmaya veya azletmeye karar verdiğinde çalıştırılır.`
     },
+  canPerformAtDistance: true,
 
     /**
      * @param {GameData} gameData 
