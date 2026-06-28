@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se inimigos mortais. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam inimigos mortais.`,
         tr: `İki karter birbirinin düşmanı olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), birbirinin düşmanı olan iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

@@ -36,7 +36,7 @@ module.exports = {
         pt: `Executado quando dois personagens concordam com uma trégua mútua por um certo número de anos. A fonte (character1) e o alvo (character2) são as duas partes que concordam com a trégua.`,
         tr: `İki karakter belirli bir yıl sayısı için karşılıklı ateşkese anlaştığında çalıştırılır. Kaynak (character1) ve hedef (character2), ateşkese anlaşan iki taraftır.`
     },
-    
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

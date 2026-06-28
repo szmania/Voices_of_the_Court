@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se melhores amigos. A fonte (character1) e o alvo (character2) são os dois personagens que formam a amizade.`,
         tr: `İki karakter en iyi arkadaş olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), arkadaşlığı kuran iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

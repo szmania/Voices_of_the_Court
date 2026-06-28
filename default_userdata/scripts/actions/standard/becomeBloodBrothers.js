@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se irmãos de sangue. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam irmãos de sangue.`,
         tr: `İki karakter kan kardeşi olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), kan kardeşi olan iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

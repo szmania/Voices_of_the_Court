@@ -153,7 +153,7 @@ module.exports = {
     pt: "Adiciona um traço a um personagem. A fonte (personagem 1) fornece o contexto, enquanto o alvo (personagem 2) recebe o traço.",
     tr: "Bir karaktere bir özellik ekler. Kaynak (character1) bağlam sağlar, hedef (character2) ise özelliği alır."
   },
-
+  canPerformAtDistance: true,
   /**
    * @param {GameData} gameData
    * @param {number} sourceId
