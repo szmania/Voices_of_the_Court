@@ -60,5 +60,6 @@ module.exports = {
             tr: `{{character2Name}}, {{character1Name}}'in sarayına katıldı.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: true
 }

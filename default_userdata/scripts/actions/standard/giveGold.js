@@ -109,5 +109,6 @@ module.exports = {
             tr: `{{character1Name}}, {{character2Name}}'ye ${args[0]} altın verdi.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "positive-action-message",
+    canPerformAtDistance: true
 }

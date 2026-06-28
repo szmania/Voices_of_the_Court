@@ -423,5 +423,6 @@ module.exports = {
             tr: `{{character2Name}}, konuşmadan ayrıldı.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: false
 }

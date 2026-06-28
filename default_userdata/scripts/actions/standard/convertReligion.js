@@ -120,6 +120,6 @@ module.exports = {
             tr: `{{character2Name}}, {{character1Name}}'nin dinine döndü.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: true
 }
-

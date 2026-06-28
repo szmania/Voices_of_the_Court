@@ -59,6 +59,6 @@ module.exports = {
             tr: `{{character2Name}} mutlu hissediyor.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: true
 }
-

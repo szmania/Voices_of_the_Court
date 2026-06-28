@@ -60,5 +60,6 @@ ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (ch
             tr: `{{character2Name}}, {{character1Name}} tarafından öldürüldü.`
         };
     },
-    chatMessageClass: "negative-action-message"
+    chatMessageClass: "negative-action-message",
+    canPerformAtDistance: false
 }

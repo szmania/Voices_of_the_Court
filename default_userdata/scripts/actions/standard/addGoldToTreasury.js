@@ -36,7 +36,7 @@ module.exports = {
         pt: `Executado quando o tesouro de um personagem recebe renda. A fonte (character1) é o personagem cujo tesouro recebe o ouro. O alvo (character2) não é usado nesta ação.`,
         tr: `Bir karakterin hazinesi gelir aldığında çalıştırılır. Kaynak (character1), hazinesi altını alan karakterdir. Hedef (character2) bu eylemde kullanılmaz.`
     },
-    
+    canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -76,5 +76,6 @@ module.exports = {
             }
         }
     ,
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: true
 }

@@ -52,5 +52,6 @@ module.exports = {
             tr: `Hiçbir şey olmadı.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
+    canPerformAtDistance: true
 }

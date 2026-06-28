@@ -80,5 +80,6 @@ module.exports = {
             tr: `{{character1Name}}, {{character2Name}}'yi konseyden kovdu.`
         }
     },
-    chatMessageClass: "negative-action-message"
+    chatMessageClass: "negative-action-message",
+    canPerformAtDistance: true
 }
