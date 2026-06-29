@@ -312,6 +312,19 @@ async function checkAndDeliverLetters() {
         return;
     }
 
+    let gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (!gameData) {
+        console.warn("Could not parse game data during letter delivery. Attempting to use cached data.");
+        gameData = getCachedGameData();
+    }
+
+    if (!gameData) {
+        console.warn("Could not parse game data during letter delivery. Using currentTotalDays fallback for date.");
+        const gameDate = totalDaysToDateString(currentTotalDays);
+        // Further logic to handle letter delivery without full gameData would be needed here.
+        // For now, we'll just log the warning and return.
+        return;
+    }
     const letterManager = LetterManager.getInstance();
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
@@ -981,6 +994,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             storedLetters.clear();
             lastLetterSentToGame = null; // Also clear any letter pending game confirmation
         }
+        setCachedGameData(gameData);
         currentSessionPlayerId = String(gameData.playerID);
 
         console.log("New conversation started!");
