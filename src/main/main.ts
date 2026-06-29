@@ -422,7 +422,7 @@ function updateCurrentDate(newTotalDays: number) {
         getPlayerId(debugLogPath).then(newPlayerId => {
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
-                clearCachedGameData();
+            clearCachedGameData(); // (backend_engineer)
                 currentSessionPlayerId = newPlayerId;
             }
         });
