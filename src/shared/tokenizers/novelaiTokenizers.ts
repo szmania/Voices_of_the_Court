@@ -1,4 +1,5 @@
-import { encode, decode as gptDecode } from 'gpt-tokenizer';
+import { encode as gptEncode, decode as gptDecode } from 'gpt-tokenizer';
+import { encode as llamaEncode, decode as llamaDecode } from 'llama-tokenizer-js';
 
 // Define a mapping from NovelAI models to tokenizer identifiers.
 const modelToTokenizer: { [model: string]: string } = {
@@ -28,7 +29,7 @@ export function tokenize(text: string, model: string): Uint32Array {
   // for each tokenizer identifier. For this example, we'll use gpt-tokenizer for all.
   switch (tokenizer) {
     case 'Nerdstash v2':
-      // Placeholder: Replace with actual Nerdstash v2 tokenizer
+      return new Uint32Array(llamaEncode(text));
       return new Uint32Array(encode(text));
     case 'Llama 3':
       // Placeholder: Replace with actual Llama 3 tokenizer
@@ -60,15 +61,15 @@ export function decode(tokens: Uint32Array, model: string): string {
     switch (tokenizer) {
         case 'Nerdstash v2':
             // Placeholder: Replace with actual Nerdstash v2 decoder
-            return decode(Array.from(tokens));
+            return gptDecode(Array.from(tokens));
         case 'Llama 3':
             // Placeholder: Replace with actual Llama 3 decoder
-            return decode(Array.from(tokens));
+            return llamaDecode(Array.from(tokens));
         case 'Nerdstash v1':
             // Placeholder: Replace with actual Nerdstash v1 decoder
-            return decode(Array.from(tokens));
+            return gptDecode(Array.from(tokens));
         case 'GPT-2':
         default:
-            return decode(Array.from(tokens));
+            return gptDecode(Array.from(tokens));
     }
 }
