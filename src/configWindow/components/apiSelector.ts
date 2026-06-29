@@ -23,7 +23,8 @@ function defineTemplate(label: string){
             <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
             <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
-        </select> 
+            <option value="novelai" data-i18n="api.novelai">NovelAI</option>
+        </select>
     </div>
     
     <div class="border">
@@ -183,6 +184,21 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="novelai-menu">
+            <h2 data-i18n="api.novelai">NovelAI</h2>
+            <div class="input-group">
+                <label for="novelai-password" data-i18n="connection.novelai_password"></label>
+                <br>
+                <input type="password" id="novelai-password">
+                <p class="tooltip" data-i18n-title="connection.novelai_password_tooltip"></p>
+            </div>
+            <div class="input-group">
+                <label for="novelai-model-select" data-i18n="connection.novelai_model"></label>
+                <select id="novelai-model-select">
+                    <!-- Models will be populated dynamically -->
+                </select>
+            </div>
+        </div>
         <div id="custom-menu">
             <h2 data-i18n="api.custom">Custom (Openai-compatible) endpoint</h2>
 
@@ -232,7 +248,6 @@ class ApiSelector extends HTMLElement{
     grokDiv: HTMLDivElement
     nvidiaDiv: HTMLDivElement
     player2Div: HTMLDivElement
-
     openaiKeyInput: HTMLInputElement 
     openaiModelSelect: HTMLSelectElement 
 
@@ -313,21 +328,9 @@ class ApiSelector extends HTMLElement{
         this.player2ModelDatalist = this.shadow.querySelector("#player2-models")!;
 
         this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
-        this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
-
-        this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")!;
-        this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")!;
-        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")!;
-
-        this.customUrlInput = this.shadow.querySelector("#custom-url")!;
-        this.customKeyInput = this.shadow.querySelector("#custom-key")!;
-        this.customModelInput = this.shadow.querySelector("#custom-model")!;
-
-        this.testConnectionButton = this.shadow.querySelector("#connection-test-button")!;
-        this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")!;
-
-        this.overwriteContextCheckbox = this.shadow.querySelector("#overwrite-context")!;
-        this.customContextNumber = this.shadow.querySelector("#custom-context")!;
+        this.novelaiDiv = this.shadow.querySelector("#novelai-menu")!;
+        this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
+        this.novelaiModelSelect = this.shadow.querySelector("#novelai-model-select")! as HTMLSelectElement;
     }
 
 
@@ -464,6 +467,9 @@ class ApiSelector extends HTMLElement{
             }
 
             switch(this.typeSelector.value){
+                case 'novelai':
+                    this.saveNovelaiConfig();
+                    break;
                 case 'openai': 
                     this.saveOpenaiConfig();
                 break;
@@ -514,6 +520,9 @@ class ApiSelector extends HTMLElement{
             this.saveCustomConfig();
         })
 
+        this.novelaiDiv.addEventListener("change", (e:any) =>{
+            this.saveNovelaiConfig();
+        })
         this.geminiDiv.addEventListener("change", (e:any) =>{
             this.saveGeminiConfig();
         })
@@ -633,7 +642,8 @@ class ApiSelector extends HTMLElement{
         this.grokDiv.style.display = "none";
         this.nvidiaDiv.style.display = "none";
         this.player2Div.style.display = "none";
-
+        this.novelaiDiv.style.display = "none";
+        
         switch (this.typeSelector.value) {
             case 'openai':  
                 this.openaiDiv.style.display = "block";
@@ -665,6 +675,9 @@ class ApiSelector extends HTMLElement{
             case 'player2':
                 this.player2Div.style.display = "block";
                 break;
+            case 'novelai':
+                this.novelaiDiv.style.display = "block";
+                break;
         }
     }
 
@@ -674,6 +687,7 @@ class ApiSelector extends HTMLElement{
         // 保存所有API类型的配置
         this.saveOpenaiConfig();
         this.saveOobaConfig();
+        this.saveNovelaiConfig();
         this.saveOpenrouterConfig();
         this.saveGeminiConfig();
         this.saveGlmConfig();
@@ -700,6 +714,11 @@ class ApiSelector extends HTMLElement{
                 baseUrl: "https://openrouter.ai/api/v1",
                 model: this.openrouterModelInput.value,
                 forceInstruct: this.openrouterInstructModeCheckbox.checked
+            },
+            novelai: {
+                key: this.novelaiPasswordInput.value,
+                baseUrl: "https://api.novelai.net/v1",
+                model: this.novelaiModelSelect.value
             },
             gemini: {
                 key: this.geminiKeyInput.value,
@@ -777,7 +796,20 @@ class ApiSelector extends HTMLElement{
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
     }
-    
+
+    saveNovelaiConfig(){
+        const config = {
+            type: "novelai",
+            baseUrl: "https://api.novelai.net/v1",
+            key: this.novelaiPasswordInput.value,
+            model: this.novelaiModelSelect.value,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+    }
 
     //OPENROUTER DIV
     saveOpenrouterConfig(){

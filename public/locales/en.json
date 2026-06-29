@@ -41,7 +41,10 @@
     "player2_download_tooltip": "Download the Player2 application",
 "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary.",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "novelai_password": "Password",
+    "novelai_model": "Model",
+    "novelai_password_tooltip": "Your NovelAI account password (not API key)"
   },
   "api": {
     "openrouter": "OpenRouter",
