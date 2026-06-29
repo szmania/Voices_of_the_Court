@@ -28,6 +28,7 @@ import { randomUUID } from "crypto";
 import { checkUserData } from "./userDataCheck.js";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow.js';
+import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache.js';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -328,14 +329,13 @@ async function checkAndDeliverLetters() {
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            let currentDateString: string;
             if (!gameData) {
                 console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
+                currentDateString = totalDaysToDateString(currentTotalDays);
+            } else {
+                currentDateString = gameData.date;
             }
-            if (!gameData) {
-                console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
-                continue;
-            }
-            const currentDateString = gameData ? gameData.date : totalDaysToDateString(currentTotalDays);
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
@@ -385,6 +385,7 @@ function removeLettersAfterDate(cutoffDate: number): void {
 }
 
 function updateCurrentDate(newTotalDays: number) {
+    const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
     // Detect time travel backwards (loading an older save)
@@ -393,6 +394,26 @@ function updateCurrentDate(newTotalDays: number) {
         removeLettersAfterDate(newTotalDays);
     }
     // Detect large time jump forward (more than 40 days), could be loading a different save
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
+        console.log(`Large time jump forward detected. Clearing letters and potentially cache. | Old date: ${oldTotalDays} | New date: ${newTotalDays}`);
+        // This could also indicate a new save, so we might clear more than just letters.
+        // For now, we'll just remove letters.
+        removeLettersAfterDate(newTotalDays);
+    }
+
+    currentTotalDays = newTotalDays;
+
+    // After a potential time travel or large jump, re-evaluate the player ID
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (fs.existsSync(debugLogPath)) {
+        getPlayerId(debugLogPath).then(newPlayerId => {
+            if (newPlayerId && oldPlayerId !== newPlayerId) {
+                console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
+                clearCachedGameData();
+                currentSessionPlayerId = newPlayerId;
+            }
+        });
+    }
     else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
         console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
         storedLetters.clear();
