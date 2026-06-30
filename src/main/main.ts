@@ -266,6 +266,12 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+
+// --- Private helpers for testing ---
+export function _private_setCurrentTotalDays(days: number): void { currentTotalDays = days; }
+export function _private_getStoredLetters(): Map<string, StoredLetter> { return storedLetters; }
+export function _private_setLastLetterSentToGame(letter: StoredLetter | null): void { lastLetterSentToGame = letter; }
+export function _private_setSessionPlayerId(id: string | null): void { currentSessionPlayerId = id; }
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
@@ -306,7 +312,7 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-async function checkAndDeliverLetters() {
+export async function checkAndDeliverLetters() {
     if (currentTotalDays === 0) {
         console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
         return;
@@ -361,7 +367,7 @@ async function checkAndDeliverLetters() {
     }
 }
 
-function totalDaysToDateString(totalDays: number): string {
+export function totalDaysToDateString(totalDays: number): string {
     const year = Math.floor(totalDays / 365);
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
@@ -397,7 +403,7 @@ function removeLettersAfterDate(cutoffDate: number): void {
     }
 }
 
-function updateCurrentDate(newTotalDays: number) {
+export function updateCurrentDate(newTotalDays: number) {
     const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
@@ -442,7 +448,7 @@ function updateCurrentDate(newTotalDays: number) {
     });
 }
 
-function processLogLine(line: string) {
+export function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
 
