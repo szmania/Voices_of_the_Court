@@ -2307,9 +2307,9 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         if (win && win.window && !win.window.isDestroyed()) {
             win.window.webContents.send('update-theme', theme);
         }
-    });
 });
-});
+
+á学A:
 
 // 处理语言切换事件
 ipcMain.on('language-changed', (event, lang: string) => {

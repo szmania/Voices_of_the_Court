@@ -199,6 +199,11 @@ export class LetterManager {
                 if (letter.associatedAction?.triggerOn === 'read') {
                     LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                 }
+            } catch (error) {
+                console.error(`Error marking letter as read for player ${playerId}, character ${characterId}:`, error);
+            }
+        }
+    }
 
     public getLetterSummaryFilePath(playerId: string, characterId: string): string {
         this.initPaths();

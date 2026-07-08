@@ -111,7 +111,7 @@ export class LetterActionTrigger {
       `);
 
       return { success: true };
-    } catch (e: any) { {
+    } catch (e: any) {
       const message = `Error running action "${actionSpec.signature}": ${e.message}`;
       console.error(`[LetterActionTrigger] ${message}`);
       return { success: false, message };
