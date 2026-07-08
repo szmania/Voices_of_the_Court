@@ -12,6 +12,7 @@ import { Letter } from "./letter/Letter.js";
 import { StoredLetter } from "./letter/letterInterfaces.js";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
 import { LetterManager } from "./letter/LetterManager.js";
+import { LetterActionTrigger } from './letter/LetterActionTrigger.js';
 import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
@@ -826,9 +827,6 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
-import { LetterActionTrigger } from './letter/LetterActionTrigger.js';
-
-function startLogTailing() {
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -2307,9 +2305,10 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         if (win && win.window && !win.window.isDestroyed()) {
             win.window.webContents.send('update-theme', theme);
         }
-});
+    });
 
-á学A:
+    });
+});
 
 // 处理语言切换事件
 ipcMain.on('language-changed', (event, lang: string) => {
