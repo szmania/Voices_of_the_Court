@@ -7,7 +7,7 @@ import { GameData } from '../../shared/gameData/GameData';
 import { Letter } from './letterInterfaces';
 import { RunFileManager } from '../RunFileManager';
 import { ActionEffectWriter } from '../conversation/ActionEffectWriter';
-import { parseLog } from '../parseLog';
+import { parseLog } from '../../shared/gameData/parseLog';
 
 export interface LetterAssociatedAction {
   signature: string;
@@ -111,8 +111,8 @@ export class LetterActionTrigger {
       `);
 
       return { success: true };
-    } catch (e: any) {
-      const message = `Error running action "${actionSpec.signature}": ${e.message}`;
+    } catch (e) {
+      const message = `Error running action "${actionSpec.signature}": ${e instanceof Error ? e.message : String(e)}`;
       console.error(`[LetterActionTrigger] ${message}`);
       return { success: false, message };
     }

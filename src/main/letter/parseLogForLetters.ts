@@ -1,7 +1,10 @@
 import fs from 'fs';
-import { Letter } from './Letter.js';
+import { Letter as LetterClass } from './Letter.js';
+import { Letter } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
 import { GameData } from '../../shared/gameData/GameData.js';
+import { Config } from '../../shared/Config.js';
+import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 function totalDaysToDateString(totalDays: number): string {
     const year = Math.floor(totalDays / 365);
@@ -75,7 +78,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
 
                     if (sender && recipient) {
                         const correctedGameDate = totalDaysToDateString(gameData.totalDays);
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
                             if (letter.associatedAction?.triggerOn === 'receive') {
                                 LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);

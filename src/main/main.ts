@@ -2227,7 +2227,7 @@ ipcMain.on('get-letters', (event) => {
 ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: { playerId: string, characterId: string, letterId: string }) => {
     console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId} for player ${playerId} and character ${characterId}`);
     const letterManager = LetterManager.getInstance();
-    letterManager.markAsRead(playerId, characterId, letterId);
+    letterManager.markAsRead(playerId, characterId, letterId, config);
     console.log(`Letter ${letterId} marked as read.`);
 });
 

@@ -19,6 +19,19 @@ export class Letter implements ILetter {
     delivered?: boolean;
     deliveryTimestamp?: Date;
     expectedDeliveryDate?: Date;
+    isPlayerSender?: boolean;
+    associatedAction?: import('./letterInterfaces.js').LetterAssociatedAction;
+    characterContext?: {
+        playerId: string;
+        playerName: string;
+        recipientId: string;
+        recipientName: string;
+        gameDate: string;
+        scene: string;
+        location: string;
+        locationController: string;
+        totalDays: number;
+    };
 
     constructor(
         id: string,

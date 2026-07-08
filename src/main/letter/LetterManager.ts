@@ -7,6 +7,7 @@ import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./le
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
+import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -204,6 +205,8 @@ export class LetterManager {
             }
         }
     }
+
+
 
     public getLetterSummaryFilePath(playerId: string, characterId: string): string {
         this.initPaths();
