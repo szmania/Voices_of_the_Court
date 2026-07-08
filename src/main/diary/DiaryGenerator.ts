@@ -10,14 +10,7 @@ import { LetterManager } from "../letter/LetterManager";
 import { randomUUID } from "crypto";
 import * as path from "path";
 import * as fs from "fs";
-
-let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
-}
+import { getEffectivePrompts } from "../conversation/promptBuilder.js";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
@@ -33,18 +26,6 @@ export class DiaryGenerator {
         );
     }
 
-    private getEffectivePrompts() {
-        const promptsConfig = getPromptsConfig(this.userDataPath);
-        const lang = this.config.language || 'en';
-        const activePreset = this.config.activePromptPreset || 'Default';
-    
-        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-        }
-        
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
-    }
-
     private buildDiaryPrompt(gameData: GameData, conversation: Conversation, characterId: string): string {
         const character = gameData.getCharacter(parseInt(characterId, 10));
         if (!character) {
@@ -55,13 +36,11 @@ export class DiaryGenerator {
             .map(msg => `${msg.name}: ${msg.content}`)
             .join('\n');
 
-        let prompt = this.getEffectivePrompts().diaryPrompt;
+        let prompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
-        // @ts-ignore
-        const depth = this.config.summaries_insert_depth || 3;
-        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId).slice(0, depth);
+        const letterSummaries = letterManager.getLetterSummaries(String(gameData.playerID), characterId).slice(0, this.config.maxSummaries);
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
             const allSummaries = letterSummaries.map((summary, index) =>
@@ -86,7 +65,7 @@ export class DiaryGenerator {
           return null;
         }
 
-        const diaryPrompt = this.getEffectivePrompts().diaryPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
 
         if (!diaryPrompt) {
           return null;
@@ -127,8 +106,7 @@ export class DiaryGenerator {
     }
 
     public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
-        const effectivePrompts = this.getEffectivePrompts();
-        const diaryPrompt = effectivePrompts.diaryForLetterPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryForLetterPrompt;
         if (!diaryPrompt) return null;
 
         const replacedPrompt = diaryPrompt
@@ -158,12 +136,12 @@ export class DiaryGenerator {
         };
     }
 
-    public async summarizeDiaryEntry(diaryEntry: DiaryEntry): Promise<{ summary: string, date: string, diaryEntryId: string } | null> {
+    public async summarizeDiaryEntry(diaryEntry: DiaryEntry, gameData: GameData): Promise<{ summary: string, date: string, diaryEntryId: string } | null> {
         if (!diaryEntry) {
             return null;
         }
 
-        const diarySummarizePrompt = this.getEffectivePrompts().diarySummarizePrompt;
+        const diarySummarizePrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diarySummarizePrompt;
         if (!diarySummarizePrompt) {
             return null;
         }

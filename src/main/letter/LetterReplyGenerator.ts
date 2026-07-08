@@ -12,14 +12,7 @@ import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
 import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
-
-let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
-}
+import { getEffectivePrompts } from "../conversation/promptBuilder.js";
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -37,18 +30,6 @@ export class LetterReplyGenerator {
             config.textGenerationApiConnectionConfig.parameters
         );
         console.log('[LetterReplyGenerator] ApiConnection created.');
-    }
-
-    private getEffectivePrompts() {
-        const promptsConfig = getPromptsConfig(this.userDataPath);
-        const lang = this.config.language || 'en';
-        const activePreset = this.config.activePromptPreset || 'Default';
-    
-        if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-            return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
-        }
-        
-        return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
     }
 
 
@@ -130,7 +111,7 @@ export class LetterReplyGenerator {
                 textGenApiConnection: this.apiConnection
             } as any;
             
-            const prompts = { memoriesPrompt: this.getEffectivePrompts().memoriesPrompt };
+            const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.userDataPath, gameData).memoriesPrompt };
             const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
@@ -142,16 +123,17 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        let prompt = this.getEffectivePrompts().letterPrompt || "You are playing as {{aiName}}.\n\n{{characterDescription}}\n\n{{conversationSummary}}{{letterSummaryContent}}{{memoryContent}}You have received a letter from {{playerName}} with the following content:\n\"{{letterContent}}\"\n\nThe letter requires a reply in {{language}}.\n\nPlease write a suitable reply based on your character's personality, background, relationship with the sender, relevant memories, and the current game situation. The reply should:\n1. Be written in {{language}}\n2. Reflect your character's personality and stance\n3. Respond to the main content of the letter\n4. Have a tone that is appropriate for your identity and relationship with the sender\n5. Be of moderate length and clearly expressed\n6. Appropriately reference relevant memory content to make the reply more aligned with the character's background\n\nPlease write the reply content directly, without adding any explanation or description.";
+        const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+        let prompt = effectivePrompts.letterPrompt;
 
-        prompt = prompt.replace('{{aiName}}', ai.fullName)
-                       .replace('{{characterDescription}}', characterDescription)
-                       .replace('{{conversationSummary}}', conversationSummary)
-                       .replace('{{letterSummaryContent}}', letterSummaryContent)
-                       .replace('{{memoryContent}}', memoryContent)
-                       .replace('{{playerName}}', player.fullName)
-                       .replace('{{letterContent}}', letter.content)
-                       .replace(/{{language}}/g, this.config.language);
+        prompt = prompt.replace('{{aiName}}', ai?.fullName || '')
+                       .replace('{{characterDescription}}', characterDescription || '')
+                       .replace('{{conversationSummary}}', conversationSummary || '')
+                       .replace('{{letterSummaryContent}}', letterSummaryContent || '')
+                       .replace('{{memoryContent}}', memoryContent || '')
+                       .replace('{{playerName}}', player?.fullName || '')
+                       .replace('{{letterContent}}', letter?.content || '')
+                       .replace(/{{language}}/g, this.config.language || 'en');
 
         return prompt;
     }
@@ -350,7 +332,8 @@ export class LetterReplyGenerator {
             }
 
             // Build summary generation prompt
-            let summaryPrompt = this.getEffectivePrompts().letterSummaryPrompt || "Please generate a concise summary based on the following letter exchange:\n\nPlayer {{playerName}}'s letter:\n\"{{playerLetterContent}}\"\n\nCharacter {{aiName}}'s reply:\n\"{{aiReplyContent}}\"\n\nPlease generate a concise summary describing the main content of this letter exchange. The summary should:\n1. Be concise and clear, not exceeding 100 words\n2. Highlight the core content of the letter exchange\n3. Reflect the relationship and interaction characteristics between the characters\n\nPlease write the summary content directly, without adding any explanation or description.";
+            const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+            let summaryPrompt = effectivePrompts.letterSummaryPrompt;
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
                                          .replace('{{playerLetterContent}}', originalLetter.content)

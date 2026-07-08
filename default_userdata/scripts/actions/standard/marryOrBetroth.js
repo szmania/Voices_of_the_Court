@@ -83,7 +83,8 @@ module.exports = {
         ja: `{{character1Name}}が{{character2Name}}と今すぐ結婚するか、母系結婚するか、婚約するかを選択します。スペイン語の意図：「se casa con」、「matrimonio matrilineal」、「se compromete con」。`,
         ko: `{{character1Name}}이(가) {{character2Name}}와 지금 결혼할지, 모계 결혼할지, 또는 약혼할지 선택하십시오. 스페인어 의도: "se casa con", "matrimonio matrilineal", "se compromete con".`,
         pl: `Wybierz, czy {{character1Name}} poślubi {{character2Name}} teraz, matrylinearnie, czy zawrze zaręczyny. Hiszpański zamiar: "se casa con", "matrimonio matrilineal", "se compromete con".`,
-        pt: `Escolha se {{character1Name}} casa com {{character2Name}} agora, casa matrilinearmente, ou forma um noivado. Intenção em espanhol: "se casa con", "matrimonio matrilineal", "se compromete con".`
+        pt: `Escolha se {{character1Name}} casa com {{character2Name}} agora, casa matrilinearmente, ou forma um noivado. Intenção em espanhol: "se casa con", "matrimonio matrilineal", "se compromete con".`,
+        tr: `{{character1Name}}'in {{character2Name}} ile şimdi evlenip evlenmeyeceğini, matrilineal olarak evlenip evlenmeyeceğini veya nişanlanıp nişanlanmayacağını seçin. İspanyolca niyet: "se casa con", "matrimonio matrilineal", "se compromete con".`
       }
     },
     {
@@ -99,7 +100,8 @@ module.exports = {
         ja: "この結婚または婚約を引き起こした理由/出来事（過去形）。スペイン語の例：「por alianza dinastica」、「tras acuerdo entre casas」。",
         ko: "이 결혼이나 약혼을 야기한 이유/사건(과거 시제). 스페인어 예: \"por alianza dinastica\", \"tras acuerdo entre casas\".",
         pl: "Powód/wydarzenie, które spowodowało to małżeństwo lub zaręczyny (w czasie przeszłym). Hiszpańskie przykłady: \"por alianza dinastica\", \"tras acuerdo entre casas\".",
-        pt: "Razão/evento que causou este casamento ou noivado (tempo passado). Exemplos em espanhol: \"por alianza dinastica\", \"tras acuerdo entre casas\"."
+        pt: "Razão/evento que causou este casamento ou noivado (tempo passado). Exemplos em espanhol: \"por alianza dinastica\", \"tras acuerdo entre casas\".",
+        tr: "Bu evlilik veya nişanına neden olan sebep/olay (geçmiş zamanda). İspanyolca örnekler: \"por alianza dinastica\", \"tras acuerdo entre casas\"."
       }
     }
   ],
@@ -113,7 +115,8 @@ module.exports = {
     ja: "あるキャラクターが別のキャラクターと結婚、母系結婚、または婚約したときに実行します。ソース（キャラクター1）とターゲット（キャラクター2）が関係する2つの当事者です。",
     ko: "한 캐릭터와 다른 캐릭터가 결혼하거나, 모계 결혼하거나, 약혼할 때 실행합니다. 소스(캐릭터 1)와 대상(캐릭터 2)은 관련된 두 당사자입니다.",
     pl: "Wykonywane, gdy jedna postać i druga biorą ślub, ślub matrylinearny lub zaręczają się. Źródło (postać 1) i cel (postać 2) to dwie zaangażowane strony.",
-    pt: "Executar quando um personagem e outro se casam, casam-se matrilinearmente ou ficam noivos. A fonte (personagem 1) e o alvo (personagem 2) são as duas partes envolvidas."
+    pt: "Executar quando um personagem e outro se casam, casam-se matrilinearmente ou ficam noivos. A fonte (personagem 1) e o alvo (personagem 2) são as duas partes envolvidas.",
+    tr: "Bir karakter başka biriyle evlendiğinde, matrilineal olarak evlendiğinde veya nişanlandığında çalıştırılır. Kaynak (karakter 1) ve hedef (karakter 2), ilgili iki taraftır."
   },
 
   /**
@@ -214,7 +217,8 @@ module.exports = {
         ja: `{{character1Name}}と{{character2Name}}は結婚しました。`,
         ko: `{{character1Name}}와(과) {{character2Name}}이(가) 결혼했습니다.`,
         pl: `{{character1Name}} i {{character2Name}} wzięli ślub.`,
-        pt: `{{character1Name}} e {{character2Name}} se casaram.`
+        pt: `{{character1Name}} e {{character2Name}} se casaram.`,
+        tr: `{{character1Name}} ve {{character2Name}} evlendi.`
       };
     } else if (unionType === "marriage_matrilineal") {
       return {
@@ -227,7 +231,8 @@ module.exports = {
         ja: `{{character1Name}}と{{character2Name}}は母系結婚しました。`,
         ko: `{{character1Name}}와(과) {{character2Name}}이(가) 모계 결혼했습니다.`,
         pl: `{{character1Name}} i {{character2Name}} wzięli ślub matrylinearny.`,
-        pt: `{{character1Name}} e {{character2Name}} se casaram matrilinearmente.`
+        pt: `{{character1Name}} e {{character2Name}} se casaram matrilinearmente.`,
+        tr: `{{character1Name}} ve {{character2Name}} matrilineal olarak evlendi.`
       };
     } else { // betrothal
       return {
@@ -240,7 +245,8 @@ module.exports = {
         ja: `{{character1Name}}と{{character2Name}}は婚約しました。`,
         ko: `{{character1Name}}와(과) {{character2Name}}이(가) 약혼했습니다.`,
         pl: `{{character1Name}} i {{character2Name}} zaręczyli się.`,
-        pt: `{{character1Name}} e {{character2Name}} ficaram noivos.`
+        pt: `{{character1Name}} e {{character2Name}} ficaram noivos.`,
+        tr: `{{character1Name}} ve {{character2Name}} nişanlandı.`
       };
     }
   },

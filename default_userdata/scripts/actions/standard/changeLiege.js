@@ -14,7 +14,8 @@ module.exports = {
         ja: "家臣（ソース、キャラクター1）が主君を新しい支配者（ターゲット、キャラクター2）に変更します。",
         ko: "가신(소스, 캐릭터 1)이 자신의 군주를 새로운 통치자(대상, 캐릭터 2)로 변경합니다.",
         pl: "Wasal (źródło, postać 1) zmienia swojego suwerena na nowego władcę (cel, postać 2).",
-        pt: "Um vassalo (a fonte, personagem 1) muda seu suserano para um novo governante (o alvo, personagem 2)."
+        pt: "Um vassalo (a fonte, personagem 1) muda seu suserano para um novo governante (o alvo, personagem 2).",
+        tr: "Bir vassal (kaynak, karakter 1) efendisini yeni bir hükümdara (hedef, karakter 2) değiştirir."
     },
 
     /**
@@ -99,7 +100,8 @@ module.exports = {
             ja: `{{character1Name}}は今、{{character2Name}}に忠誠を誓います。`,
             ko: `{{character1Name}}은(는) 이제 {{character2Name}}에게 충성을 맹세합니다.`,
             pl: `{{character1Name}} teraz przysięga wierność {{character2Name}}.`,
-            pt: `{{character1Name}} agora jura lealdade a {{character2Name}}.`
+            pt: `{{character1Name}} agora jura lealdade a {{character2Name}}.`,
+            tr: `{{character1Name}}, artık {{character2Name}}'e sadakat yemini ediyor.`
         };
     },
 

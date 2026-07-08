@@ -1,6 +1,6 @@
 import { Conversation } from "./Conversation";
 import { Config } from "../../shared/Config";
-import { convertMessagesToString } from "./promptBuilder";
+import { convertMessagesToString, getEffectivePrompts } from "./promptBuilder";
 import path from 'path';
 import { Message, Action, ActionResponse, PendingAction } from "../ts/conversation_interfaces";
 import { parseVariables } from "../parseVariables";
@@ -57,14 +57,18 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     console.log(`Extracted rationale: ${rationale}`);
     console.log(`Extracted actions string: ${actionsString}`);
 
-    if(actionsString.trim() === "noop()"){
+    if(actionsString.trim().toLowerCase().startsWith("noop")){
         console.log('LLM returned "noop()", no actions triggered.');
         return [];
     }
 
-    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => a.trim() !== 'noop()');
+    const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => !a.trim().toLowerCase().startsWith('noop'));
 
     for(const actionInResponse of actions){
+        // Skip manual approval for noop actions that might have slipped through
+        if (actionInResponse.trim().toLowerCase().startsWith('noop')) {
+            continue;
+        }
         const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
         if(!foundActionName){
             console.warn(`Action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
@@ -135,6 +139,11 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
 
         // NEW: Manual Action Approval Logic
         if (conv.config.manualActionApproval) {
+            // Skip approval for noop actions
+            if (matchedAction.signature.toLowerCase().startsWith('noop')) {
+                console.log('Skipping approval for noop action.');
+                continue;
+            }
             const lastMessage = conv.messages[conv.messages.length - 1];
             if (!lastMessage || !lastMessage.id) {
                 console.error("Cannot request action approval, last message has no ID.");
@@ -291,9 +300,11 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
     listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
 
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+
     output.push({
         role: "system",
-        content: `Your task is to select actions from the list that happened in the last replies. For each action, you must provide the source's ID and the target's ID as the first two arguments. The 'source' is the character performing the action. The 'target' is the character being acted upon. Carefully read each action's description to understand who is the source and who is the target for that specific action. The IDs must come from the provided character list. The actions MUST exist in the provided list. Choose the most relevant actions. Response format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
+        content: prompts.actionPrompt
     })
 
     output.push({

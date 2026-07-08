@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu besten Freunden gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
                 ja: "彼らが親友になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 가장 친한 친구가 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali najlepszymi przyjaciółmi. (napisz w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali najlepszymi przyjaciółmi. (napisz w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se melhores amigos. (escreva no passado).",
+                tr: "onların en iyi arkadaş olmasına neden olan sebep (olay). (geçmiş zamanda yazın)."
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere zu besten Freunden werden.`,
         ja: `二人のキャラクターが親友になったときに実行されます。`,
         ko: `두 캐릭터가 가장 친한 친구가 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie stają się najlepszymi przyjaciółmi.`
+        pl: `Wykonywane, gdy dwie postacie stają się najlepszymi przyjaciółmi.`,
+        pt: `Executado quando dois personagens tornam-se melhores amigos. A fonte (character1) e o alvo (character2) são os dois personagens que formam a amizade.`,
+        tr: `İki karakter en iyi arkadaş olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), arkadaşlığı kuran iki karakterdir.`
     },
 
     /**
@@ -110,7 +114,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} sind beste Freunde geworden.`,
             ja: `{{character1Name}}と{{character2Name}}は親友になりました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 가장 친한 친구가 되었습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} zostali najlepszymi przyjaciółmi.`
+            pl: `{{character1Name}} i {{character2Name}} zostali najlepszymi przyjaciółmi.`,
+            pt: `{{character1Name}} e {{character2Name}} tornaram-se melhores amigos.`,
+            tr: `{{character1Name}} ve {{character2Name}}, en iyi arkadaş oldular.`
         }
     },
     chatMessageClass: "positive-action-message"

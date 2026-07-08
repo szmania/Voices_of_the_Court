@@ -411,4 +411,78 @@ trigger_event = message_event.362`;
             console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update status.`);
         }
     }
+
+    public deleteLetter(playerId: string, characterId: string, letterId: string): { success: boolean, error?: string } {
+        this.initPaths();
+        const filePath = this.getLetterFilePath(playerId, characterId);
+
+        if (!fs.existsSync(filePath)) {
+            console.warn(`Letter file not found for deletion: ${filePath}`);
+            return { success: true };
+        }
+
+        try {
+            const letters = this.getLetters(playerId, characterId);
+
+            const letterToDelete = letters.find(l => l.id === letterId);
+            if (!letterToDelete) {
+                console.warn(`Letter with id ${letterId} not found for deletion.`);
+                return { success: true }; // Idempotent
+            }
+
+            const idsToDelete: string[] = [];
+            if (letterToDelete.replyToId) { // Deleting a reply
+                idsToDelete.push(letterToDelete.replyToId);
+                idsToDelete.push(letterToDelete.id);
+            } else { // Deleting an original letter
+                idsToDelete.push(letterToDelete.id);
+                const reply = letters.find(l => l.replyToId === letterToDelete.id);
+                if (reply) {
+                    idsToDelete.push(reply.id);
+                }
+            }
+            const uniqueIdsToDelete = [...new Set(idsToDelete)];
+
+            const lettersToKeep = letters.filter(l => !uniqueIdsToDelete.includes(l.id));
+
+            if (lettersToKeep.length === letters.length) {
+                console.warn(`No letters were removed for letterId ${letterId}.`);
+                return { success: true };
+            }
+
+            if (lettersToKeep.length > 0) {
+                lettersToKeep.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                fs.writeFileSync(filePath, JSON.stringify(lettersToKeep, null, 2), 'utf8');
+                console.log(`Deleted letter(s) with IDs ${uniqueIdsToDelete.join(', ')} from ${filePath}.`);
+            } else {
+                fs.unlinkSync(filePath);
+                console.log(`Deleted empty letter file: ${filePath}`);
+            }
+
+            // Now, handle summaries.
+            const summaryFilePath = this.getLetterSummaryFilePath(playerId, characterId);
+            if (fs.existsSync(summaryFilePath)) {
+                const summaries = this.getLetterSummaries(playerId, characterId);
+
+                const summariesToKeep = summaries.filter(summary =>
+                    !summary.letterIds.some(id => uniqueIdsToDelete.includes(id))
+                );
+
+                if (summariesToKeep.length < summaries.length) {
+                    if (summariesToKeep.length > 0) {
+                        this.saveLetterSummaries(playerId, characterId, summariesToKeep);
+                        console.log(`Updated letter summaries for player ${playerId}, character ${characterId}.`);
+                    } else {
+                        fs.unlinkSync(summaryFilePath);
+                        console.log(`Deleted empty letter summary file: ${summaryFilePath}`);
+                    }
+                }
+            }
+
+            return { success: true };
+        } catch (error: any) {
+            console.error(`Error deleting letter ${letterId} for player ${playerId}, character ${characterId}:`, error);
+            return { success: false, error: error.message };
+        }
+    }
 }

@@ -250,3 +250,26 @@ export async function readCharacterMap(userDataPath: string, playerId: string): 
         throw error;
     }
 }
+
+/**
+ * Saves the character map for a given player.
+ * @param userDataPath The path to the user data directory.
+ * @param playerId The ID of the player whose character map to save.
+ * @param characterMap An object mapping character IDs to names.
+ */
+export async function saveCharacterMap(userDataPath: string, playerId: string, characterMap: object): Promise<void> {
+    try {
+        const mapFilePath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const summaryDir = path.dirname(mapFilePath);
+
+        // Ensure directory exists
+        if (!fs.existsSync(summaryDir)) {
+            fs.mkdirSync(summaryDir, { recursive: true });
+        }
+
+        fs.writeFileSync(mapFilePath, JSON.stringify(characterMap, null, '\t'), 'utf8');
+    } catch (error) {
+        console.error('Error saving character map file:', error);
+        throw error;
+    }
+}

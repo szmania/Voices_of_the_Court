@@ -9,28 +9,88 @@ import { app } from 'electron';
 import fs from 'fs';
 import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
+import { LocalizationManager } from "../../shared/LocalizationManager.js";
+import { GameData } from "../../shared/gameData/GameData.js";
 
-let promptsConfig: any = null;
-function getPromptsConfig(userDataPath: string) {
-    if (promptsConfig) return promptsConfig;
-    const promptsPath = path.join(userDataPath, 'configs', 'default_prompts.json');
-    promptsConfig = JSON.parse(fs.readFileSync(promptsPath, 'utf-8'));
-    return promptsConfig;
-}
+export function getPromptsConfig(userDataPath: string, lang: string = 'en'): any {
+    const promptsDir = path.join(userDataPath, 'configs', 'prompts');
+    const promptsPath = path.join(promptsDir, `${lang}.json`);
+    const fallbackPath = path.join(promptsDir, 'en.json');
+    let finalPath = promptsPath;
 
-export function getEffectivePrompts(conv: Conversation): any {
-    const promptsConfig = getPromptsConfig(conv.userDataPath);
-    const lang = conv.config.language || 'en';
-    const activePreset = conv.config.activePromptPreset || 'Default';
-
-    if (promptsConfig.mod_prompt_sets?.[activePreset]) {
-        return promptsConfig.mod_prompt_sets[activePreset][lang] || promptsConfig.mod_prompt_sets[activePreset].en;
+    if (!fs.existsSync(promptsPath)) {
+        console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
+        finalPath = fallbackPath;
     }
     
-    // For "Default" or custom presets, use the base prompts for the language.
-    // Custom presets overwrite the values in the UI, which then get saved into the main config object
-    // that the backend conversation uses.
-    return promptsConfig.prompts[lang] || promptsConfig.prompts.en;
+    if (!fs.existsSync(finalPath)) {
+        console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
+        return { prompts: {}, mod_prompt_sets: {} };
+    }
+
+    try {
+        return JSON.parse(fs.readFileSync(finalPath, 'utf-8'));
+    } catch (e) {
+        console.error(`Error parsing prompt file ${finalPath}:`, e);
+        return { prompts: {}, mod_prompt_sets: {} };
+    }
+}
+
+let customPresets: any = null;
+function getCustomPresets(userDataPath: string) {
+    // For simplicity, we don't cache this so it can be reloaded if changed.
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    if (fs.existsSync(presetsPath)) {
+        try {
+            return JSON.parse(fs.readFileSync(presetsPath, 'utf-8'));
+        } catch (e) {
+            console.error("Error parsing prompt_presets.json:", e);
+            return {};
+        }
+    }
+    return {};
+}
+
+export function getEffectivePrompts(config: Config, userDataPath: string, gameData: GameData): any {
+    const lang = config.language || 'en';
+    const defaultPromptsConfig = getPromptsConfig(userDataPath, lang);
+    const customPresetsConfig = getCustomPresets(userDataPath);
+
+    const activePreset = config.activePromptPreset || 'Default';
+
+    // 1. Check for built-in mod presets
+    if (defaultPromptsConfig.mod_prompt_sets?.[activePreset]) {
+        return { ...defaultPromptsConfig.prompts, ...defaultPromptsConfig.mod_prompt_sets[activePreset] };
+    }
+    
+    // 2. Check for the "Default" preset
+    if (activePreset === 'Default') {
+        return defaultPromptsConfig.prompts;
+    }
+
+    // 3. It's a custom preset. Find it, checking character-specific scope first.
+    const playerId = gameData.playerID.toString();
+    const characterPresets = customPresetsConfig[playerId] || {};
+    const globalPresets = customPresetsConfig['global'] || {};
+
+    let selectedPresetObject = null;
+
+    if (characterPresets[activePreset]) {
+        selectedPresetObject = characterPresets[activePreset];
+    } else if (globalPresets[activePreset]) {
+        selectedPresetObject = globalPresets[activePreset];
+    }
+
+    const defaultLangPrompts = defaultPromptsConfig.prompts;
+
+    if (selectedPresetObject) {
+        // Merge custom preset over the default language prompts to provide fallbacks.
+        return { ...defaultLangPrompts, ...selectedPresetObject };
+    }
+
+    // 4. Fallback to default if the custom preset is active but not found
+    console.warn(`Active custom preset "${activePreset}" not found. Falling back to default prompts.`);
+    return defaultLangPrompts;
 }
 
 export function convertChatToText(chat: Message[], config: Config, aiName: string): string{
@@ -90,7 +150,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         translations = JSON.parse(fs.readFileSync(fallbackLocalePath, 'utf-8'));
     }
 
-    const roleplayInstructionTemplate = translations.system.roleplay_instruction || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
+    const roleplayInstructionTemplate = (translations.system && translations.system.roleplay_instruction) || "Your task is to roleplay as the character {characterName}. Write a reply for this character only. Do not write as any other character. Do not narrate the actions of other characters.";
 
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
 
@@ -172,6 +232,31 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     try{
         delete require.cache[require.resolve(descriptionPath)];
 
+        // Add a temporary localize function to gameData for the script to use
+        if (conv.translations) {
+            (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
+                const keys = key.split('.');
+                let result = conv.translations;
+                for (const k of keys) {
+                    if (result === undefined || result === null) {
+                        return key; // fallback to key if path is invalid
+                    }
+                    result = result[k];
+                }
+
+                if (typeof result === 'string') {
+                    if (vars) {
+                        for (const varKey in vars) {
+                            result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), vars[varKey]);
+                        }
+                    }
+                    return result;
+                }
+            
+                return key; // fallback to key if not a string
+            };
+        }
+
         if (isAiToAi && targetCharacter) {
             // For AI-to-AI, temporarily set player/ai to source/target
             conv.gameData.playerID = character.id;
@@ -183,6 +268,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
         // Pass character to the script
         description = require(descriptionPath)(conv.gameData, character);
+
+        // Clean up the temporary function
+        delete (conv.gameData as any).localize;
 
         console.log(`Description script '${descriptionScriptFileName}' loaded successfully for ${character.fullName}.`);
     }catch(err){
@@ -207,7 +295,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv, getEffectivePrompts(conv))
+        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
     }
 
 
@@ -216,10 +304,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
-    // @ts-ignore
-    const depth = conv.config.summaries_insert_depth || 3;
     const diarySummaries = await readDiarySummaries(conv.gameData.playerID.toString(), character.id.toString());
-    const recentDiarySummaries = diarySummaries.slice(0, depth);
+    const recentDiarySummaries = diarySummaries.slice(0, conv.config.maxSummaries);
     if (recentDiarySummaries.length > 0) {
         const summaryContent = recentDiarySummaries.map(s => `${s.date}: ${s.summary}`).join('\n');
         const diarySummaryMessage: Message = {
@@ -251,7 +337,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             summaryString = (translations.prompt_builder?.summary_header || "Here are the dates and summaries of previous conversations:") + "\n";
         }
 
-        const summariesToProcess = [...characterSummaries];
+        const summariesToProcess = [...characterSummaries].slice(0, conv.config.maxSummaries);
         summariesToProcess.reverse();
 
         const currentGameDate = parseGameDate(conv.gameData.date);
@@ -275,11 +361,11 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         }
 
         insertMessageAtDepth(messages, summariesMessage, conv.config.summariesInsertDepth);
-        console.log(`Added previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
+        console.log(`Added ${summariesToProcess.length} previous conversation summaries for ${character.fullName} at depth: ${conv.config.summariesInsertDepth}.`);
     }
 
     // Load letter summaries
-    const letterSummaries = conv.letterManager.getLetterSummaries(String(conv.gameData.playerID), String(character.id));
+    const letterSummaries = conv.letterManager.getLetterSummaries(String(conv.gameData.playerID), String(character.id)).slice(0, conv.config.maxSummaries);
     if (letterSummaries.length > 0) {
         const allLetterSummaries = letterSummaries.map((summary, index) =>
             `${index + 1}. ${summary.date}: ${summary.summary}`
@@ -309,7 +395,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
-    const prompts = getEffectivePrompts(conv);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
 
     if (!isAiToAi && !isNonTargetedResponse) {
         const originalAiId = conv.gameData.aiID;
@@ -353,8 +439,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     if (isInitiatingAiToAi) {
         // Case 1: AI 1 is initiating a conversation with AI 2
-        const contextSwitchTemplate = translations.system.ai_to_ai_context_switch || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
-        const aiToAiInitiateTemplate = translations.system.roleplay_instruction_ai_to_ai_initiate || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        const contextSwitchTemplate = (translations.system && translations.system.ai_to_ai_context_switch) || "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]";
+        const aiToAiInitiateTemplate = (translations.system && translations.system.roleplay_instruction_ai_to_ai_initiate) || "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
 
         // Combine into a single instruction to save tokens
         roleplayInstruction = `${contextSwitchTemplate}\n\n${aiToAiInitiateTemplate}`
@@ -362,7 +448,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
             .replace(/{targetCharacterName}/g, replyToName);
         console.log('Combined AI-to-AI context switch and initiate message.');
 
-        const narratorPromptTemplate = translations.system.ai_to_ai_narrator_prompt || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
+        const narratorPromptTemplate = (translations.system && translations.system.ai_to_ai_narrator_prompt) || "Now, what does {sourceCharacterName} say to {targetCharacterName}?";
         const narratorPrompt = narratorPromptTemplate
             .replace(/{sourceCharacterName}/g, character.shortName)
             .replace(/{targetCharacterName}/g, replyToName);
@@ -376,12 +462,12 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     } else if (isAiToAi) {
         // Case 2: AI 2 is replying to AI 1
-        const aiToAiTemplate = translations.system.roleplay_instruction_ai_to_ai || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        const aiToAiTemplate = (translations.system && translations.system.roleplay_instruction_ai_to_ai) || "[System instruction: You are {sourceCharacterName}. Write a reply to {targetCharacterName}. Write a reply for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
         roleplayInstruction = aiToAiTemplate
             .replace(/{sourceCharacterName}/g, character.fullName)
             .replace(/{targetCharacterName}/g, replyToName);
 
-        const narratorReplyPromptTemplate = translations.system.ai_to_ai_narrator_reply_prompt || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
+        const narratorReplyPromptTemplate = (translations.system && translations.system.ai_to_ai_narrator_reply_prompt) || "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?";
         const narratorPrompt = narratorReplyPromptTemplate
             .replace(/{sourceCharacterName}/g, character.shortName)
             .replace(/{targetCharacterName}/g, replyToName);
@@ -394,7 +480,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log('Added AI-to-AI narrator reply prompt.');
 
     } else if (isNonTargetedResponse) {
-        const nonTargetedTemplate = translations.system.ai_to_ai_narrator_non_targeted_prompt || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
+        const nonTargetedTemplate = (translations.system && translations.system.ai_to_ai_narrator_non_targeted_prompt) || "Now, what is {sourceCharacterName}'s response in the ongoing conversation?";
         const narratorPrompt = nonTargetedTemplate.replace(/{sourceCharacterName}/g, character.shortName);
         chatPrompt.push({
             role: "user",
@@ -470,7 +556,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation, character: Character): Message[]{
-    const prompts = getEffectivePrompts(conv);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     let output: Message[] = [];
 
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
@@ -492,7 +578,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 }
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
-    const prompts = getEffectivePrompts(conv);
+    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
@@ -558,7 +644,6 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 export function createMemoryString(conv: Conversation, prompts: any): string{
-
     let allMemories: Memory[] = [];
 
     conv.gameData.characters.forEach((value, key) => {

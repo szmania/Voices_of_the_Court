@@ -7,10 +7,27 @@ function defineTemplate(tempDefault: number, freqPenDefault: number, presPenDefa
     return `
     <div id="div" class="border">
         <link rel="stylesheet" href="../../public/configWindow/config.css">
-        <config-slider id="temp" confID="temperature" label="Temperature"  min="0" max="2" step="0.01" default="${tempDefault}"></config-slider>
-        <config-slider id="freqPen" confID="frequency_penalty" label="Frequency Penalty"  min="-2" max="2" step="0.01" default="${freqPenDefault}"></config-slider>
-        <config-slider id="presPen" confID="presence_penalty" label="Presence Penalty"  min="-2" max="2" step="0.01" default="${presPenDefault}"></config-slider>
-        <config-slider id="topP" confID="top_p" label="Top P"  min="0" max="1" step="0.01" default="${topPDefault}"></config-slider>
+        <style>
+            .param-group { display: flex; align-items: center; justify-content: space-between; }
+            .param-group config-slider { flex-grow: 1; }
+            .param-group input[type="checkbox"] { margin-left: 15px; transform: scale(1.2); }
+        </style>
+        <div class="param-group">
+            <config-slider id="temp" confID="temperature" label="Temperature"  min="0" max="2" step="0.01" default="${tempDefault}"></config-slider>
+            <input type="checkbox" id="temp-enabled" />
+        </div>
+        <div class="param-group">
+            <config-slider id="freqPen" confID="frequency_penalty" label="Frequency Penalty"  min="-2" max="2" step="0.01" default="${freqPenDefault}"></config-slider>
+            <input type="checkbox" id="freqPen-enabled" />
+        </div>
+        <div class="param-group">
+            <config-slider id="presPen" confID="presence_penalty" label="Presence Penalty"  min="-2" max="2" step="0.01" default="${presPenDefault}"></config-slider>
+            <input type="checkbox" id="presPen-enabled" />
+        </div>
+        <div class="param-group">
+            <config-slider id="topP" confID="top_p" label="Top P"  min="0" max="1" step="0.01" default="${topPDefault}"></config-slider>
+            <input type="checkbox" id="topP-enabled" />
+        </div>
     </div>
     `
     
@@ -32,6 +49,11 @@ class ParametersBox extends HTMLElement{
     presPenSlider: any;
     topPSlider: any;
 
+    tempEnabledCheckbox: HTMLInputElement;
+    freqPenEnabledCheckbox: HTMLInputElement;
+    presPenEnabledCheckbox: HTMLInputElement;
+    topPEnabledCheckbox: HTMLInputElement;
+
     div: HTMLDivElement;
 
     constructor(){
@@ -51,6 +73,11 @@ class ParametersBox extends HTMLElement{
         this.freqPenSlider = this.shadow.querySelector("#freqPen");
         this.presPenSlider = this.shadow.querySelector("#presPen");
         this.topPSlider = this.shadow.querySelector("#topP");
+
+        this.tempEnabledCheckbox = this.shadow.querySelector('#temp-enabled');
+        this.freqPenEnabledCheckbox = this.shadow.querySelector('#freqPen-enabled');
+        this.presPenEnabledCheckbox = this.shadow.querySelector('#presPen-enabled');
+        this.topPEnabledCheckbox = this.shadow.querySelector('#topP-enabled');
 
         this.div = this.shadow.querySelector("#div");
 
@@ -76,41 +103,59 @@ class ParametersBox extends HTMLElement{
         this.presPenSlider.changeValue(values.presence_penalty);
         this.topPSlider.changeValue(values.top_p);
 
-        //TODO: FIX THIS ABOMINATION
-        [this.tempSlider, this.freqPenSlider, this.presPenSlider, this.topPSlider].forEach(element => {
-            
-            [element.slider, element.number].forEach(el => {
-                el.addEventListener("change", (e: any) => {
-                    console.log(confID)
-    
-                    let newParameters = {
-                        temperature: parseFloat(this.tempSlider.slider.value),
-                        frequency_penalty: parseFloat(this.freqPenSlider.slider.value),
-                        presence_penalty: parseFloat(this.presPenSlider.slider.value),
-                        top_p: parseFloat(this.topPSlider.slider.value),
-                    }
-    
-                    console.log(newParameters)
-    
-                    ipcRenderer.send('config-change-nested', confID, "parameters", newParameters);
-                });
-            })
+        this.tempEnabledCheckbox.checked = values.enableTemperature;
+        this.freqPenEnabledCheckbox.checked = values.enableFrequencyPenalty;
+        this.presPenEnabledCheckbox.checked = values.enablePresencePenalty;
+        this.topPEnabledCheckbox.checked = values.enableTopP;
 
-            element.button.addEventListener("click", (e: any) => {
-                console.log(confID)
+        this.toggleSlider(this.tempSlider, this.tempEnabledCheckbox.checked);
+        this.toggleSlider(this.freqPenSlider, this.freqPenEnabledCheckbox.checked);
+        this.toggleSlider(this.presPenSlider, this.presPenEnabledCheckbox.checked);
+        this.toggleSlider(this.topPSlider, this.topPEnabledCheckbox.checked);
 
-                let newParameters = {
-                    temperature: parseFloat(this.tempSlider.slider.value),
-                    frequency_penalty: parseFloat(this.freqPenSlider.slider.value),
-                    presence_penalty: parseFloat(this.presPenSlider.slider.value),
-                    top_p: parseFloat(this.topPSlider.slider.value),
-                }
-
-                console.log(newParameters)
-
-                ipcRenderer.send('config-change-nested', confID, "parameters", newParameters);
-            });
+        const allSliders = [this.tempSlider, this.freqPenSlider, this.presPenSlider, this.topPSlider];
+        allSliders.forEach(slider => {
+            slider.slider.addEventListener("change", () => this.saveParameters());
+            slider.number.addEventListener("change", () => this.saveParameters());
+            slider.button.addEventListener("click", () => this.saveParameters());
         });
+
+        this.tempEnabledCheckbox.addEventListener('change', () => {
+            this.toggleSlider(this.tempSlider, this.tempEnabledCheckbox.checked);
+            this.saveParameters();
+        });
+        this.freqPenEnabledCheckbox.addEventListener('change', () => {
+            this.toggleSlider(this.freqPenSlider, this.freqPenEnabledCheckbox.checked);
+            this.saveParameters();
+        });
+        this.presPenEnabledCheckbox.addEventListener('change', () => {
+            this.toggleSlider(this.presPenSlider, this.presPenEnabledCheckbox.checked);
+            this.saveParameters();
+        });
+        this.topPEnabledCheckbox.addEventListener('change', () => {
+            this.toggleSlider(this.topPSlider, this.topPEnabledCheckbox.checked);
+            this.saveParameters();
+        });
+    }
+
+    toggleSlider(sliderElement: any, isEnabled: boolean) {
+        sliderElement.style.opacity = isEnabled ? "1" : "0.5";
+        sliderElement.slider.disabled = !isEnabled;
+        sliderElement.number.disabled = !isEnabled;
+    }
+
+    saveParameters() {
+        const newParameters = {
+            temperature: parseFloat(this.tempSlider.slider.value),
+            enableTemperature: this.tempEnabledCheckbox.checked,
+            frequency_penalty: parseFloat(this.freqPenSlider.slider.value),
+            enableFrequencyPenalty: this.freqPenEnabledCheckbox.checked,
+            presence_penalty: parseFloat(this.presPenSlider.slider.value),
+            enablePresencePenalty: this.presPenEnabledCheckbox.checked,
+            top_p: parseFloat(this.topPSlider.slider.value),
+            enableTopP: this.topPEnabledCheckbox.checked,
+        };
+        ipcRenderer.send('config-change-nested', this.confID, "parameters", newParameters);
     }
 }
 

@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu Freunden gemacht hat. (in der Vergangenheitsform).",
                 ja: "彼らが友達になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 친구가 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali przyjaciółmi. (w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali przyjaciółmi. (w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se amigos. (no passado).",
+                tr: "onların arkadaş olmasına neden olan sebep (olay). (geçmiş zamanda)."
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn sich eine starke und enge Freundschaft zwischen zwei Charakteren bildet.`,
         ja: `二人のキャラクターの間に強く親密な友情が形成されたときに実行されます。`,
         ko: `두 캐릭터 사이에 강하고 친밀한 우정이 형성될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy między dwiema postaciami zawiązuje się silna i bliska przyjaźń.`
+        pl: `Wykonywane, gdy między dwiema postaciami zawiązuje się silna i bliska przyjaźń.`,
+        pt: `Executado quando uma amizade forte e próxima se forma entre dois personagens. A fonte (character1) e o alvo (character2) são os dois personagens que formam a amizade.`,
+        tr: `İki karakter arasında güçlü ve yakın bir arkadaşlık oluştuğunda çalıştırılır. Kaynak (character1) ve hedef (character2), arkadaşlığı kuran iki karakterdir.`
     },
 
     /**
@@ -105,7 +109,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} sind Freunde geworden.`,
             ja: `{{character1Name}}と{{character2Name}}は友達になりました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 친구가 되었습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} zostali przyjaciółmi.`
+            pl: `{{character1Name}} i {{character2Name}} zostali przyjaciółmi.`,
+            pt: `{{character1Name}} e {{character2Name}} tornaram-se amigos.`,
+            tr: `{{character1Name}} ve {{character2Name}}, arkadaş oldular.`
         }
     },
     chatMessageClass: "positive-action-message"

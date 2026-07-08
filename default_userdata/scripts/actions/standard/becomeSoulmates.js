@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu leidenschaftlichen Seelenverwandten gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
                 ja: "彼らが情熱的な魂の伴侶になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 열정적인 영혼의 동반자가 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali namiętnymi bratnimi duszami. (napisz w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali namiętnymi bratnimi duszami. (napisz w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se almas gêmeas apaixonadas. (escreva no passado).",
+                tr: "onların tutkulu ruh eşi olmasına neden olan sebep (olay). (geçmiş zamanda yazın)."
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere zu leidenschaftlichen Seelenverwandten werden.`,
         ja: `二人のキャラクターが情熱的な魂の伴侶になったときに実行されます。`,
         ko: `두 캐릭터가 열정적인 영혼의 동반자가 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie stają się namiętnymi bratnimi duszami.`
+        pl: `Wykonywane, gdy dwie postacie stają się namiętnymi bratnimi duszami.`,
+        pt: `Executado quando dois personagens tornam-se almas gêmeas apaixonadas. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam almas gêmeas.`,
+        tr: `İki karakter tutkulu ruh eşi olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), ruh eşi olan iki karakterdir.`
     },
 
     /**
@@ -110,7 +114,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} sind Seelenverwandte geworden.`,
             ja: `{{character1Name}}と{{character2Name}}は魂の伴侶になりました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 영혼의 동반자가 되었습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} stali się bratnimi duszami.`
+            pl: `{{character1Name}} i {{character2Name}} stali się bratnimi duszami.`,
+            pt: `{{character1Name}} e {{character2Name}} tornaram-se almas gêmeas.`,
+            tr: `{{character1Name}} ve {{character2Name}}, ruh eşi oldular.`
         }
     },
     chatMessageClass: "positive-action-message"

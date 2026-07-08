@@ -7,11 +7,12 @@
   "stream": false,
   "maxTokens": 5000,
   "maxMemoryTokens": 600,
+  "maxSummaries": 8,
   "percentOfContextToSummarize": 40,
-  "selectedDescScript": "standard\\pList.js",
-  "selectedExMsgScript": "standard\\aliChat.js",
+  "selectedDescScript": "standard/pList.js",
+  "selectedExMsgScript": "standard/aliChat.js",
   "selectedBookmarkScript": "",
-  "selectedSelfTalkExMsgScript": "standard\\default.js",
+  "selectedSelfTalkExMsgScript": "self-talk/default.js",
   "inputSequence": "[INST]",
   "outputSequence": "[/INST]",
   "textGenerationApiConnectionConfig": {
@@ -28,7 +29,11 @@
       "temperature": 0.8,
       "frequency_penalty": 0.0,
       "presence_penalty": 0.0,
-      "top_p": 0.9
+      "top_p": 0.9,
+      "enableTemperature": true,
+      "enableFrequencyPenalty": true,
+      "enablePresencePenalty": true,
+      "enableTopP": true
     }
   },
   "summarizationApiConnectionConfig": {
@@ -45,7 +50,11 @@
       "temperature": 0.5,
       "frequency_penalty": 0.0,
       "presence_penalty": 0.0,
-      "top_p": 0.9
+      "top_p": 0.9,
+      "enableTemperature": true,
+      "enableFrequencyPenalty": true,
+      "enablePresencePenalty": true,
+      "enableTopP": true
     }
   },
   "actionsApiConnectionConfig": {
@@ -62,7 +71,11 @@
       "temperature": 0.5,
       "frequency_penalty": 0.0,
       "presence_penalty": 0.0,
-      "top_p": 0.9
+      "top_p": 0.9,
+      "enableTemperature": true,
+      "enableFrequencyPenalty": true,
+      "enablePresencePenalty": true,
+      "enableTopP": true
     }
   },
   "summarizationUseTextGenApi": true,
@@ -71,6 +84,7 @@
   "manualActionApproval": true,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
+  "maxHistoricalConversations": 8,
   "narrativeEnable": true,
   "disabledActions": [
     "woundCharacter",

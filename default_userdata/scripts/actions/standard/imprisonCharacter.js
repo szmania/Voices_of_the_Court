@@ -21,7 +21,9 @@ module.exports = {
                 de: "Art des Gefängnisses, in das {{character1Name}} {{character2Name}} schickt (muss den Typ explizit erwähnen).",
                 ja: "{{character1Name}}が{{character2Name}}を送る刑務所の種類（種類を明示的に言及する必要があります）。",
                 ko: "{{character1Name}}가 {{character2Name}}를 보내는 감옥 유형(유형을 명시적으로 언급해야 함).",
-                pl: "rodzaj więzienia, do którego {{character1Name}} wysyła {{character2Name}} (musi wyraźnie wspomnieć typ)."
+                pl: "rodzaj więzienia, do którego {{character1Name}} wysyła {{character2Name}} (musi wyraźnie wspomnieć typ).",
+                pt: "tipo de prisão para onde {{character1Name}} envia {{character2Name}} (deve mencionar explicitamente o tipo).",
+                tr: "{{character1Name}}'in {{character2Name}}'yi gönderdiği hapishane türü (türü açıkça belirtmelidir)."
             },
         }
     ],
@@ -34,7 +36,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter von einem anderen inhaftiert wird.`,
         ja: `あるキャラクターが別のキャラクターによって投獄されたときに実行されます。`,
         ko: `한 캐릭터가 다른 캐릭터에 의해 투옥되었을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy jedna postać zostaje uwięziona przez inną.`
+        pl: `Wykonywane, gdy jedna postać zostaje uwięziona przez inną.`,
+        pt: `Executado quando um personagem é preso por outro.`,
+        tr: `Bir karakter başka biri tarafından hapsedildiğinde çalıştırılır.`
     },
     
     /**
@@ -150,7 +154,9 @@ module.exports = {
                     de: `{{character2Name}} steht unter Hausarrest von {{character1Name}}.`,
                     ja: `{{character2Name}}は{{character1Name}}によって自宅軟禁されています。`,
                     ko: `{{character2Name}}가 {{character1Name}}에 의해 가택 연금 중입니다.`,
-                    pl: `{{character2Name}} jest w areszcie domowym nałożonym przez {{character1Name}}.`
+                    pl: `{{character2Name}} jest w areszcie domowym nałożonym przez {{character1Name}}.`,
+                    pt: `{{character2Name}} está em prisão domiciliar imposta por {{character1Name}}.`,
+                    tr: `{{character2Name}}, {{character1Name}} tarafından ev hapsine alındı.`
                 };
             case 'dungeon':
                 return {
@@ -162,7 +168,9 @@ module.exports = {
                     de: `{{character2Name}} wurde von {{character1Name}} in den Kerker geworfen.`,
                     ja: `{{character2Name}}は{{character1Name}}によって地下牢に投げ込まれました。`,
                     ko: `{{character2Name}}가 {{character1Name}}에 의해 지하감옥에 던져졌습니다.`,
-                    pl: `{{character2Name}} został rzucony do lochu przez {{character1Name}}.`
+                    pl: `{{character2Name}} został rzucony do lochu przez {{character1Name}}.`,
+                    pt: `{{character2Name}} foi jogado na masmorra por {{character1Name}}.`,
+                    tr: `{{character2Name}}, {{character1Name}} tarafından zindana atıldı.`
                 };
             default:
                 return {
@@ -174,7 +182,9 @@ module.exports = {
                     de: `{{character2Name}} ist von {{character1Name}} eingekerkert.`,
                     ja: `{{character2Name}}は{{character1Name}}によって投獄されています。`,
                     ko: `{{character2Name}}가 {{character1Name}}에 의해 투옥되었습니다.`,
-                    pl: `{{character2Name}} jest uwięziony przez {{character1Name}}.`
+                    pl: `{{character2Name}} jest uwięziony przez {{character1Name}}.`,
+                    pt: `{{character2Name}} está preso por {{character1Name}}.`,
+                    tr: `{{character2Name}}, {{character1Name}} tarafından hapsedildi.`
                 };
         }
     },

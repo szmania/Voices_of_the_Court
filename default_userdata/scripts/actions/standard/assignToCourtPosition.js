@@ -48,7 +48,9 @@ const action = {
                 de: "Die Hofposition, zu der {{character1Name}} {{character2Name}} ernennt.",
                 ja: "{{character1Name}}が{{character2Name}}を任命することを決めた宮廷のポスト。",
                 ko: "{{character1Name}}가 {{character2Name}}를 배정하기로 결정한 궁정 직책.",
-                pl: "Stanowisko dworskie, na które {{character1Name}} decyduje się przydzielić {{character2Name}}."
+                pl: "Stanowisko dworskie, na które {{character1Name}} decyduje się przydzielić {{character2Name}}.",
+                pt: "O cargo na corte ao qual {{character1Name}} decide designar {{character2Name}}.",
+                tr: "{{character1Name}}'in {{character2Name}}'yi atamaya karar verdiği saray görevi."
             }
         } 
     ],
@@ -61,7 +63,9 @@ const action = {
         de: `Wird ausgeführt, wenn ein Charakter einen anderen zu einer Hofposition ernennt.`,
         ja: `あるキャラクターが別のキャラクターを宮廷のポストに任命したときに実行されます。`,
         ko: `한 캐릭터가 다른 캐릭터를 궁정 직책에 임명했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy jedna postać mianuje drugą na stanowisko dworskie.`
+        pl: `Wykonywane, gdy jedna postać mianuje drugą na stanowisko dworskie.`,
+        pt: `Executado quando um personagem nomeia outro para um cargo na corte. A fonte (character1) é o GOVERNANTE/NOMEADOR. O alvo (character2) é o personagem sendo NOMEADO.`,
+        tr: `Bir karakter başka birini saray görevine atadığında çalıştırılır. Kaynak (character1) HÜKÜMDAR/ATAYAN'dır. Hedef (character2) ATANAN karakterdir.`
     },
 
     /**
@@ -393,7 +397,9 @@ const action = {
             de: `{{character1Name}} hat {{character2Name}} zum ${positionNames.de} ernannt.`,
             ja: `{{character1Name}}は{{character2Name}}を${positionNames.ja}のポストに任命しました。`,
             ko: `{{character1Name}}는 {{character2Name}}를 ${positionNames.ko} 직책에 임명했습니다.`,
-            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl}.`
+            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl}.`,
+            pt: `{{character1Name}} nomeou {{character2Name}} para o cargo de ${positionNames.pt}.`,
+            tr: `{{character1Name}}, {{character2Name}}'yi ${positionNames.tr} görevine atadı.`
         }
     },
     chatMessageClass: "neutral-action-message"

@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter kein Herrscher ist und beschließt, dem Hof eines anderen als Ritter beizutreten.`,
         ja: `あるキャラクターが支配者ではなく、別のキャラクターの宮廷に騎士として加わることを決めたときに実行されます。`,
         ko: `한 캐릭터가 통치자가 아니고 다른 캐릭터의 궁정에 기사로 합류하기로 결정했을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać nie jest władcą i decyduje się dołączyć do dworu innej jako rycerz.`
+        pl: `Wykonywane, gdy postać nie jest władcą i decyduje się dołączyć do dworu innej jako rycerz.`,
+        pt: `Executado quando um personagem que não é governante decide se juntar à corte de outro como cavaleiro.`,
+        tr: `Bir hükümdar olmayan karakter başka birinin sarayına şövalye olarak katılmaya karar verdiğinde çalıştırılır.`
     },
 
     /**
@@ -54,7 +56,9 @@ module.exports = {
             de: `{{character2Name}} hat sich dem Hof von {{character1Name}} als Ritter angeschlossen.`,
             ja: `{{character2Name}}は騎士として{{character1Name}}の宮廷に加わりました。`,
             ko: `{{character2Name}}가 기사로 {{character1Name}}의 궁정에 합류했습니다.`,
-            pl: `{{character2Name}} dołączył do dworu {{character1Name}} jako rycerz.`
+            pl: `{{character2Name}} dołączył do dworu {{character1Name}} jako rycerz.`,
+            pt: `{{character2Name}} juntou-se à corte de {{character1Name}} como cavaleiro.`,
+            tr: `{{character2Name}}, {{character1Name}}'in sarayına şövalye olarak katıldı.`
         }
     },
     chatMessageClass: "neutral-action-message"

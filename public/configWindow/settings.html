@@ -80,7 +80,15 @@
                 <config-checkbox confID="disableHistoricalConversations" data-i18n="settings.disable_historical"></config-checkbox> <tooltip-text side="top" data-i18n="settings.disable_historical_tooltip"></tooltip-text>
               </div>
               <div class="column">
+                <config-number confID="maxHistoricalConversations" min="0" max="100" step="1" data-i18n="settings.max_historical_conversations"></config-number> <tooltip-text side="top" data-i18n="settings.max_historical_conversations_tooltip"></tooltip-text>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="column">
                 <config-checkbox confID="generateSceneDescription" data-i18n="settings.generate_scene"></config-checkbox> <tooltip-text side="top" data-i18n="settings.generate_scene_tooltip"></tooltip-text>
+              </div>
+              <div class="column">
               </div>
             </div>
             <hr>
@@ -110,34 +118,34 @@
                 <config-number confID="memoriesInsertDepth" min="0" max="20" data-i18n="settings.memories_depth"></config-number> <tooltip-text side="top" data-i18n="settings.memories_depth_tooltip"></tooltip-text>
               </div>
             </div>
-
-            <hr>
             <div class="row">
               <div class="column">
                 <config-number confID="descInsertDepth" min="0" max="20" data-i18n="settings.desc_depth"></config-number> <tooltip-text side="top" data-i18n="settings.desc_depth_tooltip"></tooltip-text>
               </div>
               <div class="column">
+                <config-number confID="maxSummaries" min="0" max="50" data-i18n="settings.max_summaries"></config-number> <tooltip-text side="top" data-i18n="settings.max_summaries_tooltip"></tooltip-text>
+              </div>
+            </div>
+
+            <hr>
+            <div class="row">
+              <div class="column">
                 <config-number confID="aiStartConversationChance" min="0" max="100" step="1" data-i18n="settings.ai_start_chance"></config-number>
                 <tooltip-text side="top" data-i18n="settings.ai_start_tooltip"></tooltip-text>
               </div>
-            </div>
-            <div class="row">
               <div class="column">
                 <config-number confID="aiToAiChatChance" min="0" max="100" step="1" data-i18n="settings.aiToAiChatChance"></config-number>
                 <tooltip-text side="top" data-i18n="settings.aiToAiChatChance_tooltip"></tooltip-text>
               </div>
+            </div>
+            <div class="row">
               <div class="column">
                 <config-number confID="nonTargetedCharacterResponseChance" min="0" max="100" step="1" data-i18n="settings.nonTargetedCharacterResponseChance"></config-number>
                 <tooltip-text side="top" data-i18n="settings.nonTargetedCharacterResponseChance_tooltip"></tooltip-text>
               </div>
-            </div>
-            <div class="row">
               <div class="column">
                 <config-number confID="questionPlayerActionsChance" min="0" max="100" step="1" data-i18n="settings.questionPlayerActionsChance"></config-number>
                 <tooltip-text side="top" data-i18n="settings.questionPlayerActionsChance_tooltip"></tooltip-text>
-              </div>
-              <div class="column">
-                <!-- Empty column for alignment -->
               </div>
             </div>
             <hr>
@@ -197,7 +205,7 @@
     window.LocalizationManager = LocalizationManager;
   </script>
   <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
-  <script>require("../../dist/configWindow/components/ConfigCheckbox.js")</script>
+  <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
   <script>require("../../dist/configWindow/components/ConfigText.js")</script>
   <script>require("../../dist/configWindow/components/ConfigNumber.js")</script>
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>

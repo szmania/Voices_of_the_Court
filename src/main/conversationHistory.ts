@@ -3,7 +3,7 @@ import path from 'path';
 import { app } from 'electron';
 
 // Read list of historical conversation files
-export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[]): Promise<Array<{fileName: string, modifiedTime: number}>> {
+export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[], limit: number): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
         // Build path to conversation history directory - using userdata's conversation_history directory
         const userDataPath = app.getPath('userData');
@@ -53,6 +53,12 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
         // Sort by modification time, descending (newest first)
         filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
         
+        // If a limit is provided and is greater than 0, apply it
+        if (limit > 0) {
+            console.log(`Limiting historical conversations to the latest ${limit} files.`);
+            return filesWithStats.slice(0, limit);
+        }
+
         return filesWithStats;
     } catch (error) {
         console.error('Error reading conversation history file list:', error);

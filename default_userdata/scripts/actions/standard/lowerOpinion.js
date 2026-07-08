@@ -18,7 +18,9 @@ module.exports = {
                 de: "die Anzahl der Meinungswerte, um die sich die Beziehung verschlechtert.",
                 ja: "関係が減少する意見値の数。",
                 ko: "관계가 감소하는 평가 값의 수.",
-                pl: "liczba wartości opinii, o które pogarsza się relacja."
+                pl: "liczba wartości opinii, o które pogarsza się relacja.",
+                pt: "o número de valores de opinião pelos quais a relação diminui.",
+                tr: "ilişkinin azaldığı görüş değerlerinin sayısı."
             }
         }
     ],
@@ -31,7 +33,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn der Dialog oder die Handlung eines Charakters die Meinung eines другого über ihn erheblich verschlechtert.`,
         ja: `あるキャラクターの対話または行動が、別のキャラクターの彼らに対する評価を大幅に低下させたときに実行されます。`,
         ko: `한 캐릭터의 대화나 행동이 다른 캐릭터의 그들에 대한 평가를 크게 낮출 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dialog lub działanie jednej postaci znacząco obniża opinię drugiej o niej.`
+        pl: `Wykonywane, gdy dialog lub działanie jednej postaci znacząco obniża opinię drugiej o niej.`,
+        pt: `Executado quando o diálogo ou ação de um personagem diminui significativamente a opinião que outro tem dele. A fonte (character1) é o personagem cujas ações estão sendo julgadas. O alvo (character2) é o personagem cuja opinião está DIMINUINDO.`,
+        tr: `Bir karakterin diyaloğu veya eylemi, başka birinin onun hakkındaki görüşünü önemli ölçüde düşürdüğünde çalıştırılır. Kaynak (character1) yargılanan eylemleri yapan karakterdir. Hedef (character2) görüşü DÜŞEN karakterdir.`
     },
 
     /**
@@ -82,7 +86,9 @@ module.exports = {
             de: `Die Meinung von {{character2Name}} über {{character1Name}} hat sich um ${args[0]} verschlechtert.`,
             ja: `{{character2Name}}の{{character1Name}}に対する評価が${args[0]}低下しました。`,
             ko: `{{character2Name}}의 {{character1Name}}에 대한 평가가 ${args[0]} 하락했습니다.`,
-            pl: `Opinia {{character2Name}} o {{character1Name}} spadła o ${args[0]}.`
+            pl: `Opinia {{character2Name}} o {{character1Name}} spadła o ${args[0]}.`,
+            pt: `A opinião de {{character2Name}} sobre {{character1Name}} diminuiu em ${args[0]}.`,
+            tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} azaldı.`
         }
     },
     chatMessageClass: "negative-action-message"

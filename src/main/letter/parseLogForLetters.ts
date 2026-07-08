@@ -66,23 +66,23 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 const writtenDateInDays = parseInt(parts[2].trim());
                 const delay = parseInt(parts[3].trim(), 10) || 0;
-                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId; // Use sender from log if available
-                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId; // Use recipient from log if available
+                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId;
+                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId;
 
-                if(content && letterId && playerId && recipientId) {
-                    const sender = gameData.characters.get(Number(playerId));
-                    const recipient = gameData.characters.get(Number(recipientId));
+                if (content && letterId && senderIdFromLog && recipientIdFromLog) {
+                    const sender = gameData.characters.get(Number(senderIdFromLog));
+                    const recipient = gameData.characters.get(Number(recipientIdFromLog));
 
                     if (sender && recipient) {
                         const correctedGameDate = totalDaysToDateString(gameData.totalDays);
                         const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
                             letters.push(letter);
-                            // If a playerId is provided, save the letter immediately.
-                            LetterManager.getInstance().saveLetter(letter, playerId);
+                            // The player is the sender of the letter being imported from the log
+                            LetterManager.getInstance().saveLetter(letter, senderIdFromLog);
                         }
                     } else {
-                        console.error(`Could not find sender (${playerId}) or recipient (${recipientId}) in gameData for letter.`);
+                        console.error(`Could not find sender (${senderIdFromLog}) or recipient (${recipientIdFromLog}) in gameData for letter.`);
                     }
                 }
             }

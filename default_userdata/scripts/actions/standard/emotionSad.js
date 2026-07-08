@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter sich traurig fühlt.`,
         ja: `キャラクターが悲しいと感じたときに実行されます。`,
         ko: `캐릭터가 슬픔을 느낄 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać czuje się smutna.`
+        pl: `Wykonywane, gdy postać czuje się smutna.`,
+        pt: `Executado quando um personagem se sente triste.`,
+        tr: `Bir karakter üzgün hissettiğinde çalıştırılır.`
     },
 
     /**
@@ -52,7 +54,9 @@ module.exports = {
             de: `{{character2Name}} ist traurig.`,
             ja: `{{character2Name}}は悲しんでいます。`,
             ko: `{{character2Name}}는 슬픔을 느낍니다.`,
-            pl: `{{character2Name}} jest smutny.`
+            pl: `{{character2Name}} jest smutny.`,
+            pt: `{{character2Name}} sente-se triste.`,
+            tr: `{{character2Name}} üzgün hissediyor.`
         }
     },
     chatMessageClass: "neutral-action-message"

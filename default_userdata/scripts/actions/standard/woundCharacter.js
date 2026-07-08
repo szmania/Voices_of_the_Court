@@ -8,12 +8,12 @@ module.exports = {
             name: "injuryType",
             type: "string",
             options: [
-                { value: 'injured', display: { en: 'Injured', zh: '受伤', ru: 'Ранен', fr: 'Blessé', es: 'Herido', de: 'Verletzt', ja: '負傷', ko: '부상', pl: 'Ranny' }},
-                { value: 'remove_eye', display: { en: 'Remove Eye', zh: '摘除眼睛', ru: 'Удалить глаз', fr: 'Retirer un œil', es: 'Quitar un ojo', de: 'Auge entfernen', ja: '目を摘出', ko: '눈 제거', pl: 'Usunąć oko' }},
-                { value: 'blind', display: { en: 'Blind', zh: '失明', ru: 'Ослепить', fr: 'Aveugler', es: 'Cegar', de: 'Blenden', ja: '盲目', ko: '실명', pl: 'Oślepić' }},
-                { value: 'cut_leg', display: { en: 'Cut Leg', zh: '断腿', ru: 'Отрубить ногу', fr: 'Couper la jambe', es: 'Cortar la pierna', de: 'Bein abschneiden', ja: '足切断', ko: '다리 절단', pl: 'Odciąć nogę' }},
-                { value: 'cut_balls', display: { en: 'Castrate', zh: '阉割', ru: 'Кастрировать', fr: 'Castrer', es: 'Castrar', de: 'Kastrieren', ja: '去勢', ko: '거세', pl: 'Kastrować' }},
-                { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen', ja: '顔面損傷', ko: '얼굴 훼손', pl: 'Zniekształcić' }}
+                { value: 'injured', display: { en: 'Injured', zh: '受伤', ru: 'Ранен', fr: 'Blessé', es: 'Herido', de: 'Verletzt', ja: '負傷', ko: '부상', pl: 'Ranny', pt: 'Ferido', tr: 'Yaralı' }},
+                { value: 'remove_eye', display: { en: 'Remove Eye', zh: '摘除眼睛', ru: 'Удалить глаз', fr: 'Retirer un œil', es: 'Quitar un ojo', de: 'Auge entfernen', ja: '目を摘出', ko: '눈 제거', pl: 'Usunąć oko', pt: 'Remover Olho', tr: 'Göz Çıkarma' }},
+                { value: 'blind', display: { en: 'Blind', zh: '失明', ru: 'Ослепить', fr: 'Aveugler', es: 'Cegar', de: 'Blenden', ja: '盲目', ko: '실명', pl: 'Oślepić', pt: 'Cegar', tr: 'Kör Etme' }},
+                { value: 'cut_leg', display: { en: 'Cut Leg', zh: '断腿', ru: 'Отрубить ногу', fr: 'Couper la jambe', es: 'Cortar la pierna', de: 'Bein abschneiden', ja: '足切断', ko: '다리 절단', pl: 'Odciąć nogę', pt: 'Cortar Perna', tr: 'Bacak Kesme' }},
+                { value: 'cut_balls', display: { en: 'Castrate', zh: '阉割', ru: 'Кастрировать', fr: 'Castrer', es: 'Castrar', de: 'Kastrieren', ja: '去勢', ko: '거세', pl: 'Kastrować', pt: 'Castrar', tr: 'Hadım Etme' }},
+                { value: 'disfigured', display: { en: 'Disfigure', zh: '毁容', ru: 'Обезобразить', fr: 'Défigurer', es: 'Desfigurar', de: 'Entstellen', ja: '顔面損傷', ko: '얼굴 훼손', pl: 'Zniekształcić', pt: 'Desfigurar', tr: 'Yüz Bozma' }}
             ],
             desc: { 
                 en: "Type of injury inflicted on {{character2Name}} by {{character1Name}}.",
@@ -24,7 +24,9 @@ module.exports = {
                 de: "Art der Verletzung, die {{character1Name}} {{character2Name}} zufügt.",
                 ja: "{{character1Name}}が{{character2Name}}に与える傷害の種類。",
                 ko: "{{character1Name}}가 {{character2Name}}에게 가하는 부상 유형.",
-                pl: "Rodzaj obrażeń zadanych {{character2Name}} przez {{character1Name}}."
+                pl: "Rodzaj obrażeń zadanych {{character2Name}} przez {{character1Name}}.",
+                pt: "Tipo de ferimento infligido a {{character2Name}} por {{character1Name}}.",
+                tr: "{{character1Name}} tarafından {{character2Name}}'ye verilen yaralanma türü."
             }
         }
     ],
@@ -37,7 +39,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter einen anderen auf verschiedene Weisen verletzt, basierend auf dem Parameter injuryType.`,
         ja: `あるキャラクターがinjuryTypeパラメータに基づいて様々な方法で別のキャラクターを傷つけたときに実行されます。`,
         ko: `한 캐릭터가 injuryType 매개변수에 따라 다양한 방법으로 다른 캐릭터를 다칠 때 실행됩니다.`,
-        pl: `Wykonywane, gdy jedna postać rani drugą na różne sposoby w zależności od parametru injuryType.`
+        pl: `Wykonywane, gdy jedna postać rani drugą na różne sposoby w zależności od parametru injuryType.`,
+        pt: `Executado quando um personagem fere outro. A fonte (character1) é quem inflige o ferimento. O alvo (character2) é quem está sendo FERIDO.`,
+        tr: `Bir karakter başka birini yaraladığında çalıştırılır. Kaynak (character1) yaralayan kişidir. Hedef (character2) YARALANAN kişidir.`
     },
     
     /**
@@ -259,11 +263,13 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} ein Auge ausgestochen.`,
 					ja: `{{character1Name}}は{{character2Name}}の片目をえぐり出しました。`,
 					ko: `{{character1Name}}은 {{character2Name}}의 한쪽 눈을 도려냈습니다.`,
-					pl: `{{character1Name}} wydłubał jedno z oczu {{character2Name}}.`
+					pl: `{{character1Name}} wydłubał jedno z oczu {{character2Name}}.`,
+					pt: `{{character1Name}} arrancou um dos olhos de {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'nin bir gözünü çıkardı.`
 				};
 			case 'blind':
 				return {
-					en: `{{character1Name}} blinded {{character2Name}}.`,
+					en:那个 `{{character1Name}} blinded {{character2Name}}.`,
 					zh: `{{character1Name}}使{{character2Name}}失明了。`,
 					ru: `{{character1Name}} ослепил {{character2Name}}.`,
 					fr: `{{character1Name}} a aveuglé {{character2Name}}.`,
@@ -271,7 +277,9 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} geblendet.`,
 					ja: `{{character1Name}}は{{character2Name}}を盲目にしました。`,
 					ko: `{{character1Name}}은 {{character2Name}}를 실명시켰습니다.`,
-					pl: `{{character1Name}} oślepił {{character2Name}}.`
+					pl: `{{character1Name}} oślepił {{character2Name}}.`,
+					pt: `{{character1Name}} cegou {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'i kör etti.`
 				};
 			case 'cut_leg':
 				return {
@@ -283,7 +291,9 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} das Bein abgeschnitten.`,
 					ja: `{{character1Name}}は{{character2Name}}の足を切断しました。`,
 					ko: `{{character1Name}}은 {{character2Name}}의 다리를 잘랐습니다.`,
-					pl: `{{character1Name}} odciął nogę {{character2Name}}.`
+					pl: `{{character1Name}} odciął nogę {{character2Name}}.`,
+					pt: `{{character1Name}} cortou a perna de {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'nin bacağını kesti.`
 				};
 			case 'cut_balls':
 				return {
@@ -295,7 +305,9 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} kastriert.`,
 					ja: `{{character1Name}}は{{character2Name}}を去勢しました。`,
 					ko: `{{character1Name}}은 {{character2Name}}를 거세했습니다.`,
-					pl: `{{character1Name}} skastrował {{character2Name}}.`
+					pl: `{{character1Name}} skastrował {{character2Name}}.`,
+					pt: `{{character1Name}} castrou {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'i hadım etti.`
 				};
 			case 'disfigured':
 				return {
@@ -307,7 +319,9 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} entstellt.`,
 					ja: `{{character1Name}}は{{character2Name}}の顔を傷つけました。`,
 					ko: `{{character1Name}}은 {{character2Name}}의 얼굴을 훼손했습니다.`,
-					pl: `{{character1Name}} zniekształcił {{character2Name}}.`
+					pl: `{{character1Name}} zniekształcił {{character2Name}}.`,
+					pt: `{{character1Name}} desfigurou {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'in yüzünü bozdu.`
 				};
 			default:
 				return {
@@ -319,7 +333,9 @@ module.exports = {
 					de: `{{character1Name}} hat {{character2Name}} verletzt.`,
 					ja: `{{character1Name}}は{{character2Name}}を傷つけました。`,
 					ko: `{{character1Name}}은 {{character2Name}}를 다쳤습니다.`,
-					pl: `{{character1Name}} zranił {{character2Name}}.`
+					pl: `{{character1Name}} zranił {{character2Name}}.`,
+					pt: `{{character1Name}} feriu {{character2Name}}.`,
+					tr: `{{character1Name}}, {{character2Name}}'yi yaraladı.`
 				};
 		}
 	},

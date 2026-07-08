@@ -13,7 +13,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter sich besorgt fühlt.`,
         ja: `キャラクターが心配していると感じたときに実行されます。`,
         ko: `캐릭터가 걱정을 느낄 때 실행됩니다.`,
-        pl: `Wykonywane, gdy postać czuje się zaniepokojona.`
+        pl: `Wykonywane, gdy postać czuje się zaniepokojona.`,
+        pt: `Executado quando um personagem se sente preocupado.`,
+        tr: `Bir karakter endişeli hissettiğinde çalıştırılır.`
     },
 
     /**
@@ -52,7 +54,9 @@ module.exports = {
             de: `{{character2Name}} ist besorgt.`,
             ja: `{{character2Name}}は心配しています。`,
             ko: `{{character2Name}}는 걱정합니다.`,
-            pl: `{{character2Name}} jest zmartwiony.`
+            pl: `{{character2Name}} jest zmartwiony.`,
+            pt: `{{character2Name}} está preocupado.`,
+            tr: `{{character2Name}} endişeli.`
         }
     },
     chatMessageClass: "neutral-action-message"

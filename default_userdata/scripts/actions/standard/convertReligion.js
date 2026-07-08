@@ -16,7 +16,9 @@ module.exports = {
                 de: "erforderliches Argument. Sollte (true) sein, wenn {{character2Name}} freiwillig konvertiert, und (false), wenn gewaltsam",
                 ja: "必須引数。{{character2Name}}が自発的に改宗する場合は(true)、強制的な場合は(false)に等しくなければなりません",
                 ko: "필수 인수. {{character2Name}}가 자발적으로 개종하면 (true), 강제로면 (false)와 같아야 합니다",
-                pl: "wymagany argument. Powinien być równy (true), jeśli {{character2Name}} konwertuje dobrowolnie, i (false), jeśli siłą"
+                pl: "wymagany argument. Powinien być równy (true), jeśli {{character2Name}} konwertuje dobrowolnie, i (false), jeśli siłą",
+                pt: "argumento obrigatório. Deve ser igual a (true) se {{character2Name}} converter voluntariamente e a (false) se forçado",
+                tr: "gerekli argüman. {{character2Name}} gönüllü olarak dönüşürse (true), zorla ise (false) olmalıdır"
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter zur Religion eines anderen konvertiert, freiwillig oder gewaltsam.`,
         ja: `あるキャラクターが別のキャラクターの宗教に改宗したときに実行されます。自発的または強制的に。`,
         ko: `한 캐릭터가 다른 캐릭터의 종교로 개종할 때 실행됩니다. 자발적이거나 강제로.`,
-        pl: `Wykonywane, gdy jedna postać konwertuje na religię drugiej, dobrowolnie lub siłą.`
+        pl: `Wykonywane, gdy jedna postać konwertuje na religię drugiej, dobrowolnie lub siłą.`,
+        pt: `Executado quando um personagem se converte à religião de outro, voluntariamente ou à força.`,
+        tr: `Bir karakter başka birinin dinine gönüllü veya zorla döndüğünde çalıştırılır.`
     },
 
 	
@@ -111,7 +115,9 @@ module.exports = {
             de: `{{character2Name}} hat sich zu {{character1Name}}s Religion bekehrt.`,
             ja: `{{character2Name}}は{{character1Name}}の宗教に改宗しました。`,
             ko: `{{character2Name}}가 {{character1Name}}의 종교로 개종했습니다.`,
-            pl: `{{character2Name}} przeszedł na religię {{character1Name}}.`
+            pl: `{{character2Name}} przeszedł na religię {{character1Name}}.`,
+            pt: `{{character2Name}} converteu-se para a religião de {{character1Name}}.`,
+            tr: `{{character2Name}}, {{character1Name}}'nin dinine döndü.`
         }
     },
     chatMessageClass: "neutral-action-message"

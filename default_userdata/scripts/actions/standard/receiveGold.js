@@ -17,7 +17,9 @@ module.exports = {
                 de: "Die Menge an Gold, die der Source ({{character1Name}}) vom Ziel ({{character2Name}}) erhält.",
                 ja: "イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）から受け取るゴールドの量。",
                 ko: "개시자({{character1Name}})가 대상({{character2Name}})으로부터 받는 금의 양.",
-                pl: "Ilość złota, którą inicjator ({{character1Name}}) otrzymuje od celu ({{character2Name}})."
+                pl: "Ilość złota, którą inicjator ({{character1Name}}) otrzymuje od celu ({{character2Name}}).",
+                pt: "A quantidade de ouro que a fonte ({{character1Name}}) recebe do alvo ({{character2Name}}).",
+                tr: "Kaynağın ({{character1Name}}) hedeften ({{character2Name}}) aldığı altın miktarı."
             }
         }
     ],
@@ -30,7 +32,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn ein Charakter von einem anderen Gold erhält. Der Source (character1) ist der EMPFÄNGER. Das Ziel (character2) ist der GEBER.`,
         ja: `あるキャラクターが別のキャラクターからゴールドを受け取ったときに実行されます。イニシエーター（character1）は受け取る側です。ターゲット（character2）は与える側です。`,
         ko: `한 캐릭터가 다른 캐릭터로부터 금을 받을 때 실행됩니다. 개시자(character1)는 받는 사람입니다. 대상(character2)은 주는 사람입니다.`,
-        pl: `Wykonywane, gdy jedna postać otrzymuje złoto od drugiej. Inicjator (character1) to ODBIORCA. Cel (character2) to DARCZYŃCA.`
+        pl: `Wykonywane, gdy jedna postać otrzymuje złoto od drugiej. Inicjator (character1) to ODBIORCA. Cel (character2) to DARCZYŃCA.`,
+        pt: `Executado quando um personagem recebe ouro de outro. A fonte (character1) é o RECEBEDOR. O alvo (character2) é o DOADOR.`,
+        tr: `Bir karakter başka birinden altın aldığında çalıştırılır. Kaynak (character1) ALICI'dır. Hedef (character2) VEREN'dir.`
     },
 
     /**
@@ -100,7 +104,9 @@ module.exports = {
             de: `{{character1Name}} erhielt ${args[0]} Gold von {{character2Name}}.`,
             ja: `{{character1Name}}は{{character2Name}}から${args[0]}ゴールドを受け取りました。`,
             ko: `{{character1Name}}가 {{character2Name}}로부터 ${args[0]} 골드를 받았습니다.`,
-            pl: `{{character1Name}} otrzymał ${args[0]} złota od {{character2Name}}.`
+            pl: `{{character1Name}} otrzymał ${args[0]} złota od {{character2Name}}.`,
+            pt: `{{character1Name}} recebeu ${args[0]} de ouro de {{character2Name}}.`,
+            tr: `{{character1Name}}, {{character2Name}}'den ${args[0]} altın aldı.`
         }
     },
     chatMessageClass: "neutral-action-message"

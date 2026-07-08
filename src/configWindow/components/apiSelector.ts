@@ -267,13 +267,15 @@ class ApiSelector extends HTMLElement{
     overwriteContextCheckbox: HTMLInputElement;
     customContextNumber: HTMLInputElement;
 
+    languageUpdateHandler: () => void;
+
 
     constructor(){
         super();
         this.label = this.getAttribute("label")!;
         this.confID = this.getAttribute("confID")!;
 
-        
+        this.languageUpdateHandler = () => this.updateTranslation();
 
         this.shadow = this.attachShadow({mode: "open"});
         template.innerHTML = defineTemplate(this.label);
@@ -342,9 +344,7 @@ class ApiSelector extends HTMLElement{
         this.updateTranslation();
         
         // Listen for language changes
-        ipcRenderer.on('update-language', () => {
-            this.updateTranslation();
-        });
+        ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let apiConfig = config[confID].connection;
 
@@ -942,6 +942,10 @@ class ApiSelector extends HTMLElement{
             // @ts-ignore
             window.LocalizationManager.applyTranslations(this.shadow);
         }
+    }
+
+    disconnectedCallback() {
+        ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
     }
 }
 

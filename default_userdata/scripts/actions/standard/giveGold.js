@@ -17,7 +17,9 @@ module.exports = {
                 de: "Die Menge an Gold, die der Source ({{character1Name}}) dem Ziel ({{character2Name}}) gibt.",
                 ja: "イニシエーター（{{character1Name}}）がターゲット（{{character2Name}}）に与えるゴールドの量。",
                 ko: "개시자({{character1Name}})가 대상({{character2Name}})에게 주는 금의 양.",
-                pl: "Ilość złota, którą inicjator ({{character1Name}}) daje celowi ({{character2Name}})."
+                pl: "Ilość złota, którą inicjator ({{character1Name}}) daje celowi ({{character2Name}}).",
+                pt: "A quantidade de ouro que o iniciador ({{character1Name}}) dá ao alvo ({{character2Name}}).",
+                tr: "Başlatanın ({{character1Name}}) hedefe ({{character2Name}}) verdiği altın miktarı."
             }
         }
     ],
@@ -31,6 +33,8 @@ module.exports = {
         ja: `あるキャラクターが別のキャラクターにゴールドを与えたときに実行されます。イニシエーター（character1）は与える側です。ターゲット（character2）は受け取る側です。`,
         ko: `한 캐릭터가 다른 캐릭터에게 금을 줄 때 실행됩니다. 개시자(character1)는 주는 사람입니다. 대상(character2)은 받는 사람입니다.`,
         pl: `Wykonywane, gdy jedna postać daje złoto drugiej. Inicjator (character1) to DARCZYŃCA. Cel (character2) to ODBIORCA.`,
+        pt: `Executado quando um personagem dá ouro a outro. O iniciador (character1) é o DOADOR. O alvo (character2) é o RECEPTOR.`,
+        tr: `Bir karakter başka birine altın verdiğinde çalıştırılır. Başlatan (character1) VEREN'dir. Hedef (character2) ALAN'dır.`
     },
 
     /**
@@ -101,6 +105,8 @@ module.exports = {
             ja: `{{character1Name}}は{{character2Name}}に${args[0]}ゴールドを与えました。`,
             ko: `{{character1Name}}가 {{character2Name}}에게 ${args[0]} 골드를 주었습니다.`,
             pl: `{{character1Name}} dał {{character2Name}} ${args[0]} złota.`,
+            pt: `{{character1Name}} deu ${args[0]} de ouro a {{character2Name}}.`,
+            tr: `{{character1Name}}, {{character2Name}}'ye ${args[0]} altın verdi.`
         }
     },
     chatMessageClass: "neutral-action-message"

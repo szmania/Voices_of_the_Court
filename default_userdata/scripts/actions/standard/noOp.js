@@ -13,7 +13,9 @@ module.exports = {
         de: `Keine Operation - tut nichts.`,
         ja: `操作なし - 何もしません。`,
         ko: `작업 없음 - 아무것도 하지 않습니다.`,
-        pl: `Brak operacji - nic nie robi.`
+        pl: `Brak operacji - nic nie robi.`,
+        pt: `Nenhuma operação - não faz nada.`,
+        tr: `İşlem yok - hiçbir şey yapmaz.`
     },
 
     /**
@@ -45,7 +47,9 @@ module.exports = {
             de: `Nichts ist passiert.`,
             ja: `何も起こりませんでした。`,
             ko: `아무 일도 일어나지 않았습니다.`,
-            pl: `Nic się nie stało.`
+            pl: `Nic się nie stało.`,
+            pt: `Nada aconteceu.`,
+            tr: `Hiçbir şey olmadı.`
         }
     },
     chatMessageClass: "neutral-action-message"

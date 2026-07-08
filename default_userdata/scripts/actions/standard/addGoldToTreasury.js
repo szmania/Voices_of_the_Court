@@ -17,7 +17,9 @@ module.exports = {
                 de: "die Menge Gold, die die Schatzkammer von {{character1Name}} erhält, sollte immer positiv sein",
                 ja: "{{character1Name}}の財政が受け取るゴールドの量は常に正数である必要があります",
                 ko: "{{character1Name}}의 국고가 받는 골드의 양은 항상 양수여야 합니다",
-                pl: "ilość złota, którą otrzymuje skarbiec {{character1Name}}, powinna być zawsze dodatnia"
+                pl: "ilość złota, którą otrzymuje skarbiec {{character1Name}}, powinna być zawsze dodatnia",
+                pt: "a quantidade de ouro que o tesouro de {{character1Name}} recebe, deve ser sempre positiva",
+                tr: "{{character1Name}}'in hazinesine giren altın miktarı, her zaman pozitif olmalıdır"
             }
         }
     ],
@@ -30,7 +32,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn die Schatzkammer eines Charakters Einnahmen erhält.`,
         ja: `キャラクターの財政が収入を受け取ったときに実行されます。`,
         ko: `캐릭터의 국고가 수입을 받을 때 실행됩니다.`,
-        pl: `Wykonywane, gdy skarbiec postaci otrzymuje dochody.`
+        pl: `Wykonywane, gdy skarbiec postaci otrzymuje dochody.`,
+        pt: `Executado quando o tesouro de um personagem recebe renda. A fonte (character1) é o personagem cujo tesouro recebe o ouro. O alvo (character2) não é usado nesta ação.`,
+        tr: `Bir karakterin hazinesi gelir aldığında çalıştırılır. Kaynak (character1), hazinesi altını alan karakterdir. Hedef (character2) bu eylemde kullanılmaz.`
     },
     
     /**
@@ -66,7 +70,9 @@ module.exports = {
                 de: `Die Schatzkammer von {{character1Name}} erhielt ${args[0]} Goldmünzen.`,
                 ja: `{{character1Name}}の財政は${args[0]}ゴールドを受け取りました。`,
                 ko: `{{character1Name}}의 국고가 ${args[0]} 골드를 받았습니다.`,
-                pl: `Skarbiec {{character1Name}} otrzymał ${args[0]} sztuk złota.`
+                pl: `Skarbiec {{character1Name}} otrzymał ${args[0]} sztuk złota.`,
+                pt: `O tesouro de {{character1Name}} recebeu ${args[0]} de ouro.`,
+                tr: `{{character1Name}}'in hazinesi ${args[0]} altın aldı.`
             }
         }
     ,

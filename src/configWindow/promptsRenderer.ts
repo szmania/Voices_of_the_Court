@@ -2,10 +2,10 @@ import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
 
-const defaultPromptsPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_prompts.json');
-const defaultPrompts = JSON.parse(fs.readFileSync(defaultPromptsPath, 'utf-8'));
 const defaultConfigPath = path.join(__dirname, '..', '..', 'default_userdata', 'configs', 'default_config.json');
 const defaultConfig = JSON.parse(fs.readFileSync(defaultConfigPath, 'utf-8'));
+
+let defaultPrompts: any;
 
 let descScriptSelect: any = document.querySelector("#description-script-select")!;
 let exMessagesScriptSelect: any = document.querySelector("#example-messages-script-select")!;
@@ -31,7 +31,8 @@ let statusMessage: HTMLDivElement;
 const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "actionPrompt", "actionTriggeredPrompt",
+    "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt", "suggestionPrompt"
 ];
 const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
 
@@ -94,7 +95,9 @@ async function updateTokenCount(key: string) {
 const promptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt"
+    "actionPrompt", "actionTriggeredPrompt",
+    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
+    "suggestionPrompt"
 ];
 
 let promptTextareas: { [key: string]: any } = {};
@@ -157,42 +160,28 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
-    // Reload prompts for the new language
-    const config = await ipcRenderer.invoke('get-config');
-    const selectedPresetName = config.activePromptPreset;
-    
-    let promptsToLoad: any = null;
 
-    if (selectedPresetName === 'Default') {
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
-    } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
-        const langPrompts = megamodPrompts[lang] || {};
-        const englishPrompts = megamodPrompts.en;
-        promptsToLoad = { ...englishPrompts, ...langPrompts };
-    } else if (promptPresets[selectedPresetName]) {
-        // This is a custom preset. They are not localized. Do nothing.
-        console.log(`Language changed, but custom preset "${selectedPresetName}" is active. Prompts will not be changed.`);
+    // Reload the default prompts for the new language
+    defaultPrompts = await ipcRenderer.invoke('get-default-prompts');
+    if (!defaultPrompts) {
+        console.error("Failed to reload default prompts for new language.");
         return;
-    } else {
-        // Fallback for safety, though it shouldn't be reached if config is consistent.
-        console.warn(`Active preset "${selectedPresetName}" not found. Falling back to default prompts for new language.`);
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
     }
 
-    if (promptsToLoad) {
-        for (const key of promptKeys) {
-            if (promptTextareas[key] && promptsToLoad[key] !== undefined) {
-                promptTextareas[key].textarea.value = promptsToLoad[key];
-                // Manually trigger the input event to notify the component
-                promptTextareas[key].textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        }
-    }
+    // Re-apply the currently selected preset logic, which will use the new `defaultPrompts`
+    await handlePresetChange();
 });
 
 async function init(){
     try {
+        defaultPrompts = await ipcRenderer.invoke('get-default-prompts');
+        if (!defaultPrompts) {
+            console.error("Failed to load default prompts from main process.");
+            // @ts-ignore
+            const errorMsg = window.LocalizationManager.getNestedTranslation('dialog.init_error', {}, 'An error occurred while initializing the configuration page, please check the console log.');
+            showStatusMessage(errorMsg, 'error');
+            return;
+        }
         statusMessage = document.querySelector("#status-message")!;
         addExternalLinks();
         setSaveButtonState(false); // Initially disabled
@@ -444,7 +433,8 @@ async function populatePresetSelector(activePreset?: string) {
             "A Game of Thrones": "prompts.mod_agot",
             "LotR: Realms in Exile": "prompts.mod_lotr_realms_in_exile",
             "The Fallen Eagle": "prompts.mod_tfe",
-            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2"
+            "Warcraft: Guardians of Azeroth 2": "prompts.mod_warcraft_goa2",
+            "Elder Kings 2": "prompts.mod_elder_kings_2"
         };
 
         for (const modName in defaultPrompts.mod_prompt_sets) {
@@ -510,16 +500,35 @@ async function handlePresetChange() {
     let promptsToLoad: any = null;
 
     if (selectedPresetName === 'Default') {
-        promptsToLoad = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+        promptsToLoad = defaultPrompts.prompts;
     } else if (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]) {
-        const megamodPrompts = defaultPrompts.mod_prompt_sets[selectedPresetName];
-        const langPrompts = megamodPrompts[lang] || {};
-        const englishPrompts = megamodPrompts.en;
-        promptsToLoad = { ...englishPrompts, ...langPrompts };
+        promptsToLoad = { ...defaultPrompts.prompts, ...defaultPrompts.mod_prompt_sets[selectedPresetName] };
     } else {
         const selectedCharacterId = characterFilterSelect.value;
         const presetsForScope = promptPresets[selectedCharacterId] || {};
-        promptsToLoad = presetsForScope[selectedPresetName];
+        const customPreset = presetsForScope[selectedPresetName];
+
+        if (customPreset) {
+            const originalKeys = Object.keys(customPreset);
+            // Merge with default prompts to fill in any missing keys
+            promptsToLoad = { ...defaultPrompts.prompts, ...customPreset };
+            const mergedKeys = Object.keys(promptsToLoad);
+
+            // If new keys were added, it means the preset was outdated. Save it back.
+            if (mergedKeys.length > originalKeys.length) {
+                console.log(`Updating custom preset "${selectedPresetName}" with missing default keys.`);
+                if (!promptPresets[selectedCharacterId]) {
+                    promptPresets[selectedCharacterId] = {};
+                }
+                promptPresets[selectedCharacterId][selectedPresetName] = promptsToLoad;
+                await ipcRenderer.invoke('save-prompt-presets', promptPresets);
+                // @ts-ignore
+                const updateMsg = window.LocalizationManager.getNestedTranslation('prompts.preset_updated_with_defaults', { presetName: selectedPresetName }, `Preset "${selectedPresetName}" was updated with new default prompt fields.`);
+                showStatusMessage(updateMsg, 'info');
+            }
+        } else {
+            promptsToLoad = null; // Preset not found
+        }
     }
 
     if (promptsToLoad) {
@@ -537,7 +546,7 @@ async function handlePresetChange() {
     
     ipcRenderer.send('config-change', 'activePromptPreset', selectedPresetName);
 
-    const isProtected = selectedPresetName === 'Default' || (defaultConfig.mod_prompt_sets && defaultConfig.mod_prompt_sets[selectedPresetName]);
+    const isProtected = selectedPresetName === 'Default' || (defaultPrompts.mod_prompt_sets && defaultPrompts.mod_prompt_sets[selectedPresetName]);
     deletePromptPresetBtn.disabled = isProtected;
 
     if (deletePromptPresetBtn.disabled) {
@@ -571,11 +580,23 @@ async function saveCurrentPreset() {
         let counter = 2;
         let newPresetName = `${baseName} (${counter})`;
 
-        // Find a new name that doesn't exist in custom presets for the current scope
-        const currentScopePresets = promptPresets[selectedCharacterId] || {};
-        while (currentScopePresets[newPresetName]) {
-            counter++;
-            newPresetName = `${baseName} (${counter})`;
+        // Check for uniqueness across ALL scopes to avoid confusion
+        let isGloballyUnique = false;
+        while (!isGloballyUnique) {
+            let nameFound = false;
+            for (const scopeId in promptPresets) {
+                if (promptPresets[scopeId] && promptPresets[scopeId][newPresetName]) {
+                    nameFound = true;
+                    break;
+                }
+            }
+
+            if (nameFound) {
+                counter++;
+                newPresetName = `${baseName} (${counter})`;
+            } else {
+                isGloballyUnique = true;
+            }
         }
         presetName = newPresetName;
     }
@@ -635,12 +656,9 @@ async function deleteSelectedPreset() {
 
 async function restoreDefaultPrompts(showConfirmation = true): Promise<void> {
     try {
-        // @ts-ignore
-        const lang = window.LocalizationManager?.language || 'en';
-
         console.log('Restoring default prompts...');
         
-        const promptsToApply = defaultPrompts.prompts[lang] || defaultPrompts.prompts.en;
+        const promptsToApply = defaultPrompts.prompts;
 
         for (const [key, value] of Object.entries(promptsToApply)) {
             if (promptTextareas[key]) {

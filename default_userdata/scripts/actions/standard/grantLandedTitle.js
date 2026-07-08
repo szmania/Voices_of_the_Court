@@ -107,7 +107,8 @@ module.exports = {
 				ja: "{{character1Name}}から{{character2Name}}へ譲渡する称号。c_york のようなキー、または 'county of york' のような入力を使用できます。",
 				ko: "{{character1Name}}에서 {{character2Name}}에게 이전할 작위입니다. c_york 같은 키 또는 'county of york' 같은 텍스트를 사용할 수 있습니다.",
 				pl: "Tytul do przekazania od {{character1Name}} do {{character2Name}}. Uzyj klucza, np. c_york, albo tekstu typu 'county of york'.",
-				pt: "Titulo para transferir de {{character1Name}} para {{character2Name}}. Use uma chave como c_york ou texto como 'county of york'."
+				pt: "Titulo para transferir de {{character1Name}} para {{character2Name}}. Use uma chave como c_york ou texto como 'county of york'.",
+				tr: "{{character1Name}}'den {{character2Name}}'ye aktarılacak başlık. c_york gibi bir anahtar veya 'county of york' gibi bir metin kullanın."
 			}
 		}
 	],
@@ -121,7 +122,8 @@ module.exports = {
 		ja: "あるキャラクターが別のキャラクターに領地称号を譲渡したときに実行されます。source (character1) は譲渡者、target (character2) は受領者です。",
 		ko: "한 캐릭터가 다른 캐릭터에게 영지 작위를 수여할 때 실행됩니다. source(character1)는 수여자, target(character2)는 수령자입니다.",
 		pl: "Wykonywane, gdy jedna postac nadaje drugiej ziemski tytul. Zrodlo (character1) to NADAJACY, cel (character2) to ODBIORCA.",
-		pt: "Executado quando um personagem concede um titulo territorial a outro. A fonte (character1) e quem CONCEDE. O alvo (character2) e o RECEPTOR."
+		pt: "Executado quando um personagem concede um titulo territorial a outro. A fonte (character1) e quem CONCEDE. O alvo (character2) e o RECEPTOR.",
+		tr: "Bir karakter başka birine topraklı bir unvan verdiğinde çalıştırılır. Kaynak (character1) VEREN'dir. Hedef (character2) ALAN'dır."
 	},
 
 	/**
@@ -305,7 +307,8 @@ module.exports = {
 			ja: `{{character1Name}}は領地称号${displayTitle}を{{character2Name}}に授与しました。`,
 			ko: `{{character1Name}}가 영지 작위 ${displayTitle}을(를) {{character2Name}}에게 수여했습니다.`,
 			pl: `{{character1Name}} przekazał(a) tytuł ziemski ${displayTitle} postaci {{character2Name}}.`,
-			pt: `{{character1Name}} concedeu o título territorial ${displayTitle} para {{character2Name}}.`
+			pt: `{{character1Name}} concedeu o título territorial ${displayTitle} para {{character2Name}}.`,
+			tr: `{{character1Name}}, ${displayTitle} topraklı unvanını {{character2Name}}'ye verdi.`
 		};
 	},
 

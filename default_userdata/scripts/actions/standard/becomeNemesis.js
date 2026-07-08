@@ -16,7 +16,9 @@ module.exports = {
                 de: "der Grund (das Ereignis), der sie zu Erzfeinden gemacht hat. (schreiben Sie es in der Vergangenheitsform).",
                 ja: "彼らが宿敵になった理由（出来事）。（過去形で書く）。",
                 ko: "그들이 천적이 된 이유(사건). (과거 시제로 작성).",
-                pl: "powód (wydarzenie), który sprawił, że zostali śmiertelnymi wrogami. (napisz w czasie przeszłym)."
+                pl: "powód (wydarzenie), który sprawił, że zostali śmiertelnymi wrogami. (napisz w czasie przeszłym).",
+                pt: "a razão (o evento) que os fez tornarem-se inimigos mortais. (escreva no passado).",
+                tr: "onların birbirinin düşmanı olmasına neden olan sebep (olay). (geçmiş zamanda yazın)."
             }
         }
     ],
@@ -29,7 +31,9 @@ module.exports = {
         de: `Wird ausgeführt, wenn zwei Charaktere zu Erzfeinden werden.`,
         ja: `二人のキャラクターが宿敵になったときに実行されます。`,
         ko: `두 캐릭터가 천적이 될 때 실행됩니다.`,
-        pl: `Wykonywane, gdy dwie postacie stają się śmiertelnymi wrogami.`
+        pl: `Wykonywane, gdy dwie postacie stają się śmiertelnymi wrogami.`,
+        pt: `Executado quando dois personagens tornam-se inimigos mortais. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam inimigos mortais.`,
+        tr: `İki karter birbirinin düşmanı olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), birbirinin düşmanı olan iki karakterdir.`
     },
 
     /**
@@ -115,7 +119,9 @@ module.exports = {
             de: `{{character1Name}} und {{character2Name}} sind zu Erzfeinden geworden.`,
             ja: `{{character1Name}}と{{character2Name}}は宿敵になりました。`,
             ko: `{{character1Name}}와 {{character2Name}}가 천적이 되었습니다.`,
-            pl: `{{character1Name}} i {{character2Name}} stali się śmiertelnymi wrogami.`
+            pl: `{{character1Name}} i {{character2Name}} stali się śmiertelnymi wrogami.`,
+            pt: `{{character1Name}} e {{character2Name}} tornaram-se inimigos mortais.`,
+            tr: `{{character1Name}} ve {{character2Name}}, birbirinin düşmanı oldular.`
         }
     },
     chatMessageClass: "negative-action-message"

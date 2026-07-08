@@ -37,7 +37,9 @@ const action = {
                 de: "Der Ratsposten, zu dem {{character1Name}} {{character2Name}} ernennt.",
                 ja: "{{character1Name}}が{{character2Name}}を任命することを決めた評議会のポスト。",
                 ko: "{{character1Name}}가 {{character2Name}}를 임명하기로 결정한 의회 직책.",
-                pl: "Stanowisko w radzie, na które {{character1Name}} decyduje się mianować {{character2Name}}."
+                pl: "Stanowisko w radzie, na które {{character1Name}} decyduje się mianować {{character2Name}}.",
+                pt: "O cargo no conselho ao qual {{character1Name}} decide nomear {{character2Name}}.",
+                tr: "{{character1Name}}'in {{character2Name}}'yi atamaya karar verdiği konsey görevi."
             }
         }   
     ],
@@ -50,7 +52,9 @@ const action = {
         de: `Wird ausgeführt, wenn ein Charakter einen anderen zu einem Ratsposten ernennt (Kanzler, Verwalter, Spionagemeister oder Marschall).`,
         ja: `あるキャラクターが別のキャラクターを評議会のポストに任命したときに実行されます（宰相、執事、スパイマスター、または元帥）。`,
         ko: `한 캐릭터가 다른 캐릭터를 의회 직책에 임명했을 때 실행됩니다 (총리, 관리인, 첩보대장 또는 원수).`,
-        pl: `Wykonywane, gdy jedna postać mianuje drugą na stanowisko w radzie (kanclerz, zarządca, mistrz szpiegów lub marszałek).`
+        pl: `Wykonywane, gdy jedna postać mianuje drugą na stanowisko w radzie (kanclerz, zarządca, mistrz szpiegów lub marszałek).`,
+        pt: `Executado quando um personagem nomeia outro para um cargo no conselho. A fonte (character1) é o GOVERNANTE/NOMEADOR. O alvo (character2) é o personagem sendo NOMEADO.`,
+        tr: `Bir karakter başka birini konsey görevine atadığında çalıştırılır. Kaynak (character1) HÜKÜMDAR/ATAYAN'dır. Hedef (character2) ATANAN karakterdir.`
     },
 
     /**
@@ -175,7 +179,9 @@ const action = {
             de: `{{character1Name}} hat {{character2Name}} als ${positionNames.de} in den Rat berufen.`,
             ja: `{{character1Name}}は{{character2Name}}を評議会の${positionNames.ja}に任命しました。`,
             ko: `{{character1Name}}는 {{character2Name}}를 의회 ${positionNames.ko}로 임명했습니다.`,
-            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl} w radzie.`
+            pl: `{{character1Name}} mianował {{character2Name}} na stanowisko ${positionNames.pl} w radzie.`,
+            pt: `{{character1Name}} nomeou {{character2Name}} como ${positionNames.pt} no conselho.`,
+            tr: `{{character1Name}}, {{character2Name}}'yi konseyde ${positionNames.tr} olarak atadı.`
         }
     },
     chatMessageClass: "positive-action-message"
