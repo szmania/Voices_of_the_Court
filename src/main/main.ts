@@ -266,7 +266,7 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
-const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
+const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds Ã¢â‚¬â€ if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
 function rehydratePendingReplyLetters(playerId: string): void {
@@ -311,7 +311,7 @@ async function checkAndDeliverLetters() {
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
     if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
-        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} — no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
+        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} Ã¢â‚¬â€ no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
         lastLetterSentToGame = null;
     }
 
@@ -416,7 +416,7 @@ async function initCurrentDateFromLog(): Promise<void> {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
     if (!config.userFolderPath || !fs.existsSync(debugLogPath)) return;
 
-    const CHUNK_SIZE = 512 * 1024; // 512KB — enough to find a recent VOTC:DATE
+    const CHUNK_SIZE = 512 * 1024; // 512KB Ã¢â‚¬â€ enough to find a recent VOTC:DATE
     let handle;
     try {
         handle = await fs.promises.open(debugLogPath, 'r');
@@ -815,7 +815,7 @@ app.on('ready',  async () => {
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
 
-    // 检查是否是首次启动
+    // Ã¦Â£â‚¬Ã¦Å¸Â¥Ã¦ËœÂ¯Ã¥ÂÂ¦Ã¦ËœÂ¯Ã©Â¦â€“Ã¦Â¬Â¡Ã¥ÂÂ¯Ã¥Å Â¨
     // checkFirstRunAndShowReadme(); // Disabled: Don't show help window on startup
 
     chatWindow.window.on('closed', () =>{
@@ -834,7 +834,7 @@ app.on('ready',  async () => {
     });
 
 ipcMain.on('open-external-link', (event, url: string) => {
-    console.log('IPC: 打开外部链接:', url);
+    console.log('IPC: Ã¦â€°â€œÃ¥Â¼â‚¬Ã¥Â¤â€“Ã©Æ’Â¨Ã©â€œÂ¾Ã¦Å½Â¥:', url);
     shell.openExternal(url);
 });
 
@@ -843,20 +843,20 @@ ipcMain.on('update-app', ()=>{
     checkForUpdates();
 });
 
-// README窗口相关IPC事件
+// READMEÃ§Âªâ€”Ã¥ÂÂ£Ã§â€ºÂ¸Ã¥â€¦Â³IPCÃ¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('close-readme-window', () => {
-    console.log('IPC: 关闭README窗口');
+    console.log('IPC: Ã¥â€¦Â³Ã©â€”Â­READMEÃ§Âªâ€”Ã¥ÂÂ£');
     if (readmeWindow && !readmeWindow.isDestroyed()) {
         readmeWindow.close();
     }
 });
 
   ipcMain.on('open-readme-window', () => {
-      console.log('IPC: 打开README窗口');
+      console.log('IPC: Ã¦â€°â€œÃ¥Â¼â‚¬READMEÃ§Âªâ€”Ã¥ÂÂ£');
       if (readmeWindow && !readmeWindow.isDestroyed()) {
           readmeWindow.show();
       } else {
-          // 如果窗口不存在或被销毁，重新创建
+          // Ã¥Â¦â€šÃ¦Å¾Å“Ã§Âªâ€”Ã¥ÂÂ£Ã¤Â¸ÂÃ¥Â­ËœÃ¥Å“Â¨Ã¦Ë†â€“Ã¨Â¢Â«Ã©â€â‚¬Ã¦Â¯ÂÃ¯Â¼Å’Ã©â€¡ÂÃ¦â€“Â°Ã¥Ë†â€ºÃ¥Â»Âº
           readmeWindow = new ReadmeWindow();
           readmeWindow.show();
       }
@@ -1313,7 +1313,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
 
 });
 
-    // 处理获取推荐输入语句的请求
+    // Ã¥Â¤â€žÃ§Ââ€ Ã¨Å½Â·Ã¥Ââ€“Ã¦Å½Â¨Ã¨ÂÂÃ¨Â¾â€œÃ¥â€¦Â¥Ã¨Â¯Â­Ã¥ÂÂ¥Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
     ipcMain.on('get-suggestions', async (event) => {
         if (conversation) {
             try {
@@ -1451,7 +1451,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
         conversation.updateConfig(config);
     }
 
-    // 将配置变更发送到聊天窗口
+    // Ã¥Â°â€ Ã©â€¦ÂÃ§Â½Â®Ã¥ÂËœÃ¦â€ºÂ´Ã¥Ââ€˜Ã©â‚¬ÂÃ¥Ë†Â°Ã¨ÂÅ Ã¥Â¤Â©Ã§Âªâ€”Ã¥ÂÂ£
     if (chatWindow.window) {
         chatWindow.window.webContents.send('config-change', confID, newValue);
     }
@@ -2232,46 +2232,46 @@ ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: {
 });
 
 
-// 处理API配置更改事件
+// Ã¥Â¤â€žÃ§Ââ€ APIÃ©â€¦ÂÃ§Â½Â®Ã¦â€ºÂ´Ã¦â€Â¹Ã¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {
     console.log(`IPC: Received api-config-change event. Config Type: ${configType}, API Type: ${apiType}`);
 
-    // 确保配置对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂÃ©â€¦ÂÃ§Â½Â®Ã¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType]) {
         console.error(`Configuration type ${configType} not found`);
         return;
     }
 
-    // 确保connection对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂconnectionÃ¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType].connection) {
         (config as any)[configType].connection = {};
     }
 
-    // 确保apiKeys对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂapiKeysÃ¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType].connection.apiKeys) {
         (config as any)[configType].connection.apiKeys = {};
     }
 
-    // 保存API配置到apiKeys对象中
+    // Ã¤Â¿ÂÃ¥Â­ËœAPIÃ©â€¦ÂÃ§Â½Â®Ã¥Ë†Â°apiKeysÃ¥Â¯Â¹Ã¨Â±Â¡Ã¤Â¸Â­
     (config as any)[configType].connection.apiKeys[apiType] = configData;
 
-    // 如果是当前选中的API类型，同时更新connection对象中的主要字段
+    // Ã¥Â¦â€šÃ¦Å¾Å“Ã¦ËœÂ¯Ã¥Â½â€œÃ¥â€°ÂÃ©â‚¬â€°Ã¤Â¸Â­Ã§Å¡â€žAPIÃ§Â±Â»Ã¥Å¾â€¹Ã¯Â¼Å’Ã¥ÂÅ’Ã¦â€”Â¶Ã¦â€ºÂ´Ã¦â€“Â°connectionÃ¥Â¯Â¹Ã¨Â±Â¡Ã¤Â¸Â­Ã§Å¡â€žÃ¤Â¸Â»Ã¨Â¦ÂÃ¥Â­â€”Ã¦Â®Âµ
     if ((config as any)[configType].connection.type === apiType) {
         (config as any)[configType].connection.key = configData.key || '';
         (config as any)[configType].connection.baseUrl = configData.baseUrl || '';
         (config as any)[configType].connection.model = configData.model || '';
     }
 
-    // 导出配置
+    // Ã¥Â¯Â¼Ã¥â€¡ÂºÃ©â€¦ÂÃ§Â½Â®
     config.export();
 
-    // 如果聊天窗口已显示，更新对话配置
+    // Ã¥Â¦â€šÃ¦Å¾Å“Ã¨ÂÅ Ã¥Â¤Â©Ã§Âªâ€”Ã¥ÂÂ£Ã¥Â·Â²Ã¦ËœÂ¾Ã§Â¤ÂºÃ¯Â¼Å’Ã¦â€ºÂ´Ã¦â€“Â°Ã¥Â¯Â¹Ã¨Â¯ÂÃ©â€¦ÂÃ§Â½Â®
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
 });
 
-// 处理关闭对话历史窗口的请求
+// Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¥Â¯Â¹Ã¨Â¯ÂÃ¥Å½â€ Ã¥ÂÂ²Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
 ipcMain.on('close-conversation-history', () => {
     console.log('IPC: Received close-conversation-history event.');
     if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
@@ -2280,7 +2280,7 @@ ipcMain.on('close-conversation-history', () => {
     }
 });
 
-// 处理关闭总结管理器窗口的请求
+// Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¦â‚¬Â»Ã§Â»â€œÃ§Â®Â¡Ã§Ââ€ Ã¥â„¢Â¨Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
 ipcMain.on('close-summary-manager', () => {
     console.log('IPC: Received close-summary-manager event.');
     if (summaryManagerWindow && !summaryManagerWindow.isDestroyed()) {
@@ -2289,7 +2289,7 @@ ipcMain.on('close-summary-manager', () => {
     }
 });
 
-// 处理主题切换事件
+// Ã¥Â¤â€žÃ§Ââ€ Ã¤Â¸Â»Ã©Â¢ËœÃ¥Ë†â€¡Ã¦ÂÂ¢Ã¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('theme-changed', (event, theme: string) => {
     console.log(`IPC: Received theme-changed event. Theme: ${theme}`);
 
@@ -2307,10 +2307,8 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         }
     });
 
-    });
 });
 
-// 处理语言切换事件
 ipcMain.on('language-changed', (event, lang: string) => {
     console.log(`IPC: Received language-changed event. Language: ${lang}`);
 
@@ -2331,4 +2329,5 @@ ipcMain.on('language-changed', (event, lang: string) => {
             win.window.webContents.send('update-language', lang);
         }
     });
+});
 });
