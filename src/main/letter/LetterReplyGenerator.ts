@@ -175,13 +175,14 @@ export class LetterReplyGenerator {
 
             // Call LLM to generate reply
             console.log('[LetterReplyGenerator] Calling LLM to generate reply...');
-            const response = await this.apiConnection.complete(messages, false, {
+ const apiResult = await this.apiConnection.complete(messages, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             });
             console.log('[LetterReplyGenerator] LLM call complete.');
 
-            if (!response || response.trim() === '') {
+ const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
+    if (!response || response.trim() === '') {
                 console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
                 return null;
             }
@@ -353,7 +354,8 @@ export class LetterReplyGenerator {
                 temperature: 0.3 // Use a lower temperature for more stable summaries
             });
 
-            if (!summaryContent || summaryContent.trim() === '') {
+ const summaryContent = typeof summaryResult === 'string' ? summaryResult : (summaryResult?.content ?? '');
+    if (!summaryContent || summaryContent.trim() === '') {
                 console.warn('Empty summary content generated');
                 return;
             }

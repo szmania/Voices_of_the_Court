@@ -1121,7 +1121,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                content: await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
+                const chatResult = await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
                     //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
                     max_tokens: this.config.maxTokens,
                 },
@@ -1136,7 +1136,7 @@ export class Conversation{
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
+                const completionResult = await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
                     stop: [this.config.inputSequence, this.config.outputSequence],
                     max_tokens: this.config.maxTokens,
                 },
@@ -1599,11 +1599,13 @@ ${character.fullName}的发言：`
                 console.log("Current summary before resummarization: "+this.currentSummary);
                 if(this.summarizationApiConnection.isChat()){
                     console.log('Using chat API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
+            const result = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
+            this.currentSummary = typeof result === 'string' ? result : (result?.content ?? '');
                 }
                 else{
                     console.log('Using completion API for resummarization.');
-                    this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
+            const result = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
+            this.currentSummary = typeof result === 'string' ? result : (result?.content ?? '');
                 }
                
                 console.log("New current summary after resummarization: "+this.currentSummary);
@@ -1764,7 +1766,8 @@ ${character.fullName}的发言：`
 
             // Generate summary from this character's perspective
             // Do not pass the abortController signal here to ensure summarization is not cancelled.
-            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
+            const result = await this.summarizationApiConnection.complete(prompt, false, {});
+            const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
 
             const newSummary: Summary = {
                 date: this.gameData.date,

@@ -29,11 +29,12 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
     // 构建旁白提示
     const prompt = buildNarrativePrompt(conv, actionResponses);
 
-    let response;
+    let response: string;
     if (conv.actionsApiConnection.isChat()) {
-        response = await conv.actionsApiConnection.complete(prompt, false, {});
+        const result = await conv.actionsApiConnection.complete(prompt, false, {});
+        response = typeof result === 'string' ? result : (result?.content ?? '');
     } else {
-        response = await conv.actionsApiConnection.complete(
+        const result = await conv.actionsApiConnection.complete(
             convertChatToTextPrompt(prompt, conv.config),
             false,
             { stop: [conv.config.inputSequence, conv.config.outputSequence] }

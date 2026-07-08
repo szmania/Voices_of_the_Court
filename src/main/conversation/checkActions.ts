@@ -36,15 +36,15 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     let triggeredActions: ActionResponse[] = [];
 
     let response;
-    const prompt = buildActionChatPrompt(conv, availableActions);
+const prompt = buildActionChatPrompt(conv, availableActions);
     if(conv.actionsApiConnection.isChat()){
-        response = await conv.actionsApiConnection.complete(prompt, false, {} );
+        const result = await conv.actionsApiConnection.complete(prompt, false, {} );
+        response = typeof result === 'string' ? result : (result?.content ?? '');
     } else {
         let textPrompt = convertChatToTextPrompt(prompt, conv.config );
-        response = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
+        const result = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [config.inputSequence, config.outputSequence]} );
+        response = typeof result === 'string' ? result : (result?.content ?? '');
     }
-
-    console.log(`Raw LLM response for actions: ${response}`);
     response = response.replace(/(\r\n|\n|\r)/gm, "");
 
     if(!response.match(/<rationale>(.*?)<\/?rationale>/) || !response.match(/<actions>(.*?)<\/?actions>/)){

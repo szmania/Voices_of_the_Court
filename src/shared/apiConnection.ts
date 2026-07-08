@@ -176,7 +176,7 @@ export class ApiConnection{
         otherArgs: object,
         streamRelay?: (arg1: MessageChunk) => void,
         signal?: AbortSignal
-    ): Promise<MessageChunk | void> {
+    ): Promise<MessageChunk | string | void> {
         if (this.type === 'novelai') {
             const token = await this.getNovelAIToken();
             const response = await fetch(this.config.baseUrl, {
@@ -689,6 +689,49 @@ export class ApiConnection{
         }
         // Return empty for other types for now
         return [];
+    }
+
+    async authenticateNovelAI(): Promise<void> {
+        console.debug("Authenticating NovelAI...");
+        const password = this.config.key; // NovelAI uses key as password
+        if (!password) {
+            throw new Error("NovelAI password is not set.");
+        }
+
+        try {
+            const response = await fetch('https://api.novelai.net/user/authenticate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    key: password
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`NovelAI authentication failed: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            this.novelaiAccessToken = data.accessToken;
+            // Set expiry for 1 hour from now (token usually lasts for 2 hours)
+            this.novelaiTokenExpiry = Date.now() + (60 * 60 * 1000);
+            console.debug("NovelAI authentication successful.");
+        } catch (error) {
+            console.error("NovelAI authentication error:", error);
+            throw error;
+        }
+    }
+
+    async getNovelAIToken(): Promise<string> {
+        if (!this.novelaiAccessToken || (this.novelaiTokenExpiry && Date.now() >= this.novelaiTokenExpiry)) {
+            await this.authenticateNovelAI();
+        }
+        if (!this.novelaiAccessToken) {
+            throw new Error("NovelAI access token not available after authentication.");
+        }
+        return this.novelaiAccessToken;
     }
 
     async testConnection(): Promise<apiConnectionTestResult>{
