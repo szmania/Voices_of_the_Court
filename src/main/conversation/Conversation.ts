@@ -1053,7 +1053,7 @@ export class Conversation{
             const message: Message = {
                 role: 'assistant',
                 name: source.fullName,
-                content: content.trim()
+                content: (content as any)?.trim() ?? ''
             };
             // Add target information for the UI
             (message as any).targetCharacterIds = [target.id];
@@ -1118,29 +1118,31 @@ export class Conversation{
 
         if(this.textGenApiConnection.isChat()){
             console.log('Using chat API for AI message completion.');
+            const chatResult = await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
+                //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
+                max_tokens: this.config.maxTokens,
+            },
+            this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                const chatResult = await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
-                    //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
-                    max_tokens: this.config.maxTokens,
-                },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
+                content: (chatResult as any)?.content ?? '',
                 characterId: character.id
-            };  
+            };
             
         }
         //instruct
         else{
             console.log('Using completion API for AI message completion.');
+            const completionResult = await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
+                stop: [this.config.inputSequence, this.config.outputSequence],
+                max_tokens: this.config.maxTokens,
+            },
+            this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                const completionResult = await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
-                    stop: [this.config.inputSequence, this.config.outputSequence],
-                    max_tokens: this.config.maxTokens,
-                },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
+                content: (completionResult as any)?.content ?? '',
                 characterId: character.id
             };
     
@@ -1334,7 +1336,7 @@ ${validationTranslations.instruction}`
                 temperature: 0.1 // 使用较低的温度以确保一致性
             }, undefined, this.abortController?.signal);
             
-            const responseText = response.trim();
+            const responseText = (response as any)?.trim() ?? '';
             console.log(`[DEBUG] Parsed response: ${responseText}`);
             
             // 更严格的验证逻辑：明确检查是否为"符合"
@@ -1470,7 +1472,7 @@ ${character.fullName}的发言：`
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             }, undefined, this.abortController?.signal);
             
-            if (!response || response.trim() === '') {
+            if (!response || (response as any).trim?.() === '') {
                 console.warn(`Empty response from LLM for character ${character.fullName}`);
                 return null;
             }
@@ -1482,7 +1484,7 @@ ${character.fullName}的发言：`
             const message: Message = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: response.trim()
+                content: (response as any)?.trim() ?? ''
             };
             
             console.log(`Generated message with validation prompt for ${character.fullName}: ${message.content.substring(0, 50)}...`);
@@ -1938,7 +1940,7 @@ ${character.fullName}的发言：`
             // 生成场景描述
             const sceneDescription = await generateSceneDescription(this, this.abortController!.signal);
 
-            if (sceneDescription && sceneDescription.trim()) {
+            if (sceneDescription && (sceneDescription as any)?.trim()) {
                 // 创建场景描述消息
                 const sceneMessage: Message = {
                     id: randomUUID(),
@@ -2303,15 +2305,14 @@ ${character.fullName}的发言：`
                 temperature: 0.7 // Slightly higher temperature for more creative questioning
             });
 
-            if (!response || response.trim() === '') {
+            if (!response || (response as any).trim?.() === '') {
                 return null;
             }
 
             const message: Message = {
                 role: "assistant",
                 name: character.fullName,
-                content: response.trim(),
-                characterId: character.id
+content: (response as any)?.trim() ?? ''
             };
 
             return message;

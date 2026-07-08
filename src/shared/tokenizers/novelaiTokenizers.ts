@@ -1,5 +1,5 @@
 import { encode as gptEncode, decode as gptDecode } from 'gpt-tokenizer';
-import { encode as llamaEncode, decode as llamaDecode } from 'llama-tokenizer-js';
+import getEncoding from 'llama-tokenizer-js';
 
 // Define a mapping from NovelAI models to tokenizer identifiers.
 const modelToTokenizer: { [model: string]: string } = {
@@ -25,21 +25,15 @@ export function tokenize(text: string, model: string): Uint32Array {
     console.warn(`Unknown model: "${model}". Falling back to GPT-2 tokenizer.`);
   }
 
-  // In a real implementation, you would use the specific tokenizer library
-  // for each tokenizer identifier. For this example, we'll use gpt-tokenizer for all.
   switch (tokenizer) {
     case 'Nerdstash v2':
-      return new Uint32Array(llamaEncode(text));
-      return new Uint32Array(encode(text));
     case 'Llama 3':
-      // Placeholder: Replace with actual Llama 3 tokenizer
-      return new Uint32Array(encode(text));
+      return new Uint32Array(getEncoding.encode(text));
     case 'Nerdstash v1':
-      // Placeholder: Replace with actual Nerdstash v1 tokenizer
-      return new Uint32Array(encode(text));
+      return new Uint32Array(gptEncode(text));
     case 'GPT-2':
     default:
-      return new Uint32Array(encode(text));
+      return new Uint32Array(gptEncode(text));
   }
 }
 
@@ -53,21 +47,11 @@ export function tokenize(text: string, model: string): Uint32Array {
 export function decode(tokens: Uint32Array, model: string): string {
     const tokenizer = modelToTokenizer[model] || 'GPT-2';
 
-    if (!modelToTokenizer[model]) {
-        // Warning is already logged in tokenize, so we can skip it here.
-    }
-
-    // Use the same logic as tokenize to select the correct decoder.
     switch (tokenizer) {
         case 'Nerdstash v2':
-            // Placeholder: Replace with actual Nerdstash v2 decoder
-            return gptDecode(Array.from(tokens));
         case 'Llama 3':
-            // Placeholder: Replace with actual Llama 3 decoder
-            return llamaDecode(Array.from(tokens));
+            return getEncoding.decode(Array.from(tokens));
         case 'Nerdstash v1':
-            // Placeholder: Replace with actual Nerdstash v1 decoder
-            return gptDecode(Array.from(tokens));
         case 'GPT-2':
         default:
             return gptDecode(Array.from(tokens));

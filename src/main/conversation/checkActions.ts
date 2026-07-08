@@ -42,7 +42,7 @@ const prompt = buildActionChatPrompt(conv, availableActions);
         response = typeof result === 'string' ? result : (result?.content ?? '');
     } else {
         let textPrompt = convertChatToTextPrompt(prompt, conv.config );
-        const result = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [config.inputSequence, config.outputSequence]} );
+        const result = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
         response = typeof result === 'string' ? result : (result?.content ?? '');
     }
     response = response.replace(/(\r\n|\n|\r)/gm, "");

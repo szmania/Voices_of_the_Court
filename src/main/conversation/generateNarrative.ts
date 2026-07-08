@@ -29,7 +29,7 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
     // 构建旁白提示
     const prompt = buildNarrativePrompt(conv, actionResponses);
 
-    let response: string;
+    let response: string = '';
     if (conv.actionsApiConnection.isChat()) {
         const result = await conv.actionsApiConnection.complete(prompt, false, {});
         response = typeof result === 'string' ? result : (result?.content ?? '');
@@ -39,6 +39,7 @@ export async function generateNarrative(conv: Conversation, actionResponses: Act
             false,
             { stop: [conv.config.inputSequence, conv.config.outputSequence] }
         );
+            response = typeof result === 'string' ? result : (result?.content ?? '');
     }
 
     console.log(`Raw LLM response for narrative: ${response}`);

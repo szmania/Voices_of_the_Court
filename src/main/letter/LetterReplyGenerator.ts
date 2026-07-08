@@ -349,18 +349,18 @@ export class LetterReplyGenerator {
                 }
             ];
 
-            const summaryContent = await this.apiConnection.complete(summaryMessages, false, {
+            const summaryResult = await this.apiConnection.complete(summaryMessages, false, {
                 max_tokens: 150,
                 temperature: 0.3 // Use a lower temperature for more stable summaries
             });
 
- const summaryContent = typeof summaryResult === 'string' ? summaryResult : (summaryResult?.content ?? '');
-    if (!summaryContent || summaryContent.trim() === '') {
+            const summaryContent = typeof summaryResult === 'string' ? summaryResult : (summaryResult?.content ?? '');
+        if (!summaryContent || (summaryContent as any)?.trim?.() === '') {
                 console.warn('Empty summary content generated');
                 return;
             }
 
-            console.log(`Generated letter summary: ${summaryContent.trim()}`);
+            console.log(`Generated letter summary: ${(summaryContent as any)?.trim() ?? ''}`);
 
             const letterDate = gameData.date;
             const playerId = String(originalLetter.sender.id);
@@ -369,7 +369,7 @@ export class LetterReplyGenerator {
             const newSummary: LetterSummary = {
                 id: randomUUID(),
                 date: letterDate,
-                summary: summaryContent.trim(),
+        summary: (summaryContent as any)?.trim?.() ?? '',
                 letterIds: [originalLetter.id, replyLetterId]
             };
     
