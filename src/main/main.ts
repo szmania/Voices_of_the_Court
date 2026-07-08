@@ -30,12 +30,12 @@ import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 const shell = require('electron').shell;
-const packagejson = require('../../packageon');
+const packagejson = require('../../package.json');
 
 let translations: any = {};
 const loadTranslations = (lang: string) => {
     try {
-        const localePath = path.join(__dirname, '..', '..', 'public', 'locales', `${lang}on`);
+        const localePath = path.join(__dirname, '..', '..', 'public', 'locales', `${lang}.json`);
         translations = JSON.parse(fs.readFileSync(localePath, 'utf8'));
     } catch (err) {
         console.error(`Failed to load translations for ${lang}:`, err);
@@ -204,11 +204,11 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
-    
+
     const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
-    
+
     const iconPath = path.join(app.getAppPath(), 'build', 'icons', iconName);
-    
+
     try {
         tray = new Tray(iconPath);
 
@@ -538,12 +538,12 @@ app.on('ready',  async () => {
    console.log('User data check completed.');
 
     // Relocated config loading to happen earlier
-    if (!fs.existsSync(path.join(userDataPath, 'configs', 'configon'))){
-        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_configon')).toString());
-        await fs.writeFileSync(path.join(userDataPath, 'configs', 'configon'), JSON.stringify(conf, null, '\t'))
+    if (!fs.existsSync(path.join(userDataPath, 'configs', 'config.json'))){
+        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
+        await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
     }
 
-    config = new Config(path.join(userDataPath, 'configs', 'configon'));
+    config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, userDataPath);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
@@ -635,7 +635,7 @@ app.on('ready',  async () => {
                                 checkboxChecked: false
                             };
                             const { response, checkboxChecked } = await dialog.showMessageBox(dialogOpts);
-                            
+
                             if (checkboxChecked) {
                                 // Add to disabled notifications list
                                 if (!config.disabledMegamodNotifications) {
@@ -644,7 +644,7 @@ app.on('ready',  async () => {
                                 config.disabledMegamodNotifications.push(modName);
                                 config.export();
                             }
-                            
+
                             if (response === 0) {
                                 // User clicked "Yes" - enable the preset
                                 config.activePromptPreset = mapping.presetName;
@@ -1417,16 +1417,16 @@ ipcMain.handle('get-default-prompts', async () => {
     const lang = config.language || 'en';
     const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
     const promptsPath = path.join(promptsDir, `${lang}on`);
-    const fallbackPath = path.join(promptsDir, 'enon');
+    const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
 
     if (!fs.existsSync(promptsPath)) {
-        console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'enon'.`);
+        console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
         finalPath = fallbackPath;
     }
-    
+
     if (!fs.existsSync(finalPath)) {
-        console.error(`Fallback prompt file 'enon' not found at ${fallbackPath}. Cannot load prompts.`);
+        console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
         return null;
     }
 
@@ -1500,7 +1500,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -1515,13 +1515,13 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
         if (!newValue.apiKeys) newValue.apiKeys = {};
         if (!newValue.apiKeys.player2) newValue.apiKeys.player2 = {};
-        
+
         const customModels = new Set(newValue.apiKeys.player2.customModels || []);
 
         if (newValue.model !== 'gpt-oss-120b') {
             customModels.add(newValue.model);
         }
-        
+
         newValue.apiKeys.player2.customModels = Array.from(customModels);
     }
 
@@ -1538,7 +1538,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
                 //@ts-ignore
                 config[outerConfID][innerConfID].apiKeys = {};
             }
-            
+
             // Create a clean cache object to avoid circular references.
             const valueToCache = {
                 type: newValue.type,
@@ -1571,7 +1571,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
 //dear god...
 ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested-nested event. Outer ID: ${outerConfID}, Middle ID: ${middleConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     if (innerConfID === 'customContext') {
         newValue = parseInt(newValue, 10) || 0;
     }
