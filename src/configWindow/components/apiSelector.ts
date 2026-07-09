@@ -22,8 +22,6 @@ function defineTemplate(label: string){
             <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
             <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
-            <option value=\"novelai\" data-i18n=\"api.novelai\">NovelAI</option>
-            <option value=\"custom\" data-i18n=\"api.custom\">Custom (OpenAI-compatible)</option>
         </select>
     </div>
     
