@@ -22,8 +22,8 @@ function defineTemplate(label: string){
             <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
             <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
-            <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
-            <option value="novelai" data-i18n="api.novelai">NovelAI</option>
+            <option value=\"novelai\" data-i18n=\"api.novelai\">NovelAI</option>
+            <option value=\"custom\" data-i18n=\"api.custom\">Custom (OpenAI-compatible)</option>
         </select>
     </div>
     
@@ -232,58 +232,62 @@ function defineTemplate(label: string){
     
 
 class ApiSelector extends HTMLElement{
-    label: string;
-    confID: string;
-    shadow: any;
-    typeSelector
-    checkbox: any;
+    label!: string;
+    confID!: string;
+    shadow!: any;
+    typeSelector!: HTMLSelectElement;
+    checkbox!: HTMLInputElement;
 
-    openaiDiv: HTMLDivElement
-    oobaDiv: HTMLDivElement
-    openrouterDiv: HTMLDivElement 
-    customDiv: HTMLDivElement 
-    geminiDiv: HTMLDivElement
-    glmDiv: HTMLDivElement
-    deepseekDiv: HTMLDivElement
-    grokDiv: HTMLDivElement
-    nvidiaDiv: HTMLDivElement
-    player2Div: HTMLDivElement
-    openaiKeyInput: HTMLInputElement 
-    openaiModelSelect: HTMLSelectElement 
+    openaiDiv!: HTMLDivElement;
+    oobaDiv!: HTMLDivElement;
+    openrouterDiv!: HTMLDivElement;
+    customDiv!: HTMLDivElement;
+    geminiDiv!: HTMLDivElement;
+    glmDiv!: HTMLDivElement;
+    deepseekDiv!: HTMLDivElement;
+    grokDiv!: HTMLDivElement;
+    nvidiaDiv!: HTMLDivElement;
+    player2Div!: HTMLDivElement;
+    novelaiDiv!: HTMLDivElement;
 
-    geminiKeyInput: HTMLInputElement 
-    geminiModelInput: HTMLInputElement 
+    openaiKeyInput!: HTMLInputElement;
+    openaiModelSelect!: HTMLSelectElement;
 
-    glmKeyInput: HTMLInputElement 
-    glmModelSelect: HTMLSelectElement 
-    deepseekKeyInput: HTMLInputElement
-    grokKeyInput: HTMLInputElement
-    grokModelSelect: HTMLSelectElement
-    nvidiaKeyInput: HTMLInputElement
-    nvidiaModelInput: HTMLInputElement
-    player2KeyInput: HTMLInputElement
-    player2ModelInput: HTMLInputElement
-    player2ModelDatalist: HTMLDataListElement
+    geminiKeyInput!: HTMLInputElement;
+    geminiModelInput!: HTMLInputElement;
 
-    oobaUrlInput: HTMLSelectElement 
-    oobaUrlConnectButton: HTMLInputElement 
+    glmKeyInput!: HTMLInputElement;
+    glmModelSelect!: HTMLSelectElement;
+    deepseekKeyInput!: HTMLInputElement;
+    grokKeyInput!: HTMLInputElement;
+    grokModelSelect!: HTMLSelectElement;
+    nvidiaKeyInput!: HTMLInputElement;
+    nvidiaModelInput!: HTMLInputElement;
+    player2KeyInput!: HTMLInputElement;
+    player2ModelInput!: HTMLInputElement;
+    player2ModelDatalist!: HTMLDataListElement;
 
-    openrouterKeyInput: HTMLSelectElement 
-    openrouterModelInput: HTMLInputElement 
-    openrouterInstructModeCheckbox: HTMLInputElement 
+    oobaUrlInput!: HTMLInputElement;
+    oobaUrlConnectButton!: HTMLButtonElement;
 
-    customUrlInput: HTMLSelectElement 
-    customKeyInput: HTMLInputElement 
-    customModelInput: HTMLSelectElement 
+    openrouterKeyInput!: HTMLInputElement;
+    openrouterModelInput!: HTMLInputElement;
+    openrouterInstructModeCheckbox!: HTMLInputElement;
 
-    testConnectionButton: HTMLButtonElement 
-    testConnectionSpan: HTMLButtonElement 
+    customUrlInput!: HTMLInputElement;
+    customKeyInput!: HTMLInputElement;
+    customModelInput!: HTMLInputElement;
 
-    overwriteContextCheckbox: HTMLInputElement;
-    customContextNumber: HTMLInputElement;
+    testConnectionButton!: HTMLButtonElement;
+    testConnectionSpan!: HTMLSpanElement;
 
-    languageUpdateHandler: () => void;
+    overwriteContextCheckbox!: HTMLInputElement;
+    customContextNumber!: HTMLInputElement;
 
+    novelaiPasswordInput!: HTMLInputElement;
+    novelaiModelSelect!: HTMLSelectElement;
+
+    languageUpdateHandler!: () => void;
 
     constructor(){
         super();
@@ -295,9 +299,9 @@ class ApiSelector extends HTMLElement{
         this.shadow = this.attachShadow({mode: "open"});
         template.innerHTML = defineTemplate(this.label);
         this.shadow.append(template.content.cloneNode(true));
-        this.checkbox = this.shadow.querySelector("input");
+        this.checkbox = this.shadow.querySelector("input")! as HTMLInputElement;
         
-        this.typeSelector = this.shadow.querySelector("#connection-api")!;
+        this.typeSelector = this.shadow.querySelector("#connection-api")! as HTMLSelectElement;
 
         this.openaiDiv = this.shadow.querySelector("#openai-menu")!;
         this.oobaDiv = this.shadow.querySelector("#ooba-menu")!;
@@ -309,29 +313,45 @@ class ApiSelector extends HTMLElement{
         this.grokDiv = this.shadow.querySelector("#grok-menu")!;
         this.nvidiaDiv = this.shadow.querySelector("#nvidia-menu")!;
         this.player2Div = this.shadow.querySelector("#player2-menu")!;
-
-        this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
-        this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
-
-        this.geminiKeyInput = this.shadow.querySelector("#gemini-key")!;
-        this.geminiModelInput = this.shadow.querySelector("#gemini-model")!;
-
-        this.glmKeyInput = this.shadow.querySelector("#glm-key")!;
-        this.glmModelSelect = this.shadow.querySelector("#glm-model-select")!;
-        this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
-        this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
-        this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
-        this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")!;
-        this.nvidiaModelInput = this.shadow.querySelector("#nvidia-model")!;
-        this.player2KeyInput = this.shadow.querySelector("#player2-key")!;
-        this.player2ModelInput = this.shadow.querySelector("#player2-model-input")!;
-        this.player2ModelDatalist = this.shadow.querySelector("#player2-models")!;
-
-        this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
         this.novelaiDiv = this.shadow.querySelector("#novelai-menu")!;
+
+        this.openaiKeyInput = this.shadow.querySelector("#openai-key")! as HTMLInputElement;
+        this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")! as HTMLSelectElement;
+
+        this.geminiKeyInput = this.shadow.querySelector("#gemini-key")! as HTMLInputElement;
+        this.geminiModelInput = this.shadow.querySelector("#gemini-model")! as HTMLInputElement;
+
+        this.glmKeyInput = this.shadow.querySelector("#glm-key")! as HTMLInputElement;
+        this.glmModelSelect = this.shadow.querySelector("#glm-model-select")! as HTMLSelectElement;
+        this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")! as HTMLInputElement;
+        this.grokKeyInput = this.shadow.querySelector("#grok-key")! as HTMLInputElement;
+        this.grokModelSelect = this.shadow.querySelector("#grok-model-select")! as HTMLSelectElement;
+        this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")! as HTMLInputElement;
+        this.nvidiaModelInput = this.shadow.querySelector("#nvidia-model")! as HTMLInputElement;
+        this.player2KeyInput = this.shadow.querySelector("#player2-key")! as HTMLInputElement;
+        this.player2ModelInput = this.shadow.querySelector("#player2-model-input")! as HTMLInputElement;
+        this.player2ModelDatalist = this.shadow.querySelector("#player2-models")! as HTMLDataListElement;
+
+        this.oobaUrlInput = this.shadow.querySelector("#ooba-url")! as HTMLInputElement;
+        this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")! as HTMLButtonElement;
+
+        this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")! as HTMLInputElement;
+        this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")! as HTMLInputElement;
+        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")! as HTMLInputElement;
+
+        this.customUrlInput = this.shadow.querySelector("#custom-url")! as HTMLInputElement;
+        this.customKeyInput = this.shadow.querySelector("#custom-key")! as HTMLInputElement;
+        this.customModelInput = this.shadow.querySelector("#custom-model")! as HTMLInputElement;
+
+        this.testConnectionButton = this.shadow.querySelector("#connection-test-button")! as HTMLButtonElement;
+        this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")! as HTMLSpanElement;
+
+        this.overwriteContextCheckbox = this.shadow.querySelector("#overwrite-context")! as HTMLInputElement;
+        this.customContextNumber = this.shadow.querySelector("#custom-context")! as HTMLInputElement;
+
         this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
         this.novelaiModelSelect = this.shadow.querySelector("#novelai-model-select")! as HTMLSelectElement;
-    }
+    } 
 
 
     static get observedAttributes(){
