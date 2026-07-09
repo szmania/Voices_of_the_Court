@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow} from "electron";
+import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 import {ConfigWindow} from './windows/ConfigWindow';
 import {ChatWindow} from './windows/ChatWindow';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
@@ -448,8 +448,6 @@ getPlayerId(debugLogPath).then(result => {
         win.webContents.send('game-date-updated', newTotalDays);
     });
 }
-
-export function processLogLine(line: string) {
 
 function positionConfigWindow() {
     if (!configWindow || !configWindow.isShown) return;
