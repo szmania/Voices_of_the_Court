@@ -77,6 +77,18 @@ export class Config{
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
 
+    // Memory Compaction Settings
+    enableMemoryCompaction!: boolean;
+    compactionPhase1Threshold!: number;
+    compactionPhase2Threshold!: number;
+    compactionTokenBudget!: { phase1: number, phase2: number };
+    compactionCooldownMinutes!: number;
+    compactionPriorityElements!: string[];
+    compactionEntityExtractionMode!: "llm" | "regex" | "hybrid";
+    compactionRelationshipsDirectional!: boolean;
+    compactionApiConnectionConfig!: ApiConnectionConfig;
+    selectedSelfTalkExMsgScript!: string;
+
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
