@@ -1,33 +1,34 @@
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow} from "electron";
-import {ConfigWindow} from './windows/ConfigWindow.js';
-import {ChatWindow} from './windows/ChatWindow.js';
-import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
-import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow.js';
-import { Config } from '../shared/Config.js';
-import { DiaryGenerator } from './diary/DiaryGenerator.js';
-import { ClipboardListener } from "./ClipboardListener.js";
-import { Conversation } from "./conversation/Conversation.js";
-import { GameData } from "../shared/gameData/GameData.js";
-import { Letter } from "./letter/Letter.js";
-import { StoredLetter } from "./letter/letterInterfaces.js";
-import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
-import { LetterManager } from "./letter/LetterManager.js";
-import { parseLog } from "../shared/gameData/parseLog.js";
-import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
-import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
-import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
-import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
-import { readPromptHistory, savePromptHistory } from "./promptHistory.js";
-import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
-import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
+import {ConfigWindow} from './windows/ConfigWindow';
+import {ChatWindow} from './windows/ChatWindow';
+import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
+import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow';
+import { Config } from '../shared/Config';
+import { DiaryGenerator } from './diary/DiaryGenerator';
+import { ClipboardListener } from "./ClipboardListener";
+import { Conversation } from "./conversation/Conversation";
+import { GameData } from "../shared/gameData/GameData";
+import { Letter } from "./letter/Letter";
+import { StoredLetter } from "./letter/letterInterfaces";
+import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
+import { LetterManager } from "./letter/LetterManager";
+import { parseLog } from "../shared/gameData/parseLog";
+import { parseLettersFromLog } from "./letter/parseLogForLetters";
+import { parseLogForBookmarks } from "./parseLogforbookmarks";
+import { processBookmarkToSummary } from "./bookmarktosummary";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager";
+import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory";
+import { readPromptHistory, savePromptHistory } from "./promptHistory";
+import { Message, ActionResponse } from "./ts/conversation_interfaces";
+import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
-import { checkUserData } from "./userDataCheck.js";
+import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
-import { ReadmeWindow } from './windows/ReadmeWindow.js';
+import { ReadmeWindow } from './windows/ReadmeWindow';
+import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -203,11 +204,11 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
-    
+
     const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
-    
+
     const iconPath = path.join(app.getAppPath(), 'build', 'icons', iconName);
-    
+
     try {
         tray = new Tray(iconPath);
 
@@ -265,6 +266,12 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+
+// --- Private helpers for testing ---
+export function _private_setCurrentTotalDays(days: number): void { currentTotalDays = days; }
+export function _private_getStoredLetters(): Map<string, StoredLetter> { return storedLetters; }
+export function _private_setLastLetterSentToGame(letter: StoredLetter | null): void { lastLetterSentToGame = letter; }
+export function _private_setSessionPlayerId(id: string | null): void { currentSessionPlayerId = id; }
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
@@ -305,7 +312,24 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-async function checkAndDeliverLetters() {
+export async function checkAndDeliverLetters() {
+    if (currentTotalDays === 0) {
+        console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
+        return;
+    }
+
+    let gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (!gameData) {
+        gameData = getCachedGameData() ?? undefined;
+    }
+
+    if (!gameData) {
+        console.warn("Could not parse game data during letter delivery. Using currentTotalDays fallback for date.");
+        const gameDate = totalDaysToDateString(currentTotalDays);
+        // Further logic to handle letter delivery without full gameData would be needed here.
+        // For now, we'll just log the warning and return.
+        return;
+    }
     const letterManager = LetterManager.getInstance();
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
@@ -323,12 +347,13 @@ async function checkAndDeliverLetters() {
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            let currentDateString: string;
             if (!gameData) {
-                console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
-                continue;
+                console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
+                currentDateString = totalDaysToDateString(currentTotalDays);
+            } else {
+                currentDateString = gameData.date;
             }
-            const currentDateString = gameData.date;
-
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
@@ -341,7 +366,7 @@ async function checkAndDeliverLetters() {
     }
 }
 
-function totalDaysToDateString(totalDays: number): string {
+export function totalDaysToDateString(totalDays: number): string {
     const year = Math.floor(totalDays / 365);
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
@@ -377,7 +402,8 @@ function removeLettersAfterDate(cutoffDate: number): void {
     }
 }
 
-function updateCurrentDate(newTotalDays: number) {
+export function updateCurrentDate(newTotalDays: number) {
+    const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
     // Detect time travel backwards (loading an older save)
@@ -386,6 +412,27 @@ function updateCurrentDate(newTotalDays: number) {
         removeLettersAfterDate(newTotalDays);
     }
     // Detect large time jump forward (more than 40 days), could be loading a different save
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
+        console.log(`Large time jump forward detected. Clearing letters and potentially cache. | Old date: ${oldTotalDays} | New date: ${newTotalDays}`);
+        // This could also indicate a new save, so we might clear more than just letters.
+        // For now, we'll just remove letters.
+        removeLettersAfterDate(newTotalDays);
+    }
+
+    currentTotalDays = newTotalDays;
+
+    // After a potential time travel or large jump, re-evaluate the player ID
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (fs.existsSync(debugLogPath)) {
+getPlayerId(debugLogPath).then(result => {
+            const newPlayerId = result.playerId;
+            if (newPlayerId && oldPlayerId !== newPlayerId) {
+                console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
+                clearCachedGameData();
+                currentSessionPlayerId = newPlayerId;
+            }
+        });
+    }
     else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
         console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
         storedLetters.clear();
@@ -401,7 +448,7 @@ function updateCurrentDate(newTotalDays: number) {
     });
 }
 
-function processLogLine(line: string) {
+export function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
 
@@ -531,7 +578,7 @@ app.on('ready',  async () => {
     });
 
     // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
     if (fs.existsSync(dlcLoadPath)) {
         try {
             const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
@@ -588,7 +635,7 @@ app.on('ready',  async () => {
                                 checkboxChecked: false
                             };
                             const { response, checkboxChecked } = await dialog.showMessageBox(dialogOpts);
-                            
+
                             if (checkboxChecked) {
                                 // Add to disabled notifications list
                                 if (!config.disabledMegamodNotifications) {
@@ -597,7 +644,7 @@ app.on('ready',  async () => {
                                 config.disabledMegamodNotifications.push(modName);
                                 config.export();
                             }
-                            
+
                             if (response === 0) {
                                 // User clicked "Yes" - enable the preset
                                 config.activePromptPreset = mapping.presetName;
@@ -611,7 +658,7 @@ app.on('ready',  async () => {
                 }
             }
         } catch (err) {
-            console.error('Failed to read or parse dlc_load.json:', err);
+            console.error('Failed to read or parse dlc_loadon:', err);
         }
     }
 
@@ -620,7 +667,7 @@ app.on('ready',  async () => {
         try {
             if (config?.textGenerationApiConnectionConfig?.connection) {
                 // Import ApiConnection dynamically to avoid circular dependencies
-                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     config.textGenerationApiConnectionConfig.connection,
                     config.textGenerationApiConnectionConfig.parameters
@@ -644,7 +691,7 @@ app.on('ready',  async () => {
                 }
 
                 // 2. Fallback to API-detected context
-                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
                     config.textGenerationApiConnectionConfig.parameters
@@ -897,7 +944,7 @@ clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
     // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
     if (fs.existsSync(dlcLoadPath)) {
         try {
             const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
@@ -929,7 +976,7 @@ clipboardListener.on('VOTC:IN', async () =>{
                 return; // Stop further execution.
             }
         } catch (err) {
-            console.error('Failed to read or parse dlc_load.json:', err);
+            console.error('Failed to read or parse dlc_loadon:', err);
         }
     }
 
@@ -953,6 +1000,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             storedLetters.clear();
             lastLetterSentToGame = null; // Also clear any letter pending game confirmation
         }
+        setCachedGameData(gameData);
         currentSessionPlayerId = String(gameData.playerID);
 
         console.log("New conversation started!");
@@ -1072,7 +1120,7 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
         }
 
         // Get the selected bookmark script from config
-        const bookmarkScriptPath = config.selectedBookmarkScript || 'standard/shaosong.json';
+        const bookmarkScriptPath = config.selectedBookmarkScript || 'standard/shaosongon';
         console.log(`Using bookmark script: ${bookmarkScriptPath}`);
 
         // Process the bookmark data and update conversation summaries
@@ -1345,7 +1393,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -1368,7 +1416,7 @@ ipcMain.handle('get-prompt-presets', async () => {
 ipcMain.handle('get-default-prompts', async () => {
     const lang = config.language || 'en';
     const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
-    const promptsPath = path.join(promptsDir, `${lang}.json`);
+    const promptsPath = path.join(promptsDir, `${lang}on`);
     const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
 
@@ -1376,7 +1424,7 @@ ipcMain.handle('get-default-prompts', async () => {
         console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
         finalPath = fallbackPath;
     }
-    
+
     if (!fs.existsSync(finalPath)) {
         console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
         return null;
@@ -1393,7 +1441,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -1452,7 +1500,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -1467,13 +1515,13 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
         if (!newValue.apiKeys) newValue.apiKeys = {};
         if (!newValue.apiKeys.player2) newValue.apiKeys.player2 = {};
-        
+
         const customModels = new Set(newValue.apiKeys.player2.customModels || []);
 
         if (newValue.model !== 'gpt-oss-120b') {
             customModels.add(newValue.model);
         }
-        
+
         newValue.apiKeys.player2.customModels = Array.from(customModels);
     }
 
@@ -1490,7 +1538,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
                 //@ts-ignore
                 config[outerConfID][innerConfID].apiKeys = {};
             }
-            
+
             // Create a clean cache object to avoid circular references.
             const valueToCache = {
                 type: newValue.type,
@@ -1523,7 +1571,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
 //dear god...
 ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested-nested event. Outer ID: ${outerConfID}, Middle ID: ${middleConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     if (innerConfID === 'customContext') {
         newValue = parseInt(newValue, 10) || 0;
     }
@@ -1699,7 +1747,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                     }
 
                     if (chatMessage) {
-                        const { parseVariables } = require('./parseVariables.js');
+                        const { parseVariables } = require('./parseVariables');
                         const source = conversation.gameData.getCharacterById(sourceId!);
                         const target = conversation.gameData.getCharacterById(targetId!);
                         conversation.gameData.character1Name = source ? source.shortName : "someone";
@@ -1821,7 +1869,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
     try {
         const summaries = await readSummaryFile(userDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_mapon');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -1876,8 +1924,8 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
     try {
         const letterManager = LetterManager.getInstance();
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -1897,7 +1945,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted letter summary for character ${charIdToDelete}`);
@@ -1929,8 +1977,8 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
     console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -1950,7 +1998,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
@@ -2055,8 +2103,8 @@ ipcMain.handle('get-diary-files', async (event, playerId) => {
     console.log(`IPC: Received get-diary-files event for player: ${playerId}`);
     try {
         const files = await getDiaryFiles(playerId);
-        // we only want character id, so remove .json
-        return files.map(f => f.replace('.json', ''));
+        // we only want character id, so remove on
+        return files.map(f => f.replace('on', ''));
     } catch (error) {
         console.error('Error getting diary files:', error);
         return [];
