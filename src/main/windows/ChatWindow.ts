@@ -118,7 +118,7 @@ export class ChatWindow{
                 const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
                 const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
-                if (isGameActive || isChatActive || isConfigActive) {
+                if (isGameActive || isChatActive) {
                     OverlayController.activateOverlay();
                 } else {
                     // This block is intentionally left empty to prevent the window from hiding.
