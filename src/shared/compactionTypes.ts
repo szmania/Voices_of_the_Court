@@ -22,15 +22,32 @@ export interface EntityReference {
 export type EntityType = 'character' | 'relationship' | 'event' | 'title' | 'artifact' | 'custom';
 
 export interface Relationship {
-    targetEntityId: string;
+    targetEntityName: string;
     type: RelationshipType;
-    strength: number; // -1 to 1, where negative is negative relationship
+    description: string;
 }
+
 export type RelationshipType = 'friend' | 'rival' | 'lover' | 'ally' | 'enemy' | 'family' | 'custom';
+
+export interface KnowledgeEdge {
+    source: string;
+    target: string;
+    label: string;
+}
+
+export interface NarrativeThread {
+    id: string;
+    topic: string;
+    summary: string;
+}
 
 export interface KnowledgeGraph {
     entities: EntityReference[];
-} 
+    edges: KnowledgeEdge[];
+    narrativeThreads: NarrativeThread[];
+    version: number;
+}
+
 export interface CompactionConfig {
     enableMemoryCompaction: boolean;
     compactionPhase1Threshold: number; // % of context

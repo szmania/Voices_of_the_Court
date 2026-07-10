@@ -87,7 +87,6 @@ export class Config{
     compactionEntityExtractionMode!: "llm" | "regex" | "hybrid";
     compactionRelationshipsDirectional!: boolean;
     compactionApiConnectionConfig!: ApiConnectionConfig;
-    selectedSelfTalkExMsgScript!: string;
 
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
@@ -99,7 +98,7 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
         
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection && 
                 configData[configType].connection.apiKeys) {
@@ -108,7 +107,7 @@ export class Config{
             }
         });
         
-        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'))
+        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'));
     }
 
     toSafeConfig(): Config{
@@ -124,7 +123,7 @@ export class Config{
         output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
         
         // 隐藏apiKeys中的敏感信息
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as any;
             if (config && config.connection && config.connection.apiKeys) {

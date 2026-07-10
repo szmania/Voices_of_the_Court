@@ -115,5 +115,43 @@
   "summariesInsertDepth": 6,
   "memoriesInsertDepth": 5,
   "descInsertDepth": 4,
-  "enableSuffixPrompt": false
+  "enableSuffixPrompt": false,
+  "enableMemoryCompaction": true,
+  "compactionPhase1Threshold": 70,
+  "compactionPhase2Threshold": 5,
+  "compactionTokenBudget": {
+    "phase1": 30,
+    "phase2": 10
+  },
+  "compactionCooldownMinutes": 5,
+  "compactionPriorityElements": [
+    "secrets",
+    "rivalries",
+    "friendships",
+    "alliances",
+    "major_life_events"
+  ],
+  "compactionEntityExtractionMode": "hybrid",
+  "compactionRelationshipsDirectional": true,
+  "compactionApiConnectionConfig": {
+    "connection": {
+      "type": "player2",
+      "baseUrl": "https://api.player2.game/v1",
+      "key": "",
+      "model": "gpt-oss-120b",
+      "forceInstruct": false,
+      "overwriteContext": false,
+      "customContext": 8192
+    },
+    "parameters": {
+      "temperature": 0.5,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "top_p": 0.9,
+      "enableTemperature": true,
+      "enableFrequencyPenalty": true,
+      "enablePresencePenalty": true,
+      "enableTopP": true
+    }
+  }
 }
