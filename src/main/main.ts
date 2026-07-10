@@ -456,7 +456,7 @@ function positionConfigWindow() {
     const { width, height } = primaryDisplay.workArea;
 
     const PADDING = 20;
-    const configWidth = 1000; // A more reasonable default width
+    const configWidth = 800; // A more reasonable default width
     const configHeight = height - (2 * PADDING);
 
     configWindow.window.setBounds({
