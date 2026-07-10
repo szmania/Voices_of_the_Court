@@ -62,7 +62,7 @@ export class LetterManager {
                     timestamp: new Date(l.timestamp),
                     creationTimestamp: l.creationTimestamp ? new Date(l.creationTimestamp) : new Date(l.timestamp),
                     isPlayerSender: l.sender.id === playerNumericId,
-                    totalDays: l.totalDays || 0 // Ensure totalDays has a default value
+                    totalDays: l.totalDays ?? 1 // Default to day 1 if missing
                 }));
             } catch (error) {
                 console.error(`Error reading letter history for player ${playerId}, character ${characterId}:`, error);

@@ -94,8 +94,8 @@ export class Letter implements ILetter {
             const [year, month, day] = dateParts;
             // Month is 0-indexed in JavaScript Date, and we use UTC to avoid timezone issues.
             const writtenTimestamp = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-            if (isNaN(writtenTimestamp.getTime())) {
-                console.error(`Could not create valid date from gameDate: ${gameDate}`);
+            if (isNaN(writtenTimestamp.getTime()) || totalDays < 0) {
+                console.error(`Could not create valid date from gameDate: ${gameDate} or totalDays: ${totalDays}`);
                 return null;
             }
 

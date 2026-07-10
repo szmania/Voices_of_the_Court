@@ -193,6 +193,7 @@ let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
+let showFutureLetters = false;
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -391,7 +392,7 @@ function renderLetters() {
     const letterList = document.getElementById('letter-list');
     if (!letterList) return;
 
-    letterList.innerHTML = ''; // Clear existing list
+    const fragment = document.createDocumentFragment();
 
     if (!selectedPlayerId) {
         const noLettersItem = document.createElement('li');
@@ -464,7 +465,11 @@ function renderLetters() {
         }
     }
 
-    const lettersToDisplay = characterFilteredLetters;
+    let filteredLetters = characterFilteredLetters;
+    if (!showFutureLetters) {
+        filteredLetters = filteredLetters.filter(l => l.totalDays <= currentGameDay);
+    }
+    const lettersToDisplay = filteredLetters;
 
     const repliesMap = new Map<string, Letter>();
     const rootLetters: Letter[] = [];
@@ -586,8 +591,11 @@ function renderLetters() {
         }
 
         li.innerHTML = receivedHtml + connectorHtml + sentHtml;
-        letterList.appendChild(li);
+        fragment.appendChild(li);
     });
+
+    letterList.innerHTML = ''; // Clear existing list
+    letterList.appendChild(fragment);
 
     // Add event listeners after rendering
     document.querySelectorAll('.letter-item').forEach(item => {
@@ -814,6 +822,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sortSelect = document.getElementById('letter-sort-select') as HTMLSelectElement;
     const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
     const searchInput = document.getElementById('letter-search-input') as HTMLInputElement;
+    const toggleFutureBtn = document.getElementById('toggle-future-btn') as HTMLButtonElement;
+
+    function updateFutureButtonText() {
+        if (showFutureLetters) {
+            toggleFutureBtn.textContent = window.LocalizationManager.getTranslation('letters.hide_future', 'Hide Future Letters');
+            toggleFutureBtn.classList.add('active');
+        } else {
+            toggleFutureBtn.textContent = window.LocalizationManager.getTranslation('letters.show_all', 'Show All Letters');
+            toggleFutureBtn.classList.remove('active');
+        }
+    }
+    updateFutureButtonText(); // Set initial text
+
+    toggleFutureBtn.addEventListener('click', () => {
+        showFutureLetters = !showFutureLetters;
+        updateFutureButtonText();
+        renderLetters();
+    });
 
     searchInput.addEventListener('input', () => {
         const term = searchInput.value;
