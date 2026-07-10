@@ -1550,6 +1550,31 @@ ipcMain.on('chat-stop', () =>{
 
 })
 
+// Memory Compaction IPC Handlers
+ipcMain.on('manual-compaction-trigger', async (event) => {
+    console.log('IPC: Received manual-compaction-trigger event.');
+    if (conversation && conversation.memoryCompactor) {
+        try {
+            const result = await conversation.memoryCompactor.compact(conversation);
+            event.sender.send('compaction-status-update', result);
+            console.log(`Manual compaction completed: Phase1=${result.phase1Run}, Phase2=${result.phase2Run}, Memories=${result.memoriesCreated}`);
+        } catch (error) {
+            console.error('Manual compaction failed:', error);
+            event.sender.send('compaction-status-update', { phase1Run: false, phase2Run: false, memoriesCreated: 0, error: String(error) });
+        }
+    } else {
+        event.sender.send('compaction-status-update', { phase1Run: false, phase2Run: false, memoriesCreated: 0, error: 'No active conversation or memory compactor not initialized' });
+    }
+});
+
+ipcMain.handle('get-compaction-stats', async () => {
+    if (conversation && conversation.memoryCompactor) {
+        const stats = conversation.memoryCompactor['scheduler'].getCompactionStats();
+        return stats;
+    }
+    return { lastCompactionTime: 0, cooldownRemaining: 0 };
+});
+
 ipcMain.on('cancel-generation', () => {
     console.log('IPC: Received cancel-generation event.');
     if (conversation) {
