@@ -120,6 +120,8 @@ export class ChatWindow{
 
                 if (isGameActive || isChatActive || isConfigActive) {
                     OverlayController.activateOverlay();
+                } else {
+                    // This block is intentionally left empty to prevent the window from hiding.
                 }
             } catch (err) {
                 console.error("Failed to get active window:", err);
