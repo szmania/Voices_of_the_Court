@@ -22,6 +22,8 @@ function defineTemplate(label: string){
             <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
             <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
+            <option value="novelai" data-i18n="api.novelai">NovelAI</option>
+            <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
         </select>
     </div>
     
@@ -191,10 +193,10 @@ function defineTemplate(label: string){
                 <p class="tooltip" data-i18n-title="connection.novelai_password_tooltip"></p>
             </div>
             <div class="input-group">
-                <label for="novelai-model-select" data-i18n="connection.novelai_model"></label>
-                <select id="novelai-model-select">
-                    <!-- Models will be populated dynamically -->
-                </select>
+                <label for="novelai-model-input" data-i18n="connection.novelai_model"></label>
+                <input type="text" list="novelai-models" id="novelai-model-input" name="novelai-model-input" />
+                <datalist id="novelai-models">
+                </datalist>
             </div>
         </div>
         <div id="custom-menu">
@@ -224,7 +226,8 @@ function defineTemplate(label: string){
         <input type="number" id="custom-context" min="0" style="width: 10%;"/>
     </div>
 
-  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>`
+  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
+`
 }
 
     
@@ -283,7 +286,8 @@ class ApiSelector extends HTMLElement{
     customContextNumber!: HTMLInputElement;
 
     novelaiPasswordInput!: HTMLInputElement;
-    novelaiModelSelect!: HTMLSelectElement;
+    novelaiModelInput!: HTMLInputElement;
+    novelaiModelDatalist!: HTMLDataListElement;
 
     languageUpdateHandler!: () => void;
 
@@ -348,7 +352,8 @@ class ApiSelector extends HTMLElement{
         this.customContextNumber = this.shadow.querySelector("#custom-context")! as HTMLInputElement;
 
         this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
-        this.novelaiModelSelect = this.shadow.querySelector("#novelai-model-select")! as HTMLSelectElement;
+        this.novelaiModelInput = this.shadow.querySelector("#novelai-model-input")! as HTMLInputElement;
+        this.novelaiModelDatalist = this.shadow.querySelector("#novelai-models")! as HTMLDataListElement;
     } 
 
 
@@ -375,6 +380,10 @@ class ApiSelector extends HTMLElement{
 
         if (apiConfig.type === 'player2') {
             this._populatePlayer2Models();
+        }
+
+        if (apiConfig.type === 'novelai') {
+            this._populateNovelaiModels();
         }
 
         // 从apiKeys字段中加载所有API类型的配置（如果存在）
@@ -468,6 +477,15 @@ class ApiSelector extends HTMLElement{
             this.player2ModelInput.value = apiConfig.model;
         }
         
+        // 加载NovelAI配置
+        if (apiKeys.novelai) {
+            this.novelaiPasswordInput.value = apiKeys.novelai.key || "";
+            this.novelaiModelInput.value = apiKeys.novelai.model || "";
+        } else if(apiConfig.type == "novelai"){
+            this.novelaiPasswordInput.value = apiConfig.key;
+            this.novelaiModelInput.value = apiConfig.model;
+        }
+        
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
@@ -482,6 +500,10 @@ class ApiSelector extends HTMLElement{
 
             if (this.typeSelector.value === 'player2') {
                 this._populatePlayer2Models();
+            }
+
+            if (this.typeSelector.value === 'novelai') {
+                this._populateNovelaiModels();
             }
 
             switch(this.typeSelector.value){
@@ -736,7 +758,7 @@ class ApiSelector extends HTMLElement{
             novelai: {
                 key: this.novelaiPasswordInput.value,
                 baseUrl: "https://api.novelai.net/v1",
-                model: this.novelaiModelSelect.value
+                model: this.novelaiModelInput.value
             },
             gemini: {
                 key: this.geminiKeyInput.value,
@@ -820,7 +842,7 @@ class ApiSelector extends HTMLElement{
             type: "novelai",
             baseUrl: "https://api.novelai.net/v1",
             key: this.novelaiPasswordInput.value,
-            model: this.novelaiModelSelect.value,
+            model: this.novelaiModelInput.value,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         };
@@ -983,6 +1005,40 @@ class ApiSelector extends HTMLElement{
         // Set the input's value to the currently saved model.
         if (savedModel) {
             this.player2ModelInput.value = savedModel;
+        }
+    }
+
+    private async _populateNovelaiModels() {
+        console.log("Populating NovelAI models...");
+
+        // Get the LATEST config from the main process to ensure we have the latest models
+        const config = await ipcRenderer.invoke('get-config');
+        const connectionConfig = config[this.confID]?.connection;
+
+        if (!connectionConfig) {
+            console.error("Could not get connection config for", this.confID);
+            return;
+        }
+
+        // Create a connection object with the LATEST config
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
+        const models = await tempConnection.listModels();
+
+        // Get the currently saved model to ensure it's selected
+        const savedModel = connectionConfig.model;
+
+        this.novelaiModelDatalist.innerHTML = ''; // Clear existing options
+
+        models.forEach((model: any) => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.id;
+            this.novelaiModelDatalist.appendChild(option);
+        });
+
+        // Set the input's value to the currently saved model.
+        if (savedModel) {
+            this.novelaiModelInput.value = savedModel;
         }
     }
 
