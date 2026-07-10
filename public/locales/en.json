@@ -16,7 +16,17 @@
     "discord_tooltip": "Join our Discord",
     "steam_tooltip": "View on Steam Workshop",
     "website_tooltip": "Visit our Website",
-    "close": "Close"
+    "close": "Close",
+    "connection_tooltip": "Configure API and game connection settings",
+    "actions_tooltip": "Enable and configure in-game actions",
+    "summarization_tooltip": "Manage conversation summarization settings",
+    "prompts_tooltip": "Customize AI prompts and behaviors",
+    "letters_tooltip": "View and manage in-game letters",
+    "diaries_tooltip": "Manage character diaries",
+    "settings_tooltip": "Adjust application and AI generation settings",
+    "system_tooltip": "Manage system settings, updates, and data",
+    "help_tooltip": "Open the help and documentation window",
+    "close_tooltip": "Close this configuration window"
   },
   "diaries": {
     "header": "Diaries",
