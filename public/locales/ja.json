@@ -714,6 +714,8 @@
     "load_success": "手紙のデータが正常に読み込まれました",
     "search": "検索:",
     "search_placeholder": "手紙を検索...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "日",
     "est": "推定",
     "reply_expected_in": "返信予定",

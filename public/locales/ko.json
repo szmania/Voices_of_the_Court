@@ -714,6 +714,8 @@
     "load_success": "편지 데이터가 성공적으로 로드되었습니다.",
     "search": "검색:",
     "search_placeholder": "편지 검색...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "일",
     "est": "예상",
     "reply_expected_in": "답장 예상",

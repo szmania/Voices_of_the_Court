@@ -717,6 +717,8 @@
     "load_success": "Briefdaten erfolgreich geladen",
     "search": "Suchen:",
     "search_placeholder": "Briefe durchsuchen...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "Tagen",
     "est": "gesch.",
     "reply_expected_in": "Antwort erwartet in",

@@ -718,6 +718,8 @@
     "load_success": "信件数据加载成功",
     "search": "搜索：",
     "search_placeholder": "搜索信件...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "天",
     "est": "预计",
     "reply_expected_in": "预计回复在",

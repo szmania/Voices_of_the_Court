@@ -718,6 +718,8 @@
     "load_success": "Данные писем успешно загружены",
     "search": "Поиск:",
     "search_placeholder": "Искать письма...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "дней",
     "est": "прим.",
     "reply_expected_in": "Ответ ожидается через",

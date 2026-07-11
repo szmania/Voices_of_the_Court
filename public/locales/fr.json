@@ -718,6 +718,8 @@
     "load_success": "Données des lettres chargées avec succès",
     "search": "Rechercher:",
     "search_placeholder": "Rechercher des lettres...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "jours",
     "est": "est.",
     "reply_expected_in": "Réponse attendue dans",

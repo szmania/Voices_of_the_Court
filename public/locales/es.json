@@ -718,6 +718,8 @@
     "load_success": "Datos de cartas cargados con éxito",
     "search": "Buscar:",
     "search_placeholder": "Buscar cartas...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "días",
     "est": "est.",
     "reply_expected_in": "Respuesta esperada en",

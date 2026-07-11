@@ -714,6 +714,8 @@
     "load_success": "Dane listów załadowane pomyślnie",
     "search": "Szukaj:",
     "search_placeholder": "Szukaj listów...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "dni",
     "est": "szac.",
     "reply_expected_in": "Odpowiedź oczekiwana za",

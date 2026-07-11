@@ -722,6 +722,8 @@
     "tooltip_thread_status": "Indicates the current number of letters used in the game's letter thread. The thread must be reset in-game via decision once it reaches 9/9.",
     "search": "Search:",
     "search_placeholder": "Search letters...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "days",
     "est": "est.",
     "reply_expected_in": "Reply expected in",
