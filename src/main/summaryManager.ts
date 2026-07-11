@@ -1,6 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { Summary } from './ts/conversation_interfaces';
+import {
+    saveCompactedMemory as saveCompactedMemoryFile,
+    readCompactedMemory as readCompactedMemoryFile,
+    getAllCompactedMemories as getAllCompactedMemoriesFile
+} from './compactedMemoryStore.js';
+import { CompactedMemory } from '../shared/compactionTypes.js';
 
 /**
  * Gets all player IDs by scanning summary directories.
@@ -144,7 +150,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
         allSummaries.sort((a, b) => {
             const extractDate = (dateStr: string) => {
                 if (!dateStr) return { year: 0, month: 1, day: 1 };
-                const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
+                const match = dateStr.match(/(\\d+)年(\\d+)月(\\d+)日/);
                 if (match) {
                     return { year: parseInt(match[1]), month: parseInt(match[2]), day: parseInt(match[3]) };
                 }
@@ -158,7 +164,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
             const dateB = extractDate(b.date);
             if (dateB.year !== dateA.year) return dateB.year - dateA.year;
             if (dateB.month !== dateA.month) return dateB.month - dateA.month;
-            return dateB.day - dateA.day;
+            return dateB.day - a.day;
         });
         
         return allSummaries;
@@ -206,9 +212,9 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
                 const { characterId, ...cleanSummary } = summary;
                 return cleanSummary;
             });
-            
+            const cleanSummaries = characterSummaries.map(({ characterId, ...cleanSummary }) => cleanSummary);
             // Write to file
-            fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\t'), 'utf8');
+            fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\\t'), 'utf8');
         }
 
         // Delete summaries for characters that were removed
@@ -267,9 +273,41 @@ export async function saveCharacterMap(userDataPath: string, playerId: string, c
             fs.mkdirSync(summaryDir, { recursive: true });
         }
 
-        fs.writeFileSync(mapFilePath, JSON.stringify(characterMap, null, '\t'), 'utf8');
+        fs.writeFileSync(mapFilePath, JSON.stringify(characterMap, null, '\\t'), 'utf8');
     } catch (error) {
         console.error('Error saving character map file:', error);
         throw error;
     }
+}
+
+/**
+ * Saves compacted memories for a specific character.
+ * This is a wrapper around the function in compactedMemoryStore.
+ * @param playerId The ID of the player.
+ * @param characterId The ID of the character.
+ * @param memories An array of CompactedMemory objects.
+ */
+export async function saveCompactedMemory(playerId: string, characterId: string, memories: CompactedMemory[]): Promise<void> {
+    return saveCompactedMemoryFile(playerId, characterId, memories);
+}
+
+/**
+ * Reads compacted memories for a specific character.
+ * This is a wrapper around the function in compactedMemoryStore.
+ * @param playerId The ID of the player.
+ * @param characterId The ID of the character.
+ * @returns A promise that resolves to an array of CompactedMemory objects.
+ */
+export async function readCompactedMemory(playerId: string, characterId: string): Promise<CompactedMemory[]> {
+    return readCompactedMemoryFile(playerId, characterId);
+}
+
+/**
+ * Reads all compacted memories for a given player.
+ * This is a wrapper around the function in compactedMemoryStore.
+ * @param playerId The ID of the player.
+ * @returns A promise that resolves to a flat array of all CompactedMemory objects.
+ */
+export async function getAllCompactedMemories(playerId: string): Promise<CompactedMemory[]> {
+    return getAllCompactedMemoriesFile(playerId);
 }

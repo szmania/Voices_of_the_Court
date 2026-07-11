@@ -597,7 +597,12 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
         const summaryIntro = isSelfTalk
             ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-        systemContent += `${summaryIntro}${conv.currentSummary}\n\n`;
+        systemContent += `${summaryIntro}${conv.currentSummary}\\n\\n`;
+    }
+
+    const compactedMemoryString = createCompactedMemoryString(conv, prompts);
+    if (compactedMemoryString) {
+        systemContent += `${compactedMemoryString}\\n\\n`;
     }
 
     systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;

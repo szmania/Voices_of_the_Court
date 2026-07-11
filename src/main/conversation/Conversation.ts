@@ -25,6 +25,8 @@ import { parseGameDate } from '../../shared/dateUtils.js';
 import { getConversationHistoryFiles } from '../conversationHistory.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
+import { MemoryCompactor } from './MemoryCompactor.js';
+import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 
 function getTranslations(lang: string): any {
@@ -54,6 +56,7 @@ export class Conversation{
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
     diaryGenerator!: DiaryGenerator;
+    compactionApiConnection: ApiConnection;
     actionsApiConnection: ApiConnection;
     actions!: Action[];
     summaries: Map<number, Summary[]>;
@@ -246,6 +249,7 @@ export class Conversation{
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath);
+        this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
 
@@ -1862,7 +1866,11 @@ ${character.fullName}的发言：`
 
     updateConfig(config: Config){
         console.log("Config updated! Reloading conversation configuration.");
-        this.config = config; // Ensure the config object itself is updated
+        this.config = config;
+        this.loadConfig();
+        if (this.memoryCompactor) {
+            this.memoryCompactor.initialize(this.config);
+        }
         this.loadConfig();
     }
 
@@ -1877,27 +1885,31 @@ ${character.fullName}的发言：`
     }
 
     getApiConnections() {
-        let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
-        
+        let textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection;
+
         textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
         console.log('Text generation API connection configured.');
 
-        if(this.config.summarizationUseTextGenApi){
-            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+        if (this.config.summarizationUseTextGenApi) {
+            summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
             console.log('Summarization API connection configured (using text generation API).');
         } else {
-            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+            summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
             console.log('Summarization API connection configured (using dedicated summarization API).');
         }
 
-        if(this.config.actionsUseTextGenApi){
-            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+        if (this.config.actionsUseTextGenApi) {
+            actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
             console.log('Actions API connection configured (using text generation API).');
         } else {
-            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+            actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
             console.log('Actions API connection configured (using dedicated actions API).');
         }
-        return [textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection];
+
+        compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters);
+        console.log('Compaction API connection configured.');
+
+        return [textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection];
     }
 
     loadActions(){

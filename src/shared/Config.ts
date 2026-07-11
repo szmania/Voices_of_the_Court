@@ -121,6 +121,8 @@ export class Config{
         output.textGenerationApiConnectionConfig.connection.baseUrl= "<hidden>";
         output.actionsApiConnectionConfig.connection.baseUrl = "<hidden>";
         output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
+        output.compactionApiConnectionConfig.connection.key = "<hidden>";
+        output.compactionApiConnectionConfig.connection.baseUrl = "<hidden>";
         
         // 隐藏apiKeys中的敏感信息
         const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
