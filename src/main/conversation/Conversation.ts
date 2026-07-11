@@ -1579,7 +1579,54 @@ ${character.fullName}的发言：`
             this.pendingActions.set(messageId, updatedPending);
         }
     }
+    public memoryCompactor: MemoryCompactor;
 
+    async resummarize(){
+        if (this.config.enableMemoryCompaction) {
+            console.log('Starting agentic memory compaction due to context limit.');
+            const result = await this.memoryCompactor.compact(this);
+            if (result.phase1Run) {
+                console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
+                // Replace messages that were compacted
+                const sourceIds = new Set(result.memoriesCreated > 0 ? this.memoryCompactor.getAllCompactedMemories().flatMap(m => m.sourceMessageIds) : []);
+                this.messages = this.messages.filter(m => !m.id || !sourceIds.has(m.id));
+            }
+            if (result.phase2Run) {
+                console.log('Compaction Phase 2 complete.');
+            }
+        } else {
+            // Fallback to original resummarize logic
+            console.log('Starting conversation resummarization due to context limit.');
+            let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)
+            console.log(`Context: ${this.textGenApiConnection.context}, Percent to summarize: ${this.config.percentOfContextToSummarize}%, Tokens to summarize: ${tokensToSummarize}`);
+                let tokenSum = 0;
+                let messagesToSummarize: Message[] = [];
+
+                while(tokenSum < tokensToSummarize && this.messages.length > 0){
+                    let msg = this.messages.shift()!;
+                    tokenSum += this.textGenApiConnection.calculateTokensFromMessage(msg);
+                    console.log("Message removed for summarization:")
+                    console.log(msg)
+                    messagesToSummarize.push(msg);
+                }
+
+                if(messagesToSummarize.length > 0){ //prevent infinite loops
+                    console.log("Current summary before resummarization: "+this.currentSummary);
+                    if(this.summarizationApiConnection.isChat()){
+                        console.log('Using chat API for resummarization.');
+                        this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
+                    }
+                    else{
+                        console.log('Using completion API for resummarization.');
+                        this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
+                    }
+                   
+                    console.log("New current summary after resummarization: "+this.currentSummary);
+                } else {
+                    console.log('No messages to summarize during resummarization.');
+                }
+        }
+    }
     async resummarize(){
         console.log('Starting conversation resummarization due to context limit.');
         let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)

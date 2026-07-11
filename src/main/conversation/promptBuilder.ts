@@ -304,6 +304,16 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
+    const compactedMemoryMessage: Message = {
+        role: "system",
+        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
+    }
+
+    if(compactedMemoryMessage.content){
+        insertMessageAtDepth(messages, compactedMemoryMessage, conv.config.memoriesInsertDepth);
+        console.log(`Inserted compacted memories at depth: ${conv.config.memoriesInsertDepth}.`);
+    }
+
     const diarySummaries = await readDiarySummaries(conv.gameData.playerID.toString(), character.id.toString());
     const recentDiarySummaries = diarySummaries.slice(0, conv.config.maxSummaries);
     if (recentDiarySummaries.length > 0) {
@@ -679,6 +689,31 @@ export function createMemoryString(conv: Conversation, prompts: any): string{
             tokenCount+=memoryLineTokenCount;
         }
 
+    }
+
+    return output;
+}
+
+export function createCompactedMemoryString(conv: Conversation, prompts: any): string {
+    if (!conv.memoryCompactor) return "";
+
+    const characterId = String(conv.gameData.aiID);
+    const compactedMemories = conv.memoryCompactor.getCompactedMemories(characterId);
+    if (compactedMemories.length === 0) return "";
+
+    let output = prompts.compactedMemoriesPrompt || "The following is a summary of key long-term memories and narrative threads:\\n";
+    
+    const phase2Memories = compactedMemories.filter(m => m.compactionLevel === 2);
+    const phase1Memories = compactedMemories.filter(m => m.compactionLevel === 1).slice(-3); // Only last 3 phase-1 summaries
+
+    if (phase2Memories.length > 0) {
+        output += "\\n--- Key Narrative Threads ---\\n";
+        output += phase2Memories.map(m => m.content).join("\\n");
+    }
+
+    if (phase1Memories.length > 0) {
+        output += "\\n--- Recent Key Events ---\\n";
+        output += phase1Memories.map(m => `${m.date}: ${m.content}`).join("\\n");
     }
 
     return output;
