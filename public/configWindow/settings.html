@@ -187,6 +187,86 @@
 
         <parameters-box confID="textGenerationApiConnectionConfig" tempDefault="0.8" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
+        <div class="border">
+          <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+          <p data-i18n="settings.memory_compaction_desc" style="margin-bottom: 20px; color: #aaa; font-size: 0.9em;">
+            Automatically compresses conversation history to save context space while preserving key narrative details.
+          </p>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column">
+              <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable"></config-checkbox>
+              <tooltip-text side="top" data-i18n="settings.memory_compaction_enable_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.phase1_threshold_title" style="font-size: 1em; margin-bottom: 5px;">Phase 1 Threshold</h3>
+              <config-slider confID="compactionPhase1Threshold" min="50" max="90" step="1" data-i18n="settings.phase1_threshold_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.phase1_threshold_tooltip"></tooltip-text>
+            </div>
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.phase2_threshold_title" style="font-size: 1em; margin-bottom: 5px;">Phase 2 Threshold</h3>
+              <config-slider confID="compactionPhase2Threshold" min="3" max="10" step="1" data-i18n="settings.phase2_threshold_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.phase2_threshold_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.token_budget_title" style="font-size: 1em; margin-bottom: 5px;">Token Budget Allocation</h3>
+              <div class="row">
+                <div class="column" style="flex: 1;">
+                  <label data-i18n="settings.phase1_budget_label" style="font-size: 0.85em;"></label>
+                  <config-slider confID="compactionTokenBudgetPhase1" min="10" max="50" step="1" data-i18n="settings.phase1_budget_desc"></config-slider>
+                </div>
+                <div class="column" style="flex: 1;">
+                  <label data-i18n="settings.phase2_budget_label" style="font-size: 0.85em;"></label>
+                  <config-slider confID="compactionTokenBudgetPhase2" min="5" max="30" step="1" data-i18n="settings.phase2_budget_desc"></config-slider>
+                </div>
+              </div>
+              <tooltip-text side="top" data-i18n="settings.token_budget_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.entity_extraction_title" style="font-size: 1em; margin-bottom: 5px;">Entity Extraction Mode</h3>
+              <config-select confID="compactionEntityExtractionMode" options="llm,regex,hybrid" data-i18n="settings.entity_extraction_desc"></config-select>
+              <tooltip-text side="top" data-i18n="settings.entity_extraction_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column">
+              <config-checkbox confID="compactionRelationshipsDirectional" data-i18n="settings.relationships_directional"></config-checkbox>
+              <tooltip-text side="top" data-i18n="settings.relationships_directional_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.cooldown_title" style="font-size: 1em; margin-bottom: 5px;">Compaction Cooldown</h3>
+              <config-slider confID="compactionCooldownMinutes" min="1" max="30" step="1" data-i18n="settings.cooldown_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.cooldown_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.priority_elements_title" style="font-size: 1em; margin-bottom: 5px;">Priority Elements</h3>
+          <div class="row" style="margin-top: 20px;">
+            <div class="column" style="text-align: center;">
+              <button id="manual-compaction-trigger" class="button" data-i18n="settings.manual_compaction_button">Run Compaction Now</button>
+              <tooltip-text side="bottom" data-i18n="settings.manual_compaction_tooltip"></tooltip-text>
+            </div>
+          </div>
+              <tooltip-text side="top" data-i18n="settings.priority_elements_tooltip"></tooltip-text>
+            </div>
+          </div>
+        </div>
+
 
 
 
@@ -211,7 +291,8 @@
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
   <script>require("../../dist/configWindow/components/tooltip.js")</script>
-  <script>require("../../dist/configWindow/modelSettingsRenderer.js")</script>
+  <script>require(\"../../dist/configWindow/components/ConfigSelect.js\")</script>
+  <script>require(\"../../dist/configWindow/components/ConfigMultiselect.js\")</script>
 
   <script>
     // 添加帮助菜单点击事件
@@ -222,6 +303,13 @@
           e.preventDefault();
           const { ipcRenderer } = require('electron');
           ipcRenderer.send('open-readme-window');
+
+      const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
+      if (manualCompactionBtn) {
+        manualCompactionBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const { ipcRenderer } = require('electron');
+          ipcRenderer.send('manual-compaction-trigger');
         });
       }
     });
