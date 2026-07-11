@@ -36,7 +36,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     let triggeredActions: ActionResponse[] = [];
 
     let response;
-const prompt = buildActionChatPrompt(conv, availableActions);
+    const prompt = buildActionChatPrompt(conv, availableActions);
     if(conv.actionsApiConnection.isChat()){
         const result = await conv.actionsApiConnection.complete(prompt, false, {} );
         response = typeof result === 'string' ? result : (result?.content ?? '');
@@ -176,7 +176,7 @@ const prompt = buildActionChatPrompt(conv, availableActions);
                 chatMessage: parseVariables(chatMessage, conv.gameData),
                 chatMessageClass: matchedAction.chatMessageClass
             };
-            
+
             conv.chatWindow.window.webContents.send('action-approval-request', lastMessage.id, [approvalResponse]);
             console.log(`Sent action "${matchedAction.signature}" for manual approval.`);
 
