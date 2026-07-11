@@ -1546,6 +1546,8 @@ ipcMain.on('chat-stop', () =>{
             updateCurrentDate(conversation.gameData.totalDays);
         }
         conversation.summarize();
+        // Clean up compaction resources when conversation ends
+        conversation.cleanup();
     }
 
 })

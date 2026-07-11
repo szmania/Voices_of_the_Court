@@ -1853,6 +1853,11 @@ ${character.fullName}的发言：`
             this.summaryFileWatcher.clearPausedWatchers();
             console.log('Cleaned up summary file watchers and paused watchers');
         }
+        // Clean up memory compactor resources
+        if (this.memoryCompactor) {
+            this.memoryCompactor.cleanup();
+            console.log('Cleaned up memory compactor resources');
+        }
     }
 
     updateConfig(config: Config){
