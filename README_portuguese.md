@@ -1,3 +1,9 @@
+---
+title: README_portuguese
+type: note
+permalink: votc/readme-portuguese
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 Um companheiro alimentado por IA para o Crusader Kings III que o ajuda a acompanhar personagens, enredos e histórias. O Voices of the Court 2.0 - Community Edition integra Modelos de Linguagem Grandes (LLMs) no jogo, permitindo que você tenha conversas naturais com personagens e influencie dinamicamente o estado do jogo.

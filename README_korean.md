@@ -1,3 +1,9 @@
+---
+title: README_korean
+type: note
+permalink: votc/readme-korean
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 Crusader Kings III를 위한 AI 기반 동반자로, 캐릭터, 음모 및 스토리라인을 추적하는 데 도움을 줍니다. Voices of the Court는 대규모 언어 모델을 게임에 통합하여 캐릭터와 자연스러운 대화를 나누고 게임 상태에 동적으로 영향을 줄 수 있도록 합니다.
@@ -326,5 +332,3 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-

@@ -22,8 +22,9 @@ function defineTemplate(label: string){
             <option value="grok" data-i18n="api.grok">Grok (xAI)</option>
             <option value="nvidia" data-i18n="api.nvidia">NVIDIA NIM</option>
             <option value="player2" data-i18n="api.player2">Player2</option>
+            <option value="novelai" data-i18n="api.novelai">NovelAI</option>
             <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
-        </select> 
+        </select>
     </div>
     
     <div class="border">
@@ -183,6 +184,21 @@ function defineTemplate(label: string){
             </div>
         </div>
 
+        <div id="novelai-menu">
+            <h2 data-i18n="api.novelai">NovelAI</h2>
+            <div class="input-group">
+                <label for="novelai-password" data-i18n="connection.novelai_password"></label>
+                <br>
+                <input type="password" id="novelai-password">
+                <p class="tooltip" data-i18n-title="connection.novelai_password_tooltip"></p>
+            </div>
+            <div class="input-group">
+                <label for="novelai-model-input" data-i18n="connection.novelai_model"></label>
+                <input type="text" list="novelai-models" id="novelai-model-input" name="novelai-model-input" />
+                <datalist id="novelai-models">
+                </datalist>
+            </div>
+        </div>
         <div id="custom-menu">
             <h2 data-i18n="api.custom">Custom (Openai-compatible) endpoint</h2>
 
@@ -210,65 +226,70 @@ function defineTemplate(label: string){
         <input type="number" id="custom-context" min="0" style="width: 10%;"/>
     </div>
 
-  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>`
+  <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
+`
 }
 
     
 
 class ApiSelector extends HTMLElement{
-    label: string;
-    confID: string;
-    shadow: any;
-    typeSelector
-    checkbox: any;
+    label!: string;
+    confID!: string;
+    shadow!: any;
+    typeSelector!: HTMLSelectElement;
+    checkbox!: HTMLInputElement;
 
-    openaiDiv: HTMLDivElement
-    oobaDiv: HTMLDivElement
-    openrouterDiv: HTMLDivElement 
-    customDiv: HTMLDivElement 
-    geminiDiv: HTMLDivElement
-    glmDiv: HTMLDivElement
-    deepseekDiv: HTMLDivElement
-    grokDiv: HTMLDivElement
-    nvidiaDiv: HTMLDivElement
-    player2Div: HTMLDivElement
+    openaiDiv!: HTMLDivElement;
+    oobaDiv!: HTMLDivElement;
+    openrouterDiv!: HTMLDivElement;
+    customDiv!: HTMLDivElement;
+    geminiDiv!: HTMLDivElement;
+    glmDiv!: HTMLDivElement;
+    deepseekDiv!: HTMLDivElement;
+    grokDiv!: HTMLDivElement;
+    nvidiaDiv!: HTMLDivElement;
+    player2Div!: HTMLDivElement;
+    novelaiDiv!: HTMLDivElement;
 
-    openaiKeyInput: HTMLInputElement 
-    openaiModelSelect: HTMLSelectElement 
+    openaiKeyInput!: HTMLInputElement;
+    openaiModelSelect!: HTMLSelectElement;
 
-    geminiKeyInput: HTMLInputElement 
-    geminiModelInput: HTMLInputElement 
+    geminiKeyInput!: HTMLInputElement;
+    geminiModelInput!: HTMLInputElement;
 
-    glmKeyInput: HTMLInputElement 
-    glmModelSelect: HTMLSelectElement 
-    deepseekKeyInput: HTMLInputElement
-    grokKeyInput: HTMLInputElement
-    grokModelSelect: HTMLSelectElement
-    nvidiaKeyInput: HTMLInputElement
-    nvidiaModelInput: HTMLInputElement
-    player2KeyInput: HTMLInputElement
-    player2ModelInput: HTMLInputElement
-    player2ModelDatalist: HTMLDataListElement
+    glmKeyInput!: HTMLInputElement;
+    glmModelSelect!: HTMLSelectElement;
+    deepseekKeyInput!: HTMLInputElement;
+    grokKeyInput!: HTMLInputElement;
+    grokModelSelect!: HTMLSelectElement;
+    nvidiaKeyInput!: HTMLInputElement;
+    nvidiaModelInput!: HTMLInputElement;
+    player2KeyInput!: HTMLInputElement;
+    player2ModelInput!: HTMLInputElement;
+    player2ModelDatalist!: HTMLDataListElement;
 
-    oobaUrlInput: HTMLSelectElement 
-    oobaUrlConnectButton: HTMLInputElement 
+    oobaUrlInput!: HTMLInputElement;
+    oobaUrlConnectButton!: HTMLButtonElement;
 
-    openrouterKeyInput: HTMLSelectElement 
-    openrouterModelInput: HTMLInputElement 
-    openrouterInstructModeCheckbox: HTMLInputElement 
+    openrouterKeyInput!: HTMLInputElement;
+    openrouterModelInput!: HTMLInputElement;
+    openrouterInstructModeCheckbox!: HTMLInputElement;
 
-    customUrlInput: HTMLSelectElement 
-    customKeyInput: HTMLInputElement 
-    customModelInput: HTMLSelectElement 
+    customUrlInput!: HTMLInputElement;
+    customKeyInput!: HTMLInputElement;
+    customModelInput!: HTMLInputElement;
 
-    testConnectionButton: HTMLButtonElement 
-    testConnectionSpan: HTMLButtonElement 
+    testConnectionButton!: HTMLButtonElement;
+    testConnectionSpan!: HTMLSpanElement;
 
-    overwriteContextCheckbox: HTMLInputElement;
-    customContextNumber: HTMLInputElement;
+    overwriteContextCheckbox!: HTMLInputElement;
+    customContextNumber!: HTMLInputElement;
 
-    languageUpdateHandler: () => void;
+    novelaiPasswordInput!: HTMLInputElement;
+    novelaiModelInput!: HTMLInputElement;
+    novelaiModelDatalist!: HTMLDataListElement;
 
+    languageUpdateHandler!: () => void;
 
     constructor(){
         super();
@@ -280,9 +301,9 @@ class ApiSelector extends HTMLElement{
         this.shadow = this.attachShadow({mode: "open"});
         template.innerHTML = defineTemplate(this.label);
         this.shadow.append(template.content.cloneNode(true));
-        this.checkbox = this.shadow.querySelector("input");
+        this.checkbox = this.shadow.querySelector("input")! as HTMLInputElement;
         
-        this.typeSelector = this.shadow.querySelector("#connection-api")!;
+        this.typeSelector = this.shadow.querySelector("#connection-api")! as HTMLSelectElement;
 
         this.openaiDiv = this.shadow.querySelector("#openai-menu")!;
         this.oobaDiv = this.shadow.querySelector("#ooba-menu")!;
@@ -294,41 +315,46 @@ class ApiSelector extends HTMLElement{
         this.grokDiv = this.shadow.querySelector("#grok-menu")!;
         this.nvidiaDiv = this.shadow.querySelector("#nvidia-menu")!;
         this.player2Div = this.shadow.querySelector("#player2-menu")!;
+        this.novelaiDiv = this.shadow.querySelector("#novelai-menu")!;
 
-        this.openaiKeyInput = this.shadow.querySelector("#openai-key")!;
-        this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")!;
+        this.openaiKeyInput = this.shadow.querySelector("#openai-key")! as HTMLInputElement;
+        this.openaiModelSelect = this.shadow.querySelector("#openai-model-select")! as HTMLSelectElement;
 
-        this.geminiKeyInput = this.shadow.querySelector("#gemini-key")!;
-        this.geminiModelInput = this.shadow.querySelector("#gemini-model")!;
+        this.geminiKeyInput = this.shadow.querySelector("#gemini-key")! as HTMLInputElement;
+        this.geminiModelInput = this.shadow.querySelector("#gemini-model")! as HTMLInputElement;
 
-        this.glmKeyInput = this.shadow.querySelector("#glm-key")!;
-        this.glmModelSelect = this.shadow.querySelector("#glm-model-select")!;
-        this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")!;
-        this.grokKeyInput = this.shadow.querySelector("#grok-key")!;
-        this.grokModelSelect = this.shadow.querySelector("#grok-model-select")!;
-        this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")!;
-        this.nvidiaModelInput = this.shadow.querySelector("#nvidia-model")!;
-        this.player2KeyInput = this.shadow.querySelector("#player2-key")!;
-        this.player2ModelInput = this.shadow.querySelector("#player2-model-input")!;
-        this.player2ModelDatalist = this.shadow.querySelector("#player2-models")!;
+        this.glmKeyInput = this.shadow.querySelector("#glm-key")! as HTMLInputElement;
+        this.glmModelSelect = this.shadow.querySelector("#glm-model-select")! as HTMLSelectElement;
+        this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")! as HTMLInputElement;
+        this.grokKeyInput = this.shadow.querySelector("#grok-key")! as HTMLInputElement;
+        this.grokModelSelect = this.shadow.querySelector("#grok-model-select")! as HTMLSelectElement;
+        this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")! as HTMLInputElement;
+        this.nvidiaModelInput = this.shadow.querySelector("#nvidia-model")! as HTMLInputElement;
+        this.player2KeyInput = this.shadow.querySelector("#player2-key")! as HTMLInputElement;
+        this.player2ModelInput = this.shadow.querySelector("#player2-model-input")! as HTMLInputElement;
+        this.player2ModelDatalist = this.shadow.querySelector("#player2-models")! as HTMLDataListElement;
 
-        this.oobaUrlInput = this.shadow.querySelector("#ooba-url")!;
-        this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")!;
+        this.oobaUrlInput = this.shadow.querySelector("#ooba-url")! as HTMLInputElement;
+        this.oobaUrlConnectButton = this.shadow.querySelector("#ooba-url-connect")! as HTMLButtonElement;
 
-        this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")!;
-        this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")!;
-        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")!;
+        this.openrouterKeyInput = this.shadow.querySelector("#openrouter-key")! as HTMLInputElement;
+        this.openrouterModelInput = this.shadow.querySelector("#openrouter-model")! as HTMLInputElement;
+        this.openrouterInstructModeCheckbox = this.shadow.querySelector("#openrouter-instruct-mode")! as HTMLInputElement;
 
-        this.customUrlInput = this.shadow.querySelector("#custom-url")!;
-        this.customKeyInput = this.shadow.querySelector("#custom-key")!;
-        this.customModelInput = this.shadow.querySelector("#custom-model")!;
+        this.customUrlInput = this.shadow.querySelector("#custom-url")! as HTMLInputElement;
+        this.customKeyInput = this.shadow.querySelector("#custom-key")! as HTMLInputElement;
+        this.customModelInput = this.shadow.querySelector("#custom-model")! as HTMLInputElement;
 
-        this.testConnectionButton = this.shadow.querySelector("#connection-test-button")!;
-        this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")!;
+        this.testConnectionButton = this.shadow.querySelector("#connection-test-button")! as HTMLButtonElement;
+        this.testConnectionSpan = this.shadow.querySelector("#connection-test-span")! as HTMLSpanElement;
 
-        this.overwriteContextCheckbox = this.shadow.querySelector("#overwrite-context")!;
-        this.customContextNumber = this.shadow.querySelector("#custom-context")!;
-    }
+        this.overwriteContextCheckbox = this.shadow.querySelector("#overwrite-context")! as HTMLInputElement;
+        this.customContextNumber = this.shadow.querySelector("#custom-context")! as HTMLInputElement;
+
+        this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
+        this.novelaiModelInput = this.shadow.querySelector("#novelai-model-input")! as HTMLInputElement;
+        this.novelaiModelDatalist = this.shadow.querySelector("#novelai-models")! as HTMLDataListElement;
+    } 
 
 
     static get observedAttributes(){
@@ -354,6 +380,10 @@ class ApiSelector extends HTMLElement{
 
         if (apiConfig.type === 'player2') {
             this._populatePlayer2Models();
+        }
+
+        if (apiConfig.type === 'novelai') {
+            this._populateNovelaiModels();
         }
 
         // 从apiKeys字段中加载所有API类型的配置（如果存在）
@@ -447,6 +477,15 @@ class ApiSelector extends HTMLElement{
             this.player2ModelInput.value = apiConfig.model;
         }
         
+        // 加载NovelAI配置
+        if (apiKeys.novelai) {
+            this.novelaiPasswordInput.value = apiKeys.novelai.key || "";
+            this.novelaiModelInput.value = apiKeys.novelai.model || "";
+        } else if(apiConfig.type == "novelai"){
+            this.novelaiPasswordInput.value = apiConfig.key;
+            this.novelaiModelInput.value = apiConfig.model;
+        }
+        
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
@@ -463,7 +502,14 @@ class ApiSelector extends HTMLElement{
                 this._populatePlayer2Models();
             }
 
+            if (this.typeSelector.value === 'novelai') {
+                this._populateNovelaiModels();
+            }
+
             switch(this.typeSelector.value){
+                case 'novelai':
+                    this.saveNovelaiConfig();
+                    break;
                 case 'openai': 
                     this.saveOpenaiConfig();
                 break;
@@ -514,6 +560,9 @@ class ApiSelector extends HTMLElement{
             this.saveCustomConfig();
         })
 
+        this.novelaiDiv.addEventListener("change", (e:any) =>{
+            this.saveNovelaiConfig();
+        })
         this.geminiDiv.addEventListener("change", (e:any) =>{
             this.saveGeminiConfig();
         })
@@ -633,7 +682,8 @@ class ApiSelector extends HTMLElement{
         this.grokDiv.style.display = "none";
         this.nvidiaDiv.style.display = "none";
         this.player2Div.style.display = "none";
-
+        this.novelaiDiv.style.display = "none";
+        
         switch (this.typeSelector.value) {
             case 'openai':  
                 this.openaiDiv.style.display = "block";
@@ -665,6 +715,9 @@ class ApiSelector extends HTMLElement{
             case 'player2':
                 this.player2Div.style.display = "block";
                 break;
+            case 'novelai':
+                this.novelaiDiv.style.display = "block";
+                break;
         }
     }
 
@@ -674,6 +727,7 @@ class ApiSelector extends HTMLElement{
         // 保存所有API类型的配置
         this.saveOpenaiConfig();
         this.saveOobaConfig();
+        this.saveNovelaiConfig();
         this.saveOpenrouterConfig();
         this.saveGeminiConfig();
         this.saveGlmConfig();
@@ -700,6 +754,11 @@ class ApiSelector extends HTMLElement{
                 baseUrl: "https://openrouter.ai/api/v1",
                 model: this.openrouterModelInput.value,
                 forceInstruct: this.openrouterInstructModeCheckbox.checked
+            },
+            novelai: {
+                key: this.novelaiPasswordInput.value,
+                baseUrl: "https://api.novelai.net/v1",
+                model: this.novelaiModelInput.value
             },
             gemini: {
                 key: this.geminiKeyInput.value,
@@ -777,7 +836,20 @@ class ApiSelector extends HTMLElement{
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
     }
-    
+
+    saveNovelaiConfig(){
+        const config = {
+            type: "novelai",
+            baseUrl: "https://api.novelai.net/v1",
+            key: this.novelaiPasswordInput.value,
+            model: this.novelaiModelInput.value,
+            overwriteContext: this.overwriteContextCheckbox.checked,
+            customContext: this.customContextNumber.value
+        };
+        
+        // 保存当前配置
+        ipcRenderer.send('config-change-nested', this.confID, "connection", config);
+    }
 
     //OPENROUTER DIV
     saveOpenrouterConfig(){
@@ -933,6 +1005,40 @@ class ApiSelector extends HTMLElement{
         // Set the input's value to the currently saved model.
         if (savedModel) {
             this.player2ModelInput.value = savedModel;
+        }
+    }
+
+    private async _populateNovelaiModels() {
+        console.log("Populating NovelAI models...");
+
+        // Get the LATEST config from the main process to ensure we have the latest models
+        const config = await ipcRenderer.invoke('get-config');
+        const connectionConfig = config[this.confID]?.connection;
+
+        if (!connectionConfig) {
+            console.error("Could not get connection config for", this.confID);
+            return;
+        }
+
+        // Create a connection object with the LATEST config
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
+        const models = await tempConnection.listModels();
+
+        // Get the currently saved model to ensure it's selected
+        const savedModel = connectionConfig.model;
+
+        this.novelaiModelDatalist.innerHTML = ''; // Clear existing options
+
+        models.forEach((model: any) => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.id;
+            this.novelaiModelDatalist.appendChild(option);
+        });
+
+        // Set the input's value to the currently saved model.
+        if (savedModel) {
+            this.novelaiModelInput.value = savedModel;
         }
     }
 

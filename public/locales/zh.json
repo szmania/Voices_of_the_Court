@@ -40,7 +40,13 @@
     "player2_info": "提示：如果尚未下载，请下载Player2并在后台运行。",
     "player2_download_button": "下载Player2",
     "player2_download_tooltip": "下载Player2应用程序",
-    "player2_connection_failed": "Player2 连接失败。请从 https://player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。"
+"player2_connection_failed": "Player2 连接失败。请从 https://player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。",
+    "email": "电子邮件",
+    "password": "密码",
+    "model": "模型",
+    "novelai_password": "密码",
+    "novelai_model": "模型",
+    "novelai_password_tooltip": "您的 NovelAI 账户密码（不是 API 密钥）"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -51,7 +57,8 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
-    "custom": "自定义 (OpenAI 兼容)"
+"custom": "自定义 (OpenAI 兼容)",
+    "novelai": "NovelAI"
   },
   "actions": {
     "enable_actions": "启用动作",
