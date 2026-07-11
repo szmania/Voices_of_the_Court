@@ -98,7 +98,6 @@ let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-c
 let searchInput: HTMLInputElement = document.querySelector('.search-input')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
 let configButton: HTMLButtonElement = document.querySelector('#config-button')!;
-let minimizedConfigButton: HTMLButtonElement = document.querySelector('#minimized-config-button')!;
 let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display-wrapper')!;
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
