@@ -16,7 +16,7 @@ import { parseLog } from "../shared/gameData/parseLog.js";
 import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
 import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
 import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager.js";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap, exportPlayerData, importPlayerData } from "./summaryManager.js";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
 import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
 import { readPromptHistory, savePromptHistory } from "./promptHistory.js";
@@ -1575,6 +1575,54 @@ ipcMain.handle('get-compaction-stats', async () => {
         return stats;
     }
     return { lastCompactionTime: 0, cooldownRemaining: 0 };
+});
+
+// Player Data Export/Import IPC Handlers
+ipcMain.handle('export-player-data', async () => {
+    console.log('IPC: Received export-player-data event.');
+    try {
+        const result = await dialog.showSaveDialog({
+            title: t('dialog.export_player_data_title'),
+            defaultPath: `votc_player_data_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`,
+            filters: [{ name: 'ZIP Archives', extensions: ['zip'] }]
+        });
+
+        if (result.canceled || !result.filePath) {
+            console.log('Export cancelled by user.');
+            return { success: false, error: 'Export cancelled by user.' };
+        }
+
+        await exportPlayerData(userDataPath, result.filePath);
+        return { success: true, filePath: result.filePath };
+    } catch (error) {
+        console.error('Error exporting player data:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('import-player-data', async () => {
+    console.log('IPC: Received import-player-data event.');
+    try {
+        const result = await dialog.showOpenDialog({
+            title: t('dialog.import_player_data_title'),
+            filters: [{ name: 'ZIP Archives', extensions: ['zip'] }],
+            properties: ['openFile']
+        });
+
+        if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+            console.log('Import cancelled by user.');
+            return { success: false, error: 'Import cancelled by user.' };
+        }
+
+        const importPath = result.filePaths[0];
+        await importPlayerData(userDataPath, importPath);
+        return { success: true, filePath: importPath };
+    } catch (error) {
+        console.error('Error importing player data:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
 });
 
 ipcMain.on('cancel-generation', () => {

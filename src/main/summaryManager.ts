@@ -7,6 +7,7 @@ import {
     getAllCompactedMemories as getAllCompactedMemoriesFile
 } from './compactedMemoryStore.js';
 import { CompactedMemory } from '../shared/compactionTypes.js';
+import AdmZip from 'adm-zip';
 
 /**
  * Gets all player IDs by scanning summary directories.
@@ -310,4 +311,109 @@ export async function readCompactedMemory(playerId: string, characterId: string)
  */
 export async function getAllCompactedMemories(playerId: string): Promise<CompactedMemory[]> {
     return getAllCompactedMemoriesFile(playerId);
+}
+
+/**
+ * Exports all player data to a zip file.
+ * Includes: conversation_summaries, compacted_memory, diary_history, diary_summaries,
+ * letter_history, letter_summaries, conversation_history, prompt_history.
+ * Compacted memory files are already encrypted at rest and are exported as-is.
+ * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param outputZipPath The full path where the zip file should be written.
+ * @returns A promise that resolves when the export is complete.
+ */
+export async function exportPlayerData(userDataPath: string, outputZipPath: string): Promise<void> {
+    const zip = new AdmZip();
+
+    const directoriesToExport = [
+        'conversation_summaries',
+        'compacted_memory',
+        'diary_history',
+        'diary_summaries',
+        'letter_history',
+        'letter_summaries',
+        'conversation_history',
+        'prompt_history'
+    ];
+
+    for (const dirName of directoriesToExport) {
+        const dirPath = path.join(userDataPath, dirName);
+        if (fs.existsSync(dirPath)) {
+            try {
+                zip.addLocalFolder(dirPath, dirName);
+                console.log(`Added ${dirName} to export archive.`);
+            } catch (error) {
+                console.error(`Failed to add directory ${dirName} to export archive:`, error);
+                throw new Error(`Failed to export ${dirName}: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        } else {
+            console.log(`Directory ${dirName} does not exist, skipping.`);
+        }
+    }
+
+    try {
+        zip.writeZip(outputZipPath);
+        console.log(`Player data exported successfully to: ${outputZipPath}`);
+    } catch (error) {
+        console.error('Failed to write export zip file:', error);
+        throw new Error(`Failed to write export file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+/**
+ * Imports player data from a zip file.
+ * Extracts all directories into the user data path, overwriting existing files.
+ * Compacted memory files remain encrypted at rest as they were exported as-is.
+ * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param inputZipPath The full path to the zip file to import.
+ * @returns A promise that resolves when the import is complete.
+ */
+export async function importPlayerData(userDataPath: string, inputZipPath: string): Promise<void> {
+    if (!fs.existsSync(inputZipPath)) {
+        throw new Error(`Import file not found at: ${inputZipPath}`);
+    }
+
+    let zip: AdmZip;
+    try {
+        zip = new AdmZip(inputZipPath);
+    } catch (error) {
+        console.error('Failed to read import zip file:', error);
+        throw new Error(`Failed to read import file (may be corrupted): ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    const expectedDirectories = [
+        'conversation_summaries',
+        'compacted_memory',
+        'diary_history',
+        'diary_summaries',
+        'letter_history',
+        'letter_summaries',
+        'conversation_history',
+        'prompt_history'
+    ];
+
+    const zipEntries = zip.getEntries();
+    const topLevelDirs = new Set<string>();
+    for (const entry of zipEntries) {
+        const parts = entry.entryName.split('/');
+        if (parts.length > 0 && parts[0]) {
+            topLevelDirs.add(parts[0]);
+        }
+    }
+
+    const missingDirs = expectedDirectories.filter(dir => !topLevelDirs.has(dir));
+    if (missingDirs.length === expectedDirectories.length) {
+        throw new Error('Import file does not contain any expected VOTC data directories. The file may not be a valid VOTC player data export.');
+    }
+    if (missingDirs.length > 0) {
+        console.warn(`Import file is missing some expected directories: ${missingDirs.join(', ')}. Continuing with available data.`);
+    }
+
+    try {
+        zip.extractAllTo(userDataPath, true);
+        console.log(`Player data imported successfully from: ${inputZipPath}`);
+    } catch (error) {
+        console.error('Failed to extract import zip file:', error);
+        throw new Error(`Failed to extract import file: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
