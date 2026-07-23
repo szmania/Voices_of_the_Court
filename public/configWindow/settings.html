@@ -219,11 +219,11 @@
               <div class="row">
                 <div class="column" style="flex: 1;">
                   <label data-i18n="settings.phase1_budget_label" style="font-size: 0.85em;"></label>
-                  <config-slider confID="compactionTokenBudgetPhase1" min="10" max="50" step="1" data-i18n="settings.phase1_budget_desc"></config-slider>
+                  <config-slider confID="compactionTokenBudget.phase1" min="10" max="50" step="1" data-i18n="settings.phase1_budget_desc"></config-slider>
                 </div>
                 <div class="column" style="flex: 1;">
                   <label data-i18n="settings.phase2_budget_label" style="font-size: 0.85em;"></label>
-                  <config-slider confID="compactionTokenBudgetPhase2" min="5" max="30" step="1" data-i18n="settings.phase2_budget_desc"></config-slider>
+                  <config-slider confID="compactionTokenBudget.phase2" min="5" max="30" step="1" data-i18n="settings.phase2_budget_desc"></config-slider>
                 </div>
               </div>
               <tooltip-text side="top" data-i18n="settings.token_budget_tooltip"></tooltip-text>
@@ -256,13 +256,24 @@
           <div class="row" style="margin-bottom: 20px;">
             <div class="column" style="flex: 1;">
               <h3 data-i18n="settings.priority_elements_title" style="font-size: 1em; margin-bottom: 5px;">Priority Elements</h3>
+              <config-multiselect confID="compactionPriorityElements" options="secrets,rivalries,friendships,alliances,major_life_events" data-i18n="settings.priority_elements_desc"></config-multiselect>
+              <tooltip-text side="top" data-i18n="settings.priority_elements_tooltip"></tooltip-text>
+            </div>
+          </div>
           <div class="row" style="margin-top: 20px;">
             <div class="column" style="text-align: center;">
               <button id="manual-compaction-trigger" class="button" data-i18n="settings.manual_compaction_button">Run Compaction Now</button>
               <tooltip-text side="bottom" data-i18n="settings.manual_compaction_tooltip"></tooltip-text>
             </div>
           </div>
-              <tooltip-text side="top" data-i18n="settings.priority_elements_tooltip"></tooltip-text>
+          <div class="row" style="margin-top: 20px;">
+            <div class="column" style="flex: 1;">
+              <button id="export-player-data" class="button" data-i18n="settings.export_player_data_button">Export Player Data</button>
+              <tooltip-text side="bottom" data-i18n="settings.export_player_data_tooltip"></tooltip-text>
+            </div>
+            <div class="column" style="flex: 1;">
+              <button id="import-player-data" class="button" data-i18n="settings.import_player_data_button">Import Player Data</button>
+              <tooltip-text side="bottom" data-i18n="settings.import_player_data_tooltip"></tooltip-text>
             </div>
           </div>
         </div>
@@ -291,8 +302,8 @@
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
   <script>require("../../dist/configWindow/components/tooltip.js")</script>
-  <script>require(\"../../dist/configWindow/components/ConfigSelect.js\")</script>
-  <script>require(\"../../dist/configWindow/components/ConfigMultiselect.js\")</script>
+  <script>require("../../dist/configWindow/components/ConfigSelect.js")</script>
+  <script>require("../../dist/configWindow/components/ConfigMultiselect.js")</script>
 
   <script>
     // 添加帮助菜单点击事件
@@ -312,6 +323,40 @@
           ipcRenderer.send('manual-compaction-trigger');
         });
       }
+
+      const exportBtn = document.getElementById('export-player-data');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          const { ipcRenderer } = require('electron');
+          const result = await ipcRenderer.invoke('export-player-data');
+          if (result.success) {
+            console.log('Player data exported to:', result.filePath);
+          } else {
+            console.error('Export failed:', result.error);
+          }
+        });
+      }
+
+      const importBtn = document.getElementById('import-player-data');
+      if (importBtn) {
+        importBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          const { ipcRenderer } = require('electron');
+          const result = await ipcRenderer.invoke('import-player-data');
+          if (result.success) {
+            console.log('Player data imported from:', result.filePath);
+          } else {
+            console.error('Import failed:', result.error);
+          }
+        });
+      }
+
+      // Listen for compaction status updates
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.on('compaction-status-update', (event, status) => {
+        console.log('Compaction status:', status);
+      });
     });
   </script>
 
