@@ -43,7 +43,7 @@ function showStatusMessage(message: string, type = 'info') {
 }
 
 function formatDate(date: Date): string {
-    if (!date || isNaN(date.getTime())) {
+    if (!date || isNaN(date.getTime()) || date.getFullYear() < 867) {
         // @ts-ignore
         return window.LocalizationManager.getTranslation('letters.invalid_date', 'Invalid Date');
     }
@@ -193,6 +193,7 @@ let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
+let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
 let showFutureLetters = false;
 
 const initLocalization = async (lang?: string) => {
@@ -406,70 +407,118 @@ function renderLetters() {
         return;
     }
 
-    const cleanLetters = allLetters.filter(l => {
-        if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
-            console.warn('Skipping malformed or incomplete letter object:', l);
-            return false;
-        }
-        // If it's a reply FROM an AI TO the player, hide it until it's delivered.
-        if (l.replyToId && !l.isPlayerSender && l.delivered !== true) {
-            console.log(`Hiding undelivered reply letter: ${l.id}`);
-            return false;
-        }
-        return true;
-    });
+    let letterPairs: { sent?: Letter, received?: Letter }[] = [];
 
-    // Filter letters by selected character
-    let characterFilteredLetters = selectedCharacterId === 'all'
-        ? cleanLetters
-        : cleanLetters.filter(letter => {
-            if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
-              console.warn('Skipping malformed or incomplete letter object:', letter);
-              return false;
+if (cachedLetterPairs) {
+letterPairs = cachedLetterPairs;
+    } else {
+        const cleanLetters = allLetters.filter(l => {
+            if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
+                console.warn('Skipping malformed or incomplete letter object:', l);
+                return false;
             }
-            const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
-            return String(otherPartyId) === selectedCharacterId;
+            if (l.replyToId && !l.isPlayerSender && l.delivered !== true) {
+                console.log(`Hiding undelivered reply letter: ${l.id}`);
+                return false;
+            }
+            return true;
         });
 
-    // Filter by status
-    if (statusFilter !== 'total') {
-        if (statusFilter === 'completed') {
-            characterFilteredLetters = characterFilteredLetters.filter(l => l.status === 'sent' || l.status === 'read');
-        } else if (statusFilter === 'reply_overdue') {
-            characterFilteredLetters = characterFilteredLetters.filter(l => {
-                if (!l.isPlayerSender) return false;
-                const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
-                if (hasReply) return false;
-                if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
-                const expectedReplyDay = l.totalDays + l.delay;
-                return expectedReplyDay < currentGameDay;
-            });
-        } else if (statusFilter === 'pending') {
-            characterFilteredLetters = characterFilteredLetters.filter(l => {
-                // AI-sent letters pending delivery
-                if (!l.isPlayerSender && l.status === 'pending' && l.delivered !== true) {
-                    return true;
+        let characterFilteredLetters = selectedCharacterId === 'all'
+            ? cleanLetters
+            : cleanLetters.filter(letter => {
+                if (!letter || typeof letter.sender !== 'object' || letter.sender === null || typeof letter.recipient !== 'object' || letter.recipient === null) {
+                    console.warn('Skipping malformed or incomplete letter object:', letter);
+                    return false;
                 }
-                // Player-sent letters awaiting a reply that is NOT overdue
-                if (l.isPlayerSender) {
+                const otherPartyId = letter.sender.id === Number(selectedPlayerId) ? letter.recipient.id : letter.sender.id;
+                return String(otherPartyId) === selectedCharacterId;
+            });
+
+        if (statusFilter !== 'total') {
+            if (statusFilter === 'completed') {
+                characterFilteredLetters = characterFilteredLetters.filter(l => l.status === 'sent' || l.status === 'read');
+            } else if (statusFilter === 'reply_overdue') {
+                characterFilteredLetters = characterFilteredLetters.filter(l => {
+                    if (!l.isPlayerSender) return false;
                     const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
                     if (hasReply) return false;
                     if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                     const expectedReplyDay = l.totalDays + l.delay;
-                    return expectedReplyDay >= currentGameDay;
-                }
-                return false;
-            });
-        } else { // 'generating', 'failed'
-            characterFilteredLetters = characterFilteredLetters.filter(l => l.status === statusFilter);
+                    return expectedReplyDay < currentGameDay;
+                });
+            } else if (statusFilter === 'pending') {
+                characterFilteredLetters = characterFilteredLetters.filter(l => {
+                    if (!l.isPlayerSender && l.status === 'pending' && l.delivered !== true) {
+                        return true;
+                    }
+                    if (l.isPlayerSender) {
+                        const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
+                        if (hasReply) return false;
+                        if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
+                        const expectedReplyDay = l.totalDays + l.delay;
+                        return expectedReplyDay >= currentGameDay;
+                    }
+                    return false;
+                });
+            } else { // 'generating', 'failed'
+                characterFilteredLetters = characterFilteredLetters.filter(l => l.status === statusFilter);
+            }
         }
-    }
 
-    let filteredLetters = characterFilteredLetters;
-    if (!showFutureLetters) {
-        filteredLetters = filteredLetters.filter(l => l.totalDays <= currentGameDay);
+        let filteredLetters = characterFilteredLetters;
+        if (!showFutureLetters) {
+            filteredLetters = filteredLetters.filter(l => l.totalDays <= currentGameDay);
+        }
+        const lettersToDisplay = filteredLetters;
+
+        const repliesMap = new Map<string, Letter>();
+        const rootLetters: Letter[] = [];
+
+        lettersToDisplay.forEach(l => {
+            if (l.replyToId) {
+                repliesMap.set(l.replyToId, l);
+            } else {
+                rootLetters.push(l);
+            }
+        });
+
+        rootLetters.forEach(root => {
+            const reply = repliesMap.get(root.id);
+            if (root.sender.id === Number(selectedPlayerId)) {
+                letterPairs.push({ sent: root, received: reply });
+            } else {
+                letterPairs.push({ received: root, sent: reply });
+            }
+        });
+
+        repliesMap.forEach((reply, rootId) => {
+            if (!rootLetters.some(root => root.id === rootId)) {
+                if (reply.sender.id === Number(selectedPlayerId)) {
+                    letterPairs.push({ sent: reply });
+                } else {
+                    letterPairs.push({ received: reply });
+                }
+            }
+        });
+
+        letterPairs.sort((a, b) => {
+            const getTimestamp = (letter: Letter | undefined) => {
+                if (!letter) return 0;
+                // @ts-ignore
+                return sortMode === 'gameDate'
+                    ? new Date(letter.timestamp).getTime()
+                    // @ts-ignore
+                    : new Date(letter.creationTimestamp || letter.timestamp).getTime();
+            };
+
+            const timeA = getTimestamp(a.sent || a.received);
+            const timeB = getTimestamp(b.sent || b.received);
+            return timeB - timeA;
+        });
+        
+cachedLetterPairs = letterPairs;
     }
-    const lettersToDisplay = filteredLetters;
 
     const repliesMap = new Map<string, Letter>();
     const rootLetters: Letter[] = [];
