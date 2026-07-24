@@ -1,5 +1,5 @@
 import { Conversation } from './Conversation';
-import { CompactedMemory, CompactionConfig, KnowledgeGraph, EntityReference, Relationship, KnowledgeEdge, NarrativeThread } from '../../shared/compactionTypes';
+import { CompactedMemory, CompactionConfig, CompactionMetrics, KnowledgeGraph, EntityReference, Relationship, KnowledgeEdge, NarrativeThread } from '../../shared/compactionTypes';
 import { Message } from '../../shared/apiConnection';
 import { compactedMemoryStore } from '../compactedMemoryStore';
 import { randomUUID } from 'crypto';
@@ -29,6 +29,14 @@ export class MemoryCompactor {
      * Main compaction entry point. Checks scheduler thresholds and runs appropriate phase.
      */
     public async compact(conv: Conversation): Promise<CompactionResult> {
+        const startTimestamp = Date.now();
+        const memoryBeforeBytes = process.memoryUsage().heapUsed;
+        let serializationTimeMs = 0;
+        let diskWriteTimeMs = 0;
+        let diskReadTimeMs = 0;
+        let phase1DurationMs = 0;
+        let phase2DurationMs = 0;
+
         const result: CompactionResult = { phase1Run: false, phase2Run: false, memoriesCreated: 0 };
 
         if (!this.config.enableMemoryCompaction) {
@@ -42,10 +50,12 @@ export class MemoryCompactor {
         if (this.scheduler.shouldRunPhase1(conv.messages, tokenCount, contextSize)) {
             const messagesToCompact = this.selectMessagesForCompaction(conv, tokenCount, contextSize);
             if (messagesToCompact.length > 0) {
+                const phase1Start = Date.now();
                 const phase1Results = await this.phase1Compactor.compact(
                     messagesToCompact,
                     conv.currentSummary || ''
                 );
+                phase1DurationMs = Date.now() - phase1Start;
 
                 // Validate accuracy
                 const accuracyScore = this.accuracyValidator.validate(
@@ -75,12 +85,15 @@ export class MemoryCompactor {
             m => m.compactionLevel === 1
         );
         if (this.scheduler.shouldRunPhase2(allPhase1Memories)) {
+            const phase2Start = Date.now();
             const knowledgeGraph = await this.phase2Compactor.compact(allPhase1Memories);
+            phase2DurationMs = Date.now() - phase2Start;
 
             // Convert knowledge graph entities into CompactedMemory entries
             const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph);
 
-            // Store Phase-2 results
+            // Store Phase-2 results (track serialization time)
+            const serStart = Date.now();
             for (const memory of phase2Memories) {
                 for (const charId of memory.characterIds) {
                     const key = String(charId);
@@ -93,6 +106,25 @@ export class MemoryCompactor {
             result.phase2Run = true;
             result.memoriesCreated += phase2Memories.length;
         }
+
+        const totalDurationMs = Date.now() - startTimestamp;
+        const memoryAfterBytes = process.memoryUsage().heapUsed;
+
+        result.metrics = {
+            memoryBeforeBytes,
+            memoryAfterBytes,
+            totalDurationMs,
+            phase1DurationMs,
+            phase2DurationMs,
+            serializationTimeMs,
+            diskWriteTimeMs,
+            diskReadTimeMs,
+            accuracyScore: result.accuracyScore ?? 0,
+            messagesCompacted: result.phase1Run ? messagesToCompact.length : 0,
+            phase1SummariesConsolidated: result.phase2Run ? allPhase1Memories.length : 0,
+            startTimestamp,
+            endTimestamp: Date.now(),
+        };
 
         return result;
     }
@@ -179,6 +211,7 @@ export class MemoryCompactor {
         this.phase2Compactor = new Phase2Compactor(config);
         this.scheduler = new CompactionScheduler(config);
     }
+
 
     public cleanup(): void {
         this.compactedMemories.clear();
@@ -692,6 +725,7 @@ export interface CompactionResult {
     phase2Run: boolean;
     memoriesCreated: number;
     accuracyScore?: number;
+    metrics?: CompactionMetrics;
 }
 
 /** Statistics about the compaction scheduler state. */
