@@ -1,11 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Summary } from './ts/conversation_interfaces';
-import {
-    saveCompactedMemory as saveCompactedMemoryFile,
-    readCompactedMemory as readCompactedMemoryFile,
-    getAllCompactedMemories as getAllCompactedMemoriesFile
-} from './compactedMemoryStore.js';
+import { compactedMemoryStore } from './compactedMemoryStore.js';
 import { CompactedMemory } from '../shared/compactionTypes.js';
 import AdmZip from 'adm-zip';
 
@@ -165,7 +161,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
             const dateB = extractDate(b.date);
             if (dateB.year !== dateA.year) return dateB.year - dateA.year;
             if (dateB.month !== dateA.month) return dateB.month - dateA.month;
-            return dateB.day - a.day;
+            return dateB.day - dateA.day;
         });
         
         return allSummaries;
@@ -209,10 +205,6 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
             const summaryFilePath = path.join(summaryDir, `${characterId}.json`);
             
             // Remove characterId field as it is already in the filename
-            const cleanSummaries = characterSummaries.map((summary) => {
-                const { characterId, ...cleanSummary } = summary;
-                return cleanSummary;
-            });
             const cleanSummaries = characterSummaries.map(({ characterId, ...cleanSummary }) => cleanSummary);
             // Write to file
             fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\\t'), 'utf8');
@@ -289,7 +281,7 @@ export async function saveCharacterMap(userDataPath: string, playerId: string, c
  * @param memories An array of CompactedMemory objects.
  */
 export async function saveCompactedMemory(playerId: string, characterId: string, memories: CompactedMemory[]): Promise<void> {
-    return saveCompactedMemoryFile(playerId, characterId, memories);
+    await compactedMemoryStore.saveCompactedMemory(playerId, characterId, memories);
 }
 
 /**
@@ -300,7 +292,8 @@ export async function saveCompactedMemory(playerId: string, characterId: string,
  * @returns A promise that resolves to an array of CompactedMemory objects.
  */
 export async function readCompactedMemory(playerId: string, characterId: string): Promise<CompactedMemory[]> {
-    return readCompactedMemoryFile(playerId, characterId);
+    const result = await compactedMemoryStore.readCompactedMemory(playerId, characterId);
+    return result.memories;
 }
 
 /**
@@ -310,7 +303,8 @@ export async function readCompactedMemory(playerId: string, characterId: string)
  * @returns A promise that resolves to a flat array of all CompactedMemory objects.
  */
 export async function getAllCompactedMemories(playerId: string): Promise<CompactedMemory[]> {
-    return getAllCompactedMemoriesFile(playerId);
+    const result = await compactedMemoryStore.getAllCompactedMemories(playerId);
+    return result.memories;
 }
 
 /**

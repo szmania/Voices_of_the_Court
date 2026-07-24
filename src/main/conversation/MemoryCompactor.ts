@@ -1,6 +1,6 @@
 import { Conversation } from './Conversation';
 import { CompactedMemory, CompactionConfig, CompactionMetrics, KnowledgeGraph, EntityReference, Relationship, KnowledgeEdge, NarrativeThread } from '../../shared/compactionTypes';
-import { Message } from '../../shared/apiConnection';
+import { Message } from '../../main/ts/conversation_interfaces';
 import { compactedMemoryStore } from '../compactedMemoryStore';
 import { randomUUID } from 'crypto';
 
@@ -38,6 +38,7 @@ export class MemoryCompactor {
         let phase2DurationMs = 0;
 
         const result: CompactionResult = { phase1Run: false, phase2Run: false, memoriesCreated: 0 };
+        let messagesToCompact: Message[] = [];
 
         if (!this.config.enableMemoryCompaction) {
             return result;

@@ -232,7 +232,7 @@ export class Conversation{
         this.runFileManager = new RunFileManager(config.userFolderPath);
         this.actions = [];
 
-        [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection] = this.getApiConnections();
+        [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection, this.compactionApiConnection] = this.getApiConnections();
         
         this.loadConfig();
 
