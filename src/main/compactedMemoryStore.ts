@@ -21,7 +21,15 @@ class CompactedMemoryStore {
         }
     }
 
-    public async saveCompactedMemory(playerId: string, characterId: string, memories: CompactedMemory[]): Promise<void> {
+    /**
+     * Saves compacted memory to disk with encryption.
+     * Returns timing metrics for serialization and disk write.
+     */
+    public async saveCompactedMemory(
+        playerId: string,
+        characterId: string,
+        memories: CompactedMemory[]
+    ): Promise<{ serializationTimeMs: number; diskWriteTimeMs: number }> {
         const playerDir = path.join(DATA_DIR, playerId);
         const filePath = path.join(playerDir, `${characterId}.json`);
 
@@ -30,57 +38,82 @@ class CompactedMemoryStore {
                 fs.mkdirSync(playerDir, { recursive: true, mode: 0o700 });
             }
 
+            const serStart = Date.now();
             const data = JSON.stringify(memories, null, 2);
             const encryptedData = this.encrypt(data);
+            const serializationTimeMs = Date.now() - serStart;
+
+            const writeStart = Date.now();
             fs.writeFileSync(filePath, encryptedData, { mode: 0o600 });
+            const diskWriteTimeMs = Date.now() - writeStart;
+
+            return { serializationTimeMs, diskWriteTimeMs };
         } catch (error) {
             console.error(`Failed to save compacted memory for character ${characterId}:`, error);
             throw error;
         }
     }
 
-    public async readCompactedMemory(playerId: string, characterId: string): Promise<CompactedMemory[]> {
+    /**
+     * Reads compacted memory from disk with decryption.
+     * Returns both the memories and disk read timing metrics.
+     */
+    public async readCompactedMemory(
+        playerId: string,
+        characterId: string
+    ): Promise<{ memories: CompactedMemory[]; diskReadTimeMs: number }> {
         const filePath = path.join(DATA_DIR, playerId, `${characterId}.json`);
 
         if (!fs.existsSync(filePath)) {
-            return [];
+            return { memories: [], diskReadTimeMs: 0 };
         }
 
         try {
+            const readStart = Date.now();
             const encryptedContent = fs.readFileSync(filePath, 'utf8');
+            const diskReadTimeMs = Date.now() - readStart;
+
             if (!encryptedContent) {
-                return [];
+                return { memories: [], diskReadTimeMs };
             }
             const decryptedContent = this.decrypt(encryptedContent);
-            return JSON.parse(decryptedContent) as CompactedMemory[];
+            return { memories: JSON.parse(decryptedContent) as CompactedMemory[], diskReadTimeMs };
         } catch (error) {
             console.error(`Failed to read or decrypt compacted memory for character ${characterId}:`, error);
-            return [];
+            return { memories: [], diskReadTimeMs: 0 };
         }
     }
 
-    public async getAllCompactedMemories(playerId: string): Promise<CompactedMemory[]> {
+    /**
+     * Gets all compacted memories across characters for a player.
+     * Returns both the aggregated memories and cumulative disk read timing.
+     */
+    public async getAllCompactedMemories(
+        playerId: string
+    ): Promise<{ memories: CompactedMemory[]; cumulativeDiskReadMs: number }> {
         const playerDir = path.join(DATA_DIR, playerId);
 
         if (!fs.existsSync(playerDir)) {
-            return [];
+            return { memories: [], cumulativeDiskReadMs: 0 };
         }
 
         try {
             const allMemories: CompactedMemory[] = [];
+            let cumulativeDiskReadMs = 0;
             const files = fs.readdirSync(playerDir);
 
             for (const file of files) {
                 if (path.extname(file) === '.json') {
                     const characterId = path.basename(file, '.json');
-                    const memories = await this.readCompactedMemory(playerId, characterId);
-                    allMemories.push(...memories);
+                    const result = await this.readCompactedMemory(playerId, characterId);
+                    allMemories.push(...result.memories);
+                    cumulativeDiskReadMs += result.diskReadTimeMs;
                 }
             }
-            return allMemories;
+            return { memories: allMemories, cumulativeDiskReadMs };
         } catch (error) {
             console.error(`Failed to get all compacted memories for player ${playerId}:`, error);
-            return [];
+            return { memories: [], cumulativeDiskReadMs: 0 };
         }
     }
 

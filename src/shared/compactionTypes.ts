@@ -59,3 +59,33 @@ export interface CompactionConfig {
     compactionRelationshipsDirectional: boolean;
     compactionApiConnectionConfig: any; // Will be ApiConnectionConfig
 }
+
+/** Performance metrics collected during a compaction operation. */
+export interface CompactionMetrics {
+    /** Heap memory used before compaction (bytes). */
+    memoryBeforeBytes: number;
+    /** Heap memory used after compaction (bytes). */
+    memoryAfterBytes: number;
+    /** Total compaction duration in milliseconds. */
+    totalDurationMs: number;
+    /** Phase 1 compaction duration in milliseconds (0 if not run). */
+    phase1DurationMs: number;
+    /** Phase 2 compaction duration in milliseconds (0 if not run). */
+    phase2DurationMs: number;
+    /** Time spent serializing and encrypting compacted data (ms). */
+    serializationTimeMs: number;
+    /** Time spent writing compacted data to disk (ms). */
+    diskWriteTimeMs: number;
+    /** Time spent reading compacted data from disk (ms). */
+    diskReadTimeMs: number;
+    /** Context accuracy score (0-1) from validation. */
+    accuracyScore: number;
+    /** Number of messages compacted in Phase 1. */
+    messagesCompacted: number;
+    /** Number of Phase-1 summaries consolidated in Phase 2. */
+    phase1SummariesConsolidated: number;
+    /** Timestamp when compaction started (epoch ms). */
+    startTimestamp: number;
+    /** Timestamp when compaction completed (epoch ms). */
+    endTimestamp: number;
+}
