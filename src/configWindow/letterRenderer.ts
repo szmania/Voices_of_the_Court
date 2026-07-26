@@ -520,54 +520,6 @@ letterPairs = cachedLetterPairs;
 cachedLetterPairs = letterPairs;
     }
 
-    const repliesMap = new Map<string, Letter>();
-    const rootLetters: Letter[] = [];
-
-    lettersToDisplay.forEach(l => {
-        if (l.replyToId) {
-            repliesMap.set(l.replyToId, l);
-        } else {
-            rootLetters.push(l);
-        }
-    });
-
-    const letterPairs: {sent?: Letter, received?: Letter}[] = [];
-
-    rootLetters.forEach(root => {
-        const reply = repliesMap.get(root.id);
-        if (root.sender.id === Number(selectedPlayerId)) {
-            letterPairs.push({ sent: root, received: reply });
-        } else {
-            letterPairs.push({ received: root, sent: reply });
-        }
-    });
-
-    // Identify and add orphaned replies
-    repliesMap.forEach((reply, rootId) => {
-        if (!rootLetters.some(root => root.id === rootId)) {
-            if (reply.sender.id === Number(selectedPlayerId)) {
-                letterPairs.push({ sent: reply });
-            } else {
-                letterPairs.push({ received: reply });
-            }
-        }
-    });
-
-    // Sort pairs by the timestamp of the most recent letter in the pair
-    letterPairs.sort((a, b) => {
-        const getTimestamp = (letter: Letter | undefined) => {
-            if (!letter) return 0;
-            // @ts-ignore
-            return sortMode === 'gameDate'
-                ? new Date(letter.timestamp).getTime()
-                // @ts-ignore
-                : new Date(letter.creationTimestamp || letter.timestamp).getTime();
-        };
-
-        const timeA = getTimestamp(a.sent || a.received);
-        const timeB = getTimestamp(b.sent || b.received);
-        return timeB - timeA;
-    });
 
 
     if (letterPairs.length === 0) {
