@@ -722,6 +722,8 @@
     "tooltip_thread_status": "Oyunun mektup dizisinde kullanılan mevcut mektup sayısını gösterir. Dizi 9/9'a ulaştığında oyun içinde karar (decision) yoluyla sıfırlanmalıdır.",
     "search": "Ara:",
     "search_placeholder": "Mektuplarda ara...",
+    "hide_future": "Gelecek Mektupları Gizle",
+    "show_all": "Tüm Mektupları Göster",
     "days": "gün",
     "est": "tah.",
     "reply_expected_in": "Cevap bekleniyor:",
