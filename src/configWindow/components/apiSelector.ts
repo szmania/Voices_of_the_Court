@@ -123,6 +123,10 @@ function defineTemplate(label: string){
             <br>
             <input type="password" id="deepseek-key">
             </div>
+            <div class="input-group">
+            <label for="deepseek-model" data-i18n="connection.model">Model</label>
+            <input type="text" id="deepseek-model" placeholder="e.g. deepseek-chat">
+            </div>
         </div>
 
         <div id="grok-menu">
@@ -260,6 +264,7 @@ class ApiSelector extends HTMLElement{
     glmKeyInput!: HTMLInputElement;
     glmModelSelect!: HTMLSelectElement;
     deepseekKeyInput!: HTMLInputElement;
+    deepseekModelInput!: HTMLInputElement;
     grokKeyInput!: HTMLInputElement;
     grokModelSelect!: HTMLSelectElement;
     nvidiaKeyInput!: HTMLInputElement;
@@ -326,6 +331,7 @@ class ApiSelector extends HTMLElement{
         this.glmKeyInput = this.shadow.querySelector("#glm-key")! as HTMLInputElement;
         this.glmModelSelect = this.shadow.querySelector("#glm-model-select")! as HTMLSelectElement;
         this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")! as HTMLInputElement;
+        this.deepseekModelInput = this.shadow.querySelector("#deepseek-model")! as HTMLInputElement;
         this.grokKeyInput = this.shadow.querySelector("#grok-key")! as HTMLInputElement;
         this.grokModelSelect = this.shadow.querySelector("#grok-model-select")! as HTMLSelectElement;
         this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")! as HTMLInputElement;
@@ -446,8 +452,10 @@ class ApiSelector extends HTMLElement{
         // 加载DeepSeek配置
         if (apiKeys.deepseek) {
             this.deepseekKeyInput.value = apiKeys.deepseek.key || "";
+            this.deepseekModelInput.value = apiKeys.deepseek.model || "";
         } else if(apiConfig.type == "deepseek"){
             this.deepseekKeyInput.value = apiConfig.key;
+            this.deepseekModelInput.value = apiConfig.model;
         }
 
         // 加载Grok配置
@@ -773,7 +781,7 @@ class ApiSelector extends HTMLElement{
             deepseek: {
                 key: this.deepseekKeyInput.value,
                 baseUrl: "https://api.deepseek.com",
-                model: "deepseek-chat"
+                model: this.deepseekModelInput.value
             },
             grok: {
                 key: this.grokKeyInput.value,
@@ -919,7 +927,7 @@ class ApiSelector extends HTMLElement{
             type: "deepseek",
             baseUrl: "https://api.deepseek.com",
             key: this.deepseekKeyInput.value,
-            model: "deepseek-chat",
+            model: this.deepseekModelInput.value,
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
