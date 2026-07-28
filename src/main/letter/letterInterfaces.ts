@@ -26,6 +26,7 @@ export interface Letter {
   expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
   associatedAction?: LetterAssociatedAction;
+  triggeredActions: LetterAssociatedAction[];
   characterContext?: {
     playerId: string;
     playerName: string;
