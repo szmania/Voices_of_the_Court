@@ -12,8 +12,9 @@ declare module 'gpt-tokenizer' {
 }
 
 declare module 'llama-tokenizer-js' {
-  export default {
+  const tokenizer: {
     encode(text: string): number[];
     decode(tokens: number[]): string;
   };
+  export default tokenizer;
 }
