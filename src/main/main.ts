@@ -910,7 +910,7 @@ app.on('ready',  async () => {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            preload: path.join(__dirname, '..', 'preload.js'),
+            preload: path.join(__dirname, 'preload.js'),
         }
     });
     mainConfigWindow.loadFile('./public/configWindow/connection.html');
