@@ -743,7 +743,10 @@
     "status_journey_began": "{character} karakterine yolculuk başladı",
     "status_awaiting_reply": "{character} karakterinden cevap bekleniyor",
     "status_reply_en_route": "Cevap yolda",
-    "estimated_reply": "Tah. Cevap: {date}"
+    "estimated_reply": "Tah. Cevap: {date}",
+    "triggered_actions": "Tetiklenen eylemler",
+    "action_signature": "Eylem",
+    "action_trigger": "Tetikleyici"
   },
   "history": {
     "header": "Konuşma Geçmişi Görüntüleyici",

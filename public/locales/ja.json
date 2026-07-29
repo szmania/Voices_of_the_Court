@@ -735,7 +735,10 @@
     "status_journey_began": "{character}への旅が始まりました",
     "status_awaiting_reply": "{character}からの返信を待っています",
     "status_reply_en_route": "返信が輸送中です",
-    "estimated_reply": "推定返信日: {date}"
+    "estimated_reply": "推定返信日: {date}",
+    "triggered_actions": "トリガーされたアクション",
+    "action_signature": "アクション",
+    "action_trigger": "トリガー"
   },
   "history": {
     "header": "会話履歴ビューアー",

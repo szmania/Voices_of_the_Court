@@ -739,7 +739,10 @@
     "status_journey_began": "Путешествие к {character} началось",
     "status_awaiting_reply": "Ожидание ответа от {character}",
     "status_reply_en_route": "Ответ в пути",
-    "estimated_reply": "Прим. ответ: {date}"
+    "estimated_reply": "Прим. ответ: {date}",
+    "triggered_actions": "Инициированные действия",
+    "action_signature": "Действие",
+    "action_trigger": "Триггер"
   },
   "history": {
     "header": "Просмотр истории разговоров",

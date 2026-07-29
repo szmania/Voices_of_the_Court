@@ -735,7 +735,10 @@
     "status_journey_began": "{character}에게 가는 여정 시작됨",
     "status_awaiting_reply": "{character}의 답장을 기다리는 중",
     "status_reply_en_route": "답장이 오는 중",
-    "estimated_reply": "예상 답장: {date}"
+    "estimated_reply": "예상 답장: {date}",
+    "triggered_actions": "트리거된 액션",
+    "action_signature": "액션",
+    "action_trigger": "트리거"
   },
   "history": {
     "header": "대화 기록 뷰어",

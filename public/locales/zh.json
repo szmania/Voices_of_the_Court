@@ -739,7 +739,10 @@
     "status_journey_began": "前往 {character} 的旅程已开始",
     "status_awaiting_reply": "等待 {character} 的回复",
     "status_reply_en_route": "回复在路上",
-    "estimated_reply": "预计回复: {date}"
+    "estimated_reply": "预计回复: {date}",
+    "triggered_actions": "触发的动作",
+    "action_signature": "动作",
+    "action_trigger": "触发器"
   },
   "diary_manager": {
     "header": "日记管理器",

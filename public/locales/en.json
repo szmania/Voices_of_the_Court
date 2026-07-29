@@ -743,7 +743,10 @@
     "status_journey_began": "Journey to {character} began",
     "status_awaiting_reply": "Awaiting reply from {character}",
     "status_reply_en_route": "Reply is on its way",
-    "estimated_reply": "Est. Reply: {date}"
+    "estimated_reply": "Est. Reply: {date}",
+    "triggered_actions": "Triggered Actions",
+    "action_signature": "Action",
+    "action_trigger": "Trigger"
   },
   "history": {
     "header": "Conversation History Viewer",

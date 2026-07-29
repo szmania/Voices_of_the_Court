@@ -739,7 +739,10 @@
     "status_journey_began": "A jornada para {character} começou",
     "status_awaiting_reply": "Aguardando resposta de {character}",
     "status_reply_en_route": "A resposta está a caminho",
-    "estimated_reply": "Resposta est.: {date}"
+    "estimated_reply": "Resposta est.: {date}",
+    "triggered_actions": "Ações desencadeadas",
+    "action_signature": "Ação",
+    "action_trigger": "Disparador"
   },
   "history": {
     "header": "Visualizador do histórico de conversas",

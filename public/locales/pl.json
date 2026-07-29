@@ -735,7 +735,10 @@
     "status_journey_began": "Rozpoczęto podróż do {character}",
     "status_awaiting_reply": "Oczekiwanie na odpowiedź od {character}",
     "status_reply_en_route": "Odpowiedź jest w drodze",
-    "estimated_reply": "Szac. odp.: {date}"
+    "estimated_reply": "Szac. odp.: {date}",
+    "triggered_actions": "Wyzwolone akcje",
+    "action_signature": "Akcja",
+    "action_trigger": "Wyzwalacz"
   },
   "history": {
     "header": "Przeglądarka historii rozmów",
