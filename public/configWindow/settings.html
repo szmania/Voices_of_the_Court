@@ -254,6 +254,36 @@
               <tooltip-text side="top" data-i18n="settings.priority_elements_tooltip"></tooltip-text>
             </div>
           </div>
+          <hr style="margin: 20px 0;">
+
+          <!-- Context Usage Progress Bar -->
+          <div class="row" style="margin-bottom: 10px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.compaction_context_usage" style="font-size: 1em; margin-bottom: 8px;">Context Usage</h3>
+              <tooltip-text side="top" data-i18n="settings.compaction_context_usage_tooltip"></tooltip-text>
+              <div class="compaction-progress-container">
+                <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
+                <div id="compaction-phase1-line" class="compaction-phase1-line" style="left: 70%;"></div>
+              </div>
+              <div class="compaction-progress-labels">
+                <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
+                <span id="compaction-phase1-label" class="compaction-phase1-label" data-i18n="settings.compaction_progress_phase1_line">Phase 1 Trigger</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compaction Status Row -->
+          <div class="row" style="margin-bottom: 10px;">
+            <div class="column" style="flex: 1;">
+              <div id="compaction-status-row" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span data-i18n="settings.compaction_status_label" style="font-weight: bold;">Status:</span>
+                <span id="compaction-status-display" data-i18n="settings.compaction_status_idle" style="color: #888;">Idle</span>
+                <span id="compaction-last-result" style="font-size: 0.85em; color: #aaa;"></span>
+                <span id="compaction-phase1-count" style="font-size: 0.85em; color: #aaa;"></span>
+              </div>
+            </div>
+          </div>
+
           <div class="row" style="margin-top: 20px;">
             <div class="column" style="text-align: center;">
               <button id="manual-compaction-trigger" class="button" data-i18n="settings.manual_compaction_button">Run Compaction Now</button>
@@ -371,10 +401,105 @@
         });
       }
 
-      // Listen for compaction status updates
-      ipcRenderer.on('compaction-status-update', (event, status) => {
-        console.log('Compaction status:', status);
+      // --- Compaction Progress Polling ---
+      let statusPollInterval = null;
+      let compactionInProgress = false;
+
+      async function updateCompactionStatus() {
+        try {
+          const status = await ipcRenderer.invoke('get-compaction-status');
+          const progressBar = document.getElementById('compaction-progress-bar');
+          const phase1Line = document.getElementById('compaction-phase1-line');
+          const usageText = document.getElementById('compaction-context-usage-text');
+          const statusDisplay = document.getElementById('compaction-status-display');
+          const lastResult = document.getElementById('compaction-last-result');
+          const phase1Count = document.getElementById('compaction-phase1-count');
+
+          if (progressBar) {
+            const pct = Math.min(status.contextUsagePct, 100);
+            progressBar.style.width = pct + '%';
+            progressBar.className = 'compaction-progress-bar';
+            if (pct >= status.phase1ThresholdPct) {
+              progressBar.classList.add('danger');
+            } else if (pct >= status.phase1ThresholdPct * 0.85) {
+              progressBar.classList.add('warning');
+            }
+          }
+          if (phase1Line) {
+            phase1Line.style.left = status.phase1ThresholdPct + '%';
+          }
+          if (usageText) {
+            usageText.textContent = status.tokenCount + ' / ' + status.contextSize + ' tokens (' + status.contextUsagePct + '%)';
+          }
+          if (statusDisplay && !compactionInProgress) {
+            if (!status.enableCompaction) {
+              statusDisplay.textContent = 'Disabled';
+              statusDisplay.style.color = '#888';
+            } else if (status.cooldownRemaining > 0) {
+              const secs = Math.ceil(status.cooldownRemaining / 1000);
+              statusDisplay.textContent = 'Cooldown (' + secs + 's remaining)';
+              statusDisplay.style.color = '#ffab00';
+            } else {
+              statusDisplay.textContent = 'Idle';
+              statusDisplay.style.color = '#4caf50';
+            }
+          }
+          if (phase1Count) {
+            phase1Count.textContent = 'Phase 1 Summaries: ' + status.phase1SummaryCount + ' / ' + status.phase2Threshold;
+          }
+          if (lastResult) {
+            lastResult.textContent = '';
+          }
+        } catch (err) {
+          // Silently ignore - conversation may not be active yet
+        }
+      }
+
+      // Listen for compaction status updates from manual trigger
+      ipcRenderer.on('compaction-status-update', (event, result) => {
+        compactionInProgress = false;
+        const statusDisplay = document.getElementById('compaction-status-display');
+        const lastResult = document.getElementById('compaction-last-result');
+        if (statusDisplay) {
+          if (result.error) {
+            statusDisplay.textContent = 'Error';
+            statusDisplay.style.color = '#f44336';
+          } else {
+            statusDisplay.textContent = 'Completed';
+            statusDisplay.style.color = '#4caf50';
+            setTimeout(() => { updateCompactionStatus(); }, 2000);
+          }
+        }
+        if (lastResult) {
+          if (result.error) {
+            lastResult.textContent = 'Failed: ' + result.error;
+            lastResult.style.color = '#f44336';
+          } else {
+            lastResult.textContent = 'Last: Phase1=' + (result.phase1Run ? 'Yes' : 'No') + ', Phase2=' + (result.phase2Run ? 'Yes' : 'No') + ', Memories=' + result.memoriesCreated;
+            lastResult.style.color = '#aaa';
+          }
+        }
       });
+
+      // Start polling when page is visible, stop when hidden
+      function startCompactionPolling() {
+        updateCompactionStatus();
+        statusPollInterval = setInterval(updateCompactionStatus, 3000);
+      }
+      function stopCompactionPolling() {
+        if (statusPollInterval) {
+          clearInterval(statusPollInterval);
+          statusPollInterval = null;
+        }
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stopCompactionPolling();
+        } else {
+          startCompactionPolling();
+        }
+      });
+      startCompactionPolling();
     });
   </script>
 

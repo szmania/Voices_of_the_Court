@@ -231,6 +231,14 @@
     "compaction_status_running": "Compaction in progress...",
     "compaction_status_success": "Compaction completed successfully.",
     "compaction_status_error": "Compaction failed. Check logs for details.",
+    "compaction_context_usage": "Context Usage",
+    "compaction_context_usage_tooltip": "Live view of how much of the AI context window is currently in use. Approaches the Phase 1 threshold line as conversation grows.",
+    "compaction_progress_phase1_line": "Phase 1 Trigger",
+    "compaction_status_label": "Status:",
+    "compaction_last_result": "Last compaction:",
+    "compaction_phase1_summaries": "Phase 1 Summaries:",
+    "compaction_phase1_threshold_label": "(triggers Phase 2 at",
+    "compaction_never_run": "Never run",
     "text_gen_params": "Text-generation parameters"
   },
   "system": {

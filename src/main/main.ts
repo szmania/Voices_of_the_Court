@@ -1577,6 +1577,43 @@ ipcMain.handle('get-compaction-stats', async () => {
     return { lastCompactionTime: 0, cooldownRemaining: 0 };
 });
 
+ipcMain.handle('get-compaction-status', async () => {
+    if (conversation && conversation.memoryCompactor) {
+        const tokenCount = conversation.textGenApiConnection.calculateTokensFromChat(conversation.messages);
+        const contextSize = conversation.textGenApiConnection.context || 8192;
+        const phase1Threshold = conversation.memoryCompactor['config'].compactionPhase1Threshold || 70;
+        const phase2Threshold = conversation.memoryCompactor['config'].compactionPhase2Threshold || 5;
+        const enableCompaction = conversation.memoryCompactor['config'].enableMemoryCompaction !== false;
+        const allPhase1Memories = conversation.memoryCompactor.getAllCompactedMemories().filter(
+            (m: any) => m.compactionLevel === 1
+        );
+        const stats = conversation.memoryCompactor['scheduler'].getCompactionStats();
+        
+        return {
+            tokenCount,
+            contextSize,
+            phase1ThresholdPct: phase1Threshold,
+            phase1ThresholdTokens: Math.floor(contextSize * (phase1Threshold / 100)),
+            phase2Threshold: phase2Threshold,
+            phase1SummaryCount: allPhase1Memories.length,
+            contextUsagePct: Math.round((tokenCount / contextSize) * 100),
+            cooldownRemaining: stats.cooldownRemaining,
+            enableCompaction,
+        };
+    }
+    return {
+        tokenCount: 0,
+        contextSize: 8192,
+        phase1ThresholdPct: 70,
+        phase1ThresholdTokens: 5734,
+        phase2Threshold: 5,
+        phase1SummaryCount: 0,
+        contextUsagePct: 0,
+        cooldownRemaining: 0,
+        enableCompaction: true,
+    };
+});
+
 // Player Data Export/Import IPC Handlers
 ipcMain.handle('export-player-data', async () => {
     console.log('IPC: Received export-player-data event.');
