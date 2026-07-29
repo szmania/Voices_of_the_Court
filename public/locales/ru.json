@@ -742,7 +742,8 @@
     "estimated_reply": "Прим. ответ: {date}",
     "triggered_actions": "Инициированные действия",
     "action_signature": "Действие",
-    "action_trigger": "Триггер"
+    "action_trigger": "Триггер",
+    "no_actions_triggered": "Действия не инициированы."
   },
   "history": {
     "header": "Просмотр истории разговоров",

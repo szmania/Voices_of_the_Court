@@ -738,7 +738,8 @@
     "estimated_reply": "Szac. odp.: {date}",
     "triggered_actions": "Wyzwolone akcje",
     "action_signature": "Akcja",
-    "action_trigger": "Wyzwalacz"
+    "action_trigger": "Wyzwalacz",
+    "no_actions_triggered": "Nie wyzwolono żadnych akcji."
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

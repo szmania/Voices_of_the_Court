@@ -738,7 +738,8 @@
     "estimated_reply": "예상 답장: {date}",
     "triggered_actions": "트리거된 액션",
     "action_signature": "액션",
-    "action_trigger": "트리거"
+    "action_trigger": "트리거",
+    "no_actions_triggered": "트리거된 액션이 없습니다."
   },
   "history": {
     "header": "대화 기록 뷰어",

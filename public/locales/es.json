@@ -742,7 +742,8 @@
     "estimated_reply": "Respuesta est.: {date}",
     "triggered_actions": "Acciones desencadenadas",
     "action_signature": "Acción",
-    "action_trigger": "Disparador"
+    "action_trigger": "Disparador",
+    "no_actions_triggered": "No se desencadenaron acciones."
   },
   "history": {
     "header": "Visor del historial de conversaciones",

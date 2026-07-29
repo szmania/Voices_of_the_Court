@@ -742,7 +742,8 @@
     "estimated_reply": "Rép. est. : {date}",
     "triggered_actions": "Actions déclenchées",
     "action_signature": "Action",
-    "action_trigger": "Déclencheur"
+    "action_trigger": "Déclencheur",
+    "no_actions_triggered": "Aucune action déclenchée."
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

@@ -738,7 +738,8 @@
     "estimated_reply": "推定返信日: {date}",
     "triggered_actions": "トリガーされたアクション",
     "action_signature": "アクション",
-    "action_trigger": "トリガー"
+    "action_trigger": "トリガー",
+    "no_actions_triggered": "トリガーされたアクションはありません。"
   },
   "history": {
     "header": "会話履歴ビューアー",

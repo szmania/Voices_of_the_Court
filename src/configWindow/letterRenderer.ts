@@ -694,6 +694,13 @@ function renderLetterContent(letter: Letter) {
         <div class="letter-view-body">
             ${letter.content.replace(/\n/g, '<br>')}
         </div>
+        <div class="letter-view-actions">
+            <h4 class="letter-view-actions-heading" data-i18n="letters.triggered_actions">Triggered Actions</h4>
+            ${letter.triggeredActions && letter.triggeredActions.length > 0
+                ? `<ul class="triggered-actions-list">${letter.triggeredActions.map(a => `<li class="triggered-action-item"><span class="action-signature">${a.signature}</span><span class="action-trigger">(${a.triggerOn})</span></li>`).join("")}</ul>`
+                : `<p class="triggered-actions-empty" data-i18n="letters.no_actions_triggered">No actions triggered.</p>`
+            }
+        </div>
     `;
 
     const viewReplyBtn = letterViewContainer.querySelector('.view-reply-btn');

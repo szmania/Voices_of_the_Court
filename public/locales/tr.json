@@ -746,7 +746,8 @@
     "estimated_reply": "Tah. Cevap: {date}",
     "triggered_actions": "Tetiklenen eylemler",
     "action_signature": "Eylem",
-    "action_trigger": "Tetikleyici"
+    "action_trigger": "Tetikleyici",
+    "no_actions_triggered": "Hiçbir eylem tetiklenmedi."
   },
   "history": {
     "header": "Konuşma Geçmişi Görüntüleyici",
