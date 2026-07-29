@@ -343,7 +343,7 @@ async function checkAndDeliverLetters() {
 }
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.floor(totalDays / 365);
+    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -1433,6 +1433,11 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     console.log(`IPC: Received config-change event. ID: ${confID}, New Value: ${newValue}`);
 
     if (promptKeys.includes(confID)) {
+        // @ts-ignore
+        if (!config.prompts) {
+            // @ts-ignore
+            config.prompts = {};
+        }
         // @ts-ignore
         if (!config.prompts[config.language]) {
             // @ts-ignore

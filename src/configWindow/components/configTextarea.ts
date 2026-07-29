@@ -80,7 +80,7 @@ class ConfigTextarea extends HTMLElement{
 
         //@ts-ignore
         if (promptKeys.includes(confID)) {
-            this.textarea.value = config.prompts[config.language][confID];
+            this.textarea.value = config.prompts?.[config.language]?.[confID] || '';
         } else {
             this.textarea.value = config[confID];
         }
@@ -96,7 +96,7 @@ class ConfigTextarea extends HTMLElement{
             let config = await ipcRenderer.invoke('get-config');
             //@ts-ignore
             if (promptKeys.includes(confID)) {
-                this.textarea.value = config.prompts[config.language][confID];
+                this.textarea.value = config.prompts?.[config.language]?.[confID] || '';
             } else {
                 this.textarea.value = config[confID];
             }
