@@ -306,20 +306,36 @@
   <script>require("../../dist/configWindow/components/ConfigMultiselect.js")</script>
 
   <script>
-    // 添加帮助菜单点击事件
+    // Initialize localization for settings page
+    async function initLocalization() {
+      const { ipcRenderer } = require('electron');
+      const config = await ipcRenderer.invoke('get-config');
+      // @ts-ignore
+      if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(config.language || 'en');
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+      }
+    }
+    initLocalization();
+
+    // Add event listeners
     document.addEventListener('DOMContentLoaded', function() {
+      const { ipcRenderer } = require('electron');
+
       const openReadmeBtn = document.getElementById('open-readme');
       if (openReadmeBtn) {
         openReadmeBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          const { ipcRenderer } = require('electron');
           ipcRenderer.send('open-readme-window');
+        });
+      }
 
       const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
       if (manualCompactionBtn) {
         manualCompactionBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          const { ipcRenderer } = require('electron');
           ipcRenderer.send('manual-compaction-trigger');
         });
       }
@@ -328,7 +344,6 @@
       if (exportBtn) {
         exportBtn.addEventListener('click', async function(e) {
           e.preventDefault();
-          const { ipcRenderer } = require('electron');
           const result = await ipcRenderer.invoke('export-player-data');
           if (result.success) {
             console.log('Player data exported to:', result.filePath);
@@ -342,7 +357,6 @@
       if (importBtn) {
         importBtn.addEventListener('click', async function(e) {
           e.preventDefault();
-          const { ipcRenderer } = require('electron');
           const result = await ipcRenderer.invoke('import-player-data');
           if (result.success) {
             console.log('Player data imported from:', result.filePath);
@@ -353,7 +367,6 @@
       }
 
       // Listen for compaction status updates
-      const { ipcRenderer } = require('electron');
       ipcRenderer.on('compaction-status-update', (event, status) => {
         console.log('Compaction status:', status);
       });
