@@ -1579,7 +1579,7 @@ ipcMain.handle('get-compaction-stats', async () => {
 
 ipcMain.handle('get-compaction-status', async () => {
     if (conversation && conversation.memoryCompactor) {
-        const tokenCount = conversation.textGenApiConnection.calculateTokensFromChat(conversation.messages);
+        const tokenCount = await conversation.calculateBasePromptTokens();
         const contextSize = conversation.textGenApiConnection.context || 8192;
         const phase1Threshold = conversation.memoryCompactor['config'].compactionPhase1Threshold || 70;
         const phase2Threshold = conversation.memoryCompactor['config'].compactionPhase2Threshold || 5;
