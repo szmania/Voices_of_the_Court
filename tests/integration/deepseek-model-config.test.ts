@@ -1,6 +1,8 @@
 /**
  * Integration tests for DeepSeek model configuration
  * Tests the full round-trip of model input, config persistence, and retrieval
+ *
+ * @jest-environment jsdom
  */
 
 import { mockIpcRenderer } from '../helpers/mock-ipc';

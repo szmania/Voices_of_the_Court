@@ -1,6 +1,8 @@
 /**
  * Regression tests for API connections
  * Ensures existing functionality is not broken by changes
+ *
+ * @jest-environment node
  */
 
 describe('API Connection Regression Tests', () => {
