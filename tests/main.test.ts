@@ -27,8 +27,9 @@ describe('checkAndDeliverLetters', () => {
         
         _private_setCurrentTotalDays(100);
 
-        const storedLetter: StoredLetter = {
+const storedLetter: StoredLetter = {
             letter: { id: '1' } as any,
+            originalLetter: { id: '1' } as any,
             expectedDeliveryDay: 90,
         };
         _private_getStoredLetters().set('1', storedLetter);
