@@ -44,7 +44,7 @@ export class MemoryCompactor {
             return result;
         }
 
-        const tokenCount = conv.textGenApiConnection.calculateTokensFromChat(conv.messages);
+        const tokenCount = await conv.calculateBasePromptTokens();
         const contextSize = conv.textGenApiConnection.context || 8192;
 
         // Phase 1: Check if we need to compact recent messages
