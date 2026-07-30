@@ -133,7 +133,7 @@ export class Conversation{
         this.consecutiveActionsCount = 0; // Initialize consecutive actions counter
         this.lastActionMessageIndex = -1; // Initialize last action message index
         this.historicalConversations = []; // Initialize historical conversations array
-        
+
         this.npcQueue = [];
         this.customQueue = null;
         this.isPaused = false;
@@ -184,7 +184,7 @@ export class Conversation{
             fs.mkdirSync(playerSummaryPath);
             console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
         }
-        
+
         // Load summaries for all non-player characters
         this.gameData.characters.forEach((character) => {
             if (character.id !== this.gameData.playerID) {
@@ -233,7 +233,7 @@ export class Conversation{
         this.actions = [];
 
         [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection, this.compactionApiConnection] = this.getApiConnections();
-        
+
         this.loadConfig();
 
         // Sanitize messages to remove any historical placeholders that may have leaked in.
@@ -259,7 +259,7 @@ export class Conversation{
         if (this.config.generateSceneDescription) {
             await this.generateSceneDescription(true);
         }
-        
+
         // 如果启用了自动生成建议功能，在对话开始时生成建议
         if (this.config.autoGenerateSuggestions) {
             // 如果场景描述生成也启用了，会在场景描述生成完成后自动调用建议生成
@@ -277,12 +277,12 @@ export class Conversation{
             console.log('Historical conversation loading is disabled in config.');
             return;
         }
-        
+
         console.log('Attempting to load historical conversation history.');
         console.log('showPreviousConversations config value:', this.config.showPreviousConversations);
         const historyDir = path.join(this.userDataPath, 'conversation_history', this.gameData.playerID.toString());
         console.log('Looking for historical conversations in:', historyDir);
-        
+
         if (!fs.existsSync(historyDir)) {
             console.log('No history directory found for this player.');
             return;
@@ -305,37 +305,37 @@ export class Conversation{
         }
 
         console.log(`Found ${files.length} historical conversation files. Loading all files...`);
-        
+
         // Send loading indicator to chat window
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
-        
+
         // Track loaded messages count
         let totalMessagesLoaded = 0;
-        
+
         // Store historical conversation metadata (date, scene, and location for each file)
         const historicalConversations: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}> = [];
-        
+
         // Load historical conversation files with a limit to prevent UI freezing
         const MAX_HISTORICAL_MESSAGES = 100; // Limit total historical messages to prevent UI freezing
         const MAX_CONVERSATIONS_TO_LOAD = 10; // Limit number of conversation files to load
-        
+
         // Load most recent conversation files in chronological order
         const recentFiles = files.slice(-MAX_CONVERSATIONS_TO_LOAD);
-        
+
         for (const fileInfo of recentFiles) {
             // Stop if we've reached the maximum number of messages
             if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
                 console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}). Stopping loading.`);
                 break;
             }
-            
+
             const filePath = path.join(historyDir, fileInfo.name);
             console.log(`Loading historical conversation from: ${filePath}`);
-            
+
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const lines = content.split('\n');
-                
+
                 let currentDate = this.gameData.date; // Default to current date
                 let currentScene = ""; // Default to empty
                 let currentLocation = ""; // Default to empty
@@ -429,7 +429,7 @@ export class Conversation{
                             characterNames.push(name);
                         }
                         const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
-                        
+
                         currentMessage = {
                             role: role as 'user' | 'assistant',
                             name: name,
@@ -464,7 +464,7 @@ export class Conversation{
                     fileMessages.push(currentMessage);
                     totalMessagesLoaded++;
                 }
-                
+
                 // Store this conversation's metadata and messages
                 if (fileMessages.length > 0) {
                     historicalConversations.push({
@@ -475,18 +475,18 @@ export class Conversation{
                         messages: fileMessages
                     });
                 }
-                
+
                 console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
             } catch (error) {
                 console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
             }
         }
-        
+
         console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${files.length} historical conversations.`);
-        
+
         // Send loading complete event to chat window
         this.chatWindow.window.webContents.send('historical-conversations-loading', false);
-        
+
         // Store historical conversation metadata for later use
         this.historicalConversations = historicalConversations;
 
@@ -506,7 +506,7 @@ export class Conversation{
             const player = this.gameData.getPlayer();
             if (player) {
                 const originalContent = message.content;
-                
+
                 message.content = originalContent.replace(/\[([^\]]*)\]/g, (match, insideBrackets) => {
                     let processedText = insideBrackets;
 
@@ -559,7 +559,7 @@ export class Conversation{
         this.messages.push(message); // Always push the new message to the end
 
         console.log(`Message processed for conversation. Role: ${message.role}, Name: ${message.name}, Content length: ${message.content.length}`);
-        
+
         // Reset consecutive actions counter when player sends a message
         if (message.role === "user") {
             this.consecutiveActionsCount = 0;
@@ -968,10 +968,10 @@ export class Conversation{
             this.chatWindow.window.webContents.send('queue-update', queueUpdate, speakerUpdate);
 
             console.log(`Processing character: ${character.shortName}`);
-        
+
             // Generate message but don't send it to the UI yet
             const message = await this.generateNewAIMessage(character, false, isNonTargeted);
-            
+
             if (message) {
                 generatedMessages.push(message);
                 this.pushMessage(message);
@@ -1069,7 +1069,7 @@ export class Conversation{
 
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message for character: ${character.fullName}`);
-        
+
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
 
@@ -1112,7 +1112,7 @@ export class Conversation{
         function streamRelay(msgChunk: MessageChunk): void{
             streamMessage.content += msgChunk.content;
             const messageToSend = JSON.parse(JSON.stringify(streamMessage));
-            
+
             if (isSelfTalk) {
                 messageToSend.content = `*${messageToSend.content}`;
             }
@@ -1131,8 +1131,8 @@ export class Conversation{
                 },
                 this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
                 characterId: character.id
-            };  
-            
+            };
+
         }
         //instruct
         else{
@@ -1147,7 +1147,7 @@ export class Conversation{
                 this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
                 characterId: character.id
             };
-    
+
         }
 
         if(this.config.cleanMessages){
@@ -1207,11 +1207,11 @@ export class Conversation{
         if (characterNames.length > 0) {
             // Escape names for regex and join with |
             const namePattern = characterNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-            
+
             // Regex to find name at the start, followed by any characters up to a comma or colon.
             // This is to strip prefixes like "Name:", "Name,", or "Name, doing something:".
             const prefixRegex = new RegExp(`^\\s*\\b(${namePattern})\\b.*?[,:]`, 'i');
-            
+
             const match = content.match(prefixRegex);
             if (match) {
                 console.log(`Found and stripping prefix: "${match[0]}"`);
@@ -1244,7 +1244,7 @@ export class Conversation{
             let cleanedContent = responseMessage.content.replace(/^\*+|\*+$/g, '').trim();
             responseMessage.content = `*${cleanedContent}*`;
         }
-        
+
         // 只有当sendMessageToChat为true时才将消息添加到消息数组并发送到聊天窗口
         if (sendMessageToChat) {
             this.pushMessage(responseMessage);
@@ -1264,12 +1264,12 @@ export class Conversation{
         } else {
             console.log(`Message generated but not sent to chat window due to sendMessageToChat=false`);
         }
-        
+
         // 如果sendMessageToChat为false，返回生成的消息
         if (!sendMessageToChat) {
             return responseMessage;
         }
-        
+
         return null;
     }
 
@@ -1281,15 +1281,15 @@ export class Conversation{
      */
     async validateCharacterIdentity(character: Character, messageContent: string): Promise<boolean> {
         console.log(`Validating if message content matches character identity for: ${character.fullName}`);
-        
+
         const validationTranslations = this.translations.character_validation || getTranslations('en').character_validation;
 
         // 获取最近的对话历史，用于提供上下文
         const recentMessages = this.messages.slice(-5); // 获取最近5条消息作为上下文
-        const conversationHistory = recentMessages.map(msg => 
+        const conversationHistory = recentMessages.map(msg =>
             `${msg.name}: ${msg.content}`
         ).join('\n');
-        
+
         // 获取年龄描述，根据年龄段添加后缀
         let ageDescription = `${character.age}`;
         if (character.age >= 0 && character.age <= 3) {
@@ -1330,17 +1330,17 @@ ${validationTranslations.message_content}
 ${validationTranslations.instruction}`
             }
         ];
-        
+
         try {
             // 调用LLM API进行验证
             const response = await this.textGenApiConnection.complete(prompt, false, {
                 max_tokens: 10,
                 temperature: 0.1 // 使用较低的温度以确保一致性
             }, undefined, this.abortController?.signal);
-            
+
             const responseText = response.trim();
             console.log(`[DEBUG] Parsed response: ${responseText}`);
-            
+
             // 更严格的验证逻辑：明确检查是否为"符合"
             const isValid = responseText === validationTranslations.valid;
             console.log(`Character identity validation result for ${character.fullName}: ${isValid ? 'Valid' : 'Invalid'}`);
@@ -1358,27 +1358,27 @@ ${validationTranslations.instruction}`
      */
     async generateNewAIMessageWithValidation(character: Character, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message with identity validation for character: ${character.fullName}`);
-        
+
         // 检查是否满足身份验证的条件：流式传输关闭且角色数量大于2
         const shouldValidate = !this.config.stream && this.gameData.characters.size > 2;
-        
+
         if (!shouldValidate) {
             console.log(`Identity validation conditions not met (stream: ${this.config.stream}, character count: ${this.gameData.characters.size}). Generating message without validation.`);
             return await this.generateNewAIMessage(character, false, isNonTargeted);
         }
-        
+
         let attempts = 0;
         const maxAttempts = 3;
         let validMessageGenerated = false;
         let validMessage: Message | null = null;
-        
+
         while (attempts < maxAttempts && !validMessageGenerated) {
             attempts++;
             console.log(`Attempt ${attempts} to generate valid message for ${character.fullName}`);
-            
+
             try {
                 let generatedMessage: Message | null = null;
-                
+
                 // 第一次尝试使用常规生成方式
                 if (attempts === 1) {
                     generatedMessage = await this.generateNewAIMessage(character, false, isNonTargeted);
@@ -1386,11 +1386,11 @@ ${validationTranslations.instruction}`
                     // 后续尝试使用特定提示词生成消息
                     generatedMessage = await this.generateMessageWithValidationPrompt(character);
                 }
-                
+
                 if (generatedMessage) {
                     // 验证消息是否符合角色身份
                     const isValid = await this.validateCharacterIdentity(character, generatedMessage.content);
-                    
+
                     if (isValid) {
                         console.log(`Generated valid message for ${character.fullName} on attempt ${attempts}`);
                         validMessage = generatedMessage;
@@ -1408,7 +1408,7 @@ ${validationTranslations.instruction}`
                 }
             }
         }
-        
+
         if (validMessageGenerated && validMessage) {
             return validMessage;
         } else {
@@ -1426,7 +1426,7 @@ ${validationTranslations.instruction}`
      */
     async generateMessageWithValidationPrompt(character: Character): Promise<Message | null> {
         console.log(`Generating message with validation prompt for character: ${character.fullName}`);
-        
+
         // 获取年龄描述，根据年龄段添加后缀
         let ageDescription = `${character.age}岁`;
         if (character.age >= 0 && character.age <= 3) {
@@ -1438,13 +1438,13 @@ ${validationTranslations.instruction}`
         } else if (character.age >= 13 && character.age <= 16) {
             ageDescription += "（少年）";
         }
-        
+
         // 获取最近的对话历史，用于提供上下文
         const recentMessages = this.messages.slice(-5); // 获取最近5条消息作为上下文
-        const conversationHistory = recentMessages.map(msg => 
+        const conversationHistory = recentMessages.map(msg =>
             `${msg.name}: ${msg.content}`
         ).join('\n');
-        
+
         // 构建特定提示词
         const prompt: Message[] = [
             {
@@ -1466,29 +1466,29 @@ ${conversationHistory}
 ${character.fullName}的发言：`
             }
         ];
-        
+
         try {
             // 调用LLM API生成消息
             const response = await this.textGenApiConnection.complete(prompt, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             }, undefined, this.abortController?.signal);
-            
+
             if (!response || response.trim() === '') {
                 console.warn(`Empty response from LLM for character ${character.fullName}`);
                 return null;
             }
-            
+
             // 创建消息对象
             const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
             const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
-            
+
             const message: Message = {
                 role: "assistant",
                 name: characterNameForResponse,
                 content: response.trim()
             };
-            
+
             console.log(`Generated message with validation prompt for ${character.fullName}: ${message.content.substring(0, 50)}...`);
             return message;
         } catch (error) {
@@ -1601,7 +1601,12 @@ ${character.fullName}的发言：`
             if (result.phase2Run) {
                 console.log('Compaction Phase 2 complete.');
             }
-        } else {
+
+            // After compaction, recalculate the new base prompt size and send it to the UI
+            const newBaseTokens = await this.calculateBasePromptTokens();
+            this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+            console.log(`Recalculated and updated base tokens after compaction: ${newBaseTokens}`);
+—情σق—        } else {
             // Fallback to original resummarize logic
             console.log('Starting conversation resummarization due to context limit.');
             let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)
@@ -1627,7 +1632,7 @@ ${character.fullName}的发言：`
                         console.log('Using completion API for resummarization.');
                         this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
                     }
-                   
+
                     console.log("New current summary after resummarization: "+this.currentSummary);
                 } else {
                     console.log('No messages to summarize during resummarization.');
@@ -1647,7 +1652,7 @@ ${character.fullName}的发言：`
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
             console.log('Run file cleared after conversation end event.');
-        }, 500);
+        }, 800);
 
         // Generate and save diary entries for each character
         for (const character of this.gameData.characters.values()) {
@@ -1662,7 +1667,7 @@ ${character.fullName}的发言：`
                 const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
                 if (newDiaryEntry) {
                     await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
-                    
+
                     // Re-summarize the diary with the new entry
                     const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
                     if (summaryResult) {
@@ -1691,7 +1696,7 @@ ${character.fullName}的发言：`
             content: msg.content,
             type: (msg as any).type
           };
-          
+
           return messageData;
         });
 
@@ -1852,7 +1857,7 @@ ${character.fullName}的发言：`
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.runFileManager.clear();
-    
+
         this.loadActions();
     }
 
@@ -1898,7 +1903,7 @@ ${character.fullName}的发言：`
                 console.log(`Skipping disabled standard action: ${actionName}`);
                 continue;
             }
-            
+
             const filePath = path.join(actionsPath, 'standard', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
@@ -1925,7 +1930,7 @@ ${character.fullName}的发言：`
                 console.log(`Skipping disabled custom action: ${actionName}`);
                 continue;
             }
-    
+
             const filePath = path.join(actionsPath, 'custom', file);
             delete require.cache[require.resolve(filePath)];
             const actionModule = require(filePath);
@@ -2051,15 +2056,15 @@ ${character.fullName}的发言：`
      */
     private async generateInitialSuggestions(): Promise<void> {
         console.log('Starting initial suggestions generation.');
-        
+
         try {
             // 生成建议
             const suggestions = await this.generateSuggestions();
-            
+
             if (suggestions && suggestions.length > 0) {
                 // 发送建议到聊天窗口
                 this.chatWindow.window.webContents.send('suggestions-response', suggestions);
-                
+
                 console.log(`Initial suggestions generated and sent to chat window: ${suggestions.length} suggestions`);
             } else {
                 console.log('No suggestions were generated or suggestions array was empty.');
@@ -2096,7 +2101,7 @@ ${character.fullName}的发言：`
     public undo(): void {
         console.log("Undoing last exchange.");
         const lastUserIndex = [...this.messages].reverse().findIndex(m => m.role === 'user');
-        
+
         if (lastUserIndex !== -1) {
             const actualIndex = this.messages.length - 1 - lastUserIndex;
             console.log(`Removing messages from index ${actualIndex} onwards.`);
@@ -2109,7 +2114,7 @@ ${character.fullName}的发言：`
                     this.executedActions.delete(msg.id);
                 }
             }
-            
+
             // Reset consecutive actions counter since we're going back in time
             this.consecutiveActionsCount = 0;
             this.lastActionMessageIndex = -1;
@@ -2172,10 +2177,10 @@ ${character.fullName}的发言：`
             this.pushMessage(systemMessage);
             // Also send it to the UI so it's visible for debugging and context
             this.chatWindow.window.webContents.send('message-receive', systemMessage, false);
-            
+
             // Remove from GameData
             this.gameData.characters.delete(characterId);
-            
+
             // Remove any placeholder messages
             const placeholderIndex = this.messages.findIndex(
                 msg => (msg as any).characterId === characterId && msg.content === this.notSpokenYetText
@@ -2183,16 +2188,16 @@ ${character.fullName}的发言：`
             if (placeholderIndex !== -1) {
                 this.messages.splice(placeholderIndex, 1);
             }
-    
+
             // Remove from NPC queue for future turns
             this.npcQueue = this.npcQueue.filter(c => c.id !== characterId);
             if (this.customQueue) {
                 this.customQueue = this.customQueue.filter(c => c.id !== characterId);
             }
-    
+
             // Notify the UI to update itself
             this.chatWindow.window.webContents.send('character-left', characterId);
-            
+
             // Notify UI to update slash command dropdowns
             this.chatWindow.window.webContents.send('update-character-lists', Array.from(this.gameData.characters.keys()));
         } else {
@@ -2381,15 +2386,15 @@ ${character.fullName}的发言：`
                 console.warn("Cannot calculate base prompt tokens: main AI character not found.");
                 return 0;
             }
-    
+
             // Build a prompt as if we were about to generate a message for this character.
             // We pass a copy of the current messages.
             const prompt = await buildChatPrompt(this, mainAiCharacter, this.messages.slice(0));
-    
+
             // Calculate tokens from this prompt.
             const text = convertMessagesToString(prompt, "", "");
             const tokenCount = this.textGenApiConnection.calculateTokensFromText(text);
-            
+
             console.log(`Calculated base prompt tokens: ${tokenCount}`);
             return tokenCount;
         } catch (error) {
