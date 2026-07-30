@@ -899,3 +899,184 @@ export class ApiConnection{
 
 
 }
+
+// --- Embedding Provider ---
+
+/** Supported embedding provider types */
+export type EmbeddingProviderType = 'openai' | 'ollama' | 'onnx';
+
+/** Result of an embedding generation request */
+export interface EmbeddingResult {
+    vector: Float32Array;
+    dimensions: number;
+    provider: EmbeddingProviderType;
+    model: string;
+}
+
+/** Result of an embedding connection test */
+export interface EmbeddingTestResult {
+    success: boolean;
+    message: string;
+    provider: EmbeddingProviderType;
+}
+
+/**
+ * EmbeddingProvider generates vector embeddings from text using
+ * OpenAI, Ollama, or ONNX runtime backends.
+ */
+export class EmbeddingProvider {
+    private provider: EmbeddingProviderType;
+    private model: string;
+    private baseUrl: string;
+    private apiKey: string;
+
+    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string) {
+        this.provider = provider;
+        this.model = model;
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+    }
+
+    /**
+     * Generate an embedding vector for the given text.
+     * @param text - The input text to embed.
+     * @returns An EmbeddingResult containing the vector and metadata.
+     */
+    async generateEmbedding(text: string): Promise<EmbeddingResult> {
+        if (!text || text.trim().length === 0) {
+            throw new Error('Cannot generate embedding for empty text.');
+        }
+
+        switch (this.provider) {
+            case 'openai':
+                return this.generateOpenAIEmbedding(text);
+            case 'ollama':
+                return this.generateOllamaEmbedding(text);
+            case 'onnx':
+                return this.generateOnnxEmbedding(text);
+            default:
+                throw new Error(`Unsupported embedding provider: ${this.provider}`);
+        }
+    }
+
+    /**
+     * Test the connection to the configured embedding provider.
+     * Sends a minimal embedding request to verify connectivity.
+     */
+    async testConnection(): Promise<EmbeddingTestResult> {
+        try {
+            const result = await this.generateEmbedding('test');
+            return {
+                success: true,
+                message: `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions}`,
+                dimensions: result.dimensions,
+                provider: this.provider
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error?.message || String(error),
+                provider: this.provider
+            };
+        }
+    }
+
+    /**
+     * Generate embedding using OpenAI's embeddings API.
+     */
+    private async generateOpenAIEmbedding(text: string): Promise<EmbeddingResult> {
+        const url = `${this.baseUrl}/embeddings`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify({
+                model: this.model,
+                input: text
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`OpenAI embedding API error (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        const embedding = data.data?.[0]?.embedding;
+        if (!embedding || !Array.isArray(embedding)) {
+            throw new Error('OpenAI embedding API returned an unexpected response format.');
+        }
+
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: 'openai',
+            model: this.model
+        };
+    }
+
+    /**
+     * Generate embedding using a local Ollama server.
+     */
+    private async generateOllamaEmbedding(text: string): Promise<EmbeddingResult> {
+        const url = `${this.baseUrl}/api/embeddings`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: this.model,
+                prompt: text
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ollama embedding API error (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+        const embedding = data.embedding;
+        if (!embedding || !Array.isArray(embedding)) {
+            throw new Error('Ollama embedding API returned an unexpected response format.');
+        }
+
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: 'ollama',
+            model: this.model
+        };
+    }
+
+    /**
+     * Generate embedding using ONNX runtime (offline).
+     * This is a placeholder — actual ONNX integration requires onnxruntime-node.
+     */
+    private async generateOnnxEmbedding(text: string): Promise<EmbeddingResult> {
+        // ONNX runtime requires the optional onnxruntime-node dependency.
+        // This is a stub that throws a descriptive error if the dependency is missing.
+        try {
+            const ort = require('onnxruntime-node');
+            // In a full implementation, this would:
+            // 1. Tokenize the text using the model's tokenizer
+            // 2. Run the ONNX session with the tokenized input
+            // 3. Return the pooled embedding vector
+            throw new Error(
+                'ONNX embedding is not yet fully implemented. ' +
+                'The onnxruntime-node package is installed but the model pipeline is not configured. ' +
+                'Please use OpenAI or Ollama providers for now.'
+            );
+        } catch (error: any) {
+            if (error?.message?.includes('not yet fully implemented')) {
+                throw error;
+            }
+            throw new Error(
+                'ONNX runtime is not available. ' +
+                'Install onnxruntime-node as an optional dependency or use OpenAI/Ollama providers. ' +
+                `Original error: ${error?.message || String(error)}`
+            );
+        }
+    }
+}

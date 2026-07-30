@@ -29,6 +29,7 @@ import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
+import { MemoryManager } from './memoryManager';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -258,6 +259,7 @@ const createTray = () => {
 let clipboardListener: ClipboardListener;
 let config: Config;
 let diaryGenerator: DiaryGenerator;
+let memoryManager: MemoryManager;
 
 let letterThreadCount = 0;
 let letterThreadFullNotified = false;
@@ -591,6 +593,7 @@ app.on('ready',  async () => {
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, userDataPath);
+    memoryManager = new MemoryManager(userDataPath);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -757,6 +760,218 @@ app.on('ready',  async () => {
         }
         // 4. If all else fails, return a safe default
         return 8192;
+    });
+
+    // --- Neural Memory System IPC Handlers ---
+
+    // Embedding configuration handlers
+    ipcMain.handle('get-embedding-config', async () => {
+        console.log('IPC: Received get-embedding-config event.');
+        if (config?.embeddingApiConnectionConfig) {
+            return config.embeddingApiConnectionConfig;
+        }
+        // Return sensible defaults if not configured
+        return {
+            connection: {
+                type: 'openai',
+                baseUrl: 'https://api.openai.com/v1',
+                key: '',
+                model: 'text-embedding-3-small',
+                forceInstruct: false,
+                overwriteContext: false,
+                customContext: 0
+            },
+            parameters: {}
+        };
+    });
+
+    ipcMain.handle('save-embedding-config', async (event, newConfig: any) => {
+        console.log('IPC: Received save-embedding-config event.');
+        try {
+            if (!config.embeddingApiConnectionConfig) {
+                config.embeddingApiConnectionConfig = {} as any;
+            }
+            Object.assign(config.embeddingApiConnectionConfig, newConfig);
+            config.export();
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error saving embedding config:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('test-embedding-connection', async (event, providerConfig: {
+        provider: string;
+        model: string;
+        baseUrl: string;
+        apiKey: string;
+    }) => {
+        console.log('IPC: Received test-embedding-connection event.');
+        try {
+            const { EmbeddingProvider } = await import('../shared/apiConnection');
+            const provider = new EmbeddingProvider(
+                providerConfig.provider as any,
+                providerConfig.model,
+                providerConfig.baseUrl,
+                providerConfig.apiKey
+            );
+            const result = await provider.testConnection();
+            return result;
+        } catch (error: any) {
+            console.error('Error testing embedding connection:', error);
+            return {
+                success: false,
+                message: error?.message || String(error),
+                provider: providerConfig.provider
+            };
+        }
+    });
+
+    // Memory CRUD handlers
+    ipcMain.handle('get-memories', async (event, characterId: string, limit?: number) => {
+        console.log(`IPC: Received get-memories for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const memories = memoryManager.getMemoriesByCharacter(characterId, limit || 100);
+            // Convert Float32Array vectors to regular arrays for IPC serialization
+            const serializable = memories.map(m => ({
+                ...m,
+                vector: Array.from(m.vector || [])
+            }));
+            return { success: true, memories: serializable };
+        } catch (error: any) {
+            console.error('Error getting memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('add-memory', async (event, memoryData: {
+        characterId: string;
+        text: string;
+        vector?: number[];
+        emotion?: string;
+        timestamp?: number;
+    }) => {
+        console.log(`IPC: Received add-memory for character: ${memoryData.characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            if (!memoryData.characterId) {
+                return { success: false, error: 'characterId is required.' };
+            }
+            if (!memoryData.text) {
+                return { success: false, error: 'text is required.' };
+            }
+
+            const memory = {
+                id: randomUUID(),
+                characterId: memoryData.characterId,
+                text: memoryData.text,
+                vector: memoryData.vector || [],
+                timestamp: memoryData.timestamp || Date.now(),
+                emotion: memoryData.emotion || 'neutral',
+                decay: 0.0,
+                accessCount: 0,
+                lastAccessed: Date.now()
+            };
+
+            memoryManager.insertMemory(memory);
+            return { success: true, id: memory.id };
+        } catch (error: any) {
+            console.error('Error adding memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('search-memories', async (event, characterId: string, queryVector: number[], topK?: number) => {
+        console.log(`IPC: Received search-memories for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const results = memoryManager.searchSimilar(characterId, queryVector, { topK: topK || 10 });
+            const serializable = results.map(m => ({
+                ...m,
+                vector: Array.from(m.vector || [])
+            }));
+            return { success: true, memories: serializable };
+        } catch (error: any) {
+            console.error('Error searching memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('delete-memory', async (event, memoryId: string) => {
+        console.log(`IPC: Received delete-memory for id: ${memoryId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.deleteMemory(memoryId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error deleting memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('delete-memories-by-character', async (event, characterId: string) => {
+        console.log(`IPC: Received delete-memories-by-character for: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.deleteMemoriesByCharacter(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error deleting memories by character:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('apply-memory-decay', async (event, characterId: string) => {
+        console.log(`IPC: Received apply-memory-decay for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.applyDecay(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error applying memory decay:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('consolidate-memories', async (event, characterId: string) => {
+        console.log(`IPC: Received consolidate-memories for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.consolidateMemories(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error consolidating memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('get-memory-count', async (event, characterId: string) => {
+        console.log(`IPC: Received get-memory-count for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const count = memoryManager.getMemoryCount(characterId);
+            return { success: true, count };
+        } catch (error: any) {
+            console.error('Error getting memory count:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
     });
 
 

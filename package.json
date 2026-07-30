@@ -30,6 +30,9 @@
     "openai": "^4.24.1",
     "typescript": "^5.9.3",
     "update-electron-app": "^3.1.1",
+    "better-sqlite3": "^11.0.0",
+    "sqlite-vec": "^0.1.6",
+    "three": "^0.170.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -40,7 +43,9 @@
     "@electron-forge/maker-squirrel": "^7.5.0",
     "@electron-forge/maker-zip": "^7.4.0",
     "@electron-forge/publisher-github": "^7.8.3",
+    "@types/better-sqlite3": "^7.6.0",
     "@types/jest": "^30.0.0",
+    "@types/three": "^0.170.0",
     "electron": "33.0.0",
     "jest": "^30.4.2",
     "jsdom": "^29.1.1",

@@ -32,6 +32,7 @@ export class Config{
     textGenerationApiConnectionConfig!: ApiConnectionConfig;
     summarizationApiConnectionConfig!: ApiConnectionConfig;
     actionsApiConnectionConfig!: ApiConnectionConfig;
+    embeddingApiConnectionConfig!: ApiConnectionConfig;
 
     summarizationUseTextGenApi!: boolean;
     actionsUseTextGenApi!: boolean;
@@ -87,7 +88,7 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
         
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig'];
         configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection && 
                 configData[configType].connection.apiKeys) {
@@ -110,9 +111,13 @@ export class Config{
         output.textGenerationApiConnectionConfig.connection.baseUrl= "<hidden>";
         output.actionsApiConnectionConfig.connection.baseUrl = "<hidden>";
         output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
+        if (output.embeddingApiConnectionConfig?.connection) {
+            output.embeddingApiConnectionConfig.connection.key = "<hidden>";
+            output.embeddingApiConnectionConfig.connection.baseUrl = "<hidden>";
+        }
         
         // 隐藏apiKeys中的敏感信息
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig'];
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as any;
             if (config && config.connection && config.connection.apiKeys) {
