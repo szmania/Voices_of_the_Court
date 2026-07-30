@@ -70,6 +70,8 @@
   "actionsUseTextGenApi": true,
   "actionsEnableAll": true,
   "manualActionApproval": true,
+  "manualLetterActionApproval": true,
+  "manualLetterActionApprovalInLetters": true,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
   "maxHistoricalConversations": 10,

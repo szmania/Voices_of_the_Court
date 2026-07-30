@@ -195,6 +195,8 @@ let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
 let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
 let showFutureLetters = false;
+let manualLetterActionApproval = false;
+let manualLetterActionApprovalInLetters = false;
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -692,16 +694,10 @@ function renderLetterContent(letter: Letter) {
             </div>
         </div>
         <div class="letter-view-body">
-            ${letter.content.replace(/\n/g, '<br>')}
-        </div>
-        <div class="letter-view-actions">
-            <h4 class="letter-view-actions-heading" data-i18n="letters.triggered_actions">Triggered Actions</h4>
-            ${letter.triggeredActions && letter.triggeredActions.length > 0
-                ? `<ul class="triggered-actions-list">${letter.triggeredActions.map(a => `<li class="triggered-action-item"><span class="action-signature">${a.signature}</span><span class="action-trigger">(${a.triggerOn})</span></li>`).join("")}</ul>`
-                : `<p class="triggered-actions-empty" data-i18n="letters.no_actions_triggered">No actions triggered.</p>`
-            }
-        </div>
     `;
+
+    // Render triggered actions with approve/deny buttons if setting is enabled
+    renderTriggeredActionsSection(letterViewContainer, letter);
 
     const viewReplyBtn = letterViewContainer.querySelector('.view-reply-btn');
     if (viewReplyBtn) {

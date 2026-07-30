@@ -38,6 +38,8 @@ export class Config{
 
     actionsEnableAll!: boolean;
     manualActionApproval!: boolean;
+    manualLetterActionApproval!: boolean;
+    manualLetterActionApprovalInLetters!: boolean;
     narrativeEnable!: boolean;
     disabledActions!: string[];
     

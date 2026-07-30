@@ -172,6 +172,10 @@
     "show_tokenizer_tooltip": "When enabled, shows a real-time token count display in the chat window.",
     "manual_approval": "manual action approval",
     "manual_approval_tooltip": "If enabled, actions triggered by the AI must be manually approved by the user in the chat window before they are executed.",
+    "manual_letter_approval": "manual letter action approval",
+    "manual_letter_approval_tooltip": "If enabled, actions triggered by AI letters must be manually approved or denied by the user in the letters tab before they are executed.",
+    "manual_letter_approval_in_letters": "approve/deny actions in letters",
+    "manual_letter_approval_in_letters_tooltip": "If enabled, triggered actions shown in the letters tab will have Approve and Deny buttons for manual control.",
     "summaries_depth": "Summaries insert depth",
     "memories_depth": "Memories insert depth",
     "max_summaries": "Max Summaries",
@@ -747,7 +751,13 @@
     "triggered_actions": "Triggered Actions",
     "action_signature": "Action",
     "action_trigger": "Trigger",
-    "no_actions_triggered": "No actions triggered."
+    "no_actions_triggered": "No actions triggered.",
+    "approve_action": "Approve",
+    "deny_action": "Deny",
+    "action_approve_tooltip": "Approve this action and apply its effects in-game.",
+    "action_deny_tooltip": "Deny this action. It will not be executed.",
+    "action_approved": "Action approved: {signature}",
+    "action_denied": "Action denied: {signature}"
   },
   "history": {
     "header": "Conversation History Viewer",
