@@ -123,6 +123,10 @@ function defineTemplate(label: string){
             <br>
             <input type="password" id="deepseek-key">
             </div>
+            <div class="input-group">
+            <label for="deepseek-model" data-i18n="connection.model">Model</label>
+            <input type="text" id="deepseek-model" placeholder="e.g. deepseek-v4-flash">
+            </div>
         </div>
 
         <div id="grok-menu">
@@ -230,7 +234,7 @@ function defineTemplate(label: string){
 `
 }
 
-    
+
 
 class ApiSelector extends HTMLElement{
     label!: string;
@@ -260,6 +264,7 @@ class ApiSelector extends HTMLElement{
     glmKeyInput!: HTMLInputElement;
     glmModelSelect!: HTMLSelectElement;
     deepseekKeyInput!: HTMLInputElement;
+    deepseekModelInput!: HTMLInputElement;
     grokKeyInput!: HTMLInputElement;
     grokModelSelect!: HTMLSelectElement;
     nvidiaKeyInput!: HTMLInputElement;
@@ -302,7 +307,7 @@ class ApiSelector extends HTMLElement{
         template.innerHTML = defineTemplate(this.label);
         this.shadow.append(template.content.cloneNode(true));
         this.checkbox = this.shadow.querySelector("input")! as HTMLInputElement;
-        
+
         this.typeSelector = this.shadow.querySelector("#connection-api")! as HTMLSelectElement;
 
         this.openaiDiv = this.shadow.querySelector("#openai-menu")!;
@@ -326,6 +331,7 @@ class ApiSelector extends HTMLElement{
         this.glmKeyInput = this.shadow.querySelector("#glm-key")! as HTMLInputElement;
         this.glmModelSelect = this.shadow.querySelector("#glm-model-select")! as HTMLSelectElement;
         this.deepseekKeyInput = this.shadow.querySelector("#deepseek-key")! as HTMLInputElement;
+        this.deepseekModelInput = this.shadow.querySelector("#deepseek-model")! as HTMLInputElement;
         this.grokKeyInput = this.shadow.querySelector("#grok-key")! as HTMLInputElement;
         this.grokModelSelect = this.shadow.querySelector("#grok-model-select")! as HTMLSelectElement;
         this.nvidiaKeyInput = this.shadow.querySelector("#nvidia-key")! as HTMLInputElement;
@@ -354,7 +360,7 @@ class ApiSelector extends HTMLElement{
         this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
         this.novelaiModelInput = this.shadow.querySelector("#novelai-model-input")! as HTMLInputElement;
         this.novelaiModelDatalist = this.shadow.querySelector("#novelai-models")! as HTMLDataListElement;
-    } 
+    }
 
 
     static get observedAttributes(){
@@ -368,13 +374,13 @@ class ApiSelector extends HTMLElement{
 
         // Handle localization
         this.updateTranslation();
-        
+
         // Listen for language changes
         ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let apiConfig = config[confID].connection;
 
-        
+
         this.typeSelector.value = apiConfig.type;
         this.displaySelectedApiBox();
 
@@ -388,7 +394,7 @@ class ApiSelector extends HTMLElement{
 
         // 从apiKeys字段中加载所有API类型的配置（如果存在）
         const apiKeys = apiConfig.apiKeys || {};
-        
+
         // 加载OpenAI配置
         if (apiKeys.openai) {
             this.openaiKeyInput.value = apiKeys.openai.key || "";
@@ -397,14 +403,14 @@ class ApiSelector extends HTMLElement{
             this.openaiKeyInput.value = apiConfig.key;
             this.openaiModelSelect.value = apiConfig.model;
         }
-        
+
         // 加载OOBA配置
         if (apiKeys.ooba) {
             this.oobaUrlInput.value = apiKeys.ooba.baseUrl || "";
         } else if(apiConfig.type == "ooba"){
             this.oobaUrlInput.value = apiConfig.key;
         }
-        
+
         // 加载OpenRouter配置
         if (apiKeys.openrouter) {
             this.openrouterKeyInput.value = apiKeys.openrouter.key || "";
@@ -413,7 +419,7 @@ class ApiSelector extends HTMLElement{
             this.openrouterKeyInput.value = apiConfig.key;
             this.openrouterModelInput.value = apiConfig.model;
         }
-        
+
         // 加载Custom配置
         if (apiKeys.custom) {
             this.customUrlInput.value = apiKeys.custom.baseUrl || "";
@@ -424,7 +430,7 @@ class ApiSelector extends HTMLElement{
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
         }
-        
+
         // 加载Gemini配置
         if (apiKeys.gemini) {
             this.geminiKeyInput.value = apiKeys.gemini.key || "";
@@ -433,7 +439,7 @@ class ApiSelector extends HTMLElement{
             this.geminiKeyInput.value = apiConfig.key;
             this.geminiModelInput.value = apiConfig.model;
         }
-        
+
         // 加载GLM配置
         if (apiKeys.glm) {
             this.glmKeyInput.value = apiKeys.glm.key || "";
@@ -442,12 +448,14 @@ class ApiSelector extends HTMLElement{
             this.glmKeyInput.value = apiConfig.key;
             this.glmModelSelect.value = apiConfig.model;
         }
-        
+
         // 加载DeepSeek配置
         if (apiKeys.deepseek) {
             this.deepseekKeyInput.value = apiKeys.deepseek.key || "";
+            this.deepseekModelInput.value = apiKeys.deepseek.model || "";
         } else if(apiConfig.type == "deepseek"){
             this.deepseekKeyInput.value = apiConfig.key;
+            this.deepseekModelInput.value = apiConfig.model;
         }
 
         // 加载Grok配置
@@ -476,7 +484,7 @@ class ApiSelector extends HTMLElement{
             this.player2KeyInput.value = apiConfig.key;
             this.player2ModelInput.value = apiConfig.model;
         }
-        
+
         // 加载NovelAI配置
         if (apiKeys.novelai) {
             this.novelaiPasswordInput.value = apiKeys.novelai.key || "";
@@ -485,13 +493,13 @@ class ApiSelector extends HTMLElement{
             this.novelaiPasswordInput.value = apiConfig.key;
             this.novelaiModelInput.value = apiConfig.model;
         }
-        
+
         this.openrouterInstructModeCheckbox.checked = apiConfig.forceInstruct;
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
         this.customContextNumber.value = apiConfig.customContext;
 
-        
+
 
         this.typeSelector.addEventListener("change", (e: any) => {
             console.debug(confID)
@@ -510,19 +518,19 @@ class ApiSelector extends HTMLElement{
                 case 'novelai':
                     this.saveNovelaiConfig();
                     break;
-                case 'openai': 
+                case 'openai':
                     this.saveOpenaiConfig();
                 break;
-                case 'ooba': 
+                case 'ooba':
                     this.saveOobaConfig();
                 break;
-                case 'openrouter': 
+                case 'openrouter':
                     this.saveOpenrouterConfig();
                 break;
-                case 'gemini': 
+                case 'gemini':
                     this.saveGeminiConfig();
                 break;
-                case 'glm': 
+                case 'glm':
                     this.saveGlmConfig();
                 break;
                 case 'deepseek':
@@ -537,7 +545,7 @@ class ApiSelector extends HTMLElement{
                 case 'player2':
                     this.savePlayer2Config();
                 break;
-                case 'custom': 
+                case 'custom':
                     this.saveCustomConfig();
                 break;
             }
@@ -605,7 +613,7 @@ class ApiSelector extends HTMLElement{
                 configToLog.connection.key = "[REDACTED]";
             }
             console.debug("Using config:", configToLog);
-            
+
             let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters);
 
             this.testConnectionSpan.innerText = "...";
@@ -625,7 +633,7 @@ class ApiSelector extends HTMLElement{
                     }else{
                         this.testConnectionSpan.innerText = "Connection valid!";
                     }
-                    
+
 
 
                 }
@@ -639,7 +647,7 @@ class ApiSelector extends HTMLElement{
                         alert(alertMessage);
                     }
                 }
-                
+
             });
         })
 
@@ -655,8 +663,8 @@ class ApiSelector extends HTMLElement{
             ipcRenderer.send('config-change-nested-nested', this.confID, "connection", "customContext", this.customContextNumber.value);
         })
 
-         
-        
+
+
     }
 
     toggleCustomContext(){
@@ -668,7 +676,7 @@ class ApiSelector extends HTMLElement{
             this.customContextNumber.style.opacity = "0.5";
             this.customContextNumber.disabled = true;
         }
-    }    
+    }
 
     displaySelectedApiBox(){
         // Hide all divs first for simplicity and to prevent bugs
@@ -683,9 +691,9 @@ class ApiSelector extends HTMLElement{
         this.nvidiaDiv.style.display = "none";
         this.player2Div.style.display = "none";
         this.novelaiDiv.style.display = "none";
-        
+
         switch (this.typeSelector.value) {
-            case 'openai':  
+            case 'openai':
                 this.openaiDiv.style.display = "block";
                 break;
             case 'ooba':
@@ -723,7 +731,7 @@ class ApiSelector extends HTMLElement{
 
     saveAllApiConfigs() {
         console.log('Saving all API configurations...');
-        
+
         // 保存所有API类型的配置
         this.saveOpenaiConfig();
         this.saveOobaConfig();
@@ -736,7 +744,7 @@ class ApiSelector extends HTMLElement{
         this.saveNvidiaConfig();
         this.savePlayer2Config();
         this.saveCustomConfig();
-        
+
         // 通知主进程所有API配置已更新
         const allConfigs = {
             openai: {
@@ -773,7 +781,7 @@ class ApiSelector extends HTMLElement{
             deepseek: {
                 key: this.deepseekKeyInput.value,
                 baseUrl: "https://api.deepseek.com",
-                model: "deepseek-chat"
+                model: this.deepseekModelInput.value
             },
             grok: {
                 key: this.grokKeyInput.value,
@@ -796,12 +804,12 @@ class ApiSelector extends HTMLElement{
                 model: this.customModelInput.value
             }
         };
-        
+
         // 发送所有API配置到主进程
         ipcRenderer.send('api-config-change', 'textGenerationApiConnectionConfig', 'all', allConfigs);
         ipcRenderer.send('api-config-change', 'summarizationApiConnectionConfig', 'all', allConfigs);
         ipcRenderer.send('api-config-change', 'actionsApiConnectionConfig', 'all', allConfigs);
-        
+
         console.log('All API configurations saved and sent to main process');
     }
 
@@ -815,11 +823,11 @@ class ApiSelector extends HTMLElement{
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         };
-        
+
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
     }
-    
+
 
     //OOBA DIV
     saveOobaConfig(){
@@ -846,7 +854,7 @@ class ApiSelector extends HTMLElement{
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
         };
-        
+
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
     }
@@ -864,10 +872,10 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
+
         // 发送配置到主进程
         ipcRenderer.send('api-config-change', this.confID, 'openrouter', config);
-    }   
+    }
 
     saveCustomConfig(){
         const config = {
@@ -881,10 +889,10 @@ class ApiSelector extends HTMLElement{
         };
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
-        
+
         // 发送配置到主进程
         ipcRenderer.send('api-config-change', this.confID, 'custom', config);
-    }  
+    }
 
     saveGeminiConfig(){
         const config = {
@@ -913,13 +921,13 @@ class ApiSelector extends HTMLElement{
         // 保存当前配置
         ipcRenderer.send('config-change-nested', this.confID, "connection", config);
     }
-    
+
     saveDeepseekConfig(){
         const config = {
             type: "deepseek",
             baseUrl: "https://api.deepseek.com",
             key: this.deepseekKeyInput.value,
-            model: "deepseek-chat",
+            model: this.deepseekModelInput.value,
             forceInstruct: false,
             overwriteContext: this.overwriteContextCheckbox.checked,
             customContext: this.customContextNumber.value
@@ -972,7 +980,7 @@ class ApiSelector extends HTMLElement{
 
     private async _populatePlayer2Models() {
         console.log("Populating Player2 models...");
-        
+
         // Get the LATEST config from the main process to ensure we have the latest custom models
         const config = await ipcRenderer.invoke('get-config');
         const connectionConfig = config[this.confID]?.connection;
@@ -998,7 +1006,7 @@ class ApiSelector extends HTMLElement{
             if (model.id === 'gpt-oss-120b') {
                 displayName = "GPT-OSS-120B (Free)";
             }
-            option.textContent = displayName; 
+            option.textContent = displayName;
             this.player2ModelDatalist.appendChild(option);
         });
 

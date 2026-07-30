@@ -846,16 +846,16 @@ export class ApiConnection{
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
-            // An empty response might still be a success if no error was thrown,
-            // but we'll treat it as a soft failure to be safe, as `complete` should throw.
-            return {success: false, overwriteWarning: false, errorMessage: "API returned an empty response."};
+            // An empty response is still a success — the API returned 2xx with no body.
+            console.log("API returned an empty response");
+            return {success: true, overwriteWarning: this.overwriteWarning };
             
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
 
             // Specifically handle the "No response" error from `complete()` as a success for testing.
             if (err && err.code === 599 && err.error?.message === "No response") {
-                console.debug("Empty response is considered a success for testConnection.");
+                console.log("API returned an empty response");
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
 
