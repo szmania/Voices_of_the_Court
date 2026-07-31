@@ -594,6 +594,27 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
+    // Initialize blank run files (letters.txt and votc.txt) if they don't exist
+    if (config.userFolderPath) {
+        const runFolderPath = path.join(config.userFolderPath, 'run');
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+            console.log(`Created CK3 run folder at: ${runFolderPath}`);
+        }
+        const lettersFilePath = path.join(runFolderPath, 'letters.txt');
+        if (!fs.existsSync(lettersFilePath)) {
+            fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Created blank letters.txt at: ${lettersFilePath}`);
+        }
+        const votcFilePath = path.join(runFolderPath, 'votc.txt');
+        if (!fs.existsSync(votcFilePath)) {
+            fs.writeFileSync(votcFilePath, '', 'utf-8');
+            console.log(`Created blank votc.txt at: ${votcFilePath}`);
+        }
+    } else {
+        console.warn('Cannot initialize run files: userFolderPath is not configured.');
+    }
+
     // Initialize the current game date from the last known VOTC:DATE in the log.
     await initCurrentDateFromLog();
 
