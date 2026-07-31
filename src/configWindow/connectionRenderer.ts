@@ -1,4 +1,4 @@
-import { ipcRenderer} from 'electron';
+import { ipcRenderer, IpcRendererEvent} from 'electron';
 
 let config;
 
@@ -21,8 +21,7 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
-ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -30,10 +29,28 @@ ipcRenderer.on('update-language', async (event, lang) => {
         // @ts-ignore
         window.LocalizationManager.applyTranslations();
     }
-});
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
 async function init(){
     addExternalLinks();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('source') === 'chat') {
+        const closeMenu = document.querySelector('.close-menu');
+        if (closeMenu) (closeMenu as HTMLElement).style.display = 'block';
+
+        const closeButton = document.getElementById('close-config-window');
+        closeButton?.addEventListener('click', (e) => {
+            e.preventDefault();
+            ipcRenderer.send('request-config-close');
+        });
+    }
+
     // 应用初始主题
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);

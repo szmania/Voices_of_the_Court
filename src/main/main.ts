@@ -26,9 +26,10 @@ import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
-import { checkUserData } from "./userDataCheck.js";
+import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
-import { ReadmeWindow } from './windows/ReadmeWindow.js';
+import { ReadmeWindow } from './windows/ReadmeWindow';
+import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -62,7 +63,7 @@ else {
 app.on('second-instance', (event, commandLine, workingDirectory) => {
     console.log('Second instance detected. Focusing the existing window.');
     if(configWindow.window.isDestroyed()){
-        configWindow = new ConfigWindow();
+        configWindow = new ConfigWindow(chatWindow.window);
     }
     else if(configWindow.window.isMinimized()){
         configWindow.window.focus();
@@ -195,8 +196,9 @@ if(app.isPackaged){
 
 
 
-let configWindow: ConfigWindow;
 let chatWindow: ChatWindow;
+let configWindow: ConfigWindow; // This will be the frameless, in-chat window
+let mainConfigWindow: BrowserWindow | null = null; // This will be the framed, startup window
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
@@ -204,11 +206,11 @@ let conversationHistoryWindow: ConversationHistoryWindow;
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
-    
+
     const iconName = process.platform === 'win32' ? 'icon.ico' : 'icon.icns';
-    
+
     const iconPath = path.join(app.getAppPath(), 'build', 'icons', iconName);
-    
+
     try {
         tray = new Tray(iconPath);
 
@@ -217,7 +219,7 @@ const createTray = () => {
                 label: t('tray.open_config'),
                 click: () => {
                     if(configWindow.window.isDestroyed()){
-                        configWindow = new ConfigWindow();
+                        configWindow = new ConfigWindow(chatWindow.window);
                     }
                     else if(configWindow.window.isMinimized()){
                         configWindow.window.focus();
@@ -243,7 +245,7 @@ const createTray = () => {
 
         tray.on('click', ()=>{
             if(configWindow.window.isDestroyed()){
-                configWindow = new ConfigWindow();
+                configWindow = new ConfigWindow(chatWindow.window);
             }
             else if(configWindow.window.isMinimized()){
                 configWindow.window.focus();
@@ -266,7 +268,13 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
-const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds Ã¢â‚¬â€ if no VOTC:LETTER_ACCEPTED, assume delivery failed
+
+// --- Private helpers for testing ---
+export function _private_setCurrentTotalDays(days: number): void { currentTotalDays = days; }
+export function _private_getStoredLetters(): Map<string, StoredLetter> { return storedLetters; }
+export function _private_setLastLetterSentToGame(letter: StoredLetter | null): void { lastLetterSentToGame = letter; }
+export function _private_setSessionPlayerId(id: string | null): void { currentSessionPlayerId = id; }
+const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
 function rehydratePendingReplyLetters(playerId: string): void {
@@ -306,7 +314,24 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-async function checkAndDeliverLetters() {
+export async function checkAndDeliverLetters() {
+    if (currentTotalDays === 0) {
+        console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
+        return;
+    }
+
+    let gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (!gameData) {
+        gameData = getCachedGameData() ?? undefined;
+    }
+
+    if (!gameData) {
+        console.warn("Could not parse game data during letter delivery. Using currentTotalDays fallback for date.");
+        const gameDate = totalDaysToDateString(currentTotalDays);
+        // Further logic to handle letter delivery without full gameData would be needed here.
+        // For now, we'll just log the warning and return.
+        return;
+    }
     const letterManager = LetterManager.getInstance();
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
@@ -324,12 +349,13 @@ async function checkAndDeliverLetters() {
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            let currentDateString: string;
             if (!gameData) {
-                console.error(`Could not parse game data during letter delivery for letter ${letterId}.`);
-                continue;
+                console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
+                currentDateString = totalDaysToDateString(currentTotalDays);
+            } else {
+                currentDateString = gameData.date;
             }
-            const currentDateString = gameData.date;
-
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent
@@ -378,7 +404,8 @@ function removeLettersAfterDate(cutoffDate: number): void {
     }
 }
 
-function updateCurrentDate(newTotalDays: number) {
+export function updateCurrentDate(newTotalDays: number) {
+    const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
     // Detect time travel backwards (loading an older save)
@@ -387,6 +414,27 @@ function updateCurrentDate(newTotalDays: number) {
         removeLettersAfterDate(newTotalDays);
     }
     // Detect large time jump forward (more than 40 days), could be loading a different save
+    else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
+        console.log(`Large time jump forward detected. Clearing letters and potentially cache. | Old date: ${oldTotalDays} | New date: ${newTotalDays}`);
+        // This could also indicate a new save, so we might clear more than just letters.
+        // For now, we'll just remove letters.
+        removeLettersAfterDate(newTotalDays);
+    }
+
+    currentTotalDays = newTotalDays;
+
+    // After a potential time travel or large jump, re-evaluate the player ID
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (fs.existsSync(debugLogPath)) {
+getPlayerId(debugLogPath).then(result => {
+            const newPlayerId = result.playerId;
+            if (newPlayerId && oldPlayerId !== newPlayerId) {
+                console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
+                clearCachedGameData();
+                currentSessionPlayerId = newPlayerId;
+            }
+        });
+    }
     else if (oldTotalDays > 0 && newTotalDays - oldTotalDays > 120) {
         console.log("Large time jump detected (>90 days). Assuming new save loaded, clearing all pending letters.");
         storedLetters.clear();
@@ -401,6 +449,51 @@ function updateCurrentDate(newTotalDays: number) {
         win.webContents.send('game-date-updated', newTotalDays);
     });
 }
+
+function positionConfigWindow() {
+    if (!configWindow || !configWindow.isShown) return;
+
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width, height } = primaryDisplay.workArea;
+
+    const PADDING = 20;
+    const configWidth = 800; // A more reasonable default width
+    const configHeight = height - (2 * PADDING);
+
+    configWindow.window.setBounds({
+        x: Math.round(width - configWidth - PADDING),
+        y: Math.round(PADDING),
+        width: configWidth,
+        height: configHeight
+    });
+}
+
+
+ipcMain.on('request-config-toggle', () => {
+    configWindow.toggle();
+    if (configWindow.isShown) {
+        positionConfigWindow();
+    }
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: configWindow.isShown });
+});
+
+ipcMain.on('request-config-minimize', () => {
+    configWindow.minimize();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: true });
+});
+
+ipcMain.on('request-config-restore', () => {
+    configWindow.restore();
+    positionConfigWindow();
+    chatWindow.window.webContents.send('config-window-toggled', { isShown: true, minimized: false });
+});
+
+ipcMain.on('request-config-close', () => {
+    if (configWindow) {
+        configWindow.hide();
+        chatWindow.window.webContents.send('config-window-toggled', { isShown: false, minimized: false });
+    }
+});
 
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
@@ -502,6 +595,27 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
+    // Initialize blank run files (letters.txt and votc.txt) if they don't exist
+    if (config.userFolderPath) {
+        const runFolderPath = path.join(config.userFolderPath, 'run');
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+            console.log(`Created CK3 run folder at: ${runFolderPath}`);
+        }
+        const lettersFilePath = path.join(runFolderPath, 'letters.txt');
+        if (!fs.existsSync(lettersFilePath)) {
+            fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Created blank letters.txt at: ${lettersFilePath}`);
+        }
+        const votcFilePath = path.join(runFolderPath, 'votc.txt');
+        if (!fs.existsSync(votcFilePath)) {
+            fs.writeFileSync(votcFilePath, '', 'utf-8');
+            console.log(`Created blank votc.txt at: ${votcFilePath}`);
+        }
+    } else {
+        console.warn('Cannot initialize run files: userFolderPath is not configured.');
+    }
+
     // Initialize the current game date from the last known VOTC:DATE in the log.
     await initCurrentDateFromLog();
 
@@ -532,7 +646,7 @@ app.on('ready',  async () => {
     });
 
     // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
     if (fs.existsSync(dlcLoadPath)) {
         try {
             const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
@@ -589,7 +703,7 @@ app.on('ready',  async () => {
                                 checkboxChecked: false
                             };
                             const { response, checkboxChecked } = await dialog.showMessageBox(dialogOpts);
-                            
+
                             if (checkboxChecked) {
                                 // Add to disabled notifications list
                                 if (!config.disabledMegamodNotifications) {
@@ -598,7 +712,7 @@ app.on('ready',  async () => {
                                 config.disabledMegamodNotifications.push(modName);
                                 config.export();
                             }
-                            
+
                             if (response === 0) {
                                 // User clicked "Yes" - enable the preset
                                 config.activePromptPreset = mapping.presetName;
@@ -612,7 +726,7 @@ app.on('ready',  async () => {
                 }
             }
         } catch (err) {
-            console.error('Failed to read or parse dlc_load.json:', err);
+            console.error('Failed to read or parse dlc_loadon:', err);
         }
     }
 
@@ -621,7 +735,7 @@ app.on('ready',  async () => {
         try {
             if (config?.textGenerationApiConnectionConfig?.connection) {
                 // Import ApiConnection dynamically to avoid circular dependencies
-                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     config.textGenerationApiConnectionConfig.connection,
                     config.textGenerationApiConnectionConfig.parameters
@@ -645,7 +759,7 @@ app.on('ready',  async () => {
                 }
 
                 // 2. Fallback to API-detected context
-                const { ApiConnection } = await import('../shared/apiConnection.js');
+                const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
                     config.textGenerationApiConnectionConfig.parameters
@@ -808,10 +922,36 @@ app.on('ready',  async () => {
         }
     });
 
-    configWindow = new ConfigWindow();
-    console.log('ConfigWindow created.');
+
+    // Create and show the main, framed config window on startup
+    mainConfigWindow = new BrowserWindow({
+        width: 1280,
+        height: 600,
+        minWidth: 1280,
+        minHeight: 600,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            preload: path.join(__dirname, 'preload.js'),
+        }
+    });
+    mainConfigWindow.loadFile('./public/configWindow/connection.html');
+    mainConfigWindow.removeMenu();
+    if(!app.isPackaged){
+        mainConfigWindow.webContents.openDevTools();
+    }
+    mainConfigWindow.on('closed', () => {
+        mainConfigWindow = null;
+    });
+
     chatWindow = new ChatWindow();
     console.log('ChatWindow created.');
+    configWindow = new ConfigWindow(chatWindow.window); // This is the frameless window for in-chat use
+    console.log('ConfigWindow created.');
+
+    chatWindow.window.on('move', positionConfigWindow);
+    chatWindow.window.on('resize', positionConfigWindow);
+
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
 
@@ -897,7 +1037,7 @@ clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
     // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_load.json');
+    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
     if (fs.existsSync(dlcLoadPath)) {
         try {
             const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
@@ -929,7 +1069,7 @@ clipboardListener.on('VOTC:IN', async () =>{
                 return; // Stop further execution.
             }
         } catch (err) {
-            console.error('Failed to read or parse dlc_load.json:', err);
+            console.error('Failed to read or parse dlc_loadon:', err);
         }
     }
 
@@ -953,6 +1093,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             storedLetters.clear();
             lastLetterSentToGame = null; // Also clear any letter pending game confirmation
         }
+        setCachedGameData(gameData);
         currentSessionPlayerId = String(gameData.playerID);
 
         console.log("New conversation started!");
@@ -1076,7 +1217,7 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
         }
 
         // Get the selected bookmark script from config
-        const bookmarkScriptPath = config.selectedBookmarkScript || 'standard/shaosong.json';
+        const bookmarkScriptPath = config.selectedBookmarkScript || 'standard/shaosongon';
         console.log(`Using bookmark script: ${bookmarkScriptPath}`);
 
         // Process the bookmark data and update conversation summaries
@@ -1352,7 +1493,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -1375,7 +1516,7 @@ ipcMain.handle('get-prompt-presets', async () => {
 ipcMain.handle('get-default-prompts', async () => {
     const lang = config.language || 'en';
     const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
-    const promptsPath = path.join(promptsDir, `${lang}.json`);
+    const promptsPath = path.join(promptsDir, `${lang}on`);
     const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
 
@@ -1383,7 +1524,7 @@ ipcMain.handle('get-default-prompts', async () => {
         console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
         finalPath = fallbackPath;
     }
-    
+
     if (!fs.existsSync(finalPath)) {
         console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
         return null;
@@ -1400,7 +1541,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -1464,7 +1605,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -1479,13 +1620,13 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     if (innerConfID === 'connection' && newValue.type === 'player2' && newValue.model) {
         if (!newValue.apiKeys) newValue.apiKeys = {};
         if (!newValue.apiKeys.player2) newValue.apiKeys.player2 = {};
-        
+
         const customModels = new Set(newValue.apiKeys.player2.customModels || []);
 
         if (newValue.model !== 'gpt-oss-120b') {
             customModels.add(newValue.model);
         }
-        
+
         newValue.apiKeys.player2.customModels = Array.from(customModels);
     }
 
@@ -1502,7 +1643,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
                 //@ts-ignore
                 config[outerConfID][innerConfID].apiKeys = {};
             }
-            
+
             // Create a clean cache object to avoid circular references.
             const valueToCache = {
                 type: newValue.type,
@@ -1535,7 +1676,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
 //dear god...
 ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested-nested event. Outer ID: ${outerConfID}, Middle ID: ${middleConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
-    
+
     if (innerConfID === 'customContext') {
         newValue = parseInt(newValue, 10) || 0;
     }
@@ -1711,7 +1852,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                     }
 
                     if (chatMessage) {
-                        const { parseVariables } = require('./parseVariables.js');
+                        const { parseVariables } = require('./parseVariables');
                         const source = conversation.gameData.getCharacterById(sourceId!);
                         const target = conversation.gameData.getCharacterById(targetId!);
                         conversation.gameData.character1Name = source ? source.shortName : "someone";
@@ -1833,7 +1974,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
     try {
         const summaries = await readSummaryFile(userDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_mapon');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -1888,8 +2029,8 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
     try {
         const letterManager = LetterManager.getInstance();
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -1909,7 +2050,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted letter summary for character ${charIdToDelete}`);
@@ -1941,8 +2082,8 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
     console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -1962,7 +2103,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
@@ -2067,8 +2208,8 @@ ipcMain.handle('get-diary-files', async (event, playerId) => {
     console.log(`IPC: Received get-diary-files event for player: ${playerId}`);
     try {
         const files = await getDiaryFiles(playerId);
-        // we only want character id, so remove .json
-        return files.map(f => f.replace('.json', ''));
+        // we only want character id, so remove on
+        return files.map(f => f.replace('on', ''));
     } catch (error) {
         console.error('Error getting diary files:', error);
         return [];
@@ -2234,6 +2375,12 @@ ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: {
     const letterManager = LetterManager.getInstance();
     letterManager.markAsRead(playerId, characterId, letterId, config);
     console.log(`Letter ${letterId} marked as read.`);
+});
+
+ipcMain.handle('delete-letter', async (event, { playerId, characterId, letterId }) => {
+    console.log(`Received delete-letter request for player ${playerId}, char ${characterId}, letter ${letterId}`);
+    const letterManager = LetterManager.getInstance();
+    return letterManager.deleteLetter(playerId, characterId, letterId);
 });
 
 

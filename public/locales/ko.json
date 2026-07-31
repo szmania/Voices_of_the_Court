@@ -39,7 +39,10 @@
     "player2_info": "힌트: 아직 다운로드하지 않으셨다면, Player2를 다운로드하여 백그라운드에서 실행하세요.",
     "player2_download_button": "Player2 다운로드",
     "player2_download_tooltip": "Player2 애플리케이션 다운로드",
-    "player2_connection_failed": "Player2 연결에 실패했습니다. https://player2.game에서 Player2 앱을 다운로드하고 백그라운드에서 실행 중인지 확인한 후 다시 시도하십시오. 계정은 필요하지 않습니다."
+    "player2_connection_failed": "Player2 연결에 실패했습니다. https://player2.game에서 Player2 앱을 다운로드하고 백그라운드에서 실행 중인지 확인한 후 다시 시도하십시오. 계정은 필요하지 않습니다.",
+    "novelai_password": "비밀번호",
+    "novelai_model": "모델",
+    "novelai_password_tooltip": "NovelAI 계정 비밀번호 (API 키 아님)"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -50,6 +53,7 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
+    "novelai": "NovelAI",
     "custom": "사용자 정의 (OpenAI 호환)"
   },
   "actions": {

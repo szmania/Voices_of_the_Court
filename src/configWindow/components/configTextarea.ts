@@ -40,7 +40,8 @@ class ConfigTextarea extends HTMLElement{
     textarea: HTMLTextAreaElement;
     rows: number;
     cols: number;
-    placeholder: string
+    placeholder: string;
+    languageUpdateHandler!: () => void;
 
     constructor(){
         super();
@@ -91,8 +92,7 @@ class ConfigTextarea extends HTMLElement{
             ipcRenderer.send('config-change', confID, this.textarea.value);
         });
 
-        // Listen for language changes to refresh prompt content
-        ipcRenderer.on('update-language', async () => {
+        this.languageUpdateHandler = async () => {
             let config = await ipcRenderer.invoke('get-config');
             //@ts-ignore
             if (promptKeys.includes(confID)) {
@@ -100,17 +100,19 @@ class ConfigTextarea extends HTMLElement{
             } else {
                 this.textarea.value = config[confID];
             }
-        });
+            const i18nKey = this.getAttribute('data-i18n');
+            if (i18nKey) {
+                this.updateTranslation(i18nKey);
+            }
+        };
+
+        // Listen for language changes
+        ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         // Handle localization
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
-            
-            // Listen for language changes for label/placeholder
-            ipcRenderer.on('update-language', () => {
-                this.updateTranslation(i18nKey);
-            });
         }
     }
 
@@ -126,6 +128,12 @@ class ConfigTextarea extends HTMLElement{
             }
         } else if (this.placeholder) {
             this.textarea.placeholder = this.placeholder;
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
         }
     }
 }

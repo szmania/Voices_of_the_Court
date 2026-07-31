@@ -6,6 +6,7 @@ export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
 export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 
 import { getEncoding, Tiktoken } from "js-tiktoken";
+import { hashAccessKey } from "./auth/argon2";
 
 export interface apiConnectionTestResult{
     success: boolean,
@@ -25,10 +26,10 @@ export interface Connection{
 }
 
 export interface Parameters{
-    temperature: number,
-	frequency_penalty: number,
-	presence_penalty: number,
-	top_p: number,
+    temperature?: number,
+	frequency_penalty?: number,
+	presence_penalty?: number,
+	top_p?: number,
 }
 
 let encoder: Tiktoken | null = null;
@@ -47,9 +48,11 @@ export class ApiConnection{
     context: number;
     overwriteWarning: boolean;
     config: Connection; // 保存原始配置对象，包括apiKeys
+    novelaiAccessToken: string | null = null;
+    novelaiTokenExpiry: number | null = null;
 
 
-    constructor(connection: Connection, parameters: Parameters){
+    constructor(connection: Connection, parameters: any){
         console.debug("--- API CONNECTION: Constructor ---");
         
         // Create a deep copy for logging to ensure original object is not modified.
@@ -104,7 +107,21 @@ export class ApiConnection{
         }
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
-        this.parameters = parameters;
+        
+        const apiParams: Parameters = {};
+        if (parameters.enableTemperature) {
+            apiParams.temperature = parameters.temperature;
+        }
+        if (parameters.enableFrequencyPenalty) {
+            apiParams.frequency_penalty = parameters.frequency_penalty;
+        }
+        if (parameters.enablePresencePenalty) {
+            apiParams.presence_penalty = parameters.presence_penalty;
+        }
+        if (parameters.enableTopP) {
+            apiParams.top_p = parameters.top_p;
+        }
+        this.parameters = apiParams;
 
 
         let modelName = this.model
@@ -143,8 +160,7 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2' || this.type === 'nvidia'){
-            console.debug("isChat() is returning true");
+        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2' || this.type === 'nvidia' || this.type === 'novelai'){
             return true;
         }
         else{
@@ -160,7 +176,72 @@ export class ApiConnection{
         otherArgs: object,
         streamRelay?: (arg1: MessageChunk) => void,
         signal?: AbortSignal
-    ): Promise<string> {
+    ): Promise<MessageChunk | string | void> {
+        if (this.type === 'novelai') {
+            const token = await this.getNovelAIToken();
+            const response = await fetch(this.config.baseUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...this.parameters,
+                    ...otherArgs,
+                    model: this.model,
+                    messages: prompt
+                }),
+                signal: signal
+            });
+
+            if (!response.ok) {
+                throw new Error(`NovelAI API error: ${response.statusText}`);
+            }
+
+            if (stream) {
+                const reader = response.body?.getReader();
+                if (!reader) {
+                    throw new Error('Failed to get stream reader');
+                }
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const json = JSON.parse(line.slice(6));
+                            if (json.choices && json.choices.length > 0) {
+                                if (streamRelay) {
+                                    streamRelay({
+                                        content: json.choices[0].delta.content,
+                                        isFinal: false,
+                                        special: null
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                if (streamRelay) {
+                    streamRelay({
+                        content: '',
+                        isFinal: true,
+                        special: null
+                    });
+                }
+                return;
+            } else {
+                const data = await response.json();
+                return {
+                    content: data.choices[0].message.content,
+                    isFinal: true,
+                    special: null
+                };
+            }
+        }
+    
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
@@ -432,6 +513,15 @@ export class ApiConnection{
                         if (choice) {
                             // Prefer chat message content, fall back to text field if provided
                             response = choice.message?.content ?? choice.text ?? "";
+
+                            // @ts-ignore
+                            const isTest = otherArgs && otherArgs.isTestConnection;
+
+                            // Fallback for some Vertex AI models that return content in a different field during test.
+                            if (!response && isTest && choice.message?.reasoning_content) {
+                                console.debug("Found response in 'reasoning_content' field during test connection.");
+                                response = choice.message.reasoning_content;
+                            }
                         }
                     }
 
@@ -561,6 +651,20 @@ export class ApiConnection{
     }
 
     async listModels(): Promise<any[]> {
+        if (this.type === 'novelai') {
+            const token = await this.getNovelAIToken();
+            const response = await fetch('https://api.novelai.net/ai/model/list', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch NovelAI models');
+            }
+            const data = await response.json();
+            return data.models;
+        }
         if (this.type === 'player2') {
             // Player2 does not support listing models.
             // We return a list containing the currently configured model, any saved custom models, and a default.
@@ -587,7 +691,58 @@ export class ApiConnection{
         return [];
     }
 
+    async authenticateNovelAI(): Promise<void> {
+        console.debug("Authenticating NovelAI...");
+        const password = this.config.key; // NovelAI uses key as password
+        if (!password) {
+            throw new Error("NovelAI password is not set.");
+        }
+
+        try {
+            const response = await fetch('https://api.novelai.net/user/authenticate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    key: password
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`NovelAI authentication failed: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            this.novelaiAccessToken = data.accessToken;
+            // Set expiry for 1 hour from now (token usually lasts for 2 hours)
+            this.novelaiTokenExpiry = Date.now() + (60 * 60 * 1000);
+            console.debug("NovelAI authentication successful.");
+        } catch (error) {
+            console.error("NovelAI authentication error:", error);
+            throw error;
+        }
+    }
+
+    async getNovelAIToken(): Promise<string> {
+        if (!this.novelaiAccessToken || (this.novelaiTokenExpiry && Date.now() >= this.novelaiTokenExpiry)) {
+            await this.authenticateNovelAI();
+        }
+        if (!this.novelaiAccessToken) {
+            throw new Error("NovelAI access token not available after authentication.");
+        }
+        return this.novelaiAccessToken;
+    }
+
     async testConnection(): Promise<apiConnectionTestResult>{
+        if (this.type === 'novelai') {
+            try {
+                await this.authenticateNovelAI();
+                return { success: true };
+            } catch (error: any) {
+                return { success: false, errorMessage: error.message };
+            }
+        }
         console.debug("--- API CONNECTION: testConnection() ---");
         if (this.type === 'player2') {
             try {
@@ -685,22 +840,22 @@ export class ApiConnection{
         console.debug("Test prompt:", prompt);
 
         // Test connection should not be cancellable from the UI, so no signal is passed.
-        return this.complete(prompt, false, {max_tokens: 10}).then( (resp) =>{
+        return this.complete(prompt, false, {max_tokens: 10, isTestConnection: true}).then( (resp) =>{
             console.debug("testConnection received response from complete():", resp);
             // A non-empty response is a clear success
             if(resp){
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
-            // An empty response might still be a success if no error was thrown,
-            // but we'll treat it as a soft failure to be safe, as `complete` should throw.
-            return {success: false, overwriteWarning: false, errorMessage: "API returned an empty response."};
+            // An empty response is still a success — the API returned 2xx with no body.
+            console.log("API returned an empty response");
+            return {success: true, overwriteWarning: this.overwriteWarning };
             
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
 
             // Specifically handle the "No response" error from `complete()` as a success for testing.
             if (err && err.code === 599 && err.error?.message === "No response") {
-                console.debug("Empty response is considered a success for testConnection.");
+                console.log("API returned an empty response");
                 return {success: true, overwriteWarning: this.overwriteWarning };
             }
 

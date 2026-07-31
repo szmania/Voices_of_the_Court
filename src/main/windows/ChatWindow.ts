@@ -114,26 +114,14 @@ export class ChatWindow{
                 let win = ActiveWindow.getActiveWindow();
 
                 // 检查是否是游戏或者聊天窗口本身
-                let isGameActive = win.title === "Crusader Kings III" || win.title === "Voices of the Court 2.0 - Community Edition - Chat";
+                const isGameActive = win.title === "Crusader Kings III";
+                const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
+                const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
-                // 【修复】：在 Mac 全屏下，有时候 win.title 可能为空或者无法获取，
-                // 如果直接 minimize 会导致窗口永远弹不出来。
-                // 我们加一个判断，如果是 Mac 平台，就不那么激进地 minimize
-                if(isGameActive){
+                if (isGameActive || isChatActive) {
                     OverlayController.activateOverlay();
-                    //this.window.webContents.send('chat-show');
-                }else{
-                    // 只有在 Windows 上，或者明确知道切到了别的应用时才最小化
-                    if (process.platform !== 'darwin') {
-                        this.window.minimize();
-                    } else {
-                        // 在 Mac 上，与其最小化，不如暂时隐藏或者直接不管，
-                        // 因为 panel 类型的窗口不会干扰 Mac 本身的操作。
-                        // 如果你希望切出游戏时聊天框不挡视线，可以用 this.window.hide() 代替 minimize
-                        if (this.isShown) {
-                           // this.window.hide(); // 你可以取消注释这行来测试效果
-                        }
-                    }
+                } else {
+                    // This block is intentionally left empty to prevent the window from hiding.
                 }
             } catch (err) {
                 console.error("Failed to get active window:", err);

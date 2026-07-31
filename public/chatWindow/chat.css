@@ -8,13 +8,14 @@
     top: 5px;
     right: 15px;
     z-index: 300;
+    pointer-events: auto;
 }
 
 .search-container, .reset-button-wrapper {
     position: relative;
 }
 
-.search-icon, .reset-button {
+.search-icon, .reset-button, .config-button, .minimized-config-button {
     background: rgba(15, 15, 15, 0.8);
     border: 1px solid #3d2e1e;
     color: #808080;
@@ -28,11 +29,14 @@
 
 /* Custom tooltips for header icons */
 .search-container::after,
-.reset-button-wrapper::after {
+.reset-button-wrapper::after,
+.config-button-wrapper::after,
+#minimized-config-button-wrapper::after {
     content: attr(data-tooltip);
     position: absolute;
-    top: 120%; /* Move below the icons to avoid being cut off by window edge */
-    right: -80px; /* Shifted further right to avoid covering dropdown */
+    top: 125%;
+    left: 50%;
+    transform: translateX(-50%);
     background-color: #111;
     color: #fff;
     padding: 5px 8px;
@@ -50,19 +54,6 @@
     pointer-events: none;
 }
 
-/* Ensure tooltips on the right edge don't go off-screen */
-.chat-header .search-container::after {
-    left: 110%; /* Position to the right of the button */
-    top: 0;
-    right: auto;
-    transform: none;
-}
-
-.chat-header .reset-button-wrapper::after {
-    right: 0;
-    left: auto;
-    transform: none;
-}
 
 /* Ensure suggestions tooltip doesn't go off-screen on the left */
 .suggestions-button-wrapper::after,
@@ -97,7 +88,8 @@
 }
 
 .search-container:hover::after,
-.reset-button-wrapper:hover::after {
+.reset-button-wrapper:hover::after,
+.config-button-wrapper:hover::after {
     opacity: 1;
     visibility: visible;
     z-index: 2000;
@@ -157,6 +149,28 @@
 
 .search-container:hover .search-dropdown {
     display: block;
+}
+
+.config-button-wrapper {
+    position: relative;
+}
+
+.config-button:hover, .config-button.active {
+    background-color: #2b2b2b;
+    border-color: #cca43b;
+    color: #fff;
+    opacity: 1;
+}
+
+.config-button-wrapper, #minimized-config-button-wrapper {
+    position: relative;
+}
+
+.config-button:hover {
+    background-color: #2b2b2b;
+    border-color: #5a4a35;
+    color: #a0a0a0;
+    opacity: 1;
 }
 
 .search-input {

@@ -1,3 +1,9 @@
+---
+title: README_simp_chinese
+type: note
+permalink: votc/readme-simp-chinese
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 An AI-powered companion for Crusader Kings III that helps you keep track of characters, plots, and storylines. Voices of the Court 2.0 - Community Edition integrates Large Language Models into the game, letting you hold natural conversations with characters and dynamically influence the game state.
@@ -313,5 +319,3 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-

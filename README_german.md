@@ -1,3 +1,9 @@
+---
+title: README_german
+type: note
+permalink: votc/readme-german
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 Ein KI-gestützter Begleiter für Crusader Kings III, der Ihnen hilft, Charaktere, Pläne und Handlungsstränge im Auge zu behalten. Voices of the Court 2.0 - Community Edition integriert große Sprachmodelle in das Spiel, sodass Sie natürliche Gespräche mit Charakteren führen und den Spielzustand dynamisch beeinflussen können.
@@ -326,4 +332,3 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
