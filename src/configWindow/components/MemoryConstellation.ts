@@ -11,9 +11,44 @@ function defineTemplate() {
             width: 100%;
             height: 500px;
             border: 1px solid #5a4a35;
+            position: relative;
+        }
+        #empty-state {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #8a8a8a;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #empty-state.visible {
+            display: block;
+        }
+        #empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        #empty-state .empty-message {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        #empty-state .empty-subtitle {
+            font-size: 13px;
+            opacity: 0.7;
         }
     </style>
-    <div id="constellation-container"></div>
+    <div id="constellation-container">
+        <div id="empty-state">
+            <div class="empty-icon">&#11088;</div>
+            <div class="empty-message" data-i18n="memory_constellation.empty_title">No Memories Found</div>
+            <div class="empty-subtitle" data-i18n="memory_constellation.empty_subtitle">Memories will appear here as your character experiences events in the game.</div>
+        </div>
+    </div>
     `;
 }
 
@@ -23,6 +58,7 @@ class MemoryConstellation extends HTMLElement {
     private camera!: THREE.PerspectiveCamera;
     private renderer!: THREE.WebGLRenderer;
     private container!: HTMLDivElement;
+    private emptyState!: HTMLDivElement;
 
     constructor() {
         super();
@@ -33,15 +69,28 @@ class MemoryConstellation extends HTMLElement {
 
     async connectedCallback() {
         this.container = this.shadow.querySelector('#constellation-container');
+        this.emptyState = this.shadow.querySelector('#empty-state') as HTMLDivElement;
         this.initThree();
         this.animateLoop();
         const characterId = this.getAttribute('character-id') || undefined;
-        await this.loadMemories(characterId);
+        await this.loadMemories(undefined, characterId);
     }
 
-    async loadMemories(characterId?: string) {
+    /**
+     * Public method called by the renderer when player/character filter changes.
+     * @param playerId - The selected player ID (or undefined for no filter)
+     * @param characterId - The selected character ID (or undefined for all characters)
+     */
+    async reloadWithFilter(playerId?: string, characterId?: string) {
+        await this.loadMemories(playerId, characterId);
+    }
+
+    async loadMemories(playerId?: string, characterId?: string) {
         try {
-            const response = await ipcRenderer.invoke('get-memories', characterId || '');
+            const response = await ipcRenderer.invoke('get-memories', {
+                playerId: playerId || '',
+                characterId: characterId || ''
+            });
             if (response && response.success && Array.isArray(response.memories)) {
                 this.updatePoints(response.memories);
             } else {
@@ -70,8 +119,11 @@ class MemoryConstellation extends HTMLElement {
         }
 
         if (!memories || memories.length === 0) {
+            this.emptyState.classList.add('visible');
             return;
         }
+
+        this.emptyState.classList.remove('visible');
 
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(memories.length * 3);
