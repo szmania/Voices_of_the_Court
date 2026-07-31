@@ -1033,7 +1033,26 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 
 // 监听语言更新事件
 ipcRenderer.on('update-language', async (event, lang: string) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     console.log(`Received update-language in chat window: ${lang}`);
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        try {
+            // @ts-ignore
+            await window.LocalizationManager.loadTranslations(lang);
+            // @ts-ignore
+            window.LocalizationManager.applyTranslations();
+            console.log(`UI Translations applied for: ${lang}`);
+        } catch (err) {
+            console.error('Failed to apply translations:', err);
+        }
+    }
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
     // @ts-ignore
     if (window.LocalizationManager) {
         try {

@@ -37,7 +37,37 @@ class ConfigCheckbox extends HTMLElement{
     static get observedAttributes(){
         return ["name", "confID", "label", "data-i18n"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
+    async connectedCallback(){
+        const confID: string = this.confID;
+
+        let config = await ipcRenderer.invoke('get-config');
+
+        //@ts-ignore
+        this.checkbox.checked = config[confID] !== undefined ? config[confID] : true; // Default to true
+
+        this.checkbox.addEventListener("change", (e: any) => {
+            console.log(confID)
+
+            ipcRenderer.send('config-change', confID, this.checkbox.checked);
+        });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
+            ipcRenderer.on('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
+        }
+    }
     async connectedCallback(){
         const confID: string = this.confID;
 

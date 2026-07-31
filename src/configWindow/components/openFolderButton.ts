@@ -39,7 +39,34 @@ class openFolderButton extends HTMLElement{
     static get observedAttributes(){
         return ["name", "confID", "path", "label"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
+    async connectedCallback(){
+
+        let userdataPath = await ipcRenderer.invoke('get-userdata-path');
+
+        this.button.addEventListener("click", (e: any) => {
+            
+            
+            //ipcRenderer.send('open-folder', this.path);
+            shell.openPath(path.resolve(path.join(userdataPath, this.path)));
+        }); 
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
+            ipcRenderer.on('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
+        }
+    }
     async connectedCallback(){
 
         let userdataPath = await ipcRenderer.invoke('get-userdata-path');

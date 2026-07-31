@@ -41,7 +41,7 @@ class ConfigTextarea extends HTMLElement{
     rows: number;
     cols: number;
     placeholder: string;
-    languageUpdateHandler!: () => void;
+    private languageUpdateHandler: (() => void) | null = null;
 
     constructor(){
         super();
@@ -61,7 +61,7 @@ class ConfigTextarea extends HTMLElement{
 
 
     static get observedAttributes(){
-        return ["confID", "rows", "cols", "placeholder"]
+        return ["confID", "rows", "cols", "placeholder", "data-i18n"]
     }
 
     async connectedCallback(){

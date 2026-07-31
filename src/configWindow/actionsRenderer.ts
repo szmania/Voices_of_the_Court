@@ -39,7 +39,31 @@ ipcRenderer.on('update-theme', (event, theme) => {
 
 // 监听语言更新
 ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang) => {
     // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(lang);
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+        // @ts-ignore
+        if (config) {
+            config.language = lang;
+            // @ts-ignore
+            if (window.LocalizationManager) {
+                // @ts-ignore
+                await window.LocalizationManager.loadTranslations(config.language || 'en');
+                // @ts-ignore
+                window.LocalizationManager.applyTranslations();
+            }
+        }
+    }
+};
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
     if (window.LocalizationManager) {
         // @ts-ignore
         await window.LocalizationManager.loadTranslations(lang);

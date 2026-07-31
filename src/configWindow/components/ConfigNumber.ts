@@ -48,7 +48,37 @@ class ConfigNumber extends HTMLElement{
     static get observedAttributes(){
         return ["name", "confID", "label", "min", "max", "data-i18n"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
+    async connectedCallback(){
+        const confID: string = this.confID;
+
+        let config = await ipcRenderer.invoke('get-config');
+
+        //@ts-ignore
+        this.input.value = config[confID];
+
+        this.input.addEventListener("change", (e: any) => {
+            console.log(confID)
+
+            ipcRenderer.send('config-change', confID, parseFloat(this.input.value));
+        });
+
+        // Handle localization
+        const i18nKey = this.getAttribute('data-i18n');
+        if (i18nKey) {
+            this.updateTranslation(i18nKey);
+            
+            this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
+            ipcRenderer.on('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
+        }
+    }
     async connectedCallback(){
         const confID: string = this.confID;
 
