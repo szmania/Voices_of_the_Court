@@ -35,8 +35,22 @@ class MemoryConstellation extends HTMLElement {
         this.container = this.shadow.querySelector('#constellation-container');
         this.initThree();
         this.animateLoop();
-        const memories = await ipcRenderer.invoke('get-memories');
-        this.updatePoints(memories);
+        const characterId = this.getAttribute('character-id') || undefined;
+        await this.loadMemories(characterId);
+    }
+
+    async loadMemories(characterId?: string) {
+        try {
+            const response = await ipcRenderer.invoke('get-memories', characterId || '');
+            if (response && response.success && Array.isArray(response.memories)) {
+                this.updatePoints(response.memories);
+            } else {
+                this.updatePoints([]);
+            }
+        } catch (error) {
+            console.error('Failed to load memories:', error);
+            this.updatePoints([]);
+        }
     }
 
     initThree() {

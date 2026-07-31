@@ -68,6 +68,11 @@ async function init() {
     const container = document.getElementById('container');
     if (container) {
         const memoryConstellation = document.createElement('memory-constellation');
+        // Pass character ID from URL params if available
+        const characterId = urlParams.get('characterId') || '';
+        if (characterId) {
+            memoryConstellation.setAttribute('character-id', characterId);
+        }
         container.appendChild(memoryConstellation);
     }
 }
