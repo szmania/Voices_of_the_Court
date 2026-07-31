@@ -15,11 +15,19 @@
     "language_tooltip": "Seleccionar idioma de la aplicación",
     "discord_tooltip": "Únete a nuestro Discord",
     "steam_tooltip": "Ver en Steam Workshop",
-    "website_tooltip": "Visita nuestra página web"
+    "website_tooltip": "Visita nuestra página web",
+    "memory_constellation": "Constelación de Recuerdos",
+    "memory_constellation_tooltip": "Visualizar recuerdos de personajes en 3D",
+    "memory_constellation.empty_title": "No se encontraron recuerdos",
+    "memory_constellation.empty_subtitle": "Los recuerdos aparecerán aquí a medida que tu personaje experimente eventos en el juego."
   },
   "diaries": {
     "header": "Diarios",
     "description": "Gestionar las entradas del diario de los personajes."
+  },
+  "memory_constellation": {
+    "empty_title": "No se encontraron recuerdos",
+    "empty_subtitle": "Los recuerdos aparecerán aquí a medida que tu personaje experimente eventos en el juego."
   },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",

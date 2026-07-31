@@ -15,11 +15,19 @@
     "language_tooltip": "Выберите язык приложения",
     "discord_tooltip": "Присоединяйтесь к нашему Discord",
     "steam_tooltip": "Посмотреть в Мастерской Steam",
-    "website_tooltip": "Посетите наш сайт"
+    "website_tooltip": "Посетите наш сайт",
+    "memory_constellation": "Созвездие Воспоминаний",
+    "memory_constellation_tooltip": "Визуализация воспоминаний персонажей в 3D",
+    "memory_constellation.empty_title": "Воспоминания не найдены",
+    "memory_constellation.empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре."
   },
   "diaries": {
     "header": "Дневники",
     "description": "Управление записями в дневнике для персонажей."
+  },
+  "memory_constellation": {
+    "empty_title": "Воспоминания не найдены",
+    "empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре."
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",

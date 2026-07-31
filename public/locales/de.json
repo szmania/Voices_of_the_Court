@@ -15,11 +15,19 @@
     "language_tooltip": "Anwendungssprache auswählen",
     "discord_tooltip": "Tritt unserem Discord bei",
     "steam_tooltip": "Im Steam Workshop ansehen",
-    "website_tooltip": "Besuche unsere Webseite"
+    "website_tooltip": "Besuche unsere Webseite",
+    "memory_constellation": "Erinnerungskonstellation",
+    "memory_constellation_tooltip": "Charaktererinnerungen in 3D visualisieren",
+    "memory_constellation.empty_title": "Keine Erinnerungen gefunden",
+    "memory_constellation.empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt."
   },
   "diaries": {
     "header": "Tagebücher",
     "description": "Tagebucheinträge für Charaktere verwalten."
+  },
+  "memory_constellation": {
+    "empty_title": "Keine Erinnerungen gefunden",
+    "empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt."
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",

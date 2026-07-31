@@ -28,11 +28,16 @@
     "help_tooltip": "Open the help and documentation window",
     "memory_constellation": "Memory Constellation",
     "memory_constellation_tooltip": "Visualize character memories in 3D",
-    "close_tooltip": "Close this configuration window"
+    "memory_constellation.empty_title": "No Memories Found",
+    "memory_constellation.empty_subtitle": "Memories will appear here as your character experiences events in the game."
   },
   "diaries": {
     "header": "Diaries",
     "description": "Manage diary entries for characters."
+  },
+  "memory_constellation": {
+    "empty_title": "No Memories Found",
+    "empty_subtitle": "Memories will appear here as your character experiences events in the game."
   },
   "connection": {
     "ck3_path": "CK3 user folder path",

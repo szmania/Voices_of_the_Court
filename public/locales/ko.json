@@ -15,11 +15,19 @@
     "language_tooltip": "애플리케이션 언어 선택",
     "discord_tooltip": "Discord에 참여하세요",
     "steam_tooltip": "Steam 창작마당에서 보기",
-    "website_tooltip": "저희 웹사이트를 방문하세요"
+    "website_tooltip": "저희 웹사이트를 방문하세요",
+    "memory_constellation": "기억 별자리",
+    "memory_constellation_tooltip": "캐릭터 기억을 3D로 시각화",
+    "memory_constellation.empty_title": "기억을 찾을 수 없습니다",
+    "memory_constellation.empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다."
   },
   "diaries": {
     "header": "일기",
     "description": "캐릭터의 일기 항목을 관리합니다."
+  },
+  "memory_constellation": {
+    "empty_title": "기억을 찾을 수 없습니다",
+    "empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다."
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",

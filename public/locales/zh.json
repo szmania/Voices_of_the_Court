@@ -16,11 +16,18 @@
     "discord_tooltip": "加入我们的Discord",
     "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站",
-    "close": "关闭"
+    "memory_constellation": "记忆星座",
+    "memory_constellation_tooltip": "以3D方式可视化角色记忆",
+    "memory_constellation.empty_title": "未找到记忆",
+    "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。"
   },
   "diaries": {
     "header": "日记",
     "description": "管理角色的日记条目。"
+  },
+  "memory_constellation": {
+    "empty_title": "未找到记忆",
+    "empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",

@@ -15,11 +15,19 @@
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
     "steam_tooltip": "Steamワークショップで表示",
-    "website_tooltip": "ウェブサイトにアクセス"
+    "website_tooltip": "ウェブサイトにアクセス",
+    "memory_constellation": "記憶の星座",
+    "memory_constellation_tooltip": "キャラクターの記憶を3Dで視覚化",
+    "memory_constellation.empty_title": "記憶が見つかりません",
+    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
   },
   "diaries": {
     "header": "日記",
     "description": "キャラクターの日記エントリを管理します。"
+  },
+  "memory_constellation": {
+    "empty_title": "記憶が見つかりません",
+    "empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",

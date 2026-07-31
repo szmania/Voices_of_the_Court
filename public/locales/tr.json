@@ -15,11 +15,19 @@
     "language_tooltip": "Uygulama dilini seçin",
     "discord_tooltip": "Discord sunucumuza katılın",
     "steam_tooltip": "Steam Atölyesi'nde görüntüle",
-    "website_tooltip": "Web sitemizi ziyaret edin"
+    "website_tooltip": "Web sitemizi ziyaret edin",
+    "memory_constellation": "Anı Takımyıldızı",
+    "memory_constellation_tooltip": "Karakter anılarını 3D olarak görselleştir",
+    "memory_constellation.empty_title": "Anı bulunamadı",
+    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
   },
   "diaries": {
     "header": "Günlükler",
     "description": "Karakterler için günlük girişlerini yönetin."
+  },
+  "memory_constellation": {
+    "empty_title": "Anı bulunamadı",
+    "empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",
