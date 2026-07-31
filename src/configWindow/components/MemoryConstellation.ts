@@ -34,7 +34,7 @@ class MemoryConstellation extends HTMLElement {
     async connectedCallback() {
         this.container = this.shadow.querySelector('#constellation-container');
         this.initThree();
-        this.animate();
+        this.animateLoop();
         const memories = await ipcRenderer.invoke('get-memories');
         this.updatePoints(memories);
     }
@@ -74,9 +74,8 @@ class MemoryConstellation extends HTMLElement {
         const points = new THREE.Points(geometry, material);
         this.scene.add(points);
     }
-
-    animate = () => {
-        requestAnimationFrame(this.animate);
+    private animateLoop = () => {
+        requestAnimationFrame(this.animateLoop);
         this.renderer.render(this.scene, this.camera);
     }
 }

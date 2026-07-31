@@ -917,6 +917,7 @@ export interface EmbeddingResult {
 export interface EmbeddingTestResult {
     success: boolean;
     message: string;
+    dimensions?: number;
     provider: EmbeddingProviderType;
 }
 
