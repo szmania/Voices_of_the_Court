@@ -637,6 +637,64 @@ cachedLetterPairs = letterPairs;
         performSearch(currentSearchTerm);
     }
 }
+function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): void {
+    // Guard: no triggered actions or empty array — nothing to render
+    if (!letter.triggeredActions || !Array.isArray(letter.triggeredActions) || letter.triggeredActions.length === 0) {
+        return;
+    }
+
+    const section = document.createElement('div');
+    section.className = 'triggered-actions-section';
+
+    // Section header
+    const header = document.createElement('h4');
+    header.setAttribute('data-i18n', 'letters.triggered_actions');
+    // @ts-ignore
+    header.textContent = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions') || 'Triggered Actions';
+    section.appendChild(header);
+
+    const list = document.createElement('ul');
+    list.className = 'triggered-actions-list';
+
+    for (const action of letter.triggeredActions) {
+        const item = document.createElement('li');
+        item.className = 'triggered-action-item';
+
+        // Handle malformed action objects gracefully
+        const signature = (action && action.signature) || 'Unknown Action';
+        const triggerOn = (action && action.triggerOn) || 'unknown';
+
+        // Action signature label
+        const signatureSpan = document.createElement('span');
+        signatureSpan.className = 'triggered-action-signature';
+        signatureSpan.setAttribute('data-i18n', 'letters.action_signature');
+        // @ts-ignore
+        const signatureLabel = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.action_signature', 'Action') || 'Action';
+        signatureSpan.textContent = signatureLabel + ': ' + signature;
+        item.appendChild(signatureSpan);
+
+        // Trigger type label
+        const triggerSpan = document.createElement('span');
+        triggerSpan.className = 'triggered-action-trigger';
+        triggerSpan.setAttribute('data-i18n', 'letters.action_trigger');
+        // @ts-ignore
+        const triggerLabel = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger') || 'Trigger';
+        triggerSpan.textContent = ' (' + triggerLabel + ': ' + triggerOn + ')';
+        item.appendChild(triggerSpan);
+
+        list.appendChild(item);
+    }
+
+    section.appendChild(list);
+    container.appendChild(section);
+
+    // Apply translations to the new section
+    // @ts-ignore
+    if (window.LocalizationManager) {
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations(section);
+    }
+}
 
 function renderLetterContent(letter: Letter) {
     const letterViewContainer = document.getElementById('letter-view-container');
