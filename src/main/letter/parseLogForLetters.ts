@@ -7,7 +7,7 @@ import { Config } from '../../shared/Config.js';
 import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.floor(totalDays / 365);
+    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -72,6 +72,26 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const senderIdFromLog = parts[4] ? parts[4].trim() : playerId;
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId;
 
+                // Parse triggered actions from remaining parts (parts[6+])
+                // Format: signature:arg1,arg2,...:triggerOn
+                const triggeredActions: any[] = [];
+                for (let i = 6; i < parts.length; i++) {
+                    const actionPart = parts[i].trim();
+                    if (actionPart) {
+                        const actionFields = actionPart.split(":");
+                        if (actionFields.length >= 3) {
+                            const signature = actionFields[0];
+                            const argsStr = actionFields[1];
+                            const triggerOn = actionFields[2];
+                            const args = argsStr ? argsStr.split(",").map(a => {
+                                const num = Number(a);
+                                return isNaN(num) ? a : num;
+                            }) : [];
+                            triggeredActions.push({ signature, args, triggerOn });
+                        }
+                    }
+                }
+
                 if (content && letterId && senderIdFromLog && recipientIdFromLog) {
                     const sender = gameData.characters.get(Number(senderIdFromLog));
                     const recipient = gameData.characters.get(Number(recipientIdFromLog));
@@ -80,6 +100,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const correctedGameDate = totalDaysToDateString(gameData.totalDays);
                         const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
                         if (letter) {
+                            letter.triggeredActions = triggeredActions;
                             if (letter.associatedAction?.triggerOn === 'receive') {
                                 LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                             }

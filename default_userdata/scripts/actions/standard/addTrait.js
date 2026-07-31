@@ -190,7 +190,7 @@ module.exports = {
         message: `Invalid trait key "${rawTrait}". Could not normalize to a valid key.`
       };
     }
-    
+
     args[0] = traitKey; // Update with normalized key
     return { success: true };
   },
@@ -245,7 +245,5 @@ module.exports = {
       tr: `{{character2Name}}, ${traitKey} özelliğini kazandı.`
     };
   },
-
-chatMessageClass: "neutral-action-message",
-    canPerformAtDistance: true
-};
+  chatMessageClass: "neutral-action-message"
+}

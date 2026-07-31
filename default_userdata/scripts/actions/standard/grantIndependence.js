@@ -126,5 +126,4 @@ module.exports = {
     },
 
 chatMessageClass: "neutral-action-message",
-    canPerformAtDistance: true
 };

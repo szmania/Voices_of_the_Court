@@ -112,7 +112,6 @@ module.exports = {
         }
     },
 chatMessageClass: "negative-action-message",
-    canPerformAtDistance: true
 }
 //help functions 
 function getConversationOpinionValue(opinionBreakdown){

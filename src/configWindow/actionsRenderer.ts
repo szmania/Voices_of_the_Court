@@ -72,15 +72,16 @@ async function init(){
     
      disabledActions= config!.disabledActions;
 
+    // Wait for userDataPath to be resolved before loading actions
+    const userDataPath = await ipcRenderer.invoke('get-userdata-path');
+    actionsPath = path.join(userDataPath, 'scripts', 'actions');
     loadactions();
 
     refreshactionsButton.addEventListener('click', ()=>{
         loadactions();
     })
 
-    let userDataPath = await ipcRenderer.invoke('get-userdata-path');
     
-    actionsPath = path.join(userDataPath, 'scripts', 'actions');
 
 
         //init

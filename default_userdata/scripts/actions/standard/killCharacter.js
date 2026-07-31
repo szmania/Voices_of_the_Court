@@ -62,5 +62,4 @@ ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (ch
         };
     },
     chatMessageClass: "negative-action-message",
-    canPerformAtDistance: false
 }

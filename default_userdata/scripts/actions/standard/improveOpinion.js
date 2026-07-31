@@ -103,5 +103,4 @@ module.exports = {
         }
     },
 chatMessageClass: "positive-action-message",
-    canPerformAtDistance: true
 }

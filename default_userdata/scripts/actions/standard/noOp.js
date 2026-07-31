@@ -17,7 +17,7 @@ module.exports = {
         pt: `Nenhuma operação - não faz nada.`,
         tr: `İşlem yok - hiçbir şey yapmaz.`
     },
-  canPerformAtDistance: true,
+    canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -53,5 +53,39 @@ module.exports = {
         }
     },
 chatMessageClass: "neutral-action-message",
-    canPerformAtDistance: true
+ /**
+ * @param {GameData} gameData 
+ * @param {number} sourceId
+ * @param {number} targetId
+ */
+ check: (gameData, sourceId, targetId) => {
+ return true;
+ },
+
+ /**
+ * @param {GameData} gameData 
+ * @param {Function} runGameEffect
+ * @param {string[]} args 
+ * @param {number} sourceId
+ * @param {number} targetId
+ */
+ run: (gameData, runGameEffect, args, sourceId, targetId) => {
+ // No operation
+ },
+ chatMessage: (args) =>{
+ return {
+ en: `Nothing happened.`,
+ zh: `什么都没发生。`,
+ ru: `Ничего не произошло.`,
+ fr: `Rien ne s'est passé.`,
+ es: `No pasó nada.`,
+ de: `Nichts ist passiert.`,
+ ja: `何も起こりませんでした。`,
+ ko: `아무 일도 일어나지 않았습니다.`,
+ pl: `Nic się nie stało.`,
+ pt: `Nada aconteceu.`,
+ tr: `Hiçbir şey olmadı.`
+ }
+ },
+chatMessageClass: "neutral-action-message",
 }

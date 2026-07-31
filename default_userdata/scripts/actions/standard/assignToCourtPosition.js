@@ -402,8 +402,7 @@ const action = {
             tr: `{{character1Name}}, {{character2Name}}'yi ${positionNames.tr} görevine atadı.`
         }
     },
-chatMessageClass: "neutral-action-message",
-  canPerformAtDistance: true
-};
+chatMessageClass: "neutral-action-message"
+}
 
 module.exports = action;

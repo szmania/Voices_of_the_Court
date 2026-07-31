@@ -12,7 +12,7 @@ module.exports = {
                 { value: 'house_arrest', display: { en: 'House Arrest', zh: '软禁', ru: 'Домашний арест', fr: 'Assignation à résidence', es: 'Arresto domiciliario', de: 'Hausarrest', ja: '自宅軟禁', ko: '가택 연금', pl: 'Areszt domowy' }},
                 { value: 'dungeon', display: { en: 'Dungeon', zh: '地牢', ru: 'Темница', fr: 'Donjon', es: 'Calabozo', de: 'Kerker', ja: '地下牢', ko: '지하감옥', pl: 'Loch' }}
             ],
-            desc: { 
+            desc: {
                 en: "type of prison {{character2Name}} is sent to by {{character1Name}} (Must explicitly mention type).",
                 zh: "{{character1Name}}将{{character2Name}}送往的监狱类型（必须明确提及类型）。",
                 ru: "тип тюрьмы, в которую {{character1Name}} отправляет {{character2Name}} (должен явно упоминать тип).",
@@ -42,7 +42,7 @@ module.exports = {
     },
   canPerformAtDistance: false,
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {number} sourceId
      * @param {number} targetId
      */
@@ -57,17 +57,17 @@ module.exports = {
         const relationToSource = target.relationsToCharacters.find(r => r.id === sourceId);
         return !(relationToSource && relationToSource.relations.includes("Prisoner"));
     },
-    
+
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      * @param {number} sourceId
      * @param {number} targetId
      */
     run: (gameData, runGameEffect, args, sourceId, targetId) => {
 		let prisonType = args && args[0] ? args[0].toString().trim() : "default";
-		
+
 		console.log(`prisonType (before switch): '${prisonType}'`);
 		switch (prisonType) {
 			case "house_arrest":
@@ -90,7 +90,7 @@ module.exports = {
                     }
                 `);
                 break;
-                
+
             case "dungeon":
                 runGameEffect(`
                     if = {
@@ -140,7 +140,7 @@ module.exports = {
                 `);
         }
     },
-    
+
     chatMessage: (args) => {
         let prisonType = args[0];
         switch (prisonType) {
@@ -188,7 +188,5 @@ module.exports = {
                 };
         }
     },
-    
-chatMessageClass: "negative-action-message",
-    canPerformAtDistance: false
+    chatMessageClass: "negative-action-message"
 };
