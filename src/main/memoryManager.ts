@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 export interface Memory {
     id: string;
     characterId: string;
+    playerId?: string;
     text: string;
     vector: Float32Array | number[];
     timestamp: number;
@@ -70,6 +71,7 @@ export class MemoryManager {
             CREATE TABLE IF NOT EXISTS memories (
                 id TEXT PRIMARY KEY,
                 character_id TEXT NOT NULL,
+                player_id TEXT DEFAULT '',
                 text TEXT NOT NULL,
                 vector BLOB,
                 timestamp INTEGER NOT NULL,
@@ -81,6 +83,9 @@ export class MemoryManager {
 
             CREATE INDEX IF NOT EXISTS idx_memories_character
                 ON memories(character_id);
+
+            CREATE INDEX IF NOT EXISTS idx_memories_player
+                ON memories(player_id);
 
             CREATE INDEX IF NOT EXISTS idx_memories_timestamp
                 ON memories(timestamp);
@@ -134,13 +139,14 @@ export class MemoryManager {
         const vectorBlob = this.vectorToBlob(memory.vector);
 
         const stmt = this.db.prepare(`
-            INSERT INTO memories (id, character_id, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO memories (id, character_id, player_id, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run(
             memory.id,
             memory.characterId,
+            memory.playerId || '',
             memory.text,
             vectorBlob,
             memory.timestamp,
@@ -180,11 +186,23 @@ export class MemoryManager {
      * @param limit - Maximum number of memories to return (default: 100).
      * @returns Array of memory entries sorted by recency.
      */
-    getMemoriesByCharacter(characterId: string, limit: number = 100): Memory[] {
-        const stmt = this.db.prepare(
-            'SELECT * FROM memories WHERE character_id = ? ORDER BY timestamp DESC LIMIT ?'
-        );
-        const rows = stmt.all(characterId, limit) as any[];
+    getMemoriesByCharacter(characterId: string, limit: number = 100, playerId?: string): Memory[] {
+        let query: string;
+        let params: any[];
+        
+        if (playerId) {
+            query = 'SELECT * FROM memories WHERE character_id = ? AND player_id = ? ORDER BY timestamp DESC LIMIT ?';
+            params = [characterId, playerId, limit];
+        } else if (characterId) {
+            query = 'SELECT * FROM memories WHERE character_id = ? ORDER BY timestamp DESC LIMIT ?';
+            params = [characterId, limit];
+        } else {
+            query = 'SELECT * FROM memories ORDER BY timestamp DESC LIMIT ?';
+            params = [limit];
+        }
+        
+        const stmt = this.db.prepare(query);
+        const rows = stmt.all(...params) as any[];
         return rows.map(row => this.rowToMemory(row));
     }
 
@@ -465,6 +483,7 @@ export class MemoryManager {
         return {
             id: row.id,
             characterId: row.character_id,
+            playerId: row.player_id || '',
             text: row.text,
             vector: row.embedding ? this.blobToVector(row.embedding) : new Float32Array(),
             timestamp: row.timestamp,

@@ -828,13 +828,31 @@ app.on('ready',  async () => {
     });
 
     // Memory CRUD handlers
-    ipcMain.handle('get-memories', async (event, characterId: string, limit?: number) => {
-        console.log(`IPC: Received get-memories for character: ${characterId}`);
+    ipcMain.handle('get-memories', async (event, filter: { playerId?: string; characterId?: string; limit?: number } | string, legacyLimit?: number) => {
+        // Support both old (string) and new (object) calling conventions
+        let characterId: string;
+        let playerId: string | undefined;
+        let limit: number | undefined;
+        
+        if (typeof filter === 'string') {
+            // Legacy: called as get-memories(characterId, limit)
+            characterId = filter;
+            limit = legacyLimit;
+        } else if (filter && typeof filter === 'object') {
+            // New: called as get-memories({ playerId, characterId })
+            characterId = filter.characterId || '';
+            playerId = filter.playerId || undefined;
+            limit = filter.limit;
+        } else {
+            characterId = '';
+        }
+        
+        console.log(`IPC: Received get-memories for character: ${characterId}, player: ${playerId || 'any'}`);
         try {
             if (!memoryManager) {
                 return { success: false, error: 'Memory manager not initialized.' };
             }
-            const memories = memoryManager.getMemoriesByCharacter(characterId, limit || 100);
+            const memories = memoryManager.getMemoriesByCharacter(characterId, limit || 100, playerId);
             // Convert Float32Array vectors to regular arrays for IPC serialization
             const serializable = memories.map(m => ({
                 ...m,

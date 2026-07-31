@@ -33,6 +33,7 @@ interface MemoryEmbeddingConfig {
 interface Memory {
     id: string;
     characterId: string;
+    playerId?: string;
     text: string;
     vector: Float32Array | number[];
     timestamp: number;
