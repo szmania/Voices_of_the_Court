@@ -46,7 +46,7 @@ const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
         window.LocalizationManager.applyTranslations();
     }
     if (config) {
-        config.language = lang;
+        config.language = lang as Config['language'];
         loadactions();
     }
 };
