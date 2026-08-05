@@ -835,9 +835,15 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
         characterSelect.appendChild(option);
     });
 
-    if (Array.from(characterSelect.options).some(opt => opt.value === previouslySelectedCharId)) {
-        characterSelect.value = previouslySelectedCharId;
+    // Use the explicitly passed currentCharacterId if provided, otherwise fall back to the
+    // previously selected value from the DOM, defaulting to 'all'.
+    const targetCharId = currentCharacterId ?? (previouslySelectedCharId || 'all');
+    if (Array.from(characterSelect.options).some(opt => opt.value === targetCharId)) {
+        characterSelect.value = targetCharId;
+    } else {
+        characterSelect.value = 'all';
     }
+    selectedCharacterId = characterSelect.value;
 
     await loadLetters(playerId);
 }
@@ -939,19 +945,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectedPlayerId = playerSelect.value;
         // When player changes, reset character to 'all'
         await loadCharacters(selectedPlayerId, 'all');
-    characterSelect.addEventListener('change', () => {
-        selectedCharacterId = characterSelect.value;
-        renderLetters();
-        renderStatusSummary(); // Update status counts to reflect character filter
     });
-    characterSelect.addEventListener('change', () => {
-        selectedCharacterId = characterSelect.value;
-        renderLetters();
-        renderStatusSummary(); // Update status counts to reflect character filter
-    });
-    });
-    loadPlayers();
 
+    characterSelect.addEventListener('change', () => {
+        selectedCharacterId = characterSelect.value;
+        renderLetters();
+        renderStatusSummary(); // Update status counts to reflect character filter
+    });
+
+    loadPlayers();
     // Initial load of letter thread status
     ipcRenderer.invoke('get-letter-thread-status').then(count => {
         updateLetterThreadStatus(count);
