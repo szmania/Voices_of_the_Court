@@ -309,8 +309,11 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 
     if (rehydratedCount > 0) {
-        console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
-        checkAndDeliverLetters();
+        if (currentTotalDays > 0) {
+            checkAndDeliverLetters();
+        } else {
+            console.log('rehydratePendingReplyLetters: Skipping immediate delivery check as currentTotalDays is not yet initialized.');
+        }
     }
 }
 
