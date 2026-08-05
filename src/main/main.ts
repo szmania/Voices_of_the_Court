@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow} from "electron";
+import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen} from "electron";
 import {ConfigWindow} from './windows/ConfigWindow.js';
 import {ChatWindow} from './windows/ChatWindow.js';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
