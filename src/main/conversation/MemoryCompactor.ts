@@ -264,8 +264,6 @@ export class MemoryCompactor {
         this.phase1Compactor = new Phase1Compactor(config);
         this.phase2Compactor = new Phase2Compactor(config);
         this.scheduler = new CompactionScheduler(config);
-        this.metricsTracker = new CompactionMetricsTracker();
-        this.localizationValidator = new CompactionLocalizationValidator();
     }
 
     /** Returns the metrics tracker for external performance monitoring. */
