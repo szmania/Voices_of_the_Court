@@ -428,6 +428,10 @@
           if (phase1Line) {
             phase1Line.style.left = status.phase1ThresholdPct + '%';
           }
+          const phase1Label = document.getElementById('compaction-phase1-label');
+          if (phase1Label) {
+            phase1Label.style.left = status.phase1ThresholdPct + '%';
+          }
           if (usageText) {
             usageText.textContent = status.tokenCount + ' / ' + status.contextSize + ' tokens (' + status.contextUsagePct + '%)';
           }
