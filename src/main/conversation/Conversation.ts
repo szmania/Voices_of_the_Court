@@ -255,6 +255,11 @@ export class Conversation{
 
 
     public async initialize(): Promise<void> {
+        // Load compacted memories from disk to restore state
+        if (this.config.enableMemoryCompaction) {
+            await this.memoryCompactor.loadFromDisk(String(this.gameData.playerID));
+        }
+
         // 如果启用了场景描述生成功能，在对话开始时生成场景描述
         if (this.config.generateSceneDescription) {
             await this.generateSceneDescription(true);
@@ -1594,9 +1599,7 @@ ${character.fullName}的发言：`
                 if (result.metrics) {
                     console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);
                 }
-                // Replace messages that were compacted
-                const sourceIds = new Set(result.memoriesCreated > 0 ? this.memoryCompactor.getAllCompactedMemories().flatMap(m => m.sourceMessageIds) : []);
-                this.messages = this.messages.filter(m => !m.id || !sourceIds.has(m.id));
+                // Messages are already removed from conv.messages by MemoryCompactor.compact()
             }
             if (result.phase2Run) {
                 console.log('Compaction Phase 2 complete.');
@@ -1606,7 +1609,7 @@ ${character.fullName}的发言：`
             const newBaseTokens = await this.calculateBasePromptTokens();
             this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
             console.log(`Recalculated and updated base tokens after compaction: ${newBaseTokens}`);
-—情σق—        } else {
+        } else {
             // Fallback to original resummarize logic
             console.log('Starting conversation resummarization due to context limit.');
             let tokensToSummarize = this.textGenApiConnection.context * (this.config.percentOfContextToSummarize / 100)

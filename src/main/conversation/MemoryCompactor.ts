@@ -3,6 +3,8 @@ import { CompactedMemory, CompactionConfig, CompactionMetrics, KnowledgeGraph, E
 import { Message } from '../../main/ts/conversation_interfaces';
 import { compactedMemoryStore } from '../compactedMemoryStore';
 import { randomUUID } from 'crypto';
+import { CompactionMetrics as CompactionMetricsTracker } from './CompactionMetrics';
+import { CompactionLocalizationValidator } from './CompactionLocalizationValidator';
 
 /**
  * MemoryCompactor - Orchestrates two-phase memory compaction for long-running conversations.
@@ -15,6 +17,8 @@ export class MemoryCompactor {
     private scheduler: CompactionScheduler;
     private accuracyValidator: ContextAccuracyValidator;
     private compactedMemories: Map<string, CompactedMemory[]> = new Map();
+    private metricsTracker: CompactionMetricsTracker;
+    private localizationValidator: CompactionLocalizationValidator;
     private config: CompactionConfig;
 
     constructor(config: CompactionConfig) {
@@ -23,6 +27,8 @@ export class MemoryCompactor {
         this.phase2Compactor = new Phase2Compactor(config);
         this.scheduler = new CompactionScheduler(config);
         this.accuracyValidator = new ContextAccuracyValidator();
+        this.metricsTracker = new CompactionMetricsTracker();
+        this.localizationValidator = new CompactionLocalizationValidator();
     }
 
     /**
@@ -38,7 +44,7 @@ export class MemoryCompactor {
         let phase2DurationMs = 0;
 
         const result: CompactionResult = { phase1Run: false, phase2Run: false, memoriesCreated: 0 };
-        let messagesToCompact: Message[] = [];
+        let compactedMessageIds: string[] = [];
 
         if (!this.config.enableMemoryCompaction) {
             return result;
@@ -65,7 +71,10 @@ export class MemoryCompactor {
                 );
                 console.log(`Phase 1 compaction accuracy: ${(accuracyScore * 100).toFixed(1)}%`);
 
-                // Store results per character
+                // Track which message IDs were compacted so we can remove them from conv.messages
+                compactedMessageIds = messagesToCompact.filter(m => m.id).map(m => m.id!);
+
+                // Store results per character in memory
                 for (const memory of phase1Results) {
                     for (const charId of memory.characterIds) {
                         const key = String(charId);
@@ -74,6 +83,31 @@ export class MemoryCompactor {
                         this.compactedMemories.set(key, existing);
                     }
                 }
+
+                // Persist compacted memories to disk for each character
+                const playerId = String((conv as any).gameData?.playerID || 'default');
+                const charGroups = new Map<string, CompactedMemory[]>();
+                for (const memory of phase1Results) {
+                    for (const charId of memory.characterIds) {
+                        const key = String(charId);
+                        if (!charGroups.has(key)) charGroups.set(key, []);
+                        charGroups.get(key)!.push(memory);
+                    }
+                }
+                for (const [charId, memories] of charGroups) {
+                    try {
+                        const storeResult = await compactedMemoryStore.saveCompactedMemory(playerId, charId, memories);
+                        serializationTimeMs += storeResult.serializationTimeMs;
+                        diskWriteTimeMs += storeResult.diskWriteTimeMs;
+                    } catch (err) {
+                        console.error(`Failed to persist compacted memory for character ${charId}:`, err);
+                    }
+                }
+
+                // Remove compacted messages from conv.messages to shrink context
+                const compactedIdSet = new Set(compactedMessageIds);
+                conv.messages = conv.messages.filter(m => !m.id || !compactedIdSet.has(m.id));
+                console.log(`Removed ${compactedMessageIds.length} compacted messages from conversation. Remaining: ${conv.messages.length}`);
 
                 result.phase1Run = true;
                 result.memoriesCreated += phase1Results.length;
@@ -93,14 +127,33 @@ export class MemoryCompactor {
             // Convert knowledge graph entities into CompactedMemory entries
             const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph);
 
-            // Store Phase-2 results (track serialization time)
-            const serStart = Date.now();
+            // Store Phase-2 results in memory
             for (const memory of phase2Memories) {
                 for (const charId of memory.characterIds) {
                     const key = String(charId);
                     const existing = this.compactedMemories.get(key) || [];
                     existing.push(memory);
                     this.compactedMemories.set(key, existing);
+                }
+            }
+
+            // Persist Phase-2 memories to disk
+            const playerId = String((conv as any).gameData?.playerID || 'default');
+            const charGroups = new Map<string, CompactedMemory[]>();
+            for (const memory of phase2Memories) {
+                for (const charId of memory.characterIds) {
+                    const key = String(charId);
+                    if (!charGroups.has(key)) charGroups.set(key, []);
+                    charGroups.get(key)!.push(memory);
+                }
+            }
+            for (const [charId, memories] of charGroups) {
+                try {
+                    const storeResult = await compactedMemoryStore.saveCompactedMemory(playerId, charId, memories);
+                    serializationTimeMs += storeResult.serializationTimeMs;
+                    diskWriteTimeMs += storeResult.diskWriteTimeMs;
+                } catch (err) {
+                    console.error(`Failed to save Phase-2 compacted memory for character ${charId}:`, err);
                 }
             }
 
@@ -121,7 +174,7 @@ export class MemoryCompactor {
             diskWriteTimeMs,
             diskReadTimeMs,
             accuracyScore: result.accuracyScore ?? 0,
-            messagesCompacted: result.phase1Run ? messagesToCompact.length : 0,
+            messagesCompacted: result.phase1Run ? compactedMessageIds.length : 0,
             phase1SummariesConsolidated: result.phase2Run ? allPhase1Memories.length : 0,
             startTimestamp,
             endTimestamp: Date.now(),
@@ -211,8 +264,46 @@ export class MemoryCompactor {
         this.phase1Compactor = new Phase1Compactor(config);
         this.phase2Compactor = new Phase2Compactor(config);
         this.scheduler = new CompactionScheduler(config);
+        this.metricsTracker = new CompactionMetricsTracker();
+        this.localizationValidator = new CompactionLocalizationValidator();
     }
 
+    /** Returns the metrics tracker for external performance monitoring. */
+    public getMetricsTracker(): CompactionMetricsTracker {
+        return this.metricsTracker;
+    }
+
+    /** Returns the localization validator for external cross-language checks. */
+    public getLocalizationValidator(): CompactionLocalizationValidator {
+        return this.localizationValidator;
+    }
+
+    /**
+     * Loads compacted memories from disk for a given player and merges them into the in-memory map.
+     * Should be called during conversation initialization to restore persisted state.
+     */
+    public async loadFromDisk(playerId: string): Promise<void> {
+        try {
+            const diskReadStart = Date.now();
+            const result = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            const diskReadTimeMs = Date.now() - diskReadStart;
+            console.log(`Loaded ${result.memories.length} compacted memories from disk for player ${playerId} in ${diskReadTimeMs}ms`);
+
+            // Merge disk memories into in-memory map, grouped by character
+            for (const memory of result.memories) {
+                for (const charId of memory.characterIds) {
+                    const key = String(charId);
+                    const existing = this.compactedMemories.get(key) || [];
+                    // Avoid duplicates by checking IDs
+                    if (!existing.some(m => m.id === memory.id)) {
+                        existing.push(memory);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error(`Failed to load compacted memories from disk for player ${playerId}:`, err);
+        }
+    }
 
     public cleanup(): void {
         this.compactedMemories.clear();
