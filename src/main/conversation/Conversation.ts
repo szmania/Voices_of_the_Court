@@ -1593,22 +1593,28 @@ ${character.fullName}的发言：`
     async resummarize(){
         if (this.config.enableMemoryCompaction) {
             console.log('Starting agentic memory compaction due to context limit.');
-            const result = await this.memoryCompactor.compact(this);
-            if (result.phase1Run) {
-                console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
-                if (result.metrics) {
-                    console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);
+            try {
+                const result = await this.memoryCompactor.compact(this);
+                if (result.phase1Run) {
+                    console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
+                    if (result.metrics) {
+                        console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);
+                    }
+                    // Messages are already removed from conv.messages by MemoryCompactor.compact()
                 }
-                // Messages are already removed from conv.messages by MemoryCompactor.compact()
-            }
-            if (result.phase2Run) {
-                console.log('Compaction Phase 2 complete.');
-            }
+                if (result.phase2Run) {
+                    console.log('Compaction Phase 2 complete.');
+                }
 
-            // After compaction, recalculate the new base prompt size and send it to the UI
-            const newBaseTokens = await this.calculateBasePromptTokens();
-            this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
-            console.log(`Recalculated and updated base tokens after compaction: ${newBaseTokens}`);
+                // After compaction, recalculate the new base prompt size and send it to the UI
+                const newBaseTokens = await this.calculateBasePromptTokens();
+                this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+                console.log(`Recalculated and updated base tokens after compaction: ${newBaseTokens}`);
+            } catch (error) {
+                console.error('Memory compaction failed:', error);
+                // Fall through to the legacy resummarize logic below as a safety net.
+                // The compaction lock is already cleared by MemoryCompactor.compact()'s finally block.
+            }
         } else {
             // Fallback to original resummarize logic
             console.log('Starting conversation resummarization due to context limit.');

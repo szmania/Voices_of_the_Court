@@ -1575,8 +1575,6 @@ ipcMain.handle('get-compaction-stats', async () => {
         return stats;
     }
     return { lastCompactionTime: 0, cooldownRemaining: 0 };
-});
-
 ipcMain.handle('get-compaction-status', async () => {
     if (conversation && conversation.memoryCompactor) {
         const tokenCount = await conversation.calculateBasePromptTokens();
@@ -1584,6 +1582,7 @@ ipcMain.handle('get-compaction-status', async () => {
         const phase1Threshold = conversation.memoryCompactor['config'].compactionPhase1Threshold || 70;
         const phase2Threshold = conversation.memoryCompactor['config'].compactionPhase2Threshold || 5;
         const enableCompaction = conversation.memoryCompactor['config'].enableMemoryCompaction !== false;
+        const isCompacting = conversation.memoryCompactor.isCompacting;
         const allPhase1Memories = conversation.memoryCompactor.getAllCompactedMemories().filter(
             (m: any) => m.compactionLevel === 1
         );
@@ -1599,8 +1598,22 @@ ipcMain.handle('get-compaction-status', async () => {
             contextUsagePct: Math.round((tokenCount / contextSize) * 100),
             cooldownRemaining: stats.cooldownRemaining,
             enableCompaction,
+            isCompacting,
         };
     }
+    return {
+        tokenCount: 0,
+        contextSize: 8192,
+        phase1ThresholdPct: 70,
+        phase1ThresholdTokens: 5734,
+        phase2Threshold: 5,
+        phase1SummaryCount: 0,
+        contextUsagePct: 0,
+        cooldownRemaining: 0,
+        enableCompaction: true,
+        isCompacting: false,
+    };
+});
     return {
         tokenCount: 0,
         contextSize: 8192,

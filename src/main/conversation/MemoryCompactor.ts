@@ -21,6 +21,13 @@ export class MemoryCompactor {
     private localizationValidator: CompactionLocalizationValidator;
     private config: CompactionConfig;
 
+    /**
+     * Promise-based lock to serialize compaction operations.
+     * When non-null, a compaction is in progress. Concurrent callers receive
+     * the same promise, ensuring only one compaction runs at a time.
+     */
+    private _compactionLock: Promise<CompactionResult> | null = null;
+
     constructor(config: CompactionConfig) {
         this.config = config;
         this.phase1Compactor = new Phase1Compactor(config);
@@ -34,7 +41,44 @@ export class MemoryCompactor {
     /**
      * Main compaction entry point. Checks scheduler thresholds and runs appropriate phase.
      */
+    /**
+     * Returns true if a compaction is currently in progress.
+     */
+    public get isCompacting(): boolean {
+        return this._compactionLock !== null;
+    }
+
+    /**
+     * Main compaction entry point. Serialized via promise-based locking to prevent
+     * race conditions. If a compaction is already in progress, concurrent callers
+     * receive the same promise and wait for the ongoing operation to complete.
+     */
     public async compact(conv: Conversation): Promise<CompactionResult> {
+        // If a compaction is already in progress, return the existing promise.
+        // This serializes all compaction calls: concurrent triggers wait for the
+        // ongoing compaction to finish rather than starting a parallel one.
+        if (this._compactionLock) {
+            console.log('[MemoryCompactor] Compaction already in progress. Waiting for existing operation to complete.');
+            return this._compactionLock;
+        }
+
+        // Create the lock promise and store it so concurrent callers can await it.
+        this._compactionLock = this._executeCompaction(conv);
+
+        try {
+            const result = await this._compactionLock;
+            return result;
+        } finally {
+            // Always clear the lock, even if compaction throws.
+            this._compactionLock = null;
+        }
+    }
+
+    /**
+     * Internal implementation of the compaction logic. Separated from compact()
+     * so the lock management (set/clear) is cleanly isolated from the work.
+     */
+    private async _executeCompaction(conv: Conversation): Promise<CompactionResult> {
         const startTimestamp = Date.now();
         const memoryBeforeBytes = process.memoryUsage().heapUsed;
         let serializationTimeMs = 0;
@@ -302,10 +346,13 @@ export class MemoryCompactor {
             console.error(`Failed to load compacted memories from disk for player ${playerId}:`, err);
         }
     }
-
     public cleanup(): void {
+        // Clear the lock to unblock any waiters. The lock promise will
+        // eventually resolve/reject on its own; clearing the reference
+        // allows new compaction calls to proceed after cleanup.
+        this._compactionLock = null;
         this.compactedMemories.clear();
-    }
+}
 }
 
 /**
