@@ -384,6 +384,7 @@ trigger_event = message_event.362`;
         if (newLetters.length > 0) {
             console.log(`Imported and saved ${newLetters.length} new letters.`);
         }
+        return newLetters;
     }
 
     public getLatestLetter(playerId: string): ILetter | null {

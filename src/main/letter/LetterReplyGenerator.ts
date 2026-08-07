@@ -22,7 +22,7 @@ export class LetterReplyGenerator {
     constructor(config: Config, userDataPath: string) {
         this.config = config;
         this.userDataPath = userDataPath;
-        
+
         // Create API connection
         console.log('[LetterReplyGenerator] Creating ApiConnection...');
         this.apiConnection = new ApiConnection(
@@ -39,17 +39,17 @@ export class LetterReplyGenerator {
      * @param letterContent Letter content
      * @returns The constructed prompt
      */
-    private async buildLetterPrompt(gameData: GameData, letter: ILetter): Promise<string> {
+    private async buildLetterPrompt(gameData: GameData, latestLetter: ILetter): Promise<string> {
         // Ensure sender and recipient from the letter are in the gameData context
-        if (!gameData.characters.has(letter.sender.id)) {
-            gameData.addCharacter(letter.sender.id, letter.sender);
+        if (!gameData.characters.has(latestLetter.sender.id)) {
+            gameData.addCharacter(latestLetter.sender.id, latestLetter.sender);
         }
-        if (!gameData.characters.has(letter.recipient.id)) {
-            gameData.addCharacter(letter.recipient.id, letter.recipient);
+        if (!gameData.characters.has(latestLetter.recipient.id)) {
+            gameData.addCharacter(latestLetter.recipient.id, latestLetter.recipient);
         }
 
-        const player = gameData.characters.get(letter.sender.id);
-        const ai = gameData.characters.get(letter.recipient.id);
+        const player = gameData.characters.get(latestLetter.sender.id);
+        const ai = gameData.characters.get(latestLetter.recipient.id);
 
         if (!player || !ai) {
             // This should now be much less likely to happen
@@ -67,13 +67,13 @@ export class LetterReplyGenerator {
             const depth = this.config.summaries_insert_depth || 3;
             const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(player.id));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id)).slice(0, depth);
-            
+
             if (aiSummaries.length > 0) {
                 // Read all summaries for this character, sorted by date (most recent first)
-                const allSummaries = aiSummaries.map((summary, index) => 
+                const allSummaries = aiSummaries.map((summary, index) =>
                     `${index + 1}. ${summary.date}: ${summary.content}`
                 ).join('\n');
-                
+
                 conversationSummary = `Summaries of previous conversations with ${player.fullName}:\n${allSummaries}\n\n`;
                 console.log(`Loaded ${aiSummaries.length} conversation summaries for AI ID ${ai.id}`);
             } else {
@@ -90,7 +90,7 @@ export class LetterReplyGenerator {
         const letterSummaries = letterManager.getLetterSummaries(String(player.id), String(ai.id)).slice(0, depth);
         let letterSummaryContent = '';
         if (letterSummaries.length > 0) {
-            const allSummaries = letterSummaries.map((summary, index) => 
+            const allSummaries = letterSummaries.map((summary, index) =>
                 `${index + 1}. ${summary.date}: ${summary.summary}`
             ).join('\n');
             letterSummaryContent = `Summaries of previous letters with ${player.fullName}:\n${allSummaries}\n\n`;
@@ -110,7 +110,7 @@ export class LetterReplyGenerator {
                 },
                 textGenApiConnection: this.apiConnection
             } as any;
-            
+
             const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.userDataPath, gameData).memoriesPrompt };
             const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
@@ -132,7 +132,7 @@ export class LetterReplyGenerator {
                        .replace('{{letterSummaryContent}}', letterSummaryContent || '')
                        .replace('{{memoryContent}}', memoryContent || '')
                        .replace('{{playerName}}', player?.fullName || '')
-                       .replace('{{letterContent}}', letter?.content || '')
+                       .replace('{{letterContent}}', latestLetter?.content || '')
                        .replace(/{{language}}/g, this.config.language || 'en');
 
         return prompt;
@@ -158,11 +158,11 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @returns The generated reply content, or null on failure
      */
-    public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<ILetter | null> {
+    public async generateLetterReply(gameData: GameData, latestLetter: ILetter): Promise<ILetter | null> {
         try {
             console.log('[LetterReplyGenerator] Starting letter reply generation.');
             // Build prompt
-            const promptText = await this.buildLetterPrompt(gameData, letter);
+            const promptText = await this.buildLetterPrompt(gameData, latestLetter);
             console.log(`[LetterReplyGenerator] Generated letter prompt: ${promptText.substring(0, 200)}...`);
 
             // Convert prompt to Message array format
@@ -175,39 +175,39 @@ export class LetterReplyGenerator {
 
             // Call LLM to generate reply
             console.log('[LetterReplyGenerator] Calling LLM to generate reply...');
- const apiResult = await this.apiConnection.complete(messages, false, {
+            const apiResult = await this.apiConnection.complete(messages, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             });
             console.log('[LetterReplyGenerator] LLM call complete.');
 
- const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
-    if (!response || response.trim() === '') {
+            const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
+            if (!response || response.trim() === '') {
                 console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
                 return null;
             }
 
             // Escape quotes in the reply
             const escapedResponse = this.escapeQuotes(response.trim(), this.config.language);
-            
+
             console.log(`[LetterReplyGenerator] Generated letter reply: ${escapedResponse.substring(0, 100)}...`);
-            
+
             // Create a UUID for the reply letter *before* saving history and summary
             const replyLetterId = randomUUID();
 
             // Generate and save a summary of the letter
             console.log('[LetterReplyGenerator] Generating and saving letter summary...');
-            await this.generateAndSaveLetterSummary(gameData, letter, escapedResponse, replyLetterId);
+            await this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId);
             console.log('[LetterReplyGenerator] Letter summary saved.');
 
             // Save letter history immediately
             console.log('[LetterReplyGenerator] Saving letter history...');
-            const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
+            const replyLetter = await this.saveLetterHistory(String(latestLetter.sender.id), String(latestLetter.recipient.id), latestLetter, escapedResponse, gameData, replyLetterId);
             console.log('[LetterReplyGenerator] Letter history saved.');
-            
+
             // Update original letter status back to 'sent' since reply is now pending
             const letterManager = LetterManager.getInstance();
-            letterManager.updateLetterStatus(String(letter.sender.id), String(letter.recipient.id), letter.id, 'sent');
+            letterManager.updateLetterStatus(String(latestLetter.sender.id), String(latestLetter.recipient.id), latestLetter.id, 'sent');
 
             // Return the generated reply so it can be queued for delayed delivery
             if (replyLetter) {
@@ -236,79 +236,79 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<ILetter | null> {
+    private async saveLetterHistory(playerId: string, aiId: string, latestLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
-    
+
             const player = gameData.characters.get(Number(playerId));
             const ai = gameData.characters.get(Number(aiId));
-    
+
             if (!player || !ai) {
                 console.error("Could not find player or AI character to save letter history.");
                 return null;
             }
-    
+
             // AI writes the reply after stage 2 of the journey.
-            const stage2EndDays = Math.floor(originalLetter.delay * 5 / 9);
-            const replyWrittenDay = originalLetter.totalDays + stage2EndDays;
-            
-            const replyTimestamp = new Date(originalLetter.timestamp);
+            const stage2EndDays = Math.floor(latestLetter.delay * 5 / 9);
+            const replyWrittenDay = latestLetter.totalDays + stage2EndDays;
+
+            const replyTimestamp = new Date(latestLetter.timestamp);
             replyTimestamp.setUTCDate(replyTimestamp.getUTCDate() + stage2EndDays);
 
             // The player is expected to receive the reply after the full delay.
-            const expectedPlayerDeliveryDate = new Date(originalLetter.timestamp);
-            expectedPlayerDeliveryDate.setUTCDate(expectedPlayerDeliveryDate.getUTCDate() + originalLetter.delay);
+            const expectedPlayerDeliveryDate = new Date(latestLetter.timestamp);
+            expectedPlayerDeliveryDate.setUTCDate(expectedPlayerDeliveryDate.getUTCDate() + latestLetter.delay);
 
             const replyLetter = new Letter(
                 replyLetterId,
                 ai, // sender is the AI
                 player, // recipient is the player
-                `Re: ${originalLetter.subject}`,
+                `Re: ${latestLetter.subject}`,
                 replyContent,
                 LetterType.PERSONAL,
                 replyTimestamp, // Use the calculated reply date
                 false, // It's a new letter, so not read by the player yet
-                originalLetter.delay,
+                latestLetter.delay,
                 replyWrittenDay, // The "day number" when the reply was written
-                originalLetter.id,
+                latestLetter.id,
                 'pending',
                 false,
                 undefined, // creationTimestamp
                 undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
                 expectedPlayerDeliveryDate // When the player should receive it
             );
-    
+
             // Atomically update the history file
             const otherCharacterId = aiId; // The file is named after the non-player character
             const filePath = letterManager.getLetterFilePath(playerId, otherCharacterId);
-    
+
             let history: ILetter[] = [];
             if (fs.existsSync(filePath)) {
                 history = letterManager.getLetters(playerId, otherCharacterId);
             }
-    
+
             // Add original letter if not present (using a more robust duplicate check)
             const isOriginalDuplicate = history.some(l =>
-                l.subject === originalLetter.subject &&
-                l.totalDays === originalLetter.totalDays &&
-                l.sender.id === originalLetter.sender.id &&
-                l.recipient.id === originalLetter.recipient.id
+                l.subject === latestLetter.subject &&
+                l.totalDays === latestLetter.totalDays &&
+                l.sender.id === latestLetter.sender.id &&
+                l.recipient.id === latestLetter.recipient.id
             );
             if (!isOriginalDuplicate) {
-                history.push(originalLetter);
+                history.push(latestLetter);
             }
 
             // Add reply letter if not present (UUID check is fine here as it's brand new)
             if (!history.some(l => l.id === replyLetter.id)) {
                 history.push(replyLetter);
             }
-            
+
             history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
+
             fs.writeFileSync(filePath, JSON.stringify(history, null, 2), 'utf8');
-            
+
             console.log(`Saved original letter and AI reply to letter history for player ${playerId} and character ${aiId}`);
-    
+
             return replyLetter;
         } catch (error) {
             console.error(`Error saving letter history: ${error}`);
@@ -326,7 +326,7 @@ export class LetterReplyGenerator {
         try {
             const player = gameData.characters.get(originalLetter.sender.id);
             const ai = gameData.characters.get(originalLetter.recipient.id);
-            
+
             if (!player || !ai) {
                 console.error('Player or AI character data not found for summary generation');
                 return;
@@ -372,13 +372,13 @@ export class LetterReplyGenerator {
         summary: (summaryContent as any)?.trim?.() ?? '',
                 letterIds: [originalLetter.id, replyLetterId]
             };
-    
+
             const letterManager = LetterManager.getInstance();
             const existingSummaries = letterManager.getLetterSummaries(playerId, aiId);
-            
+
             // Add new summary to the beginning of the list
             existingSummaries.unshift(newSummary);
-    
+
             letterManager.saveLetterSummaries(playerId, aiId, existingSummaries);
             console.log(`Letter summary saved for AI ID ${aiId}`);
 

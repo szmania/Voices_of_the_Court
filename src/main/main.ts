@@ -1308,17 +1308,34 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
 
         // Import letters from log, which now also saves them.
-        await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
-        console.log("Imported and saved letters immediately after VOTC:LETTER event.");
+        // Retry import up to 5 times with increasing delays to handle log flush timing
+        let latestLetter: ILetter | null = null;
+        let allPlayerLetters: ILetter[] = [];
+        const maxRetries = 5;
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
+            console.log(`Imported and saved letters immediately after VOTC:LETTER event (attempt ${attempt + 1}/${maxRetries}).`);
 
-        // Refresh the letters UI to show the new letter in the outbox
-        if (configWindow && !configWindow.window.isDestroyed()) {
-            configWindow.window.webContents.send('letter-status-changed');
+            // Refresh the letters UI to show the new letter in the outbox
+            if (configWindow && !configWindow.window.isDestroyed()) {
+                configWindow.window.webContents.send('letter-status-changed');
+            }
+
+            // Get all letters for the player and find the most recent one by creation date.
+            allPlayerLetters = letterManager.getAllLetters(playerId);
+            latestLetter = letterManager.getLatestLetter(playerId);
+
+            if (latestLetter) {
+                console.log(`Found latest letter ${latestLetter.id} on attempt ${attempt + 1}.`);
+                break;
+            }
+
+            if (attempt < maxRetries - 1) {
+                const delay = 250 * (attempt + 1); // 250ms, 500ms, 750ms, 1000ms
+                console.log(`No letters found after import on attempt ${attempt + 1}. Retrying in ${delay}ms...`);
+                await sleep(delay);
+            }
         }
-
-        // Get all letters for the player and find the most recent one by creation date.
-        const allPlayerLetters = letterManager.getAllLetters(playerId);
-        const latestLetter = letterManager.getLatestLetter(playerId);
 
         if (!latestLetter) {
             console.error("VOTC:LETTER event, but no letters found after import.");
