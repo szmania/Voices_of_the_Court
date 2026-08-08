@@ -357,7 +357,30 @@ export class MemoryCompactor {
         // allows new compaction calls to proceed after cleanup.
         this._compactionLock = null;
         this.compactedMemories.clear();
-}
+    }
+
+    /**
+     * Gathers and returns the current status of the memory compactor.
+     * @param tokenCount The current token count of the conversation.
+     * @param contextSize The context size of the current model.
+     * @returns An object containing detailed compaction status.
+     */
+    public getCompactionStatus(tokenCount: number, contextSize: number): any {
+        const phase1Summaries = this.getAllCompactedMemories().filter(m => m.compactionLevel === 1);
+        const schedulerStats = this.scheduler.getCompactionStats();
+
+        return {
+            contextUsagePct: contextSize > 0 ? Math.round((tokenCount / contextSize) * 100) : 0,
+            phase1ThresholdPct: this.config.compactionPhase1Threshold,
+            tokenCount: tokenCount,
+            contextSize: contextSize,
+            isCompacting: this.isCompacting,
+            enableCompaction: this.config.enableMemoryCompaction,
+            cooldownRemaining: schedulerStats.cooldownRemaining,
+            phase1SummaryCount: phase1Summaries.length,
+            phase2Threshold: this.config.compactionPhase2Threshold,
+        };
+    }
 }
 
 /**
