@@ -1583,61 +1583,22 @@ ipcMain.on('manual-compaction-trigger', async (event) => {
     }
 });
 
-ipcMain.handle('get-compaction-stats', async () => {
-    if (conversation && conversation.memoryCompactor) {
-        const stats = conversation.memoryCompactor['scheduler'].getCompactionStats();
-        return stats;
-    }
-    return { lastCompactionTime: 0, cooldownRemaining: 0 };
 ipcMain.handle('get-compaction-status', async () => {
     if (conversation && conversation.memoryCompactor) {
         const tokenCount = await conversation.calculateBasePromptTokens();
         const contextSize = conversation.textGenApiConnection.context || 8192;
-        const phase1Threshold = conversation.memoryCompactor['config'].compactionPhase1Threshold || 70;
-        const phase2Threshold = conversation.memoryCompactor['config'].compactionPhase2Threshold || 5;
-        const enableCompaction = conversation.memoryCompactor['config'].enableMemoryCompaction !== false;
-        const isCompacting = conversation.memoryCompactor.isCompacting;
-        const allPhase1Memories = conversation.memoryCompactor.getAllCompactedMemories().filter(
-            (m: any) => m.compactionLevel === 1
-        );
-        const stats = conversation.memoryCompactor['scheduler'].getCompactionStats();
-        
-        return {
-            tokenCount,
-            contextSize,
-            phase1ThresholdPct: phase1Threshold,
-            phase1ThresholdTokens: Math.floor(contextSize * (phase1Threshold / 100)),
-            phase2Threshold: phase2Threshold,
-            phase1SummaryCount: allPhase1Memories.length,
-            contextUsagePct: Math.round((tokenCount / contextSize) * 100),
-            cooldownRemaining: stats.cooldownRemaining,
-            enableCompaction,
-            isCompacting,
-        };
+        return conversation.memoryCompactor.getCompactionStatus(tokenCount, contextSize);
     }
     return {
+        contextUsagePct: 0,
+        phase1ThresholdPct: 70,
         tokenCount: 0,
         contextSize: 8192,
-        phase1ThresholdPct: 70,
-        phase1ThresholdTokens: 5734,
-        phase2Threshold: 5,
-        phase1SummaryCount: 0,
-        contextUsagePct: 0,
-        cooldownRemaining: 0,
-        enableCompaction: true,
         isCompacting: false,
-    };
-});
-    return {
-        tokenCount: 0,
-        contextSize: 8192,
-        phase1ThresholdPct: 70,
-        phase1ThresholdTokens: 5734,
-        phase2Threshold: 5,
-        phase1SummaryCount: 0,
-        contextUsagePct: 0,
-        cooldownRemaining: 0,
         enableCompaction: true,
+        cooldownRemaining: 0,
+        phase1SummaryCount: 0,
+        phase2Threshold: 5,
     };
 });
 
