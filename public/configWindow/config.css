@@ -258,6 +258,12 @@ input[type=checkbox]{
   width:100%;
 }
 
+
+
+.column h3 {
+    text-align: center;
+}
+
 .column {
   flex: 1;
 }
@@ -1744,12 +1750,22 @@ mark.current-highlight {
 }
 
 .compaction-progress-labels {
+    position: relative;
     display: flex;
     justify-content: space-between;
     font-size: 0.8em;
     color: #aaa;
+    min-height: 18px;
 }
 
+.compaction-phase1-label {
+    position: absolute;
+    color: #ffab00;
+    font-weight: bold;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    transition: left 0.3s ease-in-out;
+}
 .compaction-phase1-label {
     color: #ffab00;
     font-weight: bold;

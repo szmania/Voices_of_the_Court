@@ -13,7 +13,7 @@ function defineTemplate(path: string, label: string){
     `
 }
 
-    
+
 
 class openFolderButton extends HTMLElement{
     path: string;
@@ -31,7 +31,7 @@ class openFolderButton extends HTMLElement{
         this.shadow.append(template.content.cloneNode(true));
         this.button = this.shadow.querySelector("button");
 
-        
+
 
     }
 
@@ -46,17 +46,17 @@ class openFolderButton extends HTMLElement{
         let userdataPath = await ipcRenderer.invoke('get-userdata-path');
 
         this.button.addEventListener("click", (e: any) => {
-            
-            
+
+
             //ipcRenderer.send('open-folder', this.path);
             shell.openPath(path.resolve(path.join(userdataPath, this.path)));
-        }); 
+        });
 
         // Handle localization
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
-            
+
             this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
             ipcRenderer.on('update-language', this.languageUpdateHandler);
         }
@@ -65,28 +65,6 @@ class openFolderButton extends HTMLElement{
     disconnectedCallback() {
         if (this.languageUpdateHandler) {
             ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
-        }
-    }
-    async connectedCallback(){
-
-        let userdataPath = await ipcRenderer.invoke('get-userdata-path');
-
-        this.button.addEventListener("click", (e: any) => {
-            
-            
-            //ipcRenderer.send('open-folder', this.path);
-            shell.openPath(path.resolve(path.join(userdataPath, this.path)));
-        }); 
-
-        // Handle localization
-        const i18nKey = this.getAttribute('data-i18n');
-        if (i18nKey) {
-            this.updateTranslation(i18nKey);
-            
-            // Listen for language changes
-            ipcRenderer.on('update-language', () => {
-                this.updateTranslation(i18nKey);
-            });
         }
     }
 

@@ -14,10 +14,10 @@ function defineTemplate(label: string, min: number, max: number, step: number){
     </style>
     <label for="awd">${label}</label><br>
     <input type="number" name="awd" min=${min} max=${max} step=${step}>`
-    
+
 }
 
-    
+
 
 class ConfigNumber extends HTMLElement{
     label: string;
@@ -68,7 +68,7 @@ class ConfigNumber extends HTMLElement{
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
-            
+
             this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
             ipcRenderer.on('update-language', this.languageUpdateHandler);
         }
@@ -77,31 +77,6 @@ class ConfigNumber extends HTMLElement{
     disconnectedCallback() {
         if (this.languageUpdateHandler) {
             ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
-        }
-    }
-    async connectedCallback(){
-        const confID: string = this.confID;
-
-        let config = await ipcRenderer.invoke('get-config');
-
-        //@ts-ignore
-        this.input.value = config[confID];
-
-        this.input.addEventListener("change", (e: any) => {
-            console.log(confID)
-
-            ipcRenderer.send('config-change', confID, parseFloat(this.input.value));
-        });
-
-        // Handle localization
-        const i18nKey = this.getAttribute('data-i18n');
-        if (i18nKey) {
-            this.updateTranslation(i18nKey);
-            
-            // Listen for language changes
-            ipcRenderer.on('update-language', () => {
-                this.updateTranslation(i18nKey);
-            });
         }
     }
 

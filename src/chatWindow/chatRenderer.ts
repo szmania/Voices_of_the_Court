@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
@@ -1768,7 +1768,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
                 const characterDiv = document.createElement('div');
                 characterDiv.classList.add('historical-characters', 'message');
                 characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-                    
+
                 const playerShortName = gameData.getPlayer()?.shortName || gameData.playerName;
                 const characterString = conv.characters.map((name: string) => {
                     if (name === playerShortName || name === gameData.playerName) {
