@@ -1,3 +1,9 @@
+---
+title: README_turkish
+type: note
+permalink: votc/readme-turkish
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 Karakterleri, komploları ve hikaye akışlarını takip etmenize yardımcı olan, Crusader Kings III için yapay zeka destekli bir yardımcı uygulama. Voices of the Court 2.0 - Community Edition, Büyük Dil Modellerini (LLM) oyuna entegre ederek karakterlerle doğal sohbetler kurmanıza ve oyun durumunu dinamik olarak etkilemenize olanak tanır.

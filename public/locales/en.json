@@ -15,7 +15,18 @@
     "language_tooltip": "Select application language",
     "discord_tooltip": "Join our Discord",
     "steam_tooltip": "View on Steam Workshop",
-    "website_tooltip": "Visit our Website"
+    "website_tooltip": "Visit our Website",
+    "close": "Close",
+    "connection_tooltip": "Configure API and game connection settings",
+    "actions_tooltip": "Enable and configure in-game actions",
+    "summarization_tooltip": "Manage conversation summarization settings",
+    "prompts_tooltip": "Customize AI prompts and behaviors",
+    "letters_tooltip": "View and manage in-game letters",
+    "diaries_tooltip": "Manage character diaries",
+    "settings_tooltip": "Adjust application and AI generation settings",
+    "system_tooltip": "Manage system settings, updates, and data",
+    "help_tooltip": "Open the help and documentation window",
+    "close_tooltip": "Close this configuration window"
   },
   "diaries": {
     "header": "Diaries",
@@ -39,7 +50,12 @@
     "player2_info": "Hint: If you haven't already, download Player2 and run it in the background.",
     "player2_download_button": "Download Player2",
     "player2_download_tooltip": "Download the Player2 application",
-    "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary."
+"player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary.",
+    "email": "Email",
+    "password": "Password",
+    "novelai_password": "Password",
+    "novelai_model": "Model",
+    "novelai_password_tooltip": "Your NovelAI account password (not API key)"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -50,7 +66,8 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
-    "custom": "Custom (OpenAI-compatible)"
+"custom": "Custom (OpenAI-compatible)",
+    "novelai": "NovelAI"
   },
   "actions": {
     "enable_actions": "Enable actions",
@@ -133,6 +150,7 @@
     "mod_tfe": "The Fallen Eagle",
     "mod_warcraft_goa2": "Warcraft: Guardians of Azeroth 2",
     "mod_elder_kings_2": "Elder Kings 2",
+    "mod_princes_of_darkness": "Princes of Darkness",
     "total_tokens_header": "Total Tokens",
     "total_conversation_tokens": "Total Conversation Tokens:",
     "total_letter_tokens": "Total Letter Tokens:"
@@ -315,7 +333,9 @@
     "edit_tooltip": "Press Enter or click outside of the edit box to save, Escape to cancel. Standard Ctrl+Z/Cmd+Z for undo is supported.",
     "cancel_button": "CANCEL",
     "cancel_response_tooltip": "Cancel the current AI response generation.",
-    "generation_cancelled": "Generation cancelled by user."
+    "generation_cancelled": "Generation cancelled by user.",
+    "config_tooltip": "Open Config Panel",
+    "restore_config_tooltip": "Restore Config Panel"
   },
   "narrative": {
     "fallback_prompt": "Please generate a short narrative based on the following conversation, describing the atmosphere of the scene or the character's inner feelings. The narrative should be concise and vivid, with a length of 50-100 words.",

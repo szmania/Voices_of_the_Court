@@ -39,7 +39,10 @@
     "player2_info": "Sugerencia: Si aún no lo has hecho, descarga Player2 y ejecútalo en segundo plano.",
     "player2_download_button": "Descargar Player2",
     "player2_download_tooltip": "Descargar la aplicación Player2",
-    "player2_connection_failed": "Falló la conexión con Player2. Por favor, descarga la aplicación Player2 desde https://player2.game, asegúrate de que se está ejecutando en segundo plano y vuelve a intentarlo. No es necesaria una cuenta."
+    "player2_connection_failed": "Falló la conexión con Player2. Por favor, descarga la aplicación Player2 desde https://player2.game, asegúrate de que se está ejecutando en segundo plano y vuelve a intentarlo. No es necesaria una cuenta.",
+    "novelai_password": "Contraseña",
+    "novelai_model": "Modelo",
+    "novelai_password_tooltip": "La contraseña de su cuenta NovelAI (no es clave API)"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -50,6 +53,7 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
+    "novelai": "NovelAI",
     "custom": "Personalizado (compatible con OpenAI)"
   },
   "actions": {
@@ -126,6 +130,7 @@
     "mod_tfe": "El Águila Caída",
     "mod_warcraft_goa2": "Warcraft: Guardianes de Azeroth 2",
     "mod_elder_kings_2": "Reyes Ancianos 2",
+    "mod_princes_of_darkness": "Príncipes de las Tinieblas",
     "total_tokens_header": "Tokens totales",
     "total_conversation_tokens": "Tokens de conversación totales:",
     "total_letter_tokens": "Tokens de carta totales:"

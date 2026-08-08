@@ -1,3 +1,9 @@
+---
+title: README
+type: note
+permalink: votc/readme
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE)
 
 An AI-powered companion for Crusader Kings III that helps you keep track of characters, plots, and storylines. Voices of the Court 2.0 - Community Edition integrates Large Language Models into the game, letting you hold natural conversations with characters and dynamically influence the game state.
@@ -19,7 +25,7 @@ Join our Discord:
 ### 🌟 Features
 
 ### 🎮 Configuration Interface
-- **🤖 Multiple AI Models**: Support for OpenAI GPT models, Anthropic Claude, Player2, and local models
+- **🤖 Multiple AI Models**: Support for OpenAI GPT models, Anthropic Claude, DeepSeek, Player2, NovelAI, and local models
 - **🧠 Character Memory**: Persistent memory system that tracks character relationships and history
 - **📚 Context Management**: Adjustable context window and conversation history settings
 - **🎯 Custom Prompts**: Personalized system prompts for different character types
@@ -55,6 +61,14 @@ The Connection page is used to configure the connection to the language model AP
 - **API Connection Configuration**:
   - Select text generation API provider (e.g., OpenAI, Kobold, etc.)
   - Configure API key, endpoint URL, and model name
+
+- **DeepSeek API Configuration**:
+  - **Model Name**: Specify the DeepSeek model to use (e.g., `deepseek-chat`). This field allows you to configure the exact model for your DeepSeek API connection.
+  - **API Key**: Enter your DeepSeek API key.
+  - **Endpoint URL**: The base URL for the DeepSeek API (default: `https://api.deepseek.com`).
+
+- **API Connection Test**:
+  - The connection test now treats empty 2xx responses from the API as successful, logging "API returned an empty response" instead of failing. This ensures compatibility with APIs that may return an empty body for successful health checks.
 
 - **CK3 User Folder Path**:
   - Set the CK3 folder path where user data is stored

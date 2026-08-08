@@ -13,10 +13,14 @@ html{
   font-family: 'Gitan', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: #e0e0e0;
   cursor: url('../assets/cursor.png'), auto;
+  height: 100vh;
 }
 
 body{
   margin:0px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* Custom Scrollbar */
@@ -47,10 +51,12 @@ input::-webkit-inner-spin-button {
 }
 
 .navbar{
-  position: fixed;
-  top: 0px;
+  position: static;
   width:100%;
   z-index: 10;
+  -webkit-app-region: drag; /* Make the navbar draggable */
+  cursor: move;
+  flex-shrink: 0;
 }
 
 .navbar ul {
@@ -66,14 +72,14 @@ input::-webkit-inner-spin-button {
   float: left;
   display:flex;
   flex-direction:row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .navbar li {
   text-align: center;
   float: left;
   order:1;
-  flex-grow:1;
+  flex-grow: 0;
   min-width: 100px;
 }
 
@@ -87,6 +93,7 @@ input::-webkit-inner-spin-button {
   border-right: 1px solid #3d2e1e;
   transition: all 0.2s;
   background-color: #2d2d2d;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .navbar li a:hover {
@@ -105,9 +112,32 @@ input::-webkit-inner-spin-button {
   font-weight: bold;
   border-left: 1px solid #3d2e1e;
   background-color: #2d2d2d;
+.navbar li.help-menu a:hover {
+  background-color: #3d2e1e;
+  color: #ffd700;
 }
 
-.navbar li.help-menu a:hover {
+.navbar li.close-menu {
+    order: 2;
+    margin-left: auto;
+    min-width: 50px;
+    flex-grow: 0;
+}
+
+.navbar li.close-menu a {
+    font-size: 24px;
+    padding: 10px 15px;
+    line-height: 1;
+    font-weight: bold;
+    color: #a9a9a9;
+    border-left: 1px solid #3d2e1e;
+    background-color: #2d2d2d;
+}
+
+.navbar li.close-menu a:hover {
+    color: #fff;
+    background-color: #8b0000;
+}
   background-color: #3d2e1e;
   color: #ffd700;
 }
@@ -246,11 +276,12 @@ input[type=checkbox]{
 
 .container{
   padding: 2rem;
-  padding-top: 4rem;
   padding-bottom: 5rem;
   box-sizing: border-box;
 
   display: none;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
 .row {
@@ -458,6 +489,7 @@ language-selector {
   width: 100%;
   border-right: 1px solid #3d2e1e;
   transition: all 0.2s;
+  -webkit-app-region: no-drag; /* Make dropdown clickable */
 }
 
 .dropbtn:hover {
@@ -515,6 +547,7 @@ language-selector {
   color: #b8860b;
   font-size: 22px; /* For the globe icon */
   text-decoration: none;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .social-links-li a.discord-link {
@@ -1037,6 +1070,7 @@ mark.current-highlight {
   color: #b8860b;
   font-size: 22px; /* For the globe icon */
   text-decoration: none;
+  -webkit-app-region: no-drag; /* Make links clickable */
 }
 
 .social-links-li a.discord-link {

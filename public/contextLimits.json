@@ -140,5 +140,11 @@
     "grok-3": 131072,
     "grok-2-vision-1212": 32768,
     "player2-gpt-3.5-turbo": 16385,
-    "player2-gpt-4o": 128000
+    "player2-gpt-4o": 128000,
+    "kayra-v1": 8192,
+    "llama-3-erato-v1": 8192,
+    "clio-v1": 8192,
+    "krake-v2": 2048,
+    "euterpe-v2": 2048,
+    "6B-v4": 2048
 }

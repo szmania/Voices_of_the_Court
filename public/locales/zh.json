@@ -15,7 +15,8 @@
     "language_tooltip": "选择应用程序语言",
     "discord_tooltip": "加入我们的Discord",
     "steam_tooltip": "在Steam创意工坊上查看",
-    "website_tooltip": "访问我们的网站"
+    "website_tooltip": "访问我们的网站",
+    "close": "关闭"
   },
   "diaries": {
     "header": "日记",
@@ -39,7 +40,13 @@
     "player2_info": "提示：如果尚未下载，请下载Player2并在后台运行。",
     "player2_download_button": "下载Player2",
     "player2_download_tooltip": "下载Player2应用程序",
-    "player2_connection_failed": "Player2 连接失败。请从 https://player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。"
+"player2_connection_failed": "Player2 连接失败。请从 https://player2.game 下载 Player2 应用，确保其在后台运行，然后重试。无需创建帐户。",
+    "email": "电子邮件",
+    "password": "密码",
+    "model": "模型",
+    "novelai_password": "密码",
+    "novelai_model": "模型",
+    "novelai_password_tooltip": "您的 NovelAI 账户密码（不是 API 密钥）"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -50,7 +57,8 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
-    "custom": "自定义 (OpenAI 兼容)"
+"custom": "自定义 (OpenAI 兼容)",
+    "novelai": "NovelAI"
   },
   "actions": {
     "enable_actions": "启用动作",
@@ -126,6 +134,7 @@
     "mod_tfe": "堕落之鹰",
     "mod_warcraft_goa2": "魔兽争霸：艾泽拉斯守护者2",
     "mod_elder_kings_2": "上古卷轴：君王2",
+    "mod_princes_of_darkness": "黑暗王子",
     "total_tokens_header": "总令牌数",
     "total_conversation_tokens": "总对话令牌数：",
     "total_letter_tokens": "总信件令牌数："
@@ -301,7 +310,9 @@
     "edit_tooltip": "按 Enter 或在编辑框外单击以保存，按 Escape 取消。支持标准的 Ctrl+Z/Cmd+Z 撤消操作。",
     "cancel_button": "取消",
     "cancel_response_tooltip": "取消当前AI响应生成。",
-    "generation_cancelled": "用户已取消生成。"
+    "generation_cancelled": "用户已取消生成。",
+    "config_tooltip": "打开配置面板",
+    "restore_config_tooltip": "恢复配置面板"
   },
   "narrative": {
     "fallback_prompt": "请根据以下对话内容生成一段简短的旁白，描述场景氛围或角色的内心感受。旁白应该简洁、生动，长度控制在50-100字之间。",

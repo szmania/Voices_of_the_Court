@@ -39,7 +39,10 @@
     "player2_info": "Подсказка: Если вы еще этого не сделали, скачайте Player2 и запустите его в фоновом режиме.",
     "player2_download_button": "Скачать Player2",
     "player2_download_tooltip": "Скачать приложение Player2",
-    "player2_connection_failed": "Сбой подключения к Player2. Загрузите приложение Player2 с https://player2.game, убедитесь, что оно запущено в фоновом режиме, и повторите попытку. Учетная запись не требуется."
+    "player2_connection_failed": "Сбой подключения к Player2. Загрузите приложение Player2 с https://player2.game, убедитесь, что оно запущено в фоновом режиме, и повторите попытку. Учетная запись не требуется.",
+    "novelai_password": "Пароль",
+    "novelai_model": "Модель",
+    "novelai_password_tooltip": "Пароль вашей учетной записи NovelAI (не API-ключ)"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -50,6 +53,7 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
+    "novelai": "NovelAI",
     "custom": "Custom (OpenAI-compatible)"
   },
   "actions": {
@@ -126,6 +130,7 @@
     "mod_tfe": "Падший орел",
     "mod_warcraft_goa2": "Warcraft: Хранители Азерота 2",
     "mod_elder_kings_2": "Древние Короли 2",
+    "mod_princes_of_darkness": "Князья Тьмы",
     "total_tokens_header": "Всего токенов",
     "total_conversation_tokens": "Всего токенов разговора:",
     "total_letter_tokens": "Всего токенов письма:"

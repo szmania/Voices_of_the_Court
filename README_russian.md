@@ -1,3 +1,9 @@
+---
+title: README_russian
+type: note
+permalink: votc/readme-russian
+---
+
 # Voices of the Court 2.0 - Community Edition (VOTC-CE) - Голоса Двора
 
 ИИ-компаньон для Crusader Kings III, который помогает отслеживать персонажей, заговоры и сюжетные линии. Voices of the Court 2.0 - Community Edition интегрирует большие языковые модели в игру, позволяя вести естественные диалоги с персонажами и динамически влиять на состояние игры.
@@ -124,5 +130,3 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
-
-

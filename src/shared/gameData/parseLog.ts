@@ -1,10 +1,10 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative } from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
 async function readLastRelevantBlock(filePath: string): Promise<string | undefined> {
-    const CHUNK_SIZE = 256 * 1024; // 256KB chunks
+    const CHUNK_SIZE = 512 * 1024; // 512KB chunks
     const SEARCH_STRING = 'VOTC:IN/;/init';
 
     let handle;
@@ -61,7 +61,39 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     const deferredRelations: { charAID: number, charBID: number, relationship: string }[] = [];
 
     // Efficiently find the last block by reading from the end of the file
-    const relevantLogBlock = await readLastRelevantBlock(debugLogPath);
+    let relevantLogBlock: string | undefined;
+    for (let i = 0; i < 3; i++) {
+        relevantLogBlock = await readLastRelevantBlock(debugLogPath);
+        if (relevantLogBlock) {
+            break;
+        }
+        // console.log(`Attempt ${i + 1} to find relevant log block failed, retrying in 100ms...`);
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    if (!relevantLogBlock) {
+        console.log("Chunked search failed. Attempting to read last 2MB of the log file as a fallback.");
+        let handle;
+        try {
+            handle = await fs.promises.open(debugLogPath, 'r');
+            const { size } = await handle.stat();
+            const fallbackReadSize = 2 * 1024 * 1024;
+            const position = Math.max(0, size - fallbackReadSize);
+            const readSize = size - position;
+            const buffer = Buffer.alloc(readSize);
+            await handle.read(buffer, 0, readSize, position);
+            const content = buffer.toString('utf8');
+            const lastIndex = content.lastIndexOf('VOTC:IN/;/init');
+            if (lastIndex !== -1) {
+                const lineStartIndex = content.lastIndexOf('\n', lastIndex);
+                relevantLogBlock = content.substring(lineStartIndex + 1);
+            }
+        } catch (err) {
+            console.error(`Error during fallback log read: ${err}`);
+        } finally {
+            if (handle) await handle.close();
+        }
+    }
 
     if (!relevantLogBlock) {
         console.debug("Finished parsing log file, but 'VOTC:IN/;/init' was not found. No game data will be loaded.");
