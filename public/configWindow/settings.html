@@ -451,18 +451,6 @@
               statusDisplay.style.color = '#4caf50';
             }
           }
-            if (!status.enableCompaction) {
-              statusDisplay.textContent = 'Disabled';
-              statusDisplay.style.color = '#888';
-            } else if (status.cooldownRemaining > 0) {
-              const secs = Math.ceil(status.cooldownRemaining / 1000);
-              statusDisplay.textContent = 'Cooldown (' + secs + 's remaining)';
-              statusDisplay.style.color = '#ffab00';
-            } else {
-              statusDisplay.textContent = 'Idle';
-              statusDisplay.style.color = '#4caf50';
-            }
-          }
           if (phase1Count) {
             phase1Count.textContent = 'Phase 1 Summaries: ' + status.phase1SummaryCount + ' / ' + status.phase2Threshold;
           }
