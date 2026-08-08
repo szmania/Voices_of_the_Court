@@ -39,6 +39,11 @@ export class MemoryCompactor {
     }
 
     /**
+        this.metricsTracker = new CompactionMetricsTracker();
+        this.localizationValidator = new CompactionLocalizationValidator();
+    }
+
+    /**
      * Main compaction entry point. Checks scheduler thresholds and runs appropriate phase.
      */
     /**
