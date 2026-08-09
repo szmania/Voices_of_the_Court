@@ -38,13 +38,13 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
     let response;
     const prompt = buildActionChatPrompt(conv, availableActions);
     if(conv.actionsApiConnection.isChat()){
-        const result = await conv.actionsApiConnection.complete(prompt, false, {} );
-        response = typeof result === 'string' ? result : (result?.content ?? '');
+        response = await conv.actionsApiConnection.complete(prompt, false, {} );
     } else {
         let textPrompt = convertChatToTextPrompt(prompt, conv.config );
-        const result = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
-        response = typeof result === 'string' ? result : (result?.content ?? '');
+        response = await conv.actionsApiConnection.complete(textPrompt, false, {stop: [conv.config.inputSequence, conv.config.outputSequence]} );
     }
+
+    console.log(`Raw LLM response for actions: ${response}`);
     response = response.replace(/(\r\n|\n|\r)/gm, "");
 
     if(!response.match(/<rationale>(.*?)<\/?rationale>/) || !response.match(/<actions>(.*?)<\/?actions>/)){
@@ -176,7 +176,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                 chatMessage: parseVariables(chatMessage, conv.gameData),
                 chatMessageClass: matchedAction.chatMessageClass
             };
-
+            
             conv.chatWindow.window.webContents.send('action-approval-request', lastMessage.id, [approvalResponse]);
             console.log(`Sent action "${matchedAction.signature}" for manual approval.`);
 
@@ -201,7 +201,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                         conv.chatWindow.window.webContents.send('chat-hide');
                         conv.chatWindow.hide();
                         if (conv && conv.isOpen) {
-                            conv.saveHistoryAndTriggerSummarization();
+                            conv.summarize();
                         }
                     } else {
                         conv.removeCharacter(newTargetId);

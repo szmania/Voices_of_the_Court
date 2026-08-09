@@ -125,8 +125,9 @@ export async function generateSuggestions(conv: Conversation): Promise<string[]>
         const messages = buildSuggestionPrompt(conv);
         
         // 调用API生成建议，使用complete方法而不是generateText
-        const result = await conv.textGenApiConnection.complete(messages, false, {});
-        const response = typeof result === 'string' ? result : (result?.content ?? '');
+        const response = await conv.textGenApiConnection.complete(messages, false, {});
+        
+        // 处理响应，分割建议
         let suggestions = response.split('\n')
             .map((s: string) => s.trim())
             .filter((s: string) => s.length > 0);

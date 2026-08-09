@@ -175,14 +175,13 @@ export class LetterReplyGenerator {
 
             // Call LLM to generate reply
             console.log('[LetterReplyGenerator] Calling LLM to generate reply...');
- const apiResult = await this.apiConnection.complete(messages, false, {
+            const response = await this.apiConnection.complete(messages, false, {
                 max_tokens: this.config.maxTokens,
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             });
             console.log('[LetterReplyGenerator] LLM call complete.');
 
- const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
-    if (!response || response.trim() === '') {
+            if (!response || response.trim() === '') {
                 console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
                 return null;
             }
@@ -349,18 +348,17 @@ export class LetterReplyGenerator {
                 }
             ];
 
-            const summaryResult = await this.apiConnection.complete(summaryMessages, false, {
+            const summaryContent = await this.apiConnection.complete(summaryMessages, false, {
                 max_tokens: 150,
                 temperature: 0.3 // Use a lower temperature for more stable summaries
             });
 
-            const summaryContent = typeof summaryResult === 'string' ? summaryResult : (summaryResult?.content ?? '');
-        if (!summaryContent || (summaryContent as any)?.trim?.() === '') {
+            if (!summaryContent || summaryContent.trim() === '') {
                 console.warn('Empty summary content generated');
                 return;
             }
 
-            console.log(`Generated letter summary: ${(summaryContent as any)?.trim() ?? ''}`);
+            console.log(`Generated letter summary: ${summaryContent.trim()}`);
 
             const letterDate = gameData.date;
             const playerId = String(originalLetter.sender.id);
@@ -369,7 +367,7 @@ export class LetterReplyGenerator {
             const newSummary: LetterSummary = {
                 id: randomUUID(),
                 date: letterDate,
-        summary: (summaryContent as any)?.trim?.() ?? '',
+                summary: summaryContent.trim(),
                 letterIds: [originalLetter.id, replyLetterId]
             };
     

@@ -18,8 +18,6 @@ export interface ErrorMessage {
 export interface MessageChunk {
     role?: 'system' | 'user' | 'assistant' | 'tool';
     content?: string | null | undefined;
-isFinal?: boolean;
-    special?: any;
 }
 
 export interface Preset {
@@ -71,3 +69,4 @@ export interface PendingAction {
     sourceId: number;
     targetId: number;
 }
+

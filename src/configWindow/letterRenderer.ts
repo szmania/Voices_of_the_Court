@@ -193,9 +193,6 @@ let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
-// Tracks the currently filtered letter set (post-character-filter and post-status-filter).
-// Used by renderStatusSummary() to show counts that match the displayed letter list.
-let currentFilteredLetters: Letter[] = [];
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -218,20 +215,18 @@ function renderStatusSummary() {
     const summaryContainer = document.getElementById('letter-status-summary');
     if (!summaryContainer) return;
 
-    const lettersForCounts = currentFilteredLetters.length > 0 || statusFilter !== 'total' || selectedCharacterId !== 'all'
-        ? currentFilteredLetters
-        : allLetters;
+    const statuses: (keyof typeof counts)[] = ['total', 'generating', 'pending', 'reply_overdue', 'failed', 'completed'];
     const counts = {
-        total: lettersForCounts.length,
-        generating: lettersForCounts.filter(l => l.status === 'generating').length,
-        pending: lettersForCounts.filter(l => {
+        total: allLetters.length,
+        generating: allLetters.filter(l => l.status === 'generating').length,
+        pending: allLetters.filter(l => {
             // AI letter pending delivery
             if (!l.isPlayerSender && l.status === 'pending' && l.delivered !== true) {
                 return true;
             }
             // Player letter pending non-overdue reply
             if (l.isPlayerSender) {
-                const hasReply = allLetters.some(a => a.replyToId === l.id && a.delivered);
+                const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
                 if (hasReply) return false;
                 if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                 const expectedReplyDay = l.totalDays + l.delay;
@@ -239,19 +234,17 @@ function renderStatusSummary() {
             }
             return false;
         }).length,
-        reply_overdue: lettersForCounts.filter(l => {
+        reply_overdue: allLetters.filter(l => {
             if (!l.isPlayerSender) return false;
-            const hasReply = allLetters.some(a => a.replyToId === l.id && a.delivered);
+            const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
             if (hasReply) return false;
             if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
             const expectedReplyDay = l.totalDays + l.delay;
             return expectedReplyDay < currentGameDay;
         }).length,
-        failed: lettersForCounts.filter(l => l.status === 'failed').length,
-        completed: lettersForCounts.filter(l => l.status === 'sent' || l.status === 'read').length
+        failed: allLetters.filter(l => l.status === 'failed').length,
+        completed: allLetters.filter(l => l.status === 'sent' || l.status === 'read').length
     };
-
-    const statuses: Array<'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed'> = ['total', 'generating', 'pending', 'reply_overdue', 'failed', 'completed'];
 
     summaryContainer.innerHTML = ''; // Clear previous content
 
@@ -471,11 +464,7 @@ function renderLetters() {
         }
     }
 
-const lettersToDisplay = characterFilteredLetters;
-
-    // Store the filtered letters so renderStatusSummary() can use them for accurate counts.
-    // This ensures the status summary reflects the same filtered set as the displayed letter list.
-    currentFilteredLetters = characterFilteredLetters;
+    const lettersToDisplay = characterFilteredLetters;
 
     const repliesMap = new Map<string, Letter>();
     const rootLetters: Letter[] = [];
@@ -835,26 +824,18 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
         characterSelect.appendChild(option);
     });
 
-    // Use the explicitly passed currentCharacterId if provided, otherwise fall back to the
-    // previously selected value from the DOM, defaulting to 'all'.
-    const targetCharId = currentCharacterId ?? (previouslySelectedCharId || 'all');
-    if (Array.from(characterSelect.options).some(opt => opt.value === targetCharId)) {
-        characterSelect.value = targetCharId;
+    if (Array.from(characterSelect.options).some(opt => opt.value === previouslySelectedCharId)) {
+        characterSelect.value = previouslySelectedCharId;
     } else {
         characterSelect.value = 'all';
     }
     selectedCharacterId = characterSelect.value;
-
-    await loadLetters(playerId);
 }
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
     // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
     // and should not be derived from letter data here, as it causes bugs with date calculations.
-    // Reset filtered letters to allLetters on load since no filter is active yet.
-    // renderLetters() will recompute the filtered set based on current character/status selections.
-    currentFilteredLetters = allLetters;
     renderStatusSummary();
     renderLetters();
 }
@@ -945,15 +926,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectedPlayerId = playerSelect.value;
         // When player changes, reset character to 'all'
         await loadCharacters(selectedPlayerId, 'all');
+        await loadLetters(selectedPlayerId);
     });
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
         renderLetters();
-        renderStatusSummary(); // Update status counts to reflect character filter
     });
 
     loadPlayers();
+
     // Initial load of letter thread status
     ipcRenderer.invoke('get-letter-thread-status').then(count => {
         updateLetterThreadStatus(count);
