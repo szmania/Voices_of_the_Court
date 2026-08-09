@@ -1650,6 +1650,7 @@ ${character.fullName}的发言：`
             } else {
                 console.log('No messages to summarize during resummarization.');
             }
+        }
     }
 
     public saveHistoryAndTriggerSummarization(): void {
