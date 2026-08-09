@@ -97,6 +97,7 @@ let suggestionsList: HTMLDivElement = document.querySelector('.suggestions-list'
 let suggestionsClose: HTMLButtonElement = document.querySelector('.suggestions-close')!;
 let searchInput: HTMLInputElement = document.querySelector('.search-input')!;
 let resetButton: HTMLButtonElement = document.querySelector('.reset-button')!;
+let configButton: HTMLButtonElement = document.querySelector('#config-button')!;
 let tokenDisplayWrapper: HTMLDivElement = document.querySelector('.token-display-wrapper')!;
 let tokenCountElement: HTMLSpanElement = document.querySelector('.token-count')!;
 let contextLimitElement: HTMLSpanElement = document.querySelector('.context-limit')!;
@@ -1170,6 +1171,23 @@ window.addEventListener('beforeunload', () => {
         ipcRenderer.send('reset-window-position');
     });
 
+
+    configButton.addEventListener('click', () => {
+        ipcRenderer.send('request-config-toggle');
+    });
+
+    // This logic is now simplified. The button is always visible.
+    // The main process will handle showing/hiding the window.
+    // The 'minimized' state is removed for simplicity for now.
+    ipcRenderer.on('config-window-toggled', (event, { isShown }) => {
+        // We can add visual feedback here if needed, e.g., changing button color
+        if (isShown) {
+            configButton.classList.add('active');
+        } else {
+            configButton.classList.remove('active');
+        }
+    });
+
 // 监听配置变更
     ipcRenderer.on('config-change', (event, key, value) => {
         console.log(`Received config-change in chat window: ${key} = ${value}`);
@@ -1718,6 +1736,14 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
     // Initialize chat UI elements (this clears the display)
     initChat();
+
+    // Set tooltips for config buttons
+    const configButtonWrapper = document.getElementById('config-button-wrapper')!;
+    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
+    if (window.LocalizationManager) {
+        configButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
+        minimizedConfigButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+    }
     updateSuggestionsContainerStyle();
 
     // Get context limit once per chat session
