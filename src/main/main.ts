@@ -16,7 +16,7 @@ import { parseLog } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
 import { processBookmarkToSummary } from "./bookmarktosummary";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap, exportPlayerData, importPlayerData } from "./summaryManager";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager";
 import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory";
 import { readPromptHistory, savePromptHistory } from "./promptHistory";
@@ -1913,7 +1913,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                             if (conversation.gameData.totalDays) {
                                 updateCurrentDate(conversation.gameData.totalDays);
                             }
-                            conversation.summarize();
+                            conversation.saveHistoryAndTriggerSummarization();
                         }
                     } else {
                         conversation.removeCharacter(targetId);

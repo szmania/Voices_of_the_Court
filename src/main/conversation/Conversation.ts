@@ -1537,7 +1537,7 @@ ${character.fullName}的发言：`
                     this.chatWindow.window.webContents.send('chat-hide');
                     this.chatWindow.hide();
                     if (this.isOpen) {
-                        this.summarize();
+                        this.saveHistoryAndTriggerSummarization();
                     }
                 } else {
                     this.removeCharacter(targetId);
