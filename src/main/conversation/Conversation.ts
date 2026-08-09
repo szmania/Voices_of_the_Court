@@ -494,11 +494,6 @@ export class Conversation{
 
         // Store historical conversation metadata for later use
         this.historicalConversations = historicalConversations;
-
-        // After loading, send all conversations to the UI
-        if (this.historicalConversations.length > 0) {
-            this.chatWindow.window.webContents.send('historical-conversations-receive', this.historicalConversations);
-        }
     }
 
     pushMessage(message: Message): void{

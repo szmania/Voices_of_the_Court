@@ -1811,7 +1811,13 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
                 await displayMessage(msg, true);
                 // Historical messages have narratives embedded in them
                 if (msg.narrative) {
-                    displayNarrative(msg.narrative);
+                    const narrativeMsg: Message = {
+                        role: 'system',
+                        name: 'Narrator',
+                        content: msg.narrative,
+                        id: msg.id ? `${msg.id}-narrative` : randomUUID()
+                    };
+                    displayNarrative(narrativeMsg);
                 }
             }
             const convSeparator = document.createElement('div');
