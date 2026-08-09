@@ -1652,183 +1652,202 @@ ${character.fullName}的发言：`
             }
     }
 
-    async summarize() {
-        console.log('Starting end-of-conversation summarization process.');
+    public saveHistoryAndTriggerSummarization(): void {
+        console.log('Saving conversation history and triggering background summarization.');
         this.isOpen = false;
-        this.cancelGeneration(); // Cancel any ongoing generation.
+        this.cancelGeneration();
+
         // Write a trigger event to the game (e.g., trigger conversation end event)
         this.runFileManager.write(`
           trigger_event = mcc_event_v2.9002
           trigger_event = mcc_event_v2.9003
        `);
         setTimeout(() => {
-            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            this.runFileManager.clear();  // Clear the event file after a delay
             console.log('Run file cleared after conversation end event.');
         }, 800);
 
-        // Generate and save diary entries for each character
-        for (const character of this.gameData.characters.values()) {
-            // @ts-ignore - diaryGenerationChance is a custom property we added
-            const diaryChance = this.config.diaryGenerationChance / 100;
-            const wasInvolvedInAction = this.actionInvolvedCharacterIds.has(character.id);
+        // --- Part 1: Synchronous History Saving ---
+        this._saveHistoryToFile();
 
-            if (diaryChance > 0 && (wasInvolvedInAction || Math.random() < diaryChance)) {
-                if (wasInvolvedInAction) {
-                    console.log(`Forcing diary entry for ${character.shortName} due to action involvement.`);
+        // --- Part 2: Asynchronous Summarization (no await, runs in background) ---
+        this._generateSummariesAndDiariesInBackground().catch(err => {
+            console.error("Error during background summarization and diary generation:", err);
+        });
+    }
+
+    private _saveHistoryToFile(): void {
+        try {
+            // Ensure the conversation_history directory exists
+            const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+
+            if (!fs.existsSync(historyDir)) {
+              fs.mkdirSync(historyDir, { recursive: true });
+              console.log(`Created conversation history directory: ${historyDir}`);
+            }
+
+            // Process conversation messages, keeping name, content and narrative
+            const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system') && msg.content !== this.notSpokenYetText);
+            const processedMessages = messagesToSave.map((msg, index) => {
+              const messageData: any = {
+                id: msg.id,
+                name: msg.name,
+                content: msg.content,
+                type: (msg as any).type
+              };
+
+              return messageData;
+            });
+
+            // Build the text content to be saved
+            let textContent = `Date: ${this.gameData.date}\n`;
+            if (this.gameData.scene && this.gameData.scene.trim()) {
+                textContent += `Scene: ${this.gameData.scene}\n`;
+            }
+            if (this.gameData.location && this.gameData.location.trim()) {
+                textContent += `Location: ${this.gameData.location}\n`;
+            }
+            textContent += '\n';
+
+            const narrativeLabels = {
+                en: "[Narrative]:",
+                zh: "[旁白]:",
+                ru: "[Повествование]:",
+                fr: "[Récit]:",
+                es: "[Narrativa]:",
+                de: "[Erzählung]:",
+                ja: "[ナラティブ]:",
+                ko: "[내레이션]:",
+                pl: "[Narracja]:",
+                pt: "[Narrativa]:"
+            };
+            const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
+
+            processedMessages.forEach((msg, index) => {
+                if (msg.type === 'narrative' || msg.name === 'Narrator') {
+                    textContent += `${narrativeLabel} ${msg.content}\n`;
+                } else if (msg.type === 'scene') {
+                    textContent += `[Scene]: ${msg.content}\n`;
+                } else if (msg.name) {
+                    textContent += `${msg.name}: ${msg.content}\n`;
+                } else {
+                    textContent += `${msg.content}\n`;
                 }
-                const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
-                if (newDiaryEntry) {
-                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
 
-                    // Re-summarize the diary with the new entry
-                    const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
-                    if (summaryResult) {
-                        const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
-                        summaries.unshift({ id: randomUUID(), ...summaryResult });
-                        await saveDiarySummaries(this.gameData.playerID.toString(), character.id.toString(), summaries);
+                const actions = this.executedActions.get(msg.id);
+                if (actions && actions.length > 0) {
+                    const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
+                    actions.forEach(action => {
+                        textContent += `${actionLabel} ${action.chatMessage}\n`;
+                    });
+                }
+
+              textContent += '\n';
+            });
+
+            // Store the message text for generating summaries in txt format
+            const allCharacterIds = Array.from(this.gameData.characters.keys());
+            const characterIdsString = allCharacterIds.join('_');
+            const historyFile = path.join(
+                this.userDataPath,
+                'conversation_history',
+                this.gameData.playerID.toString(),
+                `${characterIdsString}_${new Date().getTime()}.txt`
+            );
+            fs.writeFileSync(historyFile, textContent);
+            console.log(`Conversation history saved to: ${historyFile}`);
+        } catch (error) {
+            console.error("Failed to save conversation history synchronously:", error);
+        }
+    }
+
+    private async _generateSummariesAndDiariesInBackground() {
+        console.log('Starting background diary and summary generation.');
+        try {
+            // Generate and save diary entries for each character
+            for (const character of this.gameData.characters.values()) {
+                // @ts-ignore - diaryGenerationChance is a custom property we added
+                const diaryChance = this.config.diaryGenerationChance / 100;
+                const wasInvolvedInAction = this.actionInvolvedCharacterIds.has(character.id);
+
+                if (diaryChance > 0 && (wasInvolvedInAction || Math.random() < diaryChance)) {
+                    if (wasInvolvedInAction) {
+                        console.log(`Forcing diary entry for ${character.shortName} due to action involvement.`);
+                    }
+                    const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                    if (newDiaryEntry) {
+                        await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
+
+                        // Re-summarize the diary with the new entry
+                        const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
+                        if (summaryResult) {
+                            const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
+                            summaries.unshift({ id: randomUUID(), ...summaryResult });
+                            await saveDiarySummaries(this.gameData.playerID.toString(), character.id.toString(), summaries);
+                        }
                     }
                 }
             }
-        }
 
-        // Ensure the conversation_history directory exists
-        const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
-
-        if (!fs.existsSync(historyDir)) {
-          fs.mkdirSync(historyDir, { recursive: true });
-          console.log(`Created conversation history directory: ${historyDir}`);
-        }
-
-        // Process conversation messages, keeping name, content and narrative
-        const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system') && msg.content !== this.notSpokenYetText);
-        const processedMessages = messagesToSave.map((msg, index) => {
-          const messageData: any = {
-            id: msg.id,
-            name: msg.name,
-            content: msg.content,
-            type: (msg as any).type
-          };
-
-          return messageData;
-        });
-
-        // Build the text content to be saved
-        let textContent = `Date: ${this.gameData.date}\n`;
-        if (this.gameData.scene && this.gameData.scene.trim()) {
-            textContent += `Scene: ${this.gameData.scene}\n`;
-        }
-        if (this.gameData.location && this.gameData.location.trim()) {
-            textContent += `Location: ${this.gameData.location}\n`;
-        }
-        textContent += '\n';
-
-        const narrativeLabels = {
-            en: "[Narrative]:",
-            zh: "[旁白]:",
-            ru: "[Повествование]:",
-            fr: "[Récit]:",
-            es: "[Narrativa]:",
-            de: "[Erzählung]:",
-            ja: "[ナラティブ]:",
-            ko: "[내레이션]:",
-            pl: "[Narracja]:",
-            pt: "[Narrativa]:"
-        };
-        const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
-
-        processedMessages.forEach((msg, index) => {
-            if (msg.type === 'narrative' || msg.name === 'Narrator') {
-                textContent += `${narrativeLabel} ${msg.content}\n`;
-            } else if (msg.type === 'scene') {
-                // Scene descriptions are usually at the start and might not need a label in history,
-                // but for clarity we can add one.
-                textContent += `[Scene]: ${msg.content}\n`;
-            } else if (msg.name) {
-                textContent += `${msg.name}: ${msg.content}\n`;
-            } else {
-                textContent += `${msg.content}\n`;
+            // Do not generate a summary if there are not enough messages
+            if (this.messages.length < 2) {
+                console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
+                return;
             }
 
-            const actions = this.executedActions.get(msg.id);
-            if (actions && actions.length > 0) {
-                const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
-                actions.forEach(action => {
-                    textContent += `${actionLabel} ${action.chatMessage}\n`;
-                });
+            const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+            const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
+            let characterMap: {[key: number]: string} = {};
+            if (fs.existsSync(characterMapPath)) {
+                try {
+                    characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+                } catch (e) {
+                    console.error('Error reading existing character map:', e);
+                }
             }
-
-          textContent += '\n';
-        });
-
-        // Store the message text for generating summaries in txt format
-        const allCharacterIds = Array.from(this.gameData.characters.keys());
-        const characterIdsString = allCharacterIds.join('_');
-        const historyFile = path.join(
-            this.userDataPath,
-            'conversation_history',
-            this.gameData.playerID.toString(),
-            `${characterIdsString}_${new Date().getTime()}.txt`
-        );
-        fs.writeFileSync(historyFile, textContent);
-        console.log(`Conversation history saved to: ${historyFile}`)
-
-        // Do not generate a summary if there are not enough messages
-        if (this.messages.length < 2) {
-            console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
-            return;
-        }
-
-        const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-        const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
-        let characterMap: {[key: number]: string} = {};
-        if (fs.existsSync(characterMapPath)) {
-            try {
-                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
-            } catch (e) {
-                console.error('Error reading existing character map:', e);
+            for (const char of this.gameData.characters.values()) {
+                if (!characterMap[char.id]) {
+                    characterMap[char.id] = char.shortName;
+                }
             }
-        }
-        for (const char of this.gameData.characters.values()) {
-            if (!characterMap[char.id]) {
-                characterMap[char.id] = char.shortName;
+            fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+            console.log(`Updated character map at: ${characterMapPath}`);
+
+            for (const character of this.gameData.characters.values()) {
+                if (character.id === this.gameData.playerID) continue;
+
+                // Build a character-specific prompt
+                const prompt = buildSummarizeChatPrompt(this, character);
+
+                // Generate summary from this character's perspective
+                const result = await this.summarizationApiConnection.complete(prompt, false, {});
+                const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
+
+                const newSummary: Summary = {
+                    date: this.gameData.date,
+                    content: summaryContent
+                };
+                console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+
+                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
+
+                this.summaryFileWatcher.pauseWatcher(summaryFile);
+
+                const existingSummaries = this.summaries.get(character.id) || [];
+
+                if (newSummary.content.trim()) {
+                    existingSummaries.unshift(newSummary);
+                    fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                    console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+                } else {
+                    console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
+                }
+
+                this.summaryFileWatcher.resumeWatcher(summaryFile);
             }
-        }
-        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
-        console.log(`Updated character map at: ${characterMapPath}`);
-
-        for (const character of this.gameData.characters.values()) {
-            if (character.id === this.gameData.playerID) continue;
-
-            // Build a character-specific prompt
-            const prompt = buildSummarizeChatPrompt(this, character);
-
-            // Generate summary from this character's perspective
-            // Do not pass the abortController signal here to ensure summarization is not cancelled.
-            const result = await this.summarizationApiConnection.complete(prompt, false, {});
-            const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
-
-            const newSummary: Summary = {
-                date: this.gameData.date,
-                content: summaryContent
-            };
-            console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
-
-            const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-            const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
-
-            this.summaryFileWatcher.pauseWatcher(summaryFile);
-
-            const existingSummaries = this.summaries.get(character.id) || [];
-
-            if (newSummary.content.trim()) {
-                existingSummaries.unshift(newSummary);
-                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-                console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
-            } else {
-                console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
-            }
-
-            this.summaryFileWatcher.resumeWatcher(summaryFile);
+        } catch (error) {
+            console.error("Error in background summary/diary generation process:", error);
         }
     }
 
