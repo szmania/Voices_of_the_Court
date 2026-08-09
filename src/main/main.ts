@@ -1037,16 +1037,8 @@ let conversationLock: Promise<void> | null = null;
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
-    // Wait for any in-progress conversation summarization to complete before
-    // starting a new conversation. This prevents race conditions where the old
-    // conversation's async summarize() overlaps with the new conversation's
-    // initialize() and loadHistory().
-    if (conversationLock) {
-        console.log('Waiting for previous conversation to finish saving...');
-        await conversationLock;
-        console.log('Previous conversation saved. Proceeding.');
-        conversationLock = null;
-    }
+    // The conversationLock has been removed to allow immediate new conversation start.
+    // The previous conversation's history is saved synchronously on close.
 
     // Check for incompatible mods
     const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
@@ -1698,9 +1690,8 @@ ipcMain.on('chat-stop', () =>{
         if (conversation.gameData.totalDays) {
             updateCurrentDate(conversation.gameData.totalDays);
         }
-        // Wrap summarize() in a lock to prevent race conditions when a new
-        // conversation starts before the old one finishes saving.
-        conversationLock = conversation.summarize();
+        // This now saves history synchronously and triggers async summarization
+        conversation.saveHistoryAndTriggerSummarization();
         // Clean up compaction resources when conversation ends
         conversation.cleanup();
     }
