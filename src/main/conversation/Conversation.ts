@@ -494,11 +494,6 @@ export class Conversation{
 
         // Store historical conversation metadata for later use
         this.historicalConversations = historicalConversations;
-
-        // After loading, send all conversations to the UI
-        if (this.historicalConversations.length > 0) {
-            this.chatWindow.window.webContents.send('historical-conversations-receive', this.historicalConversations);
-        }
     }
 
     pushMessage(message: Message): void{
@@ -1062,7 +1057,7 @@ export class Conversation{
             const message: Message = {
                 role: 'assistant',
                 name: source.fullName,
-                content: content.trim()
+                content: (content as any)?.trim() ?? ''
             };
             // Add target information for the UI
             (message as any).targetCharacterIds = [target.id];
@@ -1127,14 +1122,15 @@ export class Conversation{
 
         if(this.textGenApiConnection.isChat()){
             console.log('Using chat API for AI message completion.');
+            const chatResult = await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
+                //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
+                max_tokens: this.config.maxTokens,
+            },
+            this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                content: await this.textGenApiConnection.complete(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config.stream && sendMessageToChat, {
-                    //stop: [this.gameData.playerName+":", this.gameData.aiName+":", "you:", "user:"],
-                    max_tokens: this.config.maxTokens,
-                },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
+                content: (chatResult as any)?.content ?? '',
                 characterId: character.id
             };
 
@@ -1142,14 +1138,15 @@ export class Conversation{
         //instruct
         else{
             console.log('Using completion API for AI message completion.');
+            const completionResult = await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
+                stop: [this.config.inputSequence, this.config.outputSequence],
+                max_tokens: this.config.maxTokens,
+            },
+            this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: await this.textGenApiConnection.complete(convertChatToText(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted), this.config, character.fullName), this.config.stream && sendMessageToChat, {
-                    stop: [this.config.inputSequence, this.config.outputSequence],
-                    max_tokens: this.config.maxTokens,
-                },
-                this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal),
+                content: (completionResult as any)?.content ?? '',
                 characterId: character.id
             };
 
@@ -1343,7 +1340,7 @@ ${validationTranslations.instruction}`
                 temperature: 0.1 // 使用较低的温度以确保一致性
             }, undefined, this.abortController?.signal);
 
-            const responseText = response.trim();
+            const responseText = (response as any)?.trim() ?? '';
             console.log(`[DEBUG] Parsed response: ${responseText}`);
 
             // 更严格的验证逻辑：明确检查是否为"符合"
@@ -1479,7 +1476,7 @@ ${character.fullName}的发言：`
                 temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
             }, undefined, this.abortController?.signal);
 
-            if (!response || response.trim() === '') {
+            if (!response || (response as any).trim?.() === '') {
                 console.warn(`Empty response from LLM for character ${character.fullName}`);
                 return null;
             }
@@ -1491,7 +1488,7 @@ ${character.fullName}的发言：`
             const message: Message = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: response.trim()
+                content: (response as any)?.trim() ?? ''
             };
 
             console.log(`Generated message with validation prompt for ${character.fullName}: ${message.content.substring(0, 50)}...`);
@@ -1535,7 +1532,7 @@ ${character.fullName}的发言：`
                     this.chatWindow.window.webContents.send('chat-hide');
                     this.chatWindow.hide();
                     if (this.isOpen) {
-                        this.summarize();
+                        this.saveHistoryAndTriggerSummarization();
                     }
                 } else {
                     this.removeCharacter(targetId);
@@ -1631,200 +1628,222 @@ ${character.fullName}的发言：`
                     messagesToSummarize.push(msg);
                 }
 
-                if(messagesToSummarize.length > 0){ //prevent infinite loops
-                    console.log("Current summary before resummarization: "+this.currentSummary);
-                    if(this.summarizationApiConnection.isChat()){
-                        console.log('Using chat API for resummarization.');
-                        this.currentSummary = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
-                    }
-                    else{
-                        console.log('Using completion API for resummarization.');
-                        this.currentSummary = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
-                    }
-
-                    console.log("New current summary after resummarization: "+this.currentSummary);
-                } else {
-                    console.log('No messages to summarize during resummarization.');
+            if(messagesToSummarize.length > 0){ //prevent infinite loops
+                console.log("Current summary before resummarization: "+this.currentSummary);
+                if(this.summarizationApiConnection.isChat()){
+                    console.log('Using chat API for resummarization.');
+            const result = await this.summarizationApiConnection.complete(buildResummarizeChatPrompt(this, messagesToSummarize), false, {}, undefined, this.abortController?.signal);
+            this.currentSummary = typeof result === 'string' ? result : (result?.content ?? '');
                 }
+                else{
+                    console.log('Using completion API for resummarization.');
+            const result = await this.summarizationApiConnection.complete(convertChatToTextNoNames(buildResummarizeChatPrompt(this, messagesToSummarize), this.config), false, {}, undefined, this.abortController?.signal);
+            this.currentSummary = typeof result === 'string' ? result : (result?.content ?? '');
+                }
+
+                console.log("New current summary after resummarization: "+this.currentSummary);
+            } else {
+                console.log('No messages to summarize during resummarization.');
+            }
         }
     }
 
-    async summarize() {
-        console.log('Starting end-of-conversation summarization process.');
+    public saveHistoryAndTriggerSummarization(): void {
+        console.log('Saving conversation history and triggering background summarization.');
         this.isOpen = false;
-        this.cancelGeneration(); // Cancel any ongoing generation.
+        this.cancelGeneration();
+
         // Write a trigger event to the game (e.g., trigger conversation end event)
         this.runFileManager.write(`
           trigger_event = mcc_event_v2.9002
           trigger_event = mcc_event_v2.9003
        `);
         setTimeout(() => {
-            this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
+            this.runFileManager.clear();  // Clear the event file after a delay
             console.log('Run file cleared after conversation end event.');
         }, 800);
 
-        // Generate and save diary entries for each character
-        for (const character of this.gameData.characters.values()) {
-            // @ts-ignore - diaryGenerationChance is a custom property we added
-            const diaryChance = this.config.diaryGenerationChance / 100;
-            const wasInvolvedInAction = this.actionInvolvedCharacterIds.has(character.id);
+        // --- Part 1: Synchronous History Saving ---
+        this._saveHistoryToFile();
 
-            if (diaryChance > 0 && (wasInvolvedInAction || Math.random() < diaryChance)) {
-                if (wasInvolvedInAction) {
-                    console.log(`Forcing diary entry for ${character.shortName} due to action involvement.`);
+        // --- Part 2: Asynchronous Summarization (no await, runs in background) ---
+        this._generateSummariesAndDiariesInBackground().catch(err => {
+            console.error("Error during background summarization and diary generation:", err);
+        });
+    }
+
+    private _saveHistoryToFile(): void {
+        try {
+            // Ensure the conversation_history directory exists
+            const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+
+            if (!fs.existsSync(historyDir)) {
+              fs.mkdirSync(historyDir, { recursive: true });
+              console.log(`Created conversation history directory: ${historyDir}`);
+            }
+
+            // Process conversation messages, keeping name, content and narrative
+            const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system') && msg.content !== this.notSpokenYetText);
+            const processedMessages = messagesToSave.map((msg, index) => {
+              const messageData: any = {
+                id: msg.id,
+                name: msg.name,
+                content: msg.content,
+                type: (msg as any).type
+              };
+
+              return messageData;
+            });
+
+            // Build the text content to be saved
+            let textContent = `Date: ${this.gameData.date}\n`;
+            if (this.gameData.scene && this.gameData.scene.trim()) {
+                textContent += `Scene: ${this.gameData.scene}\n`;
+            }
+            if (this.gameData.location && this.gameData.location.trim()) {
+                textContent += `Location: ${this.gameData.location}\n`;
+            }
+            textContent += '\n';
+
+            const narrativeLabels = {
+                en: "[Narrative]:",
+                zh: "[旁白]:",
+                ru: "[Повествование]:",
+                fr: "[Récit]:",
+                es: "[Narrativa]:",
+                de: "[Erzählung]:",
+                ja: "[ナラティブ]:",
+                ko: "[내레이션]:",
+                pl: "[Narracja]:",
+                pt: "[Narrativa]:"
+            };
+            const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
+
+            processedMessages.forEach((msg, index) => {
+                if (msg.type === 'narrative' || msg.name === 'Narrator') {
+                    textContent += `${narrativeLabel} ${msg.content}\n`;
+                } else if (msg.type === 'scene') {
+                    textContent += `[Scene]: ${msg.content}\n`;
+                } else if (msg.name) {
+                    textContent += `${msg.name}: ${msg.content}\n`;
+                } else {
+                    textContent += `${msg.content}\n`;
                 }
-                const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
-                if (newDiaryEntry) {
-                    await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
 
-                    // Re-summarize the diary with the new entry
-                    const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
-                    if (summaryResult) {
-                        const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
-                        summaries.unshift({ id: randomUUID(), ...summaryResult });
-                        await saveDiarySummaries(this.gameData.playerID.toString(), character.id.toString(), summaries);
+                const actions = this.executedActions.get(msg.id);
+                if (actions && actions.length > 0) {
+                    const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
+                    actions.forEach(action => {
+                        textContent += `${actionLabel} ${action.chatMessage}\n`;
+                    });
+                }
+
+              textContent += '\n';
+            });
+
+            // Store the message text for generating summaries in txt format
+            const allCharacterIds = Array.from(this.gameData.characters.keys());
+            const characterIdsString = allCharacterIds.join('_');
+            const historyFile = path.join(
+                this.userDataPath,
+                'conversation_history',
+                this.gameData.playerID.toString(),
+                `${characterIdsString}_${new Date().getTime()}.txt`
+            );
+            fs.writeFileSync(historyFile, textContent);
+            console.log(`Conversation history saved to: ${historyFile}`);
+        } catch (error) {
+            console.error("Failed to save conversation history synchronously:", error);
+        }
+    }
+
+    private async _generateSummariesAndDiariesInBackground() {
+        console.log('Starting background diary and summary generation.');
+        try {
+            // Generate and save diary entries for each character
+            for (const character of this.gameData.characters.values()) {
+                // @ts-ignore - diaryGenerationChance is a custom property we added
+                const diaryChance = this.config.diaryGenerationChance / 100;
+                const wasInvolvedInAction = this.actionInvolvedCharacterIds.has(character.id);
+
+                if (diaryChance > 0 && (wasInvolvedInAction || Math.random() < diaryChance)) {
+                    if (wasInvolvedInAction) {
+                        console.log(`Forcing diary entry for ${character.shortName} due to action involvement.`);
+                    }
+                    const newDiaryEntry = await this.diaryGenerator.generateDiaryEntry(this.gameData, this, character.id.toString());
+                    if (newDiaryEntry) {
+                        await saveDiaryFile(this.gameData.playerID.toString(), character.id.toString(), newDiaryEntry);
+
+                        // Re-summarize the diary with the new entry
+                        const summaryResult = await this.diaryGenerator.summarizeDiaryEntry(newDiaryEntry, this.gameData);
+                        if (summaryResult) {
+                            const summaries = await readDiarySummaries(this.gameData.playerID.toString(), character.id.toString());
+                            summaries.unshift({ id: randomUUID(), ...summaryResult });
+                            await saveDiarySummaries(this.gameData.playerID.toString(), character.id.toString(), summaries);
+                        }
                     }
                 }
             }
-        }
 
-        // Ensure the conversation_history directory exists
-        const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
-
-        if (!fs.existsSync(historyDir)) {
-          fs.mkdirSync(historyDir, { recursive: true });
-          console.log(`Created conversation history directory: ${historyDir}`);
-        }
-
-        // Process conversation messages, keeping name, content and narrative
-        const messagesToSave = this.messages.filter(msg => (msg.role === 'user' || msg.role === 'assistant' || msg.role === 'system') && msg.content !== this.notSpokenYetText);
-        const processedMessages = messagesToSave.map((msg, index) => {
-          const messageData: any = {
-            id: msg.id,
-            name: msg.name,
-            content: msg.content,
-            type: (msg as any).type
-          };
-
-          return messageData;
-        });
-
-        // Build the text content to be saved
-        let textContent = `Date: ${this.gameData.date}\n`;
-        if (this.gameData.scene && this.gameData.scene.trim()) {
-            textContent += `Scene: ${this.gameData.scene}\n`;
-        }
-        if (this.gameData.location && this.gameData.location.trim()) {
-            textContent += `Location: ${this.gameData.location}\n`;
-        }
-        textContent += '\n';
-
-        const narrativeLabels = {
-            en: "[Narrative]:",
-            zh: "[旁白]:",
-            ru: "[Повествование]:",
-            fr: "[Récit]:",
-            es: "[Narrativa]:",
-            de: "[Erzählung]:",
-            ja: "[ナラティブ]:",
-            ko: "[내레이션]:",
-            pl: "[Narracja]:",
-            pt: "[Narrativa]:"
-        };
-        const narrativeLabel = narrativeLabels[this.config.language] || narrativeLabels.en;
-
-        processedMessages.forEach((msg, index) => {
-            if (msg.type === 'narrative' || msg.name === 'Narrator') {
-                textContent += `${narrativeLabel} ${msg.content}\n`;
-            } else if (msg.type === 'scene') {
-                // Scene descriptions are usually at the start and might not need a label in history,
-                // but for clarity we can add one.
-                textContent += `[Scene]: ${msg.content}\n`;
-            } else if (msg.name) {
-                textContent += `${msg.name}: ${msg.content}\n`;
-            } else {
-                textContent += `${msg.content}\n`;
+            // Do not generate a summary if there are not enough messages
+            if (this.messages.length < 2) {
+                console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
+                return;
             }
 
-            const actions = this.executedActions.get(msg.id);
-            if (actions && actions.length > 0) {
-                const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
-                actions.forEach(action => {
-                    textContent += `${actionLabel} ${action.chatMessage}\n`;
-                });
+            const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+            const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
+            let characterMap: {[key: number]: string} = {};
+            if (fs.existsSync(characterMapPath)) {
+                try {
+                    characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+                } catch (e) {
+                    console.error('Error reading existing character map:', e);
+                }
             }
-
-          textContent += '\n';
-        });
-
-        // Store the message text for generating summaries in txt format
-        const allCharacterIds = Array.from(this.gameData.characters.keys());
-        const characterIdsString = allCharacterIds.join('_');
-        const historyFile = path.join(
-            this.userDataPath,
-            'conversation_history',
-            this.gameData.playerID.toString(),
-            `${characterIdsString}_${new Date().getTime()}.txt`
-        );
-        fs.writeFileSync(historyFile, textContent);
-        console.log(`Conversation history saved to: ${historyFile}`)
-
-        // Do not generate a summary if there are not enough messages
-        if (this.messages.length < 2) {
-            console.log("Not enough messages to generate a summary (less than 2). Skipping summary generation.");
-            return;
-        }
-
-        const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-        const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
-        let characterMap: {[key: number]: string} = {};
-        if (fs.existsSync(characterMapPath)) {
-            try {
-                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
-            } catch (e) {
-                console.error('Error reading existing character map:', e);
+            for (const char of this.gameData.characters.values()) {
+                if (!characterMap[char.id]) {
+                    characterMap[char.id] = char.shortName;
+                }
             }
-        }
-        for (const char of this.gameData.characters.values()) {
-            if (!characterMap[char.id]) {
-                characterMap[char.id] = char.shortName;
+            fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
+            console.log(`Updated character map at: ${characterMapPath}`);
+
+            for (const character of this.gameData.characters.values()) {
+                if (character.id === this.gameData.playerID) continue;
+
+                // Build a character-specific prompt
+                const prompt = buildSummarizeChatPrompt(this, character);
+
+                // Generate summary from this character's perspective
+                const result = await this.summarizationApiConnection.complete(prompt, false, {});
+                const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
+
+                const newSummary: Summary = {
+                    date: this.gameData.date,
+                    content: summaryContent
+                };
+                console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+
+                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
+
+                this.summaryFileWatcher.pauseWatcher(summaryFile);
+
+                const existingSummaries = this.summaries.get(character.id) || [];
+
+                if (newSummary.content.trim()) {
+                    existingSummaries.unshift(newSummary);
+                    fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
+                    console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
+                } else {
+                    console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
+                }
+
+                this.summaryFileWatcher.resumeWatcher(summaryFile);
             }
-        }
-        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
-        console.log(`Updated character map at: ${characterMapPath}`);
-
-        for (const character of this.gameData.characters.values()) {
-            if (character.id === this.gameData.playerID) continue;
-
-            // Build a character-specific prompt
-            const prompt = buildSummarizeChatPrompt(this, character);
-
-            // Generate summary from this character's perspective
-            // Do not pass the abortController signal here to ensure summarization is not cancelled.
-            const summaryContent = await this.summarizationApiConnection.complete(prompt, false, {});
-
-            const newSummary: Summary = {
-                date: this.gameData.date,
-                content: summaryContent
-            };
-            console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
-
-            const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
-            const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
-
-            this.summaryFileWatcher.pauseWatcher(summaryFile);
-
-            const existingSummaries = this.summaries.get(character.id) || [];
-
-            if (newSummary.content.trim()) {
-                existingSummaries.unshift(newSummary);
-                fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
-                console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
-            } else {
-                console.log(`Skipping saving empty summary for AI ID ${character.id}.`);
-            }
-
-            this.summaryFileWatcher.resumeWatcher(summaryFile);
+        } catch (error) {
+            console.error("Error in background summary/diary generation process:", error);
         }
     }
 
@@ -1985,7 +2004,7 @@ ${character.fullName}的发言：`
             // 生成场景描述
             const sceneDescription = await generateSceneDescription(this, this.abortController!.signal);
 
-            if (sceneDescription && sceneDescription.trim()) {
+            if (sceneDescription && (sceneDescription as any)?.trim()) {
                 // 创建场景描述消息
                 const sceneMessage: Message = {
                     id: randomUUID(),
@@ -2350,15 +2369,14 @@ ${character.fullName}的发言：`
                 temperature: 0.7 // Slightly higher temperature for more creative questioning
             });
 
-            if (!response || response.trim() === '') {
+            if (!response || (response as any).trim?.() === '') {
                 return null;
             }
 
             const message: Message = {
                 role: "assistant",
                 name: character.fullName,
-                content: response.trim(),
-                characterId: character.id
+content: (response as any)?.trim() ?? ''
             };
 
             return message;
