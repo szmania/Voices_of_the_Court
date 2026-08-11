@@ -78,9 +78,8 @@ export async function generateSceneDescription(conv: Conversation, signal?: Abor
         const messages = buildSceneDescriptionPrompt(conv);
         
         // 调用API生成场景描述，使用complete方法
-        const response = await conv.textGenApiConnection.complete(messages, false, {}, undefined, signal);
-        
-        // 清理响应内容
+        const result = await conv.textGenApiConnection.complete(messages, false, {}, undefined, signal);
+        const response = typeof result === 'string' ? result : (result?.content ?? '');
         let sceneDescription = response.trim();
         
         // 如果生成的描述太短或为空，返回默认描述
