@@ -96,6 +96,13 @@ export class ChatWindow{
         OverlayController.activateOverlay();
         this.isShown = true;
 
+        // Send the show event after a short delay to ensure the renderer is ready
+        setTimeout(() => {
+            if (this.window && !this.window.isDestroyed()) {
+                this.window.webContents.send('chat-show');
+            }
+        }, 150);
+
         /*this.windowWatchId = ActiveWindow.subscribe( (winInfo) =>{
             if(winInfo?.title == "Crusader Kings III" && this.isShown ){
 

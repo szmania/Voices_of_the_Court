@@ -1077,7 +1077,6 @@ clipboardListener.on('VOTC:IN', async () =>{
     }
 
     chatWindow.show();
-    chatWindow.window.webContents.send('chat-show');
     try{
         console.log("Waiting briefly for log file to update...");
         await sleep(250);
