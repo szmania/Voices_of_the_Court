@@ -1048,6 +1048,8 @@ const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
         }
     }
 };
+// Ensure we don't add duplicate listeners.
+ipcRenderer.removeAllListeners('update-language');
 ipcRenderer.on('update-language', languageUpdateHandler);
 
 window.addEventListener('beforeunload', () => {
