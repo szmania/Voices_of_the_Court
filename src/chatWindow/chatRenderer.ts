@@ -1604,6 +1604,8 @@ ipcRenderer.on('chat-show', () =>{
         chatMessages.innerHTML = '';
     }
     document.body.style.display = '';
+    console.log('Chat window is shown, sending chat-ui-ready to main process.');
+    ipcRenderer.send('chat-ui-ready');
 })
 
 ipcRenderer.on('update-character-lists', (event, updatedCharacterIds: number[]) => {

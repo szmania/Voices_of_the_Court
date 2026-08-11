@@ -1134,10 +1134,14 @@ clipboardListener.on('VOTC:IN', async () =>{
             actions: sanitizedActions, // Pass sanitized actions
             basePromptTokens: basePromptTokens
         };
-        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
-        chatWindow.window.webContents.send('chat-start', payload);
 
-        // Wait for the chat window to be ready before starting the conversation flow
+        // Wait for the renderer to signal it's ready before sending the payload
+        ipcMain.once('chat-ui-ready', () => {
+            console.log('IPC: Received chat-ui-ready. Sending chat-start payload.');
+            chatWindow.window.webContents.send('chat-start', payload);
+        });
+
+        // This separate listener triggers the conversation flow after the UI has processed chat-start
         ipcMain.once('chat-window-ready', async () => {
             console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
             await conversation.initialize();
