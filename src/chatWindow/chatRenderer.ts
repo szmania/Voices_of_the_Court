@@ -1798,7 +1798,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
             }
 
             for (const msg of conv.messages) {
-                const msgDiv = displayMessage(msg, true);
+                const msgDiv = await displayMessage(msg, true);
                 if (msgDiv) {
                     fragment.appendChild(msgDiv);
                 }
