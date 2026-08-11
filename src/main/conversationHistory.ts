@@ -69,11 +69,9 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
 
 // Read content of a specific historical conversation file
 export async function readConversationHistoryFile(playerId: string, fileName: string): Promise<string> {
+    const userDataPath = app.getPath('userData');
+    const filePath = path.join(userDataPath, 'votc_data', 'conversation_history', playerId, fileName);
     try {
-        // Build path to conversation history file - using userdata's conversation_history directory
-        const userDataPath = app.getPath('userData');
-        const filePath = path.join(userDataPath, 'votc_data', 'conversation_history', playerId, fileName);
-        
         // Ensure file exists
         await fs.access(filePath);
         
