@@ -423,9 +423,8 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
 
     // After a potential time travel or large jump, re-evaluate the player ID
-    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
-    if (fs.existsSync(config.userFolderPath)) {
-        getPlayerId(config.userFolderPath).then(result => {
+    if (fs.existsSync(userDataPath)) {
+        getPlayerId(userDataPath).then(result => {
             const newPlayerId = result.playerId;
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
