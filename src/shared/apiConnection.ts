@@ -6,7 +6,6 @@ export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
 export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 
 import { getEncoding, Tiktoken } from "js-tiktoken";
-import { hashAccessKey } from "./auth/argon2";
 
 export interface apiConnectionTestResult{
     success: boolean,
