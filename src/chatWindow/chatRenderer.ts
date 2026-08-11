@@ -167,7 +167,7 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
+function displayMessage(message: Message, isHistorical: boolean = false): HTMLDivElement | void {
     if (message.name === 'Narrator' || message.role === 'system') {
         return; // Do not display narrator or system messages directly
     }
@@ -198,7 +198,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     const contentSpan = document.createElement('span');
     contentSpan.className = 'message-content';
     // Use parseInline for content, but don't sanitize yet to allow editing raw text
-    contentSpan.innerHTML = await marked.parseInline(message.content);
+    contentSpan.innerHTML = marked.parseInline(message.content);
 
 
     messageDiv.appendChild(nameSpan);
@@ -245,13 +245,13 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
             }
         });
 
-        const finishEditing = async () => {
+        const finishEditing = () => {
             if (contentSpan.contentEditable === 'true') {
                 messageDiv.classList.remove('is-editing');
                 contentSpan.contentEditable = 'false';
                 const newContent = contentSpan.innerText;
                 // Re-apply markdown parsing for display
-                contentSpan.innerHTML = await marked.parseInline(newContent);
+                contentSpan.innerHTML = marked.parseInline(newContent);
 
                 // Only send update if content has actually changed
                 if (newContent !== message.content) {
@@ -335,7 +335,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     return messageDiv;
 }
 
-function displayNarrative(narrativeMessage: Message | null) {
+function displayNarrative(narrativeMessage: Message | null): HTMLDivElement | void {
     if (!narrativeMessage || !narrativeMessage.content) return;
 
     const messageDiv = document.createElement('div');
@@ -414,6 +414,7 @@ function displayNarrative(narrativeMessage: Message | null) {
 
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    return messageDiv;
 }
 
 function displayActions(actions: ActionResponse[]){
@@ -1651,10 +1652,10 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
     displayedMessageIds.clear();
     currentConversationMessageDivs = [];
-    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+    const { gameData: plainGameData, messages, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
 
     basePromptTokens = initialBaseTokens || 0;
 
@@ -1766,6 +1767,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         // Display in chronological order (oldest first)
         const chronologicalMetadata = historicalMetadata;
+        const fragment = document.createDocumentFragment();
 
         for (const conv of chronologicalMetadata) {
             const convHeader = document.createElement('div');
@@ -1776,7 +1778,7 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
             if (conv.location) headerText += ` | Location: ${conv.location}`;
             if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
             convHeader.textContent = headerText;
-            chatMessages.append(convHeader);
+            fragment.appendChild(convHeader);
 
             if (conv.characters && conv.characters.length > 0) {
                 const characterDiv = document.createElement('div');
@@ -1792,27 +1794,34 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
                 }).join(', ');
 
                 characterDiv.textContent = `Characters: ${characterString}`;
-                chatMessages.append(characterDiv);
+                fragment.appendChild(characterDiv);
             }
 
             for (const msg of conv.messages) {
-                await displayMessage(msg, true);
+                const msgDiv = displayMessage(msg, true);
+                if (msgDiv) {
+                    fragment.appendChild(msgDiv);
+                }
                 // Historical messages have narratives embedded in them
-                if (msg.narrative && typeof msg.narrative === 'string') {
+                if ((msg as any).narrative && typeof (msg as any).narrative === 'string') {
                     const narrativeMsg: Message = {
                         role: 'system',
                         name: 'Narrator',
-                        content: msg.narrative,
+                        content: (msg as any).narrative,
                         id: msg.id ? `${msg.id}-narrative` : randomUUID()
                     };
-                    displayNarrative(narrativeMsg);
+                    const narrativeDiv = displayNarrative(narrativeMsg);
+                    if (narrativeDiv) {
+                        fragment.appendChild(narrativeDiv);
+                    }
                 }
             }
             const convSeparator = document.createElement('div');
             convSeparator.classList.add('historical-conversation-separator');
             convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
-            chatMessages.append(convSeparator);
+            fragment.appendChild(convSeparator);
         }
+        chatMessages.appendChild(fragment);
     }
 
     // Render current conversation header

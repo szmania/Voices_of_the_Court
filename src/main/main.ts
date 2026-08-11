@@ -23,7 +23,7 @@ import { readPromptHistory, savePromptHistory } from "./promptHistory";
 import { Message, ActionResponse } from "./ts/conversation_interfaces";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { randomUUID } from "crypto";
 import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
@@ -423,8 +423,9 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
 
     // After a potential time travel or large jump, re-evaluate the player ID
-    if (fs.existsSync(userDataPath)) {
-        getPlayerId(userDataPath).then(result => {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (fs.existsSync(debugLogPath)) {
+        getPlayerId(debugLogPath).then(result => {
             const newPlayerId = result.playerId;
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
