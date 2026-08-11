@@ -167,7 +167,7 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
-function displayMessage(message: Message, isHistorical: boolean = false): HTMLDivElement | void {
+async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
     if (message.name === 'Narrator' || message.role === 'system') {
         return; // Do not display narrator or system messages directly
     }
@@ -198,7 +198,7 @@ function displayMessage(message: Message, isHistorical: boolean = false): HTMLDi
     const contentSpan = document.createElement('span');
     contentSpan.className = 'message-content';
     // Use parseInline for content, but don't sanitize yet to allow editing raw text
-    contentSpan.innerHTML = marked.parseInline(message.content);
+    contentSpan.innerHTML = await marked.parseInline(message.content);
 
 
     messageDiv.appendChild(nameSpan);
@@ -245,13 +245,13 @@ function displayMessage(message: Message, isHistorical: boolean = false): HTMLDi
             }
         });
 
-        const finishEditing = () => {
+        const finishEditing = async () => {
             if (contentSpan.contentEditable === 'true') {
                 messageDiv.classList.remove('is-editing');
                 contentSpan.contentEditable = 'false';
                 const newContent = contentSpan.innerText;
                 // Re-apply markdown parsing for display
-                contentSpan.innerHTML = marked.parseInline(newContent);
+                contentSpan.innerHTML = await marked.parseInline(newContent);
 
                 // Only send update if content has actually changed
                 if (newContent !== message.content) {

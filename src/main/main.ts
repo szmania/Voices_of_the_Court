@@ -23,7 +23,7 @@ import { readPromptHistory, savePromptHistory } from "./promptHistory";
 import { Message, ActionResponse } from "./ts/conversation_interfaces";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
 import path from 'path';
-import fs from 'fs/promises';
+import fs from 'fs';
 import { randomUUID } from "crypto";
 import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
