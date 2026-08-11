@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import { app } from 'electron';
 
@@ -10,7 +10,9 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
         const conversationHistoryDir = path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
         
         // Ensure directory exists
-        if (!fs.existsSync(conversationHistoryDir)) {
+        try {
+            await fs.access(conversationHistoryDir);
+        } catch {
             console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
             return [];
         }
@@ -18,7 +20,8 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
         const currentIdSet = new Set(currentCharacterIds.map(String));
 
         // Read all txt files in the directory
-        const files = fs.readdirSync(conversationHistoryDir).filter(file => {
+        const allFiles = await fs.readdir(conversationHistoryDir);
+        const filteredFiles = allFiles.filter(file => {
             if (!file.endsWith('.txt')) return false;
 
             const nameParts = file.replace('.txt', '').split('_');
@@ -28,27 +31,25 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
             if (isNaN(Number(timestamp))) return false;
 
             const fileCharacterIds = new Set(nameParts);
-
-            // Check if the set of character IDs in the filename matches the current conversation's character IDs.
-            if (fileCharacterIds.size !== currentIdSet.size) return false;
-
-            for (const id of currentIdSet) {
-                if (!fileCharacterIds.has(id)) {
-                    return false;
+            
+            // New logic: Check if the characters in the history file are a subset of the current characters.
+            for (const id of fileCharacterIds) {
+                if (!currentIdSet.has(id)) {
+                    return false; // History has a character not in the current conversation
                 }
             }
             return true;
         });
         
         // Get modification time for each file
-        const filesWithStats = files.map(fileName => {
+        const filesWithStats = await Promise.all(filteredFiles.map(async (fileName) => {
             const filePath = path.join(conversationHistoryDir, fileName);
-            const stats = fs.statSync(filePath);
+            const stats = await fs.stat(filePath);
             return {
                 fileName,
                 modifiedTime: stats.mtime.getTime()
             };
-        });
+        }));
         
         // Sort by modification time, descending (newest first)
         filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
@@ -74,15 +75,16 @@ export async function readConversationHistoryFile(playerId: string, fileName: st
         const filePath = path.join(userDataPath, 'votc_data', 'conversation_history', playerId, fileName);
         
         // Ensure file exists
-        if (!fs.existsSync(filePath)) {
-            throw new Error(`Conversation history file does not exist: ${filePath}`);
-        }
+        await fs.access(filePath);
         
         // Read file content
-        const content = fs.readFileSync(filePath, 'utf8');
+        const content = await fs.readFile(filePath, 'utf8');
         
         return content;
     } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+             throw new Error(`Conversation history file does not exist: ${filePath}`);
+        }
         console.error('Error reading conversation history file:', error);
         throw error;
     }
