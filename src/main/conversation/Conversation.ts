@@ -26,6 +26,7 @@ import { getConversationHistoryFiles } from '../conversationHistory.js';
 import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
+import { Tiktoken } from "js-tiktoken";
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -79,8 +80,10 @@ export class Conversation{
     abortController: AbortController | null;
     isGeneratingScene: boolean;
     pendingPlayerRequest: boolean;
+    encoder: Tiktoken | null;
 
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string){
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null){
+        this.encoder = encoder;
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
         this.userDataPath = userDataPath;
@@ -1832,22 +1835,22 @@ ${character.fullName}的发言：`
     getApiConnections() {
         let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
         
-        textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters);
+        textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         console.log('Text generation API connection configured.');
 
         if(this.config.summarizationUseTextGenApi){
-            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using text generation API).');
         } else {
-            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters);
+            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using dedicated summarization API).');
         }
 
         if(this.config.actionsUseTextGenApi){
-            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using text generation API).');
         } else {
-            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters);
+            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using dedicated actions API).');
         }
         return [textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection];

@@ -1,4 +1,5 @@
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
+import { getEncoding, Tiktoken } from "js-tiktoken";
 import {ConfigWindow} from './windows/ConfigWindow';
 import {ChatWindow} from './windows/ChatWindow';
 import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
@@ -31,6 +32,8 @@ import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
+
+let tiktokenEncoder: Tiktoken | null = null;
 
 let translations: any = {};
 const loadTranslations = (lang: string) => {
@@ -576,6 +579,13 @@ function startLogTailing() {
 
 
 app.on('ready',  async () => {
+    try {
+        console.log("Initializing tiktoken encoder at startup...");
+        tiktokenEncoder = getEncoding("cl100k_base");
+        console.log("Tiktoken encoder initialized.");
+    } catch (e) {
+        console.error("Failed to initialize tiktoken encoder at startup:", e);
+    }
     console.log('App is ready event triggered.');
     userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
@@ -736,7 +746,8 @@ app.on('ready',  async () => {
                 const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     config.textGenerationApiConnectionConfig.connection,
-                    config.textGenerationApiConnectionConfig.parameters
+                    config.textGenerationApiConnectionConfig.parameters,
+                    tiktokenEncoder
                 );
                 return apiConnection.calculateTokensFromText(text);
             }
@@ -760,7 +771,8 @@ app.on('ready',  async () => {
                 const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
-                    config.textGenerationApiConnectionConfig.parameters
+                    config.textGenerationApiConnectionConfig.parameters,
+                    tiktokenEncoder
                 );
                 const detectedContext = apiConnection.context || 0;
                 if (detectedContext > 0) {
@@ -1099,7 +1111,7 @@ clipboardListener.on('VOTC:IN', async () =>{
         if (gameData.totalDays) {
             updateCurrentDate(gameData.totalDays);
         }
-        conversation = new Conversation(gameData, config, chatWindow, userDataPath);
+        conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
         await conversation.loadHistory();
 
         // Import letters from log
@@ -1370,7 +1382,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             updateCurrentDate(gameData.totalDays);
         }
 
-        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
+        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath, tiktokenEncoder);
         const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
         // Diary entry for player sending a letter

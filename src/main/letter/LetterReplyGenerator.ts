@@ -1,5 +1,6 @@
 import { BrowserWindow } from "electron";
 import { ApiConnection } from "../../shared/apiConnection";
+import { Tiktoken } from "js-tiktoken";
 import { Character } from "../../shared/gameData/Character.js";
 import { GameData, Trait } from "../../shared/gameData/GameData.js";
 import { Config } from "../../shared/Config";
@@ -19,7 +20,7 @@ export class LetterReplyGenerator {
     private config: Config;
     private userDataPath: string;
 
-    constructor(config: Config, userDataPath: string) {
+    constructor(config: Config, userDataPath: string, encoder: Tiktoken | null) {
         this.config = config;
         this.userDataPath = userDataPath;
         
@@ -27,7 +28,8 @@ export class LetterReplyGenerator {
         console.log('[LetterReplyGenerator] Creating ApiConnection...');
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
-            config.textGenerationApiConnectionConfig.parameters
+            config.textGenerationApiConnectionConfig.parameters,
+            encoder
         );
         console.log('[LetterReplyGenerator] ApiConnection created.');
     }
