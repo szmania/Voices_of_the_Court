@@ -1654,12 +1654,14 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
-    displayedMessageIds.clear();
-    currentConversationMessageDivs = [];
-    const { gameData: plainGameData, messages, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
+    console.log('Renderer: Received chat-start event.');
+    try {
+        displayedMessageIds.clear();
+        currentConversationMessageDivs = [];
+        const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
 
-    basePromptTokens = initialBaseTokens || 0;
+        basePromptTokens = initialBaseTokens || 0;
 
     // Re-instantiate GameData to get methods back
     const gameData = GameData.fromPlainObject(plainGameData);
@@ -1728,12 +1730,18 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Initialize chat UI elements (this clears the display)
     initChat();
 
-    // Set tooltips for config buttons
-    const configButtonWrapper = document.getElementById('config-button-wrapper')!;
-    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
-    if (window.LocalizationManager) {
-        configButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
-        minimizedConfigButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+    // Set tooltips for config buttons (safely)
+    const configButtonWrapper = document.getElementById('config-button-wrapper');
+    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper');
+    // @ts-ignore
+    const lm = window.LocalizationManager;
+    if (lm) {
+        if (configButtonWrapper) {
+            configButtonWrapper.setAttribute('data-tooltip', lm.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
+        }
+        if (minimizedConfigButtonWrapper) {
+            minimizedConfigButtonWrapper.setAttribute('data-tooltip', lm.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+        }
     }
     updateSuggestionsContainerStyle();
 
@@ -1868,7 +1876,13 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     }, 100);
 
     // Signal to main process that the UI is ready
+    console.log('Renderer: Sending chat-window-ready signal.');
     ipcRenderer.send('chat-window-ready');
+    } catch (err) {
+        console.error('CRITICAL ERROR in chat-start handler:', err);
+        // Still send the ready signal so the backend doesn't hang forever
+        ipcRenderer.send('chat-window-ready');
+    }
 });
 
 ipcRenderer.on('action-approval-request', (event, messageId: string, proposedActions: ActionResponse[]) => {

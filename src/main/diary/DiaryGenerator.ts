@@ -8,6 +8,7 @@ import { Conversation } from "../conversation/Conversation";
 import { DiaryEntry } from "../ts/diary_interfaces";
 import { LetterManager } from "../letter/LetterManager";
 import { randomUUID } from "crypto";
+import { Tiktoken } from "js-tiktoken";
 import * as path from "path";
 import * as fs from "fs";
 import { getEffectivePrompts } from "../conversation/promptBuilder.js";
@@ -17,12 +18,13 @@ export class DiaryGenerator {
     private config: Config;
     private userDataPath: string;
 
-    constructor(config: Config, userDataPath: string) {
+    constructor(config: Config, userDataPath: string, encoder: Tiktoken | null = null) {
         this.config = config;
         this.userDataPath = userDataPath;
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
-            config.textGenerationApiConnectionConfig.parameters
+            config.textGenerationApiConnectionConfig.parameters,
+            encoder
         );
     }
 
