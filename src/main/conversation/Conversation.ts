@@ -1914,7 +1914,7 @@ ${character.fullName}的发言：`
             console.log('Actions API connection configured (using dedicated actions API).');
         }
 
-        compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters);
+        compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
         console.log('Compaction API connection configured.');
 
         return [textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection];
