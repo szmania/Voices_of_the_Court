@@ -1893,7 +1893,7 @@ ${character.fullName}的发言：`
     }
 
     getApiConnections() {
-        let textGenApiConnection, summarizationApiConnection, actionsApiConnection;
+        let textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection;
 
         textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         console.log('Text generation API connection configured.');
