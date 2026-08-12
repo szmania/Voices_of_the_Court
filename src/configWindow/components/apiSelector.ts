@@ -614,7 +614,7 @@ class ApiSelector extends HTMLElement{
             }
             console.debug("Using config:", configToLog);
 
-            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters);
+            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters, null);
 
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
@@ -991,7 +991,7 @@ class ApiSelector extends HTMLElement{
         }
 
         // Create a connection object with the LATEST config
-        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters, null);
         const models = await tempConnection.listModels();
 
         // Get the currently saved model to ensure it's selected
@@ -1029,7 +1029,7 @@ class ApiSelector extends HTMLElement{
         }
 
         // Create a connection object with the LATEST config
-        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters);
+        const tempConnection = new ApiConnection(connectionConfig, config[this.confID]?.parameters, null);
         const models = await tempConnection.listModels();
 
         // Get the currently saved model to ensure it's selected
