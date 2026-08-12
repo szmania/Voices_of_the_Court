@@ -18,7 +18,7 @@ export interface ErrorMessage {
 export interface MessageChunk {
     role?: 'system' | 'user' | 'assistant' | 'tool';
     content?: string | null | undefined;
-isFinal?: boolean;
+    isFinal?: boolean;
     special?: any;
 }
 
