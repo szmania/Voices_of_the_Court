@@ -75,13 +75,9 @@ export class ChatWindow{
         ipcMain.on('reset-window-position', () =>{this.resetPosition()})
 
         ipcMain.on('get-conversation-history', (event) => {
-            event.reply('conversation-history', this.conversation.getHistory());
-        });
-
-        ipcMain.on('reset-window-position', () =>{this.resetPosition()})
-
-        ipcMain.on('get-conversation-history', (event) => {
-            event.reply('conversation-history', this.conversation.getHistory());
+            if (this.conversation) {
+                event.reply('conversation-history', this.conversation.getHistory());
+            }
         });
 
 
