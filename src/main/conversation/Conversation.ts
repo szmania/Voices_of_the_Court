@@ -112,7 +112,7 @@ export class Conversation{
         this.description = "";
         this.actions = [];
 
-        // 如果角色数量大于2，为所有非玩家角色创建空白消息
+        // If character count is greater than 2, create empty messages for all non-player characters.
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
             gameData.characters.forEach((character) => {
@@ -130,7 +130,7 @@ export class Conversation{
         }
 
         this.summaries = new Map<number, Summary[]>();
-        this.summaryFileWatcher = new SummaryFileWatcher(); // 初始化文件监控器
+        this.summaryFileWatcher = new SummaryFileWatcher(); // Initialize file watcher
         this.letterManager = LetterManager.getInstance();
         this.letters = new Map<number, ILetter[]>();
         this.consecutiveActionsCount = 0; // Initialize consecutive actions counter
@@ -207,7 +207,7 @@ export class Conversation{
                 }
                 this.summaries.set(character.id, characterSummaries);
 
-                // 设置文件监控，当文件变化时自动重新加载
+                // Set up file watching to automatically reload when the file changes.
                 this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries: Summary[]) => {
                     this.summaries.set(character.id, updatedSummaries);
                     console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
@@ -263,16 +263,16 @@ export class Conversation{
             await this.memoryCompactor.loadFromDisk(String(this.gameData.playerID));
         }
 
-        // 如果启用了场景描述生成功能，在对话开始时生成场景描述
+        // If scene description generation is enabled, generate it at the start of the conversation.
         if (this.config.generateSceneDescription) {
             await this.generateSceneDescription(true);
         }
 
-        // 如果启用了自动生成建议功能，在对话开始时生成建议
+        // If auto-generate suggestions is enabled, generate them at the start of the conversation.
         if (this.config.autoGenerateSuggestions) {
-            // 如果场景描述生成也启用了，会在场景描述生成完成后自动调用建议生成
+            // If scene description generation is also enabled, it will trigger suggestion generation after completion.
             if (!this.config.generateSceneDescription) {
-                // 如果没有启用场景描述生成，直接生成建议
+                // If scene description generation is not enabled, generate suggestions directly.
                 await this.generateInitialSuggestions();
             }
         }
@@ -1250,7 +1250,7 @@ export class Conversation{
             responseMessage.content = `*${cleanedContent}*`;
         }
 
-        // 只有当sendMessageToChat为true时才将消息添加到消息数组并发送到聊天窗口
+        // Only add the message to the message array and send to the chat window if sendMessageToChat is true.
         if (sendMessageToChat) {
             this.pushMessage(responseMessage);
             const messageIndex = this.messages.length - 1; // 获取刚添加的消息索引
@@ -1270,7 +1270,7 @@ export class Conversation{
             console.log(`Message generated but not sent to chat window due to sendMessageToChat=false`);
         }
 
-        // 如果sendMessageToChat为false，返回生成的消息
+        // If sendMessageToChat is false, return the generated message.
         if (!sendMessageToChat) {
             return responseMessage;
         }
@@ -1279,23 +1279,23 @@ export class Conversation{
     }
 
     /**
-     * 验证生成的消息是否符合角色身份
-     * @param character - 应该发言的角色
-     * @param messageContent - 生成的消息内容
-     * @returns 如果消息符合角色身份返回true，否则返回false
+     * Validate if the generated message matches the character's identity.
+     * @param character - The character who should be speaking.
+     * @param messageContent - The generated message content.
+     * @returns Returns true if the message matches the character identity, otherwise returns false.
      */
     async validateCharacterIdentity(character: Character, messageContent: string): Promise<boolean> {
         console.log(`Validating if message content matches character identity for: ${character.fullName}`);
 
         const validationTranslations = this.translations.character_validation || getTranslations('en').character_validation;
 
-        // 获取最近的对话历史，用于提供上下文
-        const recentMessages = this.messages.slice(-5); // 获取最近5条消息作为上下文
+        // Get recent conversation history to provide context.
+        const recentMessages = this.messages.slice(-5); // Get recent 5 messages as context.
         const conversationHistory = recentMessages.map(msg =>
             `${msg.name}: ${msg.content}`
         ).join('\n');
 
-        // 获取年龄描述，根据年龄段添加后缀
+        // Get age description, adding a suffix based on the age group.
         let ageDescription = `${character.age}`;
         if (character.age >= 0 && character.age <= 3) {
             ageDescription += ` ${validationTranslations.age_suffix.infant}`;
@@ -1307,7 +1307,7 @@ export class Conversation{
             ageDescription += ` ${validationTranslations.age_suffix.teenager}`;
         }
 
-        // 构建验证提示
+        // Build validation prompt.
         const prompt: Message[] = [
             {
                 role: "user",
@@ -1337,34 +1337,34 @@ ${validationTranslations.instruction}`
         ];
 
         try {
-            // 调用LLM API进行验证
+            // Call LLM API for validation.
             const response = await this.textGenApiConnection.complete(prompt, false, {
                 max_tokens: 10,
-                temperature: 0.1 // 使用较低的温度以确保一致性
+                temperature: 0.1 // Use low temperature for consistency.
             }, undefined, this.abortController?.signal);
 
             const responseText = (response as any)?.trim() ?? '';
             console.log(`[DEBUG] Parsed response: ${responseText}`);
 
-            // 更严格的验证逻辑：明确检查是否为"符合"
+            // Stricter validation logic: explicitly check if it is "conforming".
             const isValid = responseText === validationTranslations.valid;
             console.log(`Character identity validation result for ${character.fullName}: ${isValid ? 'Valid' : 'Invalid'}`);
             return isValid;
         } catch (error) {
             console.error(`Error during character identity validation: ${error}. Defaulting to valid.`);
-            // 如果验证过程出错，默认认为消息有效
+            // If an error occurs during validation, default to valid.
             return true;
         }
     }
 
     /**
-     * 生成带有身份验证的AI消息
-     * @param character - 应该发言的角色
+     * Generate AI message with identity validation.
+     * @param character - The character who should be speaking.
      */
     async generateNewAIMessageWithValidation(character: Character, isNonTargeted: boolean = false): Promise<Message | null> {
         console.log(`Generating AI message with identity validation for character: ${character.fullName}`);
 
-        // 检查是否满足身份验证的条件：流式传输关闭且角色数量大于2
+        // Check if identity validation conditions are met: streaming disabled and character count greater than 2.
         const shouldValidate = !this.config.stream && this.gameData.characters.size > 2;
 
         if (!shouldValidate) {
@@ -1384,16 +1384,16 @@ ${validationTranslations.instruction}`
             try {
                 let generatedMessage: Message | null = null;
 
-                // 第一次尝试使用常规生成方式
+                // First attempt using normal generation method.
                 if (attempts === 1) {
                     generatedMessage = await this.generateNewAIMessage(character, false, isNonTargeted);
                 } else {
-                    // 后续尝试使用特定提示词生成消息
+                    // Subsequent attempts use specific prompts to generate the message.
                     generatedMessage = await this.generateMessageWithValidationPrompt(character);
                 }
 
                 if (generatedMessage) {
-                    // 验证消息是否符合角色身份
+                    // Validate if the message matches the character identity.
                     const isValid = await this.validateCharacterIdentity(character, generatedMessage.content);
 
                     if (isValid) {
@@ -1418,57 +1418,57 @@ ${validationTranslations.instruction}`
             return validMessage;
         } else {
             console.warn(`Failed to generate valid message for ${character.fullName} after ${maxAttempts} attempts. Skipping this character.`);
-            // 可以选择发送一个通知给用户
-            this.chatWindow.window.webContents.send('error-message', ` ${character.fullName} 没有发言。`);
+            // Optionally send a notification to the user.
+            this.chatWindow.window.webContents.send('error-message', ` ${character.fullName} did not speak.`);
             return null;
         }
     }
 
     /**
-     * 使用特定提示词生成消息（用于验证失败后的重试）
-     * @param character - 应该发言的角色
-     * @returns 生成的消息对象
+     * Use a specific prompt to generate the message (for retries after validation failure).
+     * @param character - The character who should be speaking.
+     * @returns Returns the generated message object.
      */
     async generateMessageWithValidationPrompt(character: Character): Promise<Message | null> {
         console.log(`Generating message with validation prompt for character: ${character.fullName}`);
 
-        // 获取年龄描述，根据年龄段添加后缀
-        let ageDescription = `${character.age}岁`;
+        // Get age description, adding a suffix based on the age group.
+        let ageDescription = `${character.age} years old`;
         if (character.age >= 0 && character.age <= 3) {
-            ageDescription += "（婴儿）";
+            ageDescription += " (Infant)";
         } else if (character.age >= 4 && character.age <= 5) {
-            ageDescription += "（幼儿）";
+            ageDescription += " (Toddler)";
         } else if (character.age >= 6 && character.age <= 12) {
-            ageDescription += "（少儿）";
+            ageDescription += " (Child)";
         } else if (character.age >= 13 && character.age <= 16) {
-            ageDescription += "（少年）";
+            ageDescription += " (Teenager)";
         }
 
-        // 获取最近的对话历史，用于提供上下文
-        const recentMessages = this.messages.slice(-5); // 获取最近5条消息作为上下文
+        // Get recent conversation history to provide context.
+        const recentMessages = this.messages.slice(-5); // Get recent 5 messages as context.
         const conversationHistory = recentMessages.map(msg =>
             `${msg.name}: ${msg.content}`
         ).join('\n');
 
-        // 构建特定提示词
+        // Build specific prompt.
         const prompt: Message[] = [
             {
                 role: "system",
-                content: `请扮演角色${character.fullName}写下一条发言，使用markdown格式，用斜体表示动作，角色信息：
-- 姓名：${character.fullName}
-- 名称：${character.shortName}
-- 身份/头衔：${character.primaryTitle}
-- 性别：${character.sheHe}
-- 年龄：${ageDescription}
-- 文化：${character.culture}
-- 信仰：${character.faith}
-- 是否为统治者：${character.isRuler ? '是' : '否'}
-- 是否为独立统治者：${character.isIndependentRuler ? '是' : '否'}
+                content: `Please write a statement while roleplaying character ${character.fullName}. Use markdown format, with italics for actions. Character Info:
+- Name: ${character.fullName}
+- Short Name: ${character.shortName}
+- Identity/Title: ${character.primaryTitle}
+- Gender: ${character.sheHe}
+- Age: ${ageDescription}
+- Culture: ${character.culture}
+- Faith: ${character.faith}
+- Is Ruler: ${character.isRuler ? 'Yes' : 'No'}
+- Is Independent Ruler: ${character.isIndependentRuler ? 'Yes' : 'No'}
 
-最近的对话历史：
+Recent conversation history:
 ${conversationHistory}
 
-${character.fullName}的发言：`
+Statement by ${character.fullName}:`
             }
         ];
 
@@ -1850,18 +1850,18 @@ ${character.fullName}的发言：`
         }
     }
 
-    // 生成推荐输入语句
+    // Generate recommended input statements
     public async generateSuggestions(): Promise<string[]> {
         return generateSuggestions(this);
     }
 
     /**
-     * 清理资源，停止文件监控
+     * Cleanup resources and stop file watching.
      */
     public cleanup(): void {
         if (this.summaryFileWatcher) {
             this.summaryFileWatcher.unwatchAll();
-            // 确保清理所有暂停的监控文件
+            // Ensure all paused watchers are cleaned up.
             this.summaryFileWatcher.clearPausedWatchers();
             console.log('Cleaned up summary file watchers and paused watchers');
         }
@@ -1986,7 +1986,7 @@ ${character.fullName}的发言：`
     }
 
     /**
-     * 生成场景描述
+     * Generate scene description.
      * isInitial determines if it's for the start of the conversation or a mid-conversation update.
      */
     public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
@@ -2004,11 +2004,11 @@ ${character.fullName}的发言：`
         }
 
         try {
-            // 生成场景描述
+            // Generate scene description.
             const sceneDescription = await generateSceneDescription(this, this.abortController!.signal);
 
             if (sceneDescription && (sceneDescription as any)?.trim()) {
-                // 创建场景描述消息
+                // Create scene description message.
                 const sceneMessage: Message = {
                     id: randomUUID(),
                     role: "system",
@@ -2033,13 +2033,13 @@ ${character.fullName}的发言：`
                     this.messages.push(sceneMessage);
                 }
 
-                // 发送场景描述到聊天窗口
+                // Send scene description to the chat window.
                 this.chatWindow.window.webContents.send('scene-description', sceneMessage);
 
                 console.log(`Scene description generated and sent. Initial: ${isInitial}. Desc: ${sceneDescription.substring(0, 100)}...`);
             } else {
                 console.log('No scene description was generated or description was empty.');
-                // 发送空场景描述以清除加载状态
+                // Send empty scene description to clear loading state.
                 this.chatWindow.window.webContents.send('scene-description', null);
             }
         } catch (error) {
@@ -2049,8 +2049,8 @@ ${character.fullName}的发言：`
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state
             } else {
                 console.error('Error generating scene description:', error);
-                // 如果生成失败，不影响对话的正常进行
-                // 但仍然需要清除加载状态
+                // If generation fails, it does not affect the normal flow of the conversation.
+                // Still need to clear loading state.
                 this.chatWindow.window.webContents.send('scene-description', null);
             }
         } finally {
@@ -2074,7 +2074,7 @@ ${character.fullName}的发言：`
             }
         }
 
-        // 场景描述生成完成后，如果启用了自动生成建议功能，则生成建议
+        // After scene description generation is complete, generate suggestions if auto-generate is enabled.
         if (isInitial && this.config.autoGenerateSuggestions) {
             console.log('Initial scene description generation completed, now generating suggestions.');
             this.generateInitialSuggestions();
@@ -2082,18 +2082,18 @@ ${character.fullName}的发言：`
     }
 
     /**
-     * 生成初始建议
-     * 在对话开始时为用户提供输入建议
+     * Generate initial suggestions.
+     * Provides input suggestions for the user at the start of the conversation.
      */
     private async generateInitialSuggestions(): Promise<void> {
         console.log('Starting initial suggestions generation.');
 
         try {
-            // 生成建议
+            // Generate suggestions.
             const suggestions = await this.generateSuggestions();
 
             if (suggestions && suggestions.length > 0) {
-                // 发送建议到聊天窗口
+                // Send suggestions to the chat window.
                 this.chatWindow.window.webContents.send('suggestions-response', suggestions);
 
                 console.log(`Initial suggestions generated and sent to chat window: ${suggestions.length} suggestions`);
@@ -2102,7 +2102,7 @@ ${character.fullName}的发言：`
             }
         } catch (error) {
             console.error('Error generating initial suggestions:', error);
-            // 如果生成失败，不影响对话的正常进行
+            // If generation fails, it does not affect the normal flow of the conversation.
         }
     }
 
