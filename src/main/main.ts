@@ -1130,14 +1130,14 @@ clipboardListener.on('VOTC:IN', async () =>{
             actions: sanitizedActions, // Pass sanitized actions
             basePromptTokens: basePromptTokens
         };
-        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
-        chatWindow.window.webContents.send('chat-start', payload);
-
         // Wait for the chat window to be ready before starting the conversation flow
         ipcMain.once('chat-window-ready', async () => {
             console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
             await conversation.initialize();
         });
+
+        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
+        chatWindow.window.webContents.send('chat-start', payload);
 
     }catch(err){
         console.log("==VOTC:IN ERROR==");
