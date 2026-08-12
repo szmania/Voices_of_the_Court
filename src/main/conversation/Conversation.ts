@@ -1899,18 +1899,18 @@ Statement by ${character.fullName}:`
         console.log('Text generation API connection configured.');
 
         if(this.config.summarizationUseTextGenApi){
-            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+            summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using text generation API).');
         } else {
-            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+            summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using dedicated summarization API).');
         }
 
         if(this.config.actionsUseTextGenApi){
-            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+            actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using text generation API).');
         } else {
-            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+            actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using dedicated actions API).');
         }
 
