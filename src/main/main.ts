@@ -1048,15 +1048,7 @@ let conversationLock: Promise<void> | null = null;
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
-    // Register ready listener immediately to ensure we don't miss the signal during async tasks
-    ipcMain.once('chat-window-ready', async () => {
-        console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
-        if (conversation) {
-            await conversation.initialize();
-        } else {
-            console.warn('IPC: Received chat-window-ready but conversation object is not yet created.');
-        }
-    });
+    const readyPromise = new Promise<void>(resolve => ipcMain.once('chat-window-ready', () => resolve()));
 
     // Check for incompatible mods
     const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
@@ -1158,6 +1150,13 @@ clipboardListener.on('VOTC:IN', async () =>{
             console.log('IPC: Received chat-ui-ready. Sending chat-start payload.');
             chatWindow.window.webContents.send('chat-start', payload);
         });
+
+        // Wait for the renderer to confirm it has processed the chat-start payload
+        await readyPromise;
+        console.log('IPC: chat-window-ready confirmed by renderer. Initializing conversation flow.');
+        if (conversation) {
+            await conversation.initialize();
+        }
 
     }catch(err){
         console.log("==VOTC:IN ERROR==");

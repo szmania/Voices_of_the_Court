@@ -31,11 +31,14 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
             if (isNaN(Number(timestamp))) return false;
 
             const fileCharacterIds = new Set(nameParts);
-            
-            // New logic: Check if the characters in the history file are a subset of the current characters.
+
+            // The history is only relevant if the set of participants is exactly the same.
+            if (fileCharacterIds.size !== currentIdSet.size) {
+                return false;
+            }
             for (const id of fileCharacterIds) {
                 if (!currentIdSet.has(id)) {
-                    return false; // History has a character not in the current conversation
+                    return false;
                 }
             }
             return true;

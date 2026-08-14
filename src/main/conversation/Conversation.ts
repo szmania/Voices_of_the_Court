@@ -231,11 +231,19 @@ export class Conversation{
             }
         });
 
-        //TODO: wtf
         this.runFileManager = new RunFileManager(config.userFolderPath);
         this.actions = [];
 
-        [this.textGenApiConnection, this.summarizationApiConnection, this.actionsApiConnection, this.compactionApiConnection] = this.getApiConnections();
+        // Assign API connections directly to class properties
+        this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
+        this.summarizationApiConnection = this.config.summarizationUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+        this.actionsApiConnection = this.config.actionsUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
+
 
         this.loadConfig();
 
@@ -278,6 +286,10 @@ export class Conversation{
         }
         await this.initiateConversation();
     }
+
+import { readCharacterMap } from '../summaryManager.js';
+
+// ... inside the Conversation class
 
     public async loadHistory(): Promise<void> {
         // Check if historical conversation loading is enabled
@@ -370,17 +382,8 @@ export class Conversation{
                 const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
                 const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
 
-                // Build a regex to match any of the known character names at the start of a line
-                const allChars = Array.from(this.gameData.characters.values());
-                // Also add the player name from gameData, which might be different from the character object
-                const playerChar = this.gameData.getPlayer();
-                if (playerChar) {
-                    allChars.push(playerChar);
-                }
-                const speakerNames = allChars.map(c => c.fullName).concat(allChars.map(c => c.shortName));
-                speakerNames.push(this.gameData.playerName);
-                const uniqueSpeakerNames = [...new Set(speakerNames)].filter(Boolean); // Remove empty and duplicates
-                const speakerRegex = new RegExp(`^(${uniqueSpeakerNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):`);
+                // Load the global character map to resolve historical names
+                const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
 
                 for (let line of lines) {
                     // Metadata parsing remains the same
@@ -396,6 +399,25 @@ export class Conversation{
                         currentLocation = line.replace('Location:', '').trim();
                         continue;
                     }
+
+                    // Build a robust speaker regex for each file using historical and current names
+                    const historyCharacterIds = fileInfo.name.split('_').slice(0, -1);
+                    const historicalSpeakerNames = new Set<string>();
+                    historyCharacterIds.forEach(id => {
+                        const charFromCurrentData = this.gameData.characters.get(parseInt(id, 10));
+                        if (charFromCurrentData) {
+                            historicalSpeakerNames.add(charFromCurrentData.fullName);
+                            historicalSpeakerNames.add(charFromCurrentData.shortName);
+                        }
+                        const historicalName = globalCharacterMap.get(id);
+                        if (historicalName) {
+                            historicalSpeakerNames.add(historicalName);
+                        }
+                    });
+                    historicalSpeakerNames.add(this.gameData.playerName);
+                    const uniqueSpeakerNames = [...historicalSpeakerNames].filter(Boolean);
+                    const speakerRegex = new RegExp(`^(${uniqueSpeakerNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):`);
+
 
                     const narrativeMatch = line.match(narrativeRegex);
                     if (narrativeMatch) {
@@ -1889,35 +1911,32 @@ Statement by ${character.fullName}:`
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.runFileManager.clear();
 
+        this.getApiConnections();
         this.loadActions();
     }
 
     getApiConnections() {
-        let textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection;
-
-        textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
+        this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         console.log('Text generation API connection configured.');
 
         if(this.config.summarizationUseTextGenApi){
-            summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+            this.summarizationApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using text generation API).');
         } else {
-            summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+            this.summarizationApiConnection = new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
             console.log('Summarization API connection configured (using dedicated summarization API).');
         }
 
         if(this.config.actionsUseTextGenApi){
-            actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+            this.actionsApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using text generation API).');
         } else {
-            actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+            this.actionsApiConnection = new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
             console.log('Actions API connection configured (using dedicated actions API).');
         }
 
-        compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
+        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
         console.log('Compaction API connection configured.');
-
-        return [textGenApiConnection, summarizationApiConnection, actionsApiConnection, compactionApiConnection];
     }
 
     loadActions(){
