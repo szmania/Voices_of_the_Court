@@ -29,6 +29,7 @@ import { MemoryCompactor } from './MemoryCompactor.js';
 import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
+import { readCharacterMap } from '../summaryManager.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -286,10 +287,6 @@ export class Conversation{
         }
         await this.initiateConversation();
     }
-
-import { readCharacterMap } from '../summaryManager.js';
-
-// ... inside the Conversation class
 
     public async loadHistory(): Promise<void> {
         // Check if historical conversation loading is enabled
