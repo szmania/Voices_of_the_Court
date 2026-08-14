@@ -160,22 +160,33 @@ export class Conversation{
             fs.mkdirSync(playerDiariesPath, { recursive: true });
         }
 
-        // Create/Update character map for the current player in the diary folder
-        const characterMapPath = path.join(playerDiariesPath, '_character_map.json');
+        // Create/Update character map for the current player in the conversation_summaries folder
+        // This is the critical fix for the history loading on first run.
+        const summaryMapPath = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
         let characterMap: { [key: string]: string } = {};
-        if (fs.existsSync(characterMapPath)) {
+        if (fs.existsSync(summaryMapPath)) {
             try {
-                characterMap = JSON.parse(fs.readFileSync(characterMapPath, 'utf8'));
+                characterMap = JSON.parse(fs.readFileSync(summaryMapPath, 'utf8'));
             } catch (e) {
-                console.error(`Error parsing character map file, it will be overwritten: ${e}`);
+                console.error(`Error parsing summary character map file, it will be overwritten: ${e}`);
             }
         }
         // Add/update all characters from current gameData
         this.gameData.characters.forEach((character) => {
             characterMap[character.id.toString()] = character.fullName;
         });
-        fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
-        console.log(`Character map updated at ${characterMapPath}`);
+        // Ensure the directory exists before writing
+        const summaryDir = path.dirname(summaryMapPath);
+        if (!fs.existsSync(summaryDir)) {
+            fs.mkdirSync(summaryDir, { recursive: true });
+        }
+        fs.writeFileSync(summaryMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Character map for summaries updated at ${summaryMapPath}`);
+
+        // Also update the diary character map for consistency
+        const diaryMapPath = path.join(playerDiariesPath, '_character_map.json');
+        fs.writeFileSync(diaryMapPath, JSON.stringify(characterMap, null, '\t'));
+        console.log(`Character map for diaries updated at ${diaryMapPath}`);
 
         const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
