@@ -306,47 +306,31 @@ export class Conversation{
         }
 
         const allCharacterIds = Array.from(this.gameData.characters.keys());
-        const historyFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds, this.config.maxHistoricalConversations);
+        // Get all relevant historical files, sorted newest to oldest. The limit is applied later.
+        const allHistoryFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds, 0);
 
-        const files = historyFiles
-            .map(file => ({
-                name: file.fileName,
-                time: file.modifiedTime
-            }))
-            .sort((a, b) => a.time - b.time); // Sort by timestamp, oldest first
-
-        console.log(`Found ${files.length} historical conversation files:`, files.map(f => f.name));
-        if (files.length === 0) {
-            console.log('No previous history files found for this character pair.');
+        if (allHistoryFiles.length === 0) {
+            console.log('No previous history files found for this character group.');
             return;
         }
 
-        console.log(`Found ${files.length} historical conversation files. Loading all files...`);
+        console.log(`Found ${allHistoryFiles.length} potential historical conversation files. Filtering for content...`);
 
         // Send loading indicator to chat window
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 
-        // Track loaded messages count
+        // Store historical conversation metadata (date, scene, and location for each file)
+        const validHistoricalConversations: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}> = [];
         let totalMessagesLoaded = 0;
 
-        // Store historical conversation metadata (date, scene, and location for each file)
-        const historicalConversations: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}> = [];
-
-        // Load historical conversation files with a limit to prevent UI freezing
-        const MAX_HISTORICAL_MESSAGES = 100; // Limit total historical messages to prevent UI freezing
-        const MAX_CONVERSATIONS_TO_LOAD = 10; // Limit number of conversation files to load
-
-        // Load most recent conversation files in chronological order
-        const recentFiles = files.slice(-MAX_CONVERSATIONS_TO_LOAD);
-
-        for (const fileInfo of recentFiles) {
-            // Stop if we've reached the maximum number of messages
-            if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
-                console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}). Stopping loading.`);
+        for (const fileInfo of allHistoryFiles) {
+            // Stop if we've found enough conversations with content.
+            if (validHistoricalConversations.length >= this.config.maxHistoricalConversations) {
+                console.log(`Reached configured limit of ${this.config.maxHistoricalConversations} historical conversations with content.`);
                 break;
             }
 
-            const filePath = path.join(historyDir, fileInfo.name);
+            const filePath = path.join(historyDir, fileInfo.fileName);
             console.log(`Loading historical conversation from: ${filePath}`);
 
             try {
@@ -446,7 +430,6 @@ export class Conversation{
                         if (currentMessage) {
                             currentMessage.content = currentMessage.content.trim();
                             fileMessages.push(currentMessage);
-                            totalMessagesLoaded++;
                         }
 
                         // Now, start the new message.
