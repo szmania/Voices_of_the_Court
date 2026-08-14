@@ -382,9 +382,9 @@ export class Conversation{
                     }
 
                     // Build a robust speaker regex for each file using historical and current names
-                    const historyCharacterIds = fileInfo.name.split('_').slice(0, -1);
+                    const historyCharacterIds = fileInfo.fileName.split('_').slice(0, -1);
                     const historicalSpeakerNames = new Set<string>();
-                    historyCharacterIds.forEach(id => {
+                    historyCharacterIds.forEach((id: string) => {
                         const charFromCurrentData = this.gameData.characters.get(parseInt(id, 10));
                         if (charFromCurrentData) {
                             historicalSpeakerNames.add(charFromCurrentData.fullName);
@@ -1761,6 +1761,15 @@ Statement by ${character.fullName}:`
     }
 
     private async _generateSummariesAndDiariesInBackground() {
+        const hasDialogue = this.messages.some(
+            msg => (msg.role === 'user' || msg.role === 'assistant') && msg.content !== this.notSpokenYetText
+        );
+
+        if (!hasDialogue) {
+            console.log("No actual dialogue occurred. Skipping summary and diary generation.");
+            return;
+        }
+
         console.log('Starting background diary and summary generation.');
         try {
             // Generate and save diary entries for each character
