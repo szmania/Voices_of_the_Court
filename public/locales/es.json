@@ -229,6 +229,14 @@
     "compaction_status_running": "Compactación en curso...",
     "compaction_status_success": "Compactación completada con éxito.",
     "compaction_status_error": "La compactación falló. Consulte los registros para más detalles.",
+    "compaction_context_usage": "Uso del contexto",
+    "compaction_context_usage_tooltip": "Vista en vivo de cuánto de la ventana de contexto de la IA se está utilizando actualmente. Se acerca a la línea de umbral de la Fase 1 a medida que crece la conversación.",
+    "compaction_progress_phase1_line": "Disparador Fase 1",
+    "compaction_status_label": "Estado:",
+    "compaction_last_result": "Última compactación:",
+    "compaction_phase1_summaries": "Resúmenes Fase 1:",
+    "compaction_phase1_threshold_label": "(activa la Fase 2 en",
+    "compaction_never_run": "Nunca ejecutado",
     "text_gen_params": "Parámetros de generación de texto"
   },
   "system": {

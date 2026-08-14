@@ -233,6 +233,14 @@
     "compaction_status_running": "压缩进行中...",
     "compaction_status_success": "压缩成功完成。",
     "compaction_status_error": "压缩失败。请查看日志了解详情。",
+    "compaction_context_usage": "上下文使用情况",
+    "compaction_context_usage_tooltip": "实时查看AI上下文窗口当前的使用情况。随着对话的进行，它会接近第一阶段的阈值线。",
+    "compaction_progress_phase1_line": "第一阶段触发器",
+    "compaction_status_label": "状态：",
+    "compaction_last_result": "上次压缩：",
+    "compaction_phase1_summaries": "第一阶段摘要：",
+    "compaction_phase1_threshold_label": "（在...时触发第二阶段",
+    "compaction_never_run": "从未运行",
     "text_gen_params": "文本生成参数"
   },
   "system": {

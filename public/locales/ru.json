@@ -229,6 +229,14 @@
     "compaction_status_running": "Выполняется сжатие...",
     "compaction_status_success": "Сжатие успешно завершено.",
     "compaction_status_error": "Сжатие не удалось. Проверьте логи для получения подробностей.",
+    "compaction_context_usage": "Использование контекста",
+    "compaction_context_usage_tooltip": "Живой просмотр того, какая часть контекстного окна ИИ в настоящее время используется. По мере роста разговора приближается к пороговой линии Фазы 1.",
+    "compaction_progress_phase1_line": "Триггер Фазы 1",
+    "compaction_status_label": "Статус:",
+    "compaction_last_result": "Последнее сжатие:",
+    "compaction_phase1_summaries": "Сводки Фазы 1:",
+    "compaction_phase1_threshold_label": "(запускает Фазу 2 при",
+    "compaction_never_run": "Никогда не запускалось",
     "text_gen_params": "Параметры генерации текста"
   },
   "system": {

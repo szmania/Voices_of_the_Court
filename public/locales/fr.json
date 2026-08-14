@@ -229,6 +229,14 @@
     "compaction_status_running": "Compression en cours...",
     "compaction_status_success": "Compression terminée avec succès.",
     "compaction_status_error": "La compression a échoué. Consultez les journaux pour plus de détails.",
+    "compaction_context_usage": "Utilisation du contexte",
+    "compaction_context_usage_tooltip": "Vue en direct de l'utilisation actuelle de la fenêtre de contexte de l'IA. S'approche de la ligne de seuil de la Phase 1 à mesure que la conversation s'allonge.",
+    "compaction_progress_phase1_line": "Déclencheur Phase 1",
+    "compaction_status_label": "Statut :",
+    "compaction_last_result": "Dernière compression :",
+    "compaction_phase1_summaries": "Résumés Phase 1 :",
+    "compaction_phase1_threshold_label": "(déclenche la Phase 2 à",
+    "compaction_never_run": "Jamais exécuté",
     "text_gen_params": "Paramètres de génération de texte"
   },
   "system": {
