@@ -147,7 +147,7 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
         allSummaries.sort((a, b) => {
             const extractDate = (dateStr: string) => {
                 if (!dateStr) return { year: 0, month: 1, day: 1 };
-                const match = dateStr.match(/(\\d+)年(\\d+)月(\\d+)日/);
+                const match = dateStr.match(/(\d+)年(\d+)月(\d+)日/);
                 if (match) {
                     return { year: parseInt(match[1]), month: parseInt(match[2]), day: parseInt(match[3]) };
                 }
@@ -207,7 +207,7 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
             // Remove characterId field as it is already in the filename
             const cleanSummaries = characterSummaries.map(({ characterId, ...cleanSummary }) => cleanSummary);
             // Write to file
-            fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\\t'), 'utf8');
+            fs.writeFileSync(summaryFilePath, JSON.stringify(cleanSummaries, null, '\t'), 'utf8');
         }
 
         // Delete summaries for characters that were removed
@@ -266,7 +266,7 @@ export async function saveCharacterMap(userDataPath: string, playerId: string, c
             fs.mkdirSync(summaryDir, { recursive: true });
         }
 
-        fs.writeFileSync(mapFilePath, JSON.stringify(characterMap, null, '\\t'), 'utf8');
+        fs.writeFileSync(mapFilePath, JSON.stringify(characterMap, null, '\t'), 'utf8');
     } catch (error) {
         console.error('Error saving character map file:', error);
         throw error;
