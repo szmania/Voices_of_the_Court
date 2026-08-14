@@ -30,7 +30,6 @@ import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
-import { readCharacterMap } from '../summaryManager.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
