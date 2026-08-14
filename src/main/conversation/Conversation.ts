@@ -458,47 +458,45 @@ export class Conversation{
                                 content: line.trim()
                             };
                             fileMessages.push(sceneDescMessage);
-                            totalMessagesLoaded++;
                         }
-                    }
-
-                    // Stop if we've reached the maximum number of messages
-                    if (totalMessagesLoaded >= MAX_HISTORICAL_MESSAGES) {
-                        console.log(`Reached maximum historical messages limit (${MAX_HISTORICAL_MESSAGES}) while loading ${fileInfo.name}.`);
-                        break;
                     }
                 }
                 // Add the last message after the loop finishes
                 if (currentMessage) {
                     currentMessage.content = currentMessage.content.trim();
                     fileMessages.push(currentMessage);
-                    totalMessagesLoaded++;
                 }
 
-                // Store this conversation's metadata and messages
+                // Store this conversation's metadata and messages ONLY if it has content
                 if (fileMessages.length > 0) {
-                    historicalConversations.push({
+                    validHistoricalConversations.push({
                         date: currentDate,
                         scene: currentScene,
                         location: currentLocation,
                         characters: characterNames,
                         messages: fileMessages
                     });
+                    totalMessagesLoaded += fileMessages.length;
+                    console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.fileName} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
+                } else {
+                    console.log(`Skipping empty history file: ${fileInfo.fileName}`);
                 }
 
-                console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.name} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
             } catch (error) {
-                console.error(`Error reading or parsing history file ${fileInfo.name}: ${error}`);
+                console.error(`Error reading or parsing history file ${fileInfo.fileName}: ${error}`);
             }
         }
 
-        console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${files.length} historical conversations.`);
+        // Reverse the array to display conversations in chronological order (oldest first)
+        validHistoricalConversations.reverse();
+
+        console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${validHistoricalConversations.length} historical conversations.`);
 
         // Send loading complete event to chat window
         this.chatWindow.window.webContents.send('historical-conversations-loading', false);
 
         // Store historical conversation metadata for later use
-        this.historicalConversations = historicalConversations;
+        this.historicalConversations = validHistoricalConversations;
     }
 
     pushMessage(message: Message): void{
