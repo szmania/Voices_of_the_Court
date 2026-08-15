@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022  # <-- Change this from windows-latest/windows-2025
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+      strategy:
+        matrix:
+          os: [macos-latest, windows-2022] # <-- Changed windows-latest to windows-2022 here
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
