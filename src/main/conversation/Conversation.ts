@@ -339,8 +339,8 @@ export class Conversation{
             }
         }
 
-        // Reverse the initial batch to display oldest first, then set it.
-        this.historicalConversations = initialBatch.reverse();
+        // The initial batch is newest-to-oldest.
+        this.historicalConversations = initialBatch;
         console.log(`Loaded initial batch of ${this.historicalConversations.length} historical conversations.`);
 
         // This will be sent to the renderer in the main 'chat-start' payload.
@@ -359,11 +359,9 @@ export class Conversation{
         }
 
         if (remainingConvs.length > 0) {
-            // Reverse to get chronological order
-            remainingConvs.reverse();
-            // Prepend to the main history array
-            this.historicalConversations.unshift(...remainingConvs);
-            // Send the newly loaded conversations to the UI to be prepended.
+            // Append the older (but still newest-to-oldest sorted) conversations to the end of the main array.
+            this.historicalConversations.push(...remainingConvs);
+            // Send the newly loaded conversations to the UI to be appended.
             this.chatWindow.window.webContents.send('historical-conversations-update', remainingConvs);
             console.log(`Asynchronously loaded and sent ${remainingConvs.length} more historical conversations.`);
         }

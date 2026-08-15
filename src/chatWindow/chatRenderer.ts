@@ -1213,13 +1213,13 @@ ipcRenderer.on('historical-conversations-update', (e, conversations: any[]) => {
         appendConversationToFragment(conv, fragment);
     }
 
-    const historicalSeparator = chatMessages.querySelector('.historical-separator');
-    if (historicalSeparator) {
-        // Insert the new fragment right after the main separator, which is before the oldest-loaded conversation.
-        historicalSeparator.after(fragment);
+    const currentSeparator = chatMessages.querySelector('.current-conversation-separator');
+    if (currentSeparator) {
+        // Insert the new fragment right before the "Current Conversation" separator.
+        currentSeparator.before(fragment);
     } else {
         // Fallback if the separator isn't there for some reason
-        chatMessages.prepend(fragment);
+        chatMessages.appendChild(fragment);
     }
 });
 
