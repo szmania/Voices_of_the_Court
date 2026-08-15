@@ -359,25 +359,48 @@ export class Conversation{
         this._loadRemainingHistory(remainingFiles, historyDir, globalCharacterMap);
     }
 
-    private async _loadRemainingHistory(files: any[], historyDir: string, globalCharacterMap: Map<string, string>): Promise<void> {
+    private _loadRemainingHistory(files: any[], historyDir: string, globalCharacterMap: Map<string, string>): void {
         console.log(`Starting to load ${files.length} remaining historical conversations in the background.`);
-        const remainingConvs: any[] = [];
-        for (const fileInfo of files) {
-            const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
-            if (parsedConv) {
-                remainingConvs.push(parsedConv);
-            }
+        if (files.length === 0) {
+            this.chatWindow.window.webContents.send('historical-conversations-loading', false);
+            return;
         }
 
-        if (remainingConvs.length > 0) {
-            // Append the older (but still newest-to-oldest sorted) conversations to the end of the main array.
-            this.historicalConversations.push(...remainingConvs);
-            // Send the newly loaded conversations to the UI to be appended.
-            this.chatWindow.window.webContents.send('historical-conversations-update', remainingConvs);
-            console.log(`Asynchronously loaded and sent ${remainingConvs.length} more historical conversations.`);
-        }
-        // Finally, send the loading complete signal
-        this.chatWindow.window.webContents.send('historical-conversations-loading', false);
+        const BATCH_SIZE = 5;
+        let fileIndex = 0;
+
+        const processNextBatch = async () => {
+            if (fileIndex >= files.length) {
+                this.chatWindow.window.webContents.send('historical-conversations-loading', false);
+                console.log('Finished loading all remaining historical conversations.');
+                return;
+            }
+
+            const batchFiles = files.slice(fileIndex, fileIndex + BATCH_SIZE);
+            fileIndex += BATCH_SIZE;
+
+            const loadedConvs: any[] = [];
+            for (const fileInfo of batchFiles) {
+                const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
+                if (parsedConv) {
+                    loadedConvs.push(parsedConv);
+                }
+            }
+
+            if (loadedConvs.length > 0) {
+                // Append the older conversations to the main history array
+                this.historicalConversations.push(...loadedConvs);
+                // Send the newly loaded conversations to the UI to be prepended.
+                this.chatWindow.window.webContents.send('historical-conversations-update', loadedConvs);
+                console.log(`Asynchronously loaded and sent a batch of ${loadedConvs.length} historical conversations.`);
+            }
+
+            // Schedule the next batch without blocking the main thread
+            setTimeout(processNextBatch, 50);
+        };
+
+        // Start the process
+        processNextBatch();
     }
 
     private async _parseHistoryFile(fileInfo: { fileName: string }, historyDir: string, globalCharacterMap: Map<string, string>): Promise<any | null> {
