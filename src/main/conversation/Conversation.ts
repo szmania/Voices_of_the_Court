@@ -325,25 +325,27 @@ export class Conversation{
         const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
-        const INITIAL_BATCH_SIZE = 3;
+        const INITIAL_BATCH_SIZE = 5; // Using 5 as requested for the initial synchronous load.
         let validConversationsFound = 0;
 
         for (const fileInfo of allHistoryFiles) {
-            // Stop processing files if we have already found enough valid conversations to fill the window.
+            // This loop correctly stops collecting files once the total number of *valid* conversations
+            // (those with actual dialogue) reaches the user's configured limit.
             if (validConversationsFound >= this.config.maxConversationsInHistoryWindow) {
                 console.log(`Reached window history limit of ${this.config.maxConversationsInHistoryWindow}. Stopping file processing.`);
                 break;
             }
 
+            // Each file is parsed to check for content *before* it is counted.
             const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
 
             if (parsedConv) {
-                // This is a valid conversation with content.
-                // The files are sorted newest to oldest, so we fill the initial batch first.
+                // This is a valid conversation. It will be added to either the initial sync batch
+                // or the async batch.
                 if (initialBatch.length < INITIAL_BATCH_SIZE) {
                     initialBatch.push(parsedConv);
                 } else {
-                    // The rest will be processed asynchronously.
+                    // Files for async loading are collected here.
                     remainingFiles.push(fileInfo);
                 }
                 validConversationsFound++;
