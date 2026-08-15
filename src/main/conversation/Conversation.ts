@@ -171,9 +171,13 @@ export class Conversation{
                 console.error(`Error parsing summary character map file, it will be overwritten: ${e}`);
             }
         }
-        // Add/update all characters from current gameData
+        // Add/update all characters from current gameData, but do not overwrite existing entries.
+        // This preserves the original names from when characters were first encountered, which is
+        // crucial for parsing historical logs where names/titles may have been different.
         this.gameData.characters.forEach((character) => {
-            characterMap[character.id.toString()] = character.fullName;
+            if (!characterMap[character.id.toString()]) {
+                characterMap[character.id.toString()] = character.fullName;
+            }
         });
         // Ensure the directory exists before writing
         const summaryDir = path.dirname(summaryMapPath);
