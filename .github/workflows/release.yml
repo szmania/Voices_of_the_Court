@@ -38,9 +38,8 @@ jobs:
         run: echo "PYTHON=${{ env.pythonLocation }}\python.exe" >> $env:GITHUB_ENV
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
-      # Rebuild native modules for Electron ABI
       - name: Rebuild native modules for Electron
         run: npx electron-rebuild
 
