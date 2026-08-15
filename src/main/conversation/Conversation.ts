@@ -398,7 +398,7 @@ export class Conversation{
             }
 
             // Schedule the next batch without blocking the main thread
-            setTimeout(processNextBatch, 50);
+            setTimeout(processNextBatch, 1000);
         };
 
         // Start the process

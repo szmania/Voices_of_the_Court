@@ -182,6 +182,8 @@
     "max_historical_conversations_tooltip": "The maximum number of historical conversation files to load. Helps prevent lag with characters that have a long history. Set to 0 for no limit.",
     "max_conversations_in_history_window": "Max Historical Conversations (Window)",
     "max_conversations_in_history_window_tooltip": "The maximum number of previous conversations to display in the chat window. This does not affect the AI's memory, only what you see.",
+    "max_conversations_in_history_window": "Max Historical Conversations (Window)",
+    "max_conversations_in_history_window_tooltip": "The maximum number of previous conversations to display in the chat window. This does not affect the AI's memory, only what you see.",
     "generate_scene": "generate scene description",
     "generate_scene_tooltip": "Generate scene description at the start of conversation to provide context and background for characters.",
     "auto_suggestions": "auto generate suggestions",
