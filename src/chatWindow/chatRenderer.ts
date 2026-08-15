@@ -69,14 +69,29 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// 初始化主题
-function initTheme() {
+// Initialize theme and localization on script load
+async function init() {
+    // Apply initial theme
     const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
     document.body.classList.add(`theme-${savedTheme}`);
-}
 
-// 页面加载时初始化主题
-initTheme();
+    // Load config and translations immediately
+    try {
+        const config = await ipcRenderer.invoke('get-config');
+        if ((window as any).LocalizationManager && config) {
+            await (window as any).LocalizationManager.loadTranslations(config.language || 'en');
+            (window as any).LocalizationManager.applyTranslations();
+            console.log('Renderer: Initial localization complete.');
+        }
+        // Apply settings from config
+        showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
+        autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
+        showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
+    } catch (error) {
+        console.error('Renderer: Failed to initialize config and localization:', error);
+    }
+}
+init();
 
 const chatBox: HTMLDivElement = document.querySelector('.chat-box')!;
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
@@ -1753,28 +1768,8 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         };
     }
 
-    // Load config and apply settings
-    let config: any;
-    try {
-        config = await ipcRenderer.invoke('get-config');
-        showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
-        autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
-        showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
-    } catch (error) {
-        console.error('Error getting config:', error);
-        showSuggestionsButton = true;
-        autoSendSuggestion = false;
-        showTokenizerDisplay = false;
-    }
-
-    // Apply translations
-    // @ts-ignore
-    if (window.LocalizationManager && config) {
-        // @ts-ignore
-        await window.LocalizationManager.loadTranslations(config.language || 'en');
-        // @ts-ignore
-        window.LocalizationManager.applyTranslations();
-    }
+    // Config and translations are now loaded on init.
+    const config = await ipcRenderer.invoke('get-config');
 
     setupCharacterTargeting(gameData);
 
