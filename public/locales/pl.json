@@ -181,7 +181,7 @@
     "maxConsecutiveActions": "Maks. kolejnych akcji",
     "maxConsecutiveActions_tooltip": "Maksymalna liczba kolejnych tur AI, które mogą wyzwalać akcje. Pomaga zapobiegać pętlom akcji. Ustaw na 0, aby nie było limitu.",
     "enable_diary": "Włącz generowanie dziennika",
-    "diary_chance": "Diary Generation Chance (%)",
+    "diary_chance": "Szansa na wygenerowanie dziennika (%)",
     "diary_chance_tooltip": "Prawdopodobieństwo (0-100%), że wpis do dziennika zostanie wygenerowany dla postaci po rozmowie. Wpis jest zawsze generowany, jeśli postać brała udział w akcji.",
     "stream_tooltip": "Odbieraj odpowiedź AI w miarę jej generowania, słowo po słowie. Wyłączenie tej opcji może skutkować dłuższym czasem oczekiwania, ale może być bardziej kompatybilne z niektórymi modelami.",
     "summaries_depth_tooltip": "Ile wiadomości od końca rozmowy wstawić podsumowanie poprzednich rozmów. 0 oznacza na samym początku.",
