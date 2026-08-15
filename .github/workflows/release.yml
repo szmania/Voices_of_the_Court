@@ -42,40 +42,43 @@ jobs:
         if: matrix.os == 'windows-2022'
         run: npm ci --ignore-scripts
 
-      # Fix missing 7z binaries for electron-winstaller on Windows CI
+      # Install dependencies normally on macOS so host tools like appdmg build their native parts
+      - name: Install dependencies (macOS)
+        if: matrix.os != 'windows-2022'
+        run: npm ci
+
+      # Ensure electron-winstaller has its 7-Zip binaries available on Windows
       - name: Fix electron-winstaller 7-Zip binaries (Windows)
         if: matrix.os == 'windows-2022'
         shell: pwsh
         run: |
           $vendorDir = "node_modules/electron-winstaller/vendor"
           if (Test-Path $vendorDir) {
-            # Copy 7-Zip from GitHub Actions runner preinstalled path if available, or fallback
             $sevenZipPath = "C:\Program Files\7-Zip"
             if (!(Test-Path "$vendorDir/7z.exe")) {
               if (Test-Path "$sevenZipPath/7z.exe") {
                 Copy-Item "$sevenZipPath/7z.exe" "$vendorDir/"
                 Copy-Item "$sevenZipPath/7z.dll" "$vendorDir/"
                 Write-Host "Successfully copied 7-Zip binaries to vendor folder."
-              } else {
-                Write-Warning "7-Zip not found in default path, attempting download..."
-                Invoke-WebRequest -Uri "https://www.7-zip.org/a/7z2409-x64.exe" -OutFile "7z_installer.exe"
-                Start-Process "7z_installer.exe" -ArgumentList "/S /D=`"$PWD\7zip_temp`"" -Wait
-                Copy-Item "7zip_temp/7z.exe" "$vendorDir/"
-                Copy-Item "7zip_temp/7z.dll" "$vendorDir/"
               }
             }
           }
-
-      # Install dependencies normally on macOS so host tools like appdmg build their native parts
-      - name: Install dependencies (macOS)
-        if: matrix.os != 'windows-2022'
-        run: npm ci
 
       - name: Rebuild native modules for Electron
         run: npx electron-rebuild
 
       - name: Build/package application
         run: npm run make
+
+      # Move Windows artifacts from C:\tmp\make to out/make so artifact upload matches macOS
+      - name: Normalize Windows Artifact Path
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          if (Test-Path "C:\tmp\make") {
+            New-Item -ItemType Directory -Force -Path "out/make"
+            Copy-Item -Recurse -Force "C:\tmp\make\*" "out/make/"
+          }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
