@@ -85,6 +85,7 @@
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
   "maxHistoricalConversations": 8,
+  "maxConversationsInHistoryWindow": 10,
   "narrativeEnable": true,
   "disabledActions": [
     "woundCharacter",
