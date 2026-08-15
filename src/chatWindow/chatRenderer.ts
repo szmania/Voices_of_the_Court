@@ -1206,6 +1206,57 @@ window.addEventListener('beforeunload', () => {
 
 //IPC Events
 
+ipcRenderer.on('historical-conversations-update', (e, conversations: any[]) => {
+    console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
+    const fragment = document.createDocumentFragment();
+    for (const conv of conversations) {
+        appendConversationToFragment(conv, fragment);
+    }
+
+    const historicalSeparator = chatMessages.querySelector('.historical-separator');
+    if (historicalSeparator) {
+        // Insert the new fragment right after the main separator, which is before the oldest-loaded conversation.
+        historicalSeparator.after(fragment);
+    } else {
+        // Fallback if the separator isn't there for some reason
+        chatMessages.prepend(fragment);
+    }
+});
+
+async function appendConversationToFragment(conv: any, fragment: DocumentFragment) {
+    const convHeader = document.createElement('div');
+    convHeader.classList.add('historical-conversation-header', 'message');
+    let headerText = `Date: ${conv.date}`;
+    if (conv.location) headerText += ` | Location: ${conv.location}`;
+    if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
+    convHeader.textContent = headerText;
+    fragment.appendChild(convHeader);
+
+    if (conv.characters && conv.characters.length > 0) {
+        const characterDiv = document.createElement('div');
+        characterDiv.classList.add('historical-characters', 'message');
+        characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+        const playerShortName = currentGameData?.getPlayer()?.shortName || currentGameData?.playerName;
+        const characterString = conv.characters.map((name: string) => (name === playerShortName || name === currentGameData?.playerName) ? `${name} (You)` : name).join(', ');
+        characterDiv.textContent = `Characters: ${characterString}`;
+        fragment.appendChild(characterDiv);
+    }
+
+    for (const msg of conv.messages) {
+        const msgDiv = await displayMessage(msg, true);
+        if (msgDiv) fragment.appendChild(msgDiv);
+        if ((msg as any).narrative && typeof (msg as any).narrative === 'string') {
+            const narrativeMsg: Message = { role: 'system', name: 'Narrator', content: (msg as any).narrative, id: msg.id ? `${msg.id}-narrative` : randomUUID() };
+            const narrativeDiv = displayNarrative(narrativeMsg);
+            if (narrativeDiv) fragment.appendChild(narrativeDiv);
+        }
+    }
+    const convSeparator = document.createElement('div');
+    convSeparator.classList.add('historical-conversation-separator');
+    convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
+    fragment.appendChild(convSeparator);
+}
+
 function showSlashCommands(filter = '') {
     console.log(`showSlashCommands called with filter: "${filter}". availableActions count: ${availableActions.length}`);
     const filteredActions = availableActions.filter(action => action.signature.toLowerCase().includes(filter.toLowerCase()));
