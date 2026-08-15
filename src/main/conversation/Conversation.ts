@@ -325,7 +325,7 @@ export class Conversation{
         const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
-        const INITIAL_BATCH_SIZE = 10;
+        const INITIAL_BATCH_SIZE = 5;
 
         for (const fileInfo of allHistoryFiles) {
             // The files are sorted newest to oldest, so we fill the initial batch first.
