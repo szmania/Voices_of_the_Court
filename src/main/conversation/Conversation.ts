@@ -326,16 +326,27 @@ export class Conversation{
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
         const INITIAL_BATCH_SIZE = 3;
+        let validConversationsFound = 0;
 
         for (const fileInfo of allHistoryFiles) {
-            // The files are sorted newest to oldest, so we fill the initial batch first.
-            if (initialBatch.length < INITIAL_BATCH_SIZE) {
-                const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
-                if (parsedConv) {
+            // Stop processing files if we have already found enough valid conversations to fill the window.
+            if (validConversationsFound >= this.config.maxConversationsInHistoryWindow) {
+                console.log(`Reached window history limit of ${this.config.maxConversationsInHistoryWindow}. Stopping file processing.`);
+                break;
+            }
+
+            const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
+
+            if (parsedConv) {
+                // This is a valid conversation with content.
+                // The files are sorted newest to oldest, so we fill the initial batch first.
+                if (initialBatch.length < INITIAL_BATCH_SIZE) {
                     initialBatch.push(parsedConv);
+                } else {
+                    // The rest will be processed asynchronously.
+                    remainingFiles.push(fileInfo);
                 }
-            } else {
-                remainingFiles.push(fileInfo);
+                validConversationsFound++;
             }
         }
 
