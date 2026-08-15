@@ -1909,7 +1909,16 @@ Statement by ${character.fullName}:`
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.runFileManager.clear();
 
-        this.getApiConnections();
+        // Re-initialize API connections with the new config
+        this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
+        this.summarizationApiConnection = this.config.summarizationUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.summarizationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder);
+        this.actionsApiConnection = this.config.actionsUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
+
         this.loadActions();
     }
 
