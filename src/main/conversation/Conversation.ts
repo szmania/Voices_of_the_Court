@@ -339,12 +339,6 @@ export class Conversation{
         let totalMessagesLoaded = 0;
 
         for (const fileInfo of allHistoryFiles) {
-            // Stop if we've found enough conversations with content.
-            if (validHistoricalConversations.length >= this.config.maxHistoricalConversations) {
-                console.log(`Reached configured limit of ${this.config.maxHistoricalConversations} historical conversations with content.`);
-                break;
-            }
-
             const filePath = path.join(historyDir, fileInfo.fileName);
             console.log(`Loading historical conversation from: ${filePath}`);
 
@@ -512,6 +506,17 @@ export class Conversation{
 
         // Store historical conversation metadata for later use
         this.historicalConversations = validHistoricalConversations;
+    }
+
+    private async withLimitedHistory<T>(callback: () => Promise<T>): Promise<T> {
+        const originalHistory = this.historicalConversations;
+        // Slice the most recent conversations for the prompt
+        this.historicalConversations = originalHistory.slice(-this.config.maxHistoricalConversations);
+        try {
+            return await callback();
+        } finally {
+            this.historicalConversations = originalHistory;
+        }
     }
 
     pushMessage(message: Message): void{
@@ -1050,14 +1055,15 @@ export class Conversation{
     }
 
     async generateAiToAiMessage(source: Character, target: Character): Promise<Message | null> {
-        // Update UI to show who is speaking
-        this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
+        return this.withLimitedHistory(async () => {
+            // Update UI to show who is speaking
+            this.chatWindow.window.webContents.send('queue-update', [], { name: source.shortName, id: source.id });
 
-        // buildChatPrompt will correctly set the target and use the right instruction.
-        // We pass an empty array for messagesOverride to clear the history for a clean AI-to-AI start.
-        let prompt = await buildChatPrompt(this, source, [], target);
+            // buildChatPrompt will correctly set the target and use the right instruction.
+            // We pass an empty array for messagesOverride to clear the history for a clean AI-to-AI start.
+            let prompt = await buildChatPrompt(this, source, [], target);
 
-        let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
+            let currentTokens = this.textGenApiConnection.calculateTokensFromChat(prompt);
         console.log(`Current prompt token count for AI-to-AI: ${currentTokens}`);
 
         if(currentTokens > this.textGenApiConnection.context){
@@ -1083,10 +1089,12 @@ export class Conversation{
             return message;
         }
         return null;
+        });
     }
 
     async generateNewAIMessage(character: Character, sendMessageToChat: boolean = true, isNonTargeted: boolean = false): Promise<Message | null> {
-        console.log(`Generating AI message for character: ${character.fullName}`);
+        return this.withLimitedHistory(async () => {
+            console.log(`Generating AI message for character: ${character.fullName}`);
 
         const isSelfTalk = this.gameData.characters.size === 1 && this.gameData.characters.has(this.gameData.playerID);
         const characterNameForResponse = isSelfTalk ? character.shortName : character.fullName;
@@ -1291,6 +1299,7 @@ export class Conversation{
         }
 
         return null;
+        });
     }
 
     /**
@@ -2391,9 +2400,10 @@ Statement by ${character.fullName}:`
      * based on their personality and history.
      */
     private async generateActionQuestioningMessage(character: Character): Promise<Message | null> {
-        console.log(`Generating action questioning message for character: ${character.fullName}`);
+        return this.withLimitedHistory(async () => {
+            console.log(`Generating action questioning message for character: ${character.fullName}`);
 
-        // Build a prompt that uses the full conversation context and adds a questioning instruction.
+            // Build a prompt that uses the full conversation context and adds a questioning instruction.
         const prompt = await this.buildQuestioningPrompt(character);
 
         try {
@@ -2417,6 +2427,7 @@ content: (response as any)?.trim() ?? ''
             console.error(`Error generating action questioning message: ${error}`);
             return null;
         }
+        });
     }
 
     /**
@@ -2440,23 +2451,25 @@ content: (response as any)?.trim() ?? ''
 
     public async calculateBasePromptTokens(): Promise<number> {
         try {
-            // We need a character to build the prompt for. Let's use the main AI.
-            const mainAiCharacter = this.gameData.getCharacter(this.gameData.aiID);
-            if (!mainAiCharacter) {
-                console.warn("Cannot calculate base prompt tokens: main AI character not found.");
-                return 0;
-            }
+            return await this.withLimitedHistory(async () => {
+                // We need a character to build the prompt for. Let's use the main AI.
+                const mainAiCharacter = this.gameData.getCharacter(this.gameData.aiID);
+                if (!mainAiCharacter) {
+                    console.warn("Cannot calculate base prompt tokens: main AI character not found.");
+                    return 0;
+                }
 
-            // Build a prompt as if we were about to generate a message for this character.
-            // We pass a copy of the current messages.
-            const prompt = await buildChatPrompt(this, mainAiCharacter, this.messages.slice(0));
+                // Build a prompt as if we were about to generate a message for this character.
+                // We pass a copy of the current messages.
+                const prompt = await buildChatPrompt(this, mainAiCharacter, this.messages.slice(0));
 
-            // Calculate tokens from this prompt.
-            const text = convertMessagesToString(prompt, "", "");
-            const tokenCount = this.textGenApiConnection.calculateTokensFromText(text);
+                // Calculate tokens from this prompt.
+                const text = convertMessagesToString(prompt, "", "");
+                const tokenCount = this.textGenApiConnection.calculateTokensFromText(text);
 
-            console.log(`Calculated base prompt tokens: ${tokenCount}`);
-            return tokenCount;
+                console.log(`Calculated base prompt tokens: ${tokenCount}`);
+                return tokenCount;
+            });
         } catch (error) {
             console.error("Error calculating base prompt tokens:", error);
             return 0;
