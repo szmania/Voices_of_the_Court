@@ -1221,20 +1221,21 @@ window.addEventListener('beforeunload', () => {
 
 //IPC Events
 
-ipcRenderer.on('historical-conversations-update', (e, conversations: any[]) => {
+ipcRenderer.on('historical-conversations-update', async (e, conversations: any[]) => {
     console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
     const fragment = document.createDocumentFragment();
-    for (const conv of conversations) {
-        appendConversationToFragment(conv, fragment);
+    // Reverse the incoming batch of older conversations so the oldest is first.
+    for (const conv of conversations.reverse()) {
+        await appendConversationToFragment(conv, fragment);
     }
 
-    const currentSeparator = chatMessages.querySelector('.current-conversation-separator');
-    if (currentSeparator) {
-        // Insert the new fragment right before the "Current Conversation" separator.
-        currentSeparator.before(fragment);
+    const historicalHeader = chatMessages.querySelector('.historical-header');
+    if (historicalHeader) {
+        // Insert the new fragment right after the "Previous Conversations" header, at the top.
+        historicalHeader.after(fragment);
     } else {
-        // Fallback if the separator isn't there for some reason
-        chatMessages.appendChild(fragment);
+        // Fallback if the header isn't there for some reason
+        chatMessages.prepend(fragment);
     }
 });
 
@@ -1822,7 +1823,8 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         chatMessages.append(header);
 
         const fragment = document.createDocumentFragment();
-        for (const conv of historicalMetadata) {
+        // Reverse the initial batch to display the oldest conversations at the top.
+        for (const conv of historicalMetadata.reverse()) {
             await appendConversationToFragment(conv, fragment);
         }
         chatMessages.appendChild(fragment);
