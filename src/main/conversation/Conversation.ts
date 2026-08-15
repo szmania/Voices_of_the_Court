@@ -366,7 +366,7 @@ export class Conversation{
             return;
         }
 
-        const BATCH_SIZE = 5;
+        const BATCH_SIZE = 3;
         let fileIndex = 0;
 
         const processNextBatch = async () => {
