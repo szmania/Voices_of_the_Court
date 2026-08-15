@@ -325,7 +325,7 @@ export class Conversation{
         const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
-        const INITIAL_BATCH_SIZE = 5; // Using 5 as requested for the initial synchronous load.
+        const INITIAL_BATCH_SIZE = 3; // Using 3 as requested for the initial synchronous load.
         let validConversationsFound = 0;
 
         for (const fileInfo of allHistoryFiles) {
