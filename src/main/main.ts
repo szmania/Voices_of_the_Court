@@ -1048,124 +1048,94 @@ let conversationLock: Promise<void> | null = null;
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
-    const readyPromise = new Promise<void>(resolve => ipcMain.once('chat-window-ready', () => resolve()));
-
-    // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
-    if (fs.existsSync(dlcLoadPath)) {
+    // 1. Register the listener immediately. It will contain all the setup logic.
+    ipcMain.once('chat-window-ready', async () => {
+        console.log('IPC: Received chat-window-ready. Starting conversation setup.');
         try {
-            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
-            const dlcLoadJson = JSON.parse(dlcLoadContent);
-            const incompatibleMod = "mod/ugc_3346777360.mod";
+            // Check for incompatible mods
+            const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
+            if (fs.existsSync(dlcLoadPath)) {
+                const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+                const dlcLoadJson = JSON.parse(dlcLoadContent);
+                const incompatibleMod = "mod/ugc_3346777360.mod";
 
-            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
-                console.error('Incompatible mod detected. Application will now close.');
-
-                const dialogOpts = {
-                    type: 'error' as const,
-                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
-                    title: t('dialog.incompatible_mod_title'),
-                    message: t('dialog.incompatible_mod_message'),
-                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
-                    defaultId: 0,
-                    cancelId: 2
-                };
-
-                const { response } = await dialog.showMessageBox(dialogOpts);
-
-                if (response === 0) { // "Open Steam and Quit"
-                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
-                } else if (response === 1) { // "Open Discord and Quit"
-                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                    console.error('Incompatible mod detected. Application will now close.');
+                    const dialogOpts = {
+                        type: 'error' as const,
+                        buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                        title: t('dialog.incompatible_mod_title'),
+                        message: t('dialog.incompatible_mod_message'),
+                        detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                        defaultId: 0,
+                        cancelId: 2
+                    };
+                    const { response } = await dialog.showMessageBox(dialogOpts);
+                    if (response === 0) shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                    else if (response === 1) shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                    app.quit();
+                    return;
                 }
-                // Quit the app regardless of the choice.
-                app.quit();
-                return; // Stop further execution.
             }
-        } catch (err) {
-            console.error('Failed to read or parse dlc_loadon:', err);
-        }
-    }
 
-    chatWindow.show();
-    try{
-        console.log("Waiting briefly for log file to update...");
-        await sleep(250);
+            // 3. Now do all the heavy lifting.
+            await sleep(250);
+            const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
+            const gameData = await parseLog(logFilePath);
+            if (!gameData || !gameData.playerID) {
+                throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}.`);
+            }
 
-        console.log("Parsing log for new conversation...");
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        console.log(`Game log file path: ${logFilePath}`);
-        const gameData = await parseLog(logFilePath);
-        if (!gameData || !gameData.playerID) {
-          throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
-        }
+            if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
+                console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
+                storedLetters.clear();
+                lastLetterSentToGame = null;
+            }
+            setCachedGameData(gameData);
+            currentSessionPlayerId = String(gameData.playerID);
 
-        // Clear pending letters if the player character has changed
-        if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
-            console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
-            storedLetters.clear();
-            lastLetterSentToGame = null; // Also clear any letter pending game confirmation
-        }
-        setCachedGameData(gameData);
-        currentSessionPlayerId = String(gameData.playerID);
+            if (gameData.totalDays) {
+                updateCurrentDate(gameData.totalDays);
+            }
+            conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            await conversation.loadHistory();
+            await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
-        console.log("New conversation started!");
-        if (gameData.totalDays) {
-            updateCurrentDate(gameData.totalDays);
-        }
-        conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
-        await conversation.loadHistory();
+            const sanitizedActions = conversation.actions
+                .filter(action => action && action.signature)
+                .map(action => ({
+                    signature: action.signature,
+                    args: action.args,
+                    description: action.description,
+                    creator: action.creator,
+                    usesSource: (action as any).usesSource,
+                    usesTarget: (action as any).usesTarget
+                }));
 
-        // Import letters from log
-        await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
+            const payload = {
+                gameData: conversation.gameData,
+                messages: conversation.messages,
+                historicalMetadata: conversation.historicalConversations || [],
+                actions: sanitizedActions,
+                basePromptTokens: await conversation.calculateBasePromptTokens()
+            };
 
-        // Consolidate chat-start and chat-history into a single event to prevent race conditions
-        const historicalMetadata = conversation.historicalConversations || [];
-
-        // Sanitize actions to remove non-serializable functions
-        const sanitizedActions = conversation.actions
-            .filter(action => action && action.signature)
-            .map(action => ({
-                signature: action.signature,
-                args: action.args,
-                description: action.description,
-                creator: action.creator,
-                usesSource: (action as any).usesSource,
-                usesTarget: (action as any).usesTarget
-        }));
-
-        // Calculate base prompt tokens
-        const basePromptTokens = await conversation.calculateBasePromptTokens();
-
-        const payload = {
-            gameData: conversation.gameData,
-            messages: conversation.messages,
-            historicalMetadata: historicalMetadata,
-            actions: sanitizedActions, // Pass sanitized actions
-            basePromptTokens: basePromptTokens
-        };
-
-        // Wait for the renderer to signal it's ready before sending the payload
-        ipcMain.once('chat-ui-ready', () => {
-            console.log('IPC: Received chat-ui-ready. Sending chat-start payload.');
+            // 4. Send the payload.
             chatWindow.window.webContents.send('chat-start', payload);
-        });
 
-        // Wait for the renderer to confirm it has processed the chat-start payload
-        await readyPromise;
-        console.log('IPC: chat-window-ready confirmed by renderer. Initializing conversation flow.');
-        if (conversation) {
+            // 5. Initialize the conversation logic after the UI has the data.
             await conversation.initialize();
-        }
 
-    }catch(err){
-        console.log("==VOTC:IN ERROR==");
-        console.error(err); // Changed from console.log(err)
-
-        if(chatWindow.isShown){
-            chatWindow.window.webContents.send('error-message', err);
+        } catch (err) {
+            console.error("Error during VOTC:IN setup:", err);
+            if(chatWindow.isShown){
+                chatWindow.window.webContents.send('error-message', err);
+            }
         }
-    }
+    });
+
+    // 2. Show the window, which will trigger the 'chat-window-ready' event from the renderer.
+    chatWindow.show();
 })
 
 clipboardListener.on('VOTC:EFFECT_ACCEPTED', () =>{

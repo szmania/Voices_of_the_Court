@@ -1604,8 +1604,8 @@ ipcRenderer.on('chat-show', () =>{
         chatMessages.innerHTML = '';
     }
     document.body.style.display = '';
-    console.log('Chat window is shown, sending chat-ui-ready to main process.');
-    ipcRenderer.send('chat-ui-ready');
+    console.log('Chat window is shown, sending chat-window-ready to main process.');
+    ipcRenderer.send('chat-window-ready');
 })
 
 ipcRenderer.on('update-character-lists', (event, updatedCharacterIds: number[]) => {
@@ -1875,13 +1875,9 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
 
-    // Signal to main process that the UI is ready
-    console.log('Renderer: Sending chat-window-ready signal.');
-    ipcRenderer.send('chat-window-ready');
+    // The ready signal is now sent from 'chat-show', so this is no longer needed.
     } catch (err) {
         console.error('CRITICAL ERROR in chat-start handler:', err);
-        // Still send the ready signal so the backend doesn't hang forever
-        ipcRenderer.send('chat-window-ready');
     }
 });
 
