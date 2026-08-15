@@ -160,6 +160,8 @@
     "disable_historical_tooltip": "Desactivar la carga de conversaciones históricas que pre-pueblan la ventana de chat con conversaciones anteriores con ese personaje.",
     "max_historical_conversations": "Máx. conversaciones históricas",
     "max_historical_conversations_tooltip": "El número máximo de archivos de conversaciones históricas a cargar. Ayuda a prevenir el lag con personajes que tienen un largo historial. Establecer en 0 para no tener límite.",
+    "max_conversations_in_history_window": "Máx. Conversaciones Históricas (Ventana)",
+    "max_conversations_in_history_window_tooltip": "El número máximo de conversaciones anteriores que se mostrarán en la ventana de chat. Esto no afecta la memoria de la IA, solo lo que ves.",
     "generate_scene": "generar descripción de escena",
     "generate_scene_tooltip": "Genera una descripción de la escena al comienzo de la conversación para proporcionar contexto y trasfondo a los personajes.",
     "auto_suggestions": "generar sugerencias automáticamente",

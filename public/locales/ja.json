@@ -156,6 +156,8 @@
     "disable_historical_tooltip": "そのキャラクターとの以前の会話でチャットウィンドウを事前入力する過去の会話の読み込みを無効にします。",
     "max_historical_conversations": "最大過去会話数",
     "max_historical_conversations_tooltip": "読み込む過去の会話ファイルの上限数。長い履歴を持つキャラクターとの会話でのラグを防ぎます。0に設定すると無制限になります。",
+    "max_conversations_in_history_window": "最大過去会話数（ウィンドウ）",
+    "max_conversations_in_history_window_tooltip": "チャットウィンドウに表示する過去の会話の最大数。これはAIの記憶には影響せず、あなたが見るものだけに影響します。",
     "generate_scene": "シーン説明を生成",
     "generate_scene_tooltip": "会話の開始時にシーン説明を生成し、キャラクターのコンテキストと背景を提供します。",
     "auto_suggestions": "提案を自動生成",

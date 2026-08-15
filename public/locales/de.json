@@ -160,6 +160,8 @@
     "disable_historical_tooltip": "Deaktivieren Sie das Laden historischer Gespräche, die das Chat-Fenster mit früheren Gesprächen mit diesem Charakter vorab füllen.",
     "max_historical_conversations": "Max. historische Gespräche",
     "max_historical_conversations_tooltip": "Die maximale Anzahl historischer Gesprächsdateien, die geladen werden sollen. Hilft, Verzögerungen bei Charakteren mit langer Geschichte zu vermeiden. Auf 0 setzen für kein Limit.",
+    "max_conversations_in_history_window": "Max. historische Gespräche (Fenster)",
+    "max_conversations_in_history_window_tooltip": "Die maximale Anzahl früherer Gespräche, die im Chat-Fenster angezeigt werden sollen. Dies beeinflusst nicht den Speicher der KI, nur das, was Sie sehen.",
     "generate_scene": "Szenenbeschreibung generieren",
     "generate_scene_tooltip": "Generiert zu Beginn des Gesprächs eine Szenenbeschreibung, um Kontext und Hintergrund für die Charaktere zu liefern.",
     "auto_suggestions": "Vorschläge automatisch generieren",

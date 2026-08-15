@@ -167,6 +167,8 @@
     "disable_historical_tooltip": "Sohbet penceresini o karakterle olan önceki konuşmalarla dolduran geçmiş konuşmaların yüklenmesini devre dışı bırakır.",
     "max_historical_conversations": "Maks. geçmiş konuşmalar",
     "max_historical_conversations_tooltip": "Yüklenecek maksimum geçmiş konuşma dosyası sayısı. Uzun bir geçmişe sahip karakterlerle gecikmeyi önlemeye yardımcı olur. Sınırsız için 0 olarak ayarlayın.",
+    "max_conversations_in_history_window": "Maks. Geçmiş Konuşmalar (Pencere)",
+    "max_conversations_in_history_window_tooltip": "Sohbet penceresinde görüntülenecek maksimum önceki konuşma sayısı. Bu, AI'nın belleğini değil, yalnızca gördüklerinizi etkiler.",
     "generate_scene": "Sahne açıklaması oluştur",
     "generate_scene_tooltip": "Karakterler için bağlam ve arka plan sağlamak amacıyla konuşmanın başında sahne açıklaması oluşturur.",
     "auto_suggestions": "Önerileri otomatik oluştur",

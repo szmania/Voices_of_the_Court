@@ -156,6 +156,8 @@
     "disable_historical_tooltip": "해당 캐릭터와의 이전 대화로 채팅 창을 미리 채우는 과거 대화 로드를 비활성화합니다.",
     "max_historical_conversations": "최대 과거 대화 수",
     "max_historical_conversations_tooltip": "로드할 과거 대화 파일의 최대 개수입니다. 긴 기록을 가진 캐릭터와의 지연을 방지하는 데 도움이 됩니다. 0으로 설정하면 제한이 없습니다.",
+    "max_conversations_in_history_window": "최대 과거 대화 수 (창)",
+    "max_conversations_in_history_window_tooltip": "채팅 창에 표시할 이전 대화의 최대 수입니다. 이는 AI의 메모리에 영향을 주지 않으며, 당신이 보는 것에만 영향을 줍니다.",
     "generate_scene": "장면 설명 생성",
     "generate_scene_tooltip": "캐릭터에게 문맥과 배경을 제공하기 위해 대화 시작 시 장면 설명을 생성합니다.",
     "auto_suggestions": "제안 자동 생성",

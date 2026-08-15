@@ -164,6 +164,8 @@
     "disable_historical_tooltip": "禁用加载历史对话，这些对话会用与该角色的先前对话预填充聊天窗口。",
     "max_historical_conversations": "最大历史对话数",
     "max_historical_conversations_tooltip": "要加载的历史对话文件的最大数量。有助于防止与有长历史记录的角色出现延迟。设置为0则无限制。",
+    "max_conversations_in_history_window": "最大历史对话数（窗口）",
+    "max_conversations_in_history_window_tooltip": "在聊天窗口中显示的最大先前对话数。这不影响AI的记忆，只影响您看到的内容。",
     "generate_scene": "生成场景描述",
     "generate_scene_tooltip": "在对话开始时生成场景描述，为角色提供背景和情境信息。",
     "auto_suggestions": "自动生成建议",

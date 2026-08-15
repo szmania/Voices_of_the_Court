@@ -156,6 +156,8 @@
     "disable_historical_tooltip": "Wyłącz ładowanie rozmów historycznych, które wstępnie wypełniają okno czatu poprzednimi rozmowami z tą postacią.",
     "max_historical_conversations": "Maks. rozmów historycznych",
     "max_historical_conversations_tooltip": "Maksymalna liczba plików rozmów historycznych do załadowania. Pomaga zapobiegać opóźnieniom u postaci z długą historią. Ustaw 0, aby nie było limitu.",
+    "max_conversations_in_history_window": "Maks. rozmów historycznych (Okno)",
+    "max_conversations_in_history_window_tooltip": "Maksymalna liczba poprzednich rozmów do wyświetlenia w oknie czatu. Nie wpływa to na pamięć AI, tylko na to, co widzisz.",
     "generate_scene": "generuj opis sceny",
     "generate_scene_tooltip": "Generuje opis sceny na początku rozmowy, aby zapewnić kontekst i tło dla postaci.",
     "auto_suggestions": "automatycznie generuj sugestie",
