@@ -23,7 +23,7 @@ jobs:
           cache: 'npm'
 
       - name: Setup MSVC (Windows Native Compilation)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         uses: ilammy/msvc-dev-cmd@v1
 
       # Pin Python to 3.11 to fix node-gyp distutils error on Windows
@@ -34,7 +34,7 @@ jobs:
 
       # NEW: Set the PYTHON environment variable specifically for Windows
       - name: Configure Python for node-gyp (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: echo "PYTHON=${{ env.pythonLocation }}\python.exe" >> $env:GITHUB_ENV
 
       - name: Install dependencies
