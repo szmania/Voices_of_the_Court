@@ -1474,7 +1474,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -1497,7 +1497,7 @@ ipcMain.handle('get-prompt-presets', async () => {
 ipcMain.handle('get-default-prompts', async () => {
     const lang = config.language || 'en';
     const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
-    const promptsPath = path.join(promptsDir, `${lang}on`);
+    const promptsPath = path.join(promptsDir, `${lang}.json`);
     const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
 
@@ -1522,7 +1522,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -2037,7 +2037,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
     try {
         const summaries = await readSummaryFile(userDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_mapon');
+        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -2092,8 +2092,8 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
     try {
         const letterManager = LetterManager.getInstance();
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -2113,7 +2113,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted letter summary for character ${charIdToDelete}`);
@@ -2145,8 +2145,8 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
     console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -2166,7 +2166,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
@@ -2272,7 +2272,7 @@ ipcMain.handle('get-diary-files', async (event, playerId) => {
     try {
         const files = await getDiaryFiles(playerId);
         // we only want character id, so remove on
-        return files.map(f => f.replace('on', ''));
+        return files.map(f => f.replace('.json', ''));
     } catch (error) {
         console.error('Error getting diary files:', error);
         return [];
