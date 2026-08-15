@@ -9,9 +9,9 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-      strategy:
-        matrix:
-          os: [macos-latest, windows-2022] # <-- Changed windows-latest to windows-2022 here
+    strategy:
+      matrix:
+        os: [macos-latest, windows-2022] # <-- Changed windows-latest to windows-2022 here
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
