@@ -304,208 +304,158 @@ export class Conversation{
     }
 
     public async loadHistory(): Promise<void> {
-        // Check if historical conversation loading is enabled
         if (!this.config.showPreviousConversations || this.config.disableHistoricalConversations) {
-            console.log('Historical conversation loading is disabled in config.');
+            console.log('Historical conversation loading is disabled.');
             return;
         }
 
-        console.log('Attempting to load historical conversation history.');
-        console.log('showPreviousConversations config value:', this.config.showPreviousConversations);
         const historyDir = path.join(this.userDataPath, 'conversation_history', this.gameData.playerID.toString());
-        console.log('Looking for historical conversations in:', historyDir);
-
         if (!fs.existsSync(historyDir)) {
-            console.log('No history directory found for this player.');
             return;
         }
 
         const allCharacterIds = Array.from(this.gameData.characters.keys());
-        // Get all relevant historical files, sorted newest to oldest. The limit is applied later.
         const allHistoryFiles = await getConversationHistoryFiles(this.gameData.playerID.toString(), allCharacterIds, 0);
-
         if (allHistoryFiles.length === 0) {
-            console.log('No previous history files found for this character group.');
             return;
         }
 
-        console.log(`Found ${allHistoryFiles.length} potential historical conversation files. Filtering for content...`);
-
-        // Send loading indicator to chat window
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 
-        // Store historical conversation metadata (date, scene, and location for each file)
-        const validHistoricalConversations: Array<{date: string, scene: string, location: string, characters: string[], messages: Message[]}> = [];
-        let totalMessagesLoaded = 0;
+        const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
+        const initialBatch: any[] = [];
+        const remainingFiles: any[] = [];
+        const INITIAL_BATCH_SIZE = 10;
 
         for (const fileInfo of allHistoryFiles) {
-            const filePath = path.join(historyDir, fileInfo.fileName);
-            console.log(`Loading historical conversation from: ${filePath}`);
-
-            try {
-                const content = fs.readFileSync(filePath, 'utf8');
-                const lines = content.split('\n');
-
-                let currentDate = this.gameData.date; // Default to current date
-                let currentScene = ""; // Default to empty
-                let currentLocation = ""; // Default to empty
-                const fileMessages: Message[] = [];
-                const characterNames: string[] = [];
-                let currentMessage: Message | null = null;
-                let messageIndex = -1;
-
-                const narrativeLabels = {
-                    en: "[Narrative]:",
-                    zh: "[旁白]:",
-                    ru: "[Повествование]:",
-                    fr: "[Récit]:",
-                    es: "[Narrativa]:",
-                    de: "[Erzählung]:",
-                    ja: "[ナラティブ]:",
-                    ko: "[내레이션]:",
-                    pl: "[Narracja]:",
-                    pt: "[Narrativa]:"
-                };
-                const narrativeLabelValues = Object.values(narrativeLabels);
-                const narrativeRegex = new RegExp(`^(${narrativeLabelValues.map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
-
-                const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
-                const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
-
-                // Load the global character map to resolve historical names
-                const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
-
-                for (let line of lines) {
-                    // Metadata parsing remains the same
-                    if (line.startsWith('Date:')) {
-                        currentDate = line.replace('Date:', '').trim();
-                        continue;
-                    }
-                    if (line.startsWith('Scene:')) {
-                        currentScene = line.replace('Scene:', '').trim();
-                        continue;
-                    }
-                    if (line.startsWith('Location:')) {
-                        currentLocation = line.replace('Location:', '').trim();
-                        continue;
-                    }
-
-                    // Build a robust speaker regex for each file using historical and current names
-                    const historyCharacterIds = fileInfo.fileName.split('_').slice(0, -1);
-                    const historicalSpeakerNames = new Set<string>();
-                    historyCharacterIds.forEach((id: string) => {
-                        const charFromCurrentData = this.gameData.characters.get(parseInt(id, 10));
-                        if (charFromCurrentData) {
-                            historicalSpeakerNames.add(charFromCurrentData.fullName);
-                            historicalSpeakerNames.add(charFromCurrentData.shortName);
-                        }
-                        const historicalName = globalCharacterMap.get(id);
-                        if (historicalName) {
-                            historicalSpeakerNames.add(historicalName);
-                        }
-                    });
-                    historicalSpeakerNames.add(this.gameData.playerName);
-                    const uniqueSpeakerNames = [...historicalSpeakerNames].filter(Boolean);
-                    const speakerRegex = new RegExp(`^(${uniqueSpeakerNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):`);
-
-
-                    const narrativeMatch = line.match(narrativeRegex);
-                    if (narrativeMatch) {
-                        if (currentMessage) {
-                            const narrative = line.substring(narrativeMatch[0].length).trim();
-                            if (!currentMessage.narrative) {
-                                currentMessage.narrative = "";
-                            }
-                            currentMessage.narrative += narrative + "\n";
-                        }
-                        continue;
-                    }
-
-                    const actionMatch = line.match(actionRegex);
-                    if (actionMatch) {
-                        if (currentMessage) {
-                            if (!(currentMessage as any).actions) {
-                                (currentMessage as any).actions = [];
-                            }
-                            (currentMessage as any).actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
-                        }
-                        continue;
-                    }
-
-                    const speakerMatch = line.match(speakerRegex);
-                    if (speakerMatch) {
-                        // This line starts a new message.
-                        // First, save the previous message if it exists.
-                        if (currentMessage) {
-                            currentMessage.content = currentMessage.content.trim();
-                            fileMessages.push(currentMessage);
-                        }
-
-                        // Now, start the new message.
-                        const name = speakerMatch[1].trim();
-                        const messageContent = line.substring(speakerMatch[0].length).trim();
-                        if (!characterNames.includes(name)) {
-                            characterNames.push(name);
-                        }
-                        const role = (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant';
-
-                        currentMessage = {
-                            role: role as 'user' | 'assistant',
-                            name: name,
-                            content: messageContent
-                        };
-                    } else if (line.trim()) {
-                        if (currentMessage) {
-                            // This is a continuation of the current message.
-                            currentMessage.content += '\n' + line;
-                        } else {
-                            // This is content before the first speaker, likely a scene description.
-                            // Create a system message for it.
-                            const sceneDescMessage: Message = {
-                                role: 'system',
-                                name: '', // Scene descriptions don't have a speaker name
-                                content: line.trim()
-                            };
-                            fileMessages.push(sceneDescMessage);
-                        }
-                    }
+            // The files are sorted newest to oldest, so we fill the initial batch first.
+            if (initialBatch.length < INITIAL_BATCH_SIZE) {
+                const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
+                if (parsedConv) {
+                    initialBatch.push(parsedConv);
                 }
-                // Add the last message after the loop finishes
-                if (currentMessage) {
-                    currentMessage.content = currentMessage.content.trim();
-                    fileMessages.push(currentMessage);
-                }
-
-                // Store this conversation's metadata and messages ONLY if it has content
-                if (fileMessages.length > 0) {
-                    validHistoricalConversations.push({
-                        date: currentDate,
-                        scene: currentScene,
-                        location: currentLocation,
-                        characters: characterNames,
-                        messages: fileMessages
-                    });
-                    totalMessagesLoaded += fileMessages.length;
-                    console.log(`Loaded ${fileMessages.length} messages from ${fileInfo.fileName} (Date: ${currentDate}, Location: ${currentLocation}, Scene: ${currentScene})`);
-                } else {
-                    console.log(`Skipping empty history file: ${fileInfo.fileName}`);
-                }
-
-            } catch (error) {
-                console.error(`Error reading or parsing history file ${fileInfo.fileName}: ${error}`);
+            } else {
+                remainingFiles.push(fileInfo);
             }
         }
 
-        // Reverse the array to display conversations in chronological order (oldest first)
-        validHistoricalConversations.reverse();
+        // Reverse the initial batch to display oldest first, then set it.
+        this.historicalConversations = initialBatch.reverse();
+        console.log(`Loaded initial batch of ${this.historicalConversations.length} historical conversations.`);
 
-        console.log(`Successfully loaded ${totalMessagesLoaded} messages from ${validHistoricalConversations.length} historical conversations.`);
+        // This will be sent to the renderer in the main 'chat-start' payload.
+        // Now, start loading the rest in the background.
+        this._loadRemainingHistory(remainingFiles, historyDir, globalCharacterMap);
+    }
 
-        // Send loading complete event to chat window
+    private async _loadRemainingHistory(files: any[], historyDir: string, globalCharacterMap: Map<string, string>): Promise<void> {
+        console.log(`Starting to load ${files.length} remaining historical conversations in the background.`);
+        const remainingConvs: any[] = [];
+        for (const fileInfo of files) {
+            const parsedConv = await this._parseHistoryFile(fileInfo, historyDir, globalCharacterMap);
+            if (parsedConv) {
+                remainingConvs.push(parsedConv);
+            }
+        }
+
+        if (remainingConvs.length > 0) {
+            // Reverse to get chronological order
+            remainingConvs.reverse();
+            // Prepend to the main history array
+            this.historicalConversations.unshift(...remainingConvs);
+            // Send the newly loaded conversations to the UI to be prepended.
+            this.chatWindow.window.webContents.send('historical-conversations-update', remainingConvs);
+            console.log(`Asynchronously loaded and sent ${remainingConvs.length} more historical conversations.`);
+        }
+        // Finally, send the loading complete signal
         this.chatWindow.window.webContents.send('historical-conversations-loading', false);
+    }
 
-        // Store historical conversation metadata for later use
-        this.historicalConversations = validHistoricalConversations;
+    private async _parseHistoryFile(fileInfo: { fileName: string }, historyDir: string, globalCharacterMap: Map<string, string>): Promise<any | null> {
+        const filePath = path.join(historyDir, fileInfo.fileName);
+        try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const lines = content.split('\n');
+
+            let currentDate = this.gameData.date;
+            let currentScene = "";
+            let currentLocation = "";
+            const fileMessages: Message[] = [];
+            const characterNames: string[] = [];
+            let currentMessage: Message | null = null;
+
+            const narrativeLabels = { en: "[Narrative]:", zh: "[旁白]:", ru: "[Повествование]:", fr: "[Récit]:", es: "[Narrativa]:", de: "[Erzählung]:", ja: "[ナラティブ]:", ko: "[내레이션]:", pl: "[Narracja]:", pt: "[Narrativa]:" };
+            const narrativeRegex = new RegExp(`^(${Object.values(narrativeLabels).map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
+            const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+            const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
+
+            const historyCharacterIds = fileInfo.fileName.split('_').slice(0, -1);
+            const historicalSpeakerNames = new Set<string>();
+            historyCharacterIds.forEach((id: string) => {
+                const charFromCurrentData = this.gameData.characters.get(parseInt(id, 10));
+                if (charFromCurrentData) {
+                    historicalSpeakerNames.add(charFromCurrentData.fullName);
+                    historicalSpeakerNames.add(charFromCurrentData.shortName);
+                }
+                const historicalName = globalCharacterMap.get(id);
+                if (historicalName) historicalSpeakerNames.add(historicalName);
+            });
+            historicalSpeakerNames.add(this.gameData.playerName);
+            const uniqueSpeakerNames = [...historicalSpeakerNames].filter(Boolean);
+            const speakerRegex = new RegExp(`^(${uniqueSpeakerNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):`);
+
+            for (let line of lines) {
+                if (line.startsWith('Date:')) { currentDate = line.replace('Date:', '').trim(); continue; }
+                if (line.startsWith('Scene:')) { currentScene = line.replace('Scene:', '').trim(); continue; }
+                if (line.startsWith('Location:')) { currentLocation = line.replace('Location:', '').trim(); continue; }
+
+                const narrativeMatch = line.match(narrativeRegex);
+                if (narrativeMatch) {
+                    if (currentMessage) {
+                        const narrative = line.substring(narrativeMatch[0].length).trim();
+                        if (!currentMessage.narrative) currentMessage.narrative = "";
+                        currentMessage.narrative += narrative + "\n";
+                    }
+                    continue;
+                }
+
+                const actionMatch = line.match(actionRegex);
+                if (actionMatch) {
+                    if (currentMessage) {
+                        if (!(currentMessage as any).actions) (currentMessage as any).actions = [];
+                        (currentMessage as any).actions.push({ actionName: '', chatMessage: actionMatch[1].trim(), chatMessageClass: 'neutral-action-message' });
+                    }
+                    continue;
+                }
+
+                const speakerMatch = line.match(speakerRegex);
+                if (speakerMatch) {
+                    if (currentMessage) fileMessages.push({ ...currentMessage, content: currentMessage.content.trim() });
+                    const name = speakerMatch[1].trim();
+                    if (!characterNames.includes(name)) characterNames.push(name);
+                    currentMessage = {
+                        role: (name === this.gameData.playerName.replace(/\s+/g, '')) ? 'user' : 'assistant',
+                        name: name,
+                        content: line.substring(speakerMatch[0].length).trim()
+                    };
+                } else if (line.trim()) {
+                    if (currentMessage) {
+                        currentMessage.content += '\n' + line;
+                    } else {
+                        fileMessages.push({ role: 'system', name: '', content: line.trim() });
+                    }
+                }
+            }
+            if (currentMessage) fileMessages.push({ ...currentMessage, content: currentMessage.content.trim() });
+
+            if (fileMessages.length > 0) {
+                return { date: currentDate, scene: currentScene, location: currentLocation, characters: characterNames, messages: fileMessages };
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error parsing history file ${fileInfo.fileName}: ${error}`);
+            return null;
+        }
     }
 
     private async withLimitedHistory<T>(callback: () => Promise<T>): Promise<T> {

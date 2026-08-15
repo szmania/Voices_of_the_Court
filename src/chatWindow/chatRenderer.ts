@@ -1770,66 +1770,14 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         chatMessages.append(separator);
 
         const header = document.createElement('div');
-        header.classList.add('historical-header');
-        header.classList.add('message');
-        header.textContent = 'Previous Conversations:';
+        header.classList.add('historical-header', 'message');
+        // @ts-ignore
+        header.textContent = (window.LocalizationManager?.getNestedTranslation('chat.previous_conversations_header') || 'Previous Conversations:');
         chatMessages.append(header);
 
-        // Display in chronological order (oldest first)
-        const chronologicalMetadata = historicalMetadata;
         const fragment = document.createDocumentFragment();
-
-        for (const conv of chronologicalMetadata) {
-            const convHeader = document.createElement('div');
-            convHeader.classList.add('historical-conversation-header');
-            convHeader.classList.add('message');
-
-            let headerText = `Date: ${conv.date}`;
-            if (conv.location) headerText += ` | Location: ${conv.location}`;
-            if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
-            convHeader.textContent = headerText;
-            fragment.appendChild(convHeader);
-
-            if (conv.characters && conv.characters.length > 0) {
-                const characterDiv = document.createElement('div');
-                characterDiv.classList.add('historical-characters', 'message');
-                characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-
-                const playerShortName = gameData.getPlayer()?.shortName || gameData.playerName;
-                const characterString = conv.characters.map((name: string) => {
-                    if (name === playerShortName || name === gameData.playerName) {
-                        return `${name} (You)`;
-                    }
-                    return name;
-                }).join(', ');
-
-                characterDiv.textContent = `Characters: ${characterString}`;
-                fragment.appendChild(characterDiv);
-            }
-
-            for (const msg of conv.messages) {
-                const msgDiv = await displayMessage(msg, true);
-                if (msgDiv) {
-                    fragment.appendChild(msgDiv);
-                }
-                // Historical messages have narratives embedded in them
-                if ((msg as any).narrative && typeof (msg as any).narrative === 'string') {
-                    const narrativeMsg: Message = {
-                        role: 'system',
-                        name: 'Narrator',
-                        content: (msg as any).narrative,
-                        id: msg.id ? `${msg.id}-narrative` : randomUUID()
-                    };
-                    const narrativeDiv = displayNarrative(narrativeMsg);
-                    if (narrativeDiv) {
-                        fragment.appendChild(narrativeDiv);
-                    }
-                }
-            }
-            const convSeparator = document.createElement('div');
-            convSeparator.classList.add('historical-conversation-separator');
-            convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
-            fragment.appendChild(convSeparator);
+        for (const conv of historicalMetadata) {
+            await appendConversationToFragment(conv, fragment);
         }
         chatMessages.appendChild(fragment);
     }
