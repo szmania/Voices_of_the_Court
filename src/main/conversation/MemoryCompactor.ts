@@ -54,6 +54,13 @@ export class MemoryCompactor {
     }
 
     /**
+     * Checks if Phase 1 compaction should be triggered based on context usage.
+     */
+    public shouldTriggerCompaction(messages: Message[], tokenCount: number, contextSize: number): boolean {
+        return this.scheduler.shouldRunPhase1(messages, tokenCount, contextSize);
+    }
+
+    /**
      * Main compaction entry point. Serialized via promise-based locking to prevent
      * race conditions. If a compaction is already in progress, concurrent callers
      * receive the same promise and wait for the ongoing operation to complete.

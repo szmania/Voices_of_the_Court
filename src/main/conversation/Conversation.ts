@@ -593,6 +593,16 @@ export class Conversation{
             return;
         }
 
+        // Proactive compaction check
+        if (this.memoryCompactor && this.config.enableMemoryCompaction) {
+            const tokenCount = await this.calculateBasePromptTokens();
+            const contextSize = this.textGenApiConnection.context || 8192;
+            if (this.memoryCompactor.shouldTriggerCompaction(this.messages, tokenCount, contextSize)) {
+                console.log('Context usage is over the threshold, triggering pre-emptive compaction.');
+                await this.resummarize();
+            }
+        }
+
         this.isGenerating = true;
         this.abortController = new AbortController();
         try {
@@ -1110,11 +1120,6 @@ export class Conversation{
         let currentTokens = this.textGenApiConnection.calculateTokensFromChat(await buildChatPrompt(this, character, undefined, undefined, isNonTargeted));
         //let currentTokens = 500;
         console.log(`Current prompt token count: ${currentTokens}`);
-
-        if(currentTokens > this.textGenApiConnection.context){
-            console.log(`Context limit hit (${currentTokens}/${this.textGenApiConnection.context} tokens), resummarizing conversation!`);
-            await this.resummarize();
-        }
 
         let streamMessage: any = {
             role: "assistant",
