@@ -95,7 +95,7 @@ init();
 
 const chatBox: HTMLDivElement = document.querySelector('.chat-box')!;
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
-let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
+let chatInput: HTMLTextAreaElement = document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 let clearHistoryButton: HTMLButtonElement = document.querySelector('.clear-history-button')!;
 
@@ -167,7 +167,7 @@ let initialWindowState = {
 async function initChat(){
 
     chatMessages.innerHTML = '';
-    chatInput.innerHTML = '';
+    chatInput.value = '';
     chatInput.disabled = false;
 
     // 根据配置显示或隐藏建议按钮
