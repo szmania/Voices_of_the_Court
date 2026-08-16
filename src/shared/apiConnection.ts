@@ -475,9 +475,23 @@ export class ApiConnection{
                 console.debug("Prompt before sending to API:", prompt);
 
                 if (this.isChat()) {
+                    // Sanitize messages to include only standard fields (role, content, name)
+                    // This prevents 400 errors from strict providers like Cloudflare/glm-5.2
+                    // that reject non-standard fields like 'id' or 'type'.
+                    const sanitizedMessages = (prompt as Message[]).map(msg => {
+                        const cleanMsg: any = {
+                            role: msg.role,
+                            content: msg.content
+                        };
+                        if (msg.name && msg.name.trim() !== "") {
+                            cleanMsg.name = msg.name;
+                        }
+                        return cleanMsg;
+                    });
+
                     const requestBody = {
                         model: this.model,
-                        messages: prompt as Message[],
+                        messages: sanitizedMessages,
                         stream: stream,
                         ...this.parameters,
                         ...otherArgs
