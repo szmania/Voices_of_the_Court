@@ -1043,10 +1043,18 @@ ipcMain.on('clear-summaries', ()=>{
 })
 
 let conversation: Conversation;
+let isConversationReady = false;
+let pendingMessages: Message[] = [];
 let conversationLock: Promise<void> | null = null;
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+
+    // Reset state for the new conversation session
+    isConversationReady = false;
+    pendingMessages = [];
+    // @ts-ignore
+    conversation = null;
 
     // 1. Register the listener immediately. It will contain all the setup logic.
     ipcMain.once('chat-window-ready', async () => {
@@ -1126,8 +1134,19 @@ clipboardListener.on('VOTC:IN', async () =>{
             // 5. Initialize the conversation logic after the UI has the data.
             await conversation.initialize();
 
+            // 6. Mark conversation as ready and process any queued messages.
+            isConversationReady = true;
+            console.log('Conversation is ready. Processing pending messages.');
+            if (pendingMessages.length > 0) {
+                console.log(`Processing ${pendingMessages.length} queued message(s).`);
+                pendingMessages.forEach(msg => conversation.pushMessage(msg));
+                pendingMessages = []; // Clear the queue
+                await conversation.generateAIsMessages(); // Trigger a single generation cycle for the queued messages
+            }
+
         } catch (err) {
             console.error("Error during VOTC:IN setup:", err);
+            isConversationReady = false; // Ensure state is correct on failure
             if(chatWindow.isShown){
                 chatWindow.window.webContents.send('error-message', err);
             }
@@ -1422,17 +1441,20 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
 ipcMain.on('message-send', async (e, message: Message) =>{
     console.log('IPC: Received message-send event with message:', message.content);
-    conversation.pushMessage(message);
-    try{
-        conversation.generateAIsMessages();
+    if (isConversationReady && conversation) {
+        conversation.pushMessage(message);
+        try {
+            await conversation.generateAIsMessages();
+        } catch (err) {
+            console.error('Error during message generation:', err);
+            if (chatWindow && chatWindow.window && !chatWindow.window.isDestroyed()) {
+                chatWindow.window.webContents.send('error-message', err);
+            }
+        }
+    } else {
+        console.log('Conversation not ready. Queuing message.');
+        pendingMessages.push(message);
     }
-    catch(err){
-        console.error(err); // Changed from console.log(err)
-        chatWindow.window.webContents.send('error-message', err);
-    }
-
-
-
 });
 
     // 处理获取推荐输入语句的请求
@@ -1680,6 +1702,11 @@ ipcMain.on('chat-stop', () =>{
         conversation.cleanup();
     }
 
+    // Reset conversation state
+    isConversationReady = false;
+    pendingMessages = [];
+    // @ts-ignore
+    conversation = null;
 })
 
 // Memory Compaction IPC Handlers
