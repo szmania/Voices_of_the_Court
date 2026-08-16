@@ -580,8 +580,10 @@ export class Conversation{
         if (this.isGeneratingScene) {
             console.log('Scene is currently generating. Queuing player request to be processed after.');
             this.pendingPlayerRequest = true;
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            // We do NOT send 'generation-finished' here. The input is already disabled by the renderer
+            // when the user sent their message. The 'finally' block of generateSceneDescription will
+            // process this pending request, and the subsequent call to generateAIsMessages will
+            // correctly re-enable the input upon completion.
             return;
         }
         if (this.isGenerating) {
