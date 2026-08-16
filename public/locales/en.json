@@ -259,7 +259,7 @@
     "compaction_status_label": "Status:",
     "compaction_last_result": "Last compaction:",
     "compaction_phase1_summaries": "Phase 1 Summaries:",
-    "compaction_phase1_threshold_label": "(triggers Phase 2 at",
+    "compaction_phase1_threshold_label": "Threshold",
     "compaction_never_run": "Never run",
     "text_gen_params": "Text-generation parameters"
   },

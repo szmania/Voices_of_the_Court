@@ -279,7 +279,7 @@
               <div class="compaction-progress-container">
                 <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
                 <div id="compaction-phase1-line" class="compaction-phase1-line" style="left: 70%;"></div>
-                <span id="compaction-phase1-label" class="compaction-phase1-label" data-i18n="settings.phase1_threshold_label">Phase 1 Threshold</span>
+                <span id="compaction-phase1-label" class="compaction-phase1-label" data-i18n="settings.compaction_phase1_threshold_label"></span>
               </div>
               <div class="compaction-progress-labels">
                 <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
@@ -446,6 +446,8 @@
           const phase1Label = document.getElementById('compaction-phase1-label');
           if (phase1Label) {
             phase1Label.style.left = status.phase1ThresholdPct + '%';
+            const thresholdText = window.LocalizationManager ? window.LocalizationManager.getTranslation('settings.phase1_threshold_label', 'Threshold') : 'Threshold';
+            phase1Label.textContent = `${thresholdText} (${status.phase1ThresholdPct}%)`;
           }
           if (usageText) {
             usageText.textContent = status.tokenCount + ' / ' + status.contextSize + ' tokens (' + status.contextUsagePct + '%)';
