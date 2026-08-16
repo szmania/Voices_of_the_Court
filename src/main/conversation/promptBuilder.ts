@@ -177,7 +177,17 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
-        exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
+        const selfTalkPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
+        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
+
+        if (fs.existsSync(selfTalkPath)) {
+            exampleMessagesPath = selfTalkPath;
+        } else if (fs.existsSync(customPath)) {
+            exampleMessagesPath = customPath;
+        } else {
+            console.error(`Self-talk example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
+            exampleMessagesPath = null;
+        }
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);

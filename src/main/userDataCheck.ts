@@ -116,8 +116,15 @@ export async function checkUserData(){
 
     console.log('User data votc folder already exists. Synchronizing contents.');
 
-    // Synchronize all default files to the user data directory
-    synchronizeDirectory(defaultUserdataPath, userPath);
+    // Synchronize specific default folders that contain localizable or updatable standard files.
+    // This is safer than a blanket sync, which could overwrite user-created files in non-standard locations.
+
+    // Sync prompt translations
+    const promptsConfigPath = path.join(userPath, 'configs', 'prompts');
+    const sourcePromptsConfigPath = path.join(defaultUserdataPath, 'configs', 'prompts');
+    if (fs.existsSync(sourcePromptsConfigPath)) {
+        synchronizeDirectory(sourcePromptsConfigPath, promptsConfigPath);
+    }
 
     // The old validation logic for config can still be useful
     const configPath = path.join(userPath, "configs", "config.json");
@@ -263,6 +270,12 @@ export async function checkUserData(){
     const sourceExampleMessagesPath = path.join(defaultScriptsPath, 'prompts', 'example messages', 'standard');
     if (fs.existsSync(sourceExampleMessagesPath)) {
         synchronizeDirectory(sourceExampleMessagesPath, standardExampleMessagesPath);
+    }
+
+    const selfTalkExampleMessagesPath = path.join(userDataScriptsPath, 'prompts', 'example messages', 'self-talk');
+    const sourceSelfTalkExampleMessagesPath = path.join(defaultScriptsPath, 'prompts', 'example messages', 'self-talk');
+    if (fs.existsSync(sourceSelfTalkExampleMessagesPath)) {
+        synchronizeDirectory(sourceSelfTalkExampleMessagesPath, selfTalkExampleMessagesPath);
     }
 
     // Check and create custom example messages folder
