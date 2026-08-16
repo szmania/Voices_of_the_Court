@@ -1059,6 +1059,7 @@ clipboardListener.on('VOTC:IN', async () =>{
     // 1. Register the listener immediately. It will contain all the setup logic.
     ipcMain.once('chat-window-ready', async () => {
         console.log('IPC: Received chat-window-ready. Starting conversation setup.');
+        chatWindow.window.webContents.send('chat-loading-data');
         try {
             // Check for incompatible mods
             const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');

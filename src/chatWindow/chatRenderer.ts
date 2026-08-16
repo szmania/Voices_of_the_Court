@@ -1220,6 +1220,9 @@ window.addEventListener('beforeunload', () => {
     })
 
 //IPC Events
+ipcRenderer.on('chat-loading-data', () => {
+    showLoadingDots(true);
+});
 
 ipcRenderer.on('historical-conversations-update', async (e, conversations: any[]) => {
     console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
@@ -1723,6 +1726,7 @@ ipcRenderer.on('chat-hide', () =>{
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
     console.log('Renderer: Received chat-start event.');
+    removeLoadingDots();
     try {
         displayedMessageIds.clear();
         currentConversationMessageDivs = [];

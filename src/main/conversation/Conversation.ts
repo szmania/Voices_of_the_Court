@@ -1141,10 +1141,11 @@ export class Conversation{
                 max_tokens: this.config.maxTokens,
             },
             this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
+            const contentFromResult = typeof chatResult === 'string' ? chatResult : (chatResult as any)?.content;
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,//this.gameData.aiName,
-                content: (chatResult as any)?.content ?? '',
+                content: contentFromResult ?? '',
                 characterId: character.id
             };
 
@@ -1157,10 +1158,11 @@ export class Conversation{
                 max_tokens: this.config.maxTokens,
             },
             this.config.stream && sendMessageToChat ? streamRelay : undefined, this.abortController?.signal);
+            const contentFromCompletion = typeof completionResult === 'string' ? completionResult : (completionResult as any)?.content;
             responseMessage = {
                 role: "assistant",
                 name: characterNameForResponse,
-                content: (completionResult as any)?.content ?? '',
+                content: contentFromCompletion ?? '',
                 characterId: character.id
             };
 
