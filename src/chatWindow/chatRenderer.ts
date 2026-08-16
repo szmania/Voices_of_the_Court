@@ -2112,9 +2112,10 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         chatMessages.append(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        removeLoadingDots();
-    } else {
-        removeLoadingDots();
+        // Do not remove loading dots here. If the user sent a message while the scene
+        // was generating, the dots indicate that their message is still being processed.
+        // The dots will be correctly removed by the 'generation-finished' event
+        // once the AI's response to the user's message is complete.
     }
 })
 
