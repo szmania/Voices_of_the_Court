@@ -595,7 +595,7 @@ export class Conversation{
         if (this.memoryCompactor && this.config.enableMemoryCompaction) {
             const tokenCount = await this.calculateBasePromptTokens();
             const contextSize = this.textGenApiConnection.context || 8192;
-            if (this.memoryCompactor.scheduler.shouldRunPhase1(this.messages, tokenCount, contextSize)) {
+            if (this.memoryCompactor.shouldTriggerCompaction(this.messages, tokenCount, contextSize)) {
                 console.log('Context usage is over the threshold, triggering pre-emptive compaction.');
                 await this.resummarize();
             }
