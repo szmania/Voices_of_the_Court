@@ -2110,6 +2110,12 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         });
 
         chatMessages.append(messageDiv);
+
+        // If loading dots are present, move them to the very end of the chat.
+        if (loadingDots) {
+            chatMessages.append(loadingDots);
+        }
+        
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         // Do not remove loading dots here. If the user sent a message while the scene

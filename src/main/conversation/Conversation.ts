@@ -805,10 +805,12 @@ export class Conversation{
 
     async determineTargetedCharacters(): Promise<Character[]> {
         console.log('Determining targeted characters...');
-        const lastMessage = this.messages[this.messages.length - 1];
-        // Only check for targets if the last message was from the user
-        if (!lastMessage || lastMessage.role !== 'user') {
-            console.log('Last message not from user, skipping targeting.');
+        // Find the last message sent by the user to ensure we don't analyze a system message.
+        const lastMessage = [...this.messages].reverse().find(m => m.role === 'user');
+
+        // Only check for targets if a user message was found.
+        if (!lastMessage) {
+            console.log('No user message found in history, skipping targeting.');
             return [];
         }
         console.log(`Analyzing user message for targets: "${lastMessage.content}"`);
