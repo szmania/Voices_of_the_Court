@@ -5,7 +5,7 @@
     <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
-    
+
   </head>
   <body>
     <div class="navbar">
@@ -15,13 +15,13 @@
         <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
         <li class="active"><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
         <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
-<li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
         <li><a href="memoryConstellation.html" data-i18n="nav.memory_constellation" data-i18n-title="nav.memory_constellation_tooltip">Memory Constellation</a></li>
         <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
         <language-selector></language-selector>
-      </ul> 
+      </ul>
     </div>
 
     <div class="container" id="container">
@@ -57,7 +57,7 @@
                 <h2 data-i18n="prompts.header">Prompts</h2>
 
                 <div class="border" id="prompt-options">
-                    
+
                     <div class="input-group">
                         <div class="prompt-header">
                             <label data-i18n="prompts.main_prompt"></label>
@@ -105,7 +105,7 @@
                             </div>
                             <span class="token-count" id="suffixPrompt-token-count"></span>
                         </div>
-                        <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea> 
+                        <config-textarea id="suffix-prompt-textarea" confID="suffixPrompt" rows="6"></config-textarea>
                     </div>
 
                     <div class="input-group">
@@ -218,7 +218,7 @@
                         <config-textarea confID="suggestionPrompt" rows="6"></config-textarea>
                     </div>
                 </div>
-                
+
                 <div class="input-group" style="margin-top: 20px;">
                     <button type="button" id="restore-default-prompts" class="btn-warning" data-i18n="prompts.restore_defaults">🔄</button>
                     <tooltip-text side="top" data-i18n="prompts.restore_tooltip"></tooltip-text>
@@ -230,49 +230,49 @@
                 <h2 style="display: inline;" data-i18n="prompts.scripts_header"></h2> <tooltip-text side="bottom" data-i18n="prompts.scripts_tooltip"></tooltip-text>
                 <br></br>
                 <div id="script-selectors" class="border">
-      
+
                   <div class="input-group">
                     <button type="button" data-i18n="actions.reload_files">🔄</button>
                   </div>
-                  
+
                   <div class="input-group">
                     <label for="description-script-select" data-i18n="prompts.char_desc_script"></label>
                     <tooltip-text side="top" data-i18n="prompts.char_desc_script_tooltip"></tooltip-text>
                     <select id="description-script-select"></select>
                     <open-folder-button path="scripts/prompts/description/" data-i18n="actions.open_folder"></open-folder-button>
                   </div>
-      
+
                   <div class="input-group">
                     <label for="example-messages-script-select" data-i18n="prompts.ex_msg_script"></label>
                     <tooltip-text side="top" data-i18n="prompts.ex_msg_script_tooltip"></tooltip-text>
                     <select id="example-messages-script-select">
-                      
+
                     </select>
                     <open-folder-button path="scripts/prompts/example messages/" data-i18n="actions.open_folder"></open-folder-button>
-                    
+
                   </div>
-                  
+
                   <div class="input-group">
                     <label for="bookmark-script-select" data-i18n="prompts.bookmarks"></label>
                     <tooltip-text side="top" data-i18n="prompts.bookmarks_tooltip"></tooltip-text>
                     <select id="bookmark-script-select">
-                      
+
                     </select>
                     <open-folder-button path="scripts/bookmarks/" data-i18n="actions.open_folder"></open-folder-button>
-                    
+
                   </div>
-                  
-                  
+
+
                 </div>
-      
+
             </div>
         </div>
-      
+
 
     </div>
 
     <div id="status-message" class="status-message"></div>
-    
+
     <script>require("../../dist/shared/LocalizationManager.js")</script>
     <script>
       const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
@@ -284,7 +284,7 @@
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
     <script>require("../../dist/configWindow/components/configTextarea.js")</script>
     <script>require("../../dist/configWindow/promptsRenderer.js")</script>
-    
+
     <script>
       // 添加帮助菜单点击事件
       document.addEventListener('DOMContentLoaded', function() {

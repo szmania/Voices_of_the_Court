@@ -5,7 +5,7 @@
     <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
-    
+
   </head>
   <body>
     <div class="navbar">
@@ -15,21 +15,21 @@
         <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
         <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
         <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
-<li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
         <li><a href="memoryConstellation.html" data-i18n="nav.memory_constellation" data-i18n-title="nav.memory_constellation_tooltip">Memory Constellation</a></li>
         <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
         <language-selector></language-selector>
-      </ul> 
+      </ul>
     </div>
 
     <div class="container" id="container">
-      
+
       <config-checkbox id="enable-actions" confID="actionsEnableAll" data-i18n="actions.enable_actions"></config-checkbox>
-      
+
       <config-checkbox id="enable-narrative" confID="narrativeEnable" data-i18n="actions.enable_narrative"></config-checkbox>
-      
+
       <div id="actions" class="border">
 
         <config-checkbox id="use-connection-api" confID="actionsUseTextGenApi" data-i18n="actions.use_same_api"></config-checkbox>
@@ -37,7 +37,7 @@
         <hr>
 
         <config-api-selector id="api-selector" confID="actionsApiConnectionConfig"></config-api-selector>
-        
+
         <hr>
 
         <h2 data-i18n="actions.parameters">Parameters</h2>
@@ -51,7 +51,7 @@
           <button type="button" id="refresh-actions" data-i18n="actions.reload_files">🔄</button>
           <open-folder-button path="scripts/actions/" data-i18n="actions.open_folder"></open-folder-button>
         </div>
-        
+
         <div id="actions-menu">
           <div class="row">
             <div class="column">
@@ -64,13 +64,13 @@
             </div>
           </div>
         </div>
-            
-            </div>    
 
-          
+            </div>
+
+
       </div>
     </div>
-    
+
     <script>require("../../dist/shared/LocalizationManager.js")</script>
     <script>
       const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
@@ -83,7 +83,7 @@
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
     <script>require("../../dist/configWindow/actionsRenderer.js")</script>
-    
+
     <script>
       // 添加帮助菜单点击事件
       document.addEventListener('DOMContentLoaded', function() {

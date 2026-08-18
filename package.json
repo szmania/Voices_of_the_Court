@@ -30,7 +30,7 @@
     "openai": "^4.24.1",
     "typescript": "^5.9.3",
     "update-electron-app": "^3.1.1",
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^11.10.0",
     "sqlite-vec": "^0.1.6",
     "three": "^0.170.0",
     "uuid": "^13.0.0"
