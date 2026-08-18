@@ -116,7 +116,8 @@ export class MemoryCompactor {
                 const phase1Start = Date.now();
                 const phase1Results = await this.phase1Compactor.compact(
                     messagesToCompact,
-                    conv.currentSummary || ''
+                    conv.currentSummary || '',
+                    conv
                 );
                 phase1DurationMs = Date.now() - phase1Start;
 
@@ -177,11 +178,11 @@ export class MemoryCompactor {
         );
         if (this.scheduler.shouldRunPhase2(allPhase1Memories)) {
             const phase2Start = Date.now();
-            const knowledgeGraph = await this.phase2Compactor.compact(allPhase1Memories);
+            const knowledgeGraph = await this.phase2Compactor.compact(allPhase1Memories, conv);
             phase2DurationMs = Date.now() - phase2Start;
 
             // Convert knowledge graph entities into CompactedMemory entries
-            const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph);
+            const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph, conv);
 
             // Store Phase-2 results in memory
             for (const memory of phase2Memories) {
@@ -424,7 +425,7 @@ class Phase1Compactor {
 
         if (this.config.compactionEntityExtractionMode !== 'regex') {
             try {
-                const llmResult = await this.llmSummarize(conversationText, currentSummary);
+                const llmResult = await this.llmSummarize(conversationText, currentSummary, conv);
                 summaryContent = llmResult.summary;
                 entities = llmResult.entities;
             } catch (error) {
