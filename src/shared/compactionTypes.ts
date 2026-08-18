@@ -8,6 +8,7 @@ export interface CompactedMemory {
     compactionLevel: 1 | 2;
     sourceMessageIds: string[];
     creationTimestamp: number;
+    gameDate: string;
 }
 
 export interface EntityReference {

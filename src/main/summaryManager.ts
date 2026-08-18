@@ -377,7 +377,7 @@ export async function importPlayerData(userDataPath: string, inputZipPath: strin
 
     const expectedDirectories = [
         'conversation_summaries',
-        'compacted_memory',
+        'memories_compacted',
         'diary_history',
         'diary_summaries',
         'letter_history',
@@ -385,6 +385,9 @@ export async function importPlayerData(userDataPath: string, inputZipPath: strin
         'conversation_history',
         'prompt_history'
     ];
+
+    // For backward compatibility, also check for the old directory name
+    const oldCompactedDirName = 'compacted_memory';
 
     const zipEntries = zip.getEntries();
     const topLevelDirs = new Set<string>();
@@ -395,7 +398,15 @@ export async function importPlayerData(userDataPath: string, inputZipPath: strin
         }
     }
 
-    const missingDirs = expectedDirectories.filter(dir => !topLevelDirs.has(dir));
+    const hasNewCompactedDir = topLevelDirs.has('memories_compacted');
+    const hasOldCompactedDir = topLevelDirs.has(oldCompactedDirName);
+
+    if (!hasNewCompactedDir && hasOldCompactedDir) {
+        console.log('Importing from an older backup with "compacted_memory". It will be renamed to "memories_compacted" after extraction.');
+        // No need to modify expectedDirectories, as the extraction will handle it.
+    }
+
+    const missingDirs = expectedDirectories.filter(dir => !topLevelDirs.has(dir) && !(dir === 'memories_compacted' && hasOldCompactedDir));
     if (missingDirs.length === expectedDirectories.length) {
         throw new Error('Import file does not contain any expected VOTC data directories. The file may not be a valid VOTC player data export.');
     }
@@ -406,6 +417,14 @@ export async function importPlayerData(userDataPath: string, inputZipPath: strin
     try {
         zip.extractAllTo(userDataPath, true);
         console.log(`Player data imported successfully from: ${inputZipPath}`);
+
+        // Post-extraction migration for backward compatibility
+        const oldExtractedPath = path.join(userDataPath, oldCompactedDirName);
+        const newExtractedPath = path.join(userDataPath, 'memories_compacted');
+        if (fs.existsSync(oldExtractedPath) && !fs.existsSync(newExtractedPath)) {
+            fs.renameSync(oldExtractedPath, newExtractedPath);
+            console.log(`Renamed imported 'compacted_memory' to 'memories_compacted'.`);
+        }
     } catch (error) {
         console.error('Failed to extract import zip file:', error);
         throw new Error(`Failed to extract import file: ${error instanceof Error ? error.message : String(error)}`);

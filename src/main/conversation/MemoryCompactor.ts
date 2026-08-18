@@ -268,7 +268,7 @@ export class MemoryCompactor {
     /**
      * Converts a KnowledgeGraph into CompactedMemory entries for storage.
      */
-    private knowledgeGraphToCompactedMemories(graph: KnowledgeGraph): CompactedMemory[] {
+    private knowledgeGraphToCompactedMemories(graph: KnowledgeGraph, conv: Conversation): CompactedMemory[] {
         const memories: CompactedMemory[] = [];
         const now = Date.now();
         const dateStr = new Date().toISOString().split('T')[0];
@@ -285,6 +285,7 @@ export class MemoryCompactor {
                 compactionLevel: 2,
                 sourceMessageIds: [],
                 creationTimestamp: now,
+                gameDate: conv.gameData.date,
             };
             memories.push(memory);
         }
@@ -336,10 +337,10 @@ export class MemoryCompactor {
      * Loads compacted memories from disk for a given player and merges them into the in-memory map.
      * Should be called during conversation initialization to restore persisted state.
      */
-    public async loadFromDisk(playerId: string): Promise<void> {
+    public async loadFromDisk(playerId: string, currentGameDate?: string): Promise<void> {
         try {
             const diskReadStart = Date.now();
-            const result = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            const result = await compactedMemoryStore.getAllCompactedMemories(playerId, currentGameDate);
             const diskReadTimeMs = Date.now() - diskReadStart;
             console.log(`Loaded ${result.memories.length} compacted memories from disk for player ${playerId} in ${diskReadTimeMs}ms`);
 
@@ -408,7 +409,8 @@ class Phase1Compactor {
      */
     public async compact(
         messages: Message[],
-        currentSummary: string
+        currentSummary: string,
+        conv: Conversation
     ): Promise<CompactedMemory[]> {
         const now = Date.now();
         const dateStr = new Date().toISOString().split('T')[0];
@@ -451,6 +453,7 @@ class Phase1Compactor {
             compactionLevel: 1,
             sourceMessageIds: messages.filter(m => m.id).map(m => m.id!),
             creationTimestamp: now,
+            gameDate: conv.gameData.date,
         };
 
         return [compactedMemory];
@@ -471,11 +474,12 @@ class Phase1Compactor {
      */
     private async llmSummarize(
         conversationText: string,
-        currentSummary: string
+        currentSummary: string,
+        conv: Conversation
     ): Promise<{ summary: string; entities: EntityReference[] }> {
-        // TODO: Wire up to compactionApiConnectionConfig when LLM integration is ready.
-        // For now, fall back to heuristic summarization.
-        throw new Error('LLM summarization not yet wired');
+        const { summarizationApiConnection } = conv;
+        // Rest of the method
+		throw new Error('LLM summarization not yet wired');
     }
 
     /**
@@ -616,7 +620,7 @@ class Phase2Compactor {
     /**
      * Consolidates multiple Phase-1 summaries into a KnowledgeGraph.
      */
-    public async compact(phase1Summaries: CompactedMemory[]): Promise<KnowledgeGraph> {
+    public async compact(phase1Summaries: CompactedMemory[], conv: Conversation): Promise<KnowledgeGraph> {
         if (phase1Summaries.length === 0) {
             return { entities: [], edges: [], narrativeThreads: [], version: 1 };
         }
