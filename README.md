@@ -185,10 +185,6 @@ The System page provides application maintenance and community link features.
 
 The Memory Compaction page allows you to configure advanced settings for automatically managing conversation history to save context space and preserve key narrative details over long campaigns.
 
-- **API Configuration**:
-  - Choose to use the same API settings as the Connection page
-  - Or configure a separate API for compaction features
-
 - **Basic Settings**:
   - **Enable Memory Compaction**: Turn on/off the automatic compaction feature.
   - **Phase 1 Threshold**: Percentage of the context window at which Phase 1 compaction is triggered (e.g., 70% means compaction starts when 70% of the context window is used).
