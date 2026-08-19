@@ -2132,6 +2132,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state
             } else {
                 console.error('Error generating scene description:', error);
+                this.chatWindow.window.webContents.send('error-message', 'Failed to generate scene description.');
                 // If generation fails, it does not affect the normal flow of the conversation.
                 // Still need to clear loading state.
                 this.chatWindow.window.webContents.send('scene-description', null);

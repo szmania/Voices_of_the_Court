@@ -944,6 +944,7 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
 function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
+        queueStatusDiv.style.display = 'block';
         const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
         let statusHTML = `<div><span class="current-speaker">`;
 
@@ -967,6 +968,7 @@ function updateStatusText(textKey: string, vars?: any) {
         queueStatusDiv.innerHTML = statusHTML;
     } else {
         queueStatusDiv.innerHTML = '';
+        queueStatusDiv.style.display = 'none';
     }
 }
 
