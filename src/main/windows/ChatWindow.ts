@@ -3,21 +3,12 @@ import {  app, BrowserWindow, ipcMain, screen} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
 import path from 'path';
 
-// Do not import @paymoapp/active-window on Linux. Loading it calls XSetErrorHandler()
-// at require() time (inside the native addon's Init function), which replaces
-// Electron/Chromium's global X11 error handler process-wide and silently breaks
-// clipboard.readText() in the main process.
 let ActiveWindow: any = null;
-if (process.platform !== 'linux') {
-    ActiveWindow = require('@paymoapp/active-window').default;
-    ActiveWindow.initialize();
-}
 
 export class ChatWindow{
     window: BrowserWindow;
     conversation: any;
     isShown: boolean;
-    windowWatchId: number;
     interval: any;
 
 
@@ -51,8 +42,6 @@ export class ChatWindow{
 
         //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
         
-        this.windowWatchId = 0;
-
         this.window.loadFile('./public/chatWindow/chat.html')
         this.window.removeMenu();
     
@@ -99,39 +88,12 @@ export class ChatWindow{
             }
         }, 150);
 
-        /*this.windowWatchId = ActiveWindow.subscribe( (winInfo) =>{
-            if(winInfo?.title == "Crusader Kings III" && this.isShown ){
-
-                OverlayController.activateOverlay();
-                //this.window.webContents.send('chat-show');
-                
-            }else{
-                //this.window.webContents.send('chat-hide');
-            }
-                
-        })*/
-
         this.interval = setInterval(()=>{
             try {
-                if (!ActiveWindow) return;
-                let win = ActiveWindow.getActiveWindow();
-
-                // 检查是否是游戏或者聊天窗口本身
-                const isGameActive = win.title === "Crusader Kings III";
-                const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
-                const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
-
-                if (isGameActive || isChatActive || isConfigActive) {
-                    OverlayController.activateOverlay();
-                } else {
-                    // This block is intentionally left empty to prevent the window from hiding.
-                    // With --disable-gpu, the window might become invisible without this.
-                    if (this.window && !this.window.isDestroyed() && !this.window.isVisible()) {
-                        this.window.showInactive();
-                    }
-                }
+                // The active window check is disabled. We will just ensure the overlay stays active.
+                OverlayController.activateOverlay();
             } catch (err) {
-                // console.error("Failed to get active window:", err);
+                // console.error("Failed to activate overlay:", err);
             }
         }, 250)
 
@@ -142,8 +104,6 @@ export class ChatWindow{
         console.log("Chat window hidden!");
         OverlayController.focusTarget();
         this.isShown = false;
-
-        if (ActiveWindow) ActiveWindow.unsubscribe(this.windowWatchId);
 
         clearInterval(this.interval);
     }
