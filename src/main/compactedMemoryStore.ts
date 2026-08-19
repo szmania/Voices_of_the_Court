@@ -7,9 +7,21 @@ import { app } from 'electron';
 // IMPORTANT: Key must be 32 bytes for AES-256
 const ENCRYPTION_KEY = process.env.COMPACTION_ENCRYPTION_KEY || 'a_default_32_byte_encryption_key';
 const IV_LENGTH = 16;
-const DATA_DIR = path.join(app.getPath('userData'), 'votc_data', 'compacted_memory');
+const DATA_DIR = path.join(app.getPath('userData'), 'votc_data', 'memories_compacted');
 
 class CompactedMemoryStore {
+    public migrateDataDirectory(): void {
+        const oldDataDir = path.join(app.getPath('userData'), 'votc_data', 'compacted_memory');
+        if (fs.existsSync(oldDataDir) && !fs.existsSync(DATA_DIR)) {
+            try {
+                fs.renameSync(oldDataDir, DATA_DIR);
+                console.log(`Migrated memory directory from 'compacted_memory' to 'memories_compacted'.`);
+            } catch (error) {
+                console.error('Failed to migrate compacted memory directory:', error);
+            }
+        }
+    }
+
     public initializeStorage(): void {
         try {
             if (!fs.existsSync(DATA_DIR)) {
@@ -60,7 +72,8 @@ class CompactedMemoryStore {
      */
     public async readCompactedMemory(
         playerId: string,
-        characterId: string
+        characterId: string,
+        currentGameDate?: string
     ): Promise<{ memories: CompactedMemory[]; diskReadTimeMs: number }> {
         const filePath = path.join(DATA_DIR, playerId, `${characterId}.json`);
 
@@ -77,7 +90,13 @@ class CompactedMemoryStore {
                 return { memories: [], diskReadTimeMs };
             }
             const decryptedContent = this.decrypt(encryptedContent);
-            return { memories: JSON.parse(decryptedContent) as CompactedMemory[], diskReadTimeMs };
+            let memories = JSON.parse(decryptedContent) as CompactedMemory[];
+
+            if (currentGameDate) {
+                memories = memories.filter(memory => !memory.gameDate || memory.gameDate <= currentGameDate);
+            }
+
+            return { memories, diskReadTimeMs };
         } catch (error) {
             console.error(`Failed to read or decrypt compacted memory for character ${characterId}:`, error);
             return { memories: [], diskReadTimeMs: 0 };
@@ -89,7 +108,8 @@ class CompactedMemoryStore {
      * Returns both the aggregated memories and cumulative disk read timing.
      */
     public async getAllCompactedMemories(
-        playerId: string
+        playerId: string,
+        currentGameDate?: string
     ): Promise<{ memories: CompactedMemory[]; cumulativeDiskReadMs: number }> {
         const playerDir = path.join(DATA_DIR, playerId);
 
@@ -105,7 +125,7 @@ class CompactedMemoryStore {
             for (const file of files) {
                 if (path.extname(file) === '.json') {
                     const characterId = path.basename(file, '.json');
-                    const result = await this.readCompactedMemory(playerId, characterId);
+                    const result = await this.readCompactedMemory(playerId, characterId, currentGameDate);
                     allMemories.push(...result.memories);
                     cumulativeDiskReadMs += result.diskReadTimeMs;
                 }

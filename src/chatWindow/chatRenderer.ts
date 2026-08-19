@@ -168,7 +168,8 @@ async function initChat(){
 
     chatMessages.innerHTML = '';
     chatInput.value = '';
-    chatInput.disabled = false;
+    chatInput.disabled = true;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
 
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
@@ -927,7 +928,8 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
     let statusHTML = '';
     if (currentSpeaker) {
         const speakingText = window.LocalizationManager?.getNestedTranslation('chat.status_speaking') || 'Speaking:';
-        statusHTML += `<div><span class="current-speaker">${speakingText}</span> ${currentSpeaker.name}</div>`;
+        const speakerColor = getCharacterColor(currentSpeaker.id);
+        statusHTML += `<div><span class="current-speaker">${speakingText} <span style="color: ${speakerColor}; font-weight: bold;">${currentSpeaker.name}</span></span></div>`;
     }
 
     if (queue.length > 0) {
@@ -942,17 +944,26 @@ function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
         const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
-        let fullText = statusText;
+        let statusHTML = `<div><span class="current-speaker">`;
+
         if (vars && vars.characterName) {
-            // Special handling for languages that need the name first.
-            // Japanese and Korean particles attach to the name.
-            if (['ja', 'ko'].includes(window.LocalizationManager?.language)) {
-                fullText = `${vars.characterName}${statusText}`;
-            } else {
-                fullText = `${vars.characterName} ${statusText}`;
+            let coloredName = vars.characterName;
+            if (vars.characterId) {
+                const speakerColor = getCharacterColor(vars.characterId);
+                coloredName = `<span style="color: ${speakerColor}; font-weight: bold;">${vars.characterName}</span>`;
             }
+
+            if (['ja', 'ko'].includes(window.LocalizationManager?.language)) {
+                statusHTML += `${coloredName}${statusText}`;
+            } else {
+                statusHTML += `${statusText} ${coloredName}`;
+            }
+        } else {
+            statusHTML += statusText;
         }
-        queueStatusDiv.innerHTML = `<div><span class="current-speaker">${fullText}</span></div>`;
+
+        statusHTML += `</span></div>`;
+        queueStatusDiv.innerHTML = statusHTML;
     } else {
         queueStatusDiv.innerHTML = '';
     }
@@ -1723,6 +1734,12 @@ ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
 ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
+
+ipcRenderer.on('chat-ready', () => {
+    chatInput.disabled = false;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
+    chatInput.focus();
+});
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
     console.log('Renderer: Received chat-start event.');

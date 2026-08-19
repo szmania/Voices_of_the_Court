@@ -30,6 +30,7 @@ import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
+import { compactedMemoryStore } from './compactedMemoryStore';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -590,6 +591,7 @@ app.on('ready',  async () => {
     userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
    await checkUserData();
+   compactedMemoryStore.migrateDataDirectory();
    console.log('User data check completed.');
 
     // Relocated config loading to happen earlier
@@ -1137,6 +1139,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
             // 6. Mark conversation as ready and process any queued messages.
             isConversationReady = true;
+            chatWindow.window.webContents.send('chat-ready');
             console.log('Conversation is ready. Processing pending messages.');
             if (pendingMessages.length > 0) {
                 console.log(`Processing ${pendingMessages.length} queued message(s).`);

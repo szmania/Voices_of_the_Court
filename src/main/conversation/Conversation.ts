@@ -58,7 +58,6 @@ export class Conversation{
     textGenApiConnection: ApiConnection;
     summarizationApiConnection: ApiConnection;
     diaryGenerator!: DiaryGenerator;
-    compactionApiConnection: ApiConnection;
     actionsApiConnection: ApiConnection;
     actions!: Action[];
     summaries: Map<number, Summary[]>;
@@ -258,7 +257,6 @@ export class Conversation{
         this.actionsApiConnection = this.config.actionsUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
-        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
 
 
         this.loadConfig();
@@ -275,7 +273,7 @@ export class Conversation{
         this.checkForSummariesFromOtherPlayers();
 
         // Initialize diary generator
-        this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath);
+        this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
@@ -284,7 +282,7 @@ export class Conversation{
     public async initialize(): Promise<void> {
         // Load compacted memories from disk to restore state
         if (this.config.enableMemoryCompaction) {
-            await this.memoryCompactor.loadFromDisk(String(this.gameData.playerID));
+            await this.memoryCompactor.loadFromDisk(String(this.gameData.playerID), this.gameData.date);
         }
 
         // If scene description generation is enabled, generate it at the start of the conversation.
@@ -1925,7 +1923,6 @@ Statement by ${character.fullName}:`
         this.actionsApiConnection = this.config.actionsUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
-        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
 
         this.loadActions();
     }
@@ -1950,7 +1947,6 @@ Statement by ${character.fullName}:`
             console.log('Actions API connection configured (using dedicated actions API).');
         }
 
-        this.compactionApiConnection = new ApiConnection(this.config.compactionApiConnectionConfig.connection, this.config.compactionApiConnectionConfig.parameters, this.encoder);
         console.log('Compaction API connection configured.');
     }
 
