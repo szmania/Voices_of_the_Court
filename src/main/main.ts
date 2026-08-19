@@ -1,4 +1,5 @@
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
+app.commandLine.appendSwitch('disable-gpu');
 import { getEncoding, Tiktoken } from "js-tiktoken";
 import {ConfigWindow} from './windows/ConfigWindow';
 import {ChatWindow} from './windows/ChatWindow';

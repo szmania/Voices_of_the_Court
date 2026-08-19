@@ -250,6 +250,10 @@ export class Conversation{
         this.actions = [];
 
         // Assign API connections directly to class properties
+        if (!this.config.textGenerationApiConnectionConfig) {
+            console.error("CRITICAL: textGenerationApiConnectionConfig is missing from config! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.textGenerationApiConnectionConfig = { connection: {}, parameters: {} };
+        }
         this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         this.summarizationApiConnection = this.config.summarizationUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder)
@@ -1916,6 +1920,10 @@ Statement by ${character.fullName}:`
         this.runFileManager.clear();
 
         // Re-initialize API connections with the new config
+        if (!this.config.textGenerationApiConnectionConfig) {
+            console.error("CRITICAL: textGenerationApiConnectionConfig is missing from config in loadConfig! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.textGenerationApiConnectionConfig = { connection: {}, parameters: {} };
+        }
         this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         this.summarizationApiConnection = this.config.summarizationUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder)

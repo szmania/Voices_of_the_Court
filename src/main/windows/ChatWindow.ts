@@ -121,15 +121,19 @@ export class ChatWindow{
                 const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
                 const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
-                if (isGameActive || isChatActive) {
+                if (isGameActive || isChatActive || isConfigActive) {
                     OverlayController.activateOverlay();
                 } else {
                     // This block is intentionally left empty to prevent the window from hiding.
+                    // With --disable-gpu, the window might become invisible without this.
+                    if (this.window && !this.window.isDestroyed() && !this.window.isVisible()) {
+                        this.window.showInactive();
+                    }
                 }
             } catch (err) {
-                console.error("Failed to get active window:", err);
+                // console.error("Failed to get active window:", err);
             }
-        }, 500)
+        }, 250)
 
         
     }
