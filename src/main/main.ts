@@ -1139,6 +1139,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
             // 6. Mark conversation as ready and process any queued messages.
             isConversationReady = true;
+            chatWindow.window.webContents.send('chat-ready');
             console.log('Conversation is ready. Processing pending messages.');
             if (pendingMessages.length > 0) {
                 console.log(`Processing ${pendingMessages.length} queued message(s).`);

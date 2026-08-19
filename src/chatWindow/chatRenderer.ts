@@ -168,7 +168,8 @@ async function initChat(){
 
     chatMessages.innerHTML = '';
     chatInput.value = '';
-    chatInput.disabled = false;
+    chatInput.disabled = true;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
 
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
@@ -1733,6 +1734,12 @@ ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
 ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
+
+ipcRenderer.on('chat-ready', () => {
+    chatInput.disabled = false;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
+    chatInput.focus();
+});
 
 ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
     console.log('Renderer: Received chat-start event.');
