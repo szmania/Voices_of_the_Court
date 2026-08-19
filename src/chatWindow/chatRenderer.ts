@@ -921,10 +921,11 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
     if (!queueStatusDiv) return;
 
     if (!currentSpeaker && queue.length === 0) {
-        queueStatusDiv.innerHTML = '';
+        queueStatusDiv.style.display = 'none';
         return;
     }
 
+    queueStatusDiv.style.display = 'block';
     let statusHTML = '';
     if (currentSpeaker) {
         const speakingText = window.LocalizationManager?.getNestedTranslation('chat.status_speaking') || 'Speaking:';
@@ -2006,8 +2007,10 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     displayNarrative(narrativeMessage);
 
     const shouldEnableInput = !isAiToAi;
-    removeLoadingDots(true);
-    updateStatusText('');
+    removeLoadingDots(shouldEnableInput);
+    if (shouldEnableInput) {
+        updateStatusText('');
+    }
 })
 
 ipcRenderer.on('update-base-tokens', (e, count: number) => {

@@ -600,10 +600,9 @@ export class Conversation{
             // correctly re-enable the input upon completion.
             return;
         }
-        if (this.isGenerating) {
-            console.log('Already generating AI messages, skipping new request.');
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+        if (this.isGenerating || this.isGeneratingScene) {
+            console.log('A generation is already in progress. Queuing this request.');
+            this.pendingPlayerRequest = true;
             return;
         }
 
@@ -810,8 +809,16 @@ export class Conversation{
             this.isGenerating = false;
             this.abortController = null;
 
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            // If a player message came in during this turn, process it now.
+            if (this.pendingPlayerRequest) {
+                console.log('Processing queued player request after turn finished.');
+                this.pendingPlayerRequest = false;
+                // Use setTimeout to avoid deep recursion and let the UI breathe.
+                setTimeout(() => this.generateAIsMessages(), 0);
+            } else {
+                // Only re-enable input if there are no more pending requests.
+                this.chatWindow.window.webContents.send('generation-finished', true);
+            }
 
             // After the turn, calculate the new base prompt size and send it to the UI
             const newBaseTokens = await this.calculateBasePromptTokens();
@@ -2052,6 +2059,20 @@ Statement by ${character.fullName}:`
      * isInitial determines if it's for the start of the conversation or a mid-conversation update.
      */
     public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
+        // Prevent duplicate scene descriptions if the last message is already a scene description.
+        if (this.messages.length > 0) {
+            const lastMessage = this.messages[this.messages.length - 1];
+            if (lastMessage.role === 'system' && (lastMessage as any).type === 'scene') {
+                console.log('Skipping scene description generation: last message is already a scene description.');
+                // If there's a pending player request, we still need to process it.
+                if (this.pendingPlayerRequest) {
+                    this.pendingPlayerRequest = false;
+                    setTimeout(() => this.generateAIsMessages(), 0);
+                }
+                return;
+            }
+        }
+
         console.log(`Starting scene description generation. Initial: ${isInitial}`);
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
 
@@ -2392,6 +2413,9 @@ Statement by ${character.fullName}:`
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
+                // Update UI to show who is speaking now
+                this.chatWindow.window.webContents.send('queue-update', [], { name: targetAI.shortName, id: targetAI.id });
+
                 // Generate AI2 -> AI1 response
                 const { actions } = await this.processCharacterList([targetAI], false, false, true);
 
@@ -2406,8 +2430,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
-        // Notify the frontend that all generation is complete to re-enable the input field.
-        this.chatWindow.window.webContents.send('generation-finished', true);
+        // The main generateAIsMessages finally block will handle re-enabling the input.
     }
 
     public async initiateConversation(){
