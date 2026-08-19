@@ -12,7 +12,7 @@ function defineTemplate(label: string){
     <label for="awd">${label}</label>`
 }
 
-    
+
 
 class ConfigCheckbox extends HTMLElement{
     label: string;
@@ -37,6 +37,7 @@ class ConfigCheckbox extends HTMLElement{
     static get observedAttributes(){
         return ["name", "confID", "label", "data-i18n"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
     async connectedCallback(){
         const confID: string = this.confID;
@@ -56,11 +57,15 @@ class ConfigCheckbox extends HTMLElement{
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
-            
-            // Listen for language changes
-            ipcRenderer.on('update-language', () => {
-                this.updateTranslation(i18nKey);
-            });
+
+            this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
+            ipcRenderer.on('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
         }
     }
 

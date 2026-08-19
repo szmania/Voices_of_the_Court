@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
@@ -69,18 +69,33 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// 初始化主题
-function initTheme() {
+// Initialize theme and localization on script load
+async function init() {
+    // Apply initial theme
     const savedTheme = localStorage.getItem('selectedTheme') || 'chinese';
     document.body.classList.add(`theme-${savedTheme}`);
-}
 
-// 页面加载时初始化主题
-initTheme();
+    // Load config and translations immediately
+    try {
+        const config = await ipcRenderer.invoke('get-config');
+        if ((window as any).LocalizationManager && config) {
+            await (window as any).LocalizationManager.loadTranslations(config.language || 'en');
+            (window as any).LocalizationManager.applyTranslations();
+            console.log('Renderer: Initial localization complete.');
+        }
+        // Apply settings from config
+        showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
+        autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
+        showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
+    } catch (error) {
+        console.error('Renderer: Failed to initialize config and localization:', error);
+    }
+}
+init();
 
 const chatBox: HTMLDivElement = document.querySelector('.chat-box')!;
 let chatMessages: HTMLDivElement = document.querySelector('.messages')!;
-let chatInput: HTMLInputElement= document.querySelector('.chat-input')!;
+let chatInput: HTMLTextAreaElement = document.querySelector('.chat-input')!;
 let leaveButton: HTMLButtonElement = document.querySelector('.leave-button')!;
 let clearHistoryButton: HTMLButtonElement = document.querySelector('.clear-history-button')!;
 
@@ -152,8 +167,9 @@ let initialWindowState = {
 async function initChat(){
 
     chatMessages.innerHTML = '';
-    chatInput.innerHTML = '';
-    chatInput.disabled = false;
+    chatInput.value = '';
+    chatInput.disabled = true;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
 
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
@@ -335,7 +351,7 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     return messageDiv;
 }
 
-function displayNarrative(narrativeMessage: Message | null) {
+function displayNarrative(narrativeMessage: Message | null): HTMLDivElement | void {
     if (!narrativeMessage || !narrativeMessage.content) return;
 
     const messageDiv = document.createElement('div');
@@ -414,6 +430,7 @@ function displayNarrative(narrativeMessage: Message | null) {
 
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    return messageDiv;
 }
 
 function displayActions(actions: ActionResponse[]){
@@ -911,7 +928,8 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
     let statusHTML = '';
     if (currentSpeaker) {
         const speakingText = window.LocalizationManager?.getNestedTranslation('chat.status_speaking') || 'Speaking:';
-        statusHTML += `<div><span class="current-speaker">${speakingText}</span> ${currentSpeaker.name}</div>`;
+        const speakerColor = getCharacterColor(currentSpeaker.id);
+        statusHTML += `<div><span class="current-speaker">${speakingText} <span style="color: ${speakerColor}; font-weight: bold;">${currentSpeaker.name}</span></span></div>`;
     }
 
     if (queue.length > 0) {
@@ -926,17 +944,26 @@ function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
         const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
-        let fullText = statusText;
+        let statusHTML = `<div><span class="current-speaker">`;
+
         if (vars && vars.characterName) {
-            // Special handling for languages that need the name first.
-            // Japanese and Korean particles attach to the name.
-            if (['ja', 'ko'].includes(window.LocalizationManager?.language)) {
-                fullText = `${vars.characterName}${statusText}`;
-            } else {
-                fullText = `${vars.characterName} ${statusText}`;
+            let coloredName = vars.characterName;
+            if (vars.characterId) {
+                const speakerColor = getCharacterColor(vars.characterId);
+                coloredName = `<span style="color: ${speakerColor}; font-weight: bold;">${vars.characterName}</span>`;
             }
+
+            if (['ja', 'ko'].includes(window.LocalizationManager?.language)) {
+                statusHTML += `${coloredName}${statusText}`;
+            } else {
+                statusHTML += `${statusText} ${coloredName}`;
+            }
+        } else {
+            statusHTML += statusText;
         }
-        queueStatusDiv.innerHTML = `<div><span class="current-speaker">${fullText}</span></div>`;
+
+        statusHTML += `</span></div>`;
+        queueStatusDiv.innerHTML = statusHTML;
     } else {
         queueStatusDiv.innerHTML = '';
     }
@@ -1033,7 +1060,7 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 });
 
 // 监听语言更新事件
-ipcRenderer.on('update-language', async (event, lang: string) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     console.log(`Received update-language in chat window: ${lang}`);
     // @ts-ignore
     if (window.LocalizationManager) {
@@ -1047,7 +1074,14 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
             console.error('Failed to apply translations:', err);
         }
     }
-});
+};
+// Ensure we don't add duplicate listeners.
+ipcRenderer.removeAllListeners('update-language');
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
     // 推荐输入语句功能事件处理
     suggestionsButton.addEventListener('click', () => {
@@ -1197,6 +1231,61 @@ ipcRenderer.on('update-language', async (event, lang: string) => {
     })
 
 //IPC Events
+ipcRenderer.on('chat-loading-data', () => {
+    showLoadingDots(true);
+});
+
+ipcRenderer.on('historical-conversations-update', async (e, conversations: any[]) => {
+    console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
+    const fragment = document.createDocumentFragment();
+    // Reverse the incoming batch of older conversations so the oldest is first.
+    for (const conv of conversations.reverse()) {
+        await appendConversationToFragment(conv, fragment);
+    }
+
+    const historicalHeader = chatMessages.querySelector('.historical-header');
+    if (historicalHeader) {
+        // Insert the new fragment right after the "Previous Conversations" header, at the top.
+        historicalHeader.after(fragment);
+    } else {
+        // Fallback if the header isn't there for some reason
+        chatMessages.prepend(fragment);
+    }
+});
+
+async function appendConversationToFragment(conv: any, fragment: DocumentFragment) {
+    const convHeader = document.createElement('div');
+    convHeader.classList.add('historical-conversation-header', 'message');
+    let headerText = `Date: ${conv.date}`;
+    if (conv.location) headerText += ` | Location: ${conv.location}`;
+    if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
+    convHeader.textContent = headerText;
+    fragment.appendChild(convHeader);
+
+    if (conv.characters && conv.characters.length > 0) {
+        const characterDiv = document.createElement('div');
+        characterDiv.classList.add('historical-characters', 'message');
+        characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
+        const playerShortName = currentGameData?.getPlayer()?.shortName || currentGameData?.playerName;
+        const characterString = conv.characters.map((name: string) => (name === playerShortName || name === currentGameData?.playerName) ? `${name} (You)` : name).join(', ');
+        characterDiv.textContent = `Characters: ${characterString}`;
+        fragment.appendChild(characterDiv);
+    }
+
+    for (const msg of conv.messages) {
+        const msgDiv = await displayMessage(msg, true);
+        if (msgDiv) fragment.appendChild(msgDiv);
+        if ((msg as any).narrative && typeof (msg as any).narrative === 'string') {
+            const narrativeMsg: Message = { role: 'system', name: 'Narrator', content: (msg as any).narrative, id: msg.id ? `${msg.id}-narrative` : randomUUID() };
+            const narrativeDiv = displayNarrative(narrativeMsg);
+            if (narrativeDiv) fragment.appendChild(narrativeDiv);
+        }
+    }
+    const convSeparator = document.createElement('div');
+    convSeparator.classList.add('historical-conversation-separator');
+    convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
+    fragment.appendChild(convSeparator);
+}
 
 function showSlashCommands(filter = '') {
     console.log(`showSlashCommands called with filter: "${filter}". availableActions count: ${availableActions.length}`);
@@ -1596,6 +1685,8 @@ ipcRenderer.on('chat-show', () =>{
         chatMessages.innerHTML = '';
     }
     document.body.style.display = '';
+    console.log('Chat window is shown, sending chat-window-ready to main process.');
+    ipcRenderer.send('chat-window-ready');
 })
 
 ipcRenderer.on('update-character-lists', (event, updatedCharacterIds: number[]) => {
@@ -1644,12 +1735,21 @@ ipcRenderer.on('chat-hide', () =>{
     hideChat();
 })
 
-ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
-    displayedMessageIds.clear();
-    currentConversationMessageDivs = [];
-    const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+ipcRenderer.on('chat-ready', () => {
+    chatInput.disabled = false;
+    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
+    chatInput.focus();
+});
 
-    basePromptTokens = initialBaseTokens || 0;
+ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: Message[], narratives: [number, string[]][], historicalMetadata: any[], actions: any[], basePromptTokens: number }) => {
+    console.log('Renderer: Received chat-start event.');
+    removeLoadingDots();
+    try {
+        displayedMessageIds.clear();
+        currentConversationMessageDivs = [];
+        const { gameData: plainGameData, messages, narratives, historicalMetadata, actions, basePromptTokens: initialBaseTokens } = payload;
+
+        basePromptTokens = initialBaseTokens || 0;
 
     // Re-instantiate GameData to get methods back
     const gameData = GameData.fromPlainObject(plainGameData);
@@ -1690,40 +1790,26 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         };
     }
 
-    // Load config and apply settings
-    let config: any;
-    try {
-        config = await ipcRenderer.invoke('get-config');
-        showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
-        autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
-        showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
-    } catch (error) {
-        console.error('Error getting config:', error);
-        showSuggestionsButton = true;
-        autoSendSuggestion = false;
-        showTokenizerDisplay = false;
-    }
-
-    // Apply translations
-    // @ts-ignore
-    if (window.LocalizationManager && config) {
-        // @ts-ignore
-        await window.LocalizationManager.loadTranslations(config.language || 'en');
-        // @ts-ignore
-        window.LocalizationManager.applyTranslations();
-    }
+    // Config and translations are now loaded on init.
+    const config = await ipcRenderer.invoke('get-config');
 
     setupCharacterTargeting(gameData);
 
     // Initialize chat UI elements (this clears the display)
     initChat();
 
-    // Set tooltips for config buttons
-    const configButtonWrapper = document.getElementById('config-button-wrapper')!;
-    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper')!;
-    if (window.LocalizationManager) {
-        configButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
-        minimizedConfigButtonWrapper.setAttribute('data-tooltip', window.LocalizationManager.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+    // Set tooltips for config buttons (safely)
+    const configButtonWrapper = document.getElementById('config-button-wrapper');
+    const minimizedConfigButtonWrapper = document.getElementById('minimized-config-button-wrapper');
+    // @ts-ignore
+    const lm = window.LocalizationManager;
+    if (lm) {
+        if (configButtonWrapper) {
+            configButtonWrapper.setAttribute('data-tooltip', lm.getNestedTranslation('chat.config_tooltip') || 'Open Config Panel');
+        }
+        if (minimizedConfigButtonWrapper) {
+            minimizedConfigButtonWrapper.setAttribute('data-tooltip', lm.getNestedTranslation('chat.restore_config_tooltip') || 'Restore Config Panel');
+        }
     }
     updateSuggestionsContainerStyle();
 
@@ -1752,54 +1838,17 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         chatMessages.append(separator);
 
         const header = document.createElement('div');
-        header.classList.add('historical-header');
-        header.classList.add('message');
-        header.textContent = 'Previous Conversations:';
+        header.classList.add('historical-header', 'message');
+        // @ts-ignore
+        header.textContent = (window.LocalizationManager?.getNestedTranslation('chat.previous_conversations_header') || 'Previous Conversations:');
         chatMessages.append(header);
 
-        // Display in chronological order (oldest first)
-        const chronologicalMetadata = historicalMetadata;
-
-        for (const conv of chronologicalMetadata) {
-            const convHeader = document.createElement('div');
-            convHeader.classList.add('historical-conversation-header');
-            convHeader.classList.add('message');
-
-            let headerText = `Date: ${conv.date}`;
-            if (conv.location) headerText += ` | Location: ${conv.location}`;
-            if (conv.scene) headerText += ` | Scene: ${conv.scene}`;
-            convHeader.textContent = headerText;
-            chatMessages.append(convHeader);
-
-            if (conv.characters && conv.characters.length > 0) {
-                const characterDiv = document.createElement('div');
-                characterDiv.classList.add('historical-characters', 'message');
-                characterDiv.style.cssText = 'font-size: 0.9rem; color: #a18c61; margin-top: 2px; margin-bottom: 5px;';
-                    
-                const playerShortName = gameData.getPlayer()?.shortName || gameData.playerName;
-                const characterString = conv.characters.map((name: string) => {
-                    if (name === playerShortName || name === gameData.playerName) {
-                        return `${name} (You)`;
-                    }
-                    return name;
-                }).join(', ');
-
-                characterDiv.textContent = `Characters: ${characterString}`;
-                chatMessages.append(characterDiv);
-            }
-
-            for (const msg of conv.messages) {
-                await displayMessage(msg, true);
-                // Historical messages have narratives embedded in them
-                if (msg.narrative) {
-                    displayNarrative(msg.narrative);
-                }
-            }
-            const convSeparator = document.createElement('div');
-            convSeparator.classList.add('historical-conversation-separator');
-            convSeparator.innerHTML = '<hr style="margin: 10px 0; border-color: #3d2e1e;">';
-            chatMessages.append(convSeparator);
+        const fragment = document.createDocumentFragment();
+        // Reverse the initial batch to display the oldest conversations at the top.
+        for (const conv of historicalMetadata.reverse()) {
+            await appendConversationToFragment(conv, fragment);
         }
+        chatMessages.appendChild(fragment);
     }
 
     // Render current conversation header
@@ -1843,8 +1892,10 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
 
-    // Signal to main process that the UI is ready
-    ipcRenderer.send('chat-window-ready');
+    // The ready signal is now sent from 'chat-show', so this is no longer needed.
+    } catch (err) {
+        console.error('CRITICAL ERROR in chat-start handler:', err);
+    }
 });
 
 ipcRenderer.on('action-approval-request', (event, messageId: string, proposedActions: ActionResponse[]) => {
@@ -2080,11 +2131,18 @@ ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
         });
 
         chatMessages.append(messageDiv);
+
+        // If loading dots are present, move them to the very end of the chat.
+        if (loadingDots) {
+            chatMessages.append(loadingDots);
+        }
+        
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        removeLoadingDots();
-    } else {
-        removeLoadingDots();
+        // Do not remove loading dots here. If the user sent a message while the scene
+        // was generating, the dots indicate that their message is still being processed.
+        // The dots will be correctly removed by the 'generation-finished' event
+        // once the AI's response to the user's message is complete.
     }
 })
 

@@ -2,19 +2,17 @@ import { GameData } from '../shared/gameData/GameData';
 
 let cachedGameData: GameData | null = null;
 
-export function setCachedGameData(data: GameData): void {
-  cachedGameData = data;
-  console.log('GameData cached.');
+export function setCachedGameData(gameData: GameData): void {
+    console.debug('Setting cached game data.');
+    cachedGameData = gameData;
 }
 
 export function getCachedGameData(): GameData | null {
-  if (cachedGameData) {
-    console.log('Retrieved cached GameData.');
-  }
-  return cachedGameData;
+    console.debug('Getting cached game data.');
+    return cachedGameData;
 }
 
 export function clearCachedGameData(): void {
-  cachedGameData = null;
-  console.log('GameData cache cleared.');
+    console.debug('Clearing cached game data.');
+    cachedGameData = null;
 }

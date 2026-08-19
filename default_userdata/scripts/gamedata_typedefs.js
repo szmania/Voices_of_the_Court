@@ -48,7 +48,7 @@ export type Relative = {
     otherParentName?: string;
 }
 
-/** 
+/**
  * @class
 */
 export class GameData {
@@ -82,7 +82,7 @@ export class GameData {
             this.scene = data[5].substring(11),
             this.location = data[6],
             this.locationController = data[7],
-    
+
             this.characters = new Map<number,Character>
     }
 
@@ -91,7 +91,7 @@ export class GameData {
     }
 
     /**
-     * 
+     *
      * @return {Character} ai
      */
     getAi(): Character{
@@ -113,50 +113,19 @@ export class GameData {
      */
     addCharacter(id: number, character: Character): void {
         console.log(`[GameData.addCharacter] Adding character ID: ${id}, name: ${character.fullName}`);
-        
-        // If this is the player character and map is not empty, reorder
-        if (id === this.playerID && this.characters.size > 0) {
-            console.log(`[GameData.addCharacter] This is player character, reordering map`);
-            const newMap = new Map<number, Character>();
-            newMap.set(id, character);
-            
-            // Add all existing characters
-            for (const [existingId, existingChar] of this.characters) {
-                newMap.set(existingId, existingChar);
-            }
-            
-            this.characters = newMap;
-            console.log(`[GameData.addCharacter] New character ID order: ${Array.from(this.characters.keys()).join(', ')}`);
-        } else {
-            this.characters.set(id, character);
-        }
+        this.characters.set(id, character);
     }
 
     /**
      * Gets all character IDs with the player character first
      * @returns {number[]} Array of character IDs with player ID first
      */
-    getCharacterIdsWithPlayerFirst(): number[] {
+    getCharacterIds(): number[] {
         const allIds = Array.from(this.characters.keys());
-        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Raw character IDs: ${allIds.join(', ')}`);
-        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player ID: ${this.playerID}`);
-        
-        // Move player ID to the front if it exists
-        const playerIndex = allIds.indexOf(this.playerID);
-        console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player index: ${playerIndex}`);
-        
-        if (playerIndex > 0) {
-            const playerId = allIds.splice(playerIndex, 1)[0];
-            allIds.unshift(playerId);
-            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Moved player to front. New order: ${allIds.join(', ')}`);
-        } else if (playerIndex === 0) {
-            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player already at index 0`);
-        } else {
-            console.log(`[GameData.getCharacterIdsWithPlayerFirst] Player not found in character IDs`);
-        }
-        
+        console.log(`[GameData.getCharacterIds] Returning character IDs in map order: ${allIds.join(', ')}`);
         return allIds;
     }
+
 
     /**
      * Gets all characters in the conversation except the player and the main AI.
@@ -176,11 +145,6 @@ export class GameData {
         // Revive the characters Map from the plain object
         const characterMap = new Map<number, Character>();
         if (obj.characters) {
-            const playerId = instance.playerID;
-            let playerChar: Character | undefined;
-            
-            console.log(`[GameData.fromPlainObject] Player ID: ${playerId}`);
-            
             // Check if obj.characters is a Map or a plain object
             let entries: [any, any][];
             if (obj.characters.entries && typeof obj.characters.entries === 'function') {
@@ -190,50 +154,19 @@ export class GameData {
                 // It's a plain object
                 entries = Object.entries(obj.characters);
             }
-            
+
             console.log(`[GameData.fromPlainObject] Characters entries count: ${entries.length}`);
-            
+
             for (const [id, charObj] of entries) {
                 const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
                 const characterInstance = Character.fromPlainObject(charObj);
-                console.log(`[GameData.fromPlainObject] Processing character ID: ${numericId}, name: ${characterInstance.fullName}`);
-                if (numericId === playerId) {
-                    console.log(`[GameData.fromPlainObject] Found player character: ${characterInstance.fullName}`);
-                    playerChar = characterInstance;
-                } else {
-                    characterMap.set(numericId, characterInstance);
-                }
+                characterMap.set(numericId, characterInstance);
             }
-            
-            // Add player character first if it was found
-            if (playerChar) {
-                const orderedMap = new Map<number, Character>();
-                orderedMap.set(playerId, playerChar);
-                console.log(`[GameData.fromPlainObject] Added player character ${playerChar.fullName} first to orderedMap`);
-                
-                // Add all other characters
-                for (const [id, char] of characterMap) {
-                    orderedMap.set(id, char);
-                    console.log(`[GameData.fromPlainObject] Added character ${char.fullName} (ID: ${id}) to orderedMap`);
-                }
-                
-                // Log the final order
-                const finalIds = Array.from(orderedMap.keys());
-                console.log(`[GameData.fromPlainObject] Final character ID order: ${finalIds.join(', ')}`);
-                console.log(`[GameData.fromPlainObject] Player ID ${playerId} is at index: ${finalIds.indexOf(playerId)}`);
-                
-                instance.characters = orderedMap;
-            } else {
-                console.log(`[GameData.fromPlainObject] Player character not found in characters map`);
-                instance.characters = characterMap;
-            }
+            instance.characters = characterMap;
         } else {
             console.log(`[GameData.fromPlainObject] No characters found in obj.characters`);
         }
-        
-        // Ensure player is first
-        instance.ensurePlayerFirst();
-        
+
         return instance;
     }
 
@@ -243,51 +176,19 @@ export class GameData {
      */
     setCharacterNames(): void {
         // const nonPlayerCharacters = this.getOtherCharacters();
-        
+
         // this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
         // this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
     }
 
-    /**
-     * Ensure the player character is first in the characters map
-     */
-    ensurePlayerFirst(): void {
-        const playerId = this.playerID;
-        const playerChar = this.characters.get(playerId);
-        
-        if (!playerChar) {
-            console.log(`[GameData.ensurePlayerFirst] Player character ${playerId} not found in map`);
-            return;
-        }
-        
-        const currentIds = Array.from(this.characters.keys());
-        if (currentIds.length > 0 && currentIds[0] !== playerId) {
-            console.log(`[GameData.ensurePlayerFirst] Player is not first. Current order: ${currentIds.join(', ')}`);
-            
-            const newMap = new Map<number, Character>();
-            newMap.set(playerId, playerChar);
-            
-            // Add all other characters
-            for (const [id, char] of this.characters) {
-                if (id !== playerId) {
-                    newMap.set(id, char);
-                }
-            }
-            
-            this.characters = newMap;
-            console.log(`[GameData.ensurePlayerFirst] New order: ${Array.from(this.characters.keys()).join(', ')}`);
-        } else {
-            console.log(`[GameData.ensurePlayerFirst] Player is already first or map is empty`);
-        }
-    }
 }
 
 /** @class */
 export class Character {
     /**@property {number} id - the ID of the character */
-    id: number; 
+    id: number;
     /**@property {string} shortName - example: Count Janos*/
-    shortName: string; 
+    shortName: string;
     fullName: string;
     primaryTitle: string;
     sheHe: string;
@@ -307,7 +208,7 @@ export class Character {
     firstName: string;
     capitalLocation: string;
     topLiege: string;
-    prowess: number; 
+    prowess: number;
     isKnight: boolean;
     liegeRealmLaw: string //used for knowing landless camp purpose
     isLandedRuler: boolean;
@@ -368,7 +269,7 @@ export class Character {
     /**
      * Check if the character has a trait with a given name.
      * @param name - the name of the trait
-     * @return {boolean} 
+     * @return {boolean}
      */
     hasTrait(name: string): boolean{
         return this.traits.some(trait => trait.name.toLowerCase() == name.toLowerCase())
@@ -377,7 +278,7 @@ export class Character {
     /**
      * Append a new trait to the character.
      * @param {Trait }trait
-     * @returns {void} 
+     * @returns {void}
      */
     addTrait(trait: Trait): void{
         this.traits.push(trait);
@@ -434,7 +335,7 @@ export class Character {
             }
         }
         this.opinionOfPlayer = sum;
-    }   
+    }
 
     /**
      * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.

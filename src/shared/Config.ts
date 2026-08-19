@@ -3,7 +3,7 @@ import { Parameters, Connection} from './apiConnection';
 import path from 'path';
 import {app} from 'electron';
 
-       
+
 
 export interface ApiConnectionConfig{
     connection: Connection;
@@ -20,7 +20,7 @@ export class Config{
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
 
-    
+
 
     selectedDescScript!: string;
     selectedExMsgScript!: string;
@@ -41,7 +41,7 @@ export class Config{
     manualActionApproval!: boolean;
     narrativeEnable!: boolean;
     disabledActions!: string[];
-    
+
     minimumMessagesBeforeAction!: number;
     actionProbability!: number;
     maxConsecutiveActions!: number;
@@ -63,6 +63,7 @@ export class Config{
     showPreviousConversations!: boolean;
     disableHistoricalConversations!: boolean;
     maxHistoricalConversations!: number;
+    maxConversationsInHistoryWindow!: number;
     maxSummaries!: number;
     showTokenizerDisplay!: boolean;
     checkForUpdatesOnStartup!: boolean;
@@ -78,7 +79,18 @@ export class Config{
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
 
-    constructor(configPath: string){  
+    // Memory Compaction Settings
+    enableMemoryCompaction!: boolean;
+    compactionPhase1Threshold!: number;
+    compactionPhase2Threshold!: number;
+    compactionTokenBudget!: { phase1: number, phase2: number };
+    compactionCooldownMinutes!: number;
+    compactionPriorityElements!: string[];
+    compactionEntityExtractionMode!: "llm" | "regex" | "hybrid";
+    compactionRelationshipsDirectional!: boolean;
+    compactionApiConnectionConfig!: ApiConnectionConfig;
+
+    constructor(configPath: string){
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
     }
@@ -86,24 +98,24 @@ export class Config{
     export(){
         // 在保存配置前，确保apiKeys字段被正确保留
         const configData = JSON.parse(JSON.stringify(this));
-        
+
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig',  'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
-            if (configData[configType] && configData[configType].connection && 
+            if (configData[configType] && configData[configType].connection &&
                 configData[configType].connection.apiKeys) {
                 // 确保apiKeys字段被包含在导出的配置中
                 console.log(`Preserving apiKeys for ${configType}`);
             }
         });
-        
-        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'))
+
+        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'));
     }
 
     toSafeConfig(): Config{
         //pass by value
         let output: Config = JSON.parse(JSON.stringify(this));
-        
+
         // 隐藏敏感信息
         output.textGenerationApiConnectionConfig.connection.key= "<hidden>";
         output.actionsApiConnectionConfig.connection.key = "<hidden>";
@@ -115,9 +127,11 @@ export class Config{
             output.embeddingApiConnectionConfig.connection.key = "<hidden>";
             output.embeddingApiConnectionConfig.connection.baseUrl = "<hidden>";
         }
-        
+        output.compactionApiConnectionConfig.connection.key = "<hidden>";
+        output.compactionApiConnectionConfig.connection.baseUrl = "<hidden>";
+
         // 隐藏apiKeys中的敏感信息
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as any;
             if (config && config.connection && config.connection.apiKeys) {

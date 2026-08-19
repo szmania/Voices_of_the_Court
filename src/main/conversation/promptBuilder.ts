@@ -177,7 +177,17 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
-        exampleMessagesPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
+        const selfTalkPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
+        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
+
+        if (fs.existsSync(selfTalkPath)) {
+            exampleMessagesPath = selfTalkPath;
+        } else if (fs.existsSync(customPath)) {
+            exampleMessagesPath = customPath;
+        } else {
+            console.error(`Self-talk example message script not found: ${exampleMessagesScriptFileName}. Continuing without example messages.`);
+            exampleMessagesPath = null;
+        }
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
@@ -302,6 +312,16 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if(memoryMessage.content){
         insertMessageAtDepth(messages, memoryMessage, conv.config.memoriesInsertDepth);
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
+    }
+
+    const compactedMemoryMessage: Message = {
+        role: "system",
+        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
+    }
+
+    if(compactedMemoryMessage.content){
+        insertMessageAtDepth(messages, compactedMemoryMessage, conv.config.memoriesInsertDepth);
+        console.log(`Inserted compacted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
     const diarySummaries = await readDiarySummaries(conv.gameData.playerID.toString(), character.id.toString());
@@ -587,7 +607,12 @@ export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummari
         const summaryIntro = isSelfTalk
             ? "Summary of this internal monologue that happened before the messages:"
             : "Summary of this conversation that happened before the messages:";
-        systemContent += `${summaryIntro}${conv.currentSummary}\n\n`;
+        systemContent += `${summaryIntro}${conv.currentSummary}\\n\\n`;
+    }
+
+    const compactedMemoryString = createCompactedMemoryString(conv, prompts);
+    if (compactedMemoryString) {
+        systemContent += `${compactedMemoryString}\\n\\n`;
     }
 
     systemContent += `${convertMessagesToString(messagesToSummarize, "", "")}\n\n`;
@@ -679,6 +704,31 @@ export function createMemoryString(conv: Conversation, prompts: any): string{
             tokenCount+=memoryLineTokenCount;
         }
 
+    }
+
+    return output;
+}
+
+export function createCompactedMemoryString(conv: Conversation, prompts: any): string {
+    if (!conv.memoryCompactor) return "";
+
+    const characterId = String(conv.gameData.aiID);
+    const compactedMemories = conv.memoryCompactor.getCompactedMemories(characterId);
+    if (compactedMemories.length === 0) return "";
+
+    let output = prompts.compactedMemoriesPrompt || "The following is a summary of key long-term memories and narrative threads:\\n";
+    
+    const phase2Memories = compactedMemories.filter(m => m.compactionLevel === 2);
+    const phase1Memories = compactedMemories.filter(m => m.compactionLevel === 1).slice(-3); // Only last 3 phase-1 summaries
+
+    if (phase2Memories.length > 0) {
+        output += "\\n--- Key Narrative Threads ---\\n";
+        output += phase2Memories.map(m => m.content).join("\\n");
+    }
+
+    if (phase1Memories.length > 0) {
+        output += "\\n--- Recent Key Events ---\\n";
+        output += phase1Memories.map(m => `${m.date}: ${m.content}`).join("\\n");
     }
 
     return output;

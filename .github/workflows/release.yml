@@ -11,23 +11,80 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, windows-2022]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Install dependencies
-        run: npm install
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup MSVC (Windows Native Compilation)
+        if: matrix.os == 'windows-2022'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # Pin Python to 3.11 to fix node-gyp distutils error on Windows
+      - name: Set up Python for node-gyp
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Set the PYTHON environment variable specifically for Windows
+      - name: Configure Python for node-gyp (Windows)
+        if: matrix.os == 'windows-2022'
+        run: echo "PYTHON=${{ env.pythonLocation }}\python.exe" >> $env:GITHUB_ENV
+
+      # Install dependencies with scripts ignored on Windows only
+      - name: Install dependencies (Windows)
+        if: matrix.os == 'windows-2022'
+        run: npm ci --ignore-scripts
+
+      # Install dependencies normally on macOS so host tools like appdmg build their native parts
+      - name: Install dependencies (macOS)
+        if: matrix.os != 'windows-2022'
+        run: npm ci
+
+      # Ensure electron-winstaller has its 7-Zip binaries available on Windows
+      - name: Fix electron-winstaller 7-Zip binaries (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          $vendorDir = "node_modules/electron-winstaller/vendor"
+          if (Test-Path $vendorDir) {
+            $sevenZipPath = "C:\Program Files\7-Zip"
+            if (!(Test-Path "$vendorDir/7z.exe")) {
+              if (Test-Path "$sevenZipPath/7z.exe") {
+                Copy-Item "$sevenZipPath/7z.exe" "$vendorDir/"
+                Copy-Item "$sevenZipPath/7z.dll" "$vendorDir/"
+                Write-Host "Successfully copied 7-Zip binaries to vendor folder."
+              }
+            }
+          }
+
+      - name: Rebuild native modules for Electron
+        run: npx electron-rebuild
+
       - name: Build/package application
         run: npm run make
+
+      # Move Windows artifacts from C:\tmp\make to out/make so artifact upload matches macOS
+      - name: Normalize Windows Artifact Path
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          if (Test-Path "C:\tmp\make") {
+            New-Item -ItemType Directory -Force -Path "out/make"
+            Copy-Item -Recurse -Force "C:\tmp\make\*" "out/make/"
+          }
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.os }}
-          path: ${{ matrix.os == 'windows-latest' && 'C:/tmp/make' || 'out/make' }}
+          path: out/make
 
   release:
     runs-on: ubuntu-latest
@@ -36,14 +93,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: 'npm'
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
+
       - name: Get tag
         id: get_tag
         shell: bash
@@ -53,22 +114,24 @@ jobs:
           else
             echo "tag_name=v$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
           fi
+
       - name: Create and push tag
         continue-on-error: true
         shell: bash
         run: |
           git tag ${{ steps.get_tag.outputs.tag_name }}
           git push origin ${{ steps.get_tag.outputs.tag_name }}
+
       - name: Create Release and Upload Artifacts
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_tag.outputs.tag_name }}
           files: |
             dist/dist-macos-latest/**/*.zip
             dist/dist-macos-latest/**/*.dmg
-            dist/dist-windows-latest/**/*.exe
-            dist/dist-windows-latest/**/*.nupkg
-            dist/dist-windows-latest/**/RELEASES
+            dist/dist-windows-2022/**/*.exe
+            dist/dist-windows-2022/**/*.nupkg
+            dist/dist-windows-2022/**/RELEASES
           draft: true
           prerelease: false
         env:
