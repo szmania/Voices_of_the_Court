@@ -603,6 +603,7 @@ export class Conversation{
         if (this.isGenerating || this.isGeneratingScene) {
             console.log('A generation is already in progress. Queuing this request.');
             this.pendingPlayerRequest = true;
+            this.chatWindow.window.webContents.send('status-update', 'chat.waiting_tooltip');
             return;
         }
 
