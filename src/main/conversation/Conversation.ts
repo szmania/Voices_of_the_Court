@@ -2139,21 +2139,17 @@ Statement by ${character.fullName}:`
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
             this.isGeneratingScene = false;
+            this.isGenerating = false; // Release the main lock
+            this.abortController = null;
 
             // If a player message came in while the scene was generating, process it now.
             if (this.pendingPlayerRequest) {
                 console.log('Processing queued player request after scene generation finished.');
                 this.pendingPlayerRequest = false;
-                // Ensure the main generation lock is released before starting the new generation.
-                this.isGenerating = false;
-                this.abortController = null;
-                this.generateAIsMessages();
+                setTimeout(() => this.generateAIsMessages(), 0);
             } else {
-                // If no pending request, just reset the state if we were the ones who set it.
-                if (!wasGenerating) {
-                    this.isGenerating = false;
-                    this.abortController = null;
-                }
+                 // Explicitly re-enable input if no pending requests
+                 this.chatWindow.window.webContents.send('generation-finished', true);
             }
         }
 
