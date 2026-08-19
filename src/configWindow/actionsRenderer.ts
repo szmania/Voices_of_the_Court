@@ -1,4 +1,4 @@
-import { ipcRenderer} from 'electron';
+import { ipcRenderer, IpcRendererEvent } from 'electron';
 import fs, { createReadStream } from 'fs';
 import path from 'path';
 import { Config } from '../shared/Config';
@@ -37,8 +37,7 @@ ipcRenderer.on('update-theme', (event, theme) => {
     localStorage.setItem('selectedTheme', theme);
 });
 
-// 监听语言更新
-ipcRenderer.on('update-language', async (event, lang) => {
+const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
     // @ts-ignore
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -47,10 +46,16 @@ ipcRenderer.on('update-language', async (event, lang) => {
         window.LocalizationManager.applyTranslations();
     }
     if (config) {
-        config.language = lang;
+        config.language = lang as Config['language'];
         loadactions();
     }
-});
+};
+
+ipcRenderer.on('update-language', languageUpdateHandler);
+
+window.addEventListener('beforeunload', () => {
+    ipcRenderer.removeListener('update-language', languageUpdateHandler);
+}, { once: true });
 
 async function init(){
     addExternalLinks();
@@ -69,7 +74,7 @@ async function init(){
         window.LocalizationManager.applyTranslations();
     }
 
-    
+
      disabledActions= config!.disabledActions;
 
     // Wait for userDataPath to be resolved before loading actions
@@ -81,7 +86,9 @@ async function init(){
         loadactions();
     })
 
-    
+    let userDataPath = await ipcRenderer.invoke('get-userdata-path');
+
+    actionsPath = path.join(userDataPath, 'scripts', 'actions');
 
 
         //init
@@ -89,12 +96,12 @@ async function init(){
     toggleActions();
 
     enableActions.addEventListener('change', () =>{
-        
+
         toggleActions();
     })
 
     useConnectionAPI.addEventListener('change', () =>{
-        
+
         toggleApiSelector();
     })
 
@@ -141,12 +148,12 @@ async function loadactions(){
     actionsDiv.replaceChildren();
 
     await sleep(250)
-    let standardFileNames = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === '.js'); 
-    let customFileNames = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === '.js'); 
-    
-    for(const fileName of standardFileNames){   
+    let standardFileNames = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === '.js');
+    let customFileNames = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === '.js');
+
+    for(const fileName of standardFileNames){
         let file  = require(path.join(actionsPath, 'standard', fileName));
-        
+
         let element = document.createElement("div");
 
         let isChecked = !disabledActions.includes(file.signature);
@@ -186,7 +193,7 @@ async function loadactions(){
         });
 
         let creatorString = "";
-        
+
         element.addEventListener("mouseenter", (e: any)=>{
             let description = file.description;
             if (typeof description === 'object') {
@@ -206,7 +213,7 @@ async function loadactions(){
 
             const descLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.description') || "Description:";
             const madeByLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.made_by') || "Made by:";
-            
+
             if(file.creator){
                 creatorString = `<li class="action-item"><b>${madeByLabel}</b> ${file.creator}</li>`;
             }
@@ -234,9 +241,9 @@ async function loadactions(){
         });
     }
 
-    for(const fileName of customFileNames){   
+    for(const fileName of customFileNames){
         let file  = require(path.join(actionsPath, 'custom', fileName));
-        
+
         let element = document.createElement("div");
 
         let isChecked = !disabledActions.includes(file.signature);
@@ -273,10 +280,10 @@ async function loadactions(){
             }
             console.log(disabledActions)
             ipcRenderer.send('config-change', "disabledActions", disabledActions);
-        });     
+        });
 
         let creatorString = "";
-        
+
         element.addEventListener("mouseenter", (e: any)=>{
             let description = file.description;
             if (typeof description === 'object') {
@@ -296,7 +303,7 @@ async function loadactions(){
 
             const descLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.description') || "Description:";
             const madeByLabel = (window as any).LocalizationManager?.getNestedTranslation('actions.made_by') || "Made by:";
-            
+
             if(file.creator){
                 creatorString = `<li class="action-item"><b>${madeByLabel}</b> ${file.creator}</li>`;
             }

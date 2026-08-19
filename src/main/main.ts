@@ -1,28 +1,29 @@
-import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen} from "electron";
-import {ConfigWindow} from './windows/ConfigWindow.js';
-import {ChatWindow} from './windows/ChatWindow.js';
-import {SummaryManagerWindow} from './windows/SummaryManagerWindow.js';
-import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow.js';
-import { Config } from '../shared/Config.js';
-import { DiaryGenerator } from './diary/DiaryGenerator.js';
-import { ClipboardListener } from "./ClipboardListener.js";
-import { Conversation } from "./conversation/Conversation.js";
-import { GameData } from "../shared/gameData/GameData.js";
-import { Letter } from "./letter/Letter.js";
-import { StoredLetter } from "./letter/letterInterfaces.js";
-import { LetterReplyGenerator } from "./letter/LetterReplyGenerator.js";
-import { LetterManager } from "./letter/LetterManager.js";
-import { LetterActionTrigger } from './letter/LetterActionTrigger.js';
-import { parseLog } from "../shared/gameData/parseLog.js";
-import { parseLettersFromLog } from "./letter/parseLogForLetters.js";
-import { parseLogForBookmarks } from "./parseLogforbookmarks.js";
-import { processBookmarkToSummary } from "./bookmarktosummary.js";
-import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap } from "./summaryManager.js";
-import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager.js";
-import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory.js";
-import { readPromptHistory, savePromptHistory } from "./promptHistory.js";
-import { Message, ActionResponse } from "./ts/conversation_interfaces.js";
-import { ActionEffectWriter } from "./conversation/ActionEffectWriter.js";
+import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
+app.commandLine.appendSwitch('disable-gpu');
+import { getEncoding, Tiktoken } from "js-tiktoken";
+import {ConfigWindow} from './windows/ConfigWindow';
+import {ChatWindow} from './windows/ChatWindow';
+import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
+import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow';
+import { Config } from '../shared/Config';
+import { DiaryGenerator } from './diary/DiaryGenerator';
+import { ClipboardListener } from "./ClipboardListener";
+import { Conversation } from "./conversation/Conversation";
+import { GameData } from "../shared/gameData/GameData";
+import { Letter } from "./letter/Letter";
+import { StoredLetter } from "./letter/letterInterfaces";
+import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
+import { LetterManager } from "./letter/LetterManager";
+import { parseLog } from "../shared/gameData/parseLog";
+import { parseLettersFromLog } from "./letter/parseLogForLetters";
+import { parseLogForBookmarks } from "./parseLogforbookmarks";
+import { processBookmarkToSummary } from "./bookmarktosummary";
+import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap, exportPlayerData, importPlayerData } from "./summaryManager";
+import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager";
+import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory";
+import { readPromptHistory, savePromptHistory } from "./promptHistory";
+import { Message, ActionResponse } from "./ts/conversation_interfaces";
+import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -30,8 +31,11 @@ import { checkUserData } from "./userDataCheck";
 import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
+import { compactedMemoryStore } from './compactedMemoryStore';
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
+
+let tiktokenEncoder: Tiktoken | null = null;
 
 let translations: any = {};
 const loadTranslations = (lang: string) => {
@@ -427,9 +431,8 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
 
     // After a potential time travel or large jump, re-evaluate the player ID
-    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
-    if (fs.existsSync(debugLogPath)) {
-getPlayerId(debugLogPath).then(result => {
+    if (fs.existsSync(userDataPath)) {
+        getPlayerId(userDataPath).then(result => {
             const newPlayerId = result.playerId;
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
@@ -581,10 +584,18 @@ function startLogTailing() {
 
 
 app.on('ready',  async () => {
+    try {
+        console.log("Initializing tiktoken encoder at startup...");
+        tiktokenEncoder = getEncoding("cl100k_base");
+        console.log("Tiktoken encoder initialized.");
+    } catch (e) {
+        console.error("Failed to initialize tiktoken encoder at startup:", e);
+    }
     console.log('App is ready event triggered.');
     userDataPath = path.join(app.getPath('userData'), 'votc_data');
 
    await checkUserData();
+   compactedMemoryStore.migrateDataDirectory();
    console.log('User data check completed.');
 
     // Relocated config loading to happen earlier
@@ -594,7 +605,7 @@ app.on('ready',  async () => {
     }
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
-    diaryGenerator = new DiaryGenerator(config, userDataPath);
+    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -741,7 +752,8 @@ app.on('ready',  async () => {
                 const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     config.textGenerationApiConnectionConfig.connection,
-                    config.textGenerationApiConnectionConfig.parameters
+                    config.textGenerationApiConnectionConfig.parameters,
+                    tiktokenEncoder
                 );
                 return apiConnection.calculateTokensFromText(text);
             }
@@ -765,7 +777,8 @@ app.on('ready',  async () => {
                 const { ApiConnection } = await import('../shared/apiConnection');
                 const apiConnection = new ApiConnection(
                     connectionConfig,
-                    config.textGenerationApiConnectionConfig.parameters
+                    config.textGenerationApiConnectionConfig.parameters,
+                    tiktokenEncoder
                 );
                 const detectedContext = apiConnection.context || 0;
                 if (detectedContext > 0) {
@@ -1035,122 +1048,120 @@ ipcMain.on('clear-summaries', ()=>{
 })
 
 let conversation: Conversation;
+let isConversationReady = false;
+let pendingMessages: Message[] = [];
+let conversationLock: Promise<void> | null = null;
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
-    // Check for incompatible mods
-    const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
-    if (fs.existsSync(dlcLoadPath)) {
+    // Reset state for the new conversation session
+    isConversationReady = false;
+    pendingMessages = [];
+    // @ts-ignore
+    conversation = null;
+
+    // 1. Register the listener immediately. It will contain all the setup logic.
+    ipcMain.once('chat-window-ready', async () => {
+        console.log('IPC: Received chat-window-ready. Starting conversation setup.');
+        chatWindow.window.webContents.send('chat-loading-data');
         try {
-            const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
-            const dlcLoadJson = JSON.parse(dlcLoadContent);
-            const incompatibleMod = "mod/ugc_3346777360.mod";
+            // Check for incompatible mods
+            const dlcLoadPath = path.join(config.userFolderPath, 'dlc_loadon');
+            if (fs.existsSync(dlcLoadPath)) {
+                const dlcLoadContent = fs.readFileSync(dlcLoadPath, 'utf8');
+                const dlcLoadJson = JSON.parse(dlcLoadContent);
+                const incompatibleMod = "mod/ugc_3346777360.mod";
 
-            if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
-                console.error('Incompatible mod detected. Application will now close.');
-
-                const dialogOpts = {
-                    type: 'error' as const,
-                    buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
-                    title: t('dialog.incompatible_mod_title'),
-                    message: t('dialog.incompatible_mod_message'),
-                    detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
-                    defaultId: 0,
-                    cancelId: 2
-                };
-
-                const { response } = await dialog.showMessageBox(dialogOpts);
-
-                if (response === 0) { // "Open Steam and Quit"
-                    shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
-                } else if (response === 1) { // "Open Discord and Quit"
-                    shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                if (dlcLoadJson.enabled_mods && dlcLoadJson.enabled_mods.includes(incompatibleMod)) {
+                    console.error('Incompatible mod detected. Application will now close.');
+                    const dialogOpts = {
+                        type: 'error' as const,
+                        buttons: [t('dialog.open_steam_and_quit'), t('dialog.open_discord_and_quit'), t('dialog.close_app')],
+                        title: t('dialog.incompatible_mod_title'),
+                        message: t('dialog.incompatible_mod_message'),
+                        detail: 'Steam: https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139\nDiscord: https://discord.gg/UQpE4mJSqZ',
+                        defaultId: 0,
+                        cancelId: 2
+                    };
+                    const { response } = await dialog.showMessageBox(dialogOpts);
+                    if (response === 0) shell.openExternal('https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139');
+                    else if (response === 1) shell.openExternal('https://discord.gg/UQpE4mJSqZ');
+                    app.quit();
+                    return;
                 }
-                // Quit the app regardless of the choice.
-                app.quit();
-                return; // Stop further execution.
             }
-        } catch (err) {
-            console.error('Failed to read or parse dlc_loadon:', err);
-        }
-    }
 
-    chatWindow.show();
-    chatWindow.window.webContents.send('chat-show');
-    try{
-        console.log("Waiting briefly for log file to update...");
-        await sleep(250);
+            // 3. Now do all the heavy lifting.
+            await sleep(250);
+            const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
+            const gameData = await parseLog(logFilePath);
+            if (!gameData || !gameData.playerID) {
+                throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}.`);
+            }
 
-        console.log("Parsing log for new conversation...");
-        const logFilePath = path.join(config.userFolderPath, 'logs', 'debug.log');
-        console.log(`Game log file path: ${logFilePath}`);
-        const gameData = await parseLog(logFilePath);
-        if (!gameData || !gameData.playerID) {
-          throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}. Make sure the user folder path is set correctly in the config and the log file exists and is not empty. This is most likely a mod conflict.`);
-        }
+            if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
+                console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
+                storedLetters.clear();
+                lastLetterSentToGame = null;
+            }
+            setCachedGameData(gameData);
+            currentSessionPlayerId = String(gameData.playerID);
 
-        // Clear pending letters if the player character has changed
-        if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
-            console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
-            storedLetters.clear();
-            lastLetterSentToGame = null; // Also clear any letter pending game confirmation
-        }
-        setCachedGameData(gameData);
-        currentSessionPlayerId = String(gameData.playerID);
+            if (gameData.totalDays) {
+                updateCurrentDate(gameData.totalDays);
+            }
+            conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            await conversation.loadHistory();
+            await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
-        console.log("New conversation started!");
-        if (gameData.totalDays) {
-            updateCurrentDate(gameData.totalDays);
-        }
-        conversation = new Conversation(gameData, config, chatWindow, userDataPath);
-        await conversation.loadHistory();
+            const sanitizedActions = conversation.actions
+                .filter(action => action && action.signature)
+                .map(action => ({
+                    signature: action.signature,
+                    args: action.args,
+                    description: action.description,
+                    creator: action.creator,
+                    usesSource: (action as any).usesSource,
+                    usesTarget: (action as any).usesTarget
+                }));
 
-        // Import letters from log
-        await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
+            const payload = {
+                gameData: conversation.gameData,
+                messages: conversation.messages,
+                historicalMetadata: conversation.historicalConversations || [],
+                actions: sanitizedActions,
+                basePromptTokens: await conversation.calculateBasePromptTokens()
+            };
 
-        // Consolidate chat-start and chat-history into a single event to prevent race conditions
-        const historicalMetadata = conversation.historicalConversations || [];
+            // 4. Send the payload.
+            chatWindow.window.webContents.send('chat-start', payload);
 
-        // Sanitize actions to remove non-serializable functions
-        const sanitizedActions = conversation.actions
-            .filter(action => action && action.signature)
-            .map(action => ({
-                signature: action.signature,
-                args: action.args,
-                description: action.description,
-                creator: action.creator,
-                usesSource: (action as any).usesSource,
-                usesTarget: (action as any).usesTarget
-        }));
-
-        // Calculate base prompt tokens
-        const basePromptTokens = await conversation.calculateBasePromptTokens();
-
-        const payload = {
-            gameData: conversation.gameData,
-            messages: conversation.messages,
-            historicalMetadata: historicalMetadata,
-            actions: sanitizedActions, // Pass sanitized actions
-            basePromptTokens: basePromptTokens
-        };
-        console.log(`Sending chat-start payload with ${sanitizedActions.length} actions and base tokens: ${basePromptTokens}.`);
-        chatWindow.window.webContents.send('chat-start', payload);
-
-        // Wait for the chat window to be ready before starting the conversation flow
-        ipcMain.once('chat-window-ready', async () => {
-            console.log('IPC: Received chat-window-ready. Initializing conversation flow.');
+            // 5. Initialize the conversation logic after the UI has the data.
             await conversation.initialize();
-        });
 
-    }catch(err){
-        console.log("==VOTC:IN ERROR==");
-        console.error(err); // Changed from console.log(err)
+            // 6. Mark conversation as ready and process any queued messages.
+            isConversationReady = true;
+            chatWindow.window.webContents.send('chat-ready');
+            console.log('Conversation is ready. Processing pending messages.');
+            if (pendingMessages.length > 0) {
+                console.log(`Processing ${pendingMessages.length} queued message(s).`);
+                pendingMessages.forEach(msg => conversation.pushMessage(msg));
+                pendingMessages = []; // Clear the queue
+                await conversation.generateAIsMessages(); // Trigger a single generation cycle for the queued messages
+            }
 
-        if(chatWindow.isShown){
-            chatWindow.window.webContents.send('error-message', err);
+        } catch (err) {
+            console.error("Error during VOTC:IN setup:", err);
+            isConversationReady = false; // Ensure state is correct on failure
+            if(chatWindow.isShown){
+                chatWindow.window.webContents.send('error-message', err);
+            }
         }
-    }
+    });
+
+    // 2. Show the window, which will trigger the 'chat-window-ready' event from the renderer.
+    chatWindow.show();
 })
 
 clipboardListener.on('VOTC:EFFECT_ACCEPTED', () =>{
@@ -1395,7 +1406,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             updateCurrentDate(gameData.totalDays);
         }
 
-        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath);
+        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath, tiktokenEncoder);
         const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
         // Diary entry for player sending a letter
@@ -1461,17 +1472,20 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
 ipcMain.on('message-send', async (e, message: Message) =>{
     console.log('IPC: Received message-send event with message:', message.content);
-    conversation.pushMessage(message);
-    try{
-        conversation.generateAIsMessages();
+    if (isConversationReady && conversation) {
+        conversation.pushMessage(message);
+        try {
+            await conversation.generateAIsMessages();
+        } catch (err) {
+            console.error('Error during message generation:', err);
+            if (chatWindow && chatWindow.window && !chatWindow.window.isDestroyed()) {
+                chatWindow.window.webContents.send('error-message', err);
+            }
+        }
+    } else {
+        console.log('Conversation not ready. Queuing message.');
+        pendingMessages.push(message);
     }
-    catch(err){
-        console.error(err); // Changed from console.log(err)
-        chatWindow.window.webContents.send('error-message', err);
-    }
-
-
-
 });
 
     // Ã¥Â¤â€žÃ§Ââ€ Ã¨Å½Â·Ã¥Ââ€“Ã¦Å½Â¨Ã¨ÂÂÃ¨Â¾â€œÃ¥â€¦Â¥Ã¨Â¯Â­Ã¥ÂÂ¥Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
@@ -1513,7 +1527,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -1536,7 +1550,7 @@ ipcMain.handle('get-prompt-presets', async () => {
 ipcMain.handle('get-default-prompts', async () => {
     const lang = config.language || 'en';
     const promptsDir = path.join(app.getAppPath(), 'default_userdata', 'configs', 'prompts');
-    const promptsPath = path.join(promptsDir, `${lang}on`);
+    const promptsPath = path.join(promptsDir, `${lang}.json`);
     const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
 
@@ -1561,7 +1575,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presetson');
+    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -1612,7 +1626,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1687,7 +1701,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1704,7 +1718,7 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1718,10 +1732,102 @@ ipcMain.on('chat-stop', () =>{
         if (conversation.gameData.totalDays) {
             updateCurrentDate(conversation.gameData.totalDays);
         }
-        conversation.summarize();
+        // This now saves history synchronously and triggers async summarization
+        conversation.saveHistoryAndTriggerSummarization();
+        // Clean up compaction resources when conversation ends
+        conversation.cleanup();
     }
 
+    // Reset conversation state
+    isConversationReady = false;
+    pendingMessages = [];
+    // @ts-ignore
+    conversation = null;
 })
+
+// Memory Compaction IPC Handlers
+ipcMain.on('manual-compaction-trigger', async (event) => {
+    console.log('IPC: Received manual-compaction-trigger event.');
+    if (conversation && conversation.memoryCompactor) {
+        try {
+            const result = await conversation.memoryCompactor.compact(conversation);
+            event.sender.send('compaction-status-update', result);
+            console.log(`Manual compaction completed: Phase1=${result.phase1Run}, Phase2=${result.phase2Run}, Memories=${result.memoriesCreated}`);
+        } catch (error) {
+            console.error('Manual compaction failed:', error);
+            event.sender.send('compaction-status-update', { phase1Run: false, phase2Run: false, memoriesCreated: 0, error: String(error) });
+        }
+    } else {
+        event.sender.send('compaction-status-update', { phase1Run: false, phase2Run: false, memoriesCreated: 0, error: 'No active conversation or memory compactor not initialized' });
+    }
+});
+
+ipcMain.handle('get-compaction-status', async () => {
+    if (conversation && conversation.memoryCompactor) {
+        const tokenCount = await conversation.calculateBasePromptTokens();
+        const contextSize = conversation.textGenApiConnection.context || 8192;
+        return conversation.memoryCompactor.getCompactionStatus(tokenCount, contextSize);
+    }
+    return {
+        contextUsagePct: 0,
+        phase1ThresholdPct: 70,
+        tokenCount: 0,
+        contextSize: 8192,
+        isCompacting: false,
+        enableCompaction: true,
+        cooldownRemaining: 0,
+        phase1SummaryCount: 0,
+        phase2Threshold: 5,
+    };
+});
+
+// Player Data Export/Import IPC Handlers
+ipcMain.handle('export-player-data', async () => {
+    console.log('IPC: Received export-player-data event.');
+    try {
+        const result = await dialog.showSaveDialog({
+            title: t('dialog.export_player_data_title'),
+            defaultPath: `votc_player_data_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`,
+            filters: [{ name: 'ZIP Archives', extensions: ['zip'] }]
+        });
+
+        if (result.canceled || !result.filePath) {
+            console.log('Export cancelled by user.');
+            return { success: false, error: 'Export cancelled by user.' };
+        }
+
+        await exportPlayerData(userDataPath, result.filePath);
+        return { success: true, filePath: result.filePath };
+    } catch (error) {
+        console.error('Error exporting player data:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('import-player-data', async () => {
+    console.log('IPC: Received import-player-data event.');
+    try {
+        const result = await dialog.showOpenDialog({
+            title: t('dialog.import_player_data_title'),
+            filters: [{ name: 'ZIP Archives', extensions: ['zip'] }],
+            properties: ['openFile']
+        });
+
+        if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+            console.log('Import cancelled by user.');
+            return { success: false, error: 'Import cancelled by user.' };
+        }
+
+        const importPath = result.filePaths[0];
+        await importPlayerData(userDataPath, importPath);
+        return { success: true, filePath: importPath };
+    } catch (error) {
+        console.error('Error importing player data:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
 
 ipcMain.on('cancel-generation', () => {
     console.log('IPC: Received cancel-generation event.');
@@ -1854,7 +1960,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                             if (conversation.gameData.totalDays) {
                                 updateCurrentDate(conversation.gameData.totalDays);
                             }
-                            conversation.summarize();
+                            conversation.saveHistoryAndTriggerSummarization();
                         }
                     } else {
                         conversation.removeCharacter(targetId);
@@ -1994,7 +2100,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
     try {
         const summaries = await readSummaryFile(userDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_mapon');
+        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -2049,8 +2155,8 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
     try {
         const letterManager = LetterManager.getInstance();
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'letter_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -2070,7 +2176,7 @@ ipcMain.handle('save-all-letter-summaries', async (event, playerId: string, summ
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted letter summary for character ${charIdToDelete}`);
@@ -2102,8 +2208,8 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
     console.log(`IPC: Received save-all-diary-summaries event for player: ${playerId}`);
     try {
         const summaryDir = path.join(app.getPath('userData'), 'votc_data', 'diary_summaries', playerId);
-        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('on') && f !== '_character_mapon') : [];
-        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('on', '')));
+        const existingSummaryFiles = fs.existsSync(summaryDir) ? fs.readdirSync(summaryDir).filter(f => f.endsWith('.json') && f !== '_character_map.json') : [];
+        const existingCharIds = new Set(existingSummaryFiles.map(f => f.replace('.json', '')));
 
         const summariesByCharacter: { [key: string]: any[] } = {};
         summariesData.forEach(summary => {
@@ -2123,7 +2229,7 @@ ipcMain.handle('save-all-diary-summaries', async (event, playerId: string, summa
 
         // Delete summaries for characters that were removed
         for (const charIdToDelete of existingCharIds) {
-            const summaryPath = path.join(summaryDir, `${charIdToDelete}on`);
+            const summaryPath = path.join(summaryDir, `${charIdToDelete}.json`);
             if (fs.existsSync(summaryPath)) {
                 fs.unlinkSync(summaryPath);
                 console.log(`Deleted diary summary for character ${charIdToDelete}`);
@@ -2229,7 +2335,7 @@ ipcMain.handle('get-diary-files', async (event, playerId) => {
     try {
         const files = await getDiaryFiles(playerId);
         // we only want character id, so remove on
-        return files.map(f => f.replace('on', ''));
+        return files.map(f => f.replace('.json', ''));
     } catch (error) {
         console.error('Error getting diary files:', error);
         return [];
@@ -2261,7 +2367,7 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
     console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
     if (!diaryGenerator) {
-        diaryGenerator = new DiaryGenerator(config, userDataPath);
+        diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
     }
 
     try {

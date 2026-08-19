@@ -17,10 +17,9 @@ function defineTemplate(label: string, min: number, max: number, step: number){
     
     `
 
-    
+
 }
 
-    
 
 class ConfigSlider extends HTMLElement{
     label: string;
@@ -50,7 +49,7 @@ class ConfigSlider extends HTMLElement{
         this.number = this.shadow.querySelector("#number");
         this.button = this.shadow.querySelector("#button");
 
-        
+
 
     }
 
@@ -58,21 +57,27 @@ class ConfigSlider extends HTMLElement{
     static get observedAttributes(){
         return ["confID", "label", "min", "max", "step", "default"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
     async connectedCallback(){
         const confID: string = this.confID;
 
         this.updateTranslation();
-        
-        // Listen for language changes
-        ipcRenderer.on('update-language', () => {
-            this.updateTranslation();
-        });
+
+        this.languageUpdateHandler = () => this.updateTranslation();
+        ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let config = await ipcRenderer.invoke('get-config');
 
-        //@ts-ignore
-        const value = config[confID];
+        let value: any;
+        if (confID.includes('.')) {
+            const parts = confID.split('.');
+            // @ts-ignore
+            value = config[parts[0]] ? config[parts[0]][parts[1]] : undefined;
+        } else {
+            // @ts-ignore
+            value = config[confID];
+        }
 
         if(value !== undefined){
             this.changeValue(value);
@@ -83,27 +88,39 @@ class ConfigSlider extends HTMLElement{
 
         this.slider.addEventListener("input", (e: any) => {
             this.number.value = this.slider.value;
-        })
-
+        });
         this.slider.addEventListener("change", (e: any) => {
-
             this.number.value = this.slider.value;
-
+            this.sendValue(this.slider.value);
         });
 
         this.number.addEventListener("change", (e: any) => {
-            console.debug(confID)
-
             this.slider.value = this.number.value;
-
+            this.sendValue(this.number.value);
         });
 
         this.button.addEventListener("click", (e: any) => {
             this.changeValue(this.default)
-
-        })
+        });
     }
 
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    sendValue(value: any) {
+        const confID = this.confID;
+        if (confID.includes('.')) {
+            const parts = confID.split('.');
+            const outerConfID = parts[0];
+            const innerConfID = parts[1];
+            ipcRenderer.send('config-change-nested', outerConfID, innerConfID, value);
+        } else {
+            ipcRenderer.send('config-change', confID, value);
+        }
+    }
     changeValue(newValue: number){
         this.slider.value = newValue;
         this.number.value = newValue;

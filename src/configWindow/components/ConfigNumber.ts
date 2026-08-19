@@ -14,10 +14,10 @@ function defineTemplate(label: string, min: number, max: number, step: number){
     </style>
     <label for="awd">${label}</label><br>
     <input type="number" name="awd" min=${min} max=${max} step=${step}>`
-    
+
 }
 
-    
+
 
 class ConfigNumber extends HTMLElement{
     label: string;
@@ -48,6 +48,7 @@ class ConfigNumber extends HTMLElement{
     static get observedAttributes(){
         return ["name", "confID", "label", "min", "max", "data-i18n"]
     }
+    private languageUpdateHandler: (() => void) | null = null;
 
     async connectedCallback(){
         const confID: string = this.confID;
@@ -67,11 +68,15 @@ class ConfigNumber extends HTMLElement{
         const i18nKey = this.getAttribute('data-i18n');
         if (i18nKey) {
             this.updateTranslation(i18nKey);
-            
-            // Listen for language changes
-            ipcRenderer.on('update-language', () => {
-                this.updateTranslation(i18nKey);
-            });
+
+            this.languageUpdateHandler = () => this.updateTranslation(i18nKey);
+            ipcRenderer.on('update-language', this.languageUpdateHandler);
+        }
+    }
+
+    disconnectedCallback() {
+        if (this.languageUpdateHandler) {
+            ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
         }
     }
 

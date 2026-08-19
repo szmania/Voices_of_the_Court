@@ -64,6 +64,7 @@ export class Config{
     showPreviousConversations!: boolean;
     disableHistoricalConversations!: boolean;
     maxHistoricalConversations!: number;
+    maxConversationsInHistoryWindow!: number;
     maxSummaries!: number;
     showTokenizerDisplay!: boolean;
     checkForUpdatesOnStartup!: boolean;
@@ -79,6 +80,17 @@ export class Config{
     enableSuffixPrompt!: boolean;
     selectedSelfTalkExMsgScript!: string;
 
+    // Memory Compaction Settings
+    enableMemoryCompaction!: boolean;
+    compactionPhase1Threshold!: number;
+    compactionPhase2Threshold!: number;
+    compactionTokenBudget!: { phase1: number, phase2: number };
+    compactionCooldownMinutes!: number;
+    compactionPriorityElements!: string[];
+    compactionEntityExtractionMode!: "llm" | "regex" | "hybrid";
+    compactionRelationshipsDirectional!: boolean;
+    compactionApiConnectionConfig!: ApiConnectionConfig;
+
     constructor(configPath: string){  
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
@@ -89,7 +101,7 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
         
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection && 
                 configData[configType].connection.apiKeys) {
@@ -98,7 +110,7 @@ export class Config{
             }
         });
         
-        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'))
+        fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'));
     }
 
     toSafeConfig(): Config{
@@ -112,9 +124,11 @@ export class Config{
         output.textGenerationApiConnectionConfig.connection.baseUrl= "<hidden>";
         output.actionsApiConnectionConfig.connection.baseUrl = "<hidden>";
         output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
+        output.compactionApiConnectionConfig.connection.key = "<hidden>";
+        output.compactionApiConnectionConfig.connection.baseUrl = "<hidden>";
         
         // 隐藏apiKeys中的敏感信息
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as any;
             if (config && config.connection && config.connection.apiKeys) {

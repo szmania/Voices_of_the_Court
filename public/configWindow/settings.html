@@ -7,7 +7,20 @@
   <link rel="stylesheet" href="config.css" />
   <link rel="stylesheet" href="../chatWindow/theme.css" />
 
-
+  <style>
+    .compaction-progress-container {
+      position: relative;
+      margin-bottom: 5px;
+    }
+    .compaction-phase1-label {
+      position: absolute;
+      bottom: 100%;
+      transform: translateX(-50%);
+      font-size: 0.8em;
+      color: #ffd700;
+      white-space: nowrap;
+    }
+  </style>
 
 </head>
 
@@ -80,15 +93,16 @@
                 <config-checkbox confID="disableHistoricalConversations" data-i18n="settings.disable_historical"></config-checkbox> <tooltip-text side="top" data-i18n="settings.disable_historical_tooltip"></tooltip-text>
               </div>
               <div class="column">
-                <config-number confID="maxHistoricalConversations" min="0" max="100" step="1" data-i18n="settings.max_historical_conversations"></config-number> <tooltip-text side="top" data-i18n="settings.max_historical_conversations_tooltip"></tooltip-text>
+                <config-checkbox confID="generateSceneDescription" data-i18n="settings.generate_scene"></config-checkbox> <tooltip-text side="top" data-i18n="settings.generate_scene_tooltip"></tooltip-text>
               </div>
             </div>
             <hr>
             <div class="row">
               <div class="column">
-                <config-checkbox confID="generateSceneDescription" data-i18n="settings.generate_scene"></config-checkbox> <tooltip-text side="top" data-i18n="settings.generate_scene_tooltip"></tooltip-text>
+                <config-number confID="maxHistoricalConversations" min="0" max="100" step="1" data-i18n="settings.max_historical_conversations"></config-number> <tooltip-text side="top" data-i18n="settings.max_historical_conversations_tooltip"></tooltip-text>
               </div>
               <div class="column">
+                <config-number confID="maxConversationsInHistoryWindow" min="0" max="100" step="1" data-i18n="settings.max_conversations_in_history_window"></config-number> <tooltip-text side="top" data-i18n="settings.max_conversations_in_history_window_tooltip"></tooltip-text>
               </div>
             </div>
             <hr>
@@ -126,6 +140,7 @@
                 <config-number confID="memoriesInsertDepth" min="0" max="20" data-i18n="settings.memories_depth"></config-number> <tooltip-text side="top" data-i18n="settings.memories_depth_tooltip"></tooltip-text>
               </div>
             </div>
+            <hr>
             <div class="row">
               <div class="column">
                 <config-number confID="descInsertDepth" min="0" max="20" data-i18n="settings.desc_depth"></config-number> <tooltip-text side="top" data-i18n="settings.desc_depth_tooltip"></tooltip-text>
@@ -134,7 +149,6 @@
                 <config-number confID="maxSummaries" min="0" max="50" data-i18n="settings.max_summaries"></config-number> <tooltip-text side="top" data-i18n="settings.max_summaries_tooltip"></tooltip-text>
               </div>
             </div>
-
             <hr>
             <div class="row">
               <div class="column">
@@ -146,6 +160,7 @@
                 <tooltip-text side="top" data-i18n="settings.aiToAiChatChance_tooltip"></tooltip-text>
               </div>
             </div>
+            <hr>
             <div class="row">
               <div class="column">
                 <config-number confID="nonTargetedCharacterResponseChance" min="0" max="100" step="1" data-i18n="settings.nonTargetedCharacterResponseChance"></config-number>
@@ -186,6 +201,130 @@
 
         </div>
 
+        <br>
+
+        <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+
+        <div class="border">
+          <p data-i18n="settings.memory_compaction_desc" style="margin-bottom: 20px; color: #aaa; font-size: 0.9em;">
+            Automatically compresses conversation history to save context space while preserving key narrative details.
+          </p>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column">
+              <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable"></config-checkbox>
+              <tooltip-text side="top" data-i18n="settings.memory_compaction_enable_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.phase1_threshold_title" style="font-size: 1em; margin-bottom: 5px;">Phase 1 Threshold</h3>
+              <config-slider confID="compactionPhase1Threshold" min="50" max="90" step="1" data-i18n="settings.phase1_threshold_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.phase1_threshold_tooltip"></tooltip-text>
+            </div>
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.phase2_threshold_title" style="font-size: 1em; margin-bottom: 5px;">Phase 2 Threshold</h3>
+              <config-slider confID="compactionPhase2Threshold" min="3" max="10" step="1" data-i18n="settings.phase2_threshold_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.phase2_threshold_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.token_budget_title" style="font-size: 1em; margin-bottom: 5px;">Token Budget Allocation</h3>
+              <div class="row">
+                <div class="column" style="flex: 1;">
+                  <label data-i18n="settings.phase1_budget_label" style="font-size: 0.85em;"></label>
+                  <config-slider confID="compactionTokenBudget.phase1" min="10" max="50" step="1" data-i18n="settings.phase1_budget_desc"></config-slider>
+                </div>
+                <div class="column" style="flex: 1;">
+                  <label data-i18n="settings.phase2_budget_label" style="font-size: 0.85em;"></label>
+                  <config-slider confID="compactionTokenBudget.phase2" min="5" max="30" step="1" data-i18n="settings.phase2_budget_desc"></config-slider>
+                </div>
+              </div>
+              <tooltip-text side="top" data-i18n="settings.token_budget_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.entity_extraction_title" style="font-size: 1em; margin-bottom: 5px;">Entity Extraction Mode</h3>
+              <config-select confID="compactionEntityExtractionMode" options="llm,regex,hybrid" data-i18n="settings.entity_extraction_desc"></config-select>
+              <tooltip-text side="top" data-i18n="settings.entity_extraction_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column">
+              <config-checkbox confID="compactionRelationshipsDirectional" data-i18n="settings.relationships_directional"></config-checkbox>
+              <tooltip-text side="top" data-i18n="settings.relationships_directional_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.cooldown_title" style="font-size: 1em; margin-bottom: 5px;">Compaction Cooldown</h3>
+              <config-slider confID="compactionCooldownMinutes" min="1" max="30" step="1" data-i18n="settings.cooldown_desc"></config-slider>
+              <tooltip-text side="top" data-i18n="settings.cooldown_tooltip"></tooltip-text>
+            </div>
+          </div>
+
+          <div class="row" style="margin-bottom: 20px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.priority_elements_title" style="font-size: 1em; margin-bottom: 5px;">Priority Elements</h3>
+              <config-multiselect confID="compactionPriorityElements" options="secrets,rivalries,friendships,alliances,major_life_events" data-i18n="settings.priority_elements_desc"></config-multiselect>
+              <tooltip-text side="top" data-i18n="settings.priority_elements_tooltip"></tooltip-text>
+            </div>
+          </div>
+          <hr style="margin: 20px 0;">
+
+          <!-- Context Usage Progress Bar -->
+          <div class="row" style="margin-bottom: 10px;">
+            <div class="column" style="flex: 1;">
+              <h3 data-i18n="settings.compaction_context_usage" style="font-size: 1em; margin-bottom: 8px;">Context Usage</h3>
+              <tooltip-text side="top" data-i18n="settings.compaction_context_usage_tooltip"></tooltip-text>
+              <div class="compaction-progress-container">
+                <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
+                <div id="compaction-phase1-line" class="compaction-phase1-line" style="left: 70%;"></div>
+                <span id="compaction-phase1-label" class="compaction-phase1-label" data-i18n="settings.compaction_phase1_threshold_label"></span>
+              </div>
+              <div class="compaction-progress-labels">
+                <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compaction Status Row -->
+          <div class="row" style="margin-bottom: 10px;">
+            <div class="column" style="flex: 1;">
+              <div id="compaction-status-row" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span data-i18n="settings.compaction_status_label" style="font-weight: bold;">Status:</span>
+                <span id="compaction-status-display" data-i18n="settings.compaction_status_idle" style="color: #888;">Idle</span>
+                <span id="compaction-last-result" style="font-size: 0.85em; color: #aaa;"></span>
+                <span id="compaction-phase1-count" style="font-size: 0.85em; color: #aaa;"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top: 20px;">
+            <div class="column" style="text-align: center;">
+              <button id="manual-compaction-trigger" class="button" data-i18n="settings.manual_compaction_button">Run Compaction Now</button>
+              <tooltip-text side="bottom" data-i18n="settings.manual_compaction_tooltip"></tooltip-text>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 20px;">
+            <div class="column" style="flex: 1;">
+              <button id="export-player-data" class="button" data-i18n="settings.export_player_data_button">Export Player Data</button>
+              <tooltip-text side="bottom" data-i18n="settings.export_player_data_tooltip"></tooltip-text>
+            </div>
+            <div class="column" style="flex: 1;">
+              <button id="import-player-data" class="button" data-i18n="settings.import_player_data_button">Import Player Data</button>
+              <tooltip-text side="bottom" data-i18n="settings.import_player_data_tooltip"></tooltip-text>
+            </div>
+          </div>
+        </div>
+
       </div>
       <div class="column">
 
@@ -194,6 +333,8 @@
 
 
         <parameters-box confID="textGenerationApiConnectionConfig" tempDefault="0.8" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
+
+      </div>
 
 
 
@@ -219,19 +360,178 @@
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
   <script>require("../../dist/configWindow/components/tooltip.js")</script>
-  <script>require("../../dist/configWindow/modelSettingsRenderer.js")</script>
+  <script>require("../../dist/configWindow/components/ConfigSelect.js")</script>
+  <script>require("../../dist/configWindow/components/ConfigMultiselect.js")</script>
 
   <script>
-    // 添加帮助菜单点击事件
+    // Initialize localization for settings page
+    async function initLocalization() {
+      const { ipcRenderer } = require('electron');
+      const config = await ipcRenderer.invoke('get-config');
+      // @ts-ignore
+      if (window.LocalizationManager) {
+        // @ts-ignore
+        await window.LocalizationManager.loadTranslations(config.language || 'en');
+        // @ts-ignore
+        window.LocalizationManager.applyTranslations();
+      }
+    }
+    initLocalization();
+
+    // Add event listeners
     document.addEventListener('DOMContentLoaded', function() {
+      const { ipcRenderer } = require('electron');
+
       const openReadmeBtn = document.getElementById('open-readme');
       if (openReadmeBtn) {
         openReadmeBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          const { ipcRenderer } = require('electron');
           ipcRenderer.send('open-readme-window');
         });
       }
+
+      const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
+      if (manualCompactionBtn) {
+        manualCompactionBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          ipcRenderer.send('manual-compaction-trigger');
+        });
+      }
+
+      const exportBtn = document.getElementById('export-player-data');
+      if (exportBtn) {
+        exportBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          const result = await ipcRenderer.invoke('export-player-data');
+          if (result.success) {
+            console.log('Player data exported to:', result.filePath);
+          } else {
+            console.error('Export failed:', result.error);
+          }
+        });
+      }
+
+      const importBtn = document.getElementById('import-player-data');
+      if (importBtn) {
+        importBtn.addEventListener('click', async function(e) {
+          e.preventDefault();
+          const result = await ipcRenderer.invoke('import-player-data');
+          if (result.success) {
+            console.log('Player data imported from:', result.filePath);
+          } else {
+            console.error('Import failed:', result.error);
+          }
+        });
+      }
+
+      // --- Compaction Progress Polling ---
+      let statusPollInterval = null;
+      let compactionInProgress = false;
+
+      async function updateCompactionStatus() {
+        try {
+          const status = await ipcRenderer.invoke('get-compaction-status');
+          const progressBar = document.getElementById('compaction-progress-bar');
+          const phase1Line = document.getElementById('compaction-phase1-line');
+          const usageText = document.getElementById('compaction-context-usage-text');
+          const statusDisplay = document.getElementById('compaction-status-display');
+          const lastResult = document.getElementById('compaction-last-result');
+          const phase1Count = document.getElementById('compaction-phase1-count');
+
+          if (progressBar) {
+            const pct = Math.min(status.contextUsagePct, 100);
+            progressBar.style.width = pct + '%';
+            progressBar.className = 'compaction-progress-bar';
+            if (pct >= status.phase1ThresholdPct) {
+              progressBar.classList.add('danger');
+            } else if (pct >= status.phase1ThresholdPct * 0.85) {
+              progressBar.classList.add('warning');
+            }
+          }
+          if (phase1Line) {
+            phase1Line.style.left = status.phase1ThresholdPct + '%';
+          }
+          const phase1Label = document.getElementById('compaction-phase1-label');
+          if (phase1Label) {
+            phase1Label.style.left = status.phase1ThresholdPct + '%';
+            const thresholdText = window.LocalizationManager ? window.LocalizationManager.getTranslation('settings.phase1_threshold_label', 'Threshold') : 'Threshold';
+            phase1Label.textContent = `${thresholdText} (${status.phase1ThresholdPct}%)`;
+          }
+          if (usageText) {
+            usageText.textContent = status.tokenCount + ' / ' + status.contextSize + ' tokens (' + status.contextUsagePct + '%)';
+          }
+          if (statusDisplay) {
+            if (status.isCompacting) {
+              statusDisplay.textContent = 'Compacting...';
+              statusDisplay.style.color = '#3498db';
+            } else if (!status.enableCompaction) {
+              statusDisplay.textContent = 'Disabled';
+              statusDisplay.style.color = '#888';
+            } else if (status.cooldownRemaining > 0) {
+              const secs = Math.ceil(status.cooldownRemaining / 1000);
+              statusDisplay.textContent = 'Cooldown (' + secs + 's remaining)';
+              statusDisplay.style.color = '#ffab00';
+            } else {
+              statusDisplay.textContent = 'Idle';
+              statusDisplay.style.color = '#4caf50';
+            }
+          }
+          if (phase1Count) {
+            phase1Count.textContent = 'Phase 1 Summaries: ' + status.phase1SummaryCount + ' / ' + status.phase2Threshold;
+          }
+          if (lastResult) {
+            lastResult.textContent = '';
+          }
+        } catch (err) {
+          // Silently ignore - conversation may not be active yet
+        }
+      }
+
+      // Listen for compaction status updates from manual trigger
+      ipcRenderer.on('compaction-status-update', (event, result) => {
+        compactionInProgress = false;
+        const statusDisplay = document.getElementById('compaction-status-display');
+        const lastResult = document.getElementById('compaction-last-result');
+        if (statusDisplay) {
+          if (result.error) {
+            statusDisplay.textContent = 'Error';
+            statusDisplay.style.color = '#f44336';
+          } else {
+            statusDisplay.textContent = 'Completed';
+            statusDisplay.style.color = '#4caf50';
+            setTimeout(() => { updateCompactionStatus(); }, 2000);
+          }
+        }
+        if (lastResult) {
+          if (result.error) {
+            lastResult.textContent = 'Failed: ' + result.error;
+            lastResult.style.color = '#f44336';
+          } else {
+            lastResult.textContent = 'Last: Phase1=' + (result.phase1Run ? 'Yes' : 'No') + ', Phase2=' + (result.phase2Run ? 'Yes' : 'No') + ', Memories=' + result.memoriesCreated;
+            lastResult.style.color = '#aaa';
+          }
+        }
+      });
+
+      // Start polling when page is visible, stop when hidden
+      function startCompactionPolling() {
+        updateCompactionStatus();
+        statusPollInterval = setInterval(updateCompactionStatus, 3000);
+      }
+      function stopCompactionPolling() {
+        if (statusPollInterval) {
+          clearInterval(statusPollInterval);
+          statusPollInterval = null;
+        }
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stopCompactionPolling();
+        } else {
+          startCompactionPolling();
+        }
+      });
+      startCompactionPolling();
     });
   </script>
 

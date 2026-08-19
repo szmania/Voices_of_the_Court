@@ -6,7 +6,6 @@ export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
 export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 
 import { getEncoding, Tiktoken } from "js-tiktoken";
-import { hashAccessKey } from "./auth/argon2";
 
 export interface apiConnectionTestResult{
     success: boolean,
@@ -32,12 +31,7 @@ export interface Parameters{
 	top_p?: number,
 }
 
-let encoder: Tiktoken | null = null;
-try {
-    encoder = getEncoding("cl100k_base");
-} catch (e) {
-    console.error("Failed to initialize tiktoken encoder:", e);
-}
+// Tiktoken encoder is now initialized in main.ts and passed into the constructor.
 
 export class ApiConnection{
     type: string; //openrouter, openai, ooba, custom
@@ -50,9 +44,11 @@ export class ApiConnection{
     config: Connection; // 保存原始配置对象，包括apiKeys
     novelaiAccessToken: string | null = null;
     novelaiTokenExpiry: number | null = null;
+    encoder: Tiktoken | null;
 
 
-    constructor(connection: Connection, parameters: any){
+    constructor(connection: Connection, parameters: any, encoder: Tiktoken | null){
+        this.encoder = encoder;
         console.debug("--- API CONNECTION: Constructor ---");
         
         // Create a deep copy for logging to ensure original object is not modified.
@@ -479,9 +475,23 @@ export class ApiConnection{
                 console.debug("Prompt before sending to API:", prompt);
 
                 if (this.isChat()) {
+                    // Sanitize messages to include only standard fields (role, content, name)
+                    // This prevents 400 errors from strict providers like Cloudflare/glm-5.2
+                    // that reject non-standard fields like 'id' or 'type'.
+                    const sanitizedMessages = (prompt as Message[]).map(msg => {
+                        const cleanMsg: any = {
+                            role: msg.role,
+                            content: msg.content
+                        };
+                        if (msg.name && msg.name.trim() !== "") {
+                            cleanMsg.name = msg.name;
+                        }
+                        return cleanMsg;
+                    });
+
                     const requestBody = {
                         model: this.model,
-                        messages: prompt as Message[],
+                        messages: sanitizedMessages,
                         stream: stream,
                         ...this.parameters,
                         ...otherArgs
@@ -873,16 +883,16 @@ export class ApiConnection{
     }
 
     calculateTokensFromText(text: string): number{
-        if (!encoder) return Math.ceil((text || "").length / 4);
-        return encoder.encode(text).length;
+        if (!this.encoder) return Math.ceil((text || "").length / 4);
+        return this.encoder.encode(text).length;
     }
 
     calculateTokensFromMessage(msg: Message): number{
-        if (!encoder) return Math.ceil(((msg.role || "") + (msg.content || "") + (msg.name || "")).length / 4);
-        let sum = encoder.encode(msg.role).length + encoder.encode(msg.content).length
+        if (!this.encoder) return Math.ceil(((msg.role || "") + (msg.content || "") + (msg.name || "")).length / 4);
+        let sum = this.encoder.encode(msg.role).length + this.encoder.encode(msg.content).length
 
         if(msg.name){
-            sum += encoder.encode(msg.name).length;
+            sum += this.encoder.encode(msg.name).length;
         }
 
         return sum;

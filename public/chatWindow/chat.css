@@ -1248,12 +1248,12 @@ html{
 }
 
 .queue-status .current-speaker {
-    color: #cca43b;
+    color: #87CEFA;
     font-weight: bold;
 }
 
 .queue-status .next-up {
-    color: #a18c61;
+    color: #aaaaaa;
 }
 
 .message .edit-help-icon {

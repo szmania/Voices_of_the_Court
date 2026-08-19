@@ -75,13 +75,9 @@ export class ChatWindow{
         ipcMain.on('reset-window-position', () =>{this.resetPosition()})
 
         ipcMain.on('get-conversation-history', (event) => {
-            event.reply('conversation-history', this.conversation.getHistory());
-        });
-
-        ipcMain.on('reset-window-position', () =>{this.resetPosition()})
-
-        ipcMain.on('get-conversation-history', (event) => {
-            event.reply('conversation-history', this.conversation.getHistory());
+            if (this.conversation) {
+                event.reply('conversation-history', this.conversation.getHistory());
+            }
         });
 
 
@@ -95,6 +91,13 @@ export class ChatWindow{
         console.log("Chat window showed!");
         OverlayController.activateOverlay();
         this.isShown = true;
+
+        // Send the show event after a short delay to ensure the renderer is ready
+        setTimeout(() => {
+            if (this.window && !this.window.isDestroyed()) {
+                this.window.webContents.send('chat-show');
+            }
+        }, 150);
 
         /*this.windowWatchId = ActiveWindow.subscribe( (winInfo) =>{
             if(winInfo?.title == "Crusader Kings III" && this.isShown ){
@@ -118,15 +121,19 @@ export class ChatWindow{
                 const isChatActive = win.title === "Voices of the Court 2.0 - Community Edition - Chat";
                 const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
-                if (isGameActive || isChatActive) {
+                if (isGameActive || isChatActive || isConfigActive) {
                     OverlayController.activateOverlay();
                 } else {
                     // This block is intentionally left empty to prevent the window from hiding.
+                    // With --disable-gpu, the window might become invisible without this.
+                    if (this.window && !this.window.isDestroyed() && !this.window.isVisible()) {
+                        this.window.showInactive();
+                    }
                 }
             } catch (err) {
-                console.error("Failed to get active window:", err);
+                // console.error("Failed to get active window:", err);
             }
-        }, 500)
+        }, 250)
 
         
     }

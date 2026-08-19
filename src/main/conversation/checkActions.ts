@@ -201,7 +201,7 @@ export async function checkActions(conv: Conversation, sourceId: number, targetI
                         conv.chatWindow.window.webContents.send('chat-hide');
                         conv.chatWindow.hide();
                         if (conv && conv.isOpen) {
-                            conv.summarize();
+                            conv.saveHistoryAndTriggerSummarization();
                         }
                     } else {
                         conv.removeCharacter(newTargetId);
