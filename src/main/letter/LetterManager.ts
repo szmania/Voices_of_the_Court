@@ -370,11 +370,11 @@ trigger_event = message_event.362`;
         }
     }
 
-    public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<void> {
+    public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {
         const ck3Folder = config.userFolderPath;
         if (!ck3Folder) {
             console.warn("LetterManager.importLettersFromLog: CK3 user folder is not configured.");
-            return;
+            return [];
         }
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
