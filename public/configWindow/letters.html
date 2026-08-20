@@ -14,6 +14,20 @@
             background-color: orange;
             border: 1px solid black;
         }
+        .refresh-status {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+            font-family: 'Gitan', sans-serif;
+            color: #a18c61;
+        }
+        #letter-refresh-btn.refreshing {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
     </style>
 </head>
 <body>
@@ -37,6 +51,9 @@
     <div id="letter-controls">
         <div class="control-group">
             <button id="letter-refresh-btn" class="btn" data-i18n="letters.refresh">Refresh</button>
+            <div id="refresh-status" class="refresh-status">
+                <span id="refresh-countdown"></span>
+            </div>
         </div>
         <div class="control-group">
             <label for="player-select" data-i18n="letters.player">Player:</label>

@@ -200,6 +200,8 @@ let manualLetterActionApprovalInLetters = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
 // Used by renderStatusSummary() to show counts that match the displayed letter list.
 let currentFilteredLetters: Letter[] = [];
+let countdown = 10;
+let refreshInterval: NodeJS.Timeout;
 
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
@@ -948,6 +950,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
     const sortSelect = document.getElementById('letter-sort-select') as HTMLSelectElement;
     const refreshBtn = document.getElementById('letter-refresh-btn') as HTMLButtonElement;
+    const refreshCountdownEl = document.getElementById('refresh-countdown') as HTMLSpanElement;
     const searchInput = document.getElementById('letter-search-input') as HTMLInputElement;
     const toggleFutureBtn = document.getElementById('toggle-future-btn') as HTMLButtonElement;
 
@@ -1006,30 +1009,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderLetters();
     });
 
-    refreshBtn.addEventListener('click', async () => {
-        loader.style.display = 'block';
+    const refreshLetters = async (isAuto = false) => {
+        if (!isAuto) { // Manual refresh resets the timer
+            clearInterval(refreshInterval);
+            countdown = 10;
+            startInterval();
+        }
+
+        refreshBtn.classList.add('refreshing');
+        if (!isAuto) {
+            loader.style.display = 'block';
+        }
+
         const playerSelect = document.getElementById('player-select') as HTMLSelectElement;
         const characterSelect = document.getElementById('character-select') as HTMLSelectElement;
-        const currentPlayerId = playerSelect.value;
-        const currentCharacterId = characterSelect.value;
 
         try {
-            // Pass the currently selected player and character to the main process.
-            // The import logic requires a specific character, so we only invoke if one is selected.
-            if (selectedPlayerId && selectedCharacterId && selectedCharacterId !== 'all') {
-                await ipcRenderer.invoke('import-letters-from-log', {
-                    playerId: selectedPlayerId,
-                    recipientId: selectedCharacterId
-                });
+            if (selectedPlayerId) {
+                // Auto-refresh should be silent and not trigger a log import
+                if (!isAuto && selectedCharacterId && selectedCharacterId !== 'all') {
+                     await ipcRenderer.invoke('import-letters-from-log', {
+                        playerId: selectedPlayerId,
+                        recipientId: selectedCharacterId
+                    });
+                }
+                await loadPlayers(playerSelect.value, characterSelect.value);
             }
-            // We still refresh the view even if we didn't import.
-            await loadPlayers();
         } catch (error) {
-            console.error("Error during manual letter import and refresh:", error);
+            console.error("Error during letter refresh:", error);
         } finally {
-            loader.style.display = 'none';
+            if (!isAuto) {
+                loader.style.display = 'none';
+            }
+            // Give animation time to be seen
+            setTimeout(() => {
+                refreshBtn.classList.remove('refreshing');
+            }, 500);
         }
-    });
+    };
+
+    refreshBtn.addEventListener('click', () => refreshLetters(false));
 
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
@@ -1044,11 +1063,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderStatusSummary(); // Update status counts to reflect character filter
     });
 
+    const startInterval = () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            countdown--;
+            if (refreshCountdownEl) {
+                // @ts-ignore
+                const refreshText = window.LocalizationManager.getTranslation('letters.refreshing_in', 'Refreshing in {seconds}s...').replace('{seconds}', String(countdown));
+                refreshCountdownEl.textContent = refreshText;
+            }
+            if (countdown <= 0) {
+                countdown = 10;
+                refreshLetters(true);
+            }
+        }, 1000);
+    };
+
     loadPlayers();
     // Initial load of letter thread status
     ipcRenderer.invoke('get-letter-thread-status').then(count => {
         updateLetterThreadStatus(count);
     });
+
+    startInterval();
 });
 
 ipcRenderer.on('update-theme', (event, theme: string) => {
@@ -1080,5 +1117,11 @@ ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
         if (selectedLetter) {
             renderLetterContent(selectedLetter);
         }
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
     }
 });
