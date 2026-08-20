@@ -62,9 +62,9 @@
       <ul>
         <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
         <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
-        <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
-        <li class="active"><a href="memoryConstellation.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
-        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li><a href="summarization.html" data-i18n="nav.summarization" data-i18n-title="nav.summarization_tooltip">Summarization</a></li>
+        <li class="active"><a href="memories.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts" data-i18n-title="nav.prompts_tooltip">Prompts</a></li>
         <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
         <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
         <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
@@ -91,6 +91,37 @@
 
         <div id="mc-statusMessage" class="status-message"></div>
 
+        <div class="border" id="compaction-settings" style="margin-top: 20px;">
+            <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+            <p data-i18n="settings.memory_compaction_desc">Automatically compresses conversation history to save context space while preserving key narrative details.</p>
+            <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable" data-i18n-title="settings.memory_compaction_enable_tooltip"></config-checkbox>
+            
+            <div class="compaction-progress-container" data-i18n-title="settings.compaction_context_usage_tooltip">
+                <div id="compaction-phase1-line" class="compaction-phase1-line"></div>
+                <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
+                <span id="compaction-phase1-label" class="compaction-phase1-label"></span>
+            </div>
+            <div class="compaction-progress-labels">
+                <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
+            </div>
+
+            <div>
+                <span data-i18n="settings.compaction_status_label">Status:</span>
+                <span id="compaction-status-display" style="color: #888;">Disabled</span>
+            </div>
+            <div>
+                <span id="compaction-phase1-count">Phase 1 Summaries: 0 / 5</span>
+            </div>
+            <div>
+                <span id="compaction-last-result" style="color: #aaa; font-size: 0.8em;"></span>
+            </div>
+            <br>
+            
+            <button id="manual-compaction-trigger" class="btn" data-i18n="settings.manual_compaction_button" data-i18n-title="settings.manual_compaction_tooltip">Run Compaction Now</button>
+            <hr>
+            <button id="export-player-data" class="btn" data-i18n="settings.export_player_data_button" data-i18n-title="settings.export_player_data_tooltip">Export Player Data</button>
+            <button id="import-player-data" class="btn" data-i18n="settings.import_player_data_button" data-i18n-title="settings.import_player_data_tooltip">Import Player Data</button>
+        </div>
     </div>
     
     <script>require("../../dist/shared/LocalizationManager.js")</script>
