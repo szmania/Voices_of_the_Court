@@ -83,7 +83,7 @@
   "actionsEnableAll": true,
   "manualActionApproval": true,
   "manualLetterActionApproval": true,
-  "manualLetterActionApprovalInLetters": true,
+  "manualLetterActionApprovalInLetters": false,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
   "maxHistoricalConversations": 8,

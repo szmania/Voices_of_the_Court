@@ -197,7 +197,6 @@ let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
 let manualLetterActionApprovalInLetters = false;
-let manualLetterActionApprovalInLetters = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
 // Used by renderStatusSummary() to show counts that match the displayed letter list.
 let currentFilteredLetters: Letter[] = [];
