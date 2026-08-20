@@ -903,6 +903,7 @@ export interface CompactionResult {
     memoriesCreated: number;
     accuracyScore?: number;
     metrics?: CompactionMetrics;
+    newlyCompactedMemories?: CompactedMemory[];
 }
 
 /** Statistics about the compaction scheduler state. */

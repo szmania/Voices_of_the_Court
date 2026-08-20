@@ -1090,4 +1090,14 @@ export class EmbeddingProvider {
             );
         }
     }
+
+    /**
+     * Generate an embedding vector for the given text, returning a simple array.
+     * @param text - The input text to embed.
+     * @returns A raw array of numbers representing the vector.
+     */
+    async embed(text: string): Promise<number[]> {
+        const result = await this.generateEmbedding(text);
+        return Array.from(result.vector);
+    }
 }
