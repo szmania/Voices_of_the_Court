@@ -85,6 +85,9 @@ export class Conversation{
     pendingPlayerRequest: boolean;
     encoder: Tiktoken | null;
 
+    memoryManager: MemoryManager;
+    embeddingApiConnection!: ApiConnection;
+
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null){
         this.encoder = encoder;
         console.log('Conversation initialized.');
@@ -290,6 +293,9 @@ export class Conversation{
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
+
+        // Initialize Memory Systems
+        this.memoryManager = new MemoryManager(this.userDataPath);
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
@@ -1628,6 +1634,38 @@ Statement by ${character.fullName}:`
             console.log('Starting agentic memory compaction due to context limit.');
             try {
                 const result = await this.memoryCompactor.compact(this);
+
+                // After compaction, vectorize the new memories and insert them into the neural network.
+                if (result.newlyCompactedMemories && result.newlyCompactedMemories.length > 0 && this.embeddingApiConnection) {
+                    console.log(`Vectorizing ${result.newlyCompactedMemories.length} new compacted memories.`);
+                    const memoriesToInsert: Memory[] = [];
+
+                    for (const compacted of result.newlyCompactedMemories) {
+                        try {
+                            const embedding = await this.embeddingApiConnection.embed(compacted.content);
+                            const newMemory: Memory = {
+                                id: compacted.id,
+                                characterId: compacted.characterIds[0]?.toString() || '', // Primary character
+                                playerId: this.gameData.playerID.toString(),
+                                text: compacted.content,
+                                vector: embedding,
+                                timestamp: compacted.creationTimestamp,
+                                emotion: 'neutral', // TODO: Derive emotion from content
+                                decay: 0,
+                                accessCount: 0,
+                                lastAccessed: Date.now()
+                            };
+                            memoriesToInsert.push(newMemory);
+                        } catch (e) {
+                            console.error(`Failed to generate embedding for compacted memory ${compacted.id}:`, e);
+                        }
+                    }
+
+                    if (memoriesToInsert.length > 0) {
+                        this.memoryManager.batchInsertMemories(memoriesToInsert);
+                    }
+                }
+
                 if (result.phase1Run) {
                     console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
                     if (result.metrics) {
@@ -1955,6 +1993,14 @@ Statement by ${character.fullName}:`
         this.actionsApiConnection = this.config.actionsUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+
+        // Safely initialize embedding connection
+        if (this.config.embeddingApiConnectionConfig) {
+            this.embeddingApiConnection = new ApiConnection(this.config.embeddingApiConnectionConfig.connection, this.config.embeddingApiConnectionConfig.parameters, this.encoder);
+        } else {
+            console.warn("Embedding API connection config not found. Using text generation API as a fallback for embeddings.");
+            this.embeddingApiConnection = this.textGenApiConnection;
+        }
 
         this.loadActions();
     }

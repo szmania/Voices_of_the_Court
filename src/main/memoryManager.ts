@@ -73,7 +73,7 @@ export class MemoryManager {
                 character_id TEXT NOT NULL,
                 player_id TEXT DEFAULT '',
                 text TEXT NOT NULL,
-                vector BLOB,
+                embedding BLOB,
                 timestamp INTEGER NOT NULL,
                 emotion TEXT DEFAULT 'neutral',
                 decay REAL DEFAULT 0.0,
@@ -85,9 +85,16 @@ export class MemoryManager {
         // Backwards compatibility: Add player_id if it doesn't exist.
         try {
             const columns = this.db.pragma('table_info(memories)') as { name: string }[];
-            if (columns.length > 0 && !columns.some(col => col.name === 'player_id')) {
-                console.log("MemoryManager: Old schema detected. Adding 'player_id' column to memories table for backward compatibility.");
-                this.db.exec("ALTER TABLE memories ADD COLUMN player_id TEXT DEFAULT ''");
+            if (columns.length > 0) {
+                if (!columns.some(col => col.name === 'player_id')) {
+                    console.log("MemoryManager: Old schema detected. Adding 'player_id' column to memories table for backward compatibility.");
+                    this.db.exec("ALTER TABLE memories ADD COLUMN player_id TEXT DEFAULT ''");
+                }
+                // Migration from 'vector' to 'embedding'
+                if (columns.some(col => col.name === 'vector') && !columns.some(col => col.name === 'embedding')) {
+                    console.log("MemoryManager: Old schema detected. Renaming 'vector' column to 'embedding'.");
+                    this.db.exec("ALTER TABLE memories RENAME COLUMN vector TO embedding");
+                }
             }
         } catch (error) {
             // If pragma fails, table likely doesn't exist yet, which is fine as it will be created correctly.
@@ -563,5 +570,61 @@ export class MemoryManager {
         if (denominator === 0) return 0;
 
         return dotProduct / denominator;
+    }
+
+    /**
+     * Efficiently inserts multiple memories in a single transaction.
+     * @param memories - An array of memory objects to insert.
+     */
+    public batchInsertMemories(memories: Memory[]): void {
+        if (!memories || memories.length === 0) {
+            return;
+        }
+
+        const insertStmt = this.db.prepare(`
+            INSERT OR REPLACE INTO memories (id, character_id, player_id, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        const insertVectorStmt = this.vecAvailable ? this.db.prepare(
+            'INSERT OR REPLACE INTO memory_vectors (memory_id, embedding) VALUES (?, ?)'
+        ) : null;
+
+        const insertMany = this.db.transaction((mems: Memory[]) => {
+            for (const memory of mems) {
+                const vectorBlob = this.vectorToBlob(memory.vector);
+                insertStmt.run(
+                    memory.id,
+                    memory.characterId,
+                    memory.playerId || '',
+                    memory.text,
+                    vectorBlob,
+                    memory.timestamp,
+                    memory.emotion || 'neutral',
+                    memory.decay || 0.0,
+                    memory.accessCount || 0,
+                    memory.lastAccessed || Date.now()
+                );
+
+                if (insertVectorStmt && memory.vector && memory.vector.length > 0) {
+                    insertVectorStmt.run(memory.id, vectorBlob);
+                }
+            }
+        });
+
+        try {
+            insertMany(memories);
+            console.log(`MemoryManager: Batch inserted ${memories.length} memories.`);
+        } catch (error) {
+            console.error('MemoryManager: Batch memory insert failed:', error);
+            // As a fallback, try inserting one by one to salvage what we can
+            for (const memory of memories) {
+                try {
+                    this.insertMemory(memory);
+                } catch (individualError) {
+                    console.error(`MemoryManager: Failed to insert individual memory ${memory.id}:`, individualError);
+                }
+            }
+        }
     }
 }
