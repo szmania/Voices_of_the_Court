@@ -653,6 +653,18 @@ app.on('ready',  async () => {
         });
     }
 
+    // Automatically import legacy memories for the current player on startup
+    if (config.userFolderPath) {
+        getPlayerId(userDataPath).then(playerInfo => {
+            if (playerInfo && playerInfo.playerId) {
+                console.log(`Startup: Found current player ID ${playerInfo.playerId}. Triggering legacy memory import.`);
+                importLegacyMemories(playerInfo.playerId);
+            }
+        }).catch(err => {
+            console.error('Startup: Could not determine player ID for automatic legacy import.', err);
+        });
+    }
+
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         const dialogOpts = {
             type: 'info' as const,
@@ -1039,6 +1051,67 @@ app.on('ready',  async () => {
             console.error('Error getting memory count:', error);
             return { success: false, error: error?.message || String(error) };
         }
+    });
+
+    // Function to handle the import logic, callable from multiple places
+    async function importLegacyMemories(playerId: string) {
+        try {
+            console.log(`Executing import of legacy memories for player ${playerId}`);
+            const currentConfig = config; // Use the global config object
+
+            // 1. Load all legacy compacted memories from JSON files
+            const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            if (!compactedMemories || compactedMemories.length === 0) {
+              console.log(`No legacy memories found for player ${playerId}. Import not needed.`);
+              return { success: true, count: 0, message: 'No legacy memories found to import.' };
+            }
+
+            // 2. Initialize the necessary tools
+            const localMemoryManager = new MemoryManager(userDataPath);
+            if (!currentConfig.embeddingApiConnectionConfig) {
+                throw new Error("Embedding API connection is not configured.");
+            }
+            const embeddingApi = new ApiConnection(currentConfig.embeddingApiConnectionConfig.connection, currentConfig.embeddingApiConnectionConfig.parameters, null);
+
+            // 3. Transform and vectorize the legacy memories
+            const memoriesToInsert: Memory[] = [];
+            for (const compacted of compactedMemories) {
+              try {
+                const embedding = await embeddingApi.embed(compacted.content);
+                memoriesToInsert.push({
+                  id: compacted.id,
+                  characterId: compacted.characterIds[0]?.toString() || '',
+                  playerId: playerId,
+                  text: compacted.content,
+                  vector: embedding,
+                  timestamp: compacted.creationTimestamp,
+                  emotion: 'neutral', // Legacy memories don't have emotion
+                  decay: 0,
+                  accessCount: 0,
+                  lastAccessed: Date.now(),
+                });
+              } catch (e) {
+                console.error(`Failed to generate embedding for legacy memory ${compacted.id}:`, e);
+              }
+            }
+
+            // 4. Batch insert into the new database
+            if (memoriesToInsert.length > 0) {
+              localMemoryManager.batchInsertMemories(memoriesToInsert);
+            }
+        
+            localMemoryManager.close();
+            console.log(`Finished importing ${memoriesToInsert.length} legacy memories for player ${playerId}.`);
+            return { success: true, count: memoriesToInsert.length };
+          } catch (error: any) {
+            console.error(`Failed to import legacy memories for player ${playerId}:`, error);
+            return { success: false, error: error.message };
+          }
+    }
+
+    ipcMain.handle('import-legacy-memories', async (event, playerId: string) => {
+        console.log(`IPC: Received request to import legacy memories for player ${playerId}`);
+        return await importLegacyMemories(playerId);
     });
 
     // Function to handle the import logic, callable from multiple places

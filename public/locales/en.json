@@ -26,16 +26,14 @@
     "settings_tooltip": "Adjust application and AI generation settings",
     "system_tooltip": "Manage system settings, updates, and data",
     "help_tooltip": "Open the help and documentation window",
-    "memory_constellation": "Memory Constellation",
-    "memory_constellation_tooltip": "Visualize character memories in 3D",
-    "memory_constellation.empty_title": "No Memories Found",
-    "memory_constellation.empty_subtitle": "Memories will appear here as your character experiences events in the game."
+    "memories": "Memories",
+    "memories_tooltip": "Visualize character memories in 3D"
   },
   "diaries": {
     "header": "Diaries",
     "description": "Manage diary entries for characters."
   },
-  "memory_constellation": {
+  "memories": {
     "empty_title": "No Memories Found",
     "empty_subtitle": "Memories will appear here as your character experiences events in the game."
   },
