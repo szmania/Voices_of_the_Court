@@ -30,6 +30,9 @@ import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
+import { MemoryManager, Memory } from '../memoryManager.js';
+import { CompactedMemory } from '../../shared/compactionTypes.js';
+import { ApiConnection, EmbeddingProvider } from '../../shared/apiConnection.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -1636,13 +1639,17 @@ Statement by ${character.fullName}:`
                 const result = await this.memoryCompactor.compact(this);
 
                 // After compaction, vectorize the new memories and insert them into the neural network.
-                if (result.newlyCompactedMemories && result.newlyCompactedMemories.length > 0 && this.embeddingApiConnection) {
+                if (result.newlyCompactedMemories && result.newlyCompactedMemories.length > 0 && this.config.embeddingApiConnectionConfig) {
                     console.log(`Vectorizing ${result.newlyCompactedMemories.length} new compacted memories.`);
                     const memoriesToInsert: Memory[] = [];
 
+                    const { connection } = this.config.embeddingApiConnectionConfig;
+                    const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key);
+
+
                     for (const compacted of result.newlyCompactedMemories) {
                         try {
-                            const embedding = await this.embeddingApiConnection.embed(compacted.content);
+                            const embedding = await embeddingProvider.embed(compacted.content);
                             const newMemory: Memory = {
                                 id: compacted.id,
                                 characterId: compacted.characterIds[0]?.toString() || '', // Primary character
