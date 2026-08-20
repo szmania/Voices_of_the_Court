@@ -72,6 +72,11 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
 
+                // Use the playerId and recipientId from the function arguments if they exist,
+                // as they are more reliable than the potentially swapped log values.
+                const finalSenderId = playerId || senderIdFromLog;
+                const finalRecipientId = recipientId || recipientIdFromLog;
+
                 // Parse triggered actions from remaining parts (parts[6+])
                 // Format: signature:arg1,arg2,...:triggerOn
                 const triggeredActions: any[] = [];
@@ -92,13 +97,13 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     }
                 }
 
-                if (content && letterId && senderIdFromLog && recipientIdFromLog) {
-                    const sender = gameData.characters.get(Number(senderIdFromLog));
-                    const recipient = gameData.characters.get(Number(recipientIdFromLog));
+                if (content && letterId && finalSenderId && finalRecipientId) {
+                    const sender = gameData.characters.get(Number(finalSenderId));
+                    const recipient = gameData.characters.get(Number(finalRecipientId));
 
                     if (sender && recipient) {
-                        const correctedGameDate = totalDaysToDateString(gameData.totalDays);
-                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
+                        const letterGameDate = totalDaysToDateString(writtenDateInDays);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, letterGameDate, delay, writtenDateInDays);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
                             if (letter.associatedAction?.triggerOn === 'receive') {
@@ -106,10 +111,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                             }
                             letters.push(letter);
                             // The player is the sender of the letter being imported from the log
-                            LetterManager.getInstance().saveLetter(letter, senderIdFromLog);
+                            LetterManager.getInstance().saveLetter(letter, finalSenderId);
                         }
                     } else {
-                        console.error(`Could not find sender (${senderIdFromLog}) or recipient (${recipientIdFromLog}) in gameData for letter.`);
+                        console.error(`Could not find sender (${finalSenderId}) or recipient (${finalRecipientId}) in gameData for letter.`);
                     }
                 }
             }
