@@ -278,6 +278,7 @@ function renderStatusSummary() {
 
         statusItem.addEventListener('click', () => {
             statusFilter = status as any;
+            cachedLetterPairs = null;
             renderStatusSummary(); // Re-render summary to update selection
             renderLetters(); // Re-render letters with new filter
         });
@@ -1035,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
+        cachedLetterPairs = null;
         renderLetters();
         renderStatusSummary(); // Update status counts to reflect character filter
     });
