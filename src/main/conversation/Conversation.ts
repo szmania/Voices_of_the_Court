@@ -266,6 +266,38 @@ export class Conversation{
                 parameters: {}
             };
         }
+        if (!this.config.summarizationApiConnectionConfig) {
+            console.error("CRITICAL: summarizationApiConnectionConfig is missing from config! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.summarizationApiConnectionConfig = {
+                connection: {
+                    type: 'custom',
+                    baseUrl: '',
+                    key: '',
+                    model: '',
+                    apiKeys: {},
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
+        if (!this.config.actionsApiConnectionConfig) {
+            console.error("CRITICAL: actionsApiConnectionConfig is missing from config! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.actionsApiConnectionConfig = {
+                connection: {
+                    type: 'custom',
+                    baseUrl: '',
+                    key: '',
+                    model: '',
+                    apiKeys: {},
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
         this.textGenApiConnection = new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.textGenerationApiConnectionConfig.parameters, this.encoder);
         this.summarizationApiConnection = this.config.summarizationUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.summarizationApiConnectionConfig.parameters, this.encoder)
@@ -1935,6 +1967,38 @@ Statement by ${character.fullName}:`
         if (!this.config.textGenerationApiConnectionConfig) {
             console.error("CRITICAL: textGenerationApiConnectionConfig is missing from config in loadConfig! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
             this.config.textGenerationApiConnectionConfig = {
+                connection: {
+                    type: 'custom',
+                    baseUrl: '',
+                    key: '',
+                    model: '',
+                    apiKeys: {},
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
+        if (!this.config.summarizationApiConnectionConfig) {
+            console.error("CRITICAL: summarizationApiConnectionConfig is missing from config in loadConfig! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.summarizationApiConnectionConfig = {
+                connection: {
+                    type: 'custom',
+                    baseUrl: '',
+                    key: '',
+                    model: '',
+                    apiKeys: {},
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
+        if (!this.config.actionsApiConnectionConfig) {
+            console.error("CRITICAL: actionsApiConnectionConfig is missing from config in loadConfig! A dummy object has been created to prevent a crash, but the configuration is likely invalid.");
+            this.config.actionsApiConnectionConfig = {
                 connection: {
                     type: 'custom',
                     baseUrl: '',
