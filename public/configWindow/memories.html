@@ -91,37 +91,72 @@
 
         <div id="mc-statusMessage" class="status-message"></div>
 
-        <div class="border" id="compaction-settings" style="margin-top: 20px;">
-            <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
-            <p data-i18n="settings.memory_compaction_desc">Automatically compresses conversation history to save context space while preserving key narrative details.</p>
-            <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable" data-i18n-title="settings.memory_compaction_enable_tooltip"></config-checkbox>
-            
-            <div class="compaction-progress-container" data-i18n-title="settings.compaction_context_usage_tooltip">
-                <div id="compaction-phase1-line" class="compaction-phase1-line"></div>
-                <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
-                <span id="compaction-phase1-label" class="compaction-phase1-label"></span>
-            </div>
-            <div class="compaction-progress-labels">
-                <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
-            </div>
+    </div>
 
-            <div>
-                <span data-i18n="settings.compaction_status_label">Status:</span>
-                <span id="compaction-status-display" style="color: #888;">Disabled</span>
-            </div>
-            <div>
-                <span id="compaction-phase1-count">Phase 1 Summaries: 0 / 5</span>
-            </div>
-            <div>
-                <span id="compaction-last-result" style="color: #aaa; font-size: 0.8em;"></span>
-            </div>
-            <br>
-            
-            <button id="manual-compaction-trigger" class="btn" data-i18n="settings.manual_compaction_button" data-i18n-title="settings.manual_compaction_tooltip">Run Compaction Now</button>
-            <hr>
-            <button id="export-player-data" class="btn" data-i18n="settings.export_player_data_button" data-i18n-title="settings.export_player_data_tooltip">Export Player Data</button>
-            <button id="import-player-data" class="btn" data-i18n="settings.import_player_data_button" data-i18n-title="settings.import_player_data_tooltip">Import Player Data</button>
+    <div class="border" id="compaction-settings" style="margin-top: 20px;">
+        <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+        <p data-i18n="settings.memory_compaction_desc">Automatically compresses conversation history to save context space while preserving key narrative details.</p>
+        
+        <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable" data-i18n-title="settings.memory_compaction_enable_tooltip"></config-checkbox>
+        
+        <div class="compaction-progress-container" data-i18n-title="settings.compaction_context_usage_tooltip">
+            <div id="compaction-phase1-line" class="compaction-phase1-line"></div>
+            <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
+            <span id="compaction-phase1-label" class="compaction-phase1-label"></span>
         </div>
+        <div class="compaction-progress-labels">
+            <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
+        </div>
+
+        <div>
+            <span data-i18n="settings.compaction_status_label">Status:</span>
+            <span id="compaction-status-display" style="color: #888;">Disabled</span>
+        </div>
+        <div>
+            <span id="compaction-phase1-count">Phase 1 Summaries: 0 / 5</span>
+        </div>
+        <div>
+            <span id="compaction-last-result" style="color: #aaa; font-size: 0.8em;"></span>
+        </div>
+        <br>
+        
+        <button id="manual-compaction-trigger" class="btn" data-i18n="settings.manual_compaction_button" data-i18n-title="settings.manual_compaction_tooltip">Run Compaction Now</button>
+        <hr>
+        
+        <div class="row">
+            <div class="column">
+                <label data-i18n="settings.phase1_threshold_title" data-i18n-title="settings.phase1_threshold_tooltip"></label>
+                <p data-i18n="settings.phase1_threshold_desc" class="setting-description"></p>
+                <config-slider confID="compactionPhase1Threshold" min="30" max="95" step="5"></config-slider>
+            </div>
+            <div class="column">
+                <label data-i18n="settings.phase2_threshold_title" data-i18n-title="settings.phase2_threshold_tooltip"></label>
+                <p data-i18n="settings.phase2_threshold_desc" class="setting-description"></p>
+                <config-number confID="compactionPhase2Threshold" min="2" max="50" step="1"></config-number>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="column">
+                <label data-i18n="settings.cooldown_title" data-i18n-title="settings.cooldown_tooltip"></label>
+                <p data-i18n="settings.cooldown_desc" class="setting-description"></p>
+                <config-number confID="compactionCooldownMinutes" min="0" max="60" step="1"></config-number>
+            </div>
+            <div class="column">
+                <label data-i18n="settings.entity_extraction_title" data-i18n-title="settings.entity_extraction_tooltip"></label>
+                <p data-i18n="settings.entity_extraction_desc" class="setting-description"></p>
+                <config-select confID="compactionEntityExtractionMode" options='["hybrid", "llm", "regex"]'></config-select>
+            </div>
+        </div>
+        <hr>
+        <div class="input-group">
+            <label data-i18n="settings.priority_elements_title" data-i18n-title="settings.priority_elements_tooltip"></label>
+            <p data-i18n="settings.priority_elements_desc" class="setting-description"></p>
+            <config-textarea confID="compactionPriorityElements" rows="3"></config-textarea>
+        </div>
+        <hr>
+        <button id="export-player-data" class="btn" data-i18n="settings.export_player_data_button" data-i18n-title="settings.export_player_data_tooltip">Export Player Data</button>
+        <button id="import-player-data" class="btn" data-i18n="settings.import_player_data_button" data-i18n-title="settings.import_player_data_tooltip">Import Player Data</button>
     </div>
     
     <script>require("../../dist/shared/LocalizationManager.js")</script>
