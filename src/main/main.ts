@@ -2036,12 +2036,12 @@ ipcMain.on('approve-letter-action', async (event, { letterId, actionSignature, a
             throw new Error('Could not parse gameData to execute letter action.');
         }
 
-        const runFileManager = new RunFileManager(config.userFolderPath);
+        const letterRunFileManager = new RunFileManager(config.userFolderPath);
         let effectBody = "";
         action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
 
-        ActionEffectWriter.writeEffect(runFileManager, gameData, sourceId, targetId, effectBody);
-        runFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
+        ActionEffectWriter.writeEffect(letterRunFileManager, gameData, sourceId, targetId, effectBody);
+        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
 
         console.log(`Approved letter action '${actionSignature}' executed successfully.`);
         event.sender.send('letter-action-approved', { letterId, actionSignature });
