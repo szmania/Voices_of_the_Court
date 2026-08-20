@@ -80,7 +80,21 @@ export class MemoryManager {
                 access_count INTEGER DEFAULT 0,
                 last_accessed INTEGER DEFAULT 0
             );
+        `);
 
+        // Backwards compatibility: Add player_id if it doesn't exist.
+        try {
+            const columns = this.db.pragma('table_info(memories)') as { name: string }[];
+            if (columns.length > 0 && !columns.some(col => col.name === 'player_id')) {
+                console.log("MemoryManager: Old schema detected. Adding 'player_id' column to memories table for backward compatibility.");
+                this.db.exec("ALTER TABLE memories ADD COLUMN player_id TEXT DEFAULT ''");
+            }
+        } catch (error) {
+            // If pragma fails, table likely doesn't exist yet, which is fine as it will be created correctly.
+            console.warn("MemoryManager: Could not check schema, proceeding with index creation.", error);
+        }
+
+        this.db.exec(`
             CREATE INDEX IF NOT EXISTS idx_memories_character
                 ON memories(character_id);
 
