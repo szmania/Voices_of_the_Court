@@ -2009,6 +2009,54 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     }
 });
 
+ipcMain.on('approve-letter-action', async (event, { letterId, actionSignature, args, sourceId, targetId }) => {
+    console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
+    try {
+        const allActions: any[] = [];
+        const actionsPath = path.join(userDataPath, 'scripts', 'actions');
+        const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
+        const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
+
+        for(const file of standardActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'standard', file))];
+            allActions.push(require(path.join(actionsPath, 'standard', file)));
+        }
+        for(const file of customActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'custom', file))];
+            allActions.push(require(path.join(actionsPath, 'custom', file)));
+        }
+
+        const action = allActions.find(a => a.signature === actionSignature);
+        if (!action) {
+            throw new Error(`Action with signature '${actionSignature}' not found.`);
+        }
+
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            throw new Error('Could not parse gameData to execute letter action.');
+        }
+
+        const runFileManager = new RunFileManager(config.userFolderPath);
+        let effectBody = "";
+        action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
+
+        ActionEffectWriter.writeEffect(runFileManager, gameData, sourceId, targetId, effectBody);
+        runFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
+
+        console.log(`Approved letter action '${actionSignature}' executed successfully.`);
+        event.sender.send('letter-action-approved', { letterId, actionSignature });
+
+    } catch (e: any) {
+        const errMsg = `Failed to execute approved letter action: ${e.message}`;
+        console.error(errMsg);
+        event.sender.send('error-message', errMsg);
+    }
+});
+
+ipcMain.on('deny-letter-action', (event, { letterId, actionSignature }) => {
+    console.log(`User denied letter action '${actionSignature}' for letter ${letterId}.`);
+    event.sender.send('letter-action-denied', { letterId, actionSignature });
+});
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');

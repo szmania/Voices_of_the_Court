@@ -197,6 +197,7 @@ let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
 let manualLetterActionApprovalInLetters = false;
+let manualLetterActionApprovalInLetters = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
 // Used by renderStatusSummary() to show counts that match the displayed letter list.
 let currentFilteredLetters: Letter[] = [];
@@ -226,11 +227,13 @@ const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
         // @ts-ignore
         let language = lang;
+        // @ts-ignore
+        const config = await ipcRenderer.invoke('get-config');
         if (!language) {
-            // @ts-ignore
-            const config = await ipcRenderer.invoke('get-config');
             language = config.language || 'en';
         }
+        manualLetterActionApproval = config.manualLetterActionApproval;
+        manualLetterActionApprovalInLetters = config.manualLetterActionApprovalInLetters;
         // @ts-ignore
         await window.LocalizationManager.loadTranslations(language);
         // @ts-ignore
@@ -692,24 +695,82 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
         noActionsSpan.textContent = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
         section.appendChild(noActionsSpan);
     } else {
-        const list = document.createElement('ul');
-        list.className = 'triggered-actions-list';
+        if (manualLetterActionApprovalInLetters) {
+            const approvalContainer = document.createElement('div');
+            approvalContainer.classList.add('action-approval-container');
 
-        for (const action of letter.triggeredActions) {
-            const item = document.createElement('li');
-            item.className = 'triggered-action-item';
+            letter.triggeredActions.forEach(action => {
+                const actionPrompt = document.createElement('div');
+                actionPrompt.classList.add('action-prompt');
+                actionPrompt.id = `action-prompt-${letter.id}-${action.signature}`;
 
-            const signature = (action && action.signature) || 'Unknown Action';
-            const triggerOn = (action && action.triggerOn) || 'unknown';
-            // @ts-ignore
-            const signatureLabel = window.LocalizationManager.getTranslation('letters.action_signature', 'Action');
-            // @ts-ignore
-            const triggerLabel = window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger');
-            
-            item.textContent = `${signatureLabel}: ${signature} (${triggerLabel}: ${triggerOn})`;
-            list.appendChild(item);
+                const text = document.createElement('span');
+                text.textContent = action.signature; // Or a more descriptive message
+
+                const buttons = document.createElement('div');
+                buttons.classList.add('action-buttons');
+
+                const approveButton = document.createElement('button');
+                approveButton.setAttribute('data-i18n', 'letters.approve_action');
+                // @ts-ignore
+                approveButton.textContent = window.LocalizationManager.getTranslation('letters.approve_action', 'Approve');
+                approveButton.classList.add('action-approve-button');
+                // @ts-ignore
+                approveButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_approve_tooltip', 'Approve this action...'));
+
+                approveButton.onclick = () => {
+                    ipcRenderer.send('approve-letter-action', {
+                        letterId: letter.id,
+                        actionSignature: action.signature,
+                        args: action.args,
+                        sourceId: letter.sender.id,
+                        targetId: letter.recipient.id
+                    });
+                    // @ts-ignore
+                    actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature)}</span>`;
+                };
+
+                const denyButton = document.createElement('button');
+                denyButton.setAttribute('data-i18n', 'letters.deny_action');
+                 // @ts-ignore
+                denyButton.textContent = window.LocalizationManager.getTranslation('letters.deny_action', 'Deny');
+                denyButton.classList.add('action-decline-button');
+                 // @ts-ignore
+                denyButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...'));
+
+                denyButton.onclick = () => {
+                    ipcRenderer.send('deny-letter-action', { letterId: letter.id, actionSignature: action.signature });
+                     // @ts-ignore
+                    actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature)}</span>`;
+                };
+
+                buttons.appendChild(approveButton);
+                buttons.appendChild(denyButton);
+                actionPrompt.appendChild(text);
+                actionPrompt.appendChild(buttons);
+                approvalContainer.appendChild(actionPrompt);
+            });
+            section.appendChild(approvalContainer);
+        } else {
+            const list = document.createElement('ul');
+            list.className = 'triggered-actions-list';
+
+            for (const action of letter.triggeredActions) {
+                const item = document.createElement('li');
+                item.className = 'triggered-action-item';
+
+                const signature = (action && action.signature) || 'Unknown Action';
+                const triggerOn = (action && action.triggerOn) || 'unknown';
+                // @ts-ignore
+                const signatureLabel = window.LocalizationManager.getTranslation('letters.action_signature', 'Action');
+                // @ts-ignore
+                const triggerLabel = window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger');
+
+                item.textContent = `${signatureLabel}: ${signature} (${triggerLabel}: ${triggerOn})`;
+                list.appendChild(item);
+            }
+            section.appendChild(list);
         }
-        section.appendChild(list);
     }
 
     container.appendChild(section);
