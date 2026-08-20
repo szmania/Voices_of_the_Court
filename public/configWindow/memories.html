@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
+    <link rel="stylesheet" href="config.css" />
+    <link rel="stylesheet" href="../chatWindow/theme.css" />
+    <style>
+      .info-panel {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .info-item {
+        flex: 1;
+        min-width: 0;
+      }
+      .info-item label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .info-item select {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 4px;
+        border: 1px solid #5a4a35;
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+        font-size: 14px;
+      }
+      .status-message {
+        padding: 8px 12px;
+        margin-top: 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        display: none;
+      }
+      .status-message.show {
+        display: block;
+      }
+      .status-message.info {
+        background-color: #1a3a5c;
+        color: #8ab4f8;
+        border: 1px solid #2a5a8c;
+      }
+      .status-message.error {
+        background-color: #5c1a1a;
+        color: #f88a8a;
+        border: 1px solid #8c2a2a;
+      }
+      .status-message.success {
+        background-color: #1a5c1a;
+        color: #8af88a;
+        border: 1px solid #2a8c2a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <ul>
+        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+        <li><a href="summarization.html" data-i18n="nav.summarization" data-i18n-title="nav.summarization_tooltip">Summarization</a></li>
+        <li class="active"><a href="memories.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts" data-i18n-title="nav.prompts_tooltip">Prompts</a></li>
+        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <language-selector></language-selector>
+      </ul>
+    </div>
+
+    <div class="container" id="container">
+
+        <div class="info-panel">
+            <div class="info-item">
+                <label for="mc-playerIdSelect" data-i18n="summary_manager.player_id">Player ID:</label>
+                <select id="mc-playerIdSelect" data-i18n-title="summary_manager.tooltip_player_id"></select>
+            </div>
+            <div class="info-item">
+                <label for="mc-characterSelect" data-i18n="summary_manager.select_character">Select Character:</label>
+                <select id="mc-characterSelect" data-i18n-title="summary_manager.tooltip_character">
+                    <option value="all" data-i18n="summary_manager.all_characters">All Characters</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="mc-statusMessage" class="status-message"></div>
+
+        <div class="border" id="compaction-settings" style="margin-top: 20px;">
+            <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+            <p data-i18n="settings.memory_compaction_desc">Automatically compresses conversation history to save context space while preserving key narrative details.</p>
+            <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable" data-i18n-title="settings.memory_compaction_enable_tooltip"></config-checkbox>
+            
+            <div class="compaction-progress-container" data-i18n-title="settings.compaction_context_usage_tooltip">
+                <div id="compaction-phase1-line" class="compaction-phase1-line"></div>
+                <div id="compaction-progress-bar" class="compaction-progress-bar" style="width: 0%;"></div>
+                <span id="compaction-phase1-label" class="compaction-phase1-label"></span>
+            </div>
+            <div class="compaction-progress-labels">
+                <span id="compaction-context-usage-text">0 / 8192 tokens (0%)</span>
+            </div>
+
+            <div>
+                <span data-i18n="settings.compaction_status_label">Status:</span>
+                <span id="compaction-status-display" style="color: #888;">Disabled</span>
+            </div>
+            <div>
+                <span id="compaction-phase1-count">Phase 1 Summaries: 0 / 5</span>
+            </div>
+            <div>
+                <span id="compaction-last-result" style="color: #aaa; font-size: 0.8em;"></span>
+            </div>
+            <br>
+            
+            <button id="manual-compaction-trigger" class="btn" data-i18n="settings.manual_compaction_button" data-i18n-title="settings.manual_compaction_tooltip">Run Compaction Now</button>
+            <hr>
+            <button id="export-player-data" class="btn" data-i18n="settings.export_player_data_button" data-i18n-title="settings.export_player_data_tooltip">Export Player Data</button>
+            <button id="import-player-data" class="btn" data-i18n="settings.import_player_data_button" data-i18n-title="settings.import_player_data_tooltip">Import Player Data</button>
+        </div>
+    </div>
+    
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/components/MemoryConstellation.js")</script>
+    <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
+    <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
+    <script>require("../../dist/configWindow/components/ConfigSelect.js")</script>
+    <script>require("../../dist/configWindow/components/ConfigMultiselect.js")</script>
+    <script>require("../../dist/configWindow/components/tooltip.js")</script>
+    <script>require("../../dist/configWindow/memoryConstellationRenderer.js")</script>
+    
+    <script>
+      // Add help menu click event
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
