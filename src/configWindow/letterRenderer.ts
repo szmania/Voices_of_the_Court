@@ -200,7 +200,7 @@ let manualLetterActionApprovalInLetters = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
 // Used by renderStatusSummary() to show counts that match the displayed letter list.
 let currentFilteredLetters: Letter[] = [];
-let countdown = 10;
+let countdown = 20;
 let refreshInterval: NodeJS.Timeout;
 
 function renderTriggeredActionsListForListItem(letter: Letter | undefined): string {
@@ -1026,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const refreshLetters = async (isAuto = false) => {
         if (!isAuto) { // Manual refresh resets the timer
             clearInterval(refreshInterval);
-            countdown = 10;
+            countdown = 20;
             startInterval();
         }
 
@@ -1087,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 refreshCountdownEl.textContent = refreshText;
             }
             if (countdown <= 0) {
-                countdown = 10;
+                countdown = 20;
                 refreshLetters(true);
             }
         }, 1000);
