@@ -826,7 +826,8 @@
     "action_deny_tooltip": "Deny this action. It will not be executed.",
     "action_approved": "Action approved: {signature}",
     "action_denied": "Action denied: {signature}",
-    "refreshing_in": "Refreshing in {seconds}s..."
+    "refreshing_in": "Refreshing in {seconds}s...",
+    "no_actions_triggered": "No actions triggered."
   },
   "history": {
     "header": "Conversation History Viewer",

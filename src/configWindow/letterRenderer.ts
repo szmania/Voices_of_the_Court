@@ -203,6 +203,25 @@ let currentFilteredLetters: Letter[] = [];
 let countdown = 10;
 let refreshInterval: NodeJS.Timeout;
 
+function renderTriggeredActionsListForListItem(letter: Letter | undefined): string {
+    if (!letter || !letter.triggeredActions || letter.triggeredActions.length === 0) {
+        // @ts-ignore
+        const noActionsText = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
+        return `<div class="letter-item-actions">${noActionsText}</div>`;
+    }
+
+    const actionItems = letter.triggeredActions.map(action => `<li>${action.signature}</li>`).join('');
+    // @ts-ignore
+    const headerText = window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions');
+
+    return `
+        <div class="letter-item-actions">
+            <strong>${headerText}:</strong>
+            <ul>${actionItems}</ul>
+        </div>
+    `;
+}
+
 const initLocalization = async (lang?: string) => {
     if (window.LocalizationManager) {
         // @ts-ignore
@@ -561,14 +580,16 @@ cachedLetterPairs = letterPairs;
             if (status) {
                 statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
+            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.received);
             receivedHtml = `
                 <div class="letter-item received" data-letter-id="${pair.received.id}">
                     <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.received.sender.shortName}</span>
+                        <span class="letter-item-party">From: ${pair.received.sender.shortName} To: ${pair.received.recipient.shortName}</span>
                         <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.received.subject}</div>
                     ${statusHtml}
+                    ${triggeredActionsHtml}
                 </div>
             `;
         }
@@ -581,14 +602,16 @@ cachedLetterPairs = letterPairs;
                 const journeyHtml = renderJourneyTimeline(status);
                 statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
             }
+            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.sent);
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
                     <div class="letter-item-header">
-                        <span class="letter-item-party">To: ${pair.sent.recipient.shortName}</span>
+                        <span class="letter-item-party">From: ${pair.sent.sender.shortName} To: ${pair.sent.recipient.shortName}</span>
                         <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.sent.subject}</div>
                     ${statusHtml}
+                    ${triggeredActionsHtml}
                 </div>
             `;
         } else {
