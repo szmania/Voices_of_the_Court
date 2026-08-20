@@ -515,16 +515,18 @@ const lettersToDisplay = characterFilteredLetters;
         letterPairs.sort((a, b) => {
             const getTimestamp = (letter: Letter | undefined) => {
                 if (!letter) return 0;
-                // @ts-ignore
-                return sortMode === 'gameDate'
-                    ? new Date(letter.timestamp).getTime()
-                    // @ts-ignore
-                    : new Date(letter.creationTimestamp || letter.timestamp).getTime();
+                const ts = sortMode === 'gameDate'
+                    ? new Date(letter.timestamp)
+                    : new Date(letter.creationTimestamp || letter.timestamp);
+                // Return 0 for invalid dates to avoid sorting errors
+                return isNaN(ts.getTime()) ? 0 : ts.getTime();
             };
 
-            const timeA = getTimestamp(a.sent || a.received);
-            const timeB = getTimestamp(b.sent || b.received);
-            return timeB - timeA;
+            // Get the latest timestamp from each pair to sort by the most recent activity
+            const timeA = Math.max(getTimestamp(a.sent), getTimestamp(a.received));
+            const timeB = Math.max(getTimestamp(b.sent), getTimestamp(b.received));
+
+            return timeB - timeA; // Sort descending
         });
 
 cachedLetterPairs = letterPairs;
@@ -1000,6 +1002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     sortSelect.addEventListener('change', () => {
         sortMode = sortSelect.value as 'gameDate' | 'realDate';
+        cachedLetterPairs = null;
         renderLetters();
     });
 
