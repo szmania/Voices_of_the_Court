@@ -8,7 +8,6 @@ import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { LetterManager } from '../letter/LetterManager.js';
 import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
-import { ApiConnection} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
 import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts, convertMessagesToString} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
