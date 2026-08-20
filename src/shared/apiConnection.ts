@@ -907,7 +907,20 @@ export class ApiConnection{
         return sum;
     }
 
-
+    async embed(text: string): Promise<number[]> {
+        // This method acts as a proxy to the EmbeddingProvider, using the connection's own config.
+        // This is necessary because other parts of the app use ApiConnection for all remote calls.
+        if (!this.config || !this.config.type || !this.config.model || !this.config.baseUrl) {
+            throw new Error("ApiConnection is not configured for embedding.");
+        }
+        const provider = new EmbeddingProvider(
+            this.config.type as EmbeddingProviderType,
+            this.config.model,
+            this.config.baseUrl,
+            this.config.key
+        );
+        return provider.embed(text);
+    }
 }
 
 // --- Embedding Provider ---
