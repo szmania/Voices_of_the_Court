@@ -584,7 +584,7 @@ cachedLetterPairs = letterPairs;
             receivedHtml = `
                 <div class="letter-item received" data-letter-id="${pair.received.id}">
                     <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.received.sender.shortName} To: ${pair.received.recipient.shortName}</span>
+                        <span class="letter-item-party">From: ${pair.received.sender.shortName}<br>To: ${pair.received.recipient.shortName}</span>
                         <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.received.subject}</div>
@@ -606,7 +606,7 @@ cachedLetterPairs = letterPairs;
             sentHtml = `
                 <div class="letter-item sent" data-letter-id="${pair.sent.id}">
                     <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.sent.sender.shortName} To: ${pair.sent.recipient.shortName}</span>
+                        <span class="letter-item-party">From: ${pair.sent.sender.shortName}<br>To: ${pair.sent.recipient.shortName}</span>
                         <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
                     </div>
                     <div class="letter-item-subject">${pair.sent.subject}</div>
