@@ -7,6 +7,7 @@ import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
 import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow';
 import { Config } from '../shared/Config';
 import { DiaryGenerator } from './diary/DiaryGenerator';
+import { RunFileManager } from './RunFileManager.js';
 import { ClipboardListener } from "./ClipboardListener";
 import { Conversation } from "./conversation/Conversation";
 import { GameData } from "../shared/gameData/GameData";
