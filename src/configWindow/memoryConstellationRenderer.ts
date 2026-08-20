@@ -56,28 +56,6 @@ async function init() {
         });
     }
 
-    // Add event listener for the import button
-    const importBtn = document.getElementById('import-legacy-button');
-    importBtn?.addEventListener('click', async () => {
-        if (!selectedPlayerId) {
-            showStatusMessage('Please select a player ID before importing.', 'error');
-            return;
-        }
-        showStatusMessage('Starting import of legacy compacted memories... This may take a moment.', 'info');
-        try {
-            const result = await ipcRenderer.invoke('import-legacy-memories', selectedPlayerId);
-            if (result.success) {
-                showStatusMessage(`Successfully imported ${result.count} legacy memories. Reloading constellation.`, 'success');
-                // Refresh the view to show the newly imported memories
-                updateMemoryConstellation();
-            } else {
-                showStatusMessage(`Import failed: ${result.error}`, 'error');
-            }
-        } catch (e: any) {
-            showStatusMessage(`An error occurred during import: ${e.message}`, 'error');
-        }
-    });
-
     // Apply initial theme
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
