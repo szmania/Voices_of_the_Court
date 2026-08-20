@@ -88,6 +88,149 @@ async function init() {
 
     // Load player IDs and populate dropdowns
     await loadPlayerIds();
+
+    const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
+    if (manualCompactionBtn) {
+        manualCompactionBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            ipcRenderer.send('manual-compaction-trigger');
+        });
+    }
+
+    const exportBtn = document.getElementById('export-player-data');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const result = await ipcRenderer.invoke('export-player-data');
+            if (result.success) {
+                console.log('Player data exported to:', result.filePath);
+            } else {
+                console.error('Export failed:', result.error);
+            }
+        });
+    }
+
+    const importBtn = document.getElementById('import-player-data');
+    if (importBtn) {
+        importBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const result = await ipcRenderer.invoke('import-player-data');
+            if (result.success) {
+                console.log('Player data imported from:', result.filePath);
+            } else {
+                console.error('Import failed:', result.error);
+            }
+        });
+    }
+
+    let statusPollInterval: NodeJS.Timeout | null = null;
+
+    async function updateCompactionStatus() {
+        try {
+            const status = await ipcRenderer.invoke('get-compaction-status');
+            const progressBar = document.getElementById('compaction-progress-bar') as HTMLDivElement;
+            const phase1Line = document.getElementById('compaction-phase1-line') as HTMLDivElement;
+            const usageText = document.getElementById('compaction-context-usage-text') as HTMLSpanElement;
+            const statusDisplay = document.getElementById('compaction-status-display') as HTMLSpanElement;
+            const lastResult = document.getElementById('compaction-last-result') as HTMLSpanElement;
+            const phase1Count = document.getElementById('compaction-phase1-count') as HTMLSpanElement;
+
+            if (progressBar) {
+                const pct = Math.min(status.contextUsagePct, 100);
+                progressBar.style.width = `${pct}%`;
+                progressBar.className = 'compaction-progress-bar';
+                if (pct >= status.phase1ThresholdPct) {
+                    progressBar.classList.add('danger');
+                } else if (pct >= status.phase1ThresholdPct * 0.85) {
+                    progressBar.classList.add('warning');
+                }
+            }
+            if (phase1Line) {
+                phase1Line.style.left = `${status.phase1ThresholdPct}%`;
+            }
+            const phase1Label = document.getElementById('compaction-phase1-label') as HTMLSpanElement;
+            if (phase1Label) {
+                phase1Label.style.left = `${status.phase1ThresholdPct}%`;
+                // @ts-ignore
+                const thresholdText = window.LocalizationManager ? window.LocalizationManager.getTranslation('settings.compaction_phase1_threshold_label', 'Threshold') : 'Threshold';
+                phase1Label.textContent = `${thresholdText} (${status.phase1ThresholdPct}%)`;
+            }
+            if (usageText) {
+                usageText.textContent = `${status.tokenCount} / ${status.contextSize} tokens (${status.contextUsagePct}%)`;
+            }
+            if (statusDisplay) {
+                // @ts-ignore
+                const t = (key, def) => window.LocalizationManager?.getTranslation(key, def) || def;
+                if (status.isCompacting) {
+                    statusDisplay.textContent = t('settings.compaction_status_running', 'Compacting...');
+                    statusDisplay.style.color = '#3498db';
+                } else if (!status.enableCompaction) {
+                    statusDisplay.textContent = 'Disabled';
+                    statusDisplay.style.color = '#888';
+                } else if (status.cooldownRemaining > 0) {
+                    const secs = Math.ceil(status.cooldownRemaining / 1000);
+                    statusDisplay.textContent = `Cooldown (${secs}s remaining)`;
+                    statusDisplay.style.color = '#ffab00';
+                } else {
+                    statusDisplay.textContent = t('settings.compaction_status_idle', 'Idle');
+                    statusDisplay.style.color = '#4caf50';
+                }
+            }
+            if (phase1Count) {
+                // @ts-ignore
+                const label = window.LocalizationManager?.getTranslation('settings.compaction_phase1_summaries', 'Phase 1 Summaries:') || 'Phase 1 Summaries:';
+                phase1Count.textContent = `${label} ${status.phase1SummaryCount} / ${status.phase2Threshold}`;
+            }
+            if (lastResult) {
+                lastResult.textContent = '';
+            }
+        } catch (err) {
+            // Silently ignore
+        }
+    }
+
+    ipcRenderer.on('compaction-status-update', (event, result) => {
+        const statusDisplay = document.getElementById('compaction-status-display') as HTMLSpanElement;
+        const lastResult = document.getElementById('compaction-last-result') as HTMLSpanElement;
+        if (statusDisplay) {
+            if (result.error) {
+                statusDisplay.textContent = 'Error';
+                statusDisplay.style.color = '#f44336';
+            } else {
+                statusDisplay.textContent = 'Completed';
+                statusDisplay.style.color = '#4caf50';
+                setTimeout(updateCompactionStatus, 2000);
+            }
+        }
+        if (lastResult) {
+            if (result.error) {
+                lastResult.textContent = `Failed: ${result.error}`;
+                lastResult.style.color = '#f44336';
+            } else {
+                lastResult.textContent = `Last: Phase1=${result.phase1Run ? 'Yes' : 'No'}, Phase2=${result.phase2Run ? 'Yes' : 'No'}, Memories=${result.memoriesCreated}`;
+                lastResult.style.color = '#aaa';
+            }
+        }
+    });
+
+    function startCompactionPolling() {
+        updateCompactionStatus();
+        statusPollInterval = setInterval(updateCompactionStatus, 3000);
+    }
+    function stopCompactionPolling() {
+        if (statusPollInterval) {
+            clearInterval(statusPollInterval);
+            statusPollInterval = null;
+        }
+    }
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopCompactionPolling();
+        } else {
+            startCompactionPolling();
+        }
+    });
+    startCompactionPolling();
 }
 
 function setupFilterDropdowns() {
