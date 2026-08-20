@@ -673,11 +673,6 @@ cachedLetterPairs = letterPairs;
     }
 }
 function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): void {
-    // Guard: no triggered actions or empty array — nothing to render
-    if (!letter.triggeredActions || !Array.isArray(letter.triggeredActions) || letter.triggeredActions.length === 0) {
-        return;
-    }
-
     const section = document.createElement('div');
     section.className = 'triggered-actions-section';
 
@@ -685,42 +680,38 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
     const header = document.createElement('h4');
     header.setAttribute('data-i18n', 'letters.triggered_actions');
     // @ts-ignore
-    header.textContent = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions') || 'Triggered Actions';
+    header.textContent = window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions');
     section.appendChild(header);
 
-    const list = document.createElement('ul');
-    list.className = 'triggered-actions-list';
-
-    for (const action of letter.triggeredActions) {
-        const item = document.createElement('li');
-        item.className = 'triggered-action-item';
-
-        // Handle malformed action objects gracefully
-        const signature = (action && action.signature) || 'Unknown Action';
-        const triggerOn = (action && action.triggerOn) || 'unknown';
-
-        // Action signature label
-        const signatureSpan = document.createElement('span');
-        signatureSpan.className = 'triggered-action-signature';
-        signatureSpan.setAttribute('data-i18n', 'letters.action_signature');
+    // Show actions or "no actions" message
+    if (!letter.triggeredActions || letter.triggeredActions.length === 0) {
+        const noActionsSpan = document.createElement('span');
+        noActionsSpan.className = 'no-actions-text';
+        noActionsSpan.setAttribute('data-i18n', 'letters.no_actions_triggered');
         // @ts-ignore
-        const signatureLabel = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.action_signature', 'Action') || 'Action';
-        signatureSpan.textContent = signatureLabel + ': ' + signature;
-        item.appendChild(signatureSpan);
+        noActionsSpan.textContent = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
+        section.appendChild(noActionsSpan);
+    } else {
+        const list = document.createElement('ul');
+        list.className = 'triggered-actions-list';
 
-        // Trigger type label
-        const triggerSpan = document.createElement('span');
-        triggerSpan.className = 'triggered-action-trigger';
-        triggerSpan.setAttribute('data-i18n', 'letters.action_trigger');
-        // @ts-ignore
-        const triggerLabel = window.LocalizationManager && window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger') || 'Trigger';
-        triggerSpan.textContent = ' (' + triggerLabel + ': ' + triggerOn + ')';
-        item.appendChild(triggerSpan);
+        for (const action of letter.triggeredActions) {
+            const item = document.createElement('li');
+            item.className = 'triggered-action-item';
 
-        list.appendChild(item);
+            const signature = (action && action.signature) || 'Unknown Action';
+            const triggerOn = (action && action.triggerOn) || 'unknown';
+            // @ts-ignore
+            const signatureLabel = window.LocalizationManager.getTranslation('letters.action_signature', 'Action');
+            // @ts-ignore
+            const triggerLabel = window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger');
+            
+            item.textContent = `${signatureLabel}: ${signature} (${triggerLabel}: ${triggerOn})`;
+            list.appendChild(item);
+        }
+        section.appendChild(list);
     }
 
-    section.appendChild(list);
     container.appendChild(section);
 
     // Apply translations to the new section
