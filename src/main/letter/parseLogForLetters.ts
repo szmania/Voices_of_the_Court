@@ -69,8 +69,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 const writtenDateInDays = parseInt(parts[2].trim());
                 const delay = parseInt(parts[3].trim(), 10) || 0;
-                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId;
-                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId;
+                const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
+                const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
 
                 // Parse triggered actions from remaining parts (parts[6+])
                 // Format: signature:arg1,arg2,...:triggerOn
