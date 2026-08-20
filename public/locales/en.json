@@ -303,6 +303,11 @@
     "compaction_phase1_summaries": "Phase 1 Summaries:",
     "compaction_phase1_threshold_label": "Threshold",
     "compaction_never_run": "Never run",
+    "phase1_threshold_desc": "Percentage of context window to trigger Phase 1 compaction",
+    "phase2_threshold_desc": "Number of Phase 1 summaries before triggering Phase 2",
+    "cooldown_desc": "Minimum minutes between compaction runs",
+    "entity_extraction_desc": "Method used to extract entities for knowledge graph",
+    "priority_elements_desc": "Narrative elements to preserve during compaction",
     "text_gen_params": "Text-generation parameters"
   },
   "system": {

@@ -1,4 +1,9 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+import "./components/configCheckbox";
+import "./components/configSlider";
+import "./components/ConfigNumber";
+import "./components/ConfigSelect";
+import "./components/configTextarea";
 
 let config: any;
 let selectedPlayerId: string = '';
