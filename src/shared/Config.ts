@@ -111,27 +111,11 @@ export class Config{
         fs.writeFileSync(path.join(app.getPath('userData'), 'votc_data', 'configs', 'config.json'), JSON.stringify(configData, null, '\t'));
     }
 
-    toSafeConfig(): Config{
+    toSafeConfig(): Config {
         //pass by value
         let output: Config = JSON.parse(JSON.stringify(this));
 
-// 隐藏敏感信息
-        if (output.textGenerationApiConnectionConfig?.connection) {
-            output.textGenerationApiConnectionConfig.connection.key = "<hidden>";
-            output.textGenerationApiConnectionConfig.connection.baseUrl = "<hidden>";
-        }
-        if (output.actionsApiConnectionConfig?.connection) {
-            output.actionsApiConnectionConfig.connection.key = "<hidden>";
-            output.actionsApiConnectionConfig.connection.baseUrl = "<hidden>";
-        }
-        if (output.summarizationApiConnectionConfig?.connection) {
-            output.summarizationApiConnectionConfig.connection.key = "<hidden>";
-            output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
-        }
-        if (output.compactionApiConnectionConfig?.connection) {
-            output.compactionApiConnectionConfig.connection.key = "<hidden>";
-            output.compactionApiConnectionConfig.connection.baseUrl = "<hidden>";
-        }
+        // Hide sensitive information
         const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as ApiConnectionConfig | undefined;
@@ -139,9 +123,10 @@ export class Config{
                 if (config.connection.key) config.connection.key = "<hidden>";
                 if (config.connection.baseUrl) config.connection.baseUrl = "<hidden>";
                 if (config.connection.apiKeys) {
-                    Object.keys(config.connection.apiKeys).forEach(apiType => {
-                        if (config.connection.apiKeys[apiType].key) config.connection.apiKeys[apiType].key = "<hidden>";
-                        if (config.connection.apiKeys[apiType].baseUrl) config.connection.apiKeys[apiType].baseUrl = "<hidden>";
+                    const apiKeys = config.connection.apiKeys;
+                    Object.keys(apiKeys).forEach(apiType => {
+                        if (apiKeys[apiType].key) apiKeys[apiType].key = "<hidden>";
+                        if (apiKeys[apiType].baseUrl) apiKeys[apiType].baseUrl = "<hidden>";
                     });
                 }
             }
