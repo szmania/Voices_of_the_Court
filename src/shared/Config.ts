@@ -134,7 +134,7 @@ export class Config{
         }
         const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
-            const config = output[configType as keyof Config];
+            const config = output[configType as keyof Config] as ApiConnectionConfig | undefined;
             if (config && config.connection) {
                 if (config.connection.key) config.connection.key = "<hidden>";
                 if (config.connection.baseUrl) config.connection.baseUrl = "<hidden>";
