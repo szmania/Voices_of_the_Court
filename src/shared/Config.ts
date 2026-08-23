@@ -3,8 +3,6 @@ import { Parameters, Connection} from './apiConnection';
 import path from 'path';
 import {app} from 'electron';
 
-       
-
 export interface ApiConnectionConfig{
     connection: Connection;
     parameters: Parameters;
@@ -19,8 +17,6 @@ export class Config{
     maxTokens!: number;
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
-
-    
 
     selectedDescScript!: string;
     selectedExMsgScript!: string;
@@ -115,33 +111,30 @@ export class Config{
         //pass by value
         let output: Config = JSON.parse(JSON.stringify(this));
         
-        // 隐藏敏感信息
-        output.textGenerationApiConnectionConfig.connection.key= "<hidden>";
-        output.actionsApiConnectionConfig.connection.key = "<hidden>";
-        output.summarizationApiConnectionConfig.connection.key = "<hidden>";
-        output.textGenerationApiConnectionConfig.connection.baseUrl= "<hidden>";
-        output.actionsApiConnectionConfig.connection.baseUrl = "<hidden>";
-        output.summarizationApiConnectionConfig.connection.baseUrl = "<hidden>";
-        output.compactionApiConnectionConfig.connection.key = "<hidden>";
-        output.compactionApiConnectionConfig.connection.baseUrl = "<hidden>";
-        
-        // 隐藏apiKeys中的敏感信息
         const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
+        
         configTypes.forEach(configType => {
-            const config = output[configType as keyof Config] as any;
-            if (config && config.connection && config.connection.apiKeys) {
-                Object.keys(config.connection.apiKeys).forEach(apiType => {
-                    if (config.connection.apiKeys[apiType].key) {
-                        config.connection.apiKeys[apiType].key = "<hidden>";
-                    }
-                    if (config.connection.apiKeys[apiType].baseUrl) {
-                        config.connection.apiKeys[apiType].baseUrl = "<hidden>";
-                    }
-                });
+            const config = output[configType as keyof Config] as ApiConnectionConfig | undefined;
+            if (config && config.connection) {
+                // Redact primary fields
+                config.connection.key = "<hidden>";
+                config.connection.baseUrl = "<hidden>";
+                
+                // Redact nested apiKeys
+                const apiKeys = config.connection.apiKeys;
+                if (apiKeys) {
+                    Object.keys(apiKeys).forEach(apiType => {
+                        if (apiKeys[apiType].key) {
+                            apiKeys[apiType].key = "<hidden>";
+                        }
+                        if (apiKeys[apiType].baseUrl) {
+                            apiKeys[apiType].baseUrl = "<hidden>";
+                        }
+                    });
+                }
             }
         });
 
         return output;
     }
-
 }
