@@ -175,7 +175,12 @@ export class ApiConnection{
     ): Promise<MessageChunk | string | void> {
         if (this.type === 'novelai') {
             const token = await this.getNovelAIToken();
-            const response = await fetch(this.config.baseUrl, {
+            const baseHost = String(this.config.baseUrl || '').replace(/\/+$/, '');
+            const promptString = Array.isArray(prompt)
+                ? prompt.map((p: any) => (typeof p === 'string' ? p : (p?.content ?? ''))).join('\n')
+                : (typeof prompt === 'string' ? prompt : '');
+
+            const response = await fetch(`${baseHost}/completions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,13 +190,14 @@ export class ApiConnection{
                     ...this.parameters,
                     ...otherArgs,
                     model: this.model,
-                    messages: prompt
+                    prompt: promptString
                 }),
                 signal: signal
             });
 
             if (!response.ok) {
-                throw new Error(`NovelAI API error: ${response.statusText}`);
+                const errorText = await response.text().catch(() => String(response.statusText));
+                throw new Error(`NovelAI API error: ${response.status} ${errorText}`);
             }
 
             if (stream) {
@@ -205,17 +211,25 @@ export class ApiConnection{
                     if (done) break;
                     const chunk = decoder.decode(value);
                     const lines = chunk.split('\n');
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const json = JSON.parse(line.slice(6));
-                            if (json.choices && json.choices.length > 0) {
-                                if (streamRelay) {
-                                    streamRelay({
-                                        content: json.choices[0].delta.content,
-                                        isFinal: false,
-                                        special: null
-                                    });
-                                }
+                    const trimmedLines = lines.map(line => line.trim()).filter(Boolean);
+                    for (const line of trimmedLines) {
+                        if (!line.startsWith('data:')) continue;
+                        const payload = line.slice(6).trim();
+                        if (payload === '[DONE]') continue;
+                        let json: any;
+                        try {
+                            json = JSON.parse(payload);
+                        } catch {
+                            continue;
+                        }
+                        if (json.choices && json.choices.length > 0) {
+                            const delta = json.choices[0].text ?? json.choices[0].delta?.content ?? '';
+                            if (streamRelay && delta) {
+                                streamRelay({
+                                    content: delta,
+                                    isFinal: false,
+                                    special: null
+                                });
                             }
                         }
                     }
@@ -230,8 +244,10 @@ export class ApiConnection{
                 return;
             } else {
                 const data = await response.json();
+                const choice = data.choices?.[0];
+                const content = choice?.text ?? choice?.message?.content ?? '';
                 return {
-                    content: data.choices[0].message.content,
+                    content,
                     isFinal: true,
                     special: null
                 };
