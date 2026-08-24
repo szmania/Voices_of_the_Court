@@ -151,6 +151,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
         if(line.includes("VOTC:IN")){
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
+            // Lines may end with "/;" when the template's last field is empty (e.g. laws); normalize so split yields a clean trailing element.
             const splittableLine = line.endsWith("/;") ? `${line}/` : line;
             let data = splittableLine.split("/;/")
 

@@ -12,7 +12,7 @@ VOTC:IN/;/levies_dom/;/2000/;/450
 VOTC:IN/;/levies_theo/;/2000/;/100
 VOTC:IN/;/maa/;/2000/;/Armored Footmen/;/1/;/120
 VOTC:IN/;/maa/;/2000/;/Spearmen/;/0/;/80
-VOTC:IN/;/troops_eob/;/2000/;
+VOTC:IN/;/troops_eob/;/2000/;/
 VOTC:IN/;/laws/;/2000/;/Crown Authority III
 VOTC:IN/;/laws/;/2000/;/Male Preference Succession
 VOTC:IN/;/laws/;/2000/;/High Tax
@@ -21,9 +21,9 @@ VOTC:IN/;/modifier/;/2000/;/mod_wounded/;/Wounded/;/This character is wounded an
 VOTC:IN/;/modifier/;/2000/;/mod_drunk/;/Drunk/;/This character is drunk.
 VOTC:IN/;/k_secret/;/2000/;/Murdered Father/;/He murdered his father./;/Murder/;/secret_murder
 VOTC:IN/;/k_secret_owner/;/2000/;/3000/;/Count Bad
-VOTC:IN/;/k_secret_is_criminal/;/2000/;
+VOTC:IN/;/k_secret_is_criminal/;/2000/;/
 VOTC:IN/;/k_secret_target/;/2000/;/3000/;/Count Bad
 VOTC:IN/;/k_secret_spent/;/2000/;/no
 VOTC:IN/;/k_secret_can_be_exposed/;/2000/;/yes
 VOTC:IN/;/k_secret_knower/;/2000/;/Murdered Father/;/4000/;/Bishop Curious
-VOTC:IN/;/k_secret_eob/;/2000/;
+VOTC:IN/;/k_secret_eob/;/2000/;/
