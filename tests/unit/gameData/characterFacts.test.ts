@@ -57,12 +57,26 @@ describe('getExtendedFactsDescription', () => {
         expect(text).toContain('Stress'); // 其余节不受影响
     });
 
+    it('omits legitimacy level when non-finite and renders stress without empty level', () => {
+        const c = makeAi();
+        c.stress = { value: 42, level: '', progress: NaN };
+        c.legitimacy = { value: 55, level: NaN, type: 'Feudal Legacy' };
+        const text = c.getExtendedFactsDescription();
+        expect(text.split('\n')).toContain('Stress: 42');
+        expect(text).toContain('Legitimacy: 55 (Feudal Legacy)');
+        expect(text).not.toContain('level');
+    });
+
     it('caps long list sections and reports overflow', () => {
         const c = makeAi();
         c.maaRegiments = Array.from({ length: 12 }, (_, i) => ({ name: `Reg ${i}`, isPersonal: false, menAlive: 10 }));
-        const text = c.getExtendedFactsDescription();
+        let text = c.getExtendedFactsDescription();
         expect(text).toContain('Reg 7');
         expect(text).not.toContain('Reg 8');
         expect(text).toContain('+4 more');
+        c.modifiers = Array.from({ length: 25 }, (_, i) => ({ id: `m${i}`, name: `Mod ${i}`, desc: '' }));
+        text = c.getExtendedFactsDescription();
+        expect(text).toContain('+5 more');
+        expect(text).not.toContain('Mod 20');
     });
 });

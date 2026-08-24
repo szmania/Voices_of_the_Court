@@ -283,8 +283,13 @@ export class Character {
         if (this.stress) {
             const s = this.stress;
             const head = isNum(s.value) ? `Stress: ${s.value}` : 'Stress';
-            const detail = isNum(s.progress) ? ` (${s.level}, ${s.progress}%)` : ` (${s.level})`;
-            sections.push(head + detail);
+            if (!s.level) {
+                sections.push(head);
+            }
+            else {
+                const detail = isNum(s.progress) ? ` (${s.level}, ${s.progress}%)` : ` (${s.level})`;
+                sections.push(head + detail);
+            }
         }
 
         if (this.legitimacy && isNum(this.legitimacy.value)) {
@@ -294,7 +299,12 @@ export class Character {
                 l.vassalExpectation && `vassals expect ${l.vassalExpectation}`,
                 l.liegeExpectation && `liege expects ${l.liegeExpectation}`
             ].filter(Boolean) as string[];
-            sections.push(`Legitimacy: ${l.value} (level ${l.level}${l.type ? ', ' + l.type : ''})${expectations.length ? '; ' + expectations.join(', ') : ''}`);
+            const legitimacyDetailParts = [
+                isNum(l.level) ? `level ${l.level}` : '',
+                l.type
+            ].filter(Boolean);
+            const legitimacyDetail = legitimacyDetailParts.length > 0 ? ` (${legitimacyDetailParts.join(', ')})` : '';
+            sections.push(`Legitimacy: ${l.value}${legitimacyDetail}${expectations.length ? '; ' + expectations.join(', ') : ''}`);
         }
 
         const financeParts: string[] = [];
@@ -356,7 +366,9 @@ export class Character {
         }
 
         if (this.modifiers.length > 0) {
-            sections.push(`Notable modifiers: ${this.modifiers.slice(0, 20).map(m => m.name).join(', ')}`);
+            const shownModifiers = this.modifiers.slice(0, 20);
+            const modifierOverflow = this.modifiers.length - shownModifiers.length;
+            sections.push(`Notable modifiers: ${shownModifiers.map(m => m.name).join(', ')}${modifierOverflow > 0 ? `, …+${modifierOverflow} more` : ''}`);
         }
 
         let output = "";
