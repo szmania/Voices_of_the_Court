@@ -115,6 +115,11 @@ describe('P0 laws & persona', () => {
             rationality: 45, sociability: 30, vengefulness: 20, zeal: 55
         });
     });
+
+    it('keeps dangling trailing separator lines from corrupting parsed fields', async () => {
+        const ai = await aiChar(FIXTURE_FB);
+        expect(ai.stress).toEqual({ value: 7, level: 'Broken', progress: 0 });
+    });
 });
 
 describe('P0 modifiers', () => {
