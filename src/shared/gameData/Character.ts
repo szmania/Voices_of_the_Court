@@ -54,6 +54,10 @@ export class Character {
     influenceTooltip?: string;
     herdAmount?: number;
     herdBreakdown?: string;
+    vassalLeviesTotal?: number;
+    domainLevyHoldings: number[];
+    theocraticLeaseLevies?: number;
+    maaRegiments: MaaRegiment[];
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -94,6 +98,8 @@ export class Character {
             this.opinions = [];
             this.relatives = [];
             this.conversationSummaries = [];
+            this.domainLevyHoldings = [];
+            this.maaRegiments = [];
     }
 
     /**
@@ -166,6 +172,13 @@ export class Character {
         }
         this.opinionOfPlayer = sum;
     }   
+
+    /**
+     * Sum of all domain holding levy sizes logged this snapshot.
+     */
+    getTotalDomainLevies(): number {
+        return this.domainLevyHoldings.reduce((sum, n) => sum + n, 0);
+    }
 
     /**
      * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.
@@ -250,6 +263,8 @@ export class Character {
     static fromPlainObject(obj: any): Character {
         const instance = new Character(new Array(27).fill(''));
         Object.assign(instance, obj);
+        instance.domainLevyHoldings ??= [];
+        instance.maaRegiments ??= [];
         return instance;
     }
 }

@@ -68,3 +68,21 @@ describe('extractMultilinePayload', () => {
         expect(extractMultilinePayload('')).toBe('');
     });
 });
+
+describe('P0 troops datatypes', () => {
+    it('parses levies and sums multiple levies_dom lines', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.vassalLeviesTotal).toBe(1200);
+        expect(ai.domainLevyHoldings).toEqual([400, 450]);
+        expect(ai.getTotalDomainLevies()).toBe(850);
+        expect(ai.theocraticLeaseLevies).toBe(100);
+    });
+
+    it('parses men-at-arms regiments', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.maaRegiments).toEqual([
+            { name: 'Armored Footmen', isPersonal: true, menAlive: 120 },
+            { name: 'Spearmen', isPersonal: false, menAlive: 80 },
+        ]);
+    });
+});
