@@ -1,4 +1,4 @@
-import { parseLog } from '../../../src/shared/gameData/parseLog';
+import { parseLog, extractMultilinePayload } from '../../../src/shared/gameData/parseLog';
 import path from 'path';
 
 const FIXTURE = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_p0.txt');
@@ -44,7 +44,27 @@ describe('P0 scalar state datatypes', () => {
         expect(ai.treasuryAmount).toBe(500);
         expect(ai.treasuryTooltip).toContain('Treasury: 500 gold');
         expect(ai.influenceAmount).toBe(120);
+        expect(ai.influenceTooltip).toContain('Influence: 120');
         expect(ai.herdAmount).toBe(800);
         expect(ai.herdBreakdown).toBe('Herd breakdown here');
+    });
+});
+
+describe('extractMultilinePayload', () => {
+    it('returns trimmed element when no STARTMULTILINE marker', () => {
+        expect(extractMultilinePayload('plain text here')).toBe('plain text here');
+    });
+
+    it('extracts payload between markers', () => {
+        expect(extractMultilinePayload('STARTMULTILINE#line one#line two#ENDMULTILINE')).toBe('line one#line two');
+    });
+
+    it('handles truncated block without ENDMULTILINE', () => {
+        expect(extractMultilinePayload('STARTMULTILINE#partial data')).toBe('partial data');
+    });
+
+    it('returns empty string for undefined or empty input', () => {
+        expect(extractMultilinePayload(undefined)).toBe('');
+        expect(extractMultilinePayload('')).toBe('');
     });
 });

@@ -216,6 +216,40 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     c.herdBreakdown = extractMultilinePayload(data[2]);
                     break;
                 }
+                case "levies_vassals": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.vassalLeviesTotal = Number(data[1]);
+                    break;
+                }
+                case "levies_dom": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.domainLevyHoldings.push(Number(data[1]));
+                    break;
+                }
+                case "levies_theo": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.theocraticLeaseLevies = Number(data[1]);
+                    break;
+                }
+                case "maa": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.maaRegiments.push({
+                        name: data[1],
+                        isPersonal: data[2] === '1' || data[2]?.toLowerCase() === 'yes',
+                        menAlive: Number(data[3])
+                    });
+                    break;
+                }
+                case "troops_eob":
+                    break;
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
