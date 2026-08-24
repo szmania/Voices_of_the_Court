@@ -115,3 +115,13 @@ describe('P0 laws & persona', () => {
         });
     });
 });
+
+describe('P0 modifiers', () => {
+    it('parses modifier id/name/desc pairs', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.modifiers).toEqual([
+            { id: 'mod_wounded', name: 'Wounded', desc: 'This character is wounded and suffers penalties.' },
+            { id: 'mod_drunk', name: 'Drunk', desc: 'This character is drunk.' },
+        ]);
+    });
+});

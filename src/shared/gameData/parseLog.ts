@@ -271,6 +271,17 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     };
                     break;
                 }
+                case "modifier": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    if (c.modifiers.length >= MAX_MODIFIERS_PER_CHARACTER) {
+                        console.warn(`Character ${rootID} exceeded modifier cap (${MAX_MODIFIERS_PER_CHARACTER}); dropping "${data[1]}".`);
+                        break;
+                    }
+                    c.modifiers.push({ id: data[1], name: data[2], desc: data[3] });
+                    break;
+                }
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
@@ -624,6 +635,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 }
 
 const MAX_LAWS = 10;
+const MAX_MODIFIERS_PER_CHARACTER = 60;
 
 export function extractMultilinePayload(element: string | undefined): string {
     if (!element) return "";
