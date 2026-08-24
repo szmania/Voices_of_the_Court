@@ -47,4 +47,22 @@ describe('getExtendedFactsDescription', () => {
         expect(Math.ceil(text.length / 4)).toBeLessThanOrEqual(24); // 允许单节粒度误差
         expect(text.length).toBeGreaterThan(0);
     });
+
+    it('omits non-finite numbers instead of rendering NaN', () => {
+        const c = makeAi();
+        c.stress = { value: NaN, level: 'Broken', progress: NaN };
+        (c.personaNumbers as any).honor = NaN;
+        const text = c.getExtendedFactsDescription();
+        expect(text).not.toContain('NaN');
+        expect(text).toContain('Stress'); // 其余节不受影响
+    });
+
+    it('caps long list sections and reports overflow', () => {
+        const c = makeAi();
+        c.maaRegiments = Array.from({ length: 12 }, (_, i) => ({ name: `Reg ${i}`, isPersonal: false, menAlive: 10 }));
+        const text = c.getExtendedFactsDescription();
+        expect(text).toContain('Reg 7');
+        expect(text).not.toContain('Reg 8');
+        expect(text).toContain('+4 more');
+    });
 });

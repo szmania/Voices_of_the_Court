@@ -275,14 +275,19 @@ export class Character {
     getExtendedFactsDescription(maxTokens: number = 600): string {
         const trimText = (s: string | undefined, max = 240): string =>
             s && s.trim() ? s.trim().slice(0, max) : "";
+        const isNum = (v: number | undefined): v is number =>
+            typeof v === 'number' && Number.isFinite(v);
 
         const sections: string[] = [];
 
         if (this.stress) {
-            sections.push(`Stress: ${this.stress.value} (${this.stress.level}, ${this.stress.progress}%)`);
+            const s = this.stress;
+            const head = isNum(s.value) ? `Stress: ${s.value}` : 'Stress';
+            const detail = isNum(s.progress) ? ` (${s.level}, ${s.progress}%)` : ` (${s.level})`;
+            sections.push(head + detail);
         }
 
-        if (this.legitimacy) {
+        if (this.legitimacy && isNum(this.legitimacy.value)) {
             const l = this.legitimacy;
             const expectations = [
                 l.powerfulVassalExpectation && `powerful vassals expect ${l.powerfulVassalExpectation}`,
@@ -293,40 +298,48 @@ export class Character {
         }
 
         const financeParts: string[] = [];
-        if (this.incomeGold !== undefined || this.incomeBalance !== undefined) {
-            financeParts.push(`gold ${this.incomeGold ?? '?'}, monthly balance ${this.incomeBalance ?? '?'}`);
-        }
+        const incomeParts: string[] = [];
+        if (isNum(this.incomeGold)) incomeParts.push(`gold ${this.incomeGold}`);
+        if (isNum(this.incomeBalance)) incomeParts.push(`monthly balance ${this.incomeBalance}`);
+        if (incomeParts.length > 0) financeParts.push(incomeParts.join(', '));
         const balanceDetail = trimText(this.incomeBreakdown);
         if (balanceDetail) financeParts.push(`balance detail: ${balanceDetail}`);
-        if (this.treasuryAmount !== undefined) {
+        if (isNum(this.treasuryAmount)) {
             const tt = trimText(this.treasuryTooltip, 120);
             financeParts.push(`treasury ${this.treasuryAmount}${tt ? ' (' + tt + ')' : ''}`);
         }
-        if (this.influenceAmount !== undefined) financeParts.push(`influence ${this.influenceAmount}`);
-        if (this.herdAmount !== undefined) {
+        if (isNum(this.influenceAmount)) financeParts.push(`influence ${this.influenceAmount}`);
+        if (isNum(this.herdAmount)) {
             const hb = trimText(this.herdBreakdown, 120);
             financeParts.push(`herd ${this.herdAmount}${hb ? ' (' + hb + ')' : ''}`);
         }
         if (financeParts.length > 0) sections.push(`Finances: ${financeParts.join('; ')}`);
 
         const troopParts: string[] = [];
-        if (this.vassalLeviesTotal !== undefined) troopParts.push(`vassal levies ${this.vassalLeviesTotal}`);
-        if (this.domainLevyHoldings.length > 0) troopParts.push(`domain levies ${this.getTotalDomainLevies()}`);
-        if (this.theocraticLeaseLevies !== undefined) troopParts.push(`theocratic lease ${this.theocraticLeaseLevies}`);
-        if (this.maaRegiments.length > 0) {
-            troopParts.push('men-at-arms: ' + this.maaRegiments.map(r => `${r.name} (${r.isPersonal ? 'personal' : 'non-personal'}, ${r.menAlive})`).join(', '));
+        if (isNum(this.vassalLeviesTotal)) troopParts.push(`vassal levies ${this.vassalLeviesTotal}`);
+        const validDomainLevies = this.domainLevyHoldings.filter(n => isNum(n));
+        if (validDomainLevies.length > 0) troopParts.push(`domain levies ${validDomainLevies.reduce((sum, n) => sum + n, 0)}`);
+        if (isNum(this.theocraticLeaseLevies)) troopParts.push(`theocratic lease ${this.theocraticLeaseLevies}`);
+        const validMaa = this.maaRegiments.filter(r => isNum(r.menAlive));
+        if (validMaa.length > 0) {
+            const shownMaa = validMaa.slice(0, 8);
+            const maaOverflow = validMaa.length - shownMaa.length;
+            troopParts.push('men-at-arms: ' + shownMaa.map(r => `${r.name} (${r.isPersonal ? 'personal' : 'non-personal'}, ${r.menAlive})`).join(', ') + (maaOverflow > 0 ? `, …+${maaOverflow} more` : ''));
         }
         if (troopParts.length > 0) sections.push(`Troops: ${troopParts.join('; ')}`);
 
         if (this.laws.length > 0) sections.push(`Laws: ${this.laws.join('; ')}`);
 
         if (this.personaNumbers) {
-            const p = this.personaNumbers;
-            sections.push(`Personality axes (0-100): boldness ${p.boldness}, compassion ${p.compassion}, energy ${p.energy}, greed ${p.greed}, honor ${p.honor}, rationality ${p.rationality}, sociability ${p.sociability}, vengefulness ${p.vengefulness}, zeal ${p.zeal}`);
+            const axisText = Object.entries(this.personaNumbers)
+                .filter(([, v]) => isNum(v))
+                .map(([k, v]) => `${k} ${v}`)
+                .join(', ');
+            if (axisText) sections.push(`Personality axes (0-100): ${axisText}`);
         }
 
         if (this.knownSecrets.length > 0) {
-            const secretLines = this.knownSecrets.map(ks => {
+            const secretLines = this.knownSecrets.slice(0, 5).map(ks => {
                 const flags = [
                     ks.isCriminal ? 'criminal' : (ks.isShunned ? 'shunned' : ''),
                     ks.spent ? 'spent' : '',
@@ -338,10 +351,12 @@ export class Character {
                 return `${ks.name}${who ? ' (' + who + ')' : ''}${flags ? ' [' + flags + ']' : ''}${knowers}`;
             });
             sections.push(`Known secrets: ${secretLines.join(' | ')}`);
+            const secretOverflow = this.knownSecrets.length - secretLines.length;
+            if (secretOverflow > 0) sections.push(`…+${secretOverflow} more secrets omitted`);
         }
 
         if (this.modifiers.length > 0) {
-            sections.push(`Notable modifiers: ${this.modifiers.map(m => m.name).join(', ')}`);
+            sections.push(`Notable modifiers: ${this.modifiers.slice(0, 20).map(m => m.name).join(', ')}`);
         }
 
         let output = "";
