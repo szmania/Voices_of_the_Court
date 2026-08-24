@@ -51,6 +51,54 @@ export type Relative = {
     otherParentName?: string;
 }
 
+export type StressInfo = {
+    value: number;
+    level: string;
+    progress: number;
+}
+
+export type LegitimacyInfo = {
+    value: number;
+    level: number;
+    type: string;
+    powerfulVassalExpectation?: string;
+    vassalExpectation?: string;
+    liegeExpectation?: string;
+}
+
+export type MaaRegiment = {
+    name: string;
+    isPersonal: boolean;
+    menAlive: number;
+}
+
+export type KnownSecret = {
+    name: string;
+    desc: string;
+    category: string;
+    type: string;
+    ownerId?: number;
+    ownerName?: string;
+    targetId?: number;
+    targetName?: string;
+    isCriminal?: boolean;
+    isShunned?: boolean;
+    spent?: boolean;
+    canBeExposed?: boolean;
+    otherKnowers: { id: number; name: string }[];
+}
+
+export type CharacterModifier = {
+    id: string;
+    name: string;
+    desc: string;
+}
+
+export type PersonaNumbers = {
+    boldness: number; compassion: number; energy: number; greed: number; honor: number;
+    rationality: number; sociability: number; vengefulness: number; zeal: number;
+}
+
 /** 
  * @class
 */

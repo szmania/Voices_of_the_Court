@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, Relative, StressInfo, LegitimacyInfo, MaaRegiment, KnownSecret, CharacterModifier, PersonaNumbers} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -42,6 +42,18 @@ export class Character {
     opinions: { id: number, opinion: number}[];
     relatives: Relative[];
     birthTotalDays?: number;
+    // --- P0 extended facts ---
+    stress?: StressInfo;
+    legitimacy?: LegitimacyInfo;
+    incomeGold?: number;
+    incomeBalance?: number;
+    incomeBreakdown?: string;
+    treasuryAmount?: number;
+    treasuryTooltip?: string;
+    influenceAmount?: number;
+    influenceTooltip?: string;
+    herdAmount?: number;
+    herdBreakdown?: string;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 

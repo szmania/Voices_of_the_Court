@@ -165,6 +165,57 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             }
 
             switch (dataType){
+                case "stress": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.stress = { value: Number(data[1]), level: data[2], progress: Number(data[3]) };
+                    break;
+                }
+                case "legitimacy": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    if (data[1] === 'no') { c.legitimacy = undefined; break; }
+                    c.legitimacy = {
+                        value: Number(data[1]), level: Number(data[2]), type: data[3],
+                        powerfulVassalExpectation: data[4], vassalExpectation: data[5], liegeExpectation: data[6]
+                    };
+                    break;
+                }
+                case "income": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.incomeGold = Number(data[1]);
+                    c.incomeBalance = Number(data[2]);
+                    c.incomeBreakdown = extractMultilinePayload(data[3]);
+                    break;
+                }
+                case "treasury": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.treasuryAmount = Number(data[1]);
+                    c.treasuryTooltip = extractMultilinePayload(data[2]);
+                    break;
+                }
+                case "influence": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.influenceAmount = Number(data[1]);
+                    c.influenceTooltip = extractMultilinePayload(data[2]);
+                    break;
+                }
+                case "herd": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.herdAmount = Number(data[1]);
+                    c.herdBreakdown = extractMultilinePayload(data[2]);
+                    break;
+                }
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
@@ -515,6 +566,17 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     }
 
     return gameData!;
+}
+
+function extractMultilinePayload(element: string | undefined): string {
+    if (!element) return "";
+    const startIdx = element.indexOf('STARTMULTILINE');
+    if (startIdx === -1) return element.trim();
+    let payloadStart = startIdx + 'STARTMULTILINE'.length;
+    if (element[payloadStart] === '#') payloadStart += 1;
+    const endIdx = element.lastIndexOf('#ENDMULTILINE');
+    const payloadEnd = endIdx === -1 ? element.length : endIdx;
+    return element.slice(payloadStart, payloadEnd).trim();
 }
 
 export function removeTooltip(str: string): string {
