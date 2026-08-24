@@ -1,4 +1,5 @@
 import { parseLog, extractMultilinePayload } from '../../../src/shared/gameData/parseLog';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 const FIXTURE = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_p0.txt');
@@ -123,5 +124,21 @@ describe('P0 modifiers', () => {
             { id: 'mod_wounded', name: 'Wounded', desc: 'This character is wounded and suffers penalties.' },
             { id: 'mod_drunk', name: 'Drunk', desc: 'This character is drunk.' },
         ]);
+    });
+
+    it('caps modifiers at 60 entries', async () => {
+        const head = readFileSync(FIXTURE, 'utf8').split('\n').slice(0, 2).join('\n'); // init + character
+        const lines = Array.from({ length: 65 }, (_, i) =>
+            `VOTC:IN/;/modifier/;/2000/;/mod_${i}/;/Name ${i}/;/Desc ${i}`);
+        const tmp = path.join(__dirname, 'tmp_cap_fixture.txt');
+        writeFileSync(tmp, head + '\n' + lines.join('\n') + '\n');
+        try {
+            const gd = await parseLog(tmp);
+            const mods = gd!.characters.get(2000)!.modifiers;
+            expect(mods).toHaveLength(60);
+            expect(mods[59].id).toBe('mod_59');
+        } finally {
+            unlinkSync(tmp);
+        }
     });
 });
