@@ -1,4 +1,4 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret, Relative } from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative, KnownSecret} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
@@ -59,6 +59,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     let multiLineType: string = ""; //relation or opinionModifier
 
     const deferredRelations: { charAID: number, charBID: number, relationship: string }[] = [];
+
+    const pendingKnownSecrets = new Map<number, Partial<KnownSecret> & { otherKnowers: { id: number; name: string }[] }>();
 
     // Efficiently find the last block by reading from the end of the file
     let relevantLogBlock: string | undefined;
@@ -149,7 +151,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
         if(line.includes("VOTC:IN")){
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
-            let data = line.split("/;/")
+            const splittableLine = line.endsWith("/;") ? `${line}/` : line;
+            let data = splittableLine.split("/;/")
 
             const dataType = data[1];
             console.log(`Parsing data type: ${dataType}`);
@@ -280,6 +283,70 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         break;
                     }
                     c.modifiers.push({ id: data[1], name: data[2], desc: data[3] });
+                    break;
+                }
+                case "k_secret": {
+                    if (!gameData) continue;
+                    if (!gameData.characters.has(rootID)) break;
+                    pendingKnownSecrets.set(rootID, {
+                        name: data[1], desc: data[2], category: data[3], type: data[4],
+                        otherKnowers: []
+                    });
+                    break;
+                }
+                case "k_secret_owner": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.ownerId = Number(data[1]); p.ownerName = data[2];
+                    break;
+                }
+                case "k_secret_is_criminal": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.isCriminal = true;
+                    break;
+                }
+                case "k_secret_is_shunned": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.isShunned = true;
+                    break;
+                }
+                case "k_secret_target": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.targetId = Number(data[1]); p.targetName = data[2];
+                    break;
+                }
+                case "k_secret_spent": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.spent = data[1] === 'yes';
+                    break;
+                }
+                case "k_secret_can_be_exposed": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.canBeExposed = data[1] === 'yes';
+                    break;
+                }
+                case "k_secret_knower": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.otherKnowers.push({ id: Number(data[2]), name: data[3] });
+                    break;
+                }
+                case "k_secret_eob": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    const c = gameData?.characters.get(rootID);
+                    if (c) {
+                        c.knownSecrets.push({
+                            name: p.name ?? "", desc: p.desc ?? "", category: p.category ?? "", type: p.type ?? "",
+                            ownerId: p.ownerId, ownerName: p.ownerName,
+                            targetId: p.targetId, targetName: p.targetName,
+                            isCriminal: p.isCriminal, isShunned: p.isShunned,
+                            spent: p.spent, canBeExposed: p.canBeExposed,
+                            otherKnowers: p.otherKnowers
+                        });
+                    }
+                    pendingKnownSecrets.delete(rootID);
                     break;
                 }
                 case "init":

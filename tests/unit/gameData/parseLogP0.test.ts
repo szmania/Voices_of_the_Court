@@ -142,3 +142,23 @@ describe('P0 modifiers', () => {
         }
     });
 });
+
+describe('P0 known secrets', () => {
+    it('assembles a full known-secret block until eob', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.knownSecrets).toHaveLength(1);
+        const ks = ai.knownSecrets[0];
+        expect(ks.name).toBe('Murdered Father');
+        expect(ks.desc).toBe('He murdered his father.');
+        expect(ks.category).toBe('Murder');
+        expect(ks.type).toBe('secret_murder');
+        expect(ks.ownerId).toBe(3000);
+        expect(ks.ownerName).toBe('Count Bad');
+        expect(ks.isCriminal).toBe(true);
+        expect(ks.isShunned).toBeUndefined();
+        expect(ks.targetId).toBe(3000);
+        expect(ks.spent).toBe(false);
+        expect(ks.canBeExposed).toBe(true);
+        expect(ks.otherKnowers).toEqual([{ id: 4000, name: 'Bishop Curious' }]);
+    });
+});

@@ -60,6 +60,7 @@ export class Character {
     maaRegiments: MaaRegiment[];
     laws: string[];
     modifiers: CharacterModifier[];
+    knownSecrets: KnownSecret[];
     personaNumbers?: PersonaNumbers;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
@@ -105,6 +106,7 @@ export class Character {
             this.maaRegiments = [];
             this.laws = [];
             this.modifiers = [];
+            this.knownSecrets = [];
     }
 
     /**
@@ -272,6 +274,7 @@ export class Character {
         instance.maaRegiments ??= [];
         instance.laws ??= [];
         instance.modifiers ??= [];
+        instance.knownSecrets ??= [];
         return instance;
     }
 }
