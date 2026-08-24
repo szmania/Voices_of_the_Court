@@ -174,23 +174,28 @@ export class ApiConnection{
         signal?: AbortSignal
     ): Promise<MessageChunk | string | void> {
         if (this.type === 'novelai') {
-            const token = await this.getNovelAIToken();
-            const baseHost = String(this.config.baseUrl || '').replace(/\/+$/, '');
+            const token = this.config.key;
+            const baseHost = 'https://text.novelai.net/oa/v1/completions';
+            
+            // Convert VOTC message array into a single text prompt using System, User, and Assistant labels
             const promptString = Array.isArray(prompt)
-                ? prompt.map((p: any) => (typeof p === 'string' ? p : (p?.content ?? ''))).join('\n')
+                ? prompt.map((p: any) => {
+                    if (typeof p === 'string') return p;
+                    const role = p.role === 'assistant' ? 'Assistant' : p.role === 'system' ? 'System' : 'User';
+                    return `${role}: ${p.content ?? ''}`;
+                  }).join('\n')
                 : (typeof prompt === 'string' ? prompt : '');
 
-            const response = await fetch(`${baseHost}/completions`, {
+            const response = await fetch(baseHost, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    ...this.parameters,
-                    ...otherArgs,
                     model: this.model,
-                    prompt: promptString
+                    prompt: promptString,
+                    stream: false
                 }),
                 signal: signal
             });
@@ -200,58 +205,20 @@ export class ApiConnection{
                 throw new Error(`NovelAI API error: ${response.status} ${errorText}`);
             }
 
-            if (stream) {
-                const reader = response.body?.getReader();
-                if (!reader) {
-                    throw new Error('Failed to get stream reader');
-                }
-                const decoder = new TextDecoder();
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    const trimmedLines = lines.map(line => line.trim()).filter(Boolean);
-                    for (const line of trimmedLines) {
-                        if (!line.startsWith('data:')) continue;
-                        const payload = line.slice(6).trim();
-                        if (payload === '[DONE]') continue;
-                        let json: any;
-                        try {
-                            json = JSON.parse(payload);
-                        } catch {
-                            continue;
-                        }
-                        if (json.choices && json.choices.length > 0) {
-                            const delta = json.choices[0].text ?? json.choices[0].delta?.content ?? '';
-                            if (streamRelay && delta) {
-                                streamRelay({
-                                    content: delta,
-                                    isFinal: false,
-                                    special: null
-                                });
-                            }
-                        }
-                    }
-                }
-                if (streamRelay) {
-                    streamRelay({
-                        content: '',
-                        isFinal: true,
-                        special: null
-                    });
-                }
-                return;
-            } else {
-                const data = await response.json();
-                const choice = data.choices?.[0];
-                const content = choice?.text ?? choice?.message?.content ?? '';
-                return {
-                    content,
+            const data = await response.json();
+            const choice = data.choices?.[0];
+            const content = choice?.text ?? '';
+
+            // If VOTC requested streaming, pass the completed response through streamRelay
+            if (stream && streamRelay) {
+                streamRelay({
+                    content: content,
                     isFinal: true,
                     special: null
-                };
+                });
             }
+
+            return content;
         }
     
         console.debug("--- API CONNECTION: complete() ---");
@@ -719,35 +686,15 @@ export class ApiConnection{
 
     async authenticateNovelAI(): Promise<void> {
         console.debug("Authenticating NovelAI...");
-        const password = this.config.key; // NovelAI uses key as password
-        if (!password) {
-            throw new Error("NovelAI password is not set.");
+        const token = this.config.key; // NovelAI key is now used directly as Persistent API Token
+        if (!token) {
+            throw new Error("NovelAI token is not set.");
         }
 
-        try {
-            const response = await fetch('https://api.novelai.net/user/authenticate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    key: password
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`NovelAI authentication failed: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            this.novelaiAccessToken = data.accessToken;
-            // Set expiry for 1 hour from now (token usually lasts for 2 hours)
-            this.novelaiTokenExpiry = Date.now() + (60 * 60 * 1000);
-            console.debug("NovelAI authentication successful.");
-        } catch (error) {
-            console.error("NovelAI authentication error:", error);
-            throw error;
-        }
+        this.novelaiAccessToken = token;
+        // No expiry for persistent tokens
+        this.novelaiTokenExpiry = null;
+        console.debug("NovelAI token set.");
     }
 
     async getNovelAIToken(): Promise<string> {
@@ -763,10 +710,29 @@ export class ApiConnection{
     async testConnection(): Promise<apiConnectionTestResult>{
         if (this.type === 'novelai') {
             try {
-                await this.authenticateNovelAI();
-                return { success: true };
-            } catch (error: any) {
-                return { success: false, errorMessage: error.message };
+                const token = this.config.key;
+                if (!token) {
+                    return { success: false, errorMessage: "NovelAI token is not set." };
+                }
+                const response = await fetch('https://text.novelai.net/oa/v1/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        model: this.model,
+                        prompt: "ping",
+                        max_tokens: 1
+                    })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    return { success: false, errorMessage: `NovelAI test failed: ${response.status} ${errorText}` };
+                }
+                return { success: true, overwriteWarning: this.overwriteWarning };
+            } catch (err: any) {
+                return { success: false, errorMessage: err.message };
             }
         }
         console.debug("--- API CONNECTION: testConnection() ---");
