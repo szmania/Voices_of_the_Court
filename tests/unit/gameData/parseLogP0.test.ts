@@ -85,4 +85,13 @@ describe('P0 troops datatypes', () => {
             { name: 'Spearmen', isPersonal: false, menAlive: 80 },
         ]);
     });
+
+    it('defaults to empty troop state when no troop lines are logged', async () => {
+        const ai = await aiChar(FIXTURE_FB);
+        expect(ai.vassalLeviesTotal).toBeUndefined();
+        expect(ai.domainLevyHoldings).toEqual([]);
+        expect(ai.getTotalDomainLevies()).toBe(0);
+        expect(ai.theocraticLeaseLevies).toBeUndefined();
+        expect(ai.maaRegiments).toEqual([]);
+    });
 });
