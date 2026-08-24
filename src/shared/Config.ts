@@ -3,8 +3,6 @@ import { Parameters, Connection} from './apiConnection';
 import path from 'path';
 import {app} from 'electron';
 
-
-
 export interface ApiConnectionConfig{
     connection: Connection;
     parameters: Parameters;
@@ -19,8 +17,6 @@ export class Config{
     maxTokens!: number;
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
-
-
 
     selectedDescScript!: string;
     selectedExMsgScript!: string;
@@ -117,6 +113,7 @@ export class Config{
 
         // Hide sensitive information
         const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
+
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as ApiConnectionConfig | undefined;
             if (config && config.connection) {
@@ -134,5 +131,4 @@ export class Config{
 
         return output;
     }
-
 }
