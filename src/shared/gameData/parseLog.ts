@@ -250,6 +250,31 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 }
                 case "troops_eob":
                     break;
+                case "laws": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    const LAW_GROUP_ORDER = [
+                        'realm authority', 'crown law', 'mandala laws', 'succession order',
+                        'succession gender', 'elective succession', 'appointment succession',
+                        'treasury budget military', 'treasury budget ministry', 'treasury budget salary'
+                    ];
+                    const name = (data[1] || '').trim();
+                    if (!name || name === '-' || name === '—' || name.toLowerCase() === 'no') break;
+                    if (c.laws.length < LAW_GROUP_ORDER.length) c.laws.push(name);
+                    break;
+                }
+                case "persona_numbers": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.personaNumbers = {
+                        boldness: Number(data[1]), compassion: Number(data[2]), energy: Number(data[3]),
+                        greed: Number(data[4]), honor: Number(data[5]), rationality: Number(data[6]),
+                        sociability: Number(data[7]), vengefulness: Number(data[8]), zeal: Number(data[9])
+                    };
+                    break;
+                }
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log

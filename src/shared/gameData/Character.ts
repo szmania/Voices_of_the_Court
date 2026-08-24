@@ -58,6 +58,8 @@ export class Character {
     domainLevyHoldings: number[];
     theocraticLeaseLevies?: number;
     maaRegiments: MaaRegiment[];
+    laws: string[];
+    personaNumbers?: PersonaNumbers;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -100,6 +102,7 @@ export class Character {
             this.conversationSummaries = [];
             this.domainLevyHoldings = [];
             this.maaRegiments = [];
+            this.laws = [];
     }
 
     /**
@@ -265,6 +268,7 @@ export class Character {
         Object.assign(instance, obj);
         instance.domainLevyHoldings ??= [];
         instance.maaRegiments ??= [];
+        instance.laws ??= [];
         return instance;
     }
 }

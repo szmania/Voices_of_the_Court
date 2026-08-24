@@ -95,3 +95,23 @@ describe('P0 troops datatypes', () => {
         expect(ai.maaRegiments).toEqual([]);
     });
 });
+
+describe('P0 laws & persona', () => {
+    it('collects non-empty laws in emission order', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.laws).toEqual(['Crown Authority III', 'Male Preference Succession', 'High Tax']);
+    });
+
+    it('filters empty law placeholders in fallback fixture', async () => {
+        const ai = await aiChar(FIXTURE_FB);
+        expect(ai.laws).toEqual([]);
+    });
+
+    it('parses nine persona axes in fixed order', async () => {
+        const ai = await aiChar(FIXTURE);
+        expect(ai.personaNumbers).toEqual({
+            boldness: 40, compassion: 10, energy: 60, greed: 70, honor: 50,
+            rationality: 45, sociability: 30, vengefulness: 20, zeal: 55
+        });
+    });
+});
