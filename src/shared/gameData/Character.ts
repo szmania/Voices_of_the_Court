@@ -267,6 +267,94 @@ export class Character {
         return sections.join('; ');
     }
 
+    /**
+     * Compact, prompt-ready rendering of P0 extended facts.
+     * Token budget uses the chars/4 heuristic (same as calculateTokensFromText fallback).
+     * Sections are added in priority order; once the budget is hit, remaining sections are dropped.
+     */
+    getExtendedFactsDescription(maxTokens: number = 600): string {
+        const trimText = (s: string | undefined, max = 240): string =>
+            s && s.trim() ? s.trim().slice(0, max) : "";
+
+        const sections: string[] = [];
+
+        if (this.stress) {
+            sections.push(`Stress: ${this.stress.value} (${this.stress.level}, ${this.stress.progress}%)`);
+        }
+
+        if (this.legitimacy) {
+            const l = this.legitimacy;
+            const expectations = [
+                l.powerfulVassalExpectation && `powerful vassals expect ${l.powerfulVassalExpectation}`,
+                l.vassalExpectation && `vassals expect ${l.vassalExpectation}`,
+                l.liegeExpectation && `liege expects ${l.liegeExpectation}`
+            ].filter(Boolean) as string[];
+            sections.push(`Legitimacy: ${l.value} (level ${l.level}${l.type ? ', ' + l.type : ''})${expectations.length ? '; ' + expectations.join(', ') : ''}`);
+        }
+
+        const financeParts: string[] = [];
+        if (this.incomeGold !== undefined || this.incomeBalance !== undefined) {
+            financeParts.push(`gold ${this.incomeGold ?? '?'}, monthly balance ${this.incomeBalance ?? '?'}`);
+        }
+        const balanceDetail = trimText(this.incomeBreakdown);
+        if (balanceDetail) financeParts.push(`balance detail: ${balanceDetail}`);
+        if (this.treasuryAmount !== undefined) {
+            const tt = trimText(this.treasuryTooltip, 120);
+            financeParts.push(`treasury ${this.treasuryAmount}${tt ? ' (' + tt + ')' : ''}`);
+        }
+        if (this.influenceAmount !== undefined) financeParts.push(`influence ${this.influenceAmount}`);
+        if (this.herdAmount !== undefined) {
+            const hb = trimText(this.herdBreakdown, 120);
+            financeParts.push(`herd ${this.herdAmount}${hb ? ' (' + hb + ')' : ''}`);
+        }
+        if (financeParts.length > 0) sections.push(`Finances: ${financeParts.join('; ')}`);
+
+        const troopParts: string[] = [];
+        if (this.vassalLeviesTotal !== undefined) troopParts.push(`vassal levies ${this.vassalLeviesTotal}`);
+        if (this.domainLevyHoldings.length > 0) troopParts.push(`domain levies ${this.getTotalDomainLevies()}`);
+        if (this.theocraticLeaseLevies !== undefined) troopParts.push(`theocratic lease ${this.theocraticLeaseLevies}`);
+        if (this.maaRegiments.length > 0) {
+            troopParts.push('men-at-arms: ' + this.maaRegiments.map(r => `${r.name} (${r.isPersonal ? 'personal' : 'non-personal'}, ${r.menAlive})`).join(', '));
+        }
+        if (troopParts.length > 0) sections.push(`Troops: ${troopParts.join('; ')}`);
+
+        if (this.laws.length > 0) sections.push(`Laws: ${this.laws.join('; ')}`);
+
+        if (this.personaNumbers) {
+            const p = this.personaNumbers;
+            sections.push(`Personality axes (0-100): boldness ${p.boldness}, compassion ${p.compassion}, energy ${p.energy}, greed ${p.greed}, honor ${p.honor}, rationality ${p.rationality}, sociability ${p.sociability}, vengefulness ${p.vengefulness}, zeal ${p.zeal}`);
+        }
+
+        if (this.knownSecrets.length > 0) {
+            const secretLines = this.knownSecrets.map(ks => {
+                const flags = [
+                    ks.isCriminal ? 'criminal' : (ks.isShunned ? 'shunned' : ''),
+                    ks.spent ? 'spent' : '',
+                    ks.canBeExposed ? 'can be exposed' : ''
+                ].filter(Boolean).join(', ');
+                const who = [ks.targetId ? `targets ${ks.targetName ?? ks.targetId}` : '',
+                             ks.ownerId ? `owned by ${ks.ownerName ?? ks.ownerId}` : ''].filter(Boolean).join(', ');
+                const knowers = ks.otherKnowers.length > 0 ? `; also known by ${ks.otherKnowers.map(k => k.name).join(', ')}` : '';
+                return `${ks.name}${who ? ' (' + who + ')' : ''}${flags ? ' [' + flags + ']' : ''}${knowers}`;
+            });
+            sections.push(`Known secrets: ${secretLines.join(' | ')}`);
+        }
+
+        if (this.modifiers.length > 0) {
+            sections.push(`Notable modifiers: ${this.modifiers.map(m => m.name).join(', ')}`);
+        }
+
+        let output = "";
+        let usedTokens = 0;
+        for (const section of sections) {
+            const cost = Math.ceil(section.length / 4) + 1; // +1 for newline
+            if (usedTokens + cost > maxTokens) break;
+            output += (output ? "\n" : "") + section;
+            usedTokens += cost;
+        }
+        return output.trim();
+    }
+
     static fromPlainObject(obj: any): Character {
         const instance = new Character(new Array(27).fill(''));
         Object.assign(instance, obj);
