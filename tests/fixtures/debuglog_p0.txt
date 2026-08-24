@@ -1,0 +1,29 @@
+VOTC:IN/;/init/;/1000/;/Player One/;/2000/;/Duke AI/;/1187.01.01/;/talk_scene_council/;/Some County/;/Player One/;/123456/;/9
+VOTC:IN/;/character/;/2000/;/Duke AI/;/Duke AI the Wise/;/Duchy of Somewhere/;/he/;/34/;/250/;/20/;/Heterosexual/;/ambitious, brave/;/10/;/1/;/King Bob/;/None/;/Frankish/;/Catholic/;/House de Somewhere/;/1/;/AI/;/Some County/;/King Bob/;/12/;/1/;/feudal/;/1/;/Councillor, Marshal/;/duchy
+VOTC:IN/;/stress/;/2000/;/42/;/Stressed/;/30
+VOTC:IN/;/legitimacy/;/2000/;/55/;/3/;/Feudal Legacy/;/40/;/35/;/50
+VOTC:IN/;/income/;/2000/;/250/;/3.25/;/STARTMULTILINE#Gold from domains: 4.5#Taxes: -1.25#ENDMULTILINE
+VOTC:IN/;/treasury/;/2000/;/500/;/STARTMULTILINE#Treasury: 500 gold#ENDMULTILINE
+VOTC:IN/;/influence/;/2000/;/120/;/STARTMULTILINE#Influence: 120#ENDMULTILINE/;/
+VOTC:IN/;/herd/;/2000/;/800/;/STARTMULTILINE#Herd breakdown here#ENDMULTILINE
+VOTC:IN/;/levies_vassals/;/2000/;/1200
+VOTC:IN/;/levies_dom/;/2000/;/400
+VOTC:IN/;/levies_dom/;/2000/;/450
+VOTC:IN/;/levies_theo/;/2000/;/100
+VOTC:IN/;/maa/;/2000/;/Armored Footmen/;/1/;/120
+VOTC:IN/;/maa/;/2000/;/Spearmen/;/0/;/80
+VOTC:IN/;/troops_eob/;/2000/;
+VOTC:IN/;/laws/;/2000/;/Crown Authority III
+VOTC:IN/;/laws/;/2000/;/Male Preference Succession
+VOTC:IN/;/laws/;/2000/;/High Tax
+VOTC:IN/;/persona_numbers/;/2000/;/40/;/10/;/60/;/70/;/50/;/45/;/30/;/20/;/55
+VOTC:IN/;/modifier/;/2000/;/mod_wounded/;/Wounded/;/This character is wounded and suffers penalties.
+VOTC:IN/;/modifier/;/2000/;/mod_drunk/;/Drunk/;/This character is drunk.
+VOTC:IN/;/k_secret/;/2000/;/Murdered Father/;/He murdered his father./;/Murder/;/secret_murder
+VOTC:IN/;/k_secret_owner/;/2000/;/3000/;/Count Bad
+VOTC:IN/;/k_secret_is_criminal/;/2000/;
+VOTC:IN/;/k_secret_target/;/2000/;/3000/;/Count Bad
+VOTC:IN/;/k_secret_spent/;/2000/;/no
+VOTC:IN/;/k_secret_can_be_exposed/;/2000/;/yes
+VOTC:IN/;/k_secret_knower/;/2000/;/Murdered Father/;/4000/;/Bishop Curious
+VOTC:IN/;/k_secret_eob/;/2000/;
