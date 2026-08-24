@@ -254,17 +254,13 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     if (!gameData) continue;
                     const c = gameData.characters.get(rootID);
                     if (!c) break;
-                    const LAW_GROUP_ORDER = [
-                        'realm authority', 'crown law', 'mandala laws', 'succession order',
-                        'succession gender', 'elective succession', 'appointment succession',
-                        'treasury budget military', 'treasury budget ministry', 'treasury budget salary'
-                    ];
                     const name = (data[1] || '').trim();
                     if (!name || name === '-' || name === '—' || name.toLowerCase() === 'no') break;
-                    if (c.laws.length < LAW_GROUP_ORDER.length) c.laws.push(name);
+                    if (c.laws.length < MAX_LAWS) c.laws.push(name);
                     break;
                 }
                 case "persona_numbers": {
+                    if (data.length < 10) break;
                     if (!gameData) continue;
                     const c = gameData.characters.get(rootID);
                     if (!c) break;
@@ -627,7 +623,9 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     return gameData!;
 }
 
-function extractMultilinePayload(element: string | undefined): string {
+const MAX_LAWS = 10;
+
+export function extractMultilinePayload(element: string | undefined): string {
     if (!element) return "";
     const startIdx = element.indexOf('STARTMULTILINE');
     if (startIdx === -1) return element.trim();
