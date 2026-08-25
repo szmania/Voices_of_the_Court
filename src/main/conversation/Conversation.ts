@@ -30,6 +30,7 @@ import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
+import type { CreateChildNodeResult } from '../timelineManager.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -1732,16 +1733,48 @@ Statement by ${character.fullName}:`
         }
     }
 
+    private buildCloseConversationEffect(checkpointEpoch: number, timeline?: CreateChildNodeResult): string {
+        let timelineLines = '';
+        let nodeLogSegment = '';
+        const checkpointToken = timeline?.context.checkpointToken;
+        const checkpointTokenLines = typeof checkpointToken === 'number' && Number.isInteger(checkpointToken) && checkpointToken > 0
+            ? [
+                `    set_variable = { name = votc_checkpoint_token value = ${checkpointToken} }`,
+                '    remove_variable ?= votc_checkpoint_pending_token'
+            ].join('\n')
+            : '';
+        if (timeline) {
+            const [na, nb] = timeline.nodeId.split('-');
+            const [pa, pb] = (timeline.parentId ?? '0-0').split('-');
+            timelineLines = [
+                `    set_variable = { name = votc_timeline_node_a value = ${na} }`,
+                `    set_variable = { name = votc_timeline_node_b value = ${nb} }`,
+                `    set_variable = { name = votc_timeline_parent_a value = ${pa} }`,
+                `    set_variable = { name = votc_timeline_parent_b value = ${pb} }`,
+                `    set_variable = { name = votc_timeline_schema value = 1 }`
+            ].join('\n');
+            nodeLogSegment = `/;/${na}/;/${nb}/;/${pa}/;/${pb}`;
+        }
+        return `global_var:talk_first_scope = {
+    set_variable = { name = votc_checkpoint_epoch value = ${checkpointEpoch} }
+    set_variable = { name = votc_checkpoint_day value = current_date }
+${checkpointTokenLines}
+${timelineLines}
+    debug_log = "VOTC:CHECKPOINT/;/set/;/[THIS.Char.GetID]/;/${checkpointEpoch}${nodeLogSegment}/;/[GetCurrentDate.GetStringShort]"
+}
+          trigger_event = mcc_event_v2.9002
+          trigger_event = mcc_event_v2.9003`;
+    }
+
     public saveHistoryAndTriggerSummarization(): void {
         console.log('Saving conversation history and triggering background summarization.');
         this.isOpen = false;
         this.cancelGeneration();
 
         // Write a trigger event to the game (e.g., trigger conversation end event)
-        this.runFileManager.write(`
-          trigger_event = mcc_event_v2.9002
-          trigger_event = mcc_event_v2.9003
-       `);
+        const nextCheckpointEpoch = this.gameData.votcCheckpointEpoch + 1;
+        // TODO(P6 Task5): wire JournalApi commit result here (BusinessWire bootstrap)
+        this.runFileManager.write(this.buildCloseConversationEffect(nextCheckpointEpoch, undefined));
         setTimeout(() => {
             this.runFileManager.clear();  // Clear the event file after a delay
             console.log('Run file cleared after conversation end event.');
