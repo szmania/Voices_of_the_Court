@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret, Relative, StressInfo, LegitimacyInfo, MaaRegiment, KnownSecret, CharacterModifier, PersonaNumbers} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, Relative, StressInfo, LegitimacyInfo, MaaRegiment, KnownSecret, CharacterModifier, PersonaNumbers, OwnedSecret, CharacterScheme, ExposedTargetingScheme} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -34,6 +34,9 @@ export class Character {
     titleRankConcept: string;
 
     secrets: Secret[];
+    ownedSecrets: OwnedSecret[];
+    ownedSchemes: CharacterScheme[];
+    exposedTargetingSchemes: ExposedTargetingScheme[];
     memories: Memory[];
     traits: Trait[];
     relationsToPlayer: string[];
@@ -94,6 +97,9 @@ export class Character {
             this.heldCourtAndCouncilPositions = data[25],
             this.titleRankConcept = data[26],
             this.secrets = [],
+            this.ownedSecrets = [],
+            this.ownedSchemes = [],
+            this.exposedTargetingSchemes = [],
             this.memories = [],
             this.traits = [],
             this.relationsToPlayer = [],
