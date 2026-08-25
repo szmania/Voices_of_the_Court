@@ -69,6 +69,15 @@ function conversationHistoryDirFor(playerId: string, identity?: CampaignPlayerId
 }
 
 function letterHistoryDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
+    // Timeline letter-history layout. The legacy branch
+    // (`votc_data/letter_history/player_<id>/`) is the location 1.x wrote
+    // outgoing/incoming letter history records before the campaign-scoped
+    // migration (1.x commits 884b29ec -> 1270eb20/92858374) and is kept as a
+    // read-only fallback for data written before campaign identities existed;
+    // new writes go through the campaign branch below once the Task 5 letter
+    // writer wiring lands. Unrelated to LetterManager chat letters, which live
+    // at `votc_data/letter_history/<playerId>/<characterId>.json` and are a
+    // separate feature never surfaced in this archive view.
     const userDataPath = app.getPath('userData');
     return identity
         ? campaignLetterHistoryDir(userDataPath, identity)
@@ -257,6 +266,8 @@ function toLetterArchiveEntry(record: any, id: string, fallbackTime: number): Ar
 }
 
 export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<ArchiveHistoryEntry[]> {
+    // Reads only the timeline letter-history layout (see letterHistoryDirFor);
+    // LetterManager chat letters use a different directory and record shape.
     const letterHistoryDir = letterHistoryDirFor(playerId, identity);
     if (!fs.existsSync(letterHistoryDir)) {
         return [];
@@ -383,6 +394,7 @@ async function archiveFutureRecordsInFile(
             archivedFromCheckpointEpoch: checkpointEpoch,
             archivedSourceFile: sourceFileName
         }));
+        const archivedKeys = new Set(annotatedFutureRecords.map(record => getArchiveRecordKey(record, sourceFileName)));
 
         await updateJsonArrayAtomic<any>(
             archiveFilePath,
@@ -404,7 +416,23 @@ async function archiveFutureRecordsInFile(
                 });
             }
         );
-        await writeJsonAtomic(sourceFilePath, visible);
+
+        // Re-read the source right before rewriting it so records appended by
+        // concurrent writers between the first snapshot and the archive commit
+        // survive instead of being clobbered. Only records whose stable business
+        // key matches this batch's archived set are dropped; a re-read failure
+        // falls back to the pre-archive snapshot (previous behavior).
+        let survivingRecords = visible;
+        try {
+            const freshRecords = JSON.parse(fs.readFileSync(sourceFilePath, 'utf8'));
+            if (Array.isArray(freshRecords)) {
+                survivingRecords = freshRecords.filter(record => !archivedKeys.has(getArchiveRecordKey(record, sourceFileName)));
+            }
+        } catch (error) {
+            console.warn(`Failed to re-read ${sourceFilePath} before rewrite; using the pre-archive snapshot:`, error);
+        }
+
+        await writeJsonAtomic(sourceFilePath, survivingRecords);
         return future.length;
     } catch (error) {
         console.error(`Failed to archive future history ${sourceFilePath}:`, error);
@@ -449,11 +477,14 @@ export async function archiveFutureArchiveHistoryForPlayer(playerId: string, che
 /**
  * Aggregated archive viewer feed for the history window's letter/battle tabs.
  * Task 5 registers this behind IPC 'get-archive-history-entries' with the call
- * shape `(playerId, checkpointEpoch, type)`; the optional registry/node/identity
- * parameters mirror getLetterHistoryEntries/getBattleReportHistoryEntries so the
- * resolveTimelineWindowRequest wiring can be threaded through without another
- * signature change. With no registry/context the visibility check degrades to
- * checkpoint-epoch-only filtering.
+ * shape `(playerId, checkpointEpoch, type)`. Visibility caveat: records
+ * anchored with a `votcTimelineNodeId` are treated as INVISIBLE while the
+ * registry/current-node context is not threaded in (isRecordVisibleForContext
+ * fail-closes without a registry), so until Task 5 wires
+ * resolveTimelineWindowRequest through, only epoch-anchored records are shown;
+ * full branch-visibility judgement resumes after that wiring. The optional
+ * registry/node/identity parameters mirror getLetterHistoryEntries /
+ * getBattleReportHistoryEntries so no further signature change is needed.
  */
 export async function getArchiveHistoryEntries(
     playerId: string,

@@ -21,7 +21,6 @@ let checkpointEpoch;
 let activeHistoryType = 'conversation';
 let archiveItems = [];
 let selectedArchiveItemId = '';
-let hasLoadedInitialArchive = false;
 let hasLoadedContext = false;
 
 function translate(key, defaultText) {
@@ -102,8 +101,7 @@ function setupEventListeners() {
         activeHistoryType = tab.dataset.historyType;
         selectedArchiveItemId = '';
         updateArchivePresentation();
-        await loadActiveArchiveItems({ selectAvailableArchiveOnFirstLoad: !hasLoadedInitialArchive });
-        hasLoadedInitialArchive = true;
+        await loadActiveArchiveItems();
     });
 }
 
@@ -130,7 +128,9 @@ async function loadArchiveContext() {
         hasLoadedContext = true;
 
         updateArchivePresentation();
-        await loadActiveArchiveItems();
+        // 初始加载与 Refresh 均允许一次"会话列表为空时自动落到有数据的
+        // letter/battle 档案"回落；手动切换 tab 不触发（见 setupEventListeners）。
+        await loadActiveArchiveItems({ selectAvailableArchiveOnFirstLoad: true });
         showStatusMessage(translate('history.load_success', 'Conversation history data loaded successfully'), 'success');
     } catch (error) {
         showStatusMessage(translate('history.load_fail', 'Failed to load conversation history data: ') + error.message, 'error');
@@ -138,12 +138,17 @@ async function loadArchiveContext() {
     }
 }
 
-// get-archive-history-entries 容错封装：通道未注册（Task 5 前）时静默降级为空列表
+// get-archive-history-entries 容错封装：仅在通道未注册（Task 5 前的
+// "No handler registered"）时静默降级为空列表；其余错误原样上抛，
+// 走 loadActiveArchiveItems 的既有错误分支展示。
 async function fetchArchiveEntries(historyType) {
     try {
         return await ipcRenderer.invoke('get-archive-history-entries', playerId, checkpointEpoch, historyType);
     } catch (error) {
-        console.debug(`[historyWindow] get-archive-history-entries unavailable for "${historyType}":`, error.message);
+        if (!/No handler registered/i.test(error?.message ?? '')) {
+            throw error;
+        }
+        console.debug(`[historyWindow] get-archive-history-entries not registered yet for "${historyType}"`);
         return [];
     }
 }
@@ -156,7 +161,9 @@ async function loadActiveArchiveItems({ selectAvailableArchiveOnFirstLoad = fals
             archiveItems = files.map((file) => ({
                 id: file.fileName,
                 type: 'conversation',
-                title: getConversationCharacterName(file.fileName),
+                // 2CE 文件名为 <角色ID串>_ckpt<epoch>_<时间戳>.txt，角色数量可变，
+                // 无法稳定提取单一角色名，直接展示完整文件名。
+                title: file.fileName,
                 subtitle: '',
                 modifiedTime: file.modifiedTime,
                 fileName: file.fileName
@@ -280,12 +287,6 @@ function getEmptyStateText() {
     if (activeHistoryType === 'letter') return translate('history.no_letters', 'No letter correspondence');
     if (activeHistoryType === 'battle') return translate('history.no_battle_reports', 'No battle reports');
     return translate('history.no_history', 'No conversation history files available');
-}
-
-// 从文件名提取角色ID作为标题；无法识别时回退为完整文件名
-function getConversationCharacterName(fileName) {
-    const match = fileName.match(/^\d+_(\d+)_ckpt\d+_/);
-    return match ? match[1] : fileName;
 }
 
 // 显示状态消息
