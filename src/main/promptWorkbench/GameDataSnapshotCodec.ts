@@ -38,10 +38,15 @@ import type {
  *   snapshot tail; the persisted protocol/sequence/slot convenience fields
  *   carry the same information, and a restore facade can re-derive the
  *   result with parseSaveSnapshotExtra.
+ * - totalDays: legacy letter-scheduling field superseded by gameDate and the
+ *   explicit timeline fields. No longer parsed from the init line (protocol v2
+ *   index 8 is the checkpoint epoch) nor assigned by the GameData constructor;
+ *   main.ts maintains it in memory only.
  */
 export const GAME_DATA_SNAPSHOT_EXCLUDED_FIELDS: readonly string[] = [
     'timelineSnapshotResult',
-    'saveSnapshotExtraResult'
+    'saveSnapshotExtraResult',
+    'totalDays'
 ];
 
 /**
