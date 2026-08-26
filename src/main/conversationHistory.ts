@@ -105,8 +105,67 @@ function battleReportHistoryArchivedPathFor(playerId: string, identity?: Campaig
         : path.join(userDataPath, 'votc_data', 'battle_report_history_archived', `player_${playerId}.json`);
 }
 
-// Read list of historical conversation files
-export async function getConversationHistoryFiles(playerId: string, currentCharacterIds: number[], limit: number): Promise<Array<{fileName: string, modifiedTime: number}>> {
+function getHistoryFileCheckpointEpoch(fileName: string): number | undefined {
+    const match = fileName.match(/_ckpt(\d+)_/);
+    if (!match) return undefined;
+    const epoch = Number(match[1]);
+    return Number.isFinite(epoch) ? epoch : undefined;
+}
+
+export async function parseConversationHistoryIdsFromLog(logFilePath: string): Promise<{playerId: string, checkpointEpoch?: number}> {
+    try {
+        if (!fs.existsSync(logFilePath)) {
+            throw new Error(`Log file not found: ${logFilePath}`);
+        }
+        const logContent = fs.readFileSync(logFilePath, 'utf8');
+        const lines = logContent.split('\n').filter(line => line.trim());
+        
+        let conversationHistoryLine = '';
+        for (let i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].includes('VOTC:conversation_history')) {
+                conversationHistoryLine = lines[i];
+                break;
+            }
+        }
+        
+        if (!conversationHistoryLine) {
+            throw new Error('VOTC:conversation_history line not found in log');
+        }
+        
+        const parts = conversationHistoryLine.split('/;/');
+        if (parts.length < 2) {
+            throw new Error('Invalid VOTC:conversation_history line format');
+        }
+        
+        const playerId = parts[1].trim();
+        const checkpointEpoch = parts[2] !== undefined ? Number(parts[2].trim()) : undefined;
+        
+        if (!playerId) {
+            throw new Error('Failed to parse playerId from VOTC:conversation_history line');
+        }
+        
+        return {
+            playerId,
+            checkpointEpoch: Number.isFinite(checkpointEpoch) ? checkpointEpoch : undefined
+        };
+    } catch (error) {
+        console.error('Error parsing conversation history IDs:', error);
+        throw error;
+    }
+}
+
+function getHistoryFileTimelineNodeId(fileName: string): string | undefined {
+    // Early development builds wrote the two node components with an
+    // underscore; current files use the canonical hyphenated node ID.
+    const match = fileName.match(/_tl_(\d+)(?:-|_)(\d+)_/);
+    return match ? `${match[1]}-${match[2]}` : undefined;
+}
+
+// List transcript .txt files for the chat prompt builder. 2CE-specific shape:
+// filters by the exact participating-character-id set and applies an optional
+// limit. Unrelated to the history-viewer listing below, which follows the 1.x
+// timeline-visibility rules instead.
+export async function listPromptTranscriptFiles(playerId: string, currentCharacterIds: number[], limit: number, checkpointEpoch?: number): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
         // Build path to conversation history directory - using userdata's conversation_history directory
         const userDataPath = app.getPath('userData');
@@ -173,17 +232,88 @@ export async function getConversationHistoryFiles(playerId: string, currentChara
     }
 }
 
-// Read content of a specific historical conversation file
-export async function readConversationHistoryFile(playerId: string, fileName: string): Promise<string> {
-    const userDataPath = app.getPath('userData');
-    const filePath = path.join(userDataPath, 'votc_data', 'conversation_history', playerId, fileName);
+// Read list of historical conversation files for the history viewer.
+// Mirrors 1.x conversationHistory.getConversationHistoryFiles: campaign-scoped
+// directory when an identity is available, graph visibility for node-tagged
+// files, epoch filter otherwise.
+export async function getConversationHistoryFiles(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
+        const conversationHistoryDir = conversationHistoryDirFor(playerId, identity);
+
+        // Ensure directory exists
+        if (!fs.existsSync(conversationHistoryDir)) {
+            console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
+            return [];
+        }
+
+        // Read all txt files in the directory
+        const files = fs.readdirSync(conversationHistoryDir).filter(file => {
+            if (!file.endsWith('.txt')) {
+                return false;
+            }
+
+            const timelineNodeId = getHistoryFileTimelineNodeId(file);
+            if (timelineNodeId) {
+                // Node-tagged histories must always pass graph visibility. Checkpoint
+                // values are not enough to distinguish siblings created after a load.
+                return Boolean(registry && currentNodeId && registry.isRecordVisible(timelineNodeId, currentNodeId));
+            }
+
+            const fileCheckpointEpoch = getHistoryFileCheckpointEpoch(file);
+            return checkpointEpoch === undefined || fileCheckpointEpoch === undefined || fileCheckpointEpoch <= checkpointEpoch;
+        });
+
+        // Get modification time for each file
+        const filesWithStats = files.map(fileName => {
+            const filePath = path.join(conversationHistoryDir, fileName);
+            const stats = fs.statSync(filePath);
+            return {
+                fileName,
+                modifiedTime: stats.mtime.getTime()
+            };
+        });
+
+        // Sort by modification time, descending (newest first)
+        filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
+
+        return filesWithStats;
+    } catch (error) {
+        console.error('Error reading conversation history file list:', error);
+        throw error;
+    }
+}
+
+// Read content of a specific historical conversation file for the history
+// viewer. Node-tagged files must belong to the current save branch; plain
+// files must not be ahead of the given checkpoint.
+export async function readConversationHistoryFile(playerId: string, fileName: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<string> {
+    try {
+        if (path.basename(fileName) !== fileName || !fileName.endsWith('.txt')) {
+            throw new Error('Invalid conversation history file name');
+        }
+
+        const timelineNodeId = getHistoryFileTimelineNodeId(fileName);
+        if (timelineNodeId) {
+            if (!(registry && currentNodeId && registry.isRecordVisible(timelineNodeId, currentNodeId))) {
+                throw new Error('This conversation history does not belong to the current save branch');
+            }
+        } else {
+            const fileCheckpointEpoch = getHistoryFileCheckpointEpoch(fileName);
+            if (checkpointEpoch !== undefined && fileCheckpointEpoch !== undefined && fileCheckpointEpoch > checkpointEpoch) {
+                throw new Error('This conversation history belongs to a later point of the current save');
+            }
+        }
+
+        const filePath = path.join(conversationHistoryDirFor(playerId, identity), fileName);
+
         // Ensure file exists
-        await fs.access(filePath);
-        
+        if (!fs.existsSync(filePath)) {
+            throw new Error(`Conversation history file does not exist: ${filePath}`);
+        }
+
         // Read file content
-        const content = await fs.readFile(filePath, 'utf8');
-        
+        const content = fs.readFileSync(filePath, 'utf8');
+
         return content;
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
