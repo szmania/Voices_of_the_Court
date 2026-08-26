@@ -165,60 +165,82 @@ function getHistoryFileTimelineNodeId(fileName: string): string | undefined {
 // filters by the exact participating-character-id set and applies an optional
 // limit. Unrelated to the history-viewer listing below, which follows the 1.x
 // timeline-visibility rules instead.
-export async function listPromptTranscriptFiles(playerId: string, currentCharacterIds: number[], limit: number, checkpointEpoch?: number): Promise<Array<{fileName: string, modifiedTime: number}>> {
+//
+// When `identity` is present the campaign-scoped dir is listed TOO and both
+// layouts are merged (dedup by file name). Union rationale: 1.x has no such
+// prompt feature, so it never needed this — but 2CE transcripts written
+// before the campaign-scoped routing fix live in the legacy player dir, and
+// dropping them would make existing users' old transcripts vanish from the
+// prompt context as soon as a v2 mod starts providing an identity.
+export async function listPromptTranscriptFiles(playerId: string, currentCharacterIds: number[], limit: number, checkpointEpoch?: number, identity?: CampaignPlayerIdentity): Promise<Array<{fileName: string, modifiedTime: number, sourceDir: string}>> {
     try {
-        // Build path to conversation history directory - using userdata's conversation_history directory
         const userDataPath = app.getPath('userData');
-        const conversationHistoryDir = path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
-        
-        // Ensure directory exists
-        try {
-            await fs.access(conversationHistoryDir);
-        } catch {
-            console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
-            return [];
+        const legacyDir = path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
+        // Linked set keeps legacy first so name collisions resolve to the
+        // legacy copy (same content the user has always seen).
+        const dirs = new Set<string>([legacyDir]);
+        if (identity) {
+            dirs.add(campaignConversationHistoryDir(userDataPath, identity));
         }
-        
-        const currentIdSet = new Set(currentCharacterIds.map(String));
 
-        // Read all txt files in the directory
-        const allFiles = await fs.readdir(conversationHistoryDir);
-        const filteredFiles = allFiles.filter(file => {
-            if (!file.endsWith('.txt')) return false;
-
-            const nameParts = file.replace('.txt', '').split('_');
-            if (nameParts.length < 2) return false; // Must have at least one character id and a timestamp
-
-            const timestamp = nameParts.pop(); // Remove and check timestamp
-            if (isNaN(Number(timestamp))) return false;
-
-            const fileCharacterIds = new Set(nameParts);
-
-            // The history is only relevant if the set of participants is exactly the same.
-            if (fileCharacterIds.size !== currentIdSet.size) {
-                return false;
+        const mergedByName = new Map<string, { fileName: string, modifiedTime: number, sourceDir: string }>();
+        for (const conversationHistoryDir of dirs) {
+            if (!fs.existsSync(conversationHistoryDir)) {
+                console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
+                continue;
             }
-            for (const id of fileCharacterIds) {
-                if (!currentIdSet.has(id)) {
+
+            const currentIdSet = new Set(currentCharacterIds.map(String));
+
+            // Read all txt files in the directory
+            const files = fs.readdirSync(conversationHistoryDir).filter(file => {
+                if (!file.endsWith('.txt')) return false;
+
+                const nameParts = file.replace('.txt', '').split('_');
+                if (nameParts.length < 2) return false; // Must have at least one character id and a timestamp
+
+                const timestamp = nameParts.pop(); // Remove and check timestamp
+                if (isNaN(Number(timestamp))) return false;
+
+                // Handle _ckptN_ segment
+                let fileEpoch: number | undefined;
+                const lastPart = nameParts[nameParts.length - 1];
+                if (lastPart && lastPart.startsWith('ckpt')) {
+                    nameParts.pop();
+                    fileEpoch = Number(lastPart.replace('ckpt', ''));
+                    if (!Number.isFinite(fileEpoch)) fileEpoch = undefined;
+                }
+
+                // Epoch filtering: hide files from the "future"
+                if (checkpointEpoch !== undefined && fileEpoch !== undefined && fileEpoch > checkpointEpoch) {
                     return false;
                 }
+
+                // Character ID matching - skip when currentCharacterIds is empty
+                if (currentCharacterIds.length > 0) {
+                    const fileCharacterIds = new Set(nameParts);
+                    if (fileCharacterIds.size !== currentIdSet.size) return false;
+                    for (const id of currentIdSet) {
+                        if (!fileCharacterIds.has(id)) return false;
+                    }
+                }
+                return true;
+            });
+
+            for (const fileName of files) {
+                if (mergedByName.has(fileName)) continue;
+                const stats = fs.statSync(path.join(conversationHistoryDir, fileName));
+                mergedByName.set(fileName, {
+                    fileName,
+                    modifiedTime: stats.mtime.getTime(),
+                    sourceDir: conversationHistoryDir
+                });
             }
-            return true;
-        });
-        
-        // Get modification time for each file
-        const filesWithStats = await Promise.all(filteredFiles.map(async (fileName) => {
-            const filePath = path.join(conversationHistoryDir, fileName);
-            const stats = await fs.stat(filePath);
-            return {
-                fileName,
-                modifiedTime: stats.mtime.getTime()
-            };
-        }));
-        
+        }
+
         // Sort by modification time, descending (newest first)
-        filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
-        
+        const filesWithStats = [...mergedByName.values()].sort((a, b) => b.modifiedTime - a.modifiedTime);
+
         // If a limit is provided and is greater than 0, apply it
         if (limit > 0) {
             console.log(`Limiting historical conversations to the latest ${limit} files.`);

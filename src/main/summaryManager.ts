@@ -288,6 +288,10 @@ export async function readSummaryFile(
         // First apply the legacy epoch filter (preserves all timeline-tagged
         // records regardless of epoch), then apply graph-based visibility for
         // timeline records so other-branch summaries are hidden.
+        // NOTE: no summary writer currently stamps votcTimelineNodeId, so the
+        // node-tagged branch of isRecordVisibleForContext is dormant (and
+        // fail-closed when registry/currentNodeId are absent). When P7
+        // introduces node stamping for summaries, revisit this filter.
         const epochFiltered = checkpointEpoch === undefined
             ? allSummaries
             : filterSummariesForCheckpoint(allSummaries, checkpointEpoch);
