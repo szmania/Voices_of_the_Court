@@ -271,7 +271,9 @@ function updateArchivePresentation() {
     }
 
     const presentation = {
-        conversation: { kicker: 'CHRONICLE', title: translate('history.viewer_header', 'Conversation Content') },
+        // The letter/battle kickers stay as decorative English tags; only the
+        // conversation kicker is localized via history.section_kicker.
+        conversation: { kicker: translate('history.section_kicker', 'CHRONICLE'), title: translate('history.viewer_header', 'Conversation Content') },
         letter: { kicker: 'CORRESPONDENCE', title: translate('history.letter_content_title', 'Letter correspondence') },
         battle: { kicker: 'BATTLE REPORT', title: translate('history.battle_content_title', 'Battle report') }
     }[activeHistoryType];

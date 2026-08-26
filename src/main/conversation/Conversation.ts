@@ -1777,9 +1777,11 @@ Statement by ${character.fullName}:`
     /**
      * §9.3 P5.4 fix C1: returns the requestKey UUID for the current
      * close-request lifecycle. Generates a UUID on the first call and reuses
-     * it on subsequent calls (retries within the same close) so journal rule 1
-     * "same-close reuse" can fire in production. Cleared by
-     * clearCloseRequestKey() when the attempt reaches terminal state.
+     * it on any subsequent call within the same close so journal rule 1
+     * "same-close reuse" can fire if a retry path is ever added; today
+     * summarize() performs exactly one attempt per close, so the reuse branch
+     * is reserved for future retries only. Cleared by clearCloseRequestKey()
+     * when the attempt reaches terminal state.
      */
     private getOrCreateCloseRequestKey(): string {
         if (!this.currentCloseRequestKey) {
@@ -1855,7 +1857,7 @@ ${timelineLines}
                 const eventSignature = `conv:${this.gameData.playerID}_${this.gameData.aiID}_${this.gameData.date}_${nextCheckpointEpoch}`;
                 const transition = await runConversationTimelineTransition({
                     userDataDir: app.getPath('userData'),
-                    gameData: this.gameData as any,
+                    gameData: this.gameData,
                     identity: this.campaignIdentity,
                     requestKey,
                     eventSignature,

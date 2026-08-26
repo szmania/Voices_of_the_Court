@@ -51,7 +51,7 @@ export class ClipboardListener extends EventEmitter{
             // the extra argument.
             const segments = currentClipboard.slice('VOTC:'.length).split('/;/');
             const command = segments[0].trim();
-            const payloads = segments.slice(1).map(s => s?.trim());
+            const payloads = segments.slice(1).map(s => s.trim());
             console.log(`VOTC command detected: ${command}`);
             switch (command){
                 case "IN":

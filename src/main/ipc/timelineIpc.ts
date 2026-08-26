@@ -29,7 +29,8 @@ export interface TimelineIpcDeps {
     onCloseRequested(): void;
 }
 
-let timelineIpcDeps: TimelineIpcDeps | undefined;
+/** Set once registerTimelineIpc has wired the channels; guards double registration. */
+let timelineIpcRegistered = false;
 
 /**
  * Mirrors 1.x main.resolveTimelineWindowRequest (main.ts:629): builds a
@@ -121,10 +122,10 @@ export function resolveTimelineWindowRequest(
  * Must be called once during app startup.
  */
 export function registerTimelineIpc(deps: TimelineIpcDeps): void {
-    if (timelineIpcDeps) {
+    if (timelineIpcRegistered) {
         throw new Error('registerTimelineIpc called twice');
     }
-    timelineIpcDeps = deps;
+    timelineIpcRegistered = true;
 
     ipcMain.handle('get-conversation-history-ids', async () => {
         console.log('IPC: Received get-conversation-history-ids event.');
@@ -137,7 +138,9 @@ export function registerTimelineIpc(deps: TimelineIpcDeps): void {
                 return await parseConversationHistoryIdsFromLog(deps.getDebugLogPath());
             } catch (error) {
                 console.error('Error parsing conversation history IDs:', error);
-                return { playerId: '', checkpointEpoch: undefined };
+                // Same failure shape as the v2 path below: the renderer only
+                // checks `!context.playerId`, which treats '' and null alike.
+                return { playerId: null };
             }
         }
         try {
@@ -165,7 +168,10 @@ export function registerTimelineIpc(deps: TimelineIpcDeps): void {
         }
     });
 
-    ipcMain.handle('get-conversation-history-files', async (event, playerId, checkpointEpoch) => {
+    // Trust boundary: playerId/filename/checkpointEpoch below arrive raw from
+    // the history-window renderer over IPC; they are treated as untrusted and
+    // validated downstream (resolveTimelineWindowRequest / conversationHistory).
+    ipcMain.handle('get-conversation-history-files', async (event: Electron.IpcMainInvokeEvent, playerId: string, checkpointEpoch: number | undefined) => {
         console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
         try {
             const { context, registry, identity } = resolveTimelineWindowRequest(deps.getWindowContext(), playerId, checkpointEpoch);
@@ -177,7 +183,7 @@ export function registerTimelineIpc(deps: TimelineIpcDeps): void {
         }
     });
 
-    ipcMain.handle('read-conversation-history-file', async (event, playerId, filename, checkpointEpoch) => {
+    ipcMain.handle('read-conversation-history-file', async (event: Electron.IpcMainInvokeEvent, playerId: string, filename: string, checkpointEpoch: number | undefined) => {
         console.log(`IPC: Received read-conversation-history-file event for player: ${playerId}, file: ${filename}`);
         try {
             const { context, registry, identity } = resolveTimelineWindowRequest(deps.getWindowContext(), playerId, checkpointEpoch);
@@ -189,7 +195,7 @@ export function registerTimelineIpc(deps: TimelineIpcDeps): void {
         }
     });
 
-    ipcMain.handle('get-archive-history-entries', async (event, playerId, checkpointEpoch, type: 'letter' | 'battle' | undefined) => {
+    ipcMain.handle('get-archive-history-entries', async (event: Electron.IpcMainInvokeEvent, playerId: string, checkpointEpoch: number | undefined, type: 'letter' | 'battle' | undefined) => {
         try {
             const { context, registry, identity } = resolveTimelineWindowRequest(deps.getWindowContext(), playerId, checkpointEpoch);
             if (type === 'letter' || type === 'battle') {
@@ -197,7 +203,7 @@ export function registerTimelineIpc(deps: TimelineIpcDeps): void {
             }
             return [];
         } catch (error) {
-            console.error(`Error reading ${type} archive history:`, error);
+            console.error(`Error reading ${type} archive history for player ${playerId}:`, error);
             return [];
         }
     });

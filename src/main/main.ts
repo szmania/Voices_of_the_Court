@@ -1147,13 +1147,36 @@ clipboardListener.on('VOTC:IN', async () =>{
                 throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}.`);
             }
 
-            if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
-                console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
-                storedLetters.clear();
-                lastLetterSentToGame = null;
-            }
-            setCachedGameData(gameData);
-            currentSessionPlayerId = String(gameData.playerID);
+        console.log("New conversation started!");
+        // Under protocol v2 the init line no longer carries totalDays (index 8
+        // is the checkpoint epoch). The authoritative date source is gameDate,
+        // populated from the VOTC:DATE extra block; GameData's totalDays field
+        // is not assigned by the constructor - main.ts only fills it in inside
+        // the LETTER/BATTLE_REPORT flows (gameData.totalDays = currentTotalDays)
+        // - so the ?? totalDays fallback below cannot fire at chat-start.
+        if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+            updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
+        }
+        conversation = new Conversation(gameData, config, chatWindow, userDataPath);
+        await conversation.loadHistory();
+
+        // Import letters from log
+        await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
+
+        // Consolidate chat-start and chat-history into a single event to prevent race conditions
+        const historicalMetadata = conversation.historicalConversations || [];
+
+        // Sanitize actions to remove non-serializable functions
+        const sanitizedActions = conversation.actions
+            .filter(action => action && action.signature)
+            .map(action => ({
+                signature: action.signature,
+                args: action.args,
+                description: action.description,
+                creator: action.creator,
+                usesSource: (action as any).usesSource,
+                usesTarget: (action as any).usesTarget
+        }));
 
             if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
                 updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
@@ -1292,6 +1315,9 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
     }
 })
 
+// Payload parsing is already in place (ClipboardListener emits the parsed
+// string[] payload for this command); wiring a dedicated summary-manager
+// window flow is deferred to P7.
 clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
     console.log('ClipboardListener: VOTC:SUMMARY_MANAGER event detected.');
     try {

@@ -24,7 +24,7 @@
                     <input type="text" id="playerId" readonly>
                 </div>
                 <div class="info-item">
-                    <span class="timeline-label">CHECKPOINT</span>
+                    <span class="timeline-label" data-i18n="history.checkpoint_label">CHECKPOINT</span>
                     <strong id="checkpointValue" class="checkpoint-value">&mdash;</strong>
                 </div>
             </div>
@@ -32,9 +32,9 @@
             <div class="conversation-list-container">
                 <h2 data-i18n="history.list_header">对话历史列表</h2>
                 <div id="archiveTabs" class="archive-tabs" role="tablist" aria-label="Archive type">
-                    <button class="archive-tab active" type="button" data-history-type="conversation" role="tab" aria-selected="true">Conversations</button>
-                    <button class="archive-tab" type="button" data-history-type="letter" role="tab" aria-selected="false">Letters</button>
-                    <button class="archive-tab" type="button" data-history-type="battle" role="tab" aria-selected="false">Battle reports</button>
+                    <button class="archive-tab active" type="button" data-history-type="conversation" role="tab" aria-selected="true" data-i18n="history.tab_conversations">Conversations</button>
+                    <button class="archive-tab" type="button" data-history-type="letter" role="tab" aria-selected="false" data-i18n="history.tab_letters">Letters</button>
+                    <button class="archive-tab" type="button" data-history-type="battle" role="tab" aria-selected="false" data-i18n="history.tab_battles">Battle reports</button>
                 </div>
                 <div id="conversationList" class="conversation-list">
                     <!-- 对话文件将在这里动态生成 -->
@@ -43,7 +43,7 @@
 
             <div class="conversation-viewer">
                 <div class="viewer-heading">
-                    <span id="archiveKicker" class="section-kicker">CHRONICLE</span>
+                    <span id="archiveKicker" class="section-kicker" data-i18n="history.section_kicker">CHRONICLE</span>
                     <h2 id="conversationHeading" data-i18n="history.viewer_header">对话内容</h2>
                 </div>
                 <div class="conversation-info">
