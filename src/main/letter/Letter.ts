@@ -69,7 +69,8 @@ export class Letter implements ILetter {
         content: string,
         gameDate: string, // Date string when SENT
         delay: number,    // Travel time (totalJourneyTime)
-        totalDays: number // Game day number when SENT
+        totalDays: number, // Game day number when SENT
+        creationTimestamp?: Date // Optional real world creation timestamp
     ): Letter | null {
         try {
             // The written timestamp is the date the letter was sent.
@@ -105,7 +106,7 @@ export class Letter implements ILetter {
                 undefined, // replyToId
                 'sent', // status
                 false, // It's not delivered to the AI instantly, the journey tracks this.
-                undefined, // creationTimestamp (real world)
+                creationTimestamp, // creationTimestamp (real world)
                 deliveryTimestamp, // When the AI will receive it
                 deliveryTimestamp // For a player-sent letter, expected is same as actual.
             );
