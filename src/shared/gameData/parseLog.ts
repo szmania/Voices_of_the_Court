@@ -108,7 +108,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     console.log(`--- Relevant Log Block End ---`);
 
     for (const line of lines) {
-        console.log(`[parseLog] Processing line: ${line}`);
+        // console.log(`[parseLog] Processing line: ${line}`);
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
             console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
@@ -140,7 +140,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 break;
             }
 
-            if(line.includes('#ENDMULTILINE')){         
+            if(line.includes('#ENDMULTILINE')){
                 console.log(`Finished parsing multi-line data of type "${multiLineType}".`);
                 isWaitingForMultiLine = false;
             }
@@ -172,19 +172,19 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         console.log(`[parseLog] GameData initialized with scene: '${gameData.scene}' and location: '${gameData.location}'`);
                     }
                 break;
-                case "character": 
+                case "character":
                     if (!gameData) continue;
                     let char = new Character(data);
                     gameData!.addCharacter(char.id, char);
                     console.log(`[parseLog] ADDED character to map: ID=${char.id}, Name=${char.fullName}`);
                 break;
-                case "memory": 
+                case "memory":
                     if (!gameData) continue;
                     let memory = parseMemory(data)
                     gameData!.characters.get(rootID)!.memories.push(memory);
                     console.log(`Parsed memory for character ID ${rootID}: ${memory.desc}`);
                 break;
-                case "secret": 
+                case "secret":
                     if (!gameData) continue;
                     let secret = parseSecret(data)
                     gameData!.characters.get(rootID)!.secrets.push(secret);
@@ -213,7 +213,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         gameData!.characters.get(rootID)!.relationsToPlayer = [relation];
                         console.debug(`Parsed relation for character ID ${rootID} to player: "${relation}"`);
                     }
-                    
+
                     if(!line.includes("#ENDMULTILINE")){
                         multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
                         isWaitingForMultiLine = true;
@@ -378,7 +378,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             }
         } else {
             if (line.trim() !== "") {
-                console.debug(`Skipping line (no VOTC:IN): ${line}`);
+                // console.debug(`Skipping line (no VOTC:IN): ${line}`);
             }
         }
     }
@@ -487,7 +487,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
         let splits = line.split(": ");
         const reason = removeTooltip(splits[0]);
-        
+
         // Join the rest back in case the reason contained a colon
         const valueStr = splits.slice(1).join(': ');
 
@@ -508,12 +508,12 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     } else {
         console.log(`[parseLog] Final gameData or characters map is null/undefined.`);
     }
-    
+
     // 初始化角色名称属性，供parseVariables使用
     if (gameData) {
         gameData.setCharacterNames();
     }
-    
+
     return gameData!;
 }
 

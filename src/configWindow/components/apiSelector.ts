@@ -848,7 +848,7 @@ class ApiSelector extends HTMLElement{
     saveNovelaiConfig(){
         const config = {
             type: "novelai",
-            baseUrl: "https://api.novelai.net/v1",
+            baseUrl: "https://text.novelai.net/oa/v1/completions",
             key: this.novelaiPasswordInput.value,
             model: this.novelaiModelInput.value,
             overwriteContext: this.overwriteContextCheckbox.checked,
