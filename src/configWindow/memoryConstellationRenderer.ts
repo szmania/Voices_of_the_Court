@@ -1,6 +1,6 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import "./components/configCheckbox";
-import "./components/configSlider";
+import "./components/ConfigSlider";
 import "./components/ConfigNumber";
 import "./components/ConfigSelect";
 import "./components/configTextarea";

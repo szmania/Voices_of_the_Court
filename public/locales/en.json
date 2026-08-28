@@ -991,4 +991,22 @@
     "description_label": "Current conversation information:",
     "system_prompt": "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.",
     "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
-  }}
+  },
+  "compaction": {
+    "header": "Memory Management",
+    "desc_1": "Memory compaction automatically compresses long conversation histories to save context space while preserving key narrative details.",
+    "desc_2": "You can configure how and when compaction occurs below.",
+    "enable": "Enable Memory Compaction",
+    "enable_tooltip": "Turn on automatic compaction of old conversations",
+    "phase1_threshold": "Phase 1 Threshold (%)",
+    "phase1_threshold_tooltip": "When token usage exceeds this percentage of context limit, Phase 1 compaction will run to summarize old messages.",
+    "phase2_threshold": "Phase 2 Threshold (Summaries)",
+    "phase2_threshold_tooltip": "When this many Phase-1 summaries exist, Phase 2 compaction will consolidate them into the long-term knowledge graph.",
+    "manual_trigger": "Run Compaction Now",
+    "export_data": "Export Player Data",
+    "import_data": "Import Player Data",
+    "status_idle": "Idle",
+    "status_running": "Compacting...",
+    "cooldown_label": "Cooldown"
+  }
+}
