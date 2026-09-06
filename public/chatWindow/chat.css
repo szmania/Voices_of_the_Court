@@ -260,8 +260,8 @@ html{
     overflow-x: hidden; /* Remove horizontal scrollbar */
     min-width: 300px;
     min-height: 400px;
-    max-width: calc(100vw - 20px); /* Prevent resizing beyond viewport width */
-    max-height: calc(100vh - 20px); /* Prevent resizing beyond viewport height */
+    max-width: 1920px; /* Stable max width to avoid macOS display-scaling issues */
+    max-height: 1080px; /* Stable max height to avoid macOS display-scaling issues */
 }
 
 .messages-container{

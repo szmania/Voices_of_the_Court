@@ -1781,12 +1781,12 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Capture initial state
     const chatBox = document.querySelector('.chat-box') as HTMLElement;
     if (chatBox && !initialWindowState.width) {
-        const computedStyle = window.getComputedStyle(chatBox);
+        const rect = chatBox.getBoundingClientRect();
         initialWindowState = {
-            width: computedStyle.width,
-            height: computedStyle.height,
-            top: chatBox.offsetTop + 'px',
-            left: chatBox.offsetLeft + 'px'
+            width: rect.width + 'px',
+            height: rect.height + 'px',
+            top: rect.top + 'px',
+            left: rect.left + 'px'
         };
     }
 
