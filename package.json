@@ -11,7 +11,8 @@
     "package": "npm run build && electron-forge package",
     "make": "npm run createTypeDefs && npm run build && electron-forge make",
     "publish": "npm run build && electron-forge publish",
-    "test": "jest"
+    "test": "jest",
+    "build:linux": "electron-builder --linux"
   },
   "keywords": [],
   "author": "VOTC Community",
