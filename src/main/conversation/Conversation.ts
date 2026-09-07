@@ -334,8 +334,12 @@ export class Conversation{
         }
 
         // If scene description generation is enabled, generate it at the start of the conversation.
+        // Detached (not awaited) so the chat UI becomes interactive immediately; the renderer
+        // already tolerates late 'scene-description' events, and failures degrade gracefully.
         if (this.config.generateSceneDescription) {
-            await this.generateSceneDescription(true);
+            void this.generateSceneDescription(true).catch(err => {
+                console.error('Scene description generation failed (non-fatal):', err);
+            });
         }
 
         // If auto-generate suggestions is enabled, generate them at the start of the conversation.

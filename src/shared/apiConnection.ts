@@ -156,7 +156,7 @@ export class ApiConnection{
 
     isChat(): boolean {
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
-        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2' || this.type === 'nvidia' || this.type === 'novelai'){
+        if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2' || this.type === 'nvidia' || this.type === 'novelai' || this.type === 'anthropic'){
             return true;
         }
         else{
@@ -220,7 +220,12 @@ export class ApiConnection{
 
             return content;
         }
-    
+
+        const KNOWN_TYPES = ['openai', 'openrouter', 'custom', 'gemini', 'glm', 'deepseek', 'grok', 'player2', 'nvidia', 'novelai', 'ooba', 'anthropic'];
+        if (!KNOWN_TYPES.includes(this.type)) {
+            throw new Error(`Unsupported API type: '${this.type}'. Check your connection configuration.`);
+        }
+
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
