@@ -1127,6 +1127,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             const payload = {
                 gameData: conversation.gameData,
                 messages: conversation.messages,
+                narratives: (conversation as any).narratives ? Array.from((conversation as any).narratives) : [],
                 historicalMetadata: conversation.historicalConversations || [],
                 actions: sanitizedActions,
                 basePromptTokens: await conversation.calculateBasePromptTokens()
