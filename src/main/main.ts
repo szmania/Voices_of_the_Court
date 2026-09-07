@@ -1153,7 +1153,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             console.error("Error during VOTC:IN setup:", err);
             isConversationReady = false; // Ensure state is correct on failure
             if(chatWindow.isShown){
-                chatWindow.window.webContents.send('error-message', err);
+                const msg = err instanceof Error ? err.message : (err ? String(err) : 'An error occurred.');
+                chatWindow.window.webContents.send('error-message', msg);
             }
         }
     });
@@ -1453,7 +1454,8 @@ ipcMain.on('message-send', async (e, message: Message) =>{
         } catch (err) {
             console.error('Error during message generation:', err);
             if (chatWindow && chatWindow.window && !chatWindow.window.isDestroyed()) {
-                chatWindow.window.webContents.send('error-message', err);
+                const msg = err instanceof Error ? err.message : (err ? String(err) : 'An error occurred.');
+                chatWindow.window.webContents.send('error-message', msg);
             }
         }
     } else {
