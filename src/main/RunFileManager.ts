@@ -1,18 +1,40 @@
 import fs from 'fs';
 import path from 'path';
 
+// CK3 requires run files to be in UTF-8 BOM encoding, otherwise the script
+// lexer may fail to parse effects that contain non-ASCII (e.g. Chinese)
+// characters, resulting in actions never being executed.
+const UTF8_BOM = '\uFEFF';
+
 export class RunFileManager {
     private path: string;
 
     constructor(userFolderPath: string) {
         if (!userFolderPath) {
             console.error("RunFileManager error: userFolderPath is not provided. Run file operations will be disabled.");
-            this.path = ''; 
+            this.path = '';
             return;
         }
         this.path = path.join(userFolderPath, "run", "votc.txt");
         console.log(`RunFileManager initialized. File path: ${this.path}`);
         this.createRunFolder(userFolderPath);
+    }
+
+    // Reads the current content of the run file, stripping any leading BOM.
+    private readCurrent(): string {
+        if (!fs.existsSync(this.path)) {
+            return '';
+        }
+        let text = fs.readFileSync(this.path, 'utf-8');
+        if (text.charCodeAt(0) === 0xFEFF) {
+            text = text.substring(1);
+        }
+        return text;
+    }
+
+    // Always writes content as UTF-8 with a BOM prefix (single BOM at the start).
+    private writeUtf8Bom(content: string): void {
+        fs.writeFileSync(this.path, UTF8_BOM + content, 'utf-8');
     }
 
     write(text: string): void {
@@ -21,19 +43,7 @@ export class RunFileManager {
             return;
         }
         try {
-            let currentText = '';
-            if (fs.existsSync(this.path)) {
-                currentText = fs.readFileSync(this.path, 'utf-8');
-            }
-
-            if (currentText.trim() === '') {
-                console.log(`RunFileManager: Run file is empty - writing new effect.`);
-                fs.writeFileSync(this.path, `${text}\n          
-            root = {trigger_event = mcc_event_v2.9003}`, 'utf-8');
-            } else {
-                console.log(`RunFileManager: Run file is not empty - prepending new effect.`);
-                fs.writeFileSync(this.path, `${text}\n${currentText}`, 'utf-8');
-            }
+            this.writeUtf8Bom(text);
             console.log(`RunFileManager: Wrote to run file: ${text}`);
         } catch (error) {
             console.error(`RunFileManager: Failed to write to file ${this.path}:`, error);
@@ -46,7 +56,9 @@ export class RunFileManager {
             return;
         }
         try {
-            fs.appendFileSync(this.path, `\n${text}`, 'utf-8');
+            const currentText = this.readCurrent();
+            const separator = currentText.trim() === '' ? '' : '\n';
+            this.writeUtf8Bom(`${currentText}${separator}${text}`);
             console.log(`RunFileManager: Appended to run file: ${text}`);
         } catch (error) {
             console.error(`RunFileManager: Failed to append to file ${this.path}:`, error);
