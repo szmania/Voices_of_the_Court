@@ -453,6 +453,16 @@ export function updateCurrentDate(newTotalDays: number) {
     });
 }
 
+let positionConfigScheduled = false;
+function schedulePositionConfigWindow() {
+    if (positionConfigScheduled) return;
+    positionConfigScheduled = true;
+    queueMicrotask(() => {
+        positionConfigScheduled = false;
+        positionConfigWindow();
+    });
+}
+
 function positionConfigWindow() {
     if (!configWindow || !configWindow.isShown) return;
 
@@ -463,12 +473,29 @@ function positionConfigWindow() {
     const configWidth = 800; // A more reasonable default width
     const configHeight = height - (2 * PADDING);
 
-    configWindow.window.setBounds({
+    const target = {
         x: Math.round(width - configWidth - PADDING),
         y: Math.round(PADDING),
         width: configWidth,
         height: configHeight
-    });
+    };
+
+    // Idempotent: skip setBounds when the window is already at the target bounds.
+    // This breaks the move/resize -> setBounds -> move/resize feedback loop that
+    // causes flicker on Wayland compositors (VOTC-174).
+    // ponytail: bounds-debounce is a known ceiling against event storms on Wayland
+    // compositors; upgrade path is BrowserWindow#on('will-resize') if needed.
+    const current = configWindow.window.getBounds();
+    if (
+        current.x === target.x &&
+        current.y === target.y &&
+        current.width === target.width &&
+        current.height === target.height
+    ) {
+        return;
+    }
+
+    configWindow.window.setBounds(target);
 }
 
 
@@ -962,8 +989,8 @@ app.on('ready',  async () => {
     configWindow = new ConfigWindow(chatWindow.window); // This is the frameless window for in-chat use
     console.log('ConfigWindow created.');
 
-    chatWindow.window.on('move', positionConfigWindow);
-    chatWindow.window.on('resize', positionConfigWindow);
+    chatWindow.window.on('move', schedulePositionConfigWindow);
+    chatWindow.window.on('resize', schedulePositionConfigWindow);
 
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
