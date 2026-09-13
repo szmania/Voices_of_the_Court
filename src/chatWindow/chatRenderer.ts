@@ -651,7 +651,10 @@ function showLoadingDots(disableInput: boolean = true){  //and disable chat
         // Dots already visible; just apply the requested input state.
         if (disableInput) {
             chatInput.disabled = true;
+        } else {
+            chatInput.disabled = false;
         }
+        updateInputTooltip();
         return;
     }
     console.log(`showLoadingDots() called, disableInput: ${disableInput}`);
@@ -1733,6 +1736,7 @@ ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
     if (textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
         showLoadingDots(false); // Don't disable input for these background tasks
     }
+    // Explicitly do not show loading dots for chat.status_generating_scene
 });
 
 ipcRenderer.on('chat-hide', () =>{
