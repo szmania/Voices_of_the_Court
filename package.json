@@ -1,7 +1,7 @@
 {
   "name": "voices_of_the_court_ce",
   "productName": "Voices of the Court - Community Edition",
-  "version": "2.1.1-rc.4",
+  "version": "2.1.1-rc.5",
   "description": "LLM integration into Crusader Kings 3",
   "main": "dist/main/main.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "package": "npm run build && electron-forge package",
     "make": "npm run createTypeDefs && npm run build && electron-forge make",
     "publish": "npm run build && electron-forge publish",
-    "test": "jest"
+    "test": "jest",
+    "build:linux": "electron-builder --linux"
   },
   "keywords": [],
   "author": "VOTC Community",
