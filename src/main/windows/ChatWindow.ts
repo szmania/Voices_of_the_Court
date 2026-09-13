@@ -89,6 +89,13 @@ export class ChatWindow{
 
     show(){
         console.log("Chat window showed!");
+
+        // Windows fallback: if the overlay library lost track of the CK3 window
+        // (e.g. after a restart), force the chat window to stay on top.
+        if (process.platform === 'win32') {
+            this.window.setAlwaysOnTop(true, 'screen-saver');
+        }
+
         OverlayController.activateOverlay();
         this.isShown = true;
 
