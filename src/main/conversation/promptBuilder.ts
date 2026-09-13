@@ -316,7 +316,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const compactedMemoryMessage: Message = {
         role: "system",
-        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
+        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData), character)
     }
 
     if(compactedMemoryMessage.content){
@@ -709,10 +709,12 @@ export function createMemoryString(conv: Conversation, prompts: any): string{
     return output;
 }
 
-export function createCompactedMemoryString(conv: Conversation, prompts: any): string {
+export function createCompactedMemoryString(conv: Conversation, prompts: any, character?: Character): string {
     if (!conv.memoryCompactor) return "";
 
-    const characterId = String(conv.gameData.aiID);
+    // Use the speaking character's ID so each AI gets their own compacted memories.
+    // Falls back to the main AI ID for callers without a character context (e.g. resummarize).
+    const characterId = String(character ? character.id : conv.gameData.aiID);
     const compactedMemories = conv.memoryCompactor.getCompactedMemories(characterId);
     if (compactedMemories.length === 0) return "";
 

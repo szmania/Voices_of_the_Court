@@ -103,9 +103,9 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     const lines = relevantLogBlock.split(/\r?\n/);
 
     console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);
-    console.log(`--- Relevant Log Block Start ---`);
-    console.log(relevantLogBlock);
-    console.log(`--- Relevant Log Block End ---`);
+    // console.log(`--- Relevant Log Block Start ---`);
+    // console.log(relevantLogBlock);
+    // console.log(`--- Relevant Log Block End ---`);
 
     for (const line of lines) {
         // console.log(`[parseLog] Processing line: ${line}`);
