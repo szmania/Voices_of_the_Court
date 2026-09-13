@@ -120,7 +120,7 @@ let slashCommandContainer: HTMLDivElement = document.querySelector('#slash-comma
 let queueStatusDiv: HTMLDivElement = document.querySelector('.queue-status')!;
 let characterTargetContainer: HTMLDivElement = document.querySelector('#character-target-container')!;
 let characterTargetSelect: HTMLSelectElement = document.querySelector('#character-target-select')!;
-let loadingDots: any;
+let loadingDots: HTMLDivElement | null = null;
 
 let contextLimit: number = 0;
 let availableActions: any[] = [];
@@ -648,6 +648,10 @@ function showLoadingDots(disableInput: boolean = true){  //and disable chat
         cancelButtonWrapper.setAttribute('data-tooltip', cancelTooltip);
     }
     if (loadingDots) {
+        // Dots already visible; just apply the requested input state.
+        if (disableInput) {
+            chatInput.disabled = true;
+        }
         return;
     }
     console.log(`showLoadingDots() called, disableInput: ${disableInput}`);
@@ -1726,7 +1730,7 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
 
 ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
     updateStatusText(textKey, vars);
-    if (textKey === 'chat.status_generating_scene' || textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
+    if (textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
         showLoadingDots(false); // Don't disable input for these background tasks
     }
 });
@@ -2052,6 +2056,14 @@ ipcRenderer.on('generation-cancelled', () => {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     updateRegenerateButtonState();
 });
+
+ipcRenderer.on('generation-finished', () => {
+    removeLoadingDots();
+    updateStatusText('');
+    updateRegenerateButtonState();
+});
+
+// 监听场景描述事件
 
 // 监听场景描述事件
 ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
