@@ -50,7 +50,7 @@ export class ChatWindow{
                 nodeIntegration: true,
                 contextIsolation: false,
                 preload: path.join(__dirname, '..', 'preload.js'),
-            }       
+            }
         })
 
         // 【新增】：Mac 专属，强行刺穿全屏 Space 的屏障
@@ -61,12 +61,12 @@ export class ChatWindow{
         }
 
         //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
-        
+
         this.windowWatchId = 0;
 
         this.window.loadFile('./public/chatWindow/chat.html')
         this.window.removeMenu();
-    
+
         this.overlayMode = 'pending';
         OverlayController.events.on('attach', () => this.onOverlayAttach());
 
@@ -81,8 +81,8 @@ export class ChatWindow{
           if(!app.isPackaged){
             this.window.webContents.openDevTools({ mode: 'detach', activate: false })
           }
-          
-    
+
+
         this.window.on('close', ()=>{app.quit()}); //TODO
 
         this.isShown = false;
@@ -98,10 +98,10 @@ export class ChatWindow{
         });
 
 
-        
+
         console.log("Chat window opened!")
 
-        
+
     }
 
     show(){
@@ -133,11 +133,11 @@ export class ChatWindow{
 
                 OverlayController.activateOverlay();
                 //this.window.webContents.send('chat-show');
-                
+
             }else{
                 //this.window.webContents.send('chat-hide');
             }
-                
+
         })*/
 
         if (this.overlayMode === 'overlay') {
@@ -160,15 +160,27 @@ export class ChatWindow{
                 const isConfigActive = win.title === "Voices of the Court 2.0 - Community Edition";
 
                 if (isGameActive || isChatActive || isConfigActive) {
+                    // Windows fallback: Dynamically force to top only if the game or our window is focused
+                    if (process.platform === 'win32') {
+                        if (this.window && !this.window.isDestroyed() && !this.window.isAlwaysOnTop()) {
+                            this.window.setAlwaysOnTop(true, 'screen-saver');
+                        }
+                    }
                     OverlayController.activateOverlay();
                 } else {
+                    // Release the "Always on Top" lock if the user alt-tabs away to other non-game apps
+                    if (process.platform === 'win32') {
+                        if (this.window && !this.window.isDestroyed() && this.window.isAlwaysOnTop()) {
+                            this.window.setAlwaysOnTop(false);
+                        }
+                    }
                     // This block is intentionally left empty to prevent the window from hiding.
                     // With --disable-gpu, the window might become invisible without this.
                     if (this.window && !this.window.isDestroyed() && !this.window.isVisible()) {
                         this.window.showInactive();
                     }
                 }
-            } catch (err) {
+                } catch (err) {
                 // console.error("Failed to get active window:", err);
             }
         }, 250)
@@ -209,6 +221,7 @@ export class ChatWindow{
 
     hide(){
         console.log("Chat window hidden!");
+        // Clear the fallback property so it doesn't linger invisibly above other windows
         if (this.overlayMode === 'overlay') {
             OverlayController.focusTarget();
         } else {

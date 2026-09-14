@@ -637,9 +637,10 @@ export class Conversation{
             return;
         }
         if (this.isGenerating) {
-            console.log('Already generating AI messages, skipping new request.');
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            console.log('Already generating AI messages. Queuing request to run after current generation finishes.');
+            this.pendingPlayerRequest = true;
+            // Do NOT send 'generation-finished' here: generation is still in progress,
+            // and the renderer should keep showing loading dots / status until it completes.
             return;
         }
 
@@ -846,12 +847,19 @@ export class Conversation{
             this.isGenerating = false;
             this.abortController = null;
 
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            if (this.pendingPlayerRequest) {
+                console.log('Processing queued player request after generation finished.');
+                this.pendingPlayerRequest = false;
+                // do not send 'generation-finished' yet
+                setTimeout(() => this.generateAIsMessages(), 0);
+            } else {
+                // Notify the frontend that generation is complete to re-enable the input field.
+                this.chatWindow.window.webContents.send('generation-finished', true);
 
-            // After the turn, calculate the new base prompt size and send it to the UI
-            const newBaseTokens = await this.calculateBasePromptTokens();
-            this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+                // After the turn, calculate the new base prompt size and send it to the UI
+                const newBaseTokens = await this.calculateBasePromptTokens();
+                this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+            }
         }
     }
 
