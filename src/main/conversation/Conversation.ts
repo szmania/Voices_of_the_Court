@@ -347,10 +347,14 @@ export class Conversation{
             // If scene description generation is also enabled, it will trigger suggestion generation after completion.
             if (!this.config.generateSceneDescription) {
                 // If scene description generation is not enabled, generate suggestions directly.
-                await this.generateInitialSuggestions();
+                void this.generateInitialSuggestions().catch(err => {
+                    console.error('Failed to generate initial suggestions:', err);
+                });
             }
         }
-        await this.initiateConversation();
+        void this.initiateConversation().catch(err => {
+            console.error('Failed to initiate conversation:', err);
+        });
     }
 
     public async loadHistory(): Promise<void> {
