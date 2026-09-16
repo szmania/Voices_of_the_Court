@@ -139,6 +139,7 @@ let currentHighlightIndex = -1;
 let currentConversationMessageDivs: HTMLDivElement[] = [];
 let displayedMessageIds = new Set<string>();
 let basePromptTokens = 0;
+let chatReadyReceived = false;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -168,8 +169,10 @@ async function initChat(){
 
     chatMessages.innerHTML = '';
     chatInput.value = '';
-    chatInput.disabled = true;
-    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
+    if (!chatReadyReceived) {
+        chatInput.disabled = true;
+        chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
+    }
 
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
@@ -453,13 +456,13 @@ function displayErrorMessage(error: string){
     removeLoadingDots();
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
-
     messageDiv.classList.add('error-message');
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-
     updateRegenerateButtonState();
+    chatInput.disabled = false;
+    chatInput.focus();
 }
 
 function displayLoadingIndicator(message: string = "Loading historical conversations..."): HTMLDivElement {
@@ -1239,6 +1242,7 @@ window.addEventListener('beforeunload', () => {
 
 //IPC Events
 ipcRenderer.on('chat-loading-data', () => {
+    chatReadyReceived = false;
     showLoadingDots(true);
 });
 
@@ -1744,6 +1748,7 @@ ipcRenderer.on('chat-hide', () =>{
 })
 
 ipcRenderer.on('chat-ready', () => {
+    chatReadyReceived = true;
     chatInput.disabled = false;
     chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
     chatInput.focus();
