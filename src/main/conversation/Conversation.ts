@@ -8,7 +8,7 @@ import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { LetterManager } from '../letter/LetterManager.js';
 import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
-import { ApiConnection} from '../../shared/apiConnection.js';
+import { ApiConnection, isAbortError} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
 import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts, convertMessagesToString} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
@@ -839,7 +839,7 @@ export class Conversation{
                 await this.generateInitialSuggestions();
             }
         } catch (error) {
-            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+            if (isAbortError(error)) {
                 console.log('generateAIsMessages was cancelled.');
                 // The UI notification is handled in cancelGeneration(), so we do nothing here.
             } else {
@@ -1489,7 +1489,7 @@ ${validationTranslations.instruction}`
                 }
             } catch (error) {
                 console.error(`Error generating message for ${character.fullName} on attempt ${attempts}: ${error}`);
-                if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+                if (isAbortError(error)) {
                     throw error; // Re-throw cancellation error
                 }
             }
@@ -2185,7 +2185,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('scene-description', null);
             }
         } catch (error) {
-            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+            if (isAbortError(error)) {
                 console.log('Scene description generation was cancelled by user.');
                 // The UI is already handled by the 'generation-cancelled' event, so we just need to ensure loading dots are gone.
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state

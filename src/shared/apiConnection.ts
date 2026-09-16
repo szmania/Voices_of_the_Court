@@ -7,6 +7,14 @@ export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 
 import { getEncoding, Tiktoken } from "js-tiktoken";
 
+// The OpenAI SDK throws APIUserAbortError (not the DOM AbortError) when a request
+// is cancelled, either by the user or by our AbortSignal.timeout. This helper
+// recognizes both so aborts are treated as cancellations, not unexpected errors.
+export function isAbortError(error: any): boolean {
+    return !!error && typeof error === 'object' && 'name' in error &&
+        (error.name === 'AbortError' || error.name === 'APIUserAbortError');
+}
+
 export interface apiConnectionTestResult{
     success: boolean,
     overwriteWarning?: boolean;
@@ -229,6 +237,12 @@ export class ApiConnection{
         console.debug("--- API CONNECTION: complete() ---");
         console.debug("Prompt:", prompt);
         console.debug(`Stream: ${stream}, otherArgs:`, otherArgs);
+
+        // Apply a default request timeout so a hung provider can't stall initialization.
+        // Merged with the caller's abort signal so either one can cancel the request.
+        const REQUEST_TIMEOUT_MS = 120_000;
+        const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+        const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 
@@ -293,7 +307,7 @@ export class ApiConnection{
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(requestBody),
-                        signal
+                        signal: requestSignal
                     });
 
                     if (!res.ok) {
@@ -393,7 +407,7 @@ export class ApiConnection{
                             'Authorization': `Bearer ${this.client.apiKey}`
                         },
                         body: JSON.stringify(requestBody),
-                        signal
+                        signal: requestSignal
                     });
 
                     if (!res.ok) {
@@ -485,7 +499,7 @@ export class ApiConnection{
                         ...otherArgs
                     };
                     console.debug("Making chat completion request with body:", requestBody);
-                    let completion = await this.client.chat.completions.create(requestBody as any, { signal });
+                    let completion = await this.client.chat.completions.create(requestBody as any, { signal: requestSignal });
 
                     console.debug("Received API response (completion object):", completion);
                     let response: string = "";
@@ -543,7 +557,7 @@ export class ApiConnection{
                         };
                         console.debug("Making OpenRouter legacy completion request with body:", requestBody);
                         //@ts-ignore
-                        completion = await this.client.chat.completions.create(requestBody as any, { signal });
+                        completion = await this.client.chat.completions.create(requestBody as any, { signal: requestSignal });
                     } else {
                         // Standard non-chat API
                         const requestBody = {
@@ -554,7 +568,7 @@ export class ApiConnection{
                             ...otherArgs
                         };
                         console.debug("Making standard completion request with body:", requestBody);
-                        completion = await this.client.completions.create(requestBody as any, { signal });
+                        completion = await this.client.completions.create(requestBody as any, { signal: requestSignal });
                     }
 
                     console.debug("Received API response (completion object):", completion);
@@ -596,7 +610,7 @@ export class ApiConnection{
                     return response;
                 }
             } catch (error) {
-                if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+                if (isAbortError(error)) {
                     console.log('API request was aborted.');
                     throw error; // Re-throw to be handled by the caller
                 }
