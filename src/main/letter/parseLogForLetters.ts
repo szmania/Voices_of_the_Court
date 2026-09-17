@@ -109,7 +109,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const correctedGameDate = totalDaysToDateString(writtenDateInDays);
                         const creationTimestamp = new Date(Date.now() + parseTimeOffset);
                         parseTimeOffset++;
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
                             if (letter.associatedAction?.triggerOn === 'receive') {
