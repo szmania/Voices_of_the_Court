@@ -362,14 +362,6 @@ export class LetterReplyGenerator {
             // Create a UUID for the reply letter *before* saving history and summary
             const replyLetterId = randomUUID();
 
-            // Generate and save a summary of the letter asynchronously.
-            // The summary is not needed for the reply to be displayed or for actions to run,
-            // so we fire-and-forget it to avoid delaying the letter delivery.
-            console.log('[LetterReplyGenerator] Generating and saving letter summary (async)...');
-            this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId).catch(err => {
-                console.error('[LetterReplyGenerator] Background letter summary generation failed:', err);
-            });
-
             // Generate letter actions via LLM (like conversations)
             console.log('[LetterReplyGenerator] Generating letter actions via LLM...');
             const letterActions = await this.generateLetterActions(gameData, latestLetter, escapedResponse);
@@ -379,6 +371,15 @@ export class LetterReplyGenerator {
             console.log('[LetterReplyGenerator] Saving letter history...');
             const replyLetter = await this.saveLetterHistory(String(latestLetter.sender.id), String(latestLetter.recipient.id), latestLetter, escapedResponse, gameData, replyLetterId, letterActions);
             console.log('[LetterReplyGenerator] Letter history saved.');
+
+            // Generate and save a summary of the letter asynchronously, AFTER the actions have
+            // been generated, so the summary can include the triggered actions. The summary is
+            // not needed for the reply to be displayed or for actions to run, so we fire-and-forget
+            // it to avoid delaying the letter delivery.
+            console.log('[LetterReplyGenerator] Generating and saving letter summary (async)...');
+            this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId, letterActions).catch(err => {
+                console.error('[LetterReplyGenerator] Background letter summary generation failed:', err);
+            });
 
             // Execute actions automatically if manual approval is disabled
             if (replyLetter && !this.config.manualLetterActionApproval) {
@@ -505,7 +506,7 @@ export class LetterReplyGenerator {
      * @param letterContent Player's letter content
      * @param replyContent AI's reply content
      */
-    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string): Promise<void> {
+    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string, triggeredActions: LetterAssociatedAction[] = []): Promise<void> {
         try {
             const player = gameData.characters.get(originalLetter.sender.id);
             const ai = gameData.characters.get(originalLetter.recipient.id);
@@ -523,6 +524,12 @@ export class LetterReplyGenerator {
                                          .replace('{{playerLetterContent}}', originalLetter.content)
                                          .replace('{{aiName}}', ai.fullName)
                                          .replace('{{aiReplyContent}}', replyContent);
+
+            // Include the triggered actions in the summary so the summary captures this important context.
+            if (triggeredActions && triggeredActions.length > 0) {
+                const actionsText = triggeredActions.map(a => a.signature).join(', ');
+                summaryPrompt += `\n\nActions triggered in this exchange: ${actionsText}`;
+            }
 
             // Use LLM to generate summary
             const summaryMessages: Message[] = [
