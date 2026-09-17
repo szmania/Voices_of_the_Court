@@ -32,7 +32,7 @@ import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
 import { MemoryManager, Memory } from '../memoryManager.js';
 import { CompactedMemory } from '../../shared/compactionTypes.js';
-import { ApiConnection, EmbeddingProvider } from '../../shared/apiConnection.js';
+import { EmbeddingProvider } from '../../shared/apiConnection.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);

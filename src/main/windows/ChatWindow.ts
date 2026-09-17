@@ -53,8 +53,6 @@ export class ChatWindow{
 
         //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
 
-        this.windowWatchId = 0;
-
         this.window.loadFile('./public/chatWindow/chat.html')
         this.window.removeMenu();
 
