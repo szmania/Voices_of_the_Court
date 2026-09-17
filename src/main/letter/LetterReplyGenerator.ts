@@ -4,19 +4,21 @@ import { Tiktoken } from "js-tiktoken";
 import { Character } from "../../shared/gameData/Character.js";
 import { GameData, Trait } from "../../shared/gameData/GameData.js";
 import { Config } from "../../shared/Config";
-import { Message, Summary } from "../ts/conversation_interfaces";
+import { Message, Summary, Action } from "../ts/conversation_interfaces";
 import * as fs from "fs";
 import * as path from "path";
 import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
-import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType, LetterSummary, LetterAssociatedAction } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 import { getEffectivePrompts } from "../conversation/promptBuilder.js";
+import { LetterActionTrigger } from "./LetterActionTrigger.js";
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
+    private actionsApiConnection: ApiConnection;
     private config: Config;
     private userDataPath: string;
 
@@ -32,6 +34,11 @@ export class LetterReplyGenerator {
             encoder
         );
         console.log('[LetterReplyGenerator] ApiConnection created.');
+
+        this.actionsApiConnection = config.actionsUseTextGenApi
+            ? new ApiConnection(config.textGenerationApiConnectionConfig.connection, config.actionsApiConnectionConfig.parameters, encoder)
+            : new ApiConnection(config.actionsApiConnectionConfig.connection, config.actionsApiConnectionConfig.parameters, encoder);
+        console.log('[LetterReplyGenerator] ActionsApiConnection created.');
     }
 
 
@@ -141,6 +148,164 @@ export class LetterReplyGenerator {
     }
 
     /**
+     * Generate letter actions via the action LLM, similar to conversation action detection.
+     * @param gameData Game data
+     * @param latestLetter The original letter received
+     * @param replyContent The AI's reply content
+     * @returns Array of triggered actions
+     */
+    private async generateLetterActions(gameData: GameData, latestLetter: ILetter, replyContent: string): Promise<LetterAssociatedAction[]> {
+        console.log('[LetterReplyGenerator] Starting letter action generation via LLM.');
+
+        // Load available actions (only distance-capable ones for letters)
+        const actionsPath = path.join(this.userDataPath, 'scripts', 'actions');
+        const availableActions: Action[] = [];
+
+        const loadDir = (dir: string) => {
+            const dirPath = path.join(actionsPath, dir);
+            if (!fs.existsSync(dirPath)) return;
+            const files = fs.readdirSync(dirPath).filter(f => path.extname(f) === '.js');
+            for (const file of files) {
+                const filePath = path.join(dirPath, file);
+                delete require.cache[require.resolve(filePath)];
+                const actionModule = require(filePath);
+                if (!actionModule || !actionModule.signature || !actionModule.run) continue;
+                if (actionModule.canPerformAtDistance === false) continue; // Only distance-capable actions
+                availableActions.push(actionModule);
+            }
+        };
+        loadDir('standard');
+        loadDir('custom');
+
+        if (availableActions.length === 0) {
+            console.log('[LetterReplyGenerator] No distance-capable actions available for letter.');
+            return [];
+        }
+
+        const player = gameData.characters.get(latestLetter.sender.id);
+        const ai = gameData.characters.get(latestLetter.recipient.id);
+        if (!player || !ai) {
+            console.warn('[LetterReplyGenerator] Could not find player or AI character for letter action generation.');
+            return [];
+        }
+
+        let characterList = "Characters in conversation:";
+        for (const char of gameData.characters.values()) {
+            characterList += `\n- ${char.fullName} (ID: ${char.id})`;
+        }
+
+        let listOfActions = "List of actions:";
+        for (const action of availableActions) {
+            let argNames: string[] = [];
+            action.args.forEach((arg: any) => argNames.push(arg.name));
+            let signature = action.signature + '(' + argNames.join(', ') + ')';
+            let argString = action.args.length > 0 ? `Takes ${action.args.length} arguments: ` : "Takes no arguments.";
+            for (const arg of action.args) {
+                let argDesc = arg.desc;
+                if (typeof argDesc === 'object') {
+                    argDesc = argDesc[this.config.language] || argDesc['en'] || Object.values(argDesc)[0];
+                }
+                argString += `${arg.name} (${arg.type}): ${argDesc}. `;
+                if ((arg as any).options && Array.isArray((arg as any).options)) {
+                    const optionValues = (arg as any).options.map((opt: any) => typeof opt === 'object' ? opt.value : opt).join(', ');
+                    argString += `Possible values: [${optionValues}]. `;
+                }
+            }
+            let description = action.description;
+            if (typeof description === 'object') {
+                description = description[this.config.language] || description['en'] || Object.values(description)[0];
+            }
+            listOfActions += `\n- ${signature}: ${description} ${argString}`;
+        }
+        listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`;
+        listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then separate them with commas (,) inside the <actions> tags.`;
+        listOfActions += `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`;
+
+        const prompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+        const actionPrompt = prompts.actionPrompt;
+
+        const userContent = `Based on the following letter and reply, choose the most relevant actions.\n${characterList}\n"Letter from ${player.fullName}:\n${latestLetter.content}\n\nReply from ${ai.fullName}:\n${replyContent}\n${listOfActions}`;
+
+        const messages: Message[] = [
+            { role: "system", content: actionPrompt },
+            { role: "user", content: userContent }
+        ];
+
+        let response: string;
+        if (this.actionsApiConnection.isChat()) {
+            const result = await this.actionsApiConnection.complete(messages, false, {});
+            response = typeof result === 'string' ? result : (result?.content ?? '');
+        } else {
+            const textPrompt = messages.map(m => m.content).join('\n');
+            const result = await this.actionsApiConnection.complete(textPrompt, false, { stop: [this.config.inputSequence, this.config.outputSequence] });
+            response = typeof result === 'string' ? result : (result?.content ?? '');
+        }
+        response = response.replace(/(\r\n|\n|\r)/gm, "");
+
+        if (!response.match(/<rationale>(.*?)<\/?rationale>/) || !response.match(/<actions>(.*?)<\/?actions>/)) {
+            console.warn("Letter action warning: rationale or action couldn't be extracted from LLM response. Response: " + response);
+            return [];
+        }
+
+        const actionsString = response.match(/<actions>(.*?)<\/actions>/)![1];
+        if (actionsString.trim().toLowerCase().startsWith("noop")) {
+            console.log('[LetterReplyGenerator] LLM returned "noop()", no letter actions triggered.');
+            return [];
+        }
+
+        const actions = actionsString.split(/\s*,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*\()/).filter(a => !a.trim().toLowerCase().startsWith('noop'));
+
+        const triggered: LetterAssociatedAction[] = [];
+        for (const actionInResponse of actions) {
+            const foundActionName = actionInResponse.match(/([a-zA-Z_{1}][a-zA-Z0-9_]+)(?=\()/g);
+            if (!foundActionName) {
+                console.warn(`Letter action warning: Could not extract action name from "${actionInResponse}". Skipping.`);
+                continue;
+            }
+            const matchedAction = availableActions.find(a => a.signature.toLowerCase() == foundActionName[0].toLowerCase());
+            if (!matchedAction) {
+                console.warn(`Letter action warning: The returned action "${foundActionName[0]}" from LLM matched none of the listed available actions. Skipping.`);
+                continue;
+            }
+            const argsString = /\(([^)]+)\)/.exec(actionInResponse);
+            const allArgs = argsString ? argsString[1].split(",").map(arg => arg.trim()) : [];
+            if (allArgs.length < 2) {
+                console.warn(`Letter action warning: Action "${actionInResponse}" did not include sourceId and targetId. Skipping.`);
+                continue;
+            }
+            const newSourceId = parseInt(allArgs[0], 10);
+            const newTargetId = parseInt(allArgs[1], 10);
+            const actionArgs = allArgs.slice(2);
+            if (isNaN(newSourceId) || isNaN(newTargetId)) {
+                console.warn(`Letter action warning: Invalid sourceId or targetId in "${actionInResponse}". Skipping.`);
+                continue;
+            }
+            if (actionArgs.length > matchedAction.args.length) {
+                console.warn(`Letter action warning: The matched action "${matchedAction.signature}" received too many arguments (${actionArgs.length}) from the LLM response, expected no more than ${matchedAction.args.length}. Skipping.`);
+                continue;
+            }
+            let isValidAction = true;
+            for (let i = 0; i < actionArgs.length; i++) {
+                if (matchedAction.args[i].type === "number" && isNaN(Number(actionArgs[i]))) {
+                    console.warn(`Letter action warning: Argument "${actionArgs[i]}" for action "${matchedAction.signature}" was not a valid number. Skipping.`);
+                    isValidAction = false;
+                    break;
+                }
+            }
+            if (!isValidAction) continue;
+
+            triggered.push({
+                signature: matchedAction.signature,
+                args: actionArgs.map(a => { const n = Number(a); return isNaN(n) ? a : n; }),
+                triggerOn: 'receive'
+            });
+        }
+
+        console.log(`[LetterReplyGenerator] Final letter triggered actions: ${triggered.map(a => a.signature).join(', ')}`);
+        return triggered;
+    }
+
+    /**
      * Escapes quotes in the model's reply, replacing standard quotes with Chinese quotes for 'zh' language.
      * @param text The original text
      * @param language The language of the reply
@@ -202,10 +367,22 @@ export class LetterReplyGenerator {
             await this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId);
             console.log('[LetterReplyGenerator] Letter summary saved.');
 
+            // Generate letter actions via LLM (like conversations)
+            console.log('[LetterReplyGenerator] Generating letter actions via LLM...');
+            const letterActions = await this.generateLetterActions(gameData, latestLetter, escapedResponse);
+            console.log(`[LetterReplyGenerator] Generated ${letterActions.length} letter actions.`);
+
             // Save letter history immediately
             console.log('[LetterReplyGenerator] Saving letter history...');
-            const replyLetter = await this.saveLetterHistory(String(latestLetter.sender.id), String(latestLetter.recipient.id), latestLetter, escapedResponse, gameData, replyLetterId);
+            const replyLetter = await this.saveLetterHistory(String(latestLetter.sender.id), String(latestLetter.recipient.id), latestLetter, escapedResponse, gameData, replyLetterId, letterActions);
             console.log('[LetterReplyGenerator] Letter history saved.');
+
+            // Execute actions automatically if manual approval is disabled
+            if (replyLetter && !this.config.manualLetterActionApproval) {
+                for (const action of replyLetter.triggeredActions) {
+                    LetterActionTrigger.executeLetterAction(replyLetter, action, this.config);
+                }
+            }
 
             // Update original letter status back to 'sent' since reply is now pending
             const letterManager = LetterManager.getInstance();
@@ -238,7 +415,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, latestLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<ILetter | null> {
+    private async saveLetterHistory(playerId: string, aiId: string, latestLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, triggeredActions: LetterAssociatedAction[]): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
 
@@ -279,6 +456,7 @@ export class LetterReplyGenerator {
                 undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
                 expectedPlayerDeliveryDate // When the player should receive it
             );
+            replyLetter.triggeredActions = triggeredActions;
 
             // Atomically update the history file
             const otherCharacterId = aiId; // The file is named after the non-player character
