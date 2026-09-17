@@ -356,7 +356,7 @@ trigger_event = message_event.362`;
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
     
         if (fs.existsSync(letterFilePath)) {
-          fs.writeFileSync(letterFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
+          fs.writeFileSync(letterFilePath, '', "utf-8");
           console.log("Cleared letters.txt file");
         } else {
           console.log("letters.txt file does not exist, nothing to clear");

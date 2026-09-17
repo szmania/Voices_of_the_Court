@@ -8,6 +8,7 @@ import { SummaryFileWatcher } from './SummaryFileWatcher.js';
 import { LetterManager } from '../letter/LetterManager.js';
 import { Letter as ILetter } from '../letter/letterInterfaces.js';
 import { Config } from '../../shared/Config.js';
+import { ApiConnection, isAbortError} from '../../shared/apiConnection.js';
 import { checkActions } from './checkActions.js';
 import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResummarizeChatPrompt, convertChatToTextNoNames, getEffectivePrompts, convertMessagesToString} from './promptBuilder.js';
 import { generateSuggestions } from './suggestionBuilder.js';
@@ -342,8 +343,12 @@ export class Conversation{
         }
 
         // If scene description generation is enabled, generate it at the start of the conversation.
+        // Detached (not awaited) so the chat UI becomes interactive immediately; the renderer
+        // already tolerates late 'scene-description' events, and failures degrade gracefully.
         if (this.config.generateSceneDescription) {
-            await this.generateSceneDescription(true);
+            void this.generateSceneDescription(true).catch(err => {
+                console.error('Scene description generation failed (non-fatal):', err);
+            });
         }
 
         // If auto-generate suggestions is enabled, generate them at the start of the conversation.
@@ -351,10 +356,14 @@ export class Conversation{
             // If scene description generation is also enabled, it will trigger suggestion generation after completion.
             if (!this.config.generateSceneDescription) {
                 // If scene description generation is not enabled, generate suggestions directly.
-                await this.generateInitialSuggestions();
+                void this.generateInitialSuggestions().catch(err => {
+                    console.error('Failed to generate initial suggestions:', err);
+                });
             }
         }
-        await this.initiateConversation();
+        void this.initiateConversation().catch(err => {
+            console.error('Failed to initiate conversation:', err);
+        });
     }
 
     public async loadHistory(): Promise<void> {
@@ -641,9 +650,10 @@ export class Conversation{
             return;
         }
         if (this.isGenerating) {
-            console.log('Already generating AI messages, skipping new request.');
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            console.log('Already generating AI messages. Queuing request to run after current generation finishes.');
+            this.pendingPlayerRequest = true;
+            // Do NOT send 'generation-finished' here: generation is still in progress,
+            // and the renderer should keep showing loading dots / status until it completes.
             return;
         }
 
@@ -838,7 +848,7 @@ export class Conversation{
                 await this.generateInitialSuggestions();
             }
         } catch (error) {
-            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+            if (isAbortError(error)) {
                 console.log('generateAIsMessages was cancelled.');
                 // The UI notification is handled in cancelGeneration(), so we do nothing here.
             } else {
@@ -850,12 +860,19 @@ export class Conversation{
             this.isGenerating = false;
             this.abortController = null;
 
-            // Notify the frontend that generation is complete to re-enable the input field.
-            this.chatWindow.window.webContents.send('generation-finished', true);
+            if (this.pendingPlayerRequest) {
+                console.log('Processing queued player request after generation finished.');
+                this.pendingPlayerRequest = false;
+                // do not send 'generation-finished' yet
+                setTimeout(() => this.generateAIsMessages(), 0);
+            } else {
+                // Notify the frontend that generation is complete to re-enable the input field.
+                this.chatWindow.window.webContents.send('generation-finished', true);
 
-            // After the turn, calculate the new base prompt size and send it to the UI
-            const newBaseTokens = await this.calculateBasePromptTokens();
-            this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+                // After the turn, calculate the new base prompt size and send it to the UI
+                const newBaseTokens = await this.calculateBasePromptTokens();
+                this.chatWindow.window.webContents.send('update-base-tokens', newBaseTokens);
+            }
         }
     }
 
@@ -1481,7 +1498,7 @@ ${validationTranslations.instruction}`
                 }
             } catch (error) {
                 console.error(`Error generating message for ${character.fullName} on attempt ${attempts}: ${error}`);
-                if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+                if (isAbortError(error)) {
                     throw error; // Re-throw cancellation error
                 }
             }
@@ -2221,7 +2238,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('scene-description', null);
             }
         } catch (error) {
-            if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+            if (isAbortError(error)) {
                 console.log('Scene description generation was cancelled by user.');
                 // The UI is already handled by the 'generation-cancelled' event, so we just need to ensure loading dots are gone.
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state

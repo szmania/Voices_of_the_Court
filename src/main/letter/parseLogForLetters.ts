@@ -52,6 +52,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
     const lines = fileContent.split(/\r?\n/);
 
     const letters: Letter[] = [];
+    let parseTimeOffset = 0;
 
     for (const line of lines) {
         if (line.includes('VOTC:LETTER')) {
@@ -64,7 +65,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             if (parts.length >= 3) {
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
-                const writtenDateInDays = parseInt(parts[2].trim());
+                let writtenDateInDays = parseInt(parts[2].trim());
+                if (isNaN(writtenDateInDays) || writtenDateInDays <= 0) {
+                    writtenDateInDays = gameData.totalDays; // Fallback only if missing or invalid
+                }
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : playerId;
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId;
@@ -74,8 +78,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     const recipient = gameData.characters.get(Number(recipientIdFromLog));
 
                     if (sender && recipient) {
-                        const correctedGameDate = totalDaysToDateString(gameData.totalDays);
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, gameData.totalDays);
+                        const correctedGameDate = totalDaysToDateString(writtenDateInDays);
+                        const creationTimestamp = new Date(Date.now() + parseTimeOffset);
+                        parseTimeOffset++;
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letters.push(letter);
                             // The player is the sender of the letter being imported from the log
