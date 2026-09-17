@@ -76,6 +76,13 @@
 
     <div class="container" id="container">
 
+        <div class="border">
+            <h2 data-i18n="memory_constellation.embedding_api_header">Embedding Model</h2>
+            <p data-i18n="memory_constellation.embedding_api_desc">Configure the embedding model used to vectorize memories for the vector database.</p>
+            <config-api-selector id="api-selector" confID="embeddingApiConnectionConfig"></config-api-selector>
+        </div>
+        <br>
+
         <div class="info-panel">
             <div class="info-item">
                 <label for="mc-playerIdSelect" data-i18n="summary_manager.player_id">Player ID:</label>
@@ -90,6 +97,8 @@
         </div>
 
         <div id="mc-statusMessage" class="status-message"></div>
+
+        <h2 data-i18n="memory_constellation.header">Memory Constellation</h2>
 
     </div>
 
@@ -167,6 +176,8 @@
     <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
     <script>require("../../dist/configWindow/components/MemoryConstellation.js")</script>
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
+    <script>require("../../dist/configWindow/components/ConfigNumber.js")</script>
+    <script>require("../../dist/configWindow/components/apiSelector.js")</script>
     <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ConfigSelect.js")</script>
     <script>require("../../dist/configWindow/components/ConfigMultiselect.js")</script>

@@ -994,7 +994,10 @@
   },
   "memory_constellation": {
     "empty_title": "No Memories Found",
-    "empty_subtitle": "Memories will appear here as your character experiences events in the game."
+    "empty_subtitle": "Memories will appear here as your character experiences events in the game.",
+    "header": "Memory Constellation",
+    "embedding_api_header": "Embedding Model",
+    "embedding_api_desc": "Configure the embedding model used to vectorize memories for the vector database."
   },
   "compaction": {
     "header": "Memory Management",
