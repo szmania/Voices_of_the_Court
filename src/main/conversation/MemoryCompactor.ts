@@ -182,7 +182,7 @@ export class MemoryCompactor {
             phase2DurationMs = Date.now() - phase2Start;
 
             // Convert knowledge graph entities into CompactedMemory entries
-            const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph, conv);
+            const phase2Memories = this.knowledgeGraphToCompactedMemories(knowledgeGraph, conv, allPhase1Memories);
 
             // Store Phase-2 results in memory
             for (const memory of phase2Memories) {
@@ -269,10 +269,15 @@ export class MemoryCompactor {
     /**
      * Converts a KnowledgeGraph into CompactedMemory entries for storage.
      */
-    private knowledgeGraphToCompactedMemories(graph: KnowledgeGraph, conv: Conversation): CompactedMemory[] {
+    private knowledgeGraphToCompactedMemories(graph: KnowledgeGraph, conv: Conversation, sourceMemories: CompactedMemory[] = []): CompactedMemory[] {
         const memories: CompactedMemory[] = [];
         const now = Date.now();
         const dateStr = new Date().toISOString().split('T')[0];
+
+        // Carry character IDs forward from the Phase-1 summaries being consolidated.
+        // Entity names can't be parsed as numeric IDs, so without this the Phase-2
+        // memories would be stored under no character and never reach a prompt.
+        const characterIds = this.collectSourceCharacterIds(sourceMemories);
 
         // Create one memory per narrative thread
         for (const thread of graph.narrativeThreads) {
@@ -280,7 +285,7 @@ export class MemoryCompactor {
                 id: randomUUID(),
                 date: dateStr,
                 content: `[${thread.topic}] ${thread.summary}`,
-                characterIds: this.extractCharacterIdsFromEntities(graph.entities),
+                characterIds,
                 relevanceScore: 0.8, // Phase-2 memories are highly relevant
                 entityReferences: graph.entities,
                 compactionLevel: 2,
@@ -294,12 +299,11 @@ export class MemoryCompactor {
         return memories;
     }
 
-    private extractCharacterIdsFromEntities(entities: EntityReference[]): number[] {
+    private collectSourceCharacterIds(sourceMemories: CompactedMemory[]): number[] {
         const ids = new Set<number>();
-        for (const entity of entities) {
-            if (entity.type === 'character') {
-                const numId = Number(entity.name);
-                if (!isNaN(numId)) ids.add(numId);
+        for (const memory of sourceMemories) {
+            for (const id of memory.characterIds) {
+                ids.add(id);
             }
         }
         return Array.from(ids);

@@ -55,6 +55,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
     const lines = fileContent.split(/\r?\n/);
 
     const letters: Letter[] = [];
+    let parseTimeOffset = 0;
 
     for (const line of lines) {
         if (line.includes('VOTC:LETTER')) {
@@ -67,7 +68,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
             if (parts.length >= 3) {
                 const content = parts[0].trim();
                 const letterId = parts[1].trim(); // This is letterId, using as subject
-                const writtenDateInDays = parseInt(parts[2].trim());
+                let writtenDateInDays = parseInt(parts[2].trim());
+                if (isNaN(writtenDateInDays) || writtenDateInDays <= 0) {
+                    writtenDateInDays = gameData.totalDays; // Fallback only if missing or invalid
+                }
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
@@ -102,8 +106,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     const recipient = gameData.characters.get(Number(finalRecipientId));
 
                     if (sender && recipient) {
-                        const letterGameDate = totalDaysToDateString(writtenDateInDays);
-                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, letterGameDate, delay, writtenDateInDays);
+                        const correctedGameDate = totalDaysToDateString(writtenDateInDays);
+                        const creationTimestamp = new Date(Date.now() + parseTimeOffset);
+                        parseTimeOffset++;
+                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
                             if (letter.associatedAction?.triggerOn === 'receive') {

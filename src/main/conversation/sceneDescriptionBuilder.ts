@@ -6,6 +6,7 @@
 import { Conversation } from "./Conversation";
 import { getEffectivePrompts } from "./promptBuilder";
 import { Message } from "../ts/conversation_interfaces";
+import { isAbortError } from "../../shared/apiConnection.js";
 import path from 'path';
 import fs from 'fs';
 
@@ -95,7 +96,7 @@ export async function generateSceneDescription(conv: Conversation, signal?: Abor
         console.log(`Generated scene description: ${sceneDescription}`);
         return sceneDescription;
     } catch (error) {
-        if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
+        if (isAbortError(error)) {
             console.log('Scene description generation was cancelled.');
             throw error; // Re-throw to be handled by the caller
         }

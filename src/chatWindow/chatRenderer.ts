@@ -120,7 +120,7 @@ let slashCommandContainer: HTMLDivElement = document.querySelector('#slash-comma
 let queueStatusDiv: HTMLDivElement = document.querySelector('.queue-status')!;
 let characterTargetContainer: HTMLDivElement = document.querySelector('#character-target-container')!;
 let characterTargetSelect: HTMLSelectElement = document.querySelector('#character-target-select')!;
-let loadingDots: any;
+let loadingDots: HTMLDivElement | null = null;
 
 let contextLimit: number = 0;
 let availableActions: any[] = [];
@@ -139,6 +139,7 @@ let currentHighlightIndex = -1;
 let currentConversationMessageDivs: HTMLDivElement[] = [];
 let displayedMessageIds = new Set<string>();
 let basePromptTokens = 0;
+let chatReadyReceived = false;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -168,8 +169,10 @@ async function initChat(){
 
     chatMessages.innerHTML = '';
     chatInput.value = '';
-    chatInput.disabled = true;
-    chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
+    if (!chatReadyReceived) {
+        chatInput.disabled = true;
+        chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.loading_placeholder', 'Connecting to conversation...');
+    }
 
     // 根据配置显示或隐藏建议按钮
     if (suggestionsButton) {
@@ -453,13 +456,13 @@ function displayErrorMessage(error: string){
     removeLoadingDots();
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
-
     messageDiv.classList.add('error-message');
     messageDiv.innerText = error;
     chatMessages.append(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-
     updateRegenerateButtonState();
+    chatInput.disabled = false;
+    chatInput.focus();
 }
 
 function displayLoadingIndicator(message: string = "Loading historical conversations..."): HTMLDivElement {
@@ -648,6 +651,13 @@ function showLoadingDots(disableInput: boolean = true){  //and disable chat
         cancelButtonWrapper.setAttribute('data-tooltip', cancelTooltip);
     }
     if (loadingDots) {
+        // Dots already visible; just apply the requested input state.
+        if (disableInput) {
+            chatInput.disabled = true;
+        } else {
+            chatInput.disabled = false;
+        }
+        updateInputTooltip();
         return;
     }
     console.log(`showLoadingDots() called, disableInput: ${disableInput}`);
@@ -1235,6 +1245,7 @@ window.addEventListener('beforeunload', () => {
 
 //IPC Events
 ipcRenderer.on('chat-loading-data', () => {
+    chatReadyReceived = false;
     showLoadingDots(true);
 });
 
@@ -1729,9 +1740,10 @@ ipcRenderer.on('queue-update', (e, queue, currentSpeaker) => {
 
 ipcRenderer.on('status-update', (e, textKey: string, vars: any) => {
     updateStatusText(textKey, vars);
-    if (textKey === 'chat.status_generating_scene' || textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
+    if (textKey === 'chat.status_checking_actions' || textKey === 'chat.status_generating_narrative') {
         showLoadingDots(false); // Don't disable input for these background tasks
     }
+    // Explicitly do not show loading dots for chat.status_generating_scene
 });
 
 ipcRenderer.on('chat-hide', () =>{
@@ -1739,6 +1751,7 @@ ipcRenderer.on('chat-hide', () =>{
 })
 
 ipcRenderer.on('chat-ready', () => {
+    chatReadyReceived = true;
     chatInput.disabled = false;
     chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
     chatInput.focus();
@@ -1784,12 +1797,12 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Capture initial state
     const chatBox = document.querySelector('.chat-box') as HTMLElement;
     if (chatBox && !initialWindowState.width) {
-        const computedStyle = window.getComputedStyle(chatBox);
+        const rect = chatBox.getBoundingClientRect();
         initialWindowState = {
-            width: computedStyle.width,
-            height: computedStyle.height,
-            top: chatBox.offsetTop + 'px',
-            left: chatBox.offsetLeft + 'px'
+            width: rect.width + 'px',
+            height: rect.height + 'px',
+            top: rect.top + 'px',
+            left: rect.left + 'px'
         };
     }
 
@@ -2057,6 +2070,14 @@ ipcRenderer.on('generation-cancelled', () => {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     updateRegenerateButtonState();
 });
+
+ipcRenderer.on('generation-finished', () => {
+    removeLoadingDots();
+    updateStatusText('');
+    updateRegenerateButtonState();
+});
+
+// 监听场景描述事件
 
 // 监听场景描述事件
 ipcRenderer.on('scene-description', (e, sceneMessage: Message | null) =>{
