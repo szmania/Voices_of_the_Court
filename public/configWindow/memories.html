@@ -79,19 +79,24 @@
         <div class="border">
             <h2 data-i18n="memory_constellation.embedding_api_header">Embedding Model</h2>
             <p data-i18n="memory_constellation.embedding_api_desc">Configure the embedding model used to vectorize memories for the vector database.</p>
+            <p data-i18n="memory_constellation.embedding_api_usage">This embedding model is used to vectorize memories for the Memory Constellation below. It must produce 1536-dimensional vectors.</p>
+            <div id="embedding-dimension-warning" class="status-message error" style="display: none; position: static; opacity: 1; margin-bottom: 10px;"></div>
             <config-api-selector id="api-selector" confID="embeddingApiConnectionConfig"></config-api-selector>
         </div>
         <br>
 
         <div class="border" id="memory-constellation-box">
             <h2 data-i18n="memory_constellation.header">Memory Constellation</h2>
+            <p data-i18n="memory_constellation.embedding_required">An embedding model must be configured above to generate and display memories.</p>
             <div class="info-panel">
                 <div class="info-item">
                     <label for="mc-playerIdSelect" data-i18n="summary_manager.player_id">Player ID:</label>
+                    <tooltip-text side="top" data-i18n="memory_constellation.tooltip_player_id"></tooltip-text>
                     <select id="mc-playerIdSelect" data-i18n-title="summary_manager.tooltip_player_id"></select>
                 </div>
                 <div class="info-item">
                     <label for="mc-characterSelect" data-i18n="summary_manager.select_character">Select Character:</label>
+                    <tooltip-text side="top" data-i18n="memory_constellation.tooltip_character"></tooltip-text>
                     <select id="mc-characterSelect" data-i18n-title="summary_manager.tooltip_character">
                         <option value="all" data-i18n="summary_manager.all_characters">All Characters</option>
                     </select>

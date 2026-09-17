@@ -94,6 +94,9 @@ async function init() {
     // Load player IDs and populate dropdowns
     await loadPlayerIds();
 
+    // Warn if existing memories use a specific embedding dimension
+    await checkExistingMemoryDimensions();
+
     const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
     if (manualCompactionBtn) {
         manualCompactionBtn.addEventListener('click', (e) => {
@@ -236,6 +239,26 @@ async function init() {
         }
     });
     startCompactionPolling();
+}
+
+async function checkExistingMemoryDimensions() {
+    const warningEl = document.getElementById('embedding-dimension-warning');
+    if (!warningEl) return;
+    try {
+        const response = await ipcRenderer.invoke('get-memories', { playerId: '', characterId: '', limit: 1 });
+        if (response && response.success && Array.isArray(response.memories) && response.memories.length > 0) {
+            const firstMemory = response.memories[0];
+            const dimension = Array.isArray(firstMemory.vector) ? firstMemory.vector.length : 0;
+            if (dimension > 0) {
+                // @ts-ignore
+                const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+                warningEl.textContent = t('memory_constellation.existing_memories_warning', 'Existing memories were found. Your embedding model must produce {dimensions}-dimensional vectors to retain them.').replace('{dimensions}', String(dimension));
+                warningEl.style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.error('Error checking existing memory dimensions:', error);
+    }
 }
 
 function setupFilterDropdowns() {

@@ -997,7 +997,12 @@
     "empty_subtitle": "Memories will appear here as your character experiences events in the game.",
     "header": "Memory Constellation",
     "embedding_api_header": "Embedding Model",
-    "embedding_api_desc": "Configure the embedding model used to vectorize memories for the vector database."
+    "embedding_api_desc": "Configure the embedding model used to vectorize memories for the vector database.",
+    "embedding_api_usage": "This embedding model is used to vectorize memories for the Memory Constellation below. It must produce 1536-dimensional vectors.",
+    "embedding_required": "An embedding model must be configured above to generate and display memories.",
+    "existing_memories_warning": "Existing memories were found. Your embedding model must produce {dimensions}-dimensional vectors to retain them.",
+    "tooltip_player_id": "Select the player profile whose memories to display.",
+    "tooltip_character": "Filter memories by a specific character or view all."
   },
   "compaction": {
     "header": "Memory Management",
