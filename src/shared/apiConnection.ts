@@ -29,6 +29,7 @@ export interface Connection{
     forceInstruct: boolean ;//only used by openrouter
     overwriteContext: boolean;
     customContext: number;
+    embeddingDimension?: number; // dimension of embedding vectors (default 1536)
     apiKeys?: { [apiType: string]: any }; // 存储所有API类型的配置
 }
 

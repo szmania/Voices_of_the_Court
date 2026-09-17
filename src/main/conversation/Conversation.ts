@@ -330,7 +330,8 @@ export class Conversation{
         this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
 
         // Initialize Memory Systems
-        this.memoryManager = new MemoryManager(this.userDataPath);
+        const embeddingDimension = this.config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+        this.memoryManager = new MemoryManager(this.userDataPath, embeddingDimension);
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 

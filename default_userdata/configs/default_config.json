@@ -86,7 +86,8 @@
       "model": "text-embedding-3-small",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 8192,
+      "embeddingDimension": 1536
     },
     "parameters": {
       "temperature": 0.0,

@@ -101,6 +101,7 @@ export class Config{
                     forceInstruct: false,
                     overwriteContext: false,
                     customContext: 8192,
+                    embeddingDimension: 1536,
                 },
                 parameters: {}
             };

@@ -97,6 +97,9 @@ async function init() {
     // Warn if existing memories use a specific embedding dimension
     await checkExistingMemoryDimensions();
 
+    // Set up the editable embedding dimension field
+    setupEmbeddingDimensionInput();
+
     const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
     if (manualCompactionBtn) {
         manualCompactionBtn.addEventListener('click', (e) => {
@@ -259,6 +262,28 @@ async function checkExistingMemoryDimensions() {
     } catch (error) {
         console.error('Error checking existing memory dimensions:', error);
     }
+}
+
+function setupEmbeddingDimensionInput() {
+    const dimensionInput = document.getElementById('embedding-dimension-input') as HTMLInputElement;
+    if (!dimensionInput) return;
+
+    // Load current value from config
+    ipcRenderer.invoke('get-config').then((config: any) => {
+        const dim = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension;
+        if (dim) {
+            dimensionInput.value = String(dim);
+        }
+    });
+
+    dimensionInput.addEventListener('change', () => {
+        const value = parseInt(dimensionInput.value, 10);
+        if (isNaN(value) || value < 1) {
+            dimensionInput.value = '1536';
+            return;
+        }
+        ipcRenderer.send('config-change-nested', 'embeddingApiConnectionConfig', 'connection', 'embeddingDimension', value);
+    });
 }
 
 function setupFilterDropdowns() {

@@ -82,6 +82,10 @@
             <p data-i18n="memory_constellation.embedding_api_usage">This embedding model is used to vectorize memories for the Memory Constellation below. It must produce 1536-dimensional vectors.</p>
             <div id="embedding-dimension-warning" class="status-message error" style="display: none; position: static; opacity: 1; margin-bottom: 10px;"></div>
             <config-api-selector id="api-selector" confID="embeddingApiConnectionConfig"></config-api-selector>
+            <div class="input-group">
+                <label for="embedding-dimension-input" data-i18n="memory_constellation.embedding_dimension">Embedding Dimension</label>
+                <input type="number" id="embedding-dimension-input" min="1" max="8192" step="1" value="1536" />
+            </div>
         </div>
         <br>
 

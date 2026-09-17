@@ -634,7 +634,8 @@ app.on('ready',  async () => {
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
-    memoryManager = new MemoryManager(userDataPath);
+    const embeddingDimension = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+    memoryManager = new MemoryManager(userDataPath, embeddingDimension);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 

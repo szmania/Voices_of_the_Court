@@ -41,13 +41,16 @@ export class MemoryManager {
     private db: Database.Database;
     private dbPath: string;
     private vecAvailable: boolean = false;
+    private embeddingDimension: number;
 
     /**
      * Initialize the memory database at the given path.
      * Creates the database file and tables if they don't exist.
      * @param userDataPath - Base path for user data storage.
+     * @param embeddingDimension - Dimension of embedding vectors (default 1536).
      */
-    constructor(userDataPath: string) {
+    constructor(userDataPath: string, embeddingDimension: number = 1536) {
+        this.embeddingDimension = embeddingDimension;
         const memoryDir = path.join(userDataPath, 'memory');
         if (!fs.existsSync(memoryDir)) {
             fs.mkdirSync(memoryDir, { recursive: true });
@@ -130,7 +133,7 @@ export class MemoryManager {
             this.db.exec(`
                 CREATE VIRTUAL TABLE IF NOT EXISTS memory_vectors USING vec0(
                     memory_id TEXT,
-                    embedding FLOAT[1536]
+                    embedding FLOAT[${this.embeddingDimension}]
                 );
             `);
 
