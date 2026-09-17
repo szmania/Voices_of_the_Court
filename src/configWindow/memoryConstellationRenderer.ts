@@ -77,15 +77,15 @@ async function init() {
         window.LocalizationManager.applyTranslations();
     }
 
-    const container = document.getElementById('container');
-    if (container) {
+    const memoryConstellationBox = document.getElementById('memory-constellation-box');
+    if (memoryConstellationBox) {
         const memoryConstellation = document.createElement('memory-constellation');
         // Pass character ID from URL params if available
         const characterId = urlParams.get('characterId') || '';
         if (characterId) {
             memoryConstellation.setAttribute('character-id', characterId);
         }
-        container.appendChild(memoryConstellation);
+        memoryConstellationBox.appendChild(memoryConstellation);
     }
 
     // Set up player ID and character filter dropdowns
