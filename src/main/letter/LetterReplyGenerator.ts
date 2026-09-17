@@ -362,10 +362,13 @@ export class LetterReplyGenerator {
             // Create a UUID for the reply letter *before* saving history and summary
             const replyLetterId = randomUUID();
 
-            // Generate and save a summary of the letter
-            console.log('[LetterReplyGenerator] Generating and saving letter summary...');
-            await this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId);
-            console.log('[LetterReplyGenerator] Letter summary saved.');
+            // Generate and save a summary of the letter asynchronously.
+            // The summary is not needed for the reply to be displayed or for actions to run,
+            // so we fire-and-forget it to avoid delaying the letter delivery.
+            console.log('[LetterReplyGenerator] Generating and saving letter summary (async)...');
+            this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId).catch(err => {
+                console.error('[LetterReplyGenerator] Background letter summary generation failed:', err);
+            });
 
             // Generate letter actions via LLM (like conversations)
             console.log('[LetterReplyGenerator] Generating letter actions via LLM...');
