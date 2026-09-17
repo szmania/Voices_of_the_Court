@@ -108,6 +108,31 @@ async function init() {
         });
     }
 
+    const importLegacyBtn = document.getElementById('import-legacy-memories');
+    if (importLegacyBtn) {
+        importLegacyBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!selectedPlayerId || selectedPlayerId === '') {
+                // @ts-ignore
+                showStatusMessage(window.LocalizationManager?.getTranslation('summary_manager.no_player_selected', 'Please select a player ID first.'), 'error');
+                return;
+            }
+            
+            showStatusMessage('Importing legacy memories. Please wait...', 'info');
+            try {
+                const result = await ipcRenderer.invoke('import-legacy-memories', selectedPlayerId);
+                if (result.success) {
+                    showStatusMessage(`Successfully imported ${result.count} legacy memories.`, 'success');
+                    updateMemoryConstellation();
+                } else {
+                    showStatusMessage(`Import failed: ${result.error}`, 'error');
+                }
+            } catch (err: any) {
+                showStatusMessage(`Import error: ${err.message}`, 'error');
+            }
+        });
+    }
+
     const exportBtn = document.getElementById('export-player-data');
     if (exportBtn) {
         exportBtn.addEventListener('click', async (e) => {

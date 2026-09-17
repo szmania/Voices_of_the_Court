@@ -1948,6 +1948,11 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
 
+    // Ensure the outer config object exists (e.g. embeddingApiConnectionConfig)
+    if (!(config as any)[outerConfID]) {
+        (config as any)[outerConfID] = {};
+    }
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -2824,8 +2829,7 @@ ipcMain.on('api-config-change', (e, configType: string, apiType: string, configD
 
     // 确保配置对象存在
     if (!(config as any)[configType]) {
-        console.error(`Configuration type ${configType} not found`);
-        return;
+        (config as any)[configType] = {};
     }
 
     // 确保connection对象存在
