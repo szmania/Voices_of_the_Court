@@ -680,18 +680,6 @@ app.on('ready',  async () => {
         });
     }
 
-    // Automatically import legacy memories for the current player on startup
-    if (config.userFolderPath) {
-        getPlayerId(userDataPath).then(playerInfo => {
-            if (playerInfo && playerInfo.playerId) {
-                console.log(`Startup: Found current player ID ${playerInfo.playerId}. Triggering legacy memory import.`);
-                importLegacyMemories(playerInfo.playerId);
-            }
-        }).catch(err => {
-            console.error('Startup: Could not determine player ID for automatic legacy import.', err);
-        });
-    }
-
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
         const dialogOpts = {
             type: 'info' as const,

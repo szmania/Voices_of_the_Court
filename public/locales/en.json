@@ -992,6 +992,10 @@
     "system_prompt": "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.",
     "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
   },
+  "memory_constellation": {
+    "empty_title": "No Memories Found",
+    "empty_subtitle": "Memories will appear here as your character experiences events in the game."
+  },
   "compaction": {
     "header": "Memory Management",
     "desc_1": "Memory compaction automatically compresses long conversation histories to save context space while preserving key narrative details.",

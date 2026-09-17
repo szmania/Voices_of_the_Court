@@ -12,6 +12,9 @@ function defineTemplate() {
             height: 500px;
             border: 1px solid #5a4a35;
             position: relative;
+            resize: vertical;
+            overflow: hidden;
+            min-height: 200px;
         }
         #empty-state {
             display: none;
@@ -110,6 +113,17 @@ class MemoryConstellation extends HTMLElement {
         this.container.appendChild(this.renderer.domElement);
 
         this.camera.position.z = 5;
+
+        // Resize the Three.js canvas dynamically when the container is resized
+        const resizeObserver = new ResizeObserver(() => {
+            if (!this.container) return;
+            const width = this.container.clientWidth;
+            const height = this.container.clientHeight;
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(width, height);
+        });
+        resizeObserver.observe(this.container);
     }
 
     updatePoints(memories: any[]) {
@@ -142,6 +156,9 @@ class MemoryConstellation extends HTMLElement {
     }
     private animateLoop = () => {
         requestAnimationFrame(this.animateLoop);
+        const time = Date.now() * 0.001;
+        this.scene.rotation.y = time * 0.1;
+        this.scene.rotation.x = Math.sin(time * 0.05) * 0.1;
         this.renderer.render(this.scene, this.camera);
     }
 }
