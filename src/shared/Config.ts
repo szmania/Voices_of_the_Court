@@ -89,6 +89,22 @@ export class Config{
     constructor(configPath: string){
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
+
+        // Ensure embedding API config exists (used by the Memories tab)
+        if (!this.embeddingApiConnectionConfig) {
+            this.embeddingApiConnectionConfig = {
+                connection: {
+                    type: 'openai',
+                    baseUrl: 'https://api.openai.com/v1',
+                    key: '',
+                    model: 'text-embedding-3-small',
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 8192,
+                },
+                parameters: {}
+            };
+        }
     }
 
     export(){
