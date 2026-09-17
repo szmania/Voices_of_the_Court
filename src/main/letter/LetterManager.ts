@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
 import { GameData } from '../../shared/gameData/GameData.js';
-import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType, StoredLetter, LetterSummary, LetterAssociatedAction } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
@@ -417,6 +417,23 @@ trigger_event = message_event.362`;
             }
         } else {
             console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update status.`);
+        }
+    }
+
+    public updateLetterActions(playerId: string, characterId: string, letterId: string, actions: LetterAssociatedAction[]): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            letters[letterIndex].triggeredActions = actions;
+            const filePath = this.getLetterFilePath(playerId, characterId);
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                console.log(`Updated triggered actions of letter ${letterId} (${actions.length} actions)`);
+            } catch (error) {
+                console.error(`Error updating triggered actions for letter ${letterId}:`, error);
+            }
+        } else {
+            console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update actions.`);
         }
     }
 
