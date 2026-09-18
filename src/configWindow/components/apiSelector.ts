@@ -423,13 +423,18 @@ class ApiSelector extends HTMLElement{
 
         // 加载Custom配置
         if (apiKeys.custom) {
-            this.customUrlInput.value = apiKeys.custom.baseUrl || "";
-            this.customKeyInput.value = apiKeys.custom.key || "";
-            this.customModelInput.value = apiKeys.custom.model || "";
-        } else if(apiConfig.type == "custom"){
+        // 加载Custom配置
+        // Prefer the authoritative connection (apiConfig) for the ACTIVE type so the
+        // fields reflect the saved connection (including the key). Only fall back to the
+        // per-type apiKeys cache when custom is NOT the active type.
+        if(apiConfig.type == "custom"){
             this.customUrlInput.value = apiConfig.baseUrl;
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
+        } else if (apiKeys.custom) {
+            this.customUrlInput.value = apiKeys.custom.baseUrl || "";
+            this.customKeyInput.value = apiKeys.custom.key || "";
+            this.customModelInput.value = apiKeys.custom.model || "";
         }
 
         // 加载Gemini配置
