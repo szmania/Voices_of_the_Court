@@ -424,6 +424,11 @@ function renderLetters() {
     const letterList = document.getElementById('letter-list');
     if (!letterList) return;
 
+    // Clear the list at the start so every render starts fresh. This prevents stale
+    // letters from a previous player/character from lingering, and prevents repeated
+    // "No letters found." messages from accumulating when there are no letters.
+    letterList.innerHTML = '';
+
     const fragment = document.createDocumentFragment();
 
     if (!selectedPlayerId) {
@@ -632,7 +637,6 @@ cachedLetterPairs = letterPairs;
         fragment.appendChild(li);
     });
 
-    letterList.innerHTML = ''; // Clear existing list
     letterList.appendChild(fragment);
 
     // Add event listeners after rendering
