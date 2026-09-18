@@ -196,7 +196,6 @@ let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed
 let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
-let manualLetterActionApprovalInLetters = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
 // Used by renderStatusSummary() to show counts that match the displayed letter list.
 let currentFilteredLetters: Letter[] = [];
@@ -232,7 +231,6 @@ const initLocalization = async (lang?: string) => {
             language = config.language || 'en';
         }
         manualLetterActionApproval = config.manualLetterActionApproval;
-        manualLetterActionApprovalInLetters = config.manualLetterActionApprovalInLetters;
         // @ts-ignore
         await window.LocalizationManager.loadTranslations(language);
         // @ts-ignore
@@ -694,7 +692,7 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
         noActionsSpan.textContent = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
         section.appendChild(noActionsSpan);
     } else {
-        if (manualLetterActionApprovalInLetters) {
+        if (manualLetterActionApproval) {
             const approvalContainer = document.createElement('div');
             approvalContainer.classList.add('action-approval-container');
 
