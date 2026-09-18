@@ -2040,7 +2040,7 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     }
 });
 
-ipcMain.on('approve-letter-action', async (event, { letterId, actionSignature, args, sourceId, targetId }) => {
+ipcMain.on('approve-letter-action', async (event, { playerId, characterId, letterId, actionSignature, args, sourceId, targetId }) => {
     console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
     try {
         const allActions: any[] = [];
@@ -2075,6 +2075,10 @@ ipcMain.on('approve-letter-action', async (event, { letterId, actionSignature, a
         letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
 
         console.log(`Approved letter action '${actionSignature}' executed successfully.`);
+        // Persist the approval status so it survives navigation and app restarts.
+        if (playerId && characterId) {
+            LetterManager.getInstance().updateLetterActionStatus(playerId, characterId, letterId, actionSignature, 'approved');
+        }
         event.sender.send('letter-action-approved', { letterId, actionSignature });
 
     } catch (e: any) {
@@ -2084,8 +2088,12 @@ ipcMain.on('approve-letter-action', async (event, { letterId, actionSignature, a
     }
 });
 
-ipcMain.on('deny-letter-action', (event, { letterId, actionSignature }) => {
+ipcMain.on('deny-letter-action', (event, { playerId, characterId, letterId, actionSignature }) => {
     console.log(`User denied letter action '${actionSignature}' for letter ${letterId}.`);
+    // Persist the denial status so it survives navigation and app restarts.
+    if (playerId && characterId) {
+        LetterManager.getInstance().updateLetterActionStatus(playerId, characterId, letterId, actionSignature, 'denied');
+    }
     event.sender.send('letter-action-denied', { letterId, actionSignature });
 });
 

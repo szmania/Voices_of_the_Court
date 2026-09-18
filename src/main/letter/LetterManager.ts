@@ -437,6 +437,27 @@ trigger_event = message_event.362`;
         }
     }
 
+    public updateLetterActionStatus(playerId: string, characterId: string, letterId: string, actionSignature: string, status: 'approved' | 'denied'): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            const letter = letters[letterIndex];
+            if (letter.triggeredActions) {
+                const action = letter.triggeredActions.find(a => a.signature === actionSignature);
+                if (action) {
+                    action.status = status;
+                    const filePath = this.getLetterFilePath(playerId, characterId);
+                    try {
+                        fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                        console.log(`Updated action '${actionSignature}' status to '${status}' for letter ${letterId}`);
+                    } catch (error) {
+                        console.error(`Error updating action status for letter ${letterId}:`, error);
+                    }
+                }
+            }
+        }
+    }
+
     public deleteLetter(playerId: string, characterId: string, letterId: string): { success: boolean, error?: string } {
         this.initPaths();
         const filePath = this.getLetterFilePath(playerId, characterId);

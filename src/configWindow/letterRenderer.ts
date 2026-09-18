@@ -701,50 +701,78 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                 actionPrompt.classList.add('action-prompt');
                 actionPrompt.id = `action-prompt-${letter.id}-${action.signature}`;
 
-                const text = document.createElement('span');
-                text.textContent = action.signature; // Or a more descriptive message
-
-                const buttons = document.createElement('div');
-                buttons.classList.add('action-buttons');
-
-                const approveButton = document.createElement('button');
-                approveButton.setAttribute('data-i18n', 'letters.approve_action');
-                // @ts-ignore
-                approveButton.textContent = window.LocalizationManager.getTranslation('letters.approve_action', 'Approve');
-                approveButton.classList.add('action-approve-button');
-                // @ts-ignore
-                approveButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_approve_tooltip', 'Approve this action...'));
-
-                approveButton.onclick = () => {
-                    ipcRenderer.send('approve-letter-action', {
-                        letterId: letter.id,
-                        actionSignature: action.signature,
-                        args: action.args,
-                        sourceId: letter.sender.id,
-                        targetId: letter.recipient.id
-                    });
+                // Actions that have already gone through approval are shown as a colored
+                // confirmation (green = approved, red = denied) instead of buttons.
+                if (action.status === 'approved') {
+                    actionPrompt.classList.add('action-approved');
+                    const text = document.createElement('span');
                     // @ts-ignore
-                    actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature)}</span>`;
-                };
+                    text.textContent = window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature);
+                    actionPrompt.appendChild(text);
+                } else if (action.status === 'denied') {
+                    actionPrompt.classList.add('action-denied');
+                    const text = document.createElement('span');
+                    // @ts-ignore
+                    text.textContent = window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature);
+                    actionPrompt.appendChild(text);
+                } else {
+                    // Pending action: show Approve/Deny buttons.
+                    const text = document.createElement('span');
+                    text.textContent = action.signature; // Or a more descriptive message
 
-                const denyButton = document.createElement('button');
-                denyButton.setAttribute('data-i18n', 'letters.deny_action');
-                 // @ts-ignore
-                denyButton.textContent = window.LocalizationManager.getTranslation('letters.deny_action', 'Deny');
-                denyButton.classList.add('action-decline-button');
-                 // @ts-ignore
-                denyButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...'));
+                    const buttons = document.createElement('div');
+                    buttons.classList.add('action-buttons');
 
-                denyButton.onclick = () => {
-                    ipcRenderer.send('deny-letter-action', { letterId: letter.id, actionSignature: action.signature });
+                    const approveButton = document.createElement('button');
+                    approveButton.setAttribute('data-i18n', 'letters.approve_action');
+                    // @ts-ignore
+                    approveButton.textContent = window.LocalizationManager.getTranslation('letters.approve_action', 'Approve');
+                    approveButton.classList.add('action-approve-button');
+                    // @ts-ignore
+                    approveButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_approve_tooltip', 'Approve this action...'));
+
+                    approveButton.onclick = () => {
+                        action.status = 'approved';
+                        ipcRenderer.send('approve-letter-action', {
+                            playerId: selectedPlayerId,
+                            characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
+                            letterId: letter.id,
+                            actionSignature: action.signature,
+                            args: action.args,
+                            sourceId: letter.sender.id,
+                            targetId: letter.recipient.id
+                        });
+                        actionPrompt.classList.add('action-approved');
+                        // @ts-ignore
+                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature)}</span>`;
+                    };
+
+                    const denyButton = document.createElement('button');
+                    denyButton.setAttribute('data-i18n', 'letters.deny_action');
                      // @ts-ignore
-                    actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature)}</span>`;
-                };
+                    denyButton.textContent = window.LocalizationManager.getTranslation('letters.deny_action', 'Deny');
+                    denyButton.classList.add('action-decline-button');
+                     // @ts-ignore
+                    denyButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...'));
 
-                buttons.appendChild(approveButton);
-                buttons.appendChild(denyButton);
-                actionPrompt.appendChild(text);
-                actionPrompt.appendChild(buttons);
+                    denyButton.onclick = () => {
+                        action.status = 'denied';
+                        ipcRenderer.send('deny-letter-action', {
+                            playerId: selectedPlayerId,
+                            characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
+                            letterId: letter.id,
+                            actionSignature: action.signature
+                        });
+                        actionPrompt.classList.add('action-denied');
+                         // @ts-ignore
+                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature)}</span>`;
+                    };
+
+                    buttons.appendChild(approveButton);
+                    buttons.appendChild(denyButton);
+                    actionPrompt.appendChild(text);
+                    actionPrompt.appendChild(buttons);
+                }
                 approvalContainer.appendChild(actionPrompt);
             });
             section.appendChild(approvalContainer);

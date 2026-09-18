@@ -45,6 +45,7 @@ export interface LetterAssociatedAction {
   signature: string;
   args: any[];
   triggerOn: 'send' | 'receive' | 'read';
+  status?: 'pending' | 'approved' | 'denied';
 }
 
 export interface StoredLetter {
