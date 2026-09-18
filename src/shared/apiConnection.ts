@@ -928,7 +928,7 @@ export class ApiConnection{
 // --- Embedding Provider ---
 
 /** Supported embedding provider types */
-export type EmbeddingProviderType = 'openai' | 'ollama' | 'onnx';
+export type EmbeddingProviderType = 'openai' | 'ollama' | 'onnx' | 'custom' | 'openrouter' | 'deepseek' | 'grok' | 'nvidia' | 'glm' | 'player2' | 'anthropic';
 
 /** Result of an embedding generation request */
 export interface EmbeddingResult {
@@ -972,14 +972,23 @@ export class EmbeddingProvider {
         if (!text || text.trim().length === 0) {
             throw new Error('Cannot generate embedding for empty text.');
         }
-
         switch (this.provider) {
-            case 'openai':
-                return this.generateOpenAIEmbedding(text);
             case 'ollama':
                 return this.generateOllamaEmbedding(text);
             case 'onnx':
                 return this.generateOnnxEmbedding(text);
+            // All OpenAI-compatible providers (openai, custom, openrouter, deepseek,
+            // grok, nvidia, glm, player2, anthropic) use the standard /embeddings endpoint.
+            case 'openai':
+            case 'custom':
+            case 'openrouter':
+            case 'deepseek':
+            case 'grok':
+            case 'nvidia':
+            case 'glm':
+            case 'player2':
+            case 'anthropic':
+                return this.generateOpenAIEmbedding(text);
             default:
                 throw new Error(`Unsupported embedding provider: ${this.provider}`);
         }
@@ -1034,7 +1043,12 @@ export class EmbeddingProvider {
         if (!embedding || !Array.isArray(embedding)) {
             throw new Error('OpenAI embedding API returned an unexpected response format.');
         }
-
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: this.provider,
+            model: this.model
+        };
         return {
             vector: new Float32Array(embedding),
             dimensions: embedding.length,
