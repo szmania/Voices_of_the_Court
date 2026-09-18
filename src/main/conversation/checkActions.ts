@@ -273,7 +273,10 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
         let argNames: string[] = [];
         action.args.forEach( arg => { argNames.push(arg.name)})
         // The LLM will now provide source and target, so we don't include them in the signature shown to it.
-        let signature = action.signature+'('+argNames.join(', ')+')';
+        // Show the full signature including sourceId/targetId so the LLM knows the
+        // exact argument order. Omitting them caused the LLM to guess the order and
+        // emit malformed actions (e.g. addTrait(wrathful, 49643, ...)).
+        let signature = action.signature+'(sourceId, targetId'+(argNames.length > 0 ? ', '+argNames.join(', ') : '')+')';
         let argString = action.args.length > 0 ? `Takes ${action.args.length} arguments: ` : "Takes no arguments.";
 
         for(const arg of action.args){
@@ -297,8 +300,9 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     }
 
     listOfActions += `\n- noop(): Execute when none of the previous actions are a good fit for the given replies.`
-    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then seperate them with commas (,) inside the <actions> tags.`
-    listOfActions+= `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, value), actionName2(sourceId, targetId, value)</actions>`
+    listOfActions += `\nExplain why and which actions you would trigger (rationale), then write the most appropriate actions (actions). For each action, you MUST identify the source and the target by their ID from the character list. If you think multiple actions should be triggered, then separate them with commas (,) inside the <actions> tags.`
+    listOfActions += `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, arg1, arg2), actionName2(sourceId, targetId)</actions>`
+    listOfActions += `\nCRITICAL: The first two arguments of every action MUST be the source character ID and the target character ID, in that exact order. The action's own arguments (if any) come AFTER the source and target IDs. Never place an action's arguments before the IDs. Only use actions whose argument count matches the signature shown above.`
 
     const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
 
