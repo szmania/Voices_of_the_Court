@@ -1002,7 +1002,7 @@
     "embedding_api_desc": "Configure the embedding model used to vectorize memories for the vector database.",
     "embedding_api_usage": "This embedding model is used to vectorize memories for the Memory Constellation below. It must produce the configured number of dimensions.",
     "embedding_required": "An embedding model must be configured above to generate and display memories.",
-    "embedding_dimension": "Embedding Dimension",
+    "embedding_dimension": "Overwrite embedding dimension",
     "existing_memories_warning": "Existing memories were found. Your embedding model must produce {dimensions}-dimensional vectors to retain them.",
     "tooltip_player_id": "Select the player profile whose memories to display.",
     "tooltip_character": "Filter memories by a specific character or view all.",
