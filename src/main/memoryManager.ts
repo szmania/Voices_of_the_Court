@@ -125,8 +125,11 @@ export class MemoryManager {
      */
     private loadVecExtension(): void {
         try {
-            // sqlite-vec provides the vec0 virtual table for vector storage and search
-            this.db.loadExtension('vec0');
+            // sqlite-vec provides the vec0 virtual table for vector storage and search.
+            // loadExtension() needs the actual native library path, which the package
+            // exposes via getLoadablePath() (a bare 'vec0' name won't resolve on disk).
+            const sqliteVec = require('sqlite-vec');
+            this.db.loadExtension(sqliteVec.getLoadablePath());
             this.vecAvailable = true;
 
             // Create the vector virtual table for similarity search
@@ -224,9 +227,13 @@ export class MemoryManager {
         let query: string;
         let params: any[];
         
-        if (playerId) {
+        if (playerId && characterId) {
             query = 'SELECT * FROM memories WHERE character_id = ? AND player_id = ? ORDER BY timestamp DESC LIMIT ?';
             params = [characterId, playerId, limit];
+        } else if (playerId) {
+            // playerId provided but characterId empty ("all characters"): do not filter by character_id
+            query = 'SELECT * FROM memories WHERE player_id = ? ORDER BY timestamp DESC LIMIT ?';
+            params = [playerId, limit];
         } else if (characterId) {
             query = 'SELECT * FROM memories WHERE character_id = ? ORDER BY timestamp DESC LIMIT ?';
             params = [characterId, limit];
@@ -239,7 +246,6 @@ export class MemoryManager {
         const rows = stmt.all(...params) as any[];
         return rows.map(row => this.rowToMemory(row));
     }
-
     /**
      * Search for semantically similar memories using vector similarity.
      * Falls back to text-based search if sqlite-vec is not available.
