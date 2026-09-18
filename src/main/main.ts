@@ -1073,7 +1073,7 @@ app.on('ready',  async () => {
     async function importLegacyMemories(playerId: string) {
         try {
             console.log(`Executing import of legacy memories for player ${playerId}`);
-            const currentConfig = await getConfig(); // Get the current app configuration
+            const currentConfig = config; // Use the live app configuration (updated when the user saves settings), not the stale cached config from configManager
         
             // 1. Load all legacy compacted memories from JSON files
             const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
