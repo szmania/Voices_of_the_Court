@@ -13,6 +13,7 @@ let characterMap: Record<string, string> = {};
 const playerIdSelect = document.getElementById('mc-playerIdSelect') as HTMLSelectElement;
 const characterSelect = document.getElementById('mc-characterSelect') as HTMLSelectElement;
 const statusMessage = document.getElementById('mc-statusMessage') as HTMLDivElement;
+const legacyMemoryStatus = document.getElementById('legacy-memory-status') as HTMLSpanElement;
 
 document.getElementById("container")!.style.display = "block";
 
@@ -93,6 +94,7 @@ async function init() {
 
     // Load player IDs and populate dropdowns
     await loadPlayerIds();
+    await updateLegacyMemoryStatus();
 
     // Warn if existing memories use a specific embedding dimension
     await checkExistingMemoryDimensions();
@@ -118,17 +120,22 @@ async function init() {
                 return;
             }
             
-            showStatusMessage('Importing legacy memories. Please wait...', 'info');
+            // @ts-ignore
+            showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.importing_legacy', 'Importing legacy memories. Please wait...'), 'info');
             try {
                 const result = await ipcRenderer.invoke('import-legacy-memories', selectedPlayerId);
                 if (result.success) {
-                    showStatusMessage(`Successfully imported ${result.count} legacy memories.`, 'success');
+                    // @ts-ignore
+                    showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.import_success', 'Successfully imported {count} legacy memories.').replace('{count}', String(result.count)), 'success');
+                    updateLegacyMemoryStatus();
                     updateMemoryConstellation();
                 } else {
-                    showStatusMessage(`Import failed: ${result.error}`, 'error');
+                    // @ts-ignore
+                    showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.import_fail', 'Import failed: {error}').replace('{error}', result.error), 'error');
                 }
             } catch (err: any) {
-                showStatusMessage(`Import error: ${err.message}`, 'error');
+                // @ts-ignore
+                showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.import_error', 'Import error: {error}').replace('{error}', err.message), 'error');
             }
         });
     }
@@ -307,7 +314,7 @@ function setupEmbeddingDimensionInput() {
             dimensionInput.value = '1536';
             return;
         }
-        ipcRenderer.send('config-change-nested', 'embeddingApiConnectionConfig', 'connection', 'embeddingDimension', value);
+        ipcRenderer.send('config-change-nested-nested', 'embeddingApiConnectionConfig', 'connection', 'embeddingDimension', value);
     });
 }
 
@@ -424,6 +431,44 @@ function populateCharacterSelect(preserveCharacterId?: string) {
         characterSelect.value = 'all';
     }
     selectedCharacterId = characterSelect.value;
+}
+
+async function updateLegacyMemoryStatus() {
+    if (!legacyMemoryStatus) return;
+    if (!selectedPlayerId) {
+        legacyMemoryStatus.textContent = '';
+        return;
+    }
+    // @ts-ignore
+    const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+    try {
+        const result = await ipcRenderer.invoke('get-legacy-memory-status', selectedPlayerId);
+        if (!result.success) {
+            legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_error', 'Error checking legacy memory status');
+            legacyMemoryStatus.style.color = '#f44336';
+            return;
+        }
+        if (!result.hasLegacy) {
+            legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_no_legacy', 'No legacy memories found');
+            legacyMemoryStatus.style.color = '#888';
+            return;
+        }
+        if (result.allLoaded) {
+            legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_loaded', 'Legacy memories loaded ({count})').replace('{count}', String(result.loadedCount));
+            legacyMemoryStatus.style.color = '#4caf50';
+        } else if (result.loadedCount > 0) {
+            legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_partial', 'Legacy memories partially loaded ({loaded}/{total})')
+                .replace('{loaded}', String(result.loadedCount)).replace('{total}', String(result.totalLegacy));
+            legacyMemoryStatus.style.color = '#ffab00';
+        } else {
+            legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_not_loaded', 'Legacy memories not loaded ({loaded}/{total})')
+                .replace('{loaded}', String(result.loadedCount)).replace('{total}', String(result.totalLegacy));
+            legacyMemoryStatus.style.color = '#ffab00';
+        }
+    } catch (err) {
+        legacyMemoryStatus.textContent = t('memory_constellation.legacy_status_error', 'Error checking legacy memory status');
+        legacyMemoryStatus.style.color = '#f44336';
+    }
 }
 
 function updateMemoryConstellation() {

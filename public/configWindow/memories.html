@@ -55,6 +55,16 @@
         color: #8af88a;
         border: 1px solid #2a8c2a;
       }
+      .legacy-memory-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .legacy-memory-status {
+        font-size: 0.9em;
+        color: #aaa;
+      }
     </style>
   </head>
   <body>
@@ -77,20 +87,20 @@
     <div class="container" id="container">
 
         <div class="border">
-            <h2 data-i18n="memory_constellation.embedding_api_header">Embedding Model</h2>
+            <h2 data-i18n="memory_constellation.embedding_api_header">Embedding Model</h2> <tooltip-text side="right" data-i18n="memory_constellation.embedding_api_header_tooltip"></tooltip-text>
             <p data-i18n="memory_constellation.embedding_api_desc">Configure the embedding model used to vectorize memories for the vector database.</p>
             <p data-i18n="memory_constellation.embedding_api_usage">This embedding model is used to vectorize memories for the Memory Constellation below. It must produce 1536-dimensional vectors.</p>
             <div id="embedding-dimension-warning" class="status-message error" style="display: none; position: static; opacity: 1; margin-bottom: 10px;"></div>
             <config-api-selector id="api-selector" confID="embeddingApiConnectionConfig"></config-api-selector>
             <div class="input-group">
-                <label for="embedding-dimension-input" data-i18n="memory_constellation.embedding_dimension">Embedding Dimension</label>
+                <label for="embedding-dimension-input" data-i18n="memory_constellation.embedding_dimension">Embedding Dimension</label> <tooltip-text side="top" data-i18n="memory_constellation.embedding_dimension_tooltip"></tooltip-text>
                 <input type="number" id="embedding-dimension-input" min="1" max="8192" step="1" value="1536" />
             </div>
         </div>
         <br>
 
         <div class="border" id="memory-constellation-box">
-            <h2 data-i18n="memory_constellation.header">Memory Constellation</h2>
+            <h2 data-i18n="memory_constellation.header">Memory Constellation</h2> <tooltip-text side="right" data-i18n="memory_constellation.header_tooltip"></tooltip-text>
             <p data-i18n="memory_constellation.embedding_required">An embedding model must be configured above to generate and display memories.</p>
             <div class="info-panel">
                 <div class="info-item">
@@ -106,11 +116,15 @@
                     </select>
                 </div>
             </div>
+            <div class="legacy-memory-controls">
+                <button id="import-legacy-memories" class="btn" data-i18n="memory_constellation.import_legacy" data-i18n-title="memory_constellation.import_legacy_tooltip">Import Legacy Memories</button>
+                <span id="legacy-memory-status" class="legacy-memory-status"></span>
+            </div>
             <div id="mc-statusMessage" class="status-message"></div>
         </div>
 
         <div class="border" id="compaction-settings" style="margin-top: 20px;">
-        <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2>
+        <h2 data-i18n="settings.memory_compaction_header">Memory Compaction</h2> <tooltip-text side="right" data-i18n="settings.memory_compaction_header_tooltip"></tooltip-text>
         <p data-i18n="settings.memory_compaction_desc">Automatically compresses conversation history to save context space while preserving key narrative details.</p>
         
         <config-checkbox confID="enableMemoryCompaction" data-i18n="settings.memory_compaction_enable" data-i18n-title="settings.memory_compaction_enable_tooltip"></config-checkbox>
@@ -137,7 +151,6 @@
         <br>
         
         <button id="manual-compaction-trigger" class="btn" data-i18n="settings.manual_compaction_button" data-i18n-title="settings.manual_compaction_tooltip">Run Compaction Now</button>
-        <button id="import-legacy-memories" class="btn" data-i18n="memory_constellation.import_legacy" data-i18n-title="memory_constellation.import_legacy_tooltip">Import Legacy Memories</button>
         <hr>
         
         <div class="row">

@@ -27,7 +27,12 @@
   },
   "memory_constellation": {
     "empty_title": "Keine Erinnerungen gefunden",
-    "empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt."
+    "empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt.",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status"
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",

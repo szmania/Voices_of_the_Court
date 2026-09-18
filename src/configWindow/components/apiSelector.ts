@@ -225,10 +225,11 @@ function defineTemplate(label: string){
         </div>
 
         <hr>
-        <input type="checkbox" id="overwrite-context"/>
-        <label data-i18n="connection.overwrite_context">Overwrite context size</label> <br>
-        <input type="number" id="custom-context" min="0" style="width: 10%;"/>
-    </div>
+        <div id="context-size-fields">
+            <input type="checkbox" id="overwrite-context"/>
+            <label data-i18n="connection.overwrite_context">Overwrite context size</label> <br>
+            <input type="number" id="custom-context" min="0" style="width: 10%;"/>
+        </div>
 
   <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
 `
@@ -498,6 +499,16 @@ class ApiSelector extends HTMLElement{
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
         this.customContextNumber.value = apiConfig.customContext;
+
+        // Context size is irrelevant for embeddings; hide it for the embedding config.
+        if (confID === 'embeddingApiConnectionConfig') {
+            const contextFields = this.shadow.querySelector('#context-size-fields');
+            if (contextFields) {
+                (contextFields as HTMLElement).style.display = 'none';
+                const hr = (contextFields as HTMLElement).previousElementSibling;
+                if (hr && hr.tagName === 'HR') (hr as HTMLElement).style.display = 'none';
+            }
+        }
 
 
 

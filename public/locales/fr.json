@@ -27,7 +27,12 @@
   },
   "memory_constellation": {
     "empty_title": "Aucun souvenir trouvé",
-    "empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu."
+    "empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu.",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status"
   },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",

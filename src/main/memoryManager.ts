@@ -210,6 +210,16 @@ export class MemoryManager {
      * @param limit - Maximum number of memories to return (default: 100).
      * @returns Array of memory entries sorted by recency.
      */
+    /**
+     * Checks whether a memory with the given ID exists, without side effects.
+     * @param id - The memory ID to check.
+     * @returns True if the memory exists.
+     */
+    hasMemory(id: string): boolean {
+        const stmt = this.db.prepare('SELECT 1 FROM memories WHERE id = ?');
+        return !!stmt.get(id);
+    }
+
     getMemoriesByCharacter(characterId: string, limit: number = 100, playerId?: string): Memory[] {
         let query: string;
         let params: any[];

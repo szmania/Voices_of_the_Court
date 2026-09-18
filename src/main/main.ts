@@ -1125,11 +1125,46 @@ app.on('ready',  async () => {
           }
     }
 
+    // Checks how many legacy compacted memories are already embedded in the vector DB.
+    async function getLegacyMemoryStatus(playerId: string) {
+        try {
+            const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            if (!compactedMemories || compactedMemories.length === 0) {
+                return { success: true, hasLegacy: false, totalLegacy: 0, loadedCount: 0, allLoaded: false };
+            }
+
+            const localMemoryManager = new MemoryManager(userDataPath);
+            let loadedCount = 0;
+            for (const compacted of compactedMemories) {
+                if (localMemoryManager.hasMemory(compacted.id)) {
+                    loadedCount++;
+                }
+            }
+            localMemoryManager.close();
+
+            return {
+                success: true,
+                hasLegacy: true,
+                totalLegacy: compactedMemories.length,
+                loadedCount,
+                allLoaded: loadedCount >= compactedMemories.length
+            };
+        } catch (error: any) {
+            console.error(`Failed to check legacy memory status for player ${playerId}:`, error);
+            return { success: false, error: error.message };
+        }
+    }
+
     ipcMain.handle('import-legacy-memories', async (event, playerId: string) => {
         console.log(`IPC: Received request to import legacy memories for player ${playerId}`);
         return await importLegacyMemories(playerId);
     });
 
+
+    ipcMain.handle('get-legacy-memory-status', async (event, playerId: string) => {
+        console.log(`IPC: Received request to check legacy memory status for player ${playerId}`);
+        return await getLegacyMemoryStatus(playerId);
+    });
 
     //logging
     var util = require('util');
