@@ -997,6 +997,9 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
+    // Invalidate the cached letter pairs whenever fresh data arrives, so newly attached
+    // triggered actions (e.g. player actions on a sent letter) are shown on refresh.
+    cachedLetterPairs = null;
     // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
     // and should not be derived from letter data here, as it causes bugs with date calculations.
     // Reset filtered letters to allLetters on load since no filter is active yet.
