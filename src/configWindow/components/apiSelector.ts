@@ -614,11 +614,31 @@ class ApiSelector extends HTMLElement{
             }
             console.debug("Using config:", configToLog);
 
-            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters, null);
-
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
 
+            // The embedding config tests the embedding endpoint, not chat completions.
+            if (this.confID === 'embeddingApiConnectionConfig') {
+                const conn = config[this.confID].connection;
+                const result = await ipcRenderer.invoke('test-embedding-connection', {
+                    provider: conn.type,
+                    model: conn.model,
+                    baseUrl: conn.baseUrl,
+                    apiKey: conn.key
+                });
+                console.debug("--- API SELECTOR: Embedding Test Result ---");
+                console.debug(result);
+                if (result.success) {
+                    this.testConnectionSpan.style.color = "green";
+                    this.testConnectionSpan.innerText = result.message || "Connection valid!";
+                } else {
+                    this.testConnectionSpan.style.color = "red";
+                    this.testConnectionSpan.innerText = result.message || "Connection failed.";
+                }
+                return;
+            }
+
+            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters, null);
 
             con.testConnection().then( (result) =>{
 
