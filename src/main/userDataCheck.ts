@@ -77,7 +77,7 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
 
     // 保留用户配置中不在默认配置中的特殊字段（如apiKeys）
     // 这些字段对于API配置的持久化至关重要
-    const specialFields = ['apiKeys'];
+    const specialFields = ['apiKeys', 'embeddingApiConnectionConfig'];
     for (const field of specialFields) {
         if (userConfig.hasOwnProperty(field)) {
             merged[field] = userConfig[field];
