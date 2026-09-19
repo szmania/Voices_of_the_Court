@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import { TimelineRegistry, isRecordVisibleForContext } from './timelineManager.js';
@@ -339,7 +339,7 @@ export async function readConversationHistoryFile(playerId: string, fileName: st
         return content;
     } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-             throw new Error(`Conversation history file does not exist: ${filePath}`);
+             throw new Error(`Conversation history file does not exist: ${fileName}`);
         }
         console.error('Error reading conversation history file:', error);
         throw error;

@@ -424,7 +424,7 @@ export class Conversation{
         const INITIAL_BATCH_SIZE = 3; // Using 3 as requested for the initial synchronous load.
         let validConversationsFound = 0;
 
-        for (const fileInfo of allHistoryFiles) {
+        for (const fileInfo of historyFiles) {
             // This loop correctly stops collecting files once the total number of *valid* conversations
             // (those with actual dialogue) reaches the user's configured limit.
             if (validConversationsFound >= this.config.maxConversationsInHistoryWindow) {

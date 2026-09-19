@@ -139,7 +139,8 @@ export class BattleReportGenerator {
         this.userDataPath = userDataPath;
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
-            config.textGenerationApiConnectionConfig.parameters
+            config.textGenerationApiConnectionConfig.parameters,
+            null
         );
     }
 
@@ -227,7 +228,8 @@ export class BattleReportGenerator {
                         temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
                     });
 
-                    if (!response || response.trim() === "") {
+                    const responseText = typeof response === 'string' ? response : (response?.content ?? '');
+                    if (!responseText || responseText.trim() === "") {
                         console.warn(`Empty response from LLM for ${battleData.slotId}; keeping fallback report`);
                         continue;
                     }
@@ -237,7 +239,7 @@ export class BattleReportGenerator {
                         continue;
                     }
 
-                    const report = this.normalizeReport(response);
+                    const report = this.normalizeReport(responseText);
                     this.writeBattleReport(report, userFolderPath, battleData);
                     const existing = battleReportStatuses.get(battleData.slotId);
                     battleReportStatuses.set(battleData.slotId, {
