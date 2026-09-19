@@ -9,6 +9,7 @@ let config: any;
 let selectedPlayerId: string = '';
 let selectedCharacterId: string = 'all';
 let characterMap: Record<string, string> = {};
+let memoryConstellation: any = null;
 
 const playerIdSelect = document.getElementById('mc-playerIdSelect') as HTMLSelectElement;
 const characterSelect = document.getElementById('mc-characterSelect') as HTMLSelectElement;
@@ -80,7 +81,7 @@ async function init() {
 
     const memoryConstellationBox = document.getElementById('memory-constellation-box');
     if (memoryConstellationBox) {
-        const memoryConstellation = document.createElement('memory-constellation');
+    memoryConstellation = document.createElement('memory-constellation');
         // Pass character ID from URL params if available
         const characterId = urlParams.get('characterId') || '';
         if (characterId) {
@@ -400,6 +401,7 @@ async function loadCharactersForPlayer() {
             characterMap = {};
         }
 
+        memoryConstellation?.setCharacterMap(characterMap);
         populateCharacterSelect();
         updateMemoryConstellation();
     } catch (error: any) {

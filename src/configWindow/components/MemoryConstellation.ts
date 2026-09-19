@@ -117,6 +117,8 @@ function defineTemplate() {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: move;
+            user-select: none;
         }
         #memory-editor .editor-close {
             background: none;
@@ -204,6 +206,10 @@ function defineTemplate() {
             background-color: #1a5c1a;
             border-color: #2a8c2a;
         }
+        #memory-editor .editor-actions button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         #memory-editor .editor-actions button.save-btn:hover {
             background-color: #2a7c2a;
             border-color: #cca43b;
@@ -266,6 +272,9 @@ class MemoryConstellation extends HTMLElement {
     private editor!: HTMLDivElement;
     private pinnedMemory: any = null;
     private mouseDownPos = { x: 0, y: 0 };
+    private characterMap: Record<string, string> = {};
+    private lines!: THREE.LineSegments;
+    private editorDrag = { dragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
 
     constructor() {
         super();
@@ -279,6 +288,10 @@ class MemoryConstellation extends HTMLElement {
         this.emptyState = this.shadow.querySelector('#empty-state') as HTMLDivElement;
         this.tooltip = this.shadow.querySelector('#memory-tooltip') as HTMLDivElement;
         this.editor = this.shadow.querySelector('#memory-editor') as HTMLDivElement;
+        const charMapAttr = this.getAttribute('character-map');
+        if (charMapAttr) {
+            try { this.characterMap = JSON.parse(charMapAttr); } catch (e) { this.characterMap = {}; }
+        }
         this.initThree();
         this.setupEditor();
         this.animateLoop();
@@ -409,12 +422,10 @@ class MemoryConstellation extends HTMLElement {
         }
     }
     private showTooltip(memory: any) {
-        const date = memory.timestamp ? new Date(memory.timestamp).toLocaleString() : '';
-        const emotion = memory.emotion ? memory.emotion : '';
         this.tooltip.innerHTML = `
             <div class="tooltip-title">Memory</div>
             <div>${this.escapeHtml(memory.text || '')}</div>
-            <div class="tooltip-meta">${emotion ? 'Emotion: ' + this.escapeHtml(emotion) + '<br>' : ''}${date ? 'Date: ' + this.escapeHtml(date) : ''}</div>
+            <div class="tooltip-meta">${this.buildMemoryMeta(memory)}</div>
         `;
         this.tooltip.style.display = 'block';
     }
@@ -430,15 +441,27 @@ class MemoryConstellation extends HTMLElement {
     private setupEditor() {
         const closeBtn = this.shadow.querySelector('#editor-close-btn');
         closeBtn?.addEventListener('click', () => this.hideEditor());
-        const saveBtn = this.shadow.querySelector('#editor-save-btn');
+        const saveBtn = this.shadow.querySelector('#editor-save-btn') as HTMLButtonElement;
         saveBtn?.addEventListener('click', () => this.saveMemory());
+
+        // Enable/disable the Save button based on whether the memory was edited.
+        const text = this.shadow.querySelector('#editor-text') as HTMLTextAreaElement;
+        const emotion = this.shadow.querySelector('#editor-emotion') as HTMLInputElement;
+        const onEdit = () => this.updateSaveButtonState();
+        text?.addEventListener('input', onEdit);
+        emotion?.addEventListener('input', onEdit);
+
+        // Make the editor dialog draggable via its title bar.
+        const title = this.shadow.querySelector('.editor-title') as HTMLElement;
+        title?.addEventListener('mousedown', (e) => this.startEditorDrag(e));
+        window.addEventListener('mousemove', (e) => this.onEditorDrag(e));
+        window.addEventListener('mouseup', () => this.stopEditorDrag());
     }
 
     private showEditor(memory: any) {
         this.pinnedMemory = memory;
-        const date = memory.timestamp ? new Date(memory.timestamp).toLocaleString() : '';
         const meta = this.shadow.querySelector('#editor-meta') as HTMLDivElement;
-        if (meta) meta.textContent = date ? 'Date: ' + date : '';
+        if (meta) meta.innerHTML = this.buildMemoryMeta(memory);
         const text = this.shadow.querySelector('#editor-text') as HTMLTextAreaElement;
         if (text) text.value = memory.text || '';
         const emotion = this.shadow.querySelector('#editor-emotion') as HTMLInputElement;
@@ -446,6 +469,7 @@ class MemoryConstellation extends HTMLElement {
         const status = this.shadow.querySelector('#editor-status') as HTMLDivElement;
         if (status) { status.textContent = ''; status.className = 'editor-status'; }
         this.editor.classList.add('visible');
+        this.updateSaveButtonState();
     }
 
     private hideEditor() {
@@ -468,12 +492,90 @@ class MemoryConstellation extends HTMLElement {
                 this.pinnedMemory.text = text;
                 this.pinnedMemory.emotion = emotion;
                 if (status) { status.textContent = 'Saved'; status.className = 'editor-status success'; }
+                this.updateSaveButtonState();
             } else {
                 if (status) { status.textContent = 'Save failed'; status.className = 'editor-status error'; }
             }
         } catch (err) {
             if (status) { status.textContent = 'Save error'; status.className = 'editor-status error'; }
         }
+    }
+
+    public setCharacterMap(map: Record<string, string>): void {
+        this.characterMap = map || {};
+    }
+
+    private getCharacterName(characterId: string): string {
+        if (!characterId) return 'Unknown';
+        return this.characterMap[characterId] || `Character ${characterId}`;
+    }
+
+    private buildMemoryMeta(memory: any): string {
+        const parts: string[] = [];
+        if (memory.characterId) {
+            parts.push('Character: ' + this.escapeHtml(this.getCharacterName(memory.characterId)));
+        }
+        if (memory.timestamp) {
+            parts.push('Date: ' + this.escapeHtml(new Date(memory.timestamp).toLocaleString()));
+        }
+        if (memory.emotion) {
+            parts.push('Emotion: ' + this.escapeHtml(memory.emotion));
+        }
+        return parts.join('<br>');
+    }
+
+    private updateSaveButtonState(): void {
+        const saveBtn = this.shadow.querySelector('#editor-save-btn') as HTMLButtonElement;
+        if (!saveBtn || !this.pinnedMemory) return;
+        const text = (this.shadow.querySelector('#editor-text') as HTMLTextAreaElement)?.value || '';
+        const emotion = (this.shadow.querySelector('#editor-emotion') as HTMLInputElement)?.value || '';
+        const changed = text !== (this.pinnedMemory.text || '') || emotion !== (this.pinnedMemory.emotion || '');
+        saveBtn.disabled = !changed;
+    }
+
+    private buildRelationLines(memories: any[], positions: Float32Array): void {
+        if (memories.length < 2) return;
+        const linePositions: number[] = [];
+        for (let i = 0; i < memories.length; i++) {
+            for (let j = i + 1; j < memories.length; j++) {
+                const related = memories[i].characterId && memories[i].characterId === memories[j].characterId;
+                if (related) {
+                    linePositions.push(
+                        positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2],
+                        positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]
+                    );
+                }
+            }
+        }
+        if (linePositions.length === 0) return;
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x5a4a35, transparent: true, opacity: 0.4 });
+        this.lines = new THREE.LineSegments(lineGeo, lineMat);
+        this.scene.add(this.lines);
+    }
+
+    private startEditorDrag(e: MouseEvent): void {
+        if ((e.target as HTMLElement).id === 'editor-close-btn') return;
+        this.editorDrag.dragging = true;
+        this.editorDrag.startX = e.clientX;
+        this.editorDrag.startY = e.clientY;
+        this.editorDrag.origLeft = this.editor.offsetLeft;
+        this.editorDrag.origTop = this.editor.offsetTop;
+        e.preventDefault();
+    }
+
+    private onEditorDrag(e: MouseEvent): void {
+        if (!this.editorDrag.dragging) return;
+        const dx = e.clientX - this.editorDrag.startX;
+        const dy = e.clientY - this.editorDrag.startY;
+        this.editor.style.left = (this.editorDrag.origLeft + dx) + 'px';
+        this.editor.style.top = (this.editorDrag.origTop + dy) + 'px';
+        this.editor.style.right = 'auto';
+    }
+
+    private stopEditorDrag(): void {
+        this.editorDrag.dragging = false;
     }
 
     updatePoints(memories: any[]) {
@@ -526,6 +628,8 @@ class MemoryConstellation extends HTMLElement {
         });
         this.points = new THREE.Points(geometry, material);
         this.scene.add(this.points);
+
+        this.buildRelationLines(memories, positions);
     }
 
     private animateLoop = () => {
