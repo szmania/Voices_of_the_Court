@@ -263,6 +263,7 @@ export class LetterReplyGenerator {
             const slotId = /^letter_[1-9]$/.test(letter.subject) ? letter.subject : null;
             let timeline: CreateChildNodeResult | undefined;
             let snapshot: { slotId: string; deliveryId: number } | undefined;
+            let timelineInfo: { script: string; epoch: number; campaignId: string; playerId: string } | undefined;
 
             if (slotId) {
                 // mod2 ce emits no per-delivery id; the sending game day is the
@@ -333,6 +334,12 @@ export class LetterReplyGenerator {
                         context: transition.context,
                         createdNewRoot: false
                     };
+                    timelineInfo = {
+                        script: transition.script,
+                        epoch: nextCheckpointEpoch,
+                        campaignId: identity.campaignId,
+                        playerId: identity.playerId
+                    };
                     console.log(`Timeline node created for letter reply: ${timeline.nodeId} (parent: ${timeline.parentId ?? 'null'}, attempt: ${transition.attemptId}, reused: ${transition.reused})`);
                 } catch (error) {
                     if (error instanceof CampaignIdentityUnavailableError) {
@@ -401,14 +408,17 @@ export class LetterReplyGenerator {
 
             // Save letter history immediately
             console.log('[LetterReplyGenerator] Saving letter history...');
-            const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
+            const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId, timelineInfo);
             console.log('[LetterReplyGenerator] Letter history saved.');
 
-            // Ride the allocated timeline script on the reply so the actual
-            // delivery (letters.txt in the CK3 run dir) applies the node; the
-            // app-data fallback file alone never reaches the game.
-            if (replyLetter && timeline?.script) {
-                replyLetter.timelineScript = timeline.script;
+            // Re-assert the timeline payload on the returned object: it rides
+            // into the pending-delivery queue, and this also covers callers
+            // that stub saveLetterHistory in tests.
+            if (replyLetter && timelineInfo) {
+                replyLetter.timelineScript = timelineInfo.script;
+                replyLetter.timelineEpoch = timelineInfo.epoch;
+                replyLetter.timelineCampaignId = timelineInfo.campaignId;
+                replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
             
             // Update original letter status back to 'sent' since reply is now pending
@@ -442,7 +452,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string): Promise<ILetter | null> {
+    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, timelineInfo?: { script: string; epoch: number; campaignId: string; playerId: string }): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
     
@@ -483,6 +493,16 @@ export class LetterReplyGenerator {
                 undefined, // deliveryTimestamp (set on VOTC:LETTER_ACCEPTED)
                 expectedPlayerDeliveryDate // When the player should receive it
             );
+
+            // Persist the timeline payload with the letter itself: a restart
+            // rehydrates pending replies from this JSON, and a script that
+            // only lives on the in-memory object would be lost.
+            if (timelineInfo) {
+                replyLetter.timelineScript = timelineInfo.script;
+                replyLetter.timelineEpoch = timelineInfo.epoch;
+                replyLetter.timelineCampaignId = timelineInfo.campaignId;
+                replyLetter.timelinePlayerId = timelineInfo.playerId;
+            }
     
             // Atomically update the history file
             const otherCharacterId = aiId; // The file is named after the non-player character

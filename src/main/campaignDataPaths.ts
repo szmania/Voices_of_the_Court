@@ -37,14 +37,7 @@ function assertIdentity(identity: CampaignPlayerIdentity): void {
 
 function campaignRootOf(userDataDir: string, identity: CampaignPlayerIdentity): string {
     assertIdentity(identity);
-    // Idempotent against callers that hand in a userData dir which already
-    // ends in votc_data (the app's <userData>/votc_data): collapse the duplicate
-    // so every entry point resolves to the same campaign root.
-    const segments = userDataDir.split(/[\\/]/);
-    if (segments.length > 1 && segments[segments.length - 1] === 'votc_data') {
-        segments.pop();
-    }
-    return path.join(...segments, 'votc_data', 'campaigns', identity.campaignId);
+    return path.join(userDataDir, 'votc_data', 'campaigns', identity.campaignId);
 }
 
 export function campaignRoot(userDataDir: string, identity: CampaignPlayerIdentity): string {

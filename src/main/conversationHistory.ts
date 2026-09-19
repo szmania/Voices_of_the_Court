@@ -71,15 +71,41 @@ function conversationHistoryDirFor(playerId: string, identity?: CampaignPlayerId
         : legacyConversationHistoryDir(playerId);
 }
 
-// Legacy transcripts must stay visible under a v2 identity: the conversation
-// writer still mirrors transcripts to the legacy player directory and older
-// saves never migrate their files. Legacy is listed first so name collisions
-// resolve to the legacy copy (same content the user has always seen).
-function conversationHistoryCandidateDirs(playerId: string, identity?: CampaignPlayerIdentity): string[] {
+// Candidate transcript directories, most specific first. A campaign's own
+// history is authoritative; the legacy player dir is only a fallback for
+// records no campaign has claimed yet.
+function conversationHistoryCandidateDirs(playerId: string, identity?: CampaignPlayerIdentity): Array<{dir: string, isLegacy: boolean}> {
     const legacyDir = legacyConversationHistoryDir(playerId);
     return identity
-        ? [legacyDir, campaignConversationHistoryDir(app.getPath('userData'), identity)]
-        : [legacyDir];
+        ? [
+            {dir: campaignConversationHistoryDir(app.getPath('userData'), identity), isLegacy: false},
+            {dir: legacyDir, isLegacy: true}
+        ]
+        : [{dir: legacyDir, isLegacy: true}];
+}
+
+// Transcripts whose fileName already exists in some other campaign's history
+// for this player have been claimed by that campaign; they must not leak into
+// unrelated campaigns that happen to share the player id.
+function collectHistoryNamesClaimedByOtherCampaigns(playerId: string, exceptCampaignId: string | undefined): Set<string> {
+    const claimed = new Set<string>();
+    try {
+        const campaignsRoot = path.join(app.getPath('userData'), 'votc_data', 'campaigns');
+        if (!fs.existsSync(campaignsRoot)) {
+            return claimed;
+        }
+        for (const campaignId of fs.readdirSync(campaignsRoot)) {
+            if (campaignId === exceptCampaignId) continue;
+            const historyDir = path.join(campaignsRoot, campaignId, 'players', playerId, 'conversation_history');
+            if (!fs.existsSync(historyDir)) continue;
+            for (const file of fs.readdirSync(historyDir)) {
+                if (file.endsWith('.txt')) claimed.add(file);
+            }
+        }
+    } catch (error) {
+        console.warn('Could not scan campaign history ownership:', error);
+    }
+    return claimed;
 }
 
 function letterHistoryDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
@@ -274,18 +300,19 @@ export async function listPromptTranscriptFiles(playerId: string, currentCharact
 // files, epoch filter otherwise.
 export async function getConversationHistoryFiles(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
-        // Union over the legacy player dir and (when identifiable) the campaign
-        // dir; first directory containing a name wins (legacy first).
+        const claimedByOtherCampaign = identity
+            ? collectHistoryNamesClaimedByOtherCampaigns(playerId, identity.campaignId)
+            : new Set<string>();
         const fileSourceDirs = new Map<string, string>();
-        for (const conversationHistoryDir of conversationHistoryCandidateDirs(playerId, identity)) {
+        for (const {dir: conversationHistoryDir, isLegacy} of conversationHistoryCandidateDirs(playerId, identity)) {
             if (!fs.existsSync(conversationHistoryDir)) {
                 console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
                 continue;
             }
             for (const file of fs.readdirSync(conversationHistoryDir)) {
-                if (file.endsWith('.txt') && !fileSourceDirs.has(file)) {
-                    fileSourceDirs.set(file, conversationHistoryDir);
-                }
+                if (!file.endsWith('.txt') || fileSourceDirs.has(file)) continue;
+                if (isLegacy && claimedByOtherCampaign.has(file)) continue;
+                fileSourceDirs.set(file, conversationHistoryDir);
             }
         }
 
@@ -341,8 +368,12 @@ export async function readConversationHistoryFile(playerId: string, fileName: st
             }
         }
 
+        const claimedByOtherCampaign = identity
+            ? collectHistoryNamesClaimedByOtherCampaigns(playerId, identity.campaignId)
+            : new Set<string>();
         let filePath: string | undefined;
-        for (const dir of conversationHistoryCandidateDirs(playerId, identity)) {
+        for (const {dir, isLegacy} of conversationHistoryCandidateDirs(playerId, identity)) {
+            if (isLegacy && claimedByOtherCampaign.has(fileName)) continue;
             const candidate = path.join(dir, fileName);
             if (fs.existsSync(candidate)) {
                 filePath = candidate;
@@ -350,7 +381,9 @@ export async function readConversationHistoryFile(playerId: string, fileName: st
             }
         }
         if (!filePath) {
-            throw new Error(`Conversation history file does not exist: ${path.join(conversationHistoryDirFor(playerId, identity), fileName)}`);
+            // Missing, or claimed by another campaign sharing this player id:
+            // the history window renders an empty transcript for it.
+            return '';
         }
 
         // Read file content

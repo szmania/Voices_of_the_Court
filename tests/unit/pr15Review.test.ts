@@ -61,8 +61,11 @@ describe('PR 15 business integration reproductions', () => {
 
     it('reply transition uses the same campaign registry root as conversations', async () => {
         const {identity} = await generate();
-        const wrongPath = timelineRegistryPath(path.join(root, 'votc_data'), identity);
-        expect(fs.existsSync(wrongPath)).toBe(true);
+        // The letter transition must not materialize a second registry under
+        // <userData>/votc_data/votc_data: campaignDataPaths takes the electron
+        // userData root verbatim and the reply passes that root.
+        const staleLegacyPath = timelineRegistryPath(path.join(root, 'votc_data'), identity);
+        expect(fs.existsSync(staleLegacyPath)).toBe(false);
         expect(fs.existsSync(timelineRegistryPath(root, identity))).toBe(true);
     });
 

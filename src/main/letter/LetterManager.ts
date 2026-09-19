@@ -7,6 +7,33 @@ import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./le
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
+import { timelineRegistryPath } from '../campaignDataPaths.js';
+import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
+
+/**
+ * Highest epoch committed to the reply's campaign registry, used to reject
+ * delivery-time timeline writes that would roll the save backwards. Any read
+ * failure is non-fatal: the timeline block is then applied as-is (the
+ * generation-time behaviour).
+ */
+function readCampaignRegistryHeadEpoch(campaignId: string | undefined, playerId: string | undefined): number | undefined {
+    if (!campaignId || !playerId) return undefined;
+    try {
+        const registryPath = timelineRegistryPath(app.getPath('userData'), { campaignId, playerId } as CampaignPlayerIdentity);
+        if (!fs.existsSync(registryPath)) return undefined;
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { epoch?: number }> };
+        let headEpoch: number | undefined;
+        for (const node of Object.values(data.nodes ?? {})) {
+            if (typeof node?.epoch === 'number' && Number.isFinite(node.epoch)) {
+                headEpoch = headEpoch === undefined ? node.epoch : Math.max(headEpoch, node.epoch);
+            }
+        }
+        return headEpoch;
+    } catch (error) {
+        console.warn('[LetterManager] Could not read the campaign timeline registry for delivery validation:', error);
+        return undefined;
+    }
+}
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -338,9 +365,24 @@ if = {
 }
 trigger_event = message_event.362`;
     
+        // Re-validate at delivery time: the reply may travel several in-game
+        // days and conversations can advance the checkpoint meanwhile. The
+        // allocated script is only applied while the save has not moved past
+        // its target epoch, so delivery never rolls the timeline state back.
         const timelineScript = storedLetter.letter.timelineScript;
-        if (timelineScript) {
-            gameCommand += '\n' + timelineScript;
+        let appliedTimelineScript = timelineScript;
+        if (timelineScript && storedLetter.letter.timelineEpoch !== undefined) {
+            const registryHeadEpoch = readCampaignRegistryHeadEpoch(
+                storedLetter.letter.timelineCampaignId,
+                storedLetter.letter.timelinePlayerId
+            );
+            if (registryHeadEpoch !== undefined && registryHeadEpoch > storedLetter.letter.timelineEpoch) {
+                console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save advanced from the allocated epoch ${storedLetter.letter.timelineEpoch} to ${registryHeadEpoch} while the reply was in transit.`);
+                appliedTimelineScript = undefined;
+            }
+        }
+        if (appliedTimelineScript) {
+            gameCommand += '\n' + appliedTimelineScript;
         }
 
         fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
