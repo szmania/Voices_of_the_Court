@@ -140,7 +140,7 @@
     "char_desc_player_tooltip": "Wählen Sie den Spielerkontext für die Beschreibung.",
     "char_desc_character": "Charakter:",
     "char_desc_character_tooltip": "Wählen Sie den zu beschreibenden Charakter.",
-    "char_desc_character_note": "Das Feld 'Nach Spieler filtern' oben bestimmt, welche Charaktere hier erscheinen.",
+    "char_desc_character_note": "Das Feld 'Nach Spieler filtern' links bestimmt, welche Charaktere hier erscheinen.",
     "char_desc_save": "Beschreibung speichern",
     "char_desc_saved": "Charakterbeschreibung erfolgreich gespeichert.",
     "char_desc_placeholder": "Beschreiben Sie Aussehen, Vorgeschichte, Persönlichkeitsmerkmale und wichtige Ereignisse des Charakters...",

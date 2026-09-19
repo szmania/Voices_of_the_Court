@@ -136,7 +136,7 @@
     "char_desc_player_tooltip": "Wybierz kontekst gracza dla opisu.",
     "char_desc_character": "Postać:",
     "char_desc_character_tooltip": "Wybierz postać do opisania.",
-    "char_desc_character_note": "Pole „Filtruj według gracza” powyżej określa, które postacie pojawiają się tutaj.",
+    "char_desc_character_note": "Pole „Filtruj według gracza” po lewej określa, które postacie pojawiają się tutaj.",
     "char_desc_save": "Zapisz opis",
     "char_desc_saved": "Opis postaci zapisano pomyślnie.",
     "char_desc_placeholder": "Opisz wygląd, historię, cechy osobowości i ważne wydarzenia postaci...",

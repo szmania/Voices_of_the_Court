@@ -140,7 +140,7 @@
     "char_desc_player_tooltip": "Seleccione el contexto de jugador para la descripción.",
     "char_desc_character": "Personaje:",
     "char_desc_character_tooltip": "Seleccione el personaje a describir.",
-    "char_desc_character_note": "El cuadro 'Filtrar por jugador' de arriba determina qué personajes aparecen aquí.",
+    "char_desc_character_note": "El cuadro 'Filtrar por jugador' de la izquierda determina qué personajes aparecen aquí.",
     "char_desc_save": "Guardar descripción",
     "char_desc_saved": "Descripción del personaje guardada correctamente.",
     "char_desc_placeholder": "Describa la apariencia, historia, rasgos de personalidad y eventos significativos del personaje...",

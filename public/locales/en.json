@@ -158,7 +158,7 @@
     "char_desc_tooltip": "Write a persistent description for a character (appearance, backstory, traits). The AI will remember this whenever the character speaks or is addressed. Leave blank to clear.",
     "char_desc_character": "Character:",
     "char_desc_character_tooltip": "Select the character to describe.",
-    "char_desc_character_note": "The 'Filter by Player' box above determines which characters appear here.",
+    "char_desc_character_note": "The 'Filter by Player' box to the left determines which characters appear here.",
     "char_desc_save": "Save Description",
     "char_desc_saved": "Character description saved successfully.",
     "char_desc_placeholder": "Describe the character's appearance, backstory, personality traits, and significant events...",

@@ -143,7 +143,7 @@
     "char_desc_player_tooltip": "选择描述的玩家上下文。",
     "char_desc_character": "角色:",
     "char_desc_character_tooltip": "选择要描述的角色。",
-    "char_desc_character_note": "上方的“按玩家筛选”框决定此处显示哪些角色。",
+    "char_desc_character_note": "左侧的“按玩家筛选”框决定此处显示哪些角色。",
     "char_desc_save": "保存描述",
     "char_desc_saved": "角色描述保存成功。",
     "char_desc_placeholder": "描述角色的外貌、背景、性格特质和重要事件...",

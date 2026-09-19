@@ -147,7 +147,7 @@
     "char_desc_player_tooltip": "Açıklama için oyuncu bağlamını seçin.",
     "char_desc_character": "Karakter:",
     "char_desc_character_tooltip": "Açıklanacak karakteri seçin.",
-    "char_desc_character_note": "Yukarıdaki 'Oyuncuya Göre Filtrele' kutusu, burada hangi karakterlerin görüneceğini belirler.",
+    "char_desc_character_note": "Soldaki 'Oyuncuya Göre Filtrele' kutusu, burada hangi karakterlerin görüneceğini belirler.",
     "char_desc_save": "Açıklamayı kaydet",
     "char_desc_saved": "Karakter açıklaması başarıyla kaydedildi.",
     "char_desc_placeholder": "Karakterin görünümünü, geçmişini, kişilik özelliklerini ve önemli olayları anlatın...",

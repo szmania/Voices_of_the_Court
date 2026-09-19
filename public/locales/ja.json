@@ -136,7 +136,7 @@
     "char_desc_player_tooltip": "説明用のプレイヤーコンテキストを選択。",
     "char_desc_character": "キャラクター:",
     "char_desc_character_tooltip": "説明するキャラクターを選択します。",
-    "char_desc_character_note": "上の「プレイヤーでフィルタ」ボックスで、ここに表示されるキャラクターが決まります。",
+    "char_desc_character_note": "左の「プレイヤーでフィルタ」ボックスで、ここに表示されるキャラクターが決まります。",
     "char_desc_save": "説明を保存",
     "char_desc_saved": "キャラクター説明を保存しました。",
     "char_desc_placeholder": "外見・過去・性格・重要な出来事を記述...",

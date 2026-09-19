@@ -136,7 +136,7 @@
     "char_desc_player_tooltip": "설명에 사용할 플레이어 컨텍스트를 선택하세요.",
     "char_desc_character": "캐릭터:",
     "char_desc_character_tooltip": "설명할 캐릭터를 선택하세요.",
-    "char_desc_character_note": "위의 '플레이어로 필터링' 상자가 여기에 표시되는 캐릭터를 결정합니다.",
+    "char_desc_character_note": "왼쪽의 '플레이어로 필터링' 상자가 여기에 표시되는 캐릭터를 결정합니다.",
     "char_desc_save": "설명 저장",
     "char_desc_saved": "캐릭터 설명이 저장되었습니다.",
     "char_desc_placeholder": "캐릭터의 외모, 과거, 성격, 중요 사건을 설명하세요...",
