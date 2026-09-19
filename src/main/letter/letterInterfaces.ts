@@ -25,6 +25,15 @@ export interface Letter {
   deliveryTimestamp?: Date;
   expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
+  /** Timeline v2 script (node/parent variables) allocated for this reply's thread; applied on delivery. */
+  timelineScript?: string;
+  /** Checkpoint epoch the script targets; delivery re-validates it against the registry. */
+  timelineEpoch?: number;
+  /** Campaign/player identity the timeline allocation belongs to (registry lookup at delivery). */
+  timelineCampaignId?: string;
+  timelinePlayerId?: string;
+  /** The registry node allocated for this reply; delivery re-validates it against the registry head. */
+  timelineNodeId?: string;
   characterContext?: {
     playerId: string;
     playerName: string;

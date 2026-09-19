@@ -24,6 +24,10 @@ import { getConversationHistoryFiles, readConversationHistoryFile } from "./conv
 import { readPromptHistory, savePromptHistory } from "./promptHistory";
 import { Message, ActionResponse } from "./ts/conversation_interfaces";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
+import { registerTimelineIpc, resolveTimelineWindowRequest } from "./ipc/timelineIpc.js";
+import type { TimelineWindowContext } from "./managerClipboardPayload.js";
+import { decideManagerWindowContext } from "./managerClipboardPayload.js";
+import { reportUnsupportedTimelineSchema } from "./timelineRegistryRecovery.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -206,6 +210,12 @@ let mainConfigWindow: BrowserWindow | null = null; // This will be the framed, s
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
+
+// Checkpoint evidence captured from the VOTC:CONVERSATION_HISTORY clipboard
+// payload (1.x main.ts conversationHistoryContext). Undefined when the mod
+// did not send a manager payload; the history channels then fall back to the
+// legacy debug.log lookup.
+let conversationHistoryContext: TimelineWindowContext | undefined;
 
 let tray: Tray;
 const createTray = () => {
@@ -532,6 +542,14 @@ function processLogLine(line: string) {
     if (match) {
       const newTotalDays = Number(match[1]);
       updateCurrentDate(newTotalDays);
+    }
+
+    // Letter fallback receipt: the fallback block cannot trigger
+    // message_event.362, so nothing else clears run/letters.txt after the
+    // mod-side letters_runner executes it - without this receipt the runner
+    // re-runs the file on every poll and spams the debug log.
+    if (line.includes('VOTC:FALLBACK/;/applied') || line.includes('VOTC:FALLBACK/;/skipped')) {
+        LetterManager.getInstance().clearLettersFile(config);
     }
 }
 
@@ -1007,6 +1025,18 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
+    registerTimelineIpc({
+        getWindowContext: () => conversationHistoryContext,
+        getDebugLogPath: () => path.join(config.userFolderPath, 'logs', 'debug.log'),
+        onCloseRequested: () => {
+            if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
+                conversationHistoryWindow.close();
+                console.log('Conversation history window closed.');
+            }
+        }
+    });
+    console.log('Timeline IPC handlers registered.');
+
     startLogTailing();
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
@@ -1133,8 +1163,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             setCachedGameData(gameData);
             currentSessionPlayerId = String(gameData.playerID);
 
-            if (gameData.totalDays) {
-                updateCurrentDate(gameData.totalDays);
+            if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+                updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
             }
             conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
             await conversation.loadHistory();
@@ -1270,6 +1300,9 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
     }
 })
 
+// Payload parsing is already in place (ClipboardListener emits the parsed
+// string[] payload for this command); wiring a dedicated summary-manager
+// window flow is deferred to P7.
 clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
     console.log('ClipboardListener: VOTC:SUMMARY_MANAGER event detected.');
     try {
@@ -1285,9 +1318,31 @@ clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
     }
 })
 
-clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
+clipboardListener.on('VOTC:CONVERSATION_HISTORY', async (payloads?: string[]) => {
     console.log('ClipboardListener: VOTC:CONVERSATION_HISTORY event detected.');
     try {
+        // 1.x main.ts:2080 pattern: derive the checkpoint evidence from the
+        // clipboard payload. The current 2CE mod sends the bare command
+        // without payload fields; in that case keep the legacy behavior
+        // (window opens, channels resolve via the debug.log tail) instead of
+        // refusing to open.
+        const hasPayloads = Array.isArray(payloads) && payloads.length > 0;
+        if (hasPayloads) {
+            const decision = decideManagerWindowContext('Conversation history', payloads);
+            if (decision.status !== 'ok') {
+                console.error(decision.message);
+                if (decision.unsupportedSchema !== undefined) {
+                    reportUnsupportedTimelineSchema(decision.unsupportedSchema);
+                }
+                return;
+            }
+            const { extraFields, ...context } = decision.context;
+            conversationHistoryContext = context;
+        } else {
+            conversationHistoryContext = undefined;
+            console.log('No manager clipboard payload; history window will use the legacy debug.log lookup.');
+        }
+
         // Create or show the conversation history window
         if (!conversationHistoryWindow || conversationHistoryWindow.isDestroyed()) {
             conversationHistoryWindow = new ConversationHistoryWindow();
@@ -1408,8 +1463,8 @@ clipboardListener.on('VOTC:LETTER', async () => {
             configWindow.window.webContents.send('letter-status-changed');
         }
 
-        if (gameData.totalDays) {
-            updateCurrentDate(gameData.totalDays);
+        if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+            updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
         }
 
         const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath, tiktokenEncoder);
@@ -1728,8 +1783,8 @@ ipcMain.on('chat-stop', () =>{
     chatWindow.hide();
 
     if(conversation && conversation.isOpen){
-        if (conversation.gameData.totalDays) {
-            updateCurrentDate(conversation.gameData.totalDays);
+        if (conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays) {
+            updateCurrentDate(conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays);
         }
         // This now saves history synchronously and triggers async summarization
         conversation.saveHistoryAndTriggerSummarization();
@@ -1956,8 +2011,8 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                         chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {
-                            if (conversation.gameData.totalDays) {
-                                updateCurrentDate(conversation.gameData.totalDays);
+                            if (conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays) {
+                                updateCurrentDate(conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays);
                             }
                             conversation.saveHistoryAndTriggerSummarization();
                         }
@@ -2094,10 +2149,14 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
     }
 });
 
-ipcMain.handle('read-summary-file', async (event, playerId) => {
+ipcMain.handle('read-summary-file', async (event, playerId, checkpointEpoch?: number) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaries = await readSummaryFile(userDataPath, playerId);
+        // Resolve through the timeline context so node-tagged summaries are
+        // filtered by branch visibility (no manager window context yet; the
+        // legacy parts-only resolution keeps today's behavior until P7).
+        const { context, registry, identity } = resolveTimelineWindowRequest(undefined, playerId, checkpointEpoch);
+        const summaries = await readSummaryFile(userDataPath, playerId, checkpointEpoch ?? context.checkpointEpoch, registry, context.timelineNodeId, identity);
 
         const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
@@ -2411,29 +2470,8 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
     }
 });
 
-// Conversation History IPC handlers
-
-ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
-    console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
-    try {
-        const files = await getConversationHistoryFiles(playerId, [], 0);
-        return files;
-    } catch (error) {
-        console.error('Error getting conversation history files:', error);
-        return [];
-    }
-});
-
-ipcMain.handle('read-conversation-history-file', async (event, playerId, filename) => {
-    console.log(`IPC: Received read-conversation-history-file event for player: ${playerId}, file: ${filename}`);
-    try {
-        const content = await readConversationHistoryFile(playerId, filename);
-        return content;
-    } catch (error) {
-        console.error('Error reading conversation history file:', error);
-        return '';
-    }
-});
+// Conversation History IPC handlers are registered by registerTimelineIpc()
+// (see src/main/ipc/timelineIpc.ts) during app startup.
 
 // Letter IPC Handlers
 ipcMain.handle('import-letters-from-log', async (event, args) => {
@@ -2548,14 +2586,7 @@ ipcMain.on('api-config-change', (e, configType: string, apiType: string, configD
     }
 });
 
-// 处理关闭对话历史窗口的请求
-ipcMain.on('close-conversation-history', () => {
-    console.log('IPC: Received close-conversation-history event.');
-    if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
-        conversationHistoryWindow.close();
-        console.log('Conversation history window closed.');
-    }
-});
+// 'close-conversation-history' is registered by registerTimelineIpc().
 
 // 处理关闭总结管理器窗口的请求
 ipcMain.on('close-summary-manager', () => {

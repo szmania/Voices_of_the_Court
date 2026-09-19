@@ -1,4 +1,4 @@
-import { GameData, Memory, Trait, OpinionModifier, Secret, Relative } from "./GameData";
+import { GameData, Memory, Trait, OpinionModifier, Secret, Relative, KnownSecret} from "./GameData";
 import { Character } from "./Character";
 const fs = require('fs');
 
@@ -59,6 +59,8 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     let multiLineType: string = ""; //relation or opinionModifier
 
     const deferredRelations: { charAID: number, charBID: number, relationship: string }[] = [];
+
+    const pendingKnownSecrets = new Map<number, Partial<KnownSecret> & { otherKnowers: { id: number; name: string }[] }>();
 
     // Efficiently find the last block by reading from the end of the file
     let relevantLogBlock: string | undefined;
@@ -149,7 +151,9 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
         if(line.includes("VOTC:IN")){
             //0: VOTC:IN, 1: dataType, 3: rootID 4...: data
-            let data = line.split("/;/")
+            // Lines may end with "/;" when the template's last field is empty (e.g. laws); normalize so split yields a clean trailing element.
+            const splittableLine = line.endsWith("/;") ? `${line}/` : line;
+            let data = splittableLine.split("/;/")
 
             const dataType = data[1];
             console.log(`Parsing data type: ${dataType}`);
@@ -165,6 +169,187 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             }
 
             switch (dataType){
+                case "stress": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.stress = { value: Number(data[1]), level: data[2], progress: Number(data[3]) };
+                    break;
+                }
+                case "legitimacy": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    if (data[1] === 'no') { c.legitimacy = undefined; break; }
+                    c.legitimacy = {
+                        value: Number(data[1]), level: Number(data[2]), type: data[3],
+                        powerfulVassalExpectation: data[4], vassalExpectation: data[5], liegeExpectation: data[6]
+                    };
+                    break;
+                }
+                case "income": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.incomeGold = Number(data[1]);
+                    c.incomeBalance = Number(data[2]);
+                    c.incomeBreakdown = extractMultilinePayload(data[3]);
+                    break;
+                }
+                case "treasury": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.treasuryAmount = Number(data[1]);
+                    c.treasuryTooltip = extractMultilinePayload(data[2]);
+                    break;
+                }
+                case "influence": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.influenceAmount = Number(data[1]);
+                    c.influenceTooltip = extractMultilinePayload(data[2]);
+                    break;
+                }
+                case "herd": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.herdAmount = Number(data[1]);
+                    c.herdBreakdown = extractMultilinePayload(data[2]);
+                    break;
+                }
+                case "levies_vassals": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.vassalLeviesTotal = Number(data[1]);
+                    break;
+                }
+                case "levies_dom": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.domainLevyHoldings.push(Number(data[1]));
+                    break;
+                }
+                case "levies_theo": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.theocraticLeaseLevies = Number(data[1]);
+                    break;
+                }
+                case "maa": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.maaRegiments.push({
+                        name: data[1],
+                        isPersonal: data[2] === '1' || data[2]?.toLowerCase() === 'yes',
+                        menAlive: Number(data[3])
+                    });
+                    break;
+                }
+                case "troops_eob":
+                    break;
+                case "laws": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    const name = (data[1] || '').trim();
+                    if (!name || name === '-' || name === '—' || name.toLowerCase() === 'no') break;
+                    if (c.laws.length < MAX_LAWS) c.laws.push(name);
+                    break;
+                }
+                case "persona_numbers": {
+                    if (data.length < 10) break;
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    c.personaNumbers = {
+                        boldness: Number(data[1]), compassion: Number(data[2]), energy: Number(data[3]),
+                        greed: Number(data[4]), honor: Number(data[5]), rationality: Number(data[6]),
+                        sociability: Number(data[7]), vengefulness: Number(data[8]), zeal: Number(data[9])
+                    };
+                    break;
+                }
+                case "modifier": {
+                    if (!gameData) continue;
+                    const c = gameData.characters.get(rootID);
+                    if (!c) break;
+                    if (c.modifiers.length >= MAX_MODIFIERS_PER_CHARACTER) {
+                        console.warn(`Character ${rootID} exceeded modifier cap (${MAX_MODIFIERS_PER_CHARACTER}); dropping "${data[1]}".`);
+                        break;
+                    }
+                    c.modifiers.push({ id: data[1], name: data[2], desc: data[3] });
+                    break;
+                }
+                case "k_secret": {
+                    if (!gameData) continue;
+                    if (!gameData.characters.has(rootID)) break;
+                    pendingKnownSecrets.set(rootID, {
+                        name: data[1], desc: data[2], category: data[3], type: data[4],
+                        otherKnowers: []
+                    });
+                    break;
+                }
+                case "k_secret_owner": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.ownerId = Number(data[1]); p.ownerName = data[2];
+                    break;
+                }
+                case "k_secret_is_criminal": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.isCriminal = true;
+                    break;
+                }
+                case "k_secret_is_shunned": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.isShunned = true;
+                    break;
+                }
+                case "k_secret_target": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.targetId = Number(data[1]); p.targetName = data[2];
+                    break;
+                }
+                case "k_secret_spent": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.spent = data[1] === 'yes';
+                    break;
+                }
+                case "k_secret_can_be_exposed": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (p) p.canBeExposed = data[1] === 'yes';
+                    break;
+                }
+                case "k_secret_knower": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    p.otherKnowers.push({ id: Number(data[2]), name: data[3] });
+                    break;
+                }
+                case "k_secret_eob": {
+                    const p = pendingKnownSecrets.get(rootID);
+                    if (!p) break;
+                    const c = gameData?.characters.get(rootID);
+                    if (c) {
+                        c.knownSecrets.push({
+                            name: p.name ?? "", desc: p.desc ?? "", category: p.category ?? "", type: p.type ?? "",
+                            ownerId: p.ownerId, ownerName: p.ownerName,
+                            targetId: p.targetId, targetName: p.targetName,
+                            isCriminal: p.isCriminal, isShunned: p.isShunned,
+                            spent: p.spent, canBeExposed: p.canBeExposed,
+                            otherKnowers: p.otherKnowers
+                        });
+                    }
+                    pendingKnownSecrets.delete(rootID);
+                    break;
+                }
                 case "init":
                     gameData = new GameData(data);
                     console.log(`Initialized GameData for conversation with AI: ${gameData.aiName} (ID: ${gameData.aiID})`); // Updated log
@@ -515,6 +700,20 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     }
 
     return gameData!;
+}
+
+const MAX_LAWS = 10;
+const MAX_MODIFIERS_PER_CHARACTER = 60;
+
+export function extractMultilinePayload(element: string | undefined): string {
+    if (!element) return "";
+    const startIdx = element.indexOf('STARTMULTILINE');
+    if (startIdx === -1) return element.trim();
+    let payloadStart = startIdx + 'STARTMULTILINE'.length;
+    if (element[payloadStart] === '#') payloadStart += 1;
+    const endIdx = element.lastIndexOf('#ENDMULTILINE');
+    const payloadEnd = endIdx === -1 ? element.length : endIdx;
+    return element.slice(payloadStart, payloadEnd).trim();
 }
 
 export function removeTooltip(str: string): string {

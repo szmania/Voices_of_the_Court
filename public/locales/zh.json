@@ -854,7 +854,16 @@
     "loading_content": "正在加载对话内容...",
     "content_success": "对话内容加载成功",
     "content_fail": "加载对话内容失败: ",
-    "no_player_id": "无法从游戏日志中解析玩家ID"
+    "no_player_id": "无法从游戏日志中解析玩家ID",
+    "tab_conversations": "对话",
+    "tab_letters": "信件往来",
+    "tab_battles": "战报",
+    "checkpoint_label": "检查点",
+    "section_kicker": "纪事",
+    "no_letters": "暂无信件往来",
+    "no_battle_reports": "暂无战报",
+    "letter_content_title": "信件往来",
+    "battle_content_title": "战报"
   },
   "prompt_builder": {
     "summary_header": "以下是之前对话的日期与摘要："
