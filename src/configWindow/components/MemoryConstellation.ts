@@ -88,6 +88,133 @@ function defineTemplate() {
             pointer-events: none;
             z-index: 20;
         }
+        /* Sticky editable memory editor popup */
+        #memory-editor {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 340px;
+            max-height: calc(100% - 20px);
+            display: none;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.92);
+            border: 1px solid #cca43b;
+            border-radius: 4px;
+            padding: 12px;
+            color: #e0e0e0;
+            font-size: 12px;
+            z-index: 30;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        #memory-editor.visible {
+            display: flex;
+        }
+        #memory-editor .editor-title {
+            font-weight: bold;
+            color: #cca43b;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #memory-editor .editor-close {
+            background: none;
+            border: none;
+            color: #8a8a8a;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        #memory-editor .editor-close:hover {
+            color: #ffd700;
+        }
+        #memory-editor .editor-field {
+            margin-bottom: 8px;
+        }
+        #memory-editor .editor-label {
+            color: #8a8a8a;
+            font-size: 11px;
+            margin-bottom: 3px;
+            display: block;
+        }
+        #memory-editor textarea {
+            width: 100%;
+            min-height: 120px;
+            max-height: 240px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #5a4a35;
+            border-radius: 3px;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-family: inherit;
+            line-height: 1.5;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        #memory-editor textarea:focus {
+            outline: none;
+            border-color: #cca43b;
+        }
+        #memory-editor input[type="text"] {
+            width: 100%;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #5a4a35;
+            border-radius: 3px;
+            padding: 5px 8px;
+            font-size: 12px;
+            box-sizing: border-box;
+        }
+        #memory-editor input[type="text"]:focus {
+            outline: none;
+            border-color: #cca43b;
+        }
+        #memory-editor .editor-meta {
+            color: #8a8a8a;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        #memory-editor .editor-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+        #memory-editor .editor-actions button {
+            background-color: #591919;
+            color: #e0e0e0;
+            border: 1px solid #8c2b2b;
+            border-radius: 2px;
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #memory-editor .editor-actions button:hover {
+            background-color: #7a2222;
+            border-color: #cca43b;
+            color: #fff;
+        }
+        #memory-editor .editor-actions button.save-btn {
+            background-color: #1a5c1a;
+            border-color: #2a8c2a;
+        }
+        #memory-editor .editor-actions button.save-btn:hover {
+            background-color: #2a7c2a;
+            border-color: #cca43b;
+        }
+        #memory-editor .editor-status {
+            font-size: 11px;
+            margin-top: 6px;
+            min-height: 14px;
+        }
+        #memory-editor .editor-status.success { color: #8af88a; }
+        #memory-editor .editor-status.error { color: #f88a8a; }
     </style>
     <div id="constellation-container">
         <div id="empty-state">
@@ -96,7 +223,26 @@ function defineTemplate() {
             <div class="empty-subtitle" data-i18n="memory_constellation.empty_subtitle">Memories will appear here as your character experiences events in the game.</div>
         </div>
         <div id="memory-tooltip" style="display: none;"></div>
-        <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate</div>
+        <div id="memory-editor">
+            <div class="editor-title">
+                <span data-i18n="memory_constellation.editor_title">Memory</span>
+                <button class="editor-close" id="editor-close-btn" title="Close">&times;</button>
+            </div>
+            <div class="editor-meta" id="editor-meta"></div>
+            <div class="editor-field">
+                <label class="editor-label" for="editor-text" data-i18n="memory_constellation.editor_text_label">Memory Text</label>
+                <textarea id="editor-text"></textarea>
+            </div>
+            <div class="editor-field">
+                <label class="editor-label" for="editor-emotion" data-i18n="memory_constellation.editor_emotion_label">Emotion</label>
+                <input type="text" id="editor-emotion" />
+            </div>
+            <div class="editor-actions">
+                <button id="editor-save-btn" class="save-btn" data-i18n="memory_constellation.editor_save">Save</button>
+            </div>
+            <div class="editor-status" id="editor-status"></div>
+        </div>
+        <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Click a node to edit</div>
     </div>
     `;
 }
@@ -117,6 +263,9 @@ class MemoryConstellation extends HTMLElement {
     private dragStart = { x: 0, y: 0 };
     private rotationStart = { x: 0, y: 0 };
     private autoRotate = true;
+    private editor!: HTMLDivElement;
+    private pinnedMemory: any = null;
+    private mouseDownPos = { x: 0, y: 0 };
 
     constructor() {
         super();
@@ -129,7 +278,9 @@ class MemoryConstellation extends HTMLElement {
         this.container = this.shadow.querySelector('#constellation-container');
         this.emptyState = this.shadow.querySelector('#empty-state') as HTMLDivElement;
         this.tooltip = this.shadow.querySelector('#memory-tooltip') as HTMLDivElement;
+        this.editor = this.shadow.querySelector('#memory-editor') as HTMLDivElement;
         this.initThree();
+        this.setupEditor();
         this.animateLoop();
         const characterId = this.getAttribute('character-id') || undefined;
         await this.loadMemories(undefined, characterId);
@@ -196,6 +347,7 @@ class MemoryConstellation extends HTMLElement {
             this.container.classList.add('dragging');
             this.dragStart = { x: e.clientX, y: e.clientY };
             this.rotationStart = { x: this.scene.rotation.y, y: this.scene.rotation.x };
+            this.mouseDownPos = { x: e.clientX, y: e.clientY };
         });
 
         window.addEventListener('mousemove', (e) => {
@@ -213,6 +365,26 @@ class MemoryConstellation extends HTMLElement {
             if (this.isDragging) {
                 this.isDragging = false;
                 this.container.classList.remove('dragging');
+            }
+        });
+
+        // Click a node to pin the editable popup (only if it wasn't a drag)
+        this.container.addEventListener('click', (e) => {
+            const dx = e.clientX - this.mouseDownPos.x;
+            const dy = e.clientY - this.mouseDownPos.y;
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
+            if (!this.points || this.memories.length === 0) return;
+            const rect = this.container.getBoundingClientRect();
+            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            this.raycaster.params.Points!.threshold = 0.3;
+            const intersects = this.raycaster.intersectObject(this.points);
+            if (intersects.length > 0) {
+                const index = intersects[0].index;
+                if (index !== undefined && this.memories[index]) {
+                    this.showEditor(this.memories[index]);
+                }
             }
         });
     }
@@ -255,6 +427,55 @@ class MemoryConstellation extends HTMLElement {
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    private setupEditor() {
+        const closeBtn = this.shadow.querySelector('#editor-close-btn');
+        closeBtn?.addEventListener('click', () => this.hideEditor());
+        const saveBtn = this.shadow.querySelector('#editor-save-btn');
+        saveBtn?.addEventListener('click', () => this.saveMemory());
+    }
+
+    private showEditor(memory: any) {
+        this.pinnedMemory = memory;
+        const date = memory.timestamp ? new Date(memory.timestamp).toLocaleString() : '';
+        const meta = this.shadow.querySelector('#editor-meta') as HTMLDivElement;
+        if (meta) meta.textContent = date ? 'Date: ' + date : '';
+        const text = this.shadow.querySelector('#editor-text') as HTMLTextAreaElement;
+        if (text) text.value = memory.text || '';
+        const emotion = this.shadow.querySelector('#editor-emotion') as HTMLInputElement;
+        if (emotion) emotion.value = memory.emotion || '';
+        const status = this.shadow.querySelector('#editor-status') as HTMLDivElement;
+        if (status) { status.textContent = ''; status.className = 'editor-status'; }
+        this.editor.classList.add('visible');
+    }
+
+    private hideEditor() {
+        this.editor.classList.remove('visible');
+        this.pinnedMemory = null;
+    }
+
+    private async saveMemory() {
+        if (!this.pinnedMemory) return;
+        const text = (this.shadow.querySelector('#editor-text') as HTMLTextAreaElement)?.value || '';
+        const emotion = (this.shadow.querySelector('#editor-emotion') as HTMLInputElement)?.value || '';
+        const status = this.shadow.querySelector('#editor-status') as HTMLDivElement;
+        try {
+            const result = await ipcRenderer.invoke('update-memory', {
+                id: this.pinnedMemory.id,
+                text,
+                emotion
+            });
+            if (result && result.success) {
+                this.pinnedMemory.text = text;
+                this.pinnedMemory.emotion = emotion;
+                if (status) { status.textContent = 'Saved'; status.className = 'editor-status success'; }
+            } else {
+                if (status) { status.textContent = 'Save failed'; status.className = 'editor-status error'; }
+            }
+        } catch (err) {
+            if (status) { status.textContent = 'Save error'; status.className = 'editor-status error'; }
+        }
+    }
+
     updatePoints(memories: any[]) {
         // Clear existing points
         while(this.scene.children.length > 0){ 
@@ -281,7 +502,28 @@ class MemoryConstellation extends HTMLElement {
         });
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15 });
+
+        // Use a circular sprite texture so points render as glowing dots, not squares.
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d')!;
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.4, 'rgba(204, 164, 59, 1)');
+        gradient.addColorStop(1, 'rgba(204, 164, 59, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+        const texture = new THREE.CanvasTexture(canvas);
+
+        const material = new THREE.PointsMaterial({
+            color: 0xcca43b,
+            size: 0.35,
+            map: texture,
+            transparent: true,
+            depthWrite: false,
+            sizeAttenuation: true
+        });
         this.points = new THREE.Points(geometry, material);
         this.scene.add(this.points);
     }

@@ -1013,6 +1013,26 @@ app.on('ready',  async () => {
         }
     });
 
+    ipcMain.handle('update-memory', async (event, memoryData: { id: string; text?: string; emotion?: string }) => {
+        console.log(`IPC: Received update-memory for id: ${memoryData.id}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            if (!memoryData.id) {
+                return { success: false, error: 'id is required.' };
+            }
+            const updates: any = {};
+            if (memoryData.text !== undefined) updates.text = memoryData.text;
+            if (memoryData.emotion !== undefined) updates.emotion = memoryData.emotion;
+            memoryManager.updateMemory(memoryData.id, updates);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error updating memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
     ipcMain.handle('delete-memories-by-character', async (event, characterId: string) => {
         console.log(`IPC: Received delete-memories-by-character for: ${characterId}`);
         try {
