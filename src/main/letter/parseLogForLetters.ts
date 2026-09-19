@@ -64,6 +64,9 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
 
             if (parts.length >= 3) {
                 const content = parts[0].trim();
+                // Control lines from pre-receipt delivery payloads (e.g.
+                // VOTC:LETTER/;/run_skipped) are not letters.
+                if (content === 'run_skipped') continue;
                 const letterId = parts[1].trim(); // This is letterId, using as subject
                 let writtenDateInDays = parseInt(parts[2].trim());
                 if (isNaN(writtenDateInDays) || writtenDateInDays <= 0) {

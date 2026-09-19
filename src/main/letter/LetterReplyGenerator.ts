@@ -73,14 +73,21 @@ ${timelineScript}\tsend_interface_message = {
 \t\tleft_icon = global_var:message_second_scope_letter_${letterNumber}
 \t}
 \tremove_global_variable ?= votc_letter_${letterNumber}
+\tdebug_log = "VOTC:FALLBACK/;/applied/;/letter_${letterNumber}/;/${deliveryId}"
 }
 else = {
-\tdebug_log = "VOTC:LETTER/;/run_skipped/;/letter_${letterNumber}/;/${deliveryId}"
+\tdebug_log = "VOTC:FALLBACK/;/skipped/;/letter_${letterNumber}/;/${deliveryId}"
 }
 `;
 }
 
 /**
+ * Receipt markers: the block logs VOTC:FALLBACK/;/applied or /skipped on
+ * execution; the desktop app tails both and clears run/letters.txt so the
+ * mod-side letters_runner stops re-executing it every poll. The prefix
+ * avoids the VOTC:LETTER substring on purpose - the import scanner in
+ * parseLogForLetters treats any VOTC:LETTER line as an incoming letter.
+ *
  * Drain one exact CK3 letter thread when the desktop app cannot produce a
  * reply (ported from 1.x). A timeline script is supplied only after the
  * transition journal has created/reused its node; writing this file before
@@ -414,6 +421,14 @@ export class LetterReplyGenerator {
             // Save letter history immediately
             console.log('[LetterReplyGenerator] Saving letter history...');
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId, timelineInfo);
+            if (!replyLetter) {
+                // Persisting failed: the LLM reply is lost and the letter
+                // thread would dangle in the save. Deliver the fallback so
+                // the game-side thread is cleaned up anyway.
+                console.warn('[LetterReplyGenerator] Letter history could not be saved; delivering the fallback thread cleanup.');
+                this.deliverFallbackRunBlockToGame(snapshot, timeline);
+                return null;
+            }
             console.log('[LetterReplyGenerator] Letter history saved.');
 
             // Re-assert the timeline payload on the returned object: it rides

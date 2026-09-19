@@ -344,6 +344,12 @@ export class LetterManager {
     
         const letterFilePath = path.join(runFolderPath, "letters.txt");
     
+        // Single-channel note: letters.txt is one shared, whole-file-overwrite
+        // channel polled by the mod-side letters_runner (~2s). A delivery and
+        // a generation-failure fallback written inside the same window clobber
+        // each other; per-slot runner files would need mod-side changes
+        // (letters_runner.gui) and are out of scope here.
+
         const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
         
         let gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
@@ -412,6 +418,8 @@ trigger_event = message_event.362`;
         }
 
         const letterFilePath = path.join(runFolderPath, "letters.txt");
+        // Shares the whole-file-overwrite channel with deliverLetter - see
+        // the single-channel note there.
         fs.writeFileSync(letterFilePath, '\uFEFF' + runBlock, 'utf8');
         console.log(`Delivered letter fallback (letter_${letterNumber}/${deliveryId}) by writing to: ${letterFilePath}`);
     }

@@ -543,6 +543,14 @@ function processLogLine(line: string) {
       const newTotalDays = Number(match[1]);
       updateCurrentDate(newTotalDays);
     }
+
+    // Letter fallback receipt: the fallback block cannot trigger
+    // message_event.362, so nothing else clears run/letters.txt after the
+    // mod-side letters_runner executes it - without this receipt the runner
+    // re-runs the file on every poll and spams the debug log.
+    if (line.includes('VOTC:FALLBACK/;/applied') || line.includes('VOTC:FALLBACK/;/skipped')) {
+        LetterManager.getInstance().clearLettersFile(config);
+    }
 }
 
 async function initCurrentDateFromLog(): Promise<void> {
