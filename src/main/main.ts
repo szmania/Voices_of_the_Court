@@ -19,6 +19,7 @@ import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
 import { processBookmarkToSummary } from "./bookmarktosummary";
 import { getPlayerId, getAllPlayerIds, readSummaryFile, saveSummaryFile, readCharacterMap, saveCharacterMap, exportPlayerData, importPlayerData } from "./summaryManager";
+import { getCharacterDescription, saveCharacterDescription, getCharacterDescriptionPlayers, getCharacterDescriptionCharacters } from "./characterDescription";
 import { parseDiaryIdsFromLog, getAllDiaryPlayerIds, getDiaryFiles, readDiaryFile, saveDiaryFile, getCharacterMap as getDiaryCharacterMap, readDiarySummaries, saveDiarySummaries, getAllDiarySummaries } from "./diaryManager";
 import { getConversationHistoryFiles, readConversationHistoryFile } from "./conversationHistory";
 import { readPromptHistory, savePromptHistory } from "./promptHistory";
@@ -2089,6 +2090,101 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         return { success: true, ids: mergedPlayerIds };
     } catch (error) {
         console.error('Error getting all player IDs:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+// Character Description IPC handlers
+ipcMain.handle('get-character-description-players', async () => {
+    console.log('IPC: Received get-character-description-players event.');
+    try {
+        const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+        const letterManager = LetterManager.getInstance();
+        const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
+        const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+
+        const allPlayerIds = new Map<string, { id: string, name: string }>();
+        conversationPlayerIds.forEach(player => { allPlayerIds.set(player.id, player); });
+        letterPlayerIds.forEach(player => { if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); } });
+        diaryPlayerIds.forEach(player => { if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); } });
+
+        // Include players that only have character descriptions
+        getCharacterDescriptionPlayers(userDataPath).forEach(player => {
+            if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); }
+        });
+
+        return { success: true, ids: Array.from(allPlayerIds.values()) };
+    } catch (error) {
+        console.error('Error getting character description players:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-description-characters', async (event, playerId: string) => {
+    console.log(`IPC: Received get-character-description-characters event for player: ${playerId}`);
+    try {
+        const characters = new Map<string, { id: string, name: string }>();
+
+        if (playerId === 'global') {
+            // Build the union of characters across all player careers.
+            const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+            const letterManager = LetterManager.getInstance();
+            const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
+            const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+
+            const allPlayerIds = new Map<string, { id: string, name: string }>();
+            conversationPlayerIds.forEach(player => { allPlayerIds.set(player.id, player); });
+            letterPlayerIds.forEach(player => { if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); } });
+            diaryPlayerIds.forEach(player => { if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); } });
+            getCharacterDescriptionPlayers(userDataPath).forEach(player => {
+                if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); }
+            });
+
+            for (const pid of allPlayerIds.keys()) {
+                const characterMap = await readCharacterMap(userDataPath, pid);
+                characterMap.forEach((name, id) => {
+                    if (!characters.has(id)) { characters.set(id, { id, name }); }
+                });
+            }
+        } else {
+            const characterMap = await readCharacterMap(userDataPath, playerId);
+            characterMap.forEach((name, id) => { characters.set(id, { id, name }); });
+
+            // Ensure the player's own character is always selectable so users can
+            // write a description for their own character.
+            if (!characters.has(playerId)) {
+                const playerName = characterMap.get(playerId) || `Player ${playerId}`;
+                characters.set(playerId, { id: playerId, name: playerName });
+            }
+        }
+
+        // Include characters that only have descriptions
+        getCharacterDescriptionCharacters(userDataPath, playerId).forEach(char => {
+            if (!characters.has(char.id)) { characters.set(char.id, char); }
+        });
+
+        return { success: true, ids: Array.from(characters.values()) };
+    } catch (error) {
+        console.error('Error getting character description characters:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, error: errorMessage };
+    }
+});
+
+ipcMain.handle('get-character-description', async (event, playerId: string, characterId: string) => {
+    console.log(`IPC: Received get-character-description event for player: ${playerId}, character: ${characterId}`);
+    return getCharacterDescription(userDataPath, playerId, characterId);
+});
+
+ipcMain.handle('save-character-description', async (event, playerId: string, characterId: string, description: string) => {
+    console.log(`IPC: Received save-character-description event for player: ${playerId}, character: ${characterId}`);
+    try {
+        saveCharacterDescription(userDataPath, playerId, characterId, description);
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving character description:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
         return { success: false, error: errorMessage };
     }

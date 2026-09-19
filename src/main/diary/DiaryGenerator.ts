@@ -12,6 +12,7 @@ import { Tiktoken } from "js-tiktoken";
 import * as path from "path";
 import * as fs from "fs";
 import { getEffectivePrompts } from "../conversation/promptBuilder.js";
+import { getEffectiveCharacterDescription } from "../characterDescription";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
@@ -75,9 +76,15 @@ export class DiaryGenerator {
 
         const replacedPrompt = diaryPrompt.replace(/{{charName}}/g, character.fullName);
 
+        // Inject the user-authored character description for the character writing the diary.
+        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), characterId);
+        const characterDescriptionContent = userCharacterDescription
+            ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
+            : '';
+
         const conversationHistory = conversation.getHistory().map(msg => `${msg.name}: ${msg.content}`).join('\n');
 
-        const fullPrompt = `${replacedPrompt}\n\n${conversationHistory}`;
+        const fullPrompt = `${replacedPrompt}\n\n${characterDescriptionContent}${conversationHistory}`;
 
         const promptForApi = [{ role: 'user', content: fullPrompt }];
 
@@ -112,12 +119,18 @@ export class DiaryGenerator {
         const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryForLetterPrompt;
         if (!diaryPrompt) return null;
 
+        // Inject the user-authored character description for the character writing the diary.
+        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), String(character.id));
+        const characterDescriptionContent = userCharacterDescription
+            ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
+            : '';
+
         const replacedPrompt = diaryPrompt
             .replace(/{{charName}}/g, character.fullName)
             .replace(/{{letterDirection}}/g, letterDirection)
             .replace(/{{letterContent}}/g, letterContent);
 
-        const promptForApi: Message[] = [{ role: 'user', content: replacedPrompt }];
+        const promptForApi: Message[] = [{ role: 'user', content: `${characterDescriptionContent}${replacedPrompt}` }];
  const result = await this.apiConnection.complete(promptForApi, false, {});
     const generatedContent = typeof result === 'string' ? result : (result?.content ?? '');
 
