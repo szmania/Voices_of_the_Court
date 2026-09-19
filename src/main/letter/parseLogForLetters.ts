@@ -112,7 +112,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
-                            if (letter.associatedAction?.triggerOn === 'receive') {
+                            // Guard: never auto-execute letter actions when manual approval is enabled.
+                            // This branch is currently dead (associatedAction is never assigned), but if it
+                            // is ever enabled, it must still respect manualLetterActionApproval.
+                            if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'receive') {
                                 LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                             }
                             letters.push(letter);

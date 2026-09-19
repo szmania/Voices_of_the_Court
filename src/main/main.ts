@@ -99,6 +99,7 @@ process.on('unhandledRejection', (error, p) => {
 
 //check config files
 let userDataPath: string;
+let votcDataPath: string;
 
 const compareVersions = (v1: string, v2: string): number => {
     const parse = (v: string) => {
@@ -433,8 +434,8 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
 
     // After a potential time travel or large jump, re-evaluate the player ID
-    if (fs.existsSync(userDataPath)) {
-        getPlayerId(userDataPath).then(result => {
+    if (fs.existsSync(votcDataPath)) {
+        getPlayerId(votcDataPath).then(result => {
             const newPlayerId = result.playerId;
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
@@ -621,20 +622,21 @@ app.on('ready',  async () => {
         console.error("Failed to initialize tiktoken encoder at startup:", e);
     }
     console.log('App is ready event triggered.');
-    userDataPath = path.join(app.getPath('userData'), 'votc_data');
+    userDataPath = app.getPath('userData');
+    votcDataPath = path.join(userDataPath, 'votc_data');
 
    await checkUserData();
    compactedMemoryStore.migrateDataDirectory();
    console.log('User data check completed.');
 
     // Relocated config loading to happen earlier
-    if (!fs.existsSync(path.join(userDataPath, 'configs', 'config.json'))){
-        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
-        await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
+    if (!fs.existsSync(path.join(votcDataPath, 'configs', 'config.json'))){
+        let conf = await JSON.parse(fs.readFileSync(path.join(votcDataPath, 'configs', 'default_config.json')).toString());
+        await fs.writeFileSync(path.join(votcDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
     }
 
-    config = new Config(path.join(userDataPath, 'configs', 'config.json'));
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
+    config = new Config(path.join(votcDataPath, 'configs', 'config.json'));
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -830,7 +832,7 @@ app.on('ready',  async () => {
     //logging
     var util = require('util');
 
-    var log_file = fs.createWriteStream(path.join(userDataPath, 'logs', 'debug.log'), {flags : 'w'});
+    var log_file = fs.createWriteStream(path.join(votcDataPath, 'logs', 'debug.log'), {flags : 'w'});
 
     const originalConsole = {
         log: console.log,
@@ -1059,7 +1061,7 @@ ipcMain.on('clear-summaries', ()=>{
       dialog.showMessageBox(dialogOpts).then((returnValue) => {
         console.log(`User chose to ${returnValue.response === 0 ? 'confirm' : 'cancel'} clearing summaries.`);
         if (returnValue.response === 0){
-            const remPath = path.join(userDataPath, 'conversation_summaries');
+            const remPath = path.join(votcDataPath, 'conversation_summaries');
 
             fs.readdir(remPath, (err, files) => {
                 if (err) throw err;
@@ -1140,7 +1142,7 @@ clipboardListener.on('VOTC:IN', async () =>{
             if (gameData.totalDays) {
                 updateCurrentDate(gameData.totalDays);
             }
-            conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            conversation = new Conversation(gameData, config, chatWindow, votcDataPath, tiktokenEncoder);
             await conversation.loadHistory();
             await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
@@ -1229,7 +1231,10 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
 
             lastLetterSentToGame = null; // Clear the tracked letter
 
-            if (replyLetter.associatedAction?.triggerOn === 'send') {
+            // Guard: never auto-execute letter actions when manual approval is enabled.
+            // This branch is currently dead (associatedAction is never assigned), but if it
+            // is ever enabled, it must still respect manualLetterActionApproval.
+            if (!config.manualLetterActionApproval && replyLetter.associatedAction?.triggerOn === 'send') {
               LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
             }
 
@@ -1331,7 +1336,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const letterManager = LetterManager.getInstance();
 
         // First, update the character map with the latest data from the log
-        let characterNameMap: Map<string, string> = await readCharacterMap(userDataPath, playerId);
+        let characterNameMap: Map<string, string> = await readCharacterMap(votcDataPath, playerId);
 
         // Add all characters from the current gameData to the map
         gameData.characters.forEach(char => {
@@ -1345,7 +1350,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         characterNameMap.forEach((name, id) => {
             mapToSave[id] = name;
         });
-        await saveCharacterMap(userDataPath, playerId, mapToSave);
+        await saveCharacterMap(votcDataPath, playerId, mapToSave);
         console.log(`Updated character map before letter import for player ${playerId}`);
 
 
@@ -1437,7 +1442,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             updateCurrentDate(gameData.totalDays);
         }
 
-        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath, tiktokenEncoder);
+        const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
         const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
         // Diary entry for player sending a letter
@@ -1472,7 +1477,10 @@ clipboardListener.on('VOTC:LETTER', async () => {
         storedLetters.set(latestLetter.id, storedLetter);
         console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}. Current day: ${currentTotalDays}`);
 
-        if (replyLetter.associatedAction?.triggerOn === 'send') {
+        // Guard: never auto-execute letter actions when manual approval is enabled.
+        // This branch is currently dead (associatedAction is never assigned), but if it
+        // is ever enabled, it must still respect manualLetterActionApproval.
+        if (!config.manualLetterActionApproval && replyLetter.associatedAction?.triggerOn === 'send') {
           LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
         }
         // Diary entry for AI receiving a letter and replying
@@ -1559,7 +1567,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(votcDataPath, 'configs', 'prompt_presets.json');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -1607,7 +1615,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(votcDataPath, 'configs', 'prompt_presets.json');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -1658,7 +1666,7 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1733,7 +1741,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1750,7 +1758,7 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -1828,7 +1836,7 @@ ipcMain.handle('export-player-data', async () => {
             return { success: false, error: 'Export cancelled by user.' };
         }
 
-        await exportPlayerData(userDataPath, result.filePath);
+        await exportPlayerData(votcDataPath, result.filePath);
         return { success: true, filePath: result.filePath };
     } catch (error) {
         console.error('Error exporting player data:', error);
@@ -1852,7 +1860,7 @@ ipcMain.handle('import-player-data', async () => {
         }
 
         const importPath = result.filePaths[0];
-        await importPlayerData(userDataPath, importPath);
+        await importPlayerData(votcDataPath, importPath);
         return { success: true, filePath: importPath };
     } catch (error) {
         console.error('Error importing player data:', error);
@@ -2044,7 +2052,7 @@ ipcMain.on('approve-letter-action', async (event, { playerId, characterId, lette
     console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
     try {
         const allActions: any[] = [];
-        const actionsPath = path.join(userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
         const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
         const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 
@@ -2132,7 +2140,7 @@ ipcMain.on('open-roaming-data-folder', () => {
 ipcMain.handle('get-summary-ids', async () => {
     console.log('IPC: Received get-summary-ids event.');
     try {
-        const ids = await getPlayerId(userDataPath);
+        const ids = await getPlayerId(votcDataPath);
         return ids;
     } catch (error) {
         console.error('Error getting summary IDs:', error);
@@ -2145,12 +2153,12 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
     console.log('IPC: Received get-all-summary-player-ids event.');
     try {
         // Get player IDs from all three sources and merge them
-        const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+        const conversationPlayerIds = await getAllPlayerIds(votcDataPath);
         const letterManager = LetterManager.getInstance();
         const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
 
         // Get diary player IDs
-        const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+        const diaryPlayerIds = await getAllDiaryPlayerIds(votcDataPath);
 
         // Merge all player IDs, ensuring uniqueness
         const allPlayerIds = new Map<string, { id: string, name: string }>();
@@ -2186,9 +2194,9 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaries = await readSummaryFile(userDataPath, playerId);
+        const summaries = await readSummaryFile(votcDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMapPath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -2216,7 +2224,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
 ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
     console.log(`IPC: Received save-summary-file event for player: ${playerId}`);
     try {
-        await saveSummaryFile(userDataPath, playerId, summaryData);
+        await saveSummaryFile(votcDataPath, playerId, summaryData);
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
@@ -2344,7 +2352,7 @@ ipcMain.handle('get-current-game-day', () => {
 ipcMain.handle('get-character-map', async (event, playerId) => {
     console.log(`IPC: Received get-character-map event for player: ${playerId}`);
     try {
-        const map = await readCharacterMap(userDataPath, playerId);
+        const map = await readCharacterMap(votcDataPath, playerId);
         return { success: true, map: Object.fromEntries(map) };
     } catch (error) {
         console.error('Error getting character map:', error);
@@ -2369,7 +2377,7 @@ ipcMain.handle('get-diary-character-map', async (event, playerId) => {
 ipcMain.handle('get-diary-ids', async () => {
     console.log('IPC: Received get-diary-ids event.');
     try {
-        const ids = await getAllDiaryPlayerIds(userDataPath);
+        const ids = await getAllDiaryPlayerIds(votcDataPath);
         return { success: true, ids: ids };
     } catch (error) {
         console.error('Error getting diary IDs:', error);
@@ -2381,7 +2389,7 @@ ipcMain.handle('get-diary-ids', async () => {
 ipcMain.handle('get-all-diary-player-ids', async () => {
     console.log('IPC: Received get-all-diary-player-ids event.');
     try {
-        const players = await getAllDiaryPlayerIds(userDataPath);
+        const players = await getAllDiaryPlayerIds(votcDataPath);
 
         const playerTimestamps = await Promise.all(players.map(async (player) => {
             let latestTimestamp = 0;
@@ -2455,7 +2463,7 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
     console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
     if (!diaryGenerator) {
-        diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
+        diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder);
     }
 
     try {
@@ -2528,7 +2536,7 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 ipcMain.handle('import-letters-from-log', async (event, args) => {
     console.log('IPC: Received import-letters-from-log event with args:', args);
     try {
-        const playerId = args ? args.playerId : (await getPlayerId(userDataPath)).playerId;
+        const playerId = args ? args.playerId : (await getPlayerId(votcDataPath)).playerId;
 
         if (playerId) {
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));

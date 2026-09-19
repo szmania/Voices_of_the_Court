@@ -197,7 +197,10 @@ export class LetterManager {
             try {
                 fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
                 const letter = letters[letterIndex];
-                if (letter.associatedAction?.triggerOn === 'read') {
+                // Guard: never auto-execute letter actions when manual approval is enabled.
+                // This branch is currently dead (associatedAction is never assigned), but if it
+                // is ever enabled, it must still respect manualLetterActionApproval.
+                if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'read') {
                     LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                 }
             } catch (error) {
