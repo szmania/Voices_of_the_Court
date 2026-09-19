@@ -415,7 +415,10 @@ export class Conversation{
         }
 
         const allCharacterIds = Array.from(this.gameData.characters.keys());
-        const historyFiles = await listPromptTranscriptFiles(this.gameData.playerID.toString(), allCharacterIds, this.config.maxHistoricalConversations, this.gameData.votcCheckpointEpoch);
+        // Load up to the history-window limit: the window renders all of
+        // these, while the prompt path re-slices to maxHistoricalConversations
+        // in withLimitedHistory().
+        const historyFiles = await listPromptTranscriptFiles(this.gameData.playerID.toString(), allCharacterIds, this.config.maxConversationsInHistoryWindow, this.gameData.votcCheckpointEpoch);
 
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 

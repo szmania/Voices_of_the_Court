@@ -11,24 +11,29 @@ import { timelineRegistryPath } from '../campaignDataPaths.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 
 /**
- * Highest epoch committed to the reply's campaign registry, used to reject
- * delivery-time timeline writes that would roll the save backwards. Any read
- * failure is non-fatal: the timeline block is then applied as-is (the
+ * The registry node committed last, i.e. the node the save's timeline state
+ * currently points at: every checkpoint bump goes through a transition that
+ * commits a node, so the newest commit is the current branch head. Used to
+ * reject delivery-time timeline writes from stale/abandoned branches. Any
+ * read failure is non-fatal: the timeline block is then applied as-is (the
  * generation-time behaviour).
  */
-function readCampaignRegistryHeadEpoch(campaignId: string | undefined, playerId: string | undefined): number | undefined {
+function readCampaignRegistryHeadNodeId(campaignId: string | undefined, playerId: string | undefined): string | undefined {
     if (!campaignId || !playerId) return undefined;
     try {
         const registryPath = timelineRegistryPath(app.getPath('userData'), { campaignId, playerId } as CampaignPlayerIdentity);
         if (!fs.existsSync(registryPath)) return undefined;
-        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { epoch?: number }> };
-        let headEpoch: number | undefined;
-        for (const node of Object.values(data.nodes ?? {})) {
-            if (typeof node?.epoch === 'number' && Number.isFinite(node.epoch)) {
-                headEpoch = headEpoch === undefined ? node.epoch : Math.max(headEpoch, node.epoch);
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { createdAt?: string }> };
+        let headNodeId: string | undefined;
+        let headCreatedAt = '';
+        for (const [nodeId, node] of Object.entries(data.nodes ?? {})) {
+            const createdAt = typeof node?.createdAt === 'string' ? node.createdAt : '';
+            if (createdAt > headCreatedAt || (createdAt === headCreatedAt && headNodeId !== undefined && nodeId > headNodeId)) {
+                headCreatedAt = createdAt;
+                headNodeId = nodeId;
             }
         }
-        return headEpoch;
+        return headNodeId;
     } catch (error) {
         console.warn('[LetterManager] Could not read the campaign timeline registry for delivery validation:', error);
         return undefined;
@@ -371,13 +376,13 @@ trigger_event = message_event.362`;
         // its target epoch, so delivery never rolls the timeline state back.
         const timelineScript = storedLetter.letter.timelineScript;
         let appliedTimelineScript = timelineScript;
-        if (timelineScript && storedLetter.letter.timelineEpoch !== undefined) {
-            const registryHeadEpoch = readCampaignRegistryHeadEpoch(
+        if (timelineScript && storedLetter.letter.timelineNodeId) {
+            const headNodeId = readCampaignRegistryHeadNodeId(
                 storedLetter.letter.timelineCampaignId,
                 storedLetter.letter.timelinePlayerId
             );
-            if (registryHeadEpoch !== undefined && registryHeadEpoch > storedLetter.letter.timelineEpoch) {
-                console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save advanced from the allocated epoch ${storedLetter.letter.timelineEpoch} to ${registryHeadEpoch} while the reply was in transit.`);
+            if (headNodeId !== undefined && headNodeId !== storedLetter.letter.timelineNodeId) {
+                console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save's current timeline node is ${headNodeId}, not the ${storedLetter.letter.timelineNodeId} allocated for this reply.`);
                 appliedTimelineScript = undefined;
             }
         }
@@ -387,6 +392,28 @@ trigger_event = message_event.362`;
 
         fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
+    }
+
+    /**
+     * Generation-failure handoff: the fallback block clears the letter thread
+     * and applies the journal-created node through the same letters.txt
+     * channel the mod-side letters_runner polls.
+     */
+    public deliverLetterFallback(letterNumber: string, deliveryId: number, runBlock: string, config: Config): void {
+        const userFolderPath = config.userFolderPath;
+        if (!userFolderPath) {
+            console.error("Cannot deliver letter fallback, user folder path is not set.");
+            return;
+        }
+
+        const runFolderPath = path.join(userFolderPath, "run");
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+        }
+
+        const letterFilePath = path.join(runFolderPath, "letters.txt");
+        fs.writeFileSync(letterFilePath, '\uFEFF' + runBlock, 'utf8');
+        console.log(`Delivered letter fallback (letter_${letterNumber}/${deliveryId}) by writing to: ${letterFilePath}`);
     }
 
     public clearLettersFile(config: Config): void {

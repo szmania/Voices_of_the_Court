@@ -253,6 +253,11 @@ export class LetterReplyGenerator {
      * @returns The generated reply content, or null on failure
      */
     public async generateLetterReply(gameData: GameData, letter: ILetter): Promise<ILetter | null> {
+        // Function scope: the failure paths below the try still need them to
+        // hand the fallback run block to the CK3 letters channel.
+        let timeline: CreateChildNodeResult | undefined;
+        let snapshot: { slotId: string; deliveryId: number } | undefined;
+        let timelineInfo: { script: string; epoch: number; nodeId: string; campaignId: string; playerId: string } | undefined;
         try {
             console.log('[LetterReplyGenerator] Starting letter reply generation.');
 
@@ -261,9 +266,7 @@ export class LetterReplyGenerator {
             // ('letter_1'..'letter_9'); letters outside that scheme follow the
             // legacy path without a timeline branch.
             const slotId = /^letter_[1-9]$/.test(letter.subject) ? letter.subject : null;
-            let timeline: CreateChildNodeResult | undefined;
-            let snapshot: { slotId: string; deliveryId: number } | undefined;
-            let timelineInfo: { script: string; epoch: number; campaignId: string; playerId: string } | undefined;
+
 
             if (slotId) {
                 // mod2 ce emits no per-delivery id; the sending game day is the
@@ -337,6 +340,7 @@ export class LetterReplyGenerator {
                     timelineInfo = {
                         script: transition.script,
                         epoch: nextCheckpointEpoch,
+                        nodeId: transition.targetNodeId,
                         campaignId: identity.campaignId,
                         playerId: identity.playerId
                     };
@@ -390,6 +394,7 @@ export class LetterReplyGenerator {
  const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
     if (!response || response.trim() === '') {
                 console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
+                this.deliverFallbackRunBlockToGame(snapshot, timeline);
                 return null;
             }
 
@@ -417,6 +422,7 @@ export class LetterReplyGenerator {
             if (replyLetter && timelineInfo) {
                 replyLetter.timelineScript = timelineInfo.script;
                 replyLetter.timelineEpoch = timelineInfo.epoch;
+                replyLetter.timelineNodeId = timelineInfo.nodeId;
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
@@ -439,8 +445,27 @@ export class LetterReplyGenerator {
             } else {
                 console.error('[LetterReplyGenerator] An unknown error occurred during letter reply generation:', error);
             }
+            this.deliverFallbackRunBlockToGame(snapshot, timeline);
             return null;
         }
+    }
+
+    /**
+     * On generation failure the letter thread would dangle in the save: the
+     * mod-side letters_runner only executes `run/letters.txt` in the CK3 user
+     * folder, so the fallback block (thread cleanup + journal-created node)
+     * must be delivered through that channel as well. The app-data
+     * `votc_data/run/letterN.txt` copy stays as a diagnostic handoff.
+     */
+    private deliverFallbackRunBlockToGame(
+        snapshot: { slotId: string; deliveryId: number } | undefined,
+        timeline: CreateChildNodeResult | undefined
+    ): void {
+        if (!snapshot) return;
+        const letterNumber = snapshot.slotId.match(/^letter_([1-9])$/)?.[1];
+        if (!letterNumber) return;
+        const fallbackRunBlock = buildLetterReplyRunFile(letterNumber, snapshot.deliveryId, 'votc_letter_reply_fallback_desc', timeline);
+        LetterManager.getInstance().deliverLetterFallback(letterNumber, snapshot.deliveryId, fallbackRunBlock, this.config);
     }
 
     /**
@@ -452,7 +477,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, timelineInfo?: { script: string; epoch: number; campaignId: string; playerId: string }): Promise<ILetter | null> {
+    private async saveLetterHistory(playerId: string, aiId: string, originalLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, timelineInfo?: { script: string; epoch: number; nodeId: string; campaignId: string; playerId: string }): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
     
@@ -500,6 +525,7 @@ export class LetterReplyGenerator {
             if (timelineInfo) {
                 replyLetter.timelineScript = timelineInfo.script;
                 replyLetter.timelineEpoch = timelineInfo.epoch;
+                replyLetter.timelineNodeId = timelineInfo.nodeId;
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }

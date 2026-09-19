@@ -25,6 +25,7 @@ export class Letter implements ILetter {
     timelineEpoch?: number;
     timelineCampaignId?: string;
     timelinePlayerId?: string;
+    timelineNodeId?: string;
 
     constructor(
         id: string,

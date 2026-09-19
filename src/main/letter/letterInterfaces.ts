@@ -32,6 +32,8 @@ export interface Letter {
   /** Campaign/player identity the timeline allocation belongs to (registry lookup at delivery). */
   timelineCampaignId?: string;
   timelinePlayerId?: string;
+  /** The registry node allocated for this reply; delivery re-validates it against the registry head. */
+  timelineNodeId?: string;
   characterContext?: {
     playerId: string;
     playerName: string;
