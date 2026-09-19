@@ -25,6 +25,8 @@ export interface Letter {
   deliveryTimestamp?: Date;
   expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
+  /** Timeline v2 script (node/parent variables) allocated for this reply's thread; applied on delivery. */
+  timelineScript?: string;
   characterContext?: {
     playerId: string;
     playerName: string;

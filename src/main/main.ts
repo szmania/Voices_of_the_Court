@@ -1147,6 +1147,14 @@ clipboardListener.on('VOTC:IN', async () =>{
                 throw new Error(`Failed to parse game data from log file. Could not find "VOTC:IN" data in ${logFilePath}.`);
             }
 
+            if (currentSessionPlayerId && currentSessionPlayerId !== String(gameData.playerID)) {
+                console.log(`Player switch detected. Old: ${currentSessionPlayerId}, New: ${gameData.playerID}. Clearing pending letters.`);
+                storedLetters.clear();
+                lastLetterSentToGame = null;
+            }
+            setCachedGameData(gameData);
+            currentSessionPlayerId = String(gameData.playerID);
+
             if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
                 updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
             }

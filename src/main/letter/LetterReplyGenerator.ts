@@ -1,4 +1,4 @@
-import { BrowserWindow } from "electron";
+import { app, BrowserWindow } from "electron";
 import { ApiConnection } from "../../shared/apiConnection";
 import { Tiktoken } from "js-tiktoken";
 import { Character } from "../../shared/gameData/Character.js";
@@ -311,7 +311,10 @@ export class LetterReplyGenerator {
 
                 try {
                     const transition = await runLetterReplyTimelineTransition({
-                        userDataDir: userFolderPath,
+                        // campaignDataPaths appends votc_data itself; pass the
+                        // electron userData root so letters share the campaign
+                        // registry with conversations.
+                        userDataDir: app.getPath('userData'),
                         gameData: gameData as any as GameDataLike,
                         identity,
                         slotId: snapshot.slotId,
@@ -400,6 +403,13 @@ export class LetterReplyGenerator {
             console.log('[LetterReplyGenerator] Saving letter history...');
             const replyLetter = await this.saveLetterHistory(String(letter.sender.id), String(letter.recipient.id), letter, escapedResponse, gameData, replyLetterId);
             console.log('[LetterReplyGenerator] Letter history saved.');
+
+            // Ride the allocated timeline script on the reply so the actual
+            // delivery (letters.txt in the CK3 run dir) applies the node; the
+            // app-data fallback file alone never reaches the game.
+            if (replyLetter && timeline?.script) {
+                replyLetter.timelineScript = timeline.script;
+            }
             
             // Update original letter status back to 'sent' since reply is now pending
             const letterManager = LetterManager.getInstance();

@@ -61,11 +61,25 @@ function getArchiveRecordKey(record: any, sourceFileName: string): string {
     ].join('\u001f');
 }
 
+function legacyConversationHistoryDir(playerId: string): string {
+    return path.join(app.getPath('userData'), 'votc_data', 'conversation_history', playerId);
+}
+
 function conversationHistoryDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
-    const userDataPath = app.getPath('userData');
     return identity
-        ? campaignConversationHistoryDir(userDataPath, identity)
-        : path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
+        ? campaignConversationHistoryDir(app.getPath('userData'), identity)
+        : legacyConversationHistoryDir(playerId);
+}
+
+// Legacy transcripts must stay visible under a v2 identity: the conversation
+// writer still mirrors transcripts to the legacy player directory and older
+// saves never migrate their files. Legacy is listed first so name collisions
+// resolve to the legacy copy (same content the user has always seen).
+function conversationHistoryCandidateDirs(playerId: string, identity?: CampaignPlayerIdentity): string[] {
+    const legacyDir = legacyConversationHistoryDir(playerId);
+    return identity
+        ? [legacyDir, campaignConversationHistoryDir(app.getPath('userData'), identity)]
+        : [legacyDir];
 }
 
 function letterHistoryDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
@@ -260,40 +274,41 @@ export async function listPromptTranscriptFiles(playerId: string, currentCharact
 // files, epoch filter otherwise.
 export async function getConversationHistoryFiles(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<Array<{fileName: string, modifiedTime: number}>> {
     try {
-        const conversationHistoryDir = conversationHistoryDirFor(playerId, identity);
-
-        // Ensure directory exists
-        if (!fs.existsSync(conversationHistoryDir)) {
-            console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
-            return [];
+        // Union over the legacy player dir and (when identifiable) the campaign
+        // dir; first directory containing a name wins (legacy first).
+        const fileSourceDirs = new Map<string, string>();
+        for (const conversationHistoryDir of conversationHistoryCandidateDirs(playerId, identity)) {
+            if (!fs.existsSync(conversationHistoryDir)) {
+                console.log(`Conversation history directory does not exist: ${conversationHistoryDir}`);
+                continue;
+            }
+            for (const file of fs.readdirSync(conversationHistoryDir)) {
+                if (file.endsWith('.txt') && !fileSourceDirs.has(file)) {
+                    fileSourceDirs.set(file, conversationHistoryDir);
+                }
+            }
         }
 
-        // Read all txt files in the directory
-        const files = fs.readdirSync(conversationHistoryDir).filter(file => {
-            if (!file.endsWith('.txt')) {
-                return false;
-            }
+        const filesWithStats = Array.from(fileSourceDirs.entries())
+            .map(([fileName, sourceDir]) => ({fileName, sourceDir}))
+            .filter(({fileName}) => {
+                const timelineNodeId = getHistoryFileTimelineNodeId(fileName);
+                if (timelineNodeId) {
+                    // Node-tagged histories must always pass graph visibility. Checkpoint
+                    // values are not enough to distinguish siblings created after a load.
+                    return Boolean(registry && currentNodeId && registry.isRecordVisible(timelineNodeId, currentNodeId));
+                }
 
-            const timelineNodeId = getHistoryFileTimelineNodeId(file);
-            if (timelineNodeId) {
-                // Node-tagged histories must always pass graph visibility. Checkpoint
-                // values are not enough to distinguish siblings created after a load.
-                return Boolean(registry && currentNodeId && registry.isRecordVisible(timelineNodeId, currentNodeId));
-            }
-
-            const fileCheckpointEpoch = getHistoryFileCheckpointEpoch(file);
-            return checkpointEpoch === undefined || fileCheckpointEpoch === undefined || fileCheckpointEpoch <= checkpointEpoch;
-        });
-
-        // Get modification time for each file
-        const filesWithStats = files.map(fileName => {
-            const filePath = path.join(conversationHistoryDir, fileName);
-            const stats = fs.statSync(filePath);
-            return {
-                fileName,
-                modifiedTime: stats.mtime.getTime()
-            };
-        });
+                const fileCheckpointEpoch = getHistoryFileCheckpointEpoch(fileName);
+                return checkpointEpoch === undefined || fileCheckpointEpoch === undefined || fileCheckpointEpoch <= checkpointEpoch;
+            })
+            .map(({fileName, sourceDir}) => {
+                const stats = fs.statSync(path.join(sourceDir, fileName));
+                return {
+                    fileName,
+                    modifiedTime: stats.mtime.getTime()
+                };
+            });
 
         // Sort by modification time, descending (newest first)
         filesWithStats.sort((a, b) => b.modifiedTime - a.modifiedTime);
@@ -326,11 +341,16 @@ export async function readConversationHistoryFile(playerId: string, fileName: st
             }
         }
 
-        const filePath = path.join(conversationHistoryDirFor(playerId, identity), fileName);
-
-        // Ensure file exists
-        if (!fs.existsSync(filePath)) {
-            throw new Error(`Conversation history file does not exist: ${filePath}`);
+        let filePath: string | undefined;
+        for (const dir of conversationHistoryCandidateDirs(playerId, identity)) {
+            const candidate = path.join(dir, fileName);
+            if (fs.existsSync(candidate)) {
+                filePath = candidate;
+                break;
+            }
+        }
+        if (!filePath) {
+            throw new Error(`Conversation history file does not exist: ${path.join(conversationHistoryDirFor(playerId, identity), fileName)}`);
         }
 
         // Read file content

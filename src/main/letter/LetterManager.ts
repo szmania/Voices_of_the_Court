@@ -314,7 +314,7 @@ export class LetterManager {
     
         const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
         
-        const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
+        let gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
 remove_global_variable ?= votc_${letterId}
 create_artifact = {
 \tname = votc_huixin_title${letterId.replace(/letter_/, "")}
@@ -338,6 +338,11 @@ if = {
 }
 trigger_event = message_event.362`;
     
+        const timelineScript = storedLetter.letter.timelineScript;
+        if (timelineScript) {
+            gameCommand += '\n' + timelineScript;
+        }
+
         fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
     }

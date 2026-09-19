@@ -31,6 +31,7 @@ import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
+import { conversationHistoryDir as campaignConversationHistoryDir } from '../campaignDataPaths.js';
 import {
     TimelineParentNotFoundError,
     TimelineRegistryCorruptError,
@@ -1995,6 +1996,20 @@ ${timelineLines}
             );
             fs.writeFileSync(historyFile, textContent);
             console.log(`Conversation history saved to: ${historyFile}`);
+
+            // Mirror the transcript into the campaign store so identity-aware
+            // history reads see new saves without a migration pass.
+            if (this.campaignIdentity) {
+                try {
+                    const campaignHistoryDir = campaignConversationHistoryDir(app.getPath('userData'), this.campaignIdentity);
+                    fs.mkdirSync(campaignHistoryDir, { recursive: true });
+                    const campaignHistoryFile = path.join(campaignHistoryDir, path.basename(historyFile));
+                    fs.writeFileSync(campaignHistoryFile, textContent);
+                    console.log(`Conversation history mirrored to campaign store: ${campaignHistoryFile}`);
+                } catch (mirrorError) {
+                    console.error('Failed to mirror conversation history to the campaign store:', mirrorError);
+                }
+            }
         } catch (error) {
             console.error("Failed to save conversation history synchronously:", error);
         }
