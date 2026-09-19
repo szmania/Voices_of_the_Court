@@ -133,7 +133,20 @@
     "mod_princes_of_darkness": "Prinzen der Dunkelheit",
     "total_tokens_header": "Gesamte Token",
     "total_conversation_tokens": "Gesamte Konversationstoken:",
-    "total_letter_tokens": "Gesamte Brief-Token:"
+    "total_letter_tokens": "Gesamte Brief-Token:",
+    "character_description": "Charakterbeschreibung",
+    "char_desc_tooltip": "Schreiben Sie eine dauerhafte Beschreibung für einen Charakter (Aussehen, Vorgeschichte, Eigenschaften). Die KI erinnert sich daran, wenn der Charakter spricht oder angesprochen wird. Leer lassen zum Löschen.",
+    "char_desc_player": "Spieler:",
+    "char_desc_player_tooltip": "Wählen Sie den Spielerkontext für die Beschreibung.",
+    "char_desc_character": "Charakter:",
+    "char_desc_character_tooltip": "Wählen Sie den zu beschreibenden Charakter.",
+    "char_desc_character_note": "Das Feld 'Nach Spieler filtern' oben bestimmt, welche Charaktere hier erscheinen.",
+    "char_desc_save": "Beschreibung speichern",
+    "char_desc_saved": "Charakterbeschreibung erfolgreich gespeichert.",
+    "char_desc_placeholder": "Beschreiben Sie Aussehen, Vorgeschichte, Persönlichkeitsmerkmale und wichtige Ereignisse des Charakters...",
+    "char_desc_none": "Keine Beschreibung festgelegt.",
+    "char_desc_select_alert": "Bitte wählen Sie zuerst Spieler und Charakter.",
+    "char_desc_save_error": "Charakterbeschreibung konnte nicht gespeichert werden."
   },
   "settings": {
     "header": "Einstellungen",
@@ -766,7 +779,6 @@
     "tooltip_reply_overdue": "Anzahl der gesendeten Briefe, deren Antworten überfällig sind.",
     "tooltip_failed": "Anzahl der Briefe, deren Generierung oder Versand fehlgeschlagen ist.",
     "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe.",
-    "load_success": "Briefdaten erfolgreich geladen",
     "search": "Suchen:",
     "search_placeholder": "Briefe durchsuchen...",
     "days": "Tagen",
@@ -830,10 +842,10 @@
     "yes": "Ja",
     "no": "Nein",
     "age_suffix": {
-        "infant": "(Säugling)",
-        "toddler": "(Kleinkind)",
-        "child": "(Kind)",
-        "teenager": "(Teenager)"
+      "infant": "(Säugling)",
+      "toddler": "(Kleinkind)",
+      "child": "(Kind)",
+      "teenager": "(Teenager)"
     },
     "valid": "Gültig",
     "invalid": "Ungültig"

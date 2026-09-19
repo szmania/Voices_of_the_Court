@@ -42,7 +42,7 @@
                 <div class="border" style="margin-bottom: 20px; padding-top: 15px;">
                     <h2 data-i18n="prompts.presets_header" style="margin-top: 0;"></h2>
                     <div class="input-group">
-                        <label for="character-filter-select" data-i18n="prompts.filter_by_character"></label>
+                        <label for="character-filter-select" data-i18n="prompts.filter_by_player"></label>
                         <select id="character-filter-select" style="max-width: 150px;"></select>
                         <label for="prompt-preset-select" data-i18n="prompts.select_preset"></label>
                         <select id="prompt-preset-select" style="max-width: 150px;"></select>
@@ -219,6 +219,7 @@
                 </div>
                 
                 <div class="input-group" style="margin-top: 20px;">
+
                     <button type="button" id="restore-default-prompts" class="btn-warning" data-i18n="prompts.restore_defaults">🔄</button>
                     <tooltip-text side="top" data-i18n="prompts.restore_tooltip"></tooltip-text>
                 </div>
@@ -226,6 +227,26 @@
             <div class="column">
 
               <br></br>
+                <div class="border" id="character-description-section">
+                    <div class="prompt-header">
+                        <div>
+                            <h2 style="display: inline; margin: 0;" data-i18n="prompts.character_description">Character Description</h2> <tooltip-text side="bottom" data-i18n="prompts.char_desc_tooltip"></tooltip-text>
+                        </div>
+                        <span class="token-count char-desc-token-count" id="char-desc-token-count"></span>
+                    </div>
+                    <div class="input-group">
+                        <label for="char-desc-character-select" data-i18n="prompts.char_desc_character">Character:</label> <tooltip-text side="top" data-i18n="prompts.char_desc_character_tooltip"></tooltip-text>
+                        <select id="char-desc-character-select" style="max-width: 200px;"></select>
+                        <span class="char-desc-note" data-i18n="prompts.char_desc_character_note"></span>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="char-desc-textarea" rows="6" data-i18n-placeholder="prompts.char_desc_placeholder" placeholder="Describe the character's appearance, backstory, traits..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <button type="button" id="save-char-desc-btn" data-i18n="prompts.char_desc_save">Save Description</button>
+                    </div>
+                </div>
+                <br></br>
                 <h2 style="display: inline;" data-i18n="prompts.scripts_header"></h2> <tooltip-text side="bottom" data-i18n="prompts.scripts_tooltip"></tooltip-text>
                 <br></br>
                 <div id="script-selectors" class="border">
@@ -263,6 +284,11 @@
                   
                   
                 </div>
+                    <div class="input-group">
+                        <button type="button" id="save-char-desc-btn" data-i18n="prompts.char_desc_save">Save Description</button>
+                    </div>
+                </div>
+            </div>
       
             </div>
         </div>

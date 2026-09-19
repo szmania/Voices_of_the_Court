@@ -140,7 +140,20 @@
     "mod_princes_of_darkness": "Karanlığın Prensleri",
     "total_tokens_header": "Toplam Token Sayısı",
     "total_conversation_tokens": "Toplam Konuşma Tokenları:",
-    "total_letter_tokens": "Toplam Mektup Tokenları:"
+    "total_letter_tokens": "Toplam Mektup Tokenları:",
+    "character_description": "Karakter Açıklaması",
+    "char_desc_tooltip": "Bir karakter için kalıcı bir açıklama yazın (görünüm, geçmiş, özellikler). Yapay zeka, karakter konuştuğunda veya hitap edildiğinde bunu hatırlar. Temizlemek için boş bırakın.",
+    "char_desc_player": "Oyuncu:",
+    "char_desc_player_tooltip": "Açıklama için oyuncu bağlamını seçin.",
+    "char_desc_character": "Karakter:",
+    "char_desc_character_tooltip": "Açıklanacak karakteri seçin.",
+    "char_desc_character_note": "Yukarıdaki 'Oyuncuya Göre Filtrele' kutusu, burada hangi karakterlerin görüneceğini belirler.",
+    "char_desc_save": "Açıklamayı kaydet",
+    "char_desc_saved": "Karakter açıklaması başarıyla kaydedildi.",
+    "char_desc_placeholder": "Karakterin görünümünü, geçmişini, kişilik özelliklerini ve önemli olayları anlatın...",
+    "char_desc_none": "Açıklama ayarlanmadı.",
+    "char_desc_select_alert": "Lütfen önce bir oyuncu ve karakter seçin.",
+    "char_desc_save_error": "Karakter açıklaması kaydedilemedi."
   },
   "settings": {
     "header": "Ayarlar",
