@@ -26,6 +26,12 @@ let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-p
 let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-preset-to-default")!;
 let characterFilterSelect: HTMLSelectElement = document.querySelector("#character-filter-select")!;
 
+// Character Description elements
+let charDescPlayerSelect: HTMLSelectElement = document.querySelector("#char-desc-player-select")!;
+let charDescCharacterSelect: HTMLSelectElement = document.querySelector("#char-desc-character-select")!;
+let charDescTextarea: HTMLTextAreaElement = document.querySelector("#char-desc-textarea")!;
+let saveCharDescBtn: HTMLButtonElement = document.querySelector("#save-char-desc-btn")!;
+
 let statusMessage: HTMLDivElement;
 
 const conversationPromptKeys = [
@@ -267,6 +273,12 @@ async function init(){
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
         resetPresetToDefaultBtn.addEventListener('click', resetCurrentPresetToDefault);
 
+        // Character Description events
+        charDescPlayerSelect.addEventListener('change', populateCharDescCharacters);
+        charDescCharacterSelect.addEventListener('change', loadCharDesc);
+        saveCharDescBtn.addEventListener('click', saveCharDesc);
+        await populateCharDescPlayers();
+
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
         });
@@ -318,6 +330,83 @@ async function populateCharacterFilter() {
 }
 
 
+
+// Character Description functions
+async function populateCharDescPlayers() {
+    charDescPlayerSelect.innerHTML = '';
+    const result = await ipcRenderer.invoke('get-character-description-players');
+    if (result.success) {
+        result.ids.forEach((player: { id: string, name: string }) => {
+            const option = document.createElement('option');
+            option.value = player.id;
+            option.textContent = `${player.name} (${player.id})`;
+            charDescPlayerSelect.appendChild(option);
+        });
+    } else {
+        console.error("Failed to get character description players:", result.error);
+    }
+    await populateCharDescCharacters();
+}
+
+async function populateCharDescCharacters() {
+    charDescCharacterSelect.innerHTML = '';
+    const playerId = charDescPlayerSelect.value;
+    if (!playerId) {
+        charDescTextarea.value = '';
+        return;
+    }
+    const result = await ipcRenderer.invoke('get-character-description-characters', playerId);
+    if (result.success) {
+        result.ids.forEach((char: { id: string, name: string }) => {
+            const option = document.createElement('option');
+            option.value = char.id;
+            option.textContent = `${char.name} (${char.id})`;
+            charDescCharacterSelect.appendChild(option);
+        });
+    } else {
+        console.error("Failed to get character description characters:", result.error);
+    }
+    await loadCharDesc();
+}
+
+async function loadCharDesc() {
+    const playerId = charDescPlayerSelect.value;
+    const characterId = charDescCharacterSelect.value;
+    if (!playerId || !characterId) {
+        charDescTextarea.value = '';
+        return;
+    }
+    const description = await ipcRenderer.invoke('get-character-description', playerId, characterId);
+    charDescTextarea.value = description || '';
+
+    // Personalize the placeholder with the selected character's name, e.g.
+    // "Describe <name>'s appearance, backstory, personality traits, and significant events..."
+    const selectedOption = charDescCharacterSelect.selectedOptions[0];
+    const charName = selectedOption ? selectedOption.textContent.replace(/\s*\(\d+\)\s*$/, '').trim() : '';
+    // @ts-ignore
+    const basePlaceholder = window.LocalizationManager.getNestedTranslation('prompts.char_desc_placeholder', null, "Describe the character's appearance, backstory, personality traits, and significant events...");
+    charDescTextarea.placeholder = charName
+        ? basePlaceholder.replace(/the character's/i, `${charName}'s`)
+        : basePlaceholder;
+}
+
+async function saveCharDesc() {
+    const playerId = charDescPlayerSelect.value;
+    const characterId = charDescCharacterSelect.value;
+    if (!playerId || !characterId) {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_select_alert', null, 'Select a player and character first.'), 'error');
+        return;
+    }
+    const result = await ipcRenderer.invoke('save-character-description', playerId, characterId, charDescTextarea.value);
+    if (result.success) {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_saved', null, 'Character description saved.'), 'success');
+    } else {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_save_error', null, 'Failed to save character description.'), 'error');
+    }
+}
 
 //functions
 
