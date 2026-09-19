@@ -278,7 +278,7 @@ export class MemoryManager {
         topK: number,
         minSimilarity: number
     ): Memory[] {
-        const queryBlob = Buffer.from(new Float32Array(queryVector).buffer);
+        const queryBlob = this.vectorToBlob(queryVector);
 
         // Use sqlite-vec's KNN-style search via the vec0 virtual table
         const stmt = this.db.prepare(`
@@ -504,8 +504,16 @@ export class MemoryManager {
     /**
      * Convert a vector (Float32Array or number[]) to a BLOB for storage.
      */
-    private vectorToBlob(vector: Float32Array | number[]): Buffer {
+    private normalizeVector(vector: Float32Array | number[]): Float32Array {
         const arr = vector instanceof Float32Array ? vector : new Float32Array(vector);
+        if (arr.length === this.embeddingDimension) return arr;
+        const out = new Float32Array(this.embeddingDimension);
+        out.set(arr.subarray(0, this.embeddingDimension));
+        return out;
+    }
+
+    private vectorToBlob(vector: Float32Array | number[]): Buffer {
+        const arr = this.normalizeVector(vector);
         return Buffer.from(arr.buffer);
     }
 

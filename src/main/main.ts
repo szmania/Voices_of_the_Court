@@ -1103,7 +1103,8 @@ app.on('ready',  async () => {
             }
     
             // 2. Initialize the necessary tools
-            const localMemoryManager = new MemoryManager(userDataPath);
+            const importDimension = currentConfig?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+            const localMemoryManager = new MemoryManager(userDataPath, importDimension);
             if (!currentConfig.embeddingApiConnectionConfig) {
                 throw new Error("Embedding API connection is not configured.");
             }
@@ -1153,7 +1154,8 @@ app.on('ready',  async () => {
                 return { success: true, hasLegacy: false, totalLegacy: 0, loadedCount: 0, allLoaded: false };
             }
 
-            const localMemoryManager = new MemoryManager(userDataPath);
+            const statusDimension = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+            const localMemoryManager = new MemoryManager(userDataPath, statusDimension);
             let loadedCount = 0;
             for (const compacted of compactedMemories) {
                 if (localMemoryManager.hasMemory(compacted.id)) {
