@@ -427,6 +427,20 @@ trigger_event = message_event.362`;
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
+            // Preserve any user-set approval/denial status from the stored actions so that
+            // reply regeneration does not reset approved/denied actions back to pending.
+            // New actions (no prior stored match) keep no status and stay pending.
+            const storedActions = letters[letterIndex].triggeredActions || [];
+            const storedByKey = new Map<string, LetterAssociatedAction>();
+            for (const stored of storedActions) {
+                storedByKey.set(`${stored.signature}|${stored.triggerOn}`, stored);
+            }
+            for (const action of actions) {
+                const stored = storedByKey.get(`${action.signature}|${action.triggerOn}`);
+                if (stored && stored.status) {
+                    action.status = stored.status;
+                }
+            }
             letters[letterIndex].triggeredActions = actions;
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {

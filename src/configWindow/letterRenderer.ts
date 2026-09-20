@@ -1,5 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
+import * as path from 'path';
+import * as fs from 'fs';
 
 const loader = document.getElementById('letter-loader') as HTMLDivElement;
 const statusMessage = document.getElementById('letter-status-message') as HTMLDivElement;
@@ -201,6 +203,8 @@ let manualLetterActionApproval = false;
 let currentFilteredLetters: Letter[] = [];
 let countdown = 20;
 let refreshInterval: NodeJS.Timeout;
+let actionsPath: string | null = null;
+let currentLanguage = 'en';
 
 function renderTriggeredActionsListForListItem(letter: Letter | undefined): string {
     if (!letter || !letter.triggeredActions || letter.triggeredActions.length === 0) {
@@ -231,6 +235,7 @@ const initLocalization = async (lang?: string) => {
             language = config.language || 'en';
         }
         manualLetterActionApproval = config.manualLetterActionApproval;
+        currentLanguage = language || 'en';
         // @ts-ignore
         await window.LocalizationManager.loadTranslations(language);
         // @ts-ignore
@@ -676,6 +681,29 @@ cachedLetterPairs = letterPairs;
         performSearch(currentSearchTerm);
     }
 }
+// Resolves the localized description for an action module (by signature) from the
+// user's scripts/actions/{standard,custom} folders, falling back to the signature text.
+function getActionDescription(signature: string): string | null {
+    if (!actionsPath) return null;
+    for (const folder of ['standard', 'custom']) {
+        try {
+            const filePath = path.join(actionsPath, folder, `${signature}.js`);
+            if (!fs.existsSync(filePath)) continue;
+            const actionModule = require(filePath);
+            const desc = actionModule && actionModule.description;
+            if (!desc) return null;
+            if (typeof desc === 'string') return desc;
+            if (typeof desc === 'object') {
+                return desc[currentLanguage] || desc['en'] || Object.values(desc)[0] || null;
+            }
+            return null;
+        } catch (e) {
+            // Ignore and try the next folder.
+        }
+    }
+    return null;
+}
+
 function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): void {
     const section = document.createElement('div');
     section.className = 'triggered-actions-section';
@@ -704,6 +732,12 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                 const actionPrompt = document.createElement('div');
                 actionPrompt.classList.add('action-prompt');
                 actionPrompt.id = `action-prompt-${letter.id}-${action.signature}`;
+
+                // Surface the action's localized description as a tooltip on the action item.
+                const actionDescription = getActionDescription(action.signature);
+                if (actionDescription) {
+                    actionPrompt.setAttribute('data-tooltip', actionDescription);
+                }
 
                 // Actions that have already gone through approval are shown as a colored
                 // confirmation (green = approved, red = denied) instead of buttons.
@@ -1046,6 +1080,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await initLocalization();
+
+    actionsPath = await ipcRenderer.invoke('get-userdata-path').then((p: string) => p ? path.join(p, 'scripts', 'actions') : null);
 
     currentGameDay = await ipcRenderer.invoke('get-current-game-day');
     console.log(`Initial game day fetched: ${currentGameDay}`);
