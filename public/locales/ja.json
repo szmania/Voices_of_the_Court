@@ -129,7 +129,20 @@
     "mod_princes_of_darkness": "プリンス・オブ・ダークネス",
     "total_tokens_header": "合計トークン",
     "total_conversation_tokens": "合計会話トークン:",
-    "total_letter_tokens": "合計手紙トークン:"
+    "total_letter_tokens": "合計手紙トークン:",
+    "character_description": "キャラクター説明",
+    "char_desc_tooltip": "キャラクターの永続的な説明(外見・過去・特徴)を記入します。キャラクターが話す際にAIが記憶します。空欄でクリア。",
+    "char_desc_player": "プレイヤー:",
+    "char_desc_player_tooltip": "説明用のプレイヤーコンテキストを選択。",
+    "char_desc_character": "キャラクター:",
+    "char_desc_character_tooltip": "説明するキャラクターを選択します。",
+    "char_desc_character_note": "左の「プレイヤーでフィルタ」ボックスで、ここに表示されるキャラクターが決まります。",
+    "char_desc_save": "説明を保存",
+    "char_desc_saved": "キャラクター説明を保存しました。",
+    "char_desc_placeholder": "外見・過去・性格・重要な出来事を記述...",
+    "char_desc_none": "説明は設定されていません。",
+    "char_desc_select_alert": "最初にプレイヤーとキャラクターを選択してください。",
+    "char_desc_save_error": "キャラクター説明の保存に失敗しました。"
   },
   "settings": {
     "header": "設定",
@@ -742,7 +755,7 @@
     "no_letters": "手紙が見つかりません。",
     "select": "読む手紙を選択してください。",
     "refresh": "更新",
-    "no_reply": "まだ返信がありません。",
+    "no_reply": "まだ返信はありません。",
     "outbound_not_found": "送信済みレターが見つかりません。",
     "sort_by": "並べ替え:",
     "sort_game_date": "ゲームの日付",
@@ -753,7 +766,6 @@
     "status_reply_overdue": "返信遅延",
     "status_failed": "失敗",
     "status_completed": "完了",
-    "no_reply": "まだ返信はありません。",
     "load_success": "手紙のデータが正常に読み込まれました",
     "thread_status": "手紙スレッド",
     "tooltip_thread_status": "ゲームの手紙スレッドで使用されている現在の手紙の数を示します。9/9に達すると、ゲーム内で決断を通じてスレッドをリセットする必要があります。",
@@ -763,7 +775,6 @@
     "tooltip_reply_overdue": "返信が遅れている送信済み手紙の数。",
     "tooltip_failed": "生成または送信に失敗した手紙の数。",
     "tooltip_completed": "正常に送信または読まれた手紙の数。",
-    "load_success": "手紙のデータが正常に読み込まれました",
     "search": "検索:",
     "search_placeholder": "手紙を検索...",
     "days": "日",
@@ -827,10 +838,10 @@
     "yes": "はい",
     "no": "いいえ",
     "age_suffix": {
-        "infant": "（乳児）",
-        "toddler": "（幼児）",
-        "child": "（子供）",
-        "teenager": "（ティーンエイジャー）"
+      "infant": "（乳児）",
+      "toddler": "（幼児）",
+      "child": "（子供）",
+      "teenager": "（ティーンエイジャー）"
     },
     "valid": "有効",
     "invalid": "無効"

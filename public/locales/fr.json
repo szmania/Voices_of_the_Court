@@ -133,7 +133,20 @@
     "mod_princes_of_darkness": "Princes des Ténèbres",
     "total_tokens_header": "Total des jetons",
     "total_conversation_tokens": "Total des jetons de conversation :",
-    "total_letter_tokens": "Total des jetons de lettre :"
+    "total_letter_tokens": "Total des jetons de lettre :",
+    "character_description": "Description du personnage",
+    "char_desc_tooltip": "Écrivez une description persistante pour un personnage (apparence, histoire, traits). L'IA s'en souviendra à chaque prise de parole du personnage. Laissez vide pour effacer.",
+    "char_desc_player": "Joueur :",
+    "char_desc_player_tooltip": "Sélectionnez le contexte de joueur pour la description.",
+    "char_desc_character": "Personnage :",
+    "char_desc_character_tooltip": "Sélectionnez le personnage à décrire.",
+    "char_desc_character_note": "La case « Filtrer par joueur » à gauche détermine quels personnages apparaissent ici.",
+    "char_desc_save": "Enregistrer la description",
+    "char_desc_saved": "Description du personnage enregistrée avec succès.",
+    "char_desc_placeholder": "Décrivez l'apparence, l'histoire, les traits de personnalité et les événements marquants du personnage...",
+    "char_desc_none": "Aucune description définie.",
+    "char_desc_select_alert": "Veuillez d'abord sélectionner un joueur et un personnage.",
+    "char_desc_save_error": "Échec de l'enregistrement de la description du personnage."
   },
   "settings": {
     "header": "Paramètres",
@@ -757,7 +770,6 @@
     "status_reply_overdue": "Réponse en retard",
     "status_failed": "Échoué",
     "status_completed": "Terminé",
-    "no_reply": "Pas encore de réponse.",
     "load_success": "Données des lettres chargées avec succès",
     "thread_status": "Fil de Lettres",
     "tooltip_thread_status": "Indique le nombre actuel de lettres utilisées dans le fil de lettres du jeu. Le fil doit être réinitialisé dans le jeu via une décision une fois qu'il atteint 9/9.",
@@ -767,7 +779,6 @@
     "tooltip_reply_overdue": "Nombre de lettres envoyées dont les réponses sont en retard.",
     "tooltip_failed": "Nombre de lettres dont la génération ou l'envoi a échoué.",
     "tooltip_completed": "Nombre de lettres qui ont été envoyées ou lues avec succès.",
-    "load_success": "Données des lettres chargées avec succès",
     "search": "Rechercher:",
     "search_placeholder": "Rechercher des lettres...",
     "days": "jours",
@@ -831,10 +842,10 @@
     "yes": "Oui",
     "no": "Non",
     "age_suffix": {
-        "infant": "(Nourrisson)",
-        "toddler": "(Enfant en bas âge)",
-        "child": "(Enfant)",
-        "teenager": "(Adolescent)"
+      "infant": "(Nourrisson)",
+      "toddler": "(Enfant en bas âge)",
+      "child": "(Enfant)",
+      "teenager": "(Adolescent)"
     },
     "valid": "Valide",
     "invalid": "Invalide"

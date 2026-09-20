@@ -26,6 +26,12 @@ let deletePromptPresetBtn: HTMLButtonElement = document.querySelector("#delete-p
 let resetPresetToDefaultBtn: HTMLButtonElement = document.querySelector("#reset-preset-to-default")!;
 let characterFilterSelect: HTMLSelectElement = document.querySelector("#character-filter-select")!;
 
+// Character Description elements
+let charDescCharacterSelect: HTMLSelectElement = document.querySelector("#char-desc-character-select")!;
+let charDescTextarea: HTMLTextAreaElement = document.querySelector("#char-desc-textarea")!;
+let saveCharDescBtn: HTMLButtonElement = document.querySelector("#save-char-desc-btn")!;
+let charDescTokenCount: HTMLSpanElement = document.querySelector("#char-desc-token-count")!;
+
 let statusMessage: HTMLDivElement;
 
 const conversationPromptKeys = [
@@ -261,11 +267,20 @@ async function init(){
         togglePrompt(suffixPromptCheckbox.checkbox, suffixPromptTextarea.textarea);
 
         //events
-        characterFilterSelect.addEventListener('change', () => populatePresetSelector());
+        characterFilterSelect.addEventListener('change', () => {
+            populatePresetSelector();
+            populateCharDescCharacters();
+        });
         promptPresetSelect.addEventListener('change', handlePresetChange);
         savePromptPresetBtn.addEventListener('click', saveCurrentPreset);
         deletePromptPresetBtn.addEventListener('click', deleteSelectedPreset);
         resetPresetToDefaultBtn.addEventListener('click', resetCurrentPresetToDefault);
+
+        // Character Description events
+        charDescCharacterSelect.addEventListener('change', loadCharDesc);
+        saveCharDescBtn.addEventListener('click', saveCharDesc);
+        charDescTextarea.addEventListener('input', updateCharDescTokenCount);
+        await populateCharDescCharacters();
 
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
@@ -318,6 +333,84 @@ async function populateCharacterFilter() {
 }
 
 
+
+// Character Description functions
+async function populateCharDescCharacters() {
+    charDescCharacterSelect.innerHTML = '';
+    const playerId = characterFilterSelect.value;
+    if (!playerId) {
+        charDescTextarea.value = '';
+        return;
+    }
+    const result = await ipcRenderer.invoke('get-character-description-characters', playerId);
+    if (result.success) {
+        result.ids.forEach((char: { id: string, name: string }) => {
+            const option = document.createElement('option');
+            option.value = char.id;
+            option.textContent = `${char.name} (${char.id})`;
+            charDescCharacterSelect.appendChild(option);
+        });
+    } else {
+        console.error("Failed to get character description characters:", result.error);
+    }
+    await loadCharDesc();
+}
+
+async function loadCharDesc() {
+    const playerId = characterFilterSelect.value;
+    const characterId = charDescCharacterSelect.value;
+    if (!playerId || !characterId) {
+        charDescTextarea.value = '';
+        return;
+    }
+    const description = await ipcRenderer.invoke('get-character-description', playerId, characterId);
+    charDescTextarea.value = description || '';
+    updateCharDescTokenCount();
+
+    // Personalize the placeholder with the selected character's name, e.g.
+    // "Describe <name>'s appearance, backstory, personality traits, and significant events..."
+    const selectedOption = charDescCharacterSelect.selectedOptions[0];
+    const charName = selectedOption ? selectedOption.textContent.replace(/\s*\(\d+\)\s*$/, '').trim() : '';
+    // @ts-ignore
+    const basePlaceholder = window.LocalizationManager.getNestedTranslation('prompts.char_desc_placeholder', null, "Describe the character's appearance, backstory, personality traits, and significant events...");
+    charDescTextarea.placeholder = charName
+        ? basePlaceholder.replace(/the character's/i, `${charName}'s`)
+        : basePlaceholder;
+}
+
+async function saveCharDesc() {
+    const playerId = characterFilterSelect.value;
+    const characterId = charDescCharacterSelect.value;
+    if (!playerId || !characterId) {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_select_alert', null, 'Select a player and character first.'), 'error');
+        return;
+    }
+    const result = await ipcRenderer.invoke('save-character-description', playerId, characterId, charDescTextarea.value);
+    if (result.success) {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_saved', null, 'Character description saved.'), 'success');
+    } else {
+        // @ts-ignore
+        showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.char_desc_save_error', null, 'Failed to save character description.'), 'error');
+    }
+}
+
+async function updateCharDescTokenCount() {
+    if (!charDescTokenCount) return;
+    const text = charDescTextarea.value;
+    try {
+        const count = await ipcRenderer.invoke('calculate-tokens', text);
+        // @ts-ignore
+        const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+        charDescTokenCount.textContent = `${tokensLabel} ${count}`;
+    } catch (error) {
+        console.error('Failed to calculate tokens for character description:', error);
+        // @ts-ignore
+        const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+        charDescTokenCount.textContent = `${tokensLabel} Error`;
+    }
+}
 
 //functions
 

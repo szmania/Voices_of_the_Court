@@ -11,6 +11,7 @@ import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 import { GameData } from "../../shared/gameData/GameData.js";
+import { getEffectiveCharacterDescription } from "../characterDescription";
 
 export function getPromptsConfig(userDataPath: string, lang: string = 'en'): any {
     const promptsDir = path.join(userDataPath, 'configs', 'prompts');
@@ -300,6 +301,18 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
         insertMessageAtDepth(messages, descMessage, conv.config.descInsertDepth);
         console.log(`Inserted description for ${character.fullName} at depth: ${conv.config.descInsertDepth}.`);
+    }
+
+    // Inject the user-authored character description for the character being prompted.
+    // This is an optional, player-provided layer on top of the description script output.
+    const userCharacterDescription = getEffectiveCharacterDescription(conv.userDataPath, String(conv.gameData.playerID), String(character.id));
+    if (userCharacterDescription) {
+        const userDescMessage: Message = {
+            role: "system",
+            content: `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}`
+        };
+        insertMessageAtDepth(messages, userDescMessage, conv.config.descInsertDepth);
+        console.log(`Inserted user character description for ${character.fullName} at depth: ${conv.config.descInsertDepth}.`);
     }
 
 

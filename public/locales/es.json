@@ -133,7 +133,20 @@
     "mod_princes_of_darkness": "Príncipes de las Tinieblas",
     "total_tokens_header": "Tokens totales",
     "total_conversation_tokens": "Tokens de conversación totales:",
-    "total_letter_tokens": "Tokens de carta totales:"
+    "total_letter_tokens": "Tokens de carta totales:",
+    "character_description": "Descripción del personaje",
+    "char_desc_tooltip": "Escriba una descripción persistente para un personaje (apariencia, historia, rasgos). La IA la recordará siempre que el personaje hable o sea interpelado. Déjelo vacío para borrarla.",
+    "char_desc_player": "Jugador:",
+    "char_desc_player_tooltip": "Seleccione el contexto de jugador para la descripción.",
+    "char_desc_character": "Personaje:",
+    "char_desc_character_tooltip": "Seleccione el personaje a describir.",
+    "char_desc_character_note": "El cuadro 'Filtrar por jugador' de la izquierda determina qué personajes aparecen aquí.",
+    "char_desc_save": "Guardar descripción",
+    "char_desc_saved": "Descripción del personaje guardada correctamente.",
+    "char_desc_placeholder": "Describa la apariencia, historia, rasgos de personalidad y eventos significativos del personaje...",
+    "char_desc_none": "No se ha establecido ninguna descripción.",
+    "char_desc_select_alert": "Seleccione primero un jugador y un personaje.",
+    "char_desc_save_error": "No se pudo guardar la descripción del personaje."
   },
   "settings": {
     "header": "Ajustes",
@@ -757,7 +770,6 @@
     "status_reply_overdue": "Respuesta atrasada",
     "status_failed": "Fallido",
     "status_completed": "Completado",
-    "no_reply": "Aún no hay respuesta.",
     "load_success": "Datos de cartas cargados con éxito",
     "thread_status": "Hilo de Cartas",
     "tooltip_thread_status": "Indica el número actual de cartas utilizadas en el hilo de cartas del juego. El hilo debe restablecerse en el juego mediante una decisión una vez que llega a 9/9.",
@@ -767,7 +779,6 @@
     "tooltip_reply_overdue": "Número de cartas enviadas cuyas respuestas están atrasadas.",
     "tooltip_failed": "Número de cartas que no se pudieron generar o enviar.",
     "tooltip_completed": "Número de cartas que se han enviado o leído correctamente.",
-    "load_success": "Datos de cartas cargados con éxito",
     "search": "Buscar:",
     "search_placeholder": "Buscar cartas...",
     "days": "días",
@@ -831,10 +842,10 @@
     "yes": "Sí",
     "no": "No",
     "age_suffix": {
-        "infant": "(Bebé)",
-        "toddler": "(Niño pequeño)",
-        "child": "(Niño)",
-        "teenager": "(Adolescente)"
+      "infant": "(Bebé)",
+      "toddler": "(Niño pequeño)",
+      "child": "(Niño)",
+      "teenager": "(Adolescente)"
     },
     "valid": "Válido",
     "invalid": "Inválido"

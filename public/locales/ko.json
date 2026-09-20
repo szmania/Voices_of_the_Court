@@ -129,7 +129,20 @@
     "mod_princes_of_darkness": "어둠의 군주들",
     "total_tokens_header": "총 토큰",
     "total_conversation_tokens": "총 대화 토큰:",
-    "total_letter_tokens": "총 편지 토큰:"
+    "total_letter_tokens": "총 편지 토큰:",
+    "character_description": "캐릭터 설명",
+    "char_desc_tooltip": "캐릭터에 대한 지속적인 설명(외모, 과거, 성격)을 작성합니다. 캐릭터가 말할 때 AI가 기억합니다. 비우면 삭제됩니다.",
+    "char_desc_player": "플레이어:",
+    "char_desc_player_tooltip": "설명에 사용할 플레이어 컨텍스트를 선택하세요.",
+    "char_desc_character": "캐릭터:",
+    "char_desc_character_tooltip": "설명할 캐릭터를 선택하세요.",
+    "char_desc_character_note": "왼쪽의 '플레이어로 필터링' 상자가 여기에 표시되는 캐릭터를 결정합니다.",
+    "char_desc_save": "설명 저장",
+    "char_desc_saved": "캐릭터 설명이 저장되었습니다.",
+    "char_desc_placeholder": "캐릭터의 외모, 과거, 성격, 중요 사건을 설명하세요...",
+    "char_desc_none": "설명이 설정되지 않았습니다.",
+    "char_desc_select_alert": "먼저 플레이어와 캐릭터를 선택하세요.",
+    "char_desc_save_error": "캐릭터 설명 저장에 실패했습니다."
   },
   "settings": {
     "header": "설정",
@@ -753,8 +766,7 @@
     "status_reply_overdue": "답장 지연",
     "status_failed": "실패",
     "status_completed": "완료",
-    "no_reply": "아직 답장이 없습니다.",
-    "load_success": "편지 데이터를 성공적으로 로드했습니다",
+    "load_success": "편지 데이터가 성공적으로 로드되었습니다.",
     "thread_status": "편지 스레드",
     "tooltip_thread_status": "게임의 편지 스레드에서 사용된 현재 편지 수를 나타냅니다. 9/9에 도달하면 게임 내 결정을 통해 스레드를 재설정해야 합니다.",
     "tooltip_total": "선택한 플레이어/캐릭터의 기록에 있는 총 편지 수.",
@@ -763,7 +775,6 @@
     "tooltip_reply_overdue": "답장이 지연된 보낸 편지 수.",
     "tooltip_failed": "생성 또는 전송에 실패한 편지 수.",
     "tooltip_completed": "성공적으로 보내거나 읽은 편지 수.",
-    "load_success": "편지 데이터가 성공적으로 로드되었습니다.",
     "search": "검색:",
     "search_placeholder": "편지 검색...",
     "days": "일",
@@ -827,10 +838,10 @@
     "yes": "예",
     "no": "아니요",
     "age_suffix": {
-        "infant": "(영아)",
-        "toddler": "(유아)",
-        "child": "(어린이)",
-        "teenager": "(십대)"
+      "infant": "(영아)",
+      "toddler": "(유아)",
+      "child": "(어린이)",
+      "teenager": "(십대)"
     },
     "valid": "유효",
     "invalid": "무효"

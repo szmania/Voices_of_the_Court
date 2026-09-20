@@ -129,7 +129,20 @@
     "mod_princes_of_darkness": "Książęta Ciemności",
     "total_tokens_header": "Całkowita liczba tokenów",
     "total_conversation_tokens": "Całkowita liczba tokenów konwersacji:",
-    "total_letter_tokens": "Całkowita liczba tokenów listu:"
+    "total_letter_tokens": "Całkowita liczba tokenów listu:",
+    "character_description": "Opis postaci",
+    "char_desc_tooltip": "Napisz trwały opis postaci (wygląd, historia, cechy). AI zapamięta go, gdy postać mówi lub jest adresowana. Puste pole czyści opis.",
+    "char_desc_player": "Gracz:",
+    "char_desc_player_tooltip": "Wybierz kontekst gracza dla opisu.",
+    "char_desc_character": "Postać:",
+    "char_desc_character_tooltip": "Wybierz postać do opisania.",
+    "char_desc_character_note": "Pole „Filtruj według gracza” po lewej określa, które postacie pojawiają się tutaj.",
+    "char_desc_save": "Zapisz opis",
+    "char_desc_saved": "Opis postaci zapisano pomyślnie.",
+    "char_desc_placeholder": "Opisz wygląd, historię, cechy osobowości i ważne wydarzenia postaci...",
+    "char_desc_none": "Nie ustawiono opisu.",
+    "char_desc_select_alert": "Najpierw wybierz gracza i postać.",
+    "char_desc_save_error": "Nie udało się zapisać opisu postaci."
   },
   "settings": {
     "header": "Ustawienia",
@@ -742,7 +755,7 @@
     "no_letters": "Nie znaleziono listów.",
     "select": "Wybierz list do przeczytania.",
     "refresh": "Odśwież",
-    "no_reply": "Jeszcze brak odpowiedzi.",
+    "no_reply": "Brak odpowiedzi.",
     "outbound_not_found": "Nie znaleziono listu wychodzącego.",
     "sort_by": "Sortuj według:",
     "sort_game_date": "Data w grze",
@@ -753,7 +766,6 @@
     "status_reply_overdue": "Odpowiedź opóźniona",
     "status_failed": "Niepowodzenie",
     "status_completed": "Ukończono",
-    "no_reply": "Brak odpowiedzi.",
     "load_success": "Dane listów załadowane pomyślnie",
     "thread_status": "Wątek listów",
     "tooltip_thread_status": "Wskazuje aktualną liczbę listów użytych w wątku listów w grze. Wątek musi zostać zresetowany w grze poprzez decyzję, gdy osiągnie 9/9.",
@@ -763,7 +775,6 @@
     "tooltip_reply_overdue": "Liczba wysłanych listów, na które odpowiedź jest opóźniona.",
     "tooltip_failed": "Liczba listów, których generowanie lub wysłanie nie powiodło się.",
     "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane.",
-    "load_success": "Dane listów załadowane pomyślnie",
     "search": "Szukaj:",
     "search_placeholder": "Szukaj listów...",
     "days": "dni",
@@ -827,10 +838,10 @@
     "yes": "Tak",
     "no": "Nie",
     "age_suffix": {
-        "infant": "(Niemowlę)",
-        "toddler": "(Małe dziecko)",
-        "child": "(Dziecko)",
-        "teenager": "(Nastolatek)"
+      "infant": "(Niemowlę)",
+      "toddler": "(Małe dziecko)",
+      "child": "(Dziecko)",
+      "teenager": "(Nastolatek)"
     },
     "valid": "Prawidłowa",
     "invalid": "Nieprawidłowa"

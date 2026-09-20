@@ -133,7 +133,20 @@
     "mod_princes_of_darkness": "Príncipes das Trevas",
     "total_tokens_header": "Total de Tokens",
     "total_conversation_tokens": "Total de Tokens de Conversa:",
-    "total_letter_tokens": "Total de Tokens de Carta:"
+    "total_letter_tokens": "Total de Tokens de Carta:",
+    "character_description": "Descrição do personagem",
+    "char_desc_tooltip": "Escreva uma descrição persistente para um personagem (aparência, história, traços). A IA lembrará sempre que o personagem falar ou for abordado. Vazio para limpar.",
+    "char_desc_player": "Jogador:",
+    "char_desc_player_tooltip": "Selecione o contexto de jogador para a descrição.",
+    "char_desc_character": "Personagem:",
+    "char_desc_character_tooltip": "Selecione o personagem a descrever.",
+    "char_desc_character_note": "A caixa 'Filtrar por jogador' à esquerda determina quais personagens aparecem aqui.",
+    "char_desc_save": "Salvar descrição",
+    "char_desc_saved": "Descrição do personagem salva com sucesso.",
+    "char_desc_placeholder": "Descreva aparência, história, traços de personalidade e eventos importantes do personagem...",
+    "char_desc_none": "Nenhuma descrição definida.",
+    "char_desc_select_alert": "Selecione primeiro um jogador e um personagem.",
+    "char_desc_save_error": "Falha ao salvar a descrição do personagem."
   },
   "settings": {
     "header": "Configurações",
@@ -757,7 +770,6 @@
     "status_reply_overdue": "Resposta atrasada",
     "status_failed": "Falhou",
     "status_completed": "Concluído",
-    "no_reply": "Ainda sem resposta.",
     "load_success": "Dados de cartas carregados com sucesso",
     "thread_status": "Fio de Cartas",
     "tooltip_thread_status": "Indica o número atual de cartas usadas no fio de cartas do jogo. O fio precisa ser redefinido no jogo por meio de uma decisão assim que atingir 9/9.",
@@ -767,7 +779,6 @@
     "tooltip_reply_overdue": "Número de cartas enviadas cujas respostas estão atrasadas.",
     "tooltip_failed": "Número de cartas que não puderam ser geradas ou enviadas.",
     "tooltip_completed": "Número de cartas que foram enviadas ou lidas com sucesso.",
-    "load_success": "Dados de cartas carregados com sucesso",
     "search": "Procurar:",
     "search_placeholder": "Procurar cartas...",
     "days": "dias",
@@ -831,10 +842,10 @@
     "yes": "Sim",
     "no": "Não",
     "age_suffix": {
-        "infant": "(Bebê)",
-        "toddler": "(Criança pequena)",
-        "child": "(Criança)",
-        "teenager": "(Adolescente)"
+      "infant": "(Bebê)",
+      "toddler": "(Criança pequena)",
+      "child": "(Criança)",
+      "teenager": "(Adolescente)"
     },
     "valid": "Válido",
     "invalid": "Inválido"

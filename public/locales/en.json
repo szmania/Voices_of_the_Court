@@ -50,7 +50,7 @@
     "player2_info": "Hint: If you haven't already, download Player2 and run it in the background.",
     "player2_download_button": "Download Player2",
     "player2_download_tooltip": "Download the Player2 application",
-"player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary.",
+    "player2_connection_failed": "Player2 connection failed. Please download the Player2 app from https://player2.game, ensure it is running in the background, and try again. No account is necessary.",
     "email": "Email",
     "password": "Password",
     "novelai_password": "Password",
@@ -66,7 +66,7 @@
     "deepseek": "DeepSeek",
     "grok": "Grok (xAI)",
     "player2": "Player2",
-"custom": "Custom (OpenAI-compatible)",
+    "custom": "Custom (OpenAI-compatible)",
     "novelai": "NovelAI"
   },
   "actions": {
@@ -119,7 +119,7 @@
     "restore_tooltip": "Click this button to restore all prompts to their default values",
     "presets_header": "Prompt Presets",
     "select_preset": "Active Preset:",
-    "filter_by_character": "Filter by Character:",
+    "filter_by_player": "Filter by Player:",
     "all_characters": "All Characters",
     "save_preset_tooltip": "Save current prompts as a new preset",
     "delete_preset_tooltip": "Delete the selected preset",
@@ -153,7 +153,18 @@
     "mod_princes_of_darkness": "Princes of Darkness",
     "total_tokens_header": "Total Tokens",
     "total_conversation_tokens": "Total Conversation Tokens:",
-    "total_letter_tokens": "Total Letter Tokens:"
+    "total_letter_tokens": "Total Letter Tokens:",
+    "character_description": "Character Description",
+    "char_desc_tooltip": "Write a persistent description for a character (appearance, backstory, traits). The AI will remember this whenever the character speaks or is addressed. Leave blank to clear.",
+    "char_desc_character": "Character:",
+    "char_desc_character_tooltip": "Select the character to describe.",
+    "char_desc_character_note": "The 'Filter by Player' box to the left determines which characters appear here.",
+    "char_desc_save": "Save Description",
+    "char_desc_saved": "Character description saved successfully.",
+    "char_desc_placeholder": "Describe the character's appearance, backstory, personality traits, and significant events...",
+    "char_desc_none": "No description set.",
+    "char_desc_select_alert": "Please select a player and character first.",
+    "char_desc_save_error": "Failed to save character description."
   },
   "settings": {
     "header": "Settings",
@@ -180,8 +191,6 @@
     "disable_historical_tooltip": "Disable loading of historical conversations that prepopulate the chat window with previous conversations with that character.",
     "max_historical_conversations": "Max historical conversations",
     "max_historical_conversations_tooltip": "The maximum number of historical conversation files to load. Helps prevent lag with characters that have a long history. Set to 0 for no limit.",
-    "max_conversations_in_history_window": "Max Historical Conversations (Window)",
-    "max_conversations_in_history_window_tooltip": "The maximum number of previous conversations to display in the chat window. This does not affect the AI's memory, only what you see.",
     "max_conversations_in_history_window": "Max Historical Conversations (Window)",
     "max_conversations_in_history_window_tooltip": "The maximum number of previous conversations to display in the chat window. This does not affect the AI's memory, only what you see.",
     "generate_scene": "generate scene description",
@@ -851,10 +860,10 @@
     "yes": "Yes",
     "no": "No",
     "age_suffix": {
-        "infant": "(Infant)",
-        "toddler": "(Toddler)",
-        "child": "(Child)",
-        "teenager": "(Teenager)"
+      "infant": "(Infant)",
+      "toddler": "(Toddler)",
+      "child": "(Child)",
+      "teenager": "(Teenager)"
     },
     "valid": "Valid",
     "invalid": "Invalid"
@@ -944,4 +953,5 @@
     "description_label": "Current conversation information:",
     "system_prompt": "You are a scene description generation assistant responsible for creating vivid scene atmosphere descriptions for role-playing games.",
     "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
-  }}
+  }
+}
