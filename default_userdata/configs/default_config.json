@@ -87,7 +87,8 @@
       "forceInstruct": false,
       "overwriteContext": false,
       "customContext": 8192,
-      "embeddingDimension": 1536
+      "embeddingDimension": 1536,
+      "useCustomEmbeddingDimension": false
     },
     "parameters": {
       "temperature": 0.0,

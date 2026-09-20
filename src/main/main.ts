@@ -33,7 +33,7 @@ import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 import { compactedMemoryStore } from './compactedMemoryStore';
 import { MemoryManager, Memory } from './memoryManager';
-import { ApiConnection } from '../shared/apiConnection';
+import { ApiConnection, EmbeddingProvider, getEffectiveEmbeddingDimension } from '../shared/apiConnection';
 import { getConfig } from "./configManager";
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
@@ -634,7 +634,7 @@ app.on('ready',  async () => {
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
-    const embeddingDimension = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+    const embeddingDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
     memoryManager = new MemoryManager(userDataPath, embeddingDimension);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
@@ -882,15 +882,16 @@ app.on('ready',  async () => {
         model: string;
         baseUrl: string;
         apiKey: string;
+        expectedDimension?: number;
     }) => {
         console.log('IPC: Received test-embedding-connection event.');
         try {
-            const { EmbeddingProvider } = await import('../shared/apiConnection');
             const provider = new EmbeddingProvider(
                 providerConfig.provider as any,
                 providerConfig.model,
                 providerConfig.baseUrl,
-                providerConfig.apiKey
+                providerConfig.apiKey,
+                providerConfig.expectedDimension
             );
             const result = await provider.testConnection();
             return result;
@@ -1103,7 +1104,7 @@ app.on('ready',  async () => {
             }
     
             // 2. Initialize the necessary tools
-            const importDimension = currentConfig?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+            const importDimension = getEffectiveEmbeddingDimension(currentConfig?.embeddingApiConnectionConfig?.connection);
             const localMemoryManager = new MemoryManager(userDataPath, importDimension);
             if (!currentConfig.embeddingApiConnectionConfig) {
                 throw new Error("Embedding API connection is not configured.");
@@ -1154,7 +1155,7 @@ app.on('ready',  async () => {
                 return { success: true, hasLegacy: false, totalLegacy: 0, loadedCount: 0, allLoaded: false };
             }
 
-            const statusDimension = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+            const statusDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
             const localMemoryManager = new MemoryManager(userDataPath, statusDimension);
             let loadedCount = 0;
             for (const compacted of compactedMemories) {

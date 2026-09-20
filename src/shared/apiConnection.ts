@@ -30,7 +30,18 @@ export interface Connection{
     overwriteContext: boolean;
     customContext: number;
     embeddingDimension?: number; // dimension of embedding vectors (default 1536)
+    useCustomEmbeddingDimension?: boolean; // only honor embeddingDimension when true
     apiKeys?: { [apiType: string]: any }; // 存储所有API类型的配置
+}
+
+/** Resolve the effective embedding dimension from a connection config.
+ *  Only honors the custom overwrite when explicitly enabled; otherwise
+ *  falls back to the standard default (1536). */
+export function getEffectiveEmbeddingDimension(connection?: Connection): number {
+    if (connection?.useCustomEmbeddingDimension && connection.embeddingDimension) {
+        return connection.embeddingDimension;
+    }
+    return 1536;
 }
 
 export interface Parameters{
@@ -944,6 +955,9 @@ export interface EmbeddingTestResult {
     message: string;
     dimensions?: number;
     provider: EmbeddingProviderType;
+    model?: string;
+    expectedDimension?: number;
+    mismatch?: boolean;
 }
 
 /**
@@ -955,12 +969,14 @@ export class EmbeddingProvider {
     private model: string;
     private baseUrl: string;
     private apiKey: string;
+    private expectedDimension?: number;
 
-    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string) {
+    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string, expectedDimension?: number) {
         this.provider = provider;
         this.model = model;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
+        this.expectedDimension = expectedDimension;
     }
 
     /**
@@ -1001,11 +1017,26 @@ export class EmbeddingProvider {
     async testConnection(): Promise<EmbeddingTestResult> {
         try {
             const result = await this.generateEmbedding('test');
+            if (this.expectedDimension && result.dimensions !== this.expectedDimension) {
+                return {
+                    success: false,
+                    message: `Overwrite dimension mismatch: requested ${this.expectedDimension} but model returned ${result.dimensions}. Disable "Overwrite embedding dimension" or correct the value.`,
+                    dimensions: result.dimensions,
+                    provider: this.provider,
+                    model: result.model,
+                    expectedDimension: this.expectedDimension,
+                    mismatch: true
+                };
+            }
             return {
                 success: true,
-                message: `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions}`,
+                message: this.expectedDimension
+                    ? `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions} (matches overwrite).`
+                    : `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions}`,
                 dimensions: result.dimensions,
-                provider: this.provider
+                provider: this.provider,
+                model: result.model,
+                expectedDimension: this.expectedDimension
             };
         } catch (error: any) {
             return {
@@ -1029,7 +1060,8 @@ export class EmbeddingProvider {
             },
             body: JSON.stringify({
                 model: this.model,
-                input: text
+                input: text,
+                ...(this.expectedDimension ? { dimensions: this.expectedDimension } : {})
             })
         });
 

@@ -32,7 +32,7 @@ import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
 import { MemoryManager, Memory } from '../memoryManager.js';
 import { CompactedMemory } from '../../shared/compactionTypes.js';
-import { EmbeddingProvider } from '../../shared/apiConnection.js';
+import { EmbeddingProvider, getEffectiveEmbeddingDimension } from '../../shared/apiConnection.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -330,7 +330,7 @@ export class Conversation{
         this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
 
         // Initialize Memory Systems
-        const embeddingDimension = this.config?.embeddingApiConnectionConfig?.connection?.embeddingDimension || 1536;
+const embeddingDimension = getEffectiveEmbeddingDimension(this.config?.embeddingApiConnectionConfig?.connection);
         this.memoryManager = new MemoryManager(this.userDataPath, embeddingDimension);
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
