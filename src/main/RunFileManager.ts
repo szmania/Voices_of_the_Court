@@ -59,7 +59,7 @@ export class RunFileManager {
             const currentText = this.readCurrent();
             const separator = currentText.trim() === '' ? '' : '\n';
             this.writeUtf8Bom(`${currentText}${separator}${text}`);
-            console.log(`RunFileManager: Appended to run file: ${text}`);
+            console.log(`RunFileManager: Appended to run file ${this.path}: ${text}`);
         } catch (error) {
             console.error(`RunFileManager: Failed to append to file ${this.path}:`, error);
         }
