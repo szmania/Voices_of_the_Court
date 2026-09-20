@@ -711,6 +711,39 @@ function getActionDescription(signature: string): string | null {
     return null;
 }
 
+// Resolves the localized, human-readable chat message for an action (by signature) from
+// the user's scripts/actions/{standard,custom} folders. Mirrors the chat window's
+// checkActions.ts behavior: calls the module's chatMessage(args) with the stored parsed
+// args, localizes the result, and substitutes {{character1Name}}/{{character2Name}} etc.
+// Falls back to the localized description, then the signature.
+function getActionChatMessage(letter: Letter, action: { signature: string; args: any[] }): string {
+    if (actionsPath) {
+        for (const folder of ['standard', 'custom']) {
+            try {
+                const filePath = path.join(actionsPath, folder, `${action.signature}.js`);
+                if (!fs.existsSync(filePath)) continue;
+                const actionModule = require(filePath);
+                if (actionModule && typeof actionModule.chatMessage === 'function') {
+                    let message = actionModule.chatMessage(action.args || []);
+                    if (typeof message === 'object' && message !== null) {
+                        message = message[currentLanguage] || message['en'] || Object.values(message)[0] || '';
+                    }
+                    if (typeof message === 'string' && message) {
+                        const sourceName = (letter.sender && letter.sender.shortName) || 'someone';
+                        const targetName = (letter.recipient && letter.recipient.shortName) || 'someone';
+                        const vars: Record<string, string> = { character1Name: sourceName, character2Name: targetName };
+                        return message.replace(/\{\{([^}]+)\}\}/gi, (_, key: string) => vars[key.trim()] || '');
+                    }
+                }
+                break;
+            } catch (e) {
+                // Ignore and try the next folder.
+            }
+        }
+    }
+    return getActionDescription(action.signature) || action.signature;
+}
+
 function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): void {
     const section = document.createElement('div');
     section.className = 'triggered-actions-section';
@@ -746,24 +779,27 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                     actionPrompt.setAttribute('data-tooltip', actionDescription);
                 }
 
+                // Human-readable, localized message for this action (same wording as the chat window).
+                const actionMessage = getActionChatMessage(letter, action);
+
                 // Actions that have already gone through approval are shown as a colored
                 // confirmation (green = approved, red = denied) instead of buttons.
                 if (action.status === 'approved') {
                     actionPrompt.classList.add('action-approved');
                     const text = document.createElement('span');
                     // @ts-ignore
-                    text.textContent = window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature);
+                    text.textContent = window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage);
                     actionPrompt.appendChild(text);
                 } else if (action.status === 'denied') {
                     actionPrompt.classList.add('action-denied');
                     const text = document.createElement('span');
                     // @ts-ignore
-                    text.textContent = window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature);
+                    text.textContent = window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage);
                     actionPrompt.appendChild(text);
                 } else {
                     // Pending action: show Approve/Deny buttons.
                     const text = document.createElement('span');
-                    text.textContent = action.signature; // Or a more descriptive message
+                    text.textContent = actionMessage;
 
                     const buttons = document.createElement('div');
                     buttons.classList.add('action-buttons');
@@ -791,7 +827,7 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                         });
                         actionPrompt.classList.add('action-approved');
                         // @ts-ignore
-                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', action.signature)}</span>`;
+                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage)}</span>`;
                     };
 
                     const denyButton = document.createElement('button');
@@ -814,7 +850,7 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                         });
                         actionPrompt.classList.add('action-denied');
                          // @ts-ignore
-                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', action.signature)}</span>`;
+                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage)}</span>`;
                     };
 
                     buttons.appendChild(approveButton);
