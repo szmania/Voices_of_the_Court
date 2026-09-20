@@ -92,14 +92,6 @@
             <p data-i18n="memory_constellation.embedding_api_usage">This embedding model is used to vectorize memories for the Memory Constellation below. It must produce 1536-dimensional vectors.</p>
             <div id="embedding-dimension-warning" class="status-message error" style="display: none; position: static; opacity: 1; margin-bottom: 10px;"></div>
             <config-api-selector id="api-selector" confID="embeddingApiConnectionConfig"></config-api-selector>
-            <div class="input-group">
-                <label for="embedding-dimension-input" data-i18n="memory_constellation.embedding_dimension">Embedding Dimension</label> <tooltip-text side="top" data-i18n="memory_constellation.embedding_dimension_tooltip"></tooltip-text>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" id="embedding-dimension-enabled" data-i18n-title="memory_constellation.embedding_dimension_enabled_tooltip" />
-                    <label for="embedding-dimension-enabled" data-i18n="memory_constellation.embedding_dimension_enabled">Overwrite embedding dimension</label>
-                    <input type="number" id="embedding-dimension-input" min="1" max="8192" step="1" value="1536" disabled />
-                </div>
-        <br>
 
         <div class="border" id="memory-constellation-box">
             <h2 data-i18n="memory_constellation.header">Memory Constellation</h2> <tooltip-text side="right" data-i18n="memory_constellation.header_tooltip"></tooltip-text>
@@ -189,6 +181,7 @@
         <hr>
         <button id="export-player-data" class="btn" data-i18n="settings.export_player_data_button" data-i18n-title="settings.export_player_data_tooltip">Export Player Data</button>
         <button id="import-player-data" class="btn" data-i18n="settings.import_player_data_button" data-i18n-title="settings.import_player_data_tooltip">Import Player Data</button>
+        <button id="reindex-embedding-dimensions" class="btn" data-i18n="memory_constellation.reindex_button" data-i18n-title="memory_constellation.reindex_tooltip">Re-index Vector DB</button>
     </div>
     </div>
     

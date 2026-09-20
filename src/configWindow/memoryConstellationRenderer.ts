@@ -100,8 +100,7 @@ async function init() {
     // Warn if existing memories use a specific embedding dimension
     await checkExistingMemoryDimensions();
 
-    // Set up the editable embedding dimension field
-    setupEmbeddingDimensionInput();
+
 
     const manualCompactionBtn = document.getElementById('manual-compaction-trigger');
     if (manualCompactionBtn) {
@@ -163,6 +162,31 @@ async function init() {
                 console.log('Player data imported from:', result.filePath);
             } else {
                 console.error('Import failed:', result.error);
+            }
+        });
+    }
+
+    const reindexBtn = document.getElementById('reindex-embedding-dimensions');
+    if (reindexBtn) {
+        reindexBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // @ts-ignore
+            showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.reindex_start', 'Re-indexing vector database. Please wait...'), 'info');
+            try {
+                const result = await ipcRenderer.invoke('reindex-embedding-dimensions');
+                if (result.success) {
+                    // @ts-ignore
+                    showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.reindex_complete', 'Re-index complete: {embedded}/{total} memories embedded.').replace('{embedded}', String(result.embedded)).replace('{total}', String(result.total)), 'success');
+                    updateLegacyMemoryStatus();
+                    updateMemoryConstellation();
+                    checkExistingMemoryDimensions();
+                } else {
+                    // @ts-ignore
+                    showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.reindex_fail', 'Re-index failed: {error}').replace('{error}', result.error), 'error');
+                }
+            } catch (err: any) {
+                // @ts-ignore
+                showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.reindex_fail', 'Re-index failed: {error}').replace('{error}', err.message), 'error');
             }
         });
     }
@@ -297,27 +321,8 @@ async function checkExistingMemoryDimensions() {
     }
 }
 
-function setupEmbeddingDimensionInput() {
-    const dimensionInput = document.getElementById('embedding-dimension-input') as HTMLInputElement;
-    if (!dimensionInput) return;
 
-    // Load current value from config
-    ipcRenderer.invoke('get-config').then((config: any) => {
-        const dim = config?.embeddingApiConnectionConfig?.connection?.embeddingDimension;
-        if (dim) {
-            dimensionInput.value = String(dim);
-        }
-    });
 
-    dimensionInput.addEventListener('change', () => {
-        const value = parseInt(dimensionInput.value, 10);
-        if (isNaN(value) || value < 1) {
-            dimensionInput.value = '1536';
-            return;
-        }
-        ipcRenderer.send('config-change-nested-nested', 'embeddingApiConnectionConfig', 'connection', 'embeddingDimension', value);
-    });
-}
 
 function setupFilterDropdowns() {
     playerIdSelect.addEventListener('change', () => {

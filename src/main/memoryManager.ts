@@ -654,4 +654,92 @@ export class MemoryManager {
             }
         }
     }
+
+    /**
+     * Re-embeds every stored memory at a new target dimension and rebuilds the
+     * sqlite-vec index so existing memories keep working after the user changes
+     * the embedding model / dimension override.
+     *
+     * The base `memories` table (text + raw BLOB) is preserved; only the vector
+     * index is dropped/recreated and the base BLOBs are refreshed to match the
+     * freshly embedded vectors. Vectors are written at their full dimension
+     * (no truncation) so the rebuilt index matches the target dimension exactly.
+     *
+     * @param embedFn - Async callback that embeds a single text into a number[]
+     *                  at the target dimension. Injected by the caller (main
+     *                  process) so MemoryManager stays decoupled from the
+     *                  EmbeddingProvider.
+     * @param targetDimension - The dimension the vec0 table should be rebuilt at.
+     * @returns A summary of how many memories were embedded vs failed.
+     */
+    public async reindexMemories(
+        embedFn: (text: string) => Promise<number[]>,
+        targetDimension: number
+    ): Promise<{ total: number; embedded: number; failed: number; errors: string[] }> {
+        const rows = this.db.prepare('SELECT id, text FROM memories').all() as { id: string; text: string }[];
+        const total = rows.length;
+        if (total === 0) {
+            return { total: 0, embedded: 0, failed: 0, errors: [] };
+        }
+
+        const embedded: { id: string; vector: number[] }[] = [];
+        const errors: string[] = [];
+        for (const row of rows) {
+            try {
+                const vector = await embedFn(row.text);
+                embedded.push({ id: row.id, vector });
+            } catch (e: any) {
+                errors.push(row.id);
+                console.error(`MemoryManager: Failed to re-embed memory ${row.id}:`, e);
+            }
+        }
+
+        // Safety: do not destroy the existing index unless we produced at least
+        // one valid embedding at the new dimension.
+        if (embedded.length === 0) {
+            return { total, embedded: 0, failed: errors.length, errors };
+        }
+
+        // Rebuild the vec0 table at the new dimension (vec0 cannot resize in place).
+        if (this.vecAvailable) {
+            this.db.exec('DROP TABLE IF EXISTS memory_vectors');
+            this.db.exec(`CREATE VIRTUAL TABLE IF NOT EXISTS memory_vectors USING vec0(
+                memory_id TEXT,
+                embedding FLOAT[${targetDimension}]
+            );`);
+        }
+
+        // Write full-dimension vectors (no truncation) into the rebuilt index.
+        const insertVectorStmt = this.db.prepare(
+            'INSERT OR REPLACE INTO memory_vectors (memory_id, embedding) VALUES (?, ?)'
+        );
+        const insertMany = this.db.transaction((items: { id: string; vector: number[] }[]) => {
+            for (const item of items) {
+                insertVectorStmt.run(item.id, this.rawVectorToBlob(item.vector));
+            }
+        });
+        insertMany(embedded);
+
+        // Refresh the base table BLOBs so base-table reads match the new index.
+        const updateStmt = this.db.prepare('UPDATE memories SET embedding = ? WHERE id = ?');
+        const updateMany = this.db.transaction((items: { id: string; vector: number[] }[]) => {
+            for (const item of items) {
+                updateStmt.run(this.rawVectorToBlob(item.vector), item.id);
+            }
+        });
+        updateMany(embedded);
+
+        console.log(`MemoryManager: Re-indexed ${embedded.length}/${total} memories at dimension ${targetDimension}.`);
+        return { total, embedded: embedded.length, failed: errors.length, errors };
+    }
+
+    /**
+     * Serialize a vector to a BLOB at its full dimension, bypassing the
+     * normalizeVector truncation used for regular inserts. Used by the reindex
+     * path so freshly embedded vectors are written at the target dimension even
+     * when it differs from the dimension the manager was constructed with.
+     */
+    private rawVectorToBlob(vector: number[]): Buffer {
+        return Buffer.from(new Float32Array(vector).buffer);
+    }
 }
