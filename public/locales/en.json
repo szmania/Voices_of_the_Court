@@ -995,6 +995,13 @@
     "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
   },
   "memory_constellation": {
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "embedding_test_success": "Connection successful. Model: {model}, Dimensions: {dimensions}.",
+    "embedding_test_success_matches": "Connection successful. Model: {model}, Dimensions: {dimensions} (matches overwrite).",
+    "embedding_test_mismatch": "Overwrite dimension mismatch: requested {requested} but model returned {returned}. Disable \"Overwrite embedding dimension\" or correct the value.",
+    "embedding_test_failed": "Connection failed.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
     "empty_title": "No Memories Found",
     "empty_subtitle": "Memories will appear here as your character experiences events in the game.",
     "header": "Memory Constellation",
