@@ -126,9 +126,20 @@ export async function checkUserData(){
         synchronizeDirectory(sourcePromptsConfigPath, promptsConfigPath);
     }
 
+    // Refresh the installed default_config.json from the repo default on every launch.
+    // The merge below reads default_config.json as its source of truth, so a stale
+    // installed copy (predating newly added keys) would never inject those keys into
+    // config.json. Only default_config.json is refreshed here; config.json (the user's
+    // actual settings) is left untouched.
+    const sourceDefaultConfigPath = path.join(defaultUserdataPath, 'configs', 'default_config.json');
+    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
+    if (fs.existsSync(sourceDefaultConfigPath)) {
+        fs.copyFileSync(sourceDefaultConfigPath, defaultConfigDestPath);
+        console.log('Refreshed default_config.json from repo default.');
+    }
+
     // The old validation logic for config can still be useful
     const configPath = path.join(userPath, "configs", "config.json");
-    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
     console.log(`Validating config file at: ${configPath}`);
 
     if(existsSync(configPath)){
