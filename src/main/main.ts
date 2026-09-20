@@ -1,3 +1,4 @@
+import { isPromptKey } from '../shared/promptKeys';
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 app.commandLine.appendSwitch('disable-gpu');
 import { getEncoding, Tiktoken } from "js-tiktoken";
@@ -1646,38 +1647,16 @@ ipcMain.handle('save-prompt-presets', async (event, presets) => {
 });
 
 
-const promptKeys = [
-    'mainPrompt',
-    'summarizePrompt',
-    'memoriesPrompt',
-    'suffixPrompt',
-    'selfTalkPrompt',
-    'selfTalkSummarizePrompt',
-    'narrativePrompt',
-    'sceneDescriptionPrompt',
-    'actionPrompt',
-    'letterPrompt',
-    'letterSummaryPrompt',
-    'diaryPrompt',
-    'diarySummarizePrompt',
-    'diaryForLetterPrompt'
-];
-
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     console.log(`IPC: Received config-change event. ID: ${confID}, New Value: ${newValue}`);
 
-    if (promptKeys.includes(confID)) {
-        // @ts-ignore
-        if (!config.prompts[config.language]) {
-            // @ts-ignore
-            config.prompts[config.language] = {};
-        }
-        // @ts-ignore
-        config.prompts[config.language][confID] = newValue;
-    } else {
-        // @ts-ignore
-        config[confID] = newValue;
+    // Stale renderers must not write prompt values to the retired config schema.
+    // Prompt edits are persisted explicitly by the preset editor.
+    if (isPromptKey(confID)) {
+        return;
     }
+    //@ts-ignore
+    config[confID] = newValue;
 
     config.export();
     diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
