@@ -1832,9 +1832,22 @@ mark.current-highlight {
     z-index: 1001;
     border: 1px solid #5a4a35;
     pointer-events: none;
-}
-
 .action-prompt[data-tooltip]:hover::after {
     opacity: 1;
     visibility: visible;
+}
+
+/* Warning shown when the letters tab is viewing a player that is not the currently
+   played character (approvals for that player are queued instead of executed). */
+.player-mismatch-warning {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid #ffab00;
+    border-radius: 4px;
+    background-color: rgba(255, 171, 0, 0.12);
+    color: #ffab00;
+    font-family: 'Gitan', sans-serif;
+    font-size: 0.85em;
+    max-width: 320px;
+}
 }

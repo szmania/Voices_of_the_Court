@@ -15,6 +15,7 @@ import { Letter } from "./letter/Letter";
 import { Letter as ILetter, StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { LetterManager } from "./letter/LetterManager";
+import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
 import { parseLog } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
@@ -414,6 +415,78 @@ function removeLettersAfterDate(cutoffDate: number): void {
     }
 }
 
+/**
+ * Loads the action module and writes its effect to the letter run file, mirroring the
+ * live-approve code path. Returns true on success. Used both for immediate approval of
+ * the active player's actions and for executing queued approvals when a player resumes.
+ */
+async function executeLetterActionEffect(actionSignature: string, args: any[], sourceId: number, targetId: number): Promise<boolean> {
+    try {
+        const allActions: any[] = [];
+        const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
+        const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
+        const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
+
+        for (const file of standardActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'standard', file))];
+            allActions.push(require(path.join(actionsPath, 'standard', file)));
+        }
+        for (const file of customActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'custom', file))];
+            allActions.push(require(path.join(actionsPath, 'custom', file)));
+        }
+
+        const action = allActions.find(a => a.signature === actionSignature);
+        if (!action) {
+            console.error(`[LetterApprovalQueue] Action with signature '${actionSignature}' not found.`);
+            return false;
+        }
+
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            console.error('[LetterApprovalQueue] Could not parse gameData to execute letter action.');
+            return false;
+        }
+
+        const letterRunFileManager = new RunFileManager(config.userFolderPath);
+        let effectBody = "";
+        action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
+
+        ActionEffectWriter.writeEffect(letterRunFileManager, gameData, sourceId, targetId, effectBody);
+        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
+        return true;
+    } catch (e: any) {
+        console.error(`[LetterApprovalQueue] Failed to execute letter action '${actionSignature}': ${e.message}`);
+        return false;
+    }
+}
+
+/**
+ * Executes every queued approval belonging to the given player exactly once, removing
+ * each entry from the queue on success. Called when the active session player becomes
+ * that player.
+ */
+async function processQueuedApprovals(playerId: string): Promise<void> {
+    const queued = LetterApprovalQueue.getQueuedApprovalsForPlayer(playerId);
+    if (queued.length === 0) return;
+    console.log(`[LetterApprovalQueue] Processing ${queued.length} queued letter action approval(s) for player ${playerId}.`);
+    for (const entry of queued) {
+        const ok = await executeLetterActionEffect(entry.actionSignature, entry.args, entry.sourceId, entry.targetId);
+        if (ok) {
+            LetterApprovalQueue.removeQueuedApproval(entry.id);
+            console.log(`[LetterApprovalQueue] Executed queued letter action '${entry.actionSignature}' for player ${playerId}.`);
+        } else {
+            console.warn(`[LetterApprovalQueue] Skipping queued letter action '${entry.actionSignature}' for player ${playerId} (execution failed).`);
+        }
+    }
+}
+
+function broadcastCurrentSessionPlayer(): void {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('current-session-player-changed', currentSessionPlayerId);
+    });
+}
+
 export function updateCurrentDate(newTotalDays: number) {
     const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
@@ -441,6 +514,8 @@ export function updateCurrentDate(newTotalDays: number) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
                 clearCachedGameData();
                 currentSessionPlayerId = newPlayerId;
+                broadcastCurrentSessionPlayer();
+                processQueuedApprovals(newPlayerId);
             }
         });
     }
@@ -1138,6 +1213,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             }
             setCachedGameData(gameData);
             currentSessionPlayerId = String(gameData.playerID);
+            broadcastCurrentSessionPlayer();
+            processQueuedApprovals(String(gameData.playerID));
 
             if (gameData.totalDays) {
                 updateCurrentDate(gameData.totalDays);
@@ -2048,41 +2125,31 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     }
 });
 
+function broadcastCurrentSessionPlayer(): void {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('current-session-player-changed', currentSessionPlayerId);
+    });
+}
+
+ipcMain.handle('get-current-session-player', () => currentSessionPlayerId);
+
 ipcMain.on('approve-letter-action', async (event, { playerId, characterId, letterId, actionSignature, args, sourceId, targetId }) => {
     console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
     try {
-        const allActions: any[] = [];
-        const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
-        const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
-        const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
-
-        for(const file of standardActionFiles) {
-            delete require.cache[require.resolve(path.join(actionsPath, 'standard', file))];
-            allActions.push(require(path.join(actionsPath, 'standard', file)));
+        const isActivePlayer = currentSessionPlayerId != null && playerId === currentSessionPlayerId;
+        if (isActivePlayer) {
+            const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId);
+            if (!ok) {
+                throw new Error(`Failed to execute approved letter action '${actionSignature}'.`);
+            }
+            console.log(`Approved letter action '${actionSignature}' executed successfully.`);
+        } else {
+            // The letter belongs to a player who is not currently played. Persist the
+            // approval status now, but queue the actual effect execution until that player
+            // becomes the active session player.
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId });
+            console.log(`Approved letter action '${actionSignature}' for non-active player ${playerId}. Queued for execution when that player is played.`);
         }
-        for(const file of customActionFiles) {
-            delete require.cache[require.resolve(path.join(actionsPath, 'custom', file))];
-            allActions.push(require(path.join(actionsPath, 'custom', file)));
-        }
-
-        const action = allActions.find(a => a.signature === actionSignature);
-        if (!action) {
-            throw new Error(`Action with signature '${actionSignature}' not found.`);
-        }
-
-        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-        if (!gameData) {
-            throw new Error('Could not parse gameData to execute letter action.');
-        }
-
-        const letterRunFileManager = new RunFileManager(config.userFolderPath);
-        let effectBody = "";
-        action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
-
-        ActionEffectWriter.writeEffect(letterRunFileManager, gameData, sourceId, targetId, effectBody);
-        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
-
-        console.log(`Approved letter action '${actionSignature}' executed successfully.`);
         // Persist the approval status so it survives navigation and app restarts.
         if (playerId && characterId) {
             LetterManager.getInstance().updateLetterActionStatus(playerId, characterId, letterId, actionSignature, 'approved');

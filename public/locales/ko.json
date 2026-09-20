@@ -791,7 +791,8 @@
     "triggered_actions": "트리거된 액션",
     "action_signature": "액션",
     "action_trigger": "트리거",
-    "no_actions_triggered": "트리거된 액션이 없습니다."
+    "no_actions_triggered": "트리거된 액션이 없습니다.",
+    "player_mismatch_warning": "경고: 선택한 플레이어는 현재 플레이 중인 캐릭터가 아닙니다. 승인된 작업은 해당 플레이어가 플레이될 때까지 대기열에 저장됩니다."
   },
   "history": {
     "header": "대화 기록 뷰어",

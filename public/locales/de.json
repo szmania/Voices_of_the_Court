@@ -794,7 +794,8 @@
     "triggered_actions": "Ausgelöste Aktionen",
     "action_signature": "Aktion",
     "action_trigger": "Auslöser",
-    "no_actions_triggered": "Keine Aktionen ausgelöst."
+    "no_actions_triggered": "Keine Aktionen ausgelöst.",
+    "player_mismatch_warning": "Warnung: Der ausgewählte Spieler ist nicht die aktuell gespielte Figur. Genehmigte Aktionen werden in die Warteschlange gestellt, bis dieser Spieler gespielt wird."
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

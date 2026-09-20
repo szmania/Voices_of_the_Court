@@ -795,7 +795,8 @@
     "triggered_actions": "Actions déclenchées",
     "action_signature": "Action",
     "action_trigger": "Déclencheur",
-    "no_actions_triggered": "Aucune action déclenchée."
+    "no_actions_triggered": "Aucune action déclenchée.",
+    "player_mismatch_warning": "Avertissement : le joueur sélectionné n'est pas le personnage actuellement joué. Les actions approuvées seront mises en file d'attente jusqu'à ce que ce joueur soit joué."
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

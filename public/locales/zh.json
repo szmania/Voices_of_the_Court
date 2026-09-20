@@ -801,7 +801,8 @@
     "triggered_actions": "触发的动作",
     "action_signature": "动作",
     "action_trigger": "触发器",
-    "no_actions_triggered": "没有触发的动作。"
+    "no_actions_triggered": "没有触发的动作。",
+    "player_mismatch_warning": "警告：所选玩家不是当前正在游玩的角色。已批准的操作将排队，直到该玩家被游玩。"
   },
   "diary_manager": {
     "header": "日记管理器",

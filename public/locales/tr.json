@@ -799,7 +799,8 @@
     "triggered_actions": "Tetiklenen eylemler",
     "action_signature": "Eylem",
     "action_trigger": "Tetikleyici",
-    "no_actions_triggered": "Hiçbir eylem tetiklenmedi."
+    "no_actions_triggered": "Hiçbir eylem tetiklenmedi.",
+    "player_mismatch_warning": "Uyarı: Seçilen oyuncu şu anda oynanan karakter değil. Onaylanan eylemler, o oyuncu oynanana kadar kuyruğa alınacaktır."
   },
   "history": {
     "header": "Konuşma Geçmişi Görüntüleyici",

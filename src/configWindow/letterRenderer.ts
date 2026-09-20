@@ -205,6 +205,13 @@ let countdown = 20;
 let refreshInterval: NodeJS.Timeout;
 let actionsPath: string | null = null;
 let currentLanguage = 'en';
+// The player currently being played in-game (from main). Used to warn when the letters
+// tab is viewing a different player, since approvals for a non-active player are queued.
+let currentSessionPlayerId: string | null = null;
+// Session-local record of every action the user approved/denied, keyed by
+// letterId|signature|triggerOn. Applied onto freshly reloaded letters so a reload can
+// never show an approved/denied action as pending again, even if the disk write raced.
+const userActionStatuses = new Map<string, 'approved' | 'denied'>();
 
 function renderTriggeredActionsListForListItem(letter: Letter | undefined): string {
     if (!letter || !letter.triggeredActions || letter.triggeredActions.length === 0) {
@@ -771,6 +778,8 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
 
                     approveButton.onclick = () => {
                         action.status = 'approved';
+                        userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'approved');
+                        action.status = 'approved';
                         ipcRenderer.send('approve-letter-action', {
                             playerId: selectedPlayerId,
                             characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
@@ -794,6 +803,8 @@ function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): 
                     denyButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...'));
 
                     denyButton.onclick = () => {
+                        action.status = 'denied';
+                        userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'denied');
                         action.status = 'denied';
                         ipcRenderer.send('deny-letter-action', {
                             playerId: selectedPlayerId,
@@ -989,6 +1000,26 @@ function renderLetterContent(letter: Letter) {
     }
 }
 
+function updatePlayerMismatchWarning() {
+    const controls = document.getElementById('letter-controls');
+    if (!controls) return;
+    let warning = document.getElementById('player-mismatch-warning') as HTMLDivElement | null;
+    const mismatch = currentSessionPlayerId != null && selectedPlayerId != null && selectedPlayerId !== currentSessionPlayerId;
+    if (mismatch) {
+        if (!warning) {
+            warning = document.createElement('div');
+            warning.id = 'player-mismatch-warning';
+            warning.className = 'player-mismatch-warning';
+            controls.appendChild(warning);
+        }
+        // @ts-ignore
+        warning.textContent = window.LocalizationManager.getTranslation('letters.player_mismatch_warning', 'Warning: The selected player is not the currently played character. Approving actions will be queued until that player is played.');
+        warning.style.display = 'inline-block';
+    } else if (warning) {
+        warning.style.display = 'none';
+    }
+}
+
 async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string) {
     loader.style.display = 'block';
     try {
@@ -1017,6 +1048,9 @@ async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string
         }
 
         selectedPlayerId = playerSelect.value;
+        await loadCharacters(selectedPlayerId, currentCharacterId);
+        await loadLetters(selectedPlayerId);
+        updatePlayerMismatchWarning();
         await loadCharacters(selectedPlayerId, currentCharacterId);
         await loadLetters(selectedPlayerId);
     } catch (error) {
@@ -1061,6 +1095,18 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
+    // Reconcile any user-set approval/denial statuses from this session onto the freshly
+    // reloaded objects. This guarantees a reload cannot show an approved/denied action as
+    // pending again within the same session, even if the disk write raced with the reload.
+    if (userActionStatuses.size > 0) {
+        for (const letter of allLetters) {
+            if (!letter.triggeredActions) continue;
+            for (const action of letter.triggeredActions) {
+                const status = userActionStatuses.get(`${letter.id}|${action.signature}|${action.triggerOn}`);
+                if (status) action.status = status;
+            }
+        }
+    }
     // Invalidate the cached letter pairs whenever fresh data arrives, so newly attached
     // triggered actions (e.g. player actions on a sent letter) are shown on refresh.
     cachedLetterPairs = null;
@@ -1084,6 +1130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     actionsPath = await ipcRenderer.invoke('get-userdata-path').then((p: string) => p ? path.join(p, 'scripts', 'actions') : null);
 
     currentGameDay = await ipcRenderer.invoke('get-current-game-day');
+    currentSessionPlayerId = await ipcRenderer.invoke('get-current-session-player');
     console.log(`Initial game day fetched: ${currentGameDay}`);
     // @ts-ignore
     const successMsg = window.LocalizationManager.getTranslation('letters.load_success', 'Letters data successfully loaded');
@@ -1192,7 +1239,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     refreshBtn.addEventListener('click', () => refreshLetters(false));
-
+    playerSelect.addEventListener('change', async () => {
+        selectedPlayerId = playerSelect.value;
+        // When player changes, reset character to 'all'
+        await loadCharacters(selectedPlayerId, 'all');
+        updatePlayerMismatchWarning();
+    });
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
         // When player changes, reset character to 'all'
@@ -1223,6 +1275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     loadPlayers();
+    updatePlayerMismatchWarning();
     // Initial load of letter thread status
     ipcRenderer.invoke('get-letter-thread-status').then(count => {
         updateLetterThreadStatus(count);
@@ -1237,6 +1290,11 @@ ipcRenderer.on('update-theme', (event, theme: string) => {
 
 ipcRenderer.on('update-language', (event, lang) => {
     initLocalization(lang);
+});
+
+ipcRenderer.on('current-session-player-changed', (event, playerId: string | null) => {
+    currentSessionPlayerId = playerId;
+    updatePlayerMismatchWarning();
 });
 
 ipcRenderer.on('letter-status-changed', () => {

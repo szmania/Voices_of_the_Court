@@ -791,7 +791,8 @@
     "triggered_actions": "トリガーされたアクション",
     "action_signature": "アクション",
     "action_trigger": "トリガー",
-    "no_actions_triggered": "トリガーされたアクションはありません。"
+    "no_actions_triggered": "トリガーされたアクションはありません。",
+    "player_mismatch_warning": "警告: 選択したプレイヤーは現在プレイ中のキャラクターではありません。承認したアクションは、そのプレイヤーがプレイされるまでキューに入れられます。"
   },
   "history": {
     "header": "会話履歴ビューアー",

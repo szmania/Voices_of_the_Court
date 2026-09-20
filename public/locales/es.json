@@ -795,7 +795,8 @@
     "triggered_actions": "Acciones desencadenadas",
     "action_signature": "Acción",
     "action_trigger": "Disparador",
-    "no_actions_triggered": "No se desencadenaron acciones."
+    "no_actions_triggered": "No se desencadenaron acciones.",
+    "player_mismatch_warning": "Advertencia: el jugador seleccionado no es el personaje que se está jugando actualmente. Las acciones aprobadas se pondrán en cola hasta que se juegue a ese jugador."
   },
   "history": {
     "header": "Visor del historial de conversaciones",
