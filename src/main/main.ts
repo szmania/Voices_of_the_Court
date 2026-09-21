@@ -454,6 +454,12 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
 
         ActionEffectWriter.writeEffect(letterRunFileManager, gameData, sourceId, targetId, effectBody);
         letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
+        // Clear the letter actions file after the game has consumed it,
+        // mirroring the conversation run file pattern (Conversation.ts ~line 1746).
+        setTimeout(() => {
+            letterRunFileManager.clear();
+            console.log('[LetterApprovalQueue] Cleared letter actions file after trigger event.');
+        }, 800);
         return true;
     } catch (e: any) {
         console.error(`[LetterApprovalQueue] Failed to execute letter action '${actionSignature}': ${e.message}`);

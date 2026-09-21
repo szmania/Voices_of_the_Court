@@ -8,6 +8,7 @@ import { Letter } from './letterInterfaces';
 import { RunFileManager } from '../RunFileManager';
 import { ActionEffectWriter } from '../conversation/ActionEffectWriter';
 import { parseLog } from '../../shared/gameData/parseLog';
+import {app} from "electron";
 
 export interface LetterAssociatedAction {
   signature: string;
@@ -24,14 +25,14 @@ export class LetterActionTrigger {
   private static actionCache: Map<string, Action> = new Map();
   private static letterRunFileManager: RunFileManager;
 
-  private static async loadAction(signature: string, userDataPath: string): Promise<Action | null> {
+  private static async loadAction(signature: string, votcDataPath: string): Promise<Action | null> {
     if (this.actionCache.has(signature)) {
       return this.actionCache.get(signature) || null;
     }
 
     const actionFolders = ['standard', 'custom'];
     for (const folder of actionFolders) {
-      const actionPath = path.join(userDataPath, 'scripts', 'actions', folder, `${signature}.js`);
+      const actionPath = path.join(votcDataPath, 'scripts', 'actions', folder, `${signature}.js`);
       try {
         await fs.access(actionPath);
         const actionModule = require(actionPath);
@@ -57,8 +58,9 @@ export class LetterActionTrigger {
     if (!this.letterRunFileManager) {
       this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
     }
+    const userDataPath = app.getPath('userData');
 
-    const action = await this.loadAction(actionSpec.signature, config.userFolderPath);
+    const action = await this.loadAction(actionSpec.signature, path.join(userDataPath, 'votc_data'));
     if (!action) {
       return { success: false, message: `Action module not found for signature: ${actionSpec.signature}` };
     }
@@ -96,7 +98,7 @@ export class LetterActionTrigger {
 
     try {
       action.run(gameData, runGameEffect, actionSpec.args, sourceId, targetId);
-      
+
       ActionEffectWriter.appendEffect(
         this.letterRunFileManager,
         gameData,
@@ -105,10 +107,15 @@ export class LetterActionTrigger {
         effectBody
       );
 
-      // Trigger the event to process the run file
+      // Trigger the event to process the run file, then clear it after the game
+      // has had time to consume it (mirrors the conversation run file pattern).
       this.letterRunFileManager.append(`
         root = {trigger_event = mcc_event_v2.9003}
       `);
+      setTimeout(() => {
+        this.letterRunFileManager.clear();
+        console.log('[LetterActionTrigger] Cleared votc_letter_actions.txt after trigger event.');
+      }, 800);
 
       return { success: true };
     } catch (e) {
