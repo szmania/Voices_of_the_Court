@@ -18,6 +18,16 @@ function getSummaryCheckpointEpoch(summary: any): number | undefined {
     return Number.isFinite(epoch) ? epoch : undefined;
 }
 
+/**
+ * Merge identity for a summary coming from either storage layout. Summaries
+ * carry no id of their own — the same text for the same character on the same
+ * date is the same summary — so the key is built from the fields every version
+ * has written.
+ */
+function getSummaryIdentityKey(summary: any, characterId: string): string {
+    return [characterId, summary?.date ?? '', summary?.content ?? ''].join('\u001f');
+}
+
 export function splitSummariesForCheckpoint<T extends { votcCheckpointEpoch?: number }>(summaries: T[], checkpointEpoch: number): { visibleSummaries: T[], futureSummaries: T[] } {
     const visibleSummaries: T[] = [];
     const futureSummaries: T[] = [];
@@ -253,51 +263,79 @@ export async function readSummaryFile(
 ): Promise<Summary[]> {
     try {
         // Campaign-scoped layout is rooted at the userData dir; the legacy
-        // layout hangs off the votc_data dir passed in by callers.
+        // layout hangs off the votc_data dir passed in by callers. Both are read
+        // and merged: the campaign store is authoritative for anything written
+        // since it existed, and the flat dir is where every summary written
+        // before the campaign scoping lives. Reading only the campaign copy once
+        // an identity is known would make existing users' summaries vanish.
+        const legacyDir = path.join(userDataPath, 'conversation_summaries', playerId);
         const summaryDir = identity
             ? campaignConversationSummariesDir(app.getPath('userData'), identity)
-            : path.join(userDataPath, 'conversation_summaries', playerId);
-        
-        // Ensure directory exists
+            : legacyDir;
+        const candidateDirs = identity ? [summaryDir, legacyDir] : [legacyDir];
+
+        // Ensure the primary directory exists (kept from the single-layout
+        // behavior: the summary window creates it before its first save).
         if (!fs.existsSync(summaryDir)) {
             fs.mkdirSync(summaryDir, { recursive: true });
-            return [];
         }
-        
-        // Read all JSON files in the directory
-        const files = fs.readdirSync(summaryDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+
+        // Read all JSON files in every candidate directory, most specific
+        // first; the same summary in two layouts is only reported once.
         const allSummaries: Summary[] = [];
-        
-        for (const file of files) {
-            const filePath = path.join(summaryDir, file);
-            try {
-                const content = fs.readFileSync(filePath, 'utf8');
-                const summaries: Summary[] = JSON.parse(content);
-                // Add character ID info to each summary
-                const characterId = path.basename(file, '.json');
-                const summariesWithCharacterId = summaries.map((summary) => ({
-                    ...summary,
-                    characterId
-                }));
-                allSummaries.push(...summariesWithCharacterId);
-            } catch (error) {
-                console.error(`Failed to read file ${filePath}:`, error);
+        const seenSummaryKeys = new Set<string>();
+
+        for (const candidateDir of candidateDirs) {
+            if (!fs.existsSync(candidateDir)) {
+                continue;
+            }
+            const files = fs.readdirSync(candidateDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+            for (const file of files) {
+                const filePath = path.join(candidateDir, file);
+                try {
+                    const content = fs.readFileSync(filePath, 'utf8');
+                    const summaries: Summary[] = JSON.parse(content);
+                    if (!Array.isArray(summaries)) {
+                        throw new Error(`${file} does not contain a summary array`);
+                    }
+                    // Add character ID info to each summary
+                    const characterId = path.basename(file, '.json');
+                    for (const summary of summaries) {
+                        const key = getSummaryIdentityKey(summary, characterId);
+                        if (seenSummaryKeys.has(key)) {
+                            continue;
+                        }
+                        seenSummaryKeys.add(key);
+                        allSummaries.push({
+                            ...summary,
+                            characterId
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Failed to read file ${filePath}:`, error);
+                }
             }
         }
-        
+
         // First apply the legacy epoch filter (preserves all timeline-tagged
         // records regardless of epoch), then apply graph-based visibility for
         // timeline records so other-branch summaries are hidden.
-        // NOTE: no summary writer currently stamps votcTimelineNodeId, so the
-        // node-tagged branch of isRecordVisibleForContext is dormant (and
-        // fail-closed when registry/currentNodeId are absent). When P7
-        // introduces node stamping for summaries, revisit this filter.
+        // Node stamping arrives with the close path (a closed conversation
+        // stamps the node/epoch it committed). Node-tagged records are filtered
+        // by branch visibility only when the caller threaded a registry and the
+        // current node: isRecordVisibleForContext fail-closes without them, and
+        // hiding every summary written after this release would be
+        // indistinguishable from data loss to the player. Without that context
+        // the epoch filter above still applies, which is all pre-node records
+        // ever had.
         const epochFiltered = checkpointEpoch === undefined
             ? allSummaries
             : filterSummariesForCheckpoint(allSummaries, checkpointEpoch);
-        const visibleSummaries = epochFiltered.filter((summary) =>
-            isRecordVisibleForContext(registry, currentNodeId, summary, checkpointEpoch)
-        );
+        const visibleSummaries = registry && currentNodeId
+            ? epochFiltered.filter((summary) =>
+                isRecordVisibleForContext(registry, currentNodeId, summary, checkpointEpoch)
+            )
+            : epochFiltered;
 
         // Sort by date
         visibleSummaries.sort((a, b) => {

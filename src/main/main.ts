@@ -15,6 +15,7 @@ import { Letter } from "./letter/Letter";
 import { StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { LetterManager } from "./letter/LetterManager";
+import { evaluateReplyDeliveryGate } from "./letter/letterDeliveryGate.js";
 import { parseLog } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
@@ -29,6 +30,7 @@ import { registerTimelineIpc, resolveTimelineWindowRequest } from "./ipc/timelin
 import type { TimelineWindowContext } from "./managerClipboardPayload.js";
 import { decideManagerWindowContext } from "./managerClipboardPayload.js";
 import { reportUnsupportedTimelineSchema } from "./timelineRegistryRecovery.js";
+import { buildContextFromGameData } from "./timelineManager.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -289,6 +291,9 @@ export function _private_setCurrentTotalDays(days: number): void { currentTotalD
 export function _private_getStoredLetters(): Map<string, StoredLetter> { return storedLetters; }
 export function _private_setLastLetterSentToGame(letter: StoredLetter | null): void { lastLetterSentToGame = letter; }
 export function _private_setSessionPlayerId(id: string | null): void { currentSessionPlayerId = id; }
+// The real config is built in app.whenReady() from the user's config file, which
+// tests do not have; this lets a test exercise config-dependent flows.
+export function _private_setConfig(value: Config): void { config = value; }
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
@@ -326,6 +331,18 @@ function rehydratePendingReplyLetters(playerId: string): void {
     if (rehydratedCount > 0) {
         console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
         checkAndDeliverLetters();
+    }
+}
+
+// Campaign id of the live game context, as far as the log can tell. Undefined
+// when the mod in use does not emit the v2 campaign protocol tail (legacy mod),
+// or when the tail is present but malformed.
+function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
+    try {
+        return buildContextFromGameData(gameData).identity?.campaignId;
+    } catch (error) {
+        console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
+        return undefined;
     }
 }
 
@@ -370,6 +387,33 @@ export async function checkAndDeliverLetters() {
                 currentDateString = totalDaysToDateString(currentTotalDays);
             } else {
                 currentDateString = gameData.date;
+
+                // The queue can hold replies rehydrated from another campaign's
+                // store or produced by generation that finished after a campaign
+                // switch. Deliver only when the reply's own campaign and player
+                // match the context we are about to write into; otherwise keep
+                // the record pending instead of consuming the current
+                // campaign's letter slot for a foreign letter. Replies queued
+                // before this release carry no campaign stamp at all and are
+                // delivered on the player check alone — back-filling a campaign
+                // id here would claim them for whichever campaign is loaded.
+                const currentCampaignId = resolveDeliveryCampaignId(gameData);
+                const verdict = evaluateReplyDeliveryGate(
+                    {
+                        recipientId: String(storedLetter.letter.recipient.id),
+                        campaignId: storedLetter.letter.timelineCampaignId
+                    },
+                    currentCampaignId ? {campaignId: currentCampaignId} : undefined,
+                    String(gameData.playerID),
+                    {allowUnstampedLegacyReplies: true}
+                );
+                if (!verdict.deliverable) {
+                    console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
+                    continue;
+                }
+                if (verdict.reason === 'legacy_reply_unstamped') {
+                    console.log(`Letter delivery for ${letterId}: reply predates campaign stamping (no campaign id on the record); delivering on the player match and leaving it unclaimed by any campaign.`);
+                }
             }
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);

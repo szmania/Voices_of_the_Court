@@ -23,7 +23,12 @@ import { randomUUID } from 'crypto';
 import {Message, MessageChunk, ErrorMessage, Summary, Action, ActionResponse, PendingAction} from '../ts/conversation_interfaces.js';
 import { parseGameDate } from '../../shared/dateUtils.js';
 import { listPromptTranscriptFiles } from '../conversationHistory.js';
-import { archiveFutureSummaryFilesForPlayer, filterSummariesForCheckpoint } from '../summaryManager.js';
+// Summaries are filtered by epoch/node at read time (summaryManager.readSummaryFile),
+// which is non-destructive: an older save hides later summaries and loading the
+// newer save shows them again. Archiving them out of the summary file is
+// therefore deliberately NOT wired here — archiveFutureSummaryFilesForPlayer has
+// no readopt path yet, so moving records would lose them for good on a
+// load-old-then-load-new round trip.
 import { getSimilarity } from '../../shared/stringUtils.js';
 import { parseVariables } from '../parseVariables.js';
 import { MemoryCompactor } from './MemoryCompactor.js';
@@ -1842,6 +1847,12 @@ ${timelineLines}
         const nextCheckpointEpoch = this.gameData.votcCheckpointEpoch + 1;
         this.cancelGeneration(); // Cancel any ongoing generation.
 
+        // Node/epoch this close commits, used to stamp the summaries written
+        // below. Stays undefined when the close could not advance the
+        // checkpoint (legacy mod, timeline failure): those summaries are then
+        // unlabelled and visible everywhere, exactly like pre-timeline data.
+        let closeStamp: { checkpointEpoch: number, timelineNodeId: string } | undefined;
+
         // §9.3 P5.4 fix C1: wrap the close-request lifecycle in try/finally so
         // the stored requestKey UUID is cleared regardless of outcome (success,
         // fail-closed identity error, or unexpected throw). Idempotent.
@@ -1902,6 +1913,9 @@ ${timelineLines}
                     ? this.buildCloseConversationEffect(nextCheckpointEpoch, timeline)
                     : CLOSE_CONVERSATION_ONLY_EFFECT
             );
+            if (timeline) {
+                closeStamp = {checkpointEpoch: nextCheckpointEpoch, timelineNodeId: timeline.nodeId};
+            }
             setTimeout(() => {
                 this.runFileManager.clear();  // Clear the event file after a delay (to ensure the game has read it)
                 console.log('Run file cleared after conversation end event.');
@@ -1914,7 +1928,7 @@ ${timelineLines}
         this._saveHistoryToFile();
 
         // --- Part 2: Asynchronous Summarization (no await, runs in background) ---
-        this._generateSummariesAndDiariesInBackground().catch(err => {
+        this._generateSummariesAndDiariesInBackground(closeStamp).catch(err => {
             console.error("Error during background summarization and diary generation:", err);
         });
     }
@@ -2018,7 +2032,7 @@ ${timelineLines}
         }
     }
 
-    private async _generateSummariesAndDiariesInBackground() {
+    private async _generateSummariesAndDiariesInBackground(closeStamp?: { checkpointEpoch: number, timelineNodeId: string }) {
         const hasDialogue = this.messages.some(
             msg => (msg.role === 'user' || msg.role === 'assistant') && msg.content !== this.notSpokenYetText
         );
@@ -2091,7 +2105,13 @@ ${timelineLines}
 
                 const newSummary: Summary = {
                     date: this.gameData.date,
-                    content: summaryContent
+                    content: summaryContent,
+                    ...(closeStamp
+                        ? {
+                            votcCheckpointEpoch: closeStamp.checkpointEpoch,
+                            votcTimelineNodeId: closeStamp.timelineNodeId
+                        }
+                        : {})
                 };
                 console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
 

@@ -108,41 +108,163 @@ function collectHistoryNamesClaimedByOtherCampaigns(playerId: string, exceptCamp
     return claimed;
 }
 
-function letterHistoryDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
-    // Timeline letter-history layout. The legacy branch
-    // (`votc_data/letter_history/player_<id>/`) is the location 1.x wrote
-    // outgoing/incoming letter history records before the campaign-scoped
-    // migration (1.x commits 884b29ec -> 1270eb20/92858374) and is kept as a
-    // read-only fallback for data written before campaign identities existed;
-    // new writes go through the campaign branch below once the Task 5 letter
-    // writer wiring lands. Unrelated to LetterManager chat letters, which live
-    // at `votc_data/letter_history/<playerId>/<characterId>.json` and are a
-    // separate feature never surfaced in this archive view.
-    const userDataPath = app.getPath('userData');
-    return identity
-        ? campaignLetterHistoryDir(userDataPath, identity)
-        : path.join(userDataPath, 'votc_data', 'letter_history', `player_${playerId}`);
+/**
+ * Merge keys of the records another campaign already holds in the same
+ * per-character file. Letter history files are keyed by character, not by
+ * record, so a file name that exists in another campaign does NOT mean that
+ * campaign owns the file's legacy records; the claim has to be per record.
+ * Ownership is checked because the other campaign's copy is authoritative for
+ * those records — repeating them here would mix a foreign campaign's letters
+ * into this one's view — while legacy records no campaign holds still stay
+ * visible, like every other unattributed record (explicit import is a later
+ * PR).
+ */
+function collectRecordsClaimedByOtherCampaigns(playerId: string, exceptCampaignId: string, subDir: string, fileName: string): Set<string> {
+    const claimed = new Set<string>();
+    try {
+        const campaignsRoot = path.join(app.getPath('userData'), 'votc_data', 'campaigns');
+        if (!fs.existsSync(campaignsRoot)) {
+            return claimed;
+        }
+        for (const campaignId of fs.readdirSync(campaignsRoot)) {
+            if (campaignId === exceptCampaignId) continue;
+            const filePath = path.join(campaignsRoot, campaignId, 'players', playerId, subDir, fileName);
+            if (!fs.existsSync(filePath)) continue;
+            const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            if (!Array.isArray(parsed)) continue;
+            for (const record of parsed) {
+                for (const key of getHistoryRecordIdentityKeys(record)) {
+                    claimed.add(key);
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Could not scan campaign record ownership:', error);
+    }
+    return claimed;
 }
 
-function letterHistoryArchivedDirFor(playerId: string, identity?: CampaignPlayerIdentity): string {
-    const userDataPath = app.getPath('userData');
-    return identity
-        ? campaignLetterHistoryArchivedDir(userDataPath, identity)
-        : path.join(userDataPath, 'votc_data', 'letter_history_archived', `player_${playerId}`);
+// Timeline letter-history layouts. `votc_data/letter_history/player_<id>/`
+// is where 1.x (and CE before the campaign-scoped migration) wrote
+// per-character letter history records, and it is still read as a fallback
+// for data written before campaign identities existed; the campaign-scoped
+// dir is authoritative for anything written since. Both are read and merged
+// (see getLetterHistoryEntries) so upgrading users keep seeing their old
+// letters. Unrelated to LetterManager chat letters, which live at
+// `votc_data/letter_history/<playerId>/<characterId>.json` and are a
+// separate feature never surfaced in this archive view.
+function legacyLetterHistoryDir(playerId: string): string {
+    return path.join(app.getPath('userData'), 'votc_data', 'letter_history', `player_${playerId}`);
 }
 
-function battleReportHistoryPathFor(playerId: string, identity?: CampaignPlayerIdentity): string {
-    const userDataPath = app.getPath('userData');
-    return identity
-        ? campaignBattleReportHistoryPath(userDataPath, identity)
-        : path.join(userDataPath, 'votc_data', 'battle_report_history', `player_${playerId}.json`);
+function legacyLetterHistoryArchivedDir(playerId: string): string {
+    return path.join(app.getPath('userData'), 'votc_data', 'letter_history_archived', `player_${playerId}`);
 }
 
-function battleReportHistoryArchivedPathFor(playerId: string, identity?: CampaignPlayerIdentity): string {
-    const userDataPath = app.getPath('userData');
+function legacyBattleReportHistoryPath(playerId: string): string {
+    return path.join(app.getPath('userData'), 'votc_data', 'battle_report_history', `player_${playerId}.json`);
+}
+
+function legacyBattleReportHistoryArchivedPath(playerId: string): string {
+    return path.join(app.getPath('userData'), 'votc_data', 'battle_report_history_archived', `player_${playerId}.json`);
+}
+
+// Candidate letter-history directories, most specific first: same shape as
+// conversationHistoryCandidateDirs, and the same "campaign wins on a name
+// collision" rule. `archiveDir` is the matching archive location, so archiving
+// a future record never moves it across layouts (legacy stays legacy).
+function letterHistoryCandidateDirs(playerId: string, identity?: CampaignPlayerIdentity): Array<{dir: string, archiveDir: string, isLegacy: boolean}> {
+    const legacyDir = legacyLetterHistoryDir(playerId);
     return identity
-        ? campaignBattleReportHistoryArchivedPath(userDataPath, identity)
-        : path.join(userDataPath, 'votc_data', 'battle_report_history_archived', `player_${playerId}.json`);
+        ? [
+            {
+                dir: campaignLetterHistoryDir(app.getPath('userData'), identity),
+                archiveDir: campaignLetterHistoryArchivedDir(app.getPath('userData'), identity),
+                isLegacy: false
+            },
+            {dir: legacyDir, archiveDir: legacyLetterHistoryArchivedDir(playerId), isLegacy: true}
+        ]
+        : [{dir: legacyDir, archiveDir: legacyLetterHistoryArchivedDir(playerId), isLegacy: true}];
+}
+
+// One file per layout: the campaign copy and the legacy copy of the player's
+// battle-report history. Both are merged record by record.
+function battleReportHistoryCandidates(playerId: string, identity?: CampaignPlayerIdentity): Array<{filePath: string, archiveFilePath: string, isLegacy: boolean}> {
+    const userDataPath = app.getPath('userData');
+    const legacy = {
+        filePath: legacyBattleReportHistoryPath(playerId),
+        archiveFilePath: legacyBattleReportHistoryArchivedPath(playerId),
+        isLegacy: true
+    };
+    return identity
+        ? [
+            {
+                filePath: campaignBattleReportHistoryPath(userDataPath, identity),
+                archiveFilePath: campaignBattleReportHistoryArchivedPath(userDataPath, identity),
+                isLegacy: false
+            },
+            legacy
+        ]
+        : [legacy];
+}
+
+/**
+ * Merge identity keys for one history record. The campaign and legacy copies
+ * of the same record must collapse into a single entry, and the two layouts
+ * store different shapes: canonical v1 records carry `sourceRecordId`/`id`,
+ * while pre-migration records only carry their business fields. A record is
+ * therefore keyed by every identity it can offer and is treated as a
+ * duplicate when any key is already claimed — shape-agnostic, so a v1 rewrite
+ * of a legacy file still dedups against the raw legacy copy.
+ */
+function getHistoryRecordIdentityKeys(record: any): string[] {
+    const keys: string[] = [];
+    const add = (prefix: string, value: unknown): void => {
+        if (typeof value === 'string' && value.length > 0) keys.push(`${prefix}\u001f${value}`);
+        else if (typeof value === 'number' && Number.isFinite(value)) keys.push(`${prefix}\u001f${value}`);
+    };
+
+    add('source', record?.sourceRecordId);
+    add('id', record?.id);
+    add('letter', record?.letterId);
+
+    const body = [
+        record?.direction ?? record?.kind ?? '',
+        record?.playerName ?? record?.senderName ?? '',
+        record?.aiName ?? record?.receiverName ?? '',
+        record?.playerLetter ?? record?.outgoingBody ?? '',
+        record?.aiReply ?? record?.replyBody ?? '',
+        record?.body ?? record?.content ?? ''
+    ].join('\u001f');
+    if (body.replace(/\u001f/g, '').length > 0) {
+        keys.push(`body\u001f${body}`);
+    }
+
+    return keys;
+}
+
+/**
+ * Appends legacy records that the campaign copy does not already contain.
+ * The campaign list is authoritative and keeps its order; legacy-only records
+ * are appended afterwards so their relative order is preserved.
+ */
+function mergeHistoryRecordArrays<T>(campaignRecords: T[], legacyRecords: T[]): T[] {
+    const claimedKeys = new Set<string>();
+    const merged: T[] = [];
+    const push = (record: T): void => {
+        const keys = getHistoryRecordIdentityKeys(record);
+        if (keys.some(key => claimedKeys.has(key))) {
+            return;
+        }
+        for (const key of keys) {
+            claimedKeys.add(key);
+        }
+        merged.push(record);
+    };
+
+    campaignRecords.forEach(push);
+    legacyRecords.forEach(push);
+    return merged;
 }
 
 function getHistoryFileCheckpointEpoch(fileName: string): number | undefined {
@@ -471,37 +593,65 @@ function toLetterArchiveEntry(record: any, id: string, fallbackTime: number): Ar
 }
 
 export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<ArchiveHistoryEntry[]> {
-    // Reads only the timeline letter-history layout (see letterHistoryDirFor);
-    // LetterManager chat letters use a different directory and record shape.
-    const letterHistoryDir = letterHistoryDirFor(playerId, identity);
-    if (!fs.existsSync(letterHistoryDir)) {
-        return [];
+    // Reads both the campaign-scoped and the legacy flat letter-history layout
+    // (see letterHistoryCandidateDirs) so records written before campaign
+    // identities existed stay visible. LetterManager chat letters use a
+    // different directory and record shape and are never read here.
+    const recordsByFileName = new Map<string, { campaignRecords: any[], legacyRecords: any[], fallbackTime: number, sourceDir: string }>();
+    for (const {dir, isLegacy} of letterHistoryCandidateDirs(playerId, identity)) {
+        if (!fs.existsSync(dir)) {
+            continue;
+        }
+        for (const fileName of fs.readdirSync(dir).filter(file => file.endsWith('.json'))) {
+            const filePath = path.join(dir, fileName);
+            try {
+                const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                if (!Array.isArray(parsed)) {
+                    continue;
+                }
+                const claimed = isLegacy && identity
+                    ? collectRecordsClaimedByOtherCampaigns(playerId, identity.campaignId, 'letter_history', fileName)
+                    : undefined;
+                const records = claimed?.size
+                    ? parsed.filter(record => !getHistoryRecordIdentityKeys(record).some(key => claimed.has(key)))
+                    : parsed;
+                const fallbackTime = fs.statSync(filePath).mtime.getTime();
+                const group = recordsByFileName.get(fileName) ?? {campaignRecords: [], legacyRecords: [], fallbackTime, sourceDir: dir};
+                if (isLegacy) {
+                    group.legacyRecords = records;
+                    // Newest write wins the record timestamp for records that
+                    // only the legacy layout has.
+                    group.fallbackTime = Math.max(group.fallbackTime, fallbackTime);
+                } else {
+                    group.campaignRecords = records;
+                    group.sourceDir = dir;
+                    group.fallbackTime = fallbackTime;
+                }
+                recordsByFileName.set(fileName, group);
+            } catch (error) {
+                console.error(`Failed to read letter history ${filePath}:`, error);
+            }
+        }
     }
 
     const entries: ArchiveHistoryEntry[] = [];
-    for (const fileName of fs.readdirSync(letterHistoryDir).filter(file => file.endsWith('.json'))) {
-        const filePath = path.join(letterHistoryDir, fileName);
+    for (const [fileName, group] of recordsByFileName) {
         try {
-            const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-            if (!Array.isArray(parsed)) {
-                continue;
-            }
-
-            const records = prepareArchiveEntries(parsed, identity, [
+            const merged = mergeHistoryRecordArrays(group.campaignRecords, group.legacyRecords);
+            const records = prepareArchiveEntries(merged, identity, [
                 (entries, identity, mode, logicalPath) => classifyLetterHistoryArray(entries, identity, mode, logicalPath),
                 (entries, identity, mode, logicalPath) => classifyIncomingLetterHistoryArray(entries, identity, mode, logicalPath)
             ], `letter_history/${fileName}`);
 
-            const fallbackTime = fs.statSync(filePath).mtime.getTime();
             records.forEach((record, index) => {
                 if (!isRecordVisible(record, registry, currentNodeId, checkpointEpoch)) {
                     return;
                 }
 
-                entries.push(toLetterArchiveEntry(record, `letter:${fileName}:${index}`, fallbackTime));
+                entries.push(toLetterArchiveEntry(record, `letter:${fileName}:${index}`, group.fallbackTime));
             });
         } catch (error) {
-            console.error(`Failed to read letter history ${filePath}:`, error);
+            console.error(`Failed to process letter history ${fileName}:`, error);
         }
     }
 
@@ -509,22 +659,45 @@ export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?
 }
 
 export async function getBattleReportHistoryEntries(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<ArchiveHistoryEntry[]> {
-    const historyFilePath = battleReportHistoryPathFor(playerId, identity);
-    if (!fs.existsSync(historyFilePath)) {
+    // The campaign file and the legacy flat file are merged record by record
+    // (see battleReportHistoryCandidates); either layout may be absent.
+    let campaignRecords: any[] = [];
+    let legacyRecords: any[] = [];
+    let fallbackTime = 0;
+    let foundAny = false;
+    for (const {filePath, isLegacy} of battleReportHistoryCandidates(playerId, identity)) {
+        if (!fs.existsSync(filePath)) {
+            continue;
+        }
+        try {
+            const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            if (!Array.isArray(parsed)) {
+                continue;
+            }
+            const fileTime = fs.statSync(filePath).mtime.getTime();
+            fallbackTime = Math.max(fallbackTime, fileTime);
+            if (isLegacy) {
+                legacyRecords = parsed;
+            } else {
+                campaignRecords = parsed;
+                fallbackTime = fileTime;
+            }
+            foundAny = true;
+        } catch (error) {
+            console.error(`Failed to read battle report history ${filePath}:`, error);
+        }
+    }
+
+    if (!foundAny) {
         return [];
     }
 
     try {
-        const parsed = JSON.parse(fs.readFileSync(historyFilePath, 'utf8'));
-        if (!Array.isArray(parsed)) {
-            return [];
-        }
-
-        const records = prepareArchiveEntries(parsed, identity, [
+        const merged = mergeHistoryRecordArrays(campaignRecords, legacyRecords);
+        const records = prepareArchiveEntries(merged, identity, [
             (entries, identity, mode, logicalPath) => classifyBattleReportHistoryArray(entries, identity, mode, logicalPath)
         ], 'battle_report_history.json');
 
-        const fallbackTime = fs.statSync(historyFilePath).mtime.getTime();
         return records
             .map((record, index) => ({ record, index }))
             .filter(({ record }) => isRecordVisible(record, registry, currentNodeId, checkpointEpoch))
@@ -538,7 +711,7 @@ export async function getBattleReportHistoryEntries(playerId: string, checkpoint
             }))
             .sort((a, b) => b.modifiedTime - a.modifiedTime);
     } catch (error) {
-        console.error(`Failed to read battle report history ${historyFilePath}:`, error);
+        console.error(`Failed to read battle report history for player ${playerId}:`, error);
         return [];
     }
 }
@@ -646,28 +819,29 @@ async function archiveFutureRecordsInFile(
 }
 
 export async function archiveFutureLetterHistoryForPlayer(playerId: string, checkpointEpoch: number, reason = 'older_save_checkpoint', identity?: CampaignPlayerIdentity): Promise<number> {
-    const historyDir = letterHistoryDirFor(playerId, identity);
-    if (!fs.existsSync(historyDir)) {
-        return 0;
-    }
-
-    const archiveDir = letterHistoryArchivedDirFor(playerId, identity);
     let count = 0;
-    for (const fileName of fs.readdirSync(historyDir).filter(file => file.endsWith('.json'))) {
-        count += await archiveFutureRecordsInFile(
-            path.join(historyDir, fileName),
-            path.join(archiveDir, fileName),
-            checkpointEpoch,
-            reason
-        );
+    for (const {dir, archiveDir} of letterHistoryCandidateDirs(playerId, identity)) {
+        if (!fs.existsSync(dir)) {
+            continue;
+        }
+        for (const fileName of fs.readdirSync(dir).filter(file => file.endsWith('.json'))) {
+            count += await archiveFutureRecordsInFile(
+                path.join(dir, fileName),
+                path.join(archiveDir, fileName),
+                checkpointEpoch,
+                reason
+            );
+        }
     }
     return count;
 }
 
 export async function archiveFutureBattleReportHistoryForPlayer(playerId: string, checkpointEpoch: number, reason = 'older_save_checkpoint', identity?: CampaignPlayerIdentity): Promise<number> {
-    const historyFilePath = battleReportHistoryPathFor(playerId, identity);
-    const archiveFilePath = battleReportHistoryArchivedPathFor(playerId, identity);
-    return archiveFutureRecordsInFile(historyFilePath, archiveFilePath, checkpointEpoch, reason);
+    let count = 0;
+    for (const {filePath, archiveFilePath} of battleReportHistoryCandidates(playerId, identity)) {
+        count += await archiveFutureRecordsInFile(filePath, archiveFilePath, checkpointEpoch, reason);
+    }
+    return count;
 }
 
 /**
