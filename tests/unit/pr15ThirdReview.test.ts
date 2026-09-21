@@ -107,6 +107,8 @@ describe('PR15 third review', () => {
         const receiver: any = {userDataPath: path.join(root, 'votc_data'),
             config: {showPreviousConversations: true, maxHistoricalConversations: 5, maxConversationsInHistoryWindow: 15},
             gameData: {playerID: 1001, votcCheckpointEpoch: 0, characters: new Map([[1001, {}], [1002, {}]])},
+            campaignIdentity: undefined,
+            resolveTimelineReadContext: () => null,
             chatWindow: {window: {webContents: {send: () => {}}}},
             _parseHistoryFile: async (file: any) => file,
             _loadRemainingHistory: (files: any[]) => queued.push(...files)};

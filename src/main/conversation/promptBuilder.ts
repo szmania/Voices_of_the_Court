@@ -347,7 +347,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     //     console.log(`Inserted secrets at depth: ${conv.config.memoriesInsertDepth}.`);
     // }
 
-    const characterSummaries = conv.summaries.get(character.id) || [];
+    const characterSummaries = conv.getBranchVisibleSummaries(character.id);
 
     if(characterSummaries.length > 0){
         let summaryString: string;

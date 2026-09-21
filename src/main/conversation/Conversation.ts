@@ -35,13 +35,17 @@ import { MemoryCompactor } from './MemoryCompactor.js';
 import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
-import { readCharacterMap } from '../summaryManager.js';
+import { readCharacterMap, filterSummariesForCheckpoint } from '../summaryManager.js';
 import { conversationHistoryDir as campaignConversationHistoryDir } from '../campaignDataPaths.js';
 import {
     TimelineParentNotFoundError,
     TimelineRegistryCorruptError,
+    TimelineRegistry,
+    buildContextFromGameData,
+    isRecordVisibleForContext,
     type CreateChildNodeResult
 } from '../timelineManager.js';
+import { loadCampaignStore } from '../campaignBusiness.js';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import { reportCampaignIdentityUnavailable, reportCorruptTimelineRegistry, reportTimelineParentNotFound, reportUnsupportedTimelineSchema } from '../timelineRegistryRecovery.js';
@@ -112,6 +116,17 @@ export class Conversation{
     // the conversation window still opens for display, but summarize() fails
     // closed instead of writing timeline records.
     campaignIdentity: import('../../shared/gameData/CampaignIdentity.js').CampaignPlayerIdentity | undefined;
+
+    // Read-time timeline context for branch filtering of summaries and
+    // transcripts. Resolved lazily on first use; null marks "resolved to
+    // nothing" so we do not retry a failed/costly load every read. Only
+    // populated for v2 mod sessions (campaignIdentity present); legacy mod
+    // sessions keep the pre-timeline always-visible behavior.
+    private timelineReadContext: { registry: TimelineRegistry; currentNodeId?: string } | null | undefined;
+
+    // Characters for which the branch-hidden summary count was already
+    // logged, so the visibility message appears once per conversation.
+    private branchFilterLogged: Set<number> = new Set();
 
     // §9.3 P5.4 fix C1: requestKey UUID reused across retries of the same
     // close attempt; cleared when the close reaches terminal state.
@@ -254,7 +269,12 @@ export class Conversation{
             console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
         }
 
-        // Load summaries for all non-player characters
+        // Load summaries for all non-player characters. The full set is kept
+        // in memory (and rewritten verbatim when new summaries are appended):
+        // this.summaries is the persistence source of truth, so filtering
+        // other-branch records out of it would silently erase them from disk
+        // on the next save. Branch filtering happens at prompt-consumption
+        // time instead — see getBranchVisibleSummaries().
         this.gameData.characters.forEach((character) => {
             if (character.id !== this.gameData.playerID) {
                 const summaryFilePath = path.join(playerSummaryPath, `${character.id.toString()}.json`);
@@ -262,7 +282,11 @@ export class Conversation{
                 if (fs.existsSync(summaryFilePath)) {
                     try {
                         characterSummaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
-                        characterSummaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                        characterSummaries.sort((a: any, b: any) => {
+                            const dateA = parseGameDate(a.date)?.getTime() ?? 0;
+                            const dateB = parseGameDate(b.date)?.getTime() ?? 0;
+                            return dateB - dateA;
+                        });
                         console.log(`Loaded and sorted ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
                     } catch (e) {
                         console.error(`Error parsing summary file for AI ID ${character.id}: ${e}`);
@@ -408,6 +432,71 @@ export class Conversation{
         });
     }
 
+    /**
+     * Branch-filtered view of one character's summaries for prompt feeding.
+     * The underlying this.summaries set stays complete (it is rewritten
+     * verbatim when new summaries are saved); filtering here means hidden
+     * other-branch records survive on disk and reappear when their branch
+     * is loaded again. Returns the full set for legacy mod sessions.
+     */
+    getBranchVisibleSummaries(characterId: number): Summary[] {
+        const all = this.summaries.get(characterId) || [];
+        const context = this.resolveTimelineReadContext();
+        if (!context) {
+            return all;
+        }
+        const visible = filterSummariesForCheckpoint(all, this.gameData.votcCheckpointEpoch)
+            .filter((summary) => isRecordVisibleForContext(
+                context.registry,
+                context.currentNodeId,
+                summary,
+                this.gameData.votcCheckpointEpoch
+            ));
+        const hiddenCount = all.length - visible.length;
+        if (hiddenCount > 0 && !this.branchFilterLogged.has(characterId)) {
+            this.branchFilterLogged.add(characterId);
+            console.log(`Timeline visibility hid ${hiddenCount} of ${all.length} summaries for AI ID ${characterId} (other branches).`);
+        }
+        return visible;
+    }
+
+    /**
+     * Resolve the campaign timeline registry + current node for read-time
+     * branch filtering (summaries, prompt transcripts). Returns null for
+     * legacy mod sessions (no campaignIdentity) and on load failure, where
+     * the caller must keep pre-timeline always-visible behavior. The result
+     * is cached for the lifetime of the conversation; a null result is also
+     * cached so a failed load is not retried on every read.
+     */
+    private resolveTimelineReadContext(): { registry: TimelineRegistry; currentNodeId?: string } | null {
+        if (this.timelineReadContext !== undefined) {
+            return this.timelineReadContext;
+        }
+        if (!this.campaignIdentity) {
+            this.timelineReadContext = null;
+            return null;
+        }
+        try {
+            const context = buildContextFromGameData(this.gameData);
+            const loadResult = loadCampaignStore(app.getPath('userData'), this.campaignIdentity);
+            if (loadResult.status === 'found') {
+                this.timelineReadContext = { registry: loadResult.store, currentNodeId: context.timelineNodeId };
+            } else if (loadResult.status === 'missing') {
+                // Fresh campaign: no graph yet. Stamped records cannot belong
+                // to this campaign and are hidden; unstamped legacy records
+                // stay visible through the epoch/empty-node-id paths.
+                this.timelineReadContext = { registry: new TimelineRegistry(String(this.gameData.playerID)), currentNodeId: context.timelineNodeId };
+            } else {
+                console.error(`[Conversation] Campaign timeline registry corrupt at ${loadResult.filePath}; skipping branch filtering of summaries/transcripts.`);
+                this.timelineReadContext = null;
+            }
+        } catch (error) {
+            console.error('[Conversation] Failed to resolve timeline read context; skipping branch filtering:', error);
+            this.timelineReadContext = null;
+        }
+        return this.timelineReadContext;
+    }
+
     public async loadHistory(): Promise<void> {
         if (!this.config.showPreviousConversations || this.config.disableHistoricalConversations) {
             console.log('Historical conversation loading is disabled.');
@@ -422,8 +511,19 @@ export class Conversation{
         const allCharacterIds = Array.from(this.gameData.characters.keys());
         // Load up to the history-window limit: the window renders all of
         // these, while the prompt path re-slices to maxHistoricalConversations
-        // in withLimitedHistory().
-        const historyFiles = await listPromptTranscriptFiles(this.gameData.playerID.toString(), allCharacterIds, this.config.maxConversationsInHistoryWindow, this.gameData.votcCheckpointEpoch);
+        // in withLimitedHistory(). The timeline read context scopes tagged
+        // transcripts to the current branch (sibling-branch conversations are
+        // hidden, exactly like the history viewer).
+        const timelineReadContext = this.resolveTimelineReadContext();
+        const historyFiles = await listPromptTranscriptFiles(
+            this.gameData.playerID.toString(),
+            allCharacterIds,
+            this.config.maxConversationsInHistoryWindow,
+            this.gameData.votcCheckpointEpoch,
+            this.campaignIdentity,
+            timelineReadContext?.registry,
+            timelineReadContext?.currentNodeId
+        );
 
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 
@@ -1925,7 +2025,14 @@ ${timelineLines}
         }
 
         // --- Part 1: Synchronous History Saving ---
-        this._saveHistoryToFile();
+        // Pass the committed node so the transcript file carries the _tl_ tag;
+        // when the timeline commit failed but the mod is v2, fall back to the
+        // current-epoch ckpt tag (legacy "VOTC checkpoint: N" semantics).
+        this._saveHistoryToFile(
+            closeStamp ?? (this.campaignIdentity
+                ? { checkpointEpoch: this.gameData.votcCheckpointEpoch }
+                : undefined)
+        );
 
         // --- Part 2: Asynchronous Summarization (no await, runs in background) ---
         this._generateSummariesAndDiariesInBackground(closeStamp).catch(err => {
@@ -1933,7 +2040,7 @@ ${timelineLines}
         });
     }
 
-    private _saveHistoryToFile(): void {
+    private _saveHistoryToFile(stamp?: { timelineNodeId?: string; checkpointEpoch?: number }): void {
         try {
             // Ensure the conversation_history directory exists
             const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
@@ -2002,14 +2109,23 @@ ${timelineLines}
               textContent += '\n';
             });
 
-            // Store the message text for generating summaries in txt format
+            // Store the message text for generating summaries in txt format.
+            // Timeline-tagged names (_tl_<nodeA>-<nodeB>_) let history reads
+            // filter by branch graph visibility; the _ckptN_ fallback keeps
+            // epoch filtering alive when no node committed (timeline failure
+            // with a v2 mod). Untagged stays the legacy always-visible shape.
             const allCharacterIds = Array.from(this.gameData.characters.keys());
             const characterIdsString = allCharacterIds.join('_');
+            const stampSegment = stamp?.timelineNodeId
+                ? `_tl_${stamp.timelineNodeId}`
+                : stamp?.checkpointEpoch !== undefined
+                    ? `_ckpt${stamp.checkpointEpoch}`
+                    : '';
             const historyFile = path.join(
                 this.userDataPath,
                 'conversation_history',
                 this.gameData.playerID.toString(),
-                `${characterIdsString}_${new Date().getTime()}.txt`
+                `${characterIdsString}${stampSegment}_${new Date().getTime()}.txt`
             );
             fs.writeFileSync(historyFile, textContent);
             console.log(`Conversation history saved to: ${historyFile}`);

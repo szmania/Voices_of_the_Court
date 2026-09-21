@@ -380,7 +380,7 @@ function getHistoryFileTimelineNodeId(fileName: string): string | undefined {
 // before the campaign-scoped routing fix live in the legacy player dir, and
 // dropping them would make existing users' old transcripts vanish from the
 // prompt context as soon as a v2 mod starts providing an identity.
-export async function listPromptTranscriptFiles(playerId: string, currentCharacterIds: number[], limit: number, checkpointEpoch?: number, identity?: CampaignPlayerIdentity): Promise<Array<{fileName: string, modifiedTime: number, sourceDir: string}>> {
+export async function listPromptTranscriptFiles(playerId: string, currentCharacterIds: number[], limit: number, checkpointEpoch?: number, identity?: CampaignPlayerIdentity, registry?: TimelineRegistry, currentNodeId?: string): Promise<Array<{fileName: string, modifiedTime: number, sourceDir: string}>> {
     try {
         const userDataPath = app.getPath('userData');
         const legacyDir = path.join(userDataPath, 'votc_data', 'conversation_history', playerId);
@@ -409,6 +409,22 @@ export async function listPromptTranscriptFiles(playerId: string, currentCharact
 
                 const timestamp = nameParts.pop(); // Remove and check timestamp
                 if (isNaN(Number(timestamp))) return false;
+
+                // Handle _tl_<nodeA>-<nodeB>_ segment (early development builds
+                // joined the two node components with an underscore; normalize
+                // to the canonical hyphenated node id). Tagged transcripts are
+                // branch-scoped: they must pass the same graph-visibility
+                // check as the history viewer, and are hidden when no
+                // registry/current-node context is available.
+                const tlIndex = nameParts.indexOf('tl');
+                if (tlIndex !== -1) {
+                    if (tlIndex === nameParts.length - 1) return false;
+                    const nodeId = nameParts.slice(tlIndex + 1).join('-');
+                    nameParts.length = tlIndex;
+                    if (!(registry && currentNodeId && registry.isRecordVisible(nodeId, currentNodeId))) {
+                        return false;
+                    }
+                }
 
                 // Handle _ckptN_ segment
                 let fileEpoch: number | undefined;
