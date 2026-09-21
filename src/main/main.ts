@@ -286,6 +286,10 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+// Conversation-active probe for code declared above `conversation` (the
+// variable itself lives further down this file). Wired to the real
+// conversation right after the variable is declared.
+let conversationOpenChecker: () => boolean = () => false;
 
 // --- Private helpers for testing ---
 export function _private_setCurrentTotalDays(days: number): void { currentTotalDays = days; }
@@ -373,10 +377,26 @@ export async function checkAndDeliverLetters() {
     }
     const letterManager = LetterManager.getInstance();
 
+    // Defer scheduled deliveries while a conversation is open. The mod-side
+    // letters_runner pauses while the conversation holds talk_scene, so a
+    // reply written now cannot be executed or confirmed until the
+    // conversation ends — it would sit in run/letters.txt until the
+    // delivery timeout and leave stale content behind that the next
+    // write-letter interaction re-fires.
+    if (conversationOpenChecker()) {
+        return;
+    }
+
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
     if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
         console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} — no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
         lastLetterSentToGame = null;
+        // The timed-out reply is still sitting in run/letters.txt and the
+        // mod-side letters_runner executes that file unconditionally on the
+        // next write-letter interaction — without this the old reply fires
+        // again in game. The letter itself stays pending and is re-delivered
+        // on a later pass, so clearing here loses nothing.
+        LetterManager.getInstance().clearLettersFile(config);
     }
 
     // Use a copy of keys to allow modification during iteration
@@ -736,10 +756,14 @@ app.on('ready',  async () => {
             console.log(`Created CK3 run folder at: ${runFolderPath}`);
         }
         const lettersFilePath = path.join(runFolderPath, 'letters.txt');
-        if (!fs.existsSync(lettersFilePath)) {
-            fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
-            console.log(`Created blank letters.txt at: ${lettersFilePath}`);
-        }
+        // Always (re)initialize letters.txt to the blank placeholder. The
+        // mod-side letters_runner executes this file unconditionally on
+        // every write-letter interaction, so a stale reply left over from
+        // an earlier session or a timed-out delivery would re-fire the
+        // moment the player writes a new letter in game. votc.txt keeps
+        // the create-if-missing behaviour - it is executed only on demand.
+        fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+        console.log(`Initialized blank letters.txt at: ${lettersFilePath}`);
         const votcFilePath = path.join(runFolderPath, 'votc.txt');
         if (!fs.existsSync(votcFilePath)) {
             fs.writeFileSync(votcFilePath, '', 'utf-8');
@@ -1183,6 +1207,11 @@ let conversation: Conversation;
 let isConversationReady = false;
 let pendingMessages: Message[] = [];
 let conversationLock: Promise<void> | null = null;
+
+// Conversation-active probe for code declared above `conversation` (the
+// variable itself lives further down this file). Wired to the real
+// conversation right after the variable is declared.
+conversationOpenChecker = () => Boolean(conversation && conversation.isOpen);
 
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
@@ -1852,6 +1881,10 @@ ipcMain.on('chat-stop', () =>{
     pendingMessages = [];
     // @ts-ignore
     conversation = null;
+
+    // Flush any letter deliveries deferred while the conversation was open
+    // (checkAndDeliverLetters bails out while a conversation is active).
+    checkAndDeliverLetters();
 })
 
 // Memory Compaction IPC Handlers
