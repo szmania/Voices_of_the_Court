@@ -381,40 +381,43 @@ export async function checkAndDeliverLetters() {
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-            let currentDateString: string;
-            if (!gameData) {
-                console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
-                currentDateString = totalDaysToDateString(currentTotalDays);
-            } else {
-                currentDateString = gameData.date;
 
-                // The queue can hold replies rehydrated from another campaign's
-                // store or produced by generation that finished after a campaign
-                // switch. Deliver only when the reply's own campaign and player
-                // match the context we are about to write into; otherwise keep
-                // the record pending instead of consuming the current
-                // campaign's letter slot for a foreign letter. Replies queued
-                // before this release carry no campaign stamp at all and are
-                // delivered on the player check alone — back-filling a campaign
-                // id here would claim them for whichever campaign is loaded.
-                const currentCampaignId = resolveDeliveryCampaignId(gameData);
-                const verdict = evaluateReplyDeliveryGate(
-                    {
-                        recipientId: String(storedLetter.letter.recipient.id),
-                        campaignId: storedLetter.letter.timelineCampaignId
-                    },
-                    currentCampaignId ? {campaignId: currentCampaignId} : undefined,
-                    String(gameData.playerID),
-                    {allowUnstampedLegacyReplies: true}
-                );
-                if (!verdict.deliverable) {
-                    console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
-                    continue;
-                }
-                if (verdict.reason === 'legacy_reply_unstamped') {
-                    console.log(`Letter delivery for ${letterId}: reply predates campaign stamping (no campaign id on the record); delivering on the player match and leaving it unclaimed by any campaign.`);
-                }
+            // Every delivery path needs the identity of the context it writes
+            // into, so the check runs before the date is even chosen. The queue
+            // can hold replies rehydrated from another campaign's store or
+            // produced by generation that finished after a campaign switch;
+            // delivering one into the wrong campaign would consume the current
+            // campaign's letter slot for a foreign letter. Replies queued before
+            // this release carry no campaign stamp at all and are delivered on
+            // the player check alone — back-filling a campaign id here would
+            // claim them for whichever campaign is loaded.
+            if (!gameData) {
+                // No log, no player and no campaign: nothing can be verified, so
+                // the reply keeps its place in the queue. A date fallback would
+                // only make the write look safe while skipping the check.
+                console.warn(`Letter delivery for ${letterId} deferred: the game log could not be parsed, so the current campaign and player are unknown. Keeping it pending.`);
+                continue;
             }
+
+            const currentCampaignId = resolveDeliveryCampaignId(gameData);
+            const verdict = evaluateReplyDeliveryGate(
+                {
+                    recipientId: String(storedLetter.letter.recipient.id),
+                    campaignId: storedLetter.letter.timelineCampaignId
+                },
+                currentCampaignId ? {campaignId: currentCampaignId} : undefined,
+                String(gameData.playerID),
+                {allowUnstampedLegacyReplies: true}
+            );
+            if (!verdict.deliverable) {
+                console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
+                continue;
+            }
+            if (verdict.reason === 'legacy_reply_unstamped') {
+                console.log(`Letter delivery for ${letterId}: reply predates campaign stamping (no campaign id on the record); delivering on the player match and leaving it unclaimed by any campaign.`);
+            }
+
+            const currentDateString = gameData.date;
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString);
             lastLetterSentToGame = storedLetter; // Track the letter sent

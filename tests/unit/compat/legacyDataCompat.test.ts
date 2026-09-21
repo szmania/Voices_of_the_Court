@@ -318,6 +318,35 @@ describe('legacy user data stays readable after the timeline upgrade', () => {
         expect(onOtherBranch.map(entry => entry.content).join('\n')).not.toContain('Ancestor branch letter');
     });
 
+    it('distinct legacy letters with identical text stay distinct', async () => {
+        // No ids here: the records rely on the compatibility fingerprint, which
+        // has to carry the write time so two letters with the same wording are
+        // not collapsed into one.
+        writeJson(path.join(root, 'votc_data', 'letter_history', `player_${PLAYER_ID}`, `character_${SECOND_AI_ID}.json`), [
+            {
+                playerName: 'Player', aiName: 'Test Char',
+                playerLetter: 'Thank you.', aiReply: 'You are welcome.',
+                createdAt: '2026-01-01T00:00:00.000Z'
+            },
+            {
+                playerName: 'Player', aiName: 'Test Char',
+                playerLetter: 'Thank you.', aiReply: 'You are welcome.',
+                createdAt: '2026-02-01T00:00:00.000Z'
+            }
+        ]);
+        const {history} = loadModulesUnderTest(root);
+
+        const entries = await history.getLetterHistoryEntries(PLAYER_ID, 5, undefined, undefined, IDENTITY);
+        expect(entries.filter(entry => entry.content.includes('Thank you.'))).toHaveLength(2);
+    });
+
+    it('keeps a legacy battle report no campaign holds visible', async () => {
+        const {history} = loadModulesUnderTest(root);
+
+        const entries = await history.getBattleReportHistoryEntries(PLAYER_ID, 5, undefined, undefined, IDENTITY);
+        expect(entries.map(entry => entry.content)).toContain('A legacy battle report.');
+    });
+
     it('lists legacy battle reports, merged with the campaign file', async () => {
         const {history} = loadModulesUnderTest(root);
 
@@ -463,6 +492,26 @@ describe('legacy user data stays readable after the timeline upgrade', () => {
 
             const summaries = await summaryManager.readSummaryFile(path.join(root, 'votc_data'), PLAYER_ID, 2, undefined, undefined, IDENTITY);
             expect(summaries.map(summary => summary.content)).toContain('A summary from the closed conversation.');
+        });
+
+        it('keeps the visible branch summary when the hidden one sits in the campaign layout', async () => {
+            // Campaign copies are read first, so a same-text summary from another
+            // branch must not shadow the current branch's copy on the way in.
+            writeJson(path.join(root, 'votc_data', 'conversation_summaries', PLAYER_ID, `${SECOND_AI_ID}.json`), [
+                {date: '1066.6.1', content: 'Shared wording.', votcCheckpointEpoch: 2, votcTimelineNodeId: '10-30'}
+            ]);
+            writeJson(
+                path.join(root, 'votc_data', 'campaigns', IDENTITY.campaignId, 'players', PLAYER_ID, 'conversation_summaries', `${SECOND_AI_ID}.json`),
+                [{date: '1066.6.1', content: 'Shared wording.', votcCheckpointEpoch: 2, votcTimelineNodeId: '10-21'}]
+            );
+            const {summaryManager} = loadModulesUnderTest(root);
+
+            const summaries = await summaryManager.readSummaryFile(
+                path.join(root, 'votc_data'), PLAYER_ID, 2, branchRegistry(), '10-21', IDENTITY
+            );
+            const shared = summaries.filter(summary => summary.content === 'Shared wording.');
+            expect(shared).toHaveLength(1);
+            expect(shared[0].votcTimelineNodeId).toBe('10-21');
         });
     });
 });

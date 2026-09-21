@@ -20,12 +20,24 @@ function getSummaryCheckpointEpoch(summary: any): number | undefined {
 
 /**
  * Merge identity for a summary coming from either storage layout. Summaries
- * carry no id of their own — the same text for the same character on the same
- * date is the same summary — so the key is built from the fields every version
- * has written.
+ * carry no id of their own, so the key is built from what identifies one:
+ * character, date, text — and the timeline node whenever the record has one.
+ *
+ * The node is not optional detail. Two branches can legitimately hold the same
+ * text for the same character on the same date, and collapsing them before the
+ * branch filter runs would discard the visible branch's copy together with the
+ * hidden one, leaving the player with no summary at all. Records written before
+ * node stamping keep the pre-timeline key (character/date/text), which is
+ * exactly the set they could be distinguished by.
  */
 function getSummaryIdentityKey(summary: any, characterId: string): string {
-    return [characterId, summary?.date ?? '', summary?.content ?? ''].join('\u001f');
+    const nodeId = summary?.votcTimelineNodeId;
+    return [
+        characterId,
+        summary?.date ?? '',
+        typeof nodeId === 'string' ? nodeId : '',
+        summary?.content ?? ''
+    ].join('\u001f');
 }
 
 export function splitSummariesForCheckpoint<T extends { votcCheckpointEpoch?: number }>(summaries: T[], checkpointEpoch: number): { visibleSummaries: T[], futureSummaries: T[] } {

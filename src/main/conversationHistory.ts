@@ -109,18 +109,21 @@ function collectHistoryNamesClaimedByOtherCampaigns(playerId: string, exceptCamp
 }
 
 /**
- * Merge keys of the records another campaign already holds in the same
- * per-character file. Letter history files are keyed by character, not by
- * record, so a file name that exists in another campaign does NOT mean that
- * campaign owns the file's legacy records; the claim has to be per record.
- * Ownership is checked because the other campaign's copy is authoritative for
- * those records — repeating them here would mix a foreign campaign's letters
- * into this one's view — while legacy records no campaign holds still stay
- * visible, like every other unattributed record (explicit import is a later
- * PR).
+ * Records another campaign already holds, in the file this one is reading.
+ * Letter history files are keyed by character, not by record, so a file name
+ * that exists in another campaign does NOT mean that campaign owns the file's
+ * legacy records; the claim has to be per record. Ownership is checked because
+ * the other campaign's copy is authoritative for those records — repeating them
+ * here would mix a foreign campaign's letters into this one's view — while
+ * legacy records no campaign holds still stay visible, like every other
+ * unattributed record (explicit import is a later PR).
+ *
+ * `relativePath` is the file's path inside a campaign player directory (for
+ * example `letter_history/character_1002.json` or `battle_report_history.json`),
+ * built from names read out of the legacy directory and a constant.
  */
-function collectRecordsClaimedByOtherCampaigns(playerId: string, exceptCampaignId: string, subDir: string, fileName: string): Set<string> {
-    const claimed = new Set<string>();
+function collectRecordsClaimedByOtherCampaigns(playerId: string, exceptCampaignId: string, relativePath: string): HistoryRecordClaimSet {
+    const claimed: HistoryRecordClaimSet = {stableKeys: new Set(), fingerprints: new Set()};
     try {
         const campaignsRoot = path.join(app.getPath('userData'), 'votc_data', 'campaigns');
         if (!fs.existsSync(campaignsRoot)) {
@@ -128,14 +131,12 @@ function collectRecordsClaimedByOtherCampaigns(playerId: string, exceptCampaignI
         }
         for (const campaignId of fs.readdirSync(campaignsRoot)) {
             if (campaignId === exceptCampaignId) continue;
-            const filePath = path.join(campaignsRoot, campaignId, 'players', playerId, subDir, fileName);
+            const filePath = path.join(campaignsRoot, campaignId, 'players', playerId, ...relativePath.split('/'));
             if (!fs.existsSync(filePath)) continue;
             const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
             if (!Array.isArray(parsed)) continue;
             for (const record of parsed) {
-                for (const key of getHistoryRecordIdentityKeys(record)) {
-                    claimed.add(key);
-                }
+                addIdentityToClaimSet(getHistoryRecordIdentity(record), claimed);
             }
         }
     } catch (error) {
@@ -209,61 +210,106 @@ function battleReportHistoryCandidates(playerId: string, identity?: CampaignPlay
 }
 
 /**
- * Merge identity keys for one history record. The campaign and legacy copies
- * of the same record must collapse into a single entry, and the two layouts
- * store different shapes: canonical v1 records carry `sourceRecordId`/`id`,
- * while pre-migration records only carry their business fields. A record is
- * therefore keyed by every identity it can offer and is treated as a
- * duplicate when any key is already claimed — shape-agnostic, so a v1 rewrite
- * of a legacy file still dedups against the raw legacy copy.
+ * Identity of one history record, split by how much it can be trusted.
+ *
+ * `stableKeys` come from identifiers the record itself carries, and they are
+ * decisive: two records sharing one are the same record, while two records with
+ * different ids are never collapsed — not even when their text is identical,
+ * which real letters regularly are.
+ *
+ * `fingerprint` is the compatibility fallback for records that carry no id at
+ * all, which is everything the pre-campaign writers produced. It mirrors the
+ * archive dedup key so "same record" keeps meaning the same thing in both
+ * places: business fields plus the write timestamp and branch anchor, never the
+ * body alone.
  */
-function getHistoryRecordIdentityKeys(record: any): string[] {
-    const keys: string[] = [];
-    const add = (prefix: string, value: unknown): void => {
-        if (typeof value === 'string' && value.length > 0) keys.push(`${prefix}\u001f${value}`);
-        else if (typeof value === 'number' && Number.isFinite(value)) keys.push(`${prefix}\u001f${value}`);
+interface HistoryRecordIdentity {
+    stableKeys: string[];
+    fingerprint?: string;
+}
+
+interface HistoryRecordClaimSet {
+    stableKeys: Set<string>;
+    fingerprints: Set<string>;
+}
+
+function getHistoryRecordIdentity(record: any): HistoryRecordIdentity {
+    const stableKeys: string[] = [];
+    const addStableKey = (prefix: string, value: unknown): void => {
+        if (typeof value === 'string' && value.length > 0) stableKeys.push(`${prefix}\u001f${value}`);
+        else if (typeof value === 'number' && Number.isFinite(value)) stableKeys.push(`${prefix}\u001f${value}`);
     };
 
-    add('source', record?.sourceRecordId);
-    add('id', record?.id);
-    add('letter', record?.letterId);
+    addStableKey('source', record?.sourceRecordId);
+    addStableKey('id', record?.id);
+    addStableKey('letter', record?.letterId);
 
-    const body = [
+    const fingerprintFields = [
         record?.direction ?? record?.kind ?? '',
         record?.playerName ?? record?.senderName ?? '',
         record?.aiName ?? record?.receiverName ?? '',
+        record?.location ?? '',
         record?.playerLetter ?? record?.outgoingBody ?? '',
         record?.aiReply ?? record?.replyBody ?? '',
-        record?.body ?? record?.content ?? ''
-    ].join('\u001f');
-    if (body.replace(/\u001f/g, '').length > 0) {
-        keys.push(`body\u001f${body}`);
-    }
+        record?.body ?? record?.content ?? '',
+        record?.createdAt ?? '',
+        record?.votcTimelineNodeId ?? ''
+    ];
+    const fingerprint = fingerprintFields.some(value => String(value).length > 0)
+        ? fingerprintFields.join('\u001f')
+        : undefined;
 
-    return keys;
+    return {stableKeys, fingerprint};
+}
+
+function addIdentityToClaimSet(identity: HistoryRecordIdentity, claimed: HistoryRecordClaimSet): void {
+    for (const key of identity.stableKeys) {
+        claimed.stableKeys.add(key);
+    }
+    if (identity.fingerprint !== undefined) {
+        claimed.fingerprints.add(identity.fingerprint);
+    }
 }
 
 /**
- * Appends legacy records that the campaign copy does not already contain.
- * The campaign list is authoritative and keeps its order; legacy-only records
- * are appended afterwards so their relative order is preserved.
+ * True when the record is one that `claimed` already holds. A record with an id
+ * is matched by that id alone: identical text is not evidence of identity, and
+ * a fingerprint must never override a differing id. Records without any id fall
+ * back to the fingerprint.
+ */
+function isRecordClaimed(identity: HistoryRecordIdentity, claimed: HistoryRecordClaimSet): boolean {
+    if (identity.stableKeys.some(key => claimed.stableKeys.has(key))) {
+        return true;
+    }
+    return identity.stableKeys.length === 0
+        && identity.fingerprint !== undefined
+        && claimed.fingerprints.has(identity.fingerprint);
+}
+
+/**
+ * Merges the campaign copy of a history file with its legacy copy. The campaign
+ * list is authoritative and keeps its order; legacy records the campaign copy
+ * does not already hold are appended in their original order.
+ *
+ * Nothing is deduped within a single source: the campaign copy is already the
+ * app's own list, and the legacy copy is left exactly as the old version wrote
+ * it, so a list built from one of them alone never loses a record.
  */
 function mergeHistoryRecordArrays<T>(campaignRecords: T[], legacyRecords: T[]): T[] {
-    const claimedKeys = new Set<string>();
-    const merged: T[] = [];
-    const push = (record: T): void => {
-        const keys = getHistoryRecordIdentityKeys(record);
-        if (keys.some(key => claimedKeys.has(key))) {
-            return;
-        }
-        for (const key of keys) {
-            claimedKeys.add(key);
-        }
-        merged.push(record);
-    };
+    const claimed: HistoryRecordClaimSet = {stableKeys: new Set(), fingerprints: new Set()};
+    for (const record of campaignRecords) {
+        addIdentityToClaimSet(getHistoryRecordIdentity(record), claimed);
+    }
 
-    campaignRecords.forEach(push);
-    legacyRecords.forEach(push);
+    const merged: T[] = [...campaignRecords];
+    for (const record of legacyRecords) {
+        const identity = getHistoryRecordIdentity(record);
+        if (isRecordClaimed(identity, claimed)) {
+            continue;
+        }
+        addIdentityToClaimSet(identity, claimed);
+        merged.push(record);
+    }
     return merged;
 }
 
@@ -610,10 +656,10 @@ export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?
                     continue;
                 }
                 const claimed = isLegacy && identity
-                    ? collectRecordsClaimedByOtherCampaigns(playerId, identity.campaignId, 'letter_history', fileName)
+                    ? collectRecordsClaimedByOtherCampaigns(playerId, identity.campaignId, `letter_history/${fileName}`)
                     : undefined;
-                const records = claimed?.size
-                    ? parsed.filter(record => !getHistoryRecordIdentityKeys(record).some(key => claimed.has(key)))
+                const records = claimed
+                    ? parsed.filter(record => !isRecordClaimed(getHistoryRecordIdentity(record), claimed))
                     : parsed;
                 const fallbackTime = fs.statSync(filePath).mtime.getTime();
                 const group = recordsByFileName.get(fileName) ?? {campaignRecords: [], legacyRecords: [], fallbackTime, sourceDir: dir};
@@ -676,10 +722,20 @@ export async function getBattleReportHistoryEntries(playerId: string, checkpoint
             }
             const fileTime = fs.statSync(filePath).mtime.getTime();
             fallbackTime = Math.max(fallbackTime, fileTime);
+            // The legacy file is subject to the same ownership rule as letters:
+            // a report another campaign already holds is theirs, and a migration
+            // that keeps the flat original around must not make it reappear in
+            // every campaign's list.
+            const claimed = isLegacy && identity
+                ? collectRecordsClaimedByOtherCampaigns(playerId, identity.campaignId, 'battle_report_history.json')
+                : undefined;
+            const records = claimed
+                ? parsed.filter(record => !isRecordClaimed(getHistoryRecordIdentity(record), claimed))
+                : parsed;
             if (isLegacy) {
-                legacyRecords = parsed;
+                legacyRecords = records;
             } else {
-                campaignRecords = parsed;
+                campaignRecords = records;
                 fallbackTime = fileTime;
             }
             foundAny = true;
