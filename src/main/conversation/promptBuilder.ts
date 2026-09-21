@@ -318,7 +318,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
+        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData), character)
     }
 
 
@@ -681,14 +681,21 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 
-export function createMemoryString(conv: Conversation, prompts: any): string{
+export function createMemoryString(conv: Conversation, prompts: any, character?: Character): string{
     let allMemories: Memory[] = [];
 
-    conv.gameData.characters.forEach((value, key) => {
-        allMemories = allMemories.concat(value!.memories);
-    })
-    // allMemories =allMemories.concat(conv.gameData.characters.get(conv.gameData.playerID)!.memories);
-    // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
+    if (character) {
+        // Scoped: only the speaking character's own memories.
+        // Prevents unrelated characters (e.g. a wife absent from a private event)
+        // from receiving memories that belong to the player or other characters.
+        allMemories = allMemories.concat(character.memories);
+    } else {
+        // Fallback for legacy callers without a character context: player + main AI only.
+        const player = conv.gameData.characters.get(conv.gameData.playerID);
+        const ai = conv.gameData.characters.get(conv.gameData.aiID);
+        if (player) allMemories = allMemories.concat(player.memories);
+        if (ai) allMemories = allMemories.concat(ai.memories);
+    }
 
     allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
 
