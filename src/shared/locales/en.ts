@@ -1929,6 +1929,8 @@ export const en = {
     "error.campaignIdentityLegacyMod": "The VOTC mod is out of date: the current snapshot does not carry a campaign id. Update the mod to a version matching this app; timeline records cannot be created in the legacy player-only namespace.",
     "error.campaignIdentityUnsupported": "The VOTC mod uses an unsupported timeline protocol schema ({{schema}}). Update both the app and the mod to matching versions; timeline records cannot be created.",
     "error.campaignIdentityInvalid": "The campaign identity in the current snapshot is invalid: {{reason}}. Update the mod and restart; timeline records cannot be created.",
+    "info.legacySaveAdoptedTitle": "Voices of the Court: save upgraded",
+    "info.legacySaveAdopted": "This save was played with an older VOTC version, so a campaign identity ({{campaignId}}) was created for it just now. Everything already written — conversations, summaries, diaries, letters and battle reports — is kept and stays visible. Records from before the upgrade are shown in every campaign of this save until they are imported.",
     "history.datePrefix": "Date",
     "history.narratorPrefix": "Narration"
 } as const;

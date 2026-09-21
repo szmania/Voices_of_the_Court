@@ -16,7 +16,7 @@ import { StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { LetterManager } from "./letter/LetterManager";
 import { evaluateReplyDeliveryGate } from "./letter/letterDeliveryGate.js";
-import { parseLog } from "../shared/gameData/parseLog";
+import { parseLog, readLastLogLineContaining } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
 import { processBookmarkToSummary } from "./bookmarktosummary";
@@ -31,6 +31,7 @@ import type { TimelineWindowContext } from "./managerClipboardPayload.js";
 import { decideManagerWindowContext } from "./managerClipboardPayload.js";
 import { reportUnsupportedTimelineSchema } from "./timelineRegistryRecovery.js";
 import { buildContextFromGameData } from "./timelineManager.js";
+import { observeCampaignLoadLine, getObservedCampaignId } from "./campaignLoadObserver.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -334,16 +335,22 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-// Campaign id of the live game context, as far as the log can tell. Undefined
-// when the mod in use does not emit the v2 campaign protocol tail (legacy mod),
-// or when the tail is present but malformed.
+// Campaign id of the live game context, as far as the log can tell. The parsed
+// snapshot is authoritative; when it carries no v2 tail yet (a save that was
+// just loaded and has had no conversation or letter since), the identity the
+// mod reported on load is used instead. Undefined only when neither source
+// knows — a legacy mod, a malformed protocol tail, or a log that predates the
+// load-time line.
 function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
     try {
-        return buildContextFromGameData(gameData).identity?.campaignId;
+        const parsedIdentity = buildContextFromGameData(gameData).identity?.campaignId;
+        if (parsedIdentity) {
+            return parsedIdentity;
+        }
     } catch (error) {
         console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
-        return undefined;
     }
+    return getObservedCampaignId();
 }
 
 export async function checkAndDeliverLetters() {
@@ -584,6 +591,10 @@ ipcMain.on('request-config-close', () => {
 });
 
 function processLogLine(line: string) {
+    // Save-load identity from the mod's load relay: the earliest identity signal
+    // of a session, and the only one available before the first conversation.
+    observeCampaignLoadLine(line);
+
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
 
@@ -698,6 +709,24 @@ app.on('ready',  async () => {
     diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
+
+    // The app can be started after a save was loaded, in which case the load-time
+    // identity line is already in the log and the tail below will never see it.
+    // Read the last one so the session knows its campaign without waiting for a
+    // conversation; the tail keeps handling later loads.
+    if (config.userFolderPath) {
+        try {
+            const lastLoadLine = await readLastLogLineContaining(
+                path.join(config.userFolderPath, 'logs', 'debug.log'),
+                'VOTC:CAMPAIGN/;/loaded/;/'
+            );
+            if (lastLoadLine) {
+                observeCampaignLoadLine(lastLoadLine);
+            }
+        } catch (error) {
+            console.warn(`Could not read the last save-load identity line from the game log: ${error}`);
+        }
+    }
 
     // Initialize blank run files (letters.txt and votc.txt) if they don't exist
     if (config.userFolderPath) {

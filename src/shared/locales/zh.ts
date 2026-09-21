@@ -1931,6 +1931,8 @@ export const zh: Record<I18nKey, string> = {
     "error.campaignIdentityLegacyMod": "VOTC 模组版本过旧：当前快照不包含 campaign id。请将模组更新到与本应用匹配的版本；无法在旧的 player-only 命名空间中创建时间线记录。",
     "error.campaignIdentityUnsupported": "VOTC 模组使用了不受支持的时间线协议版本 ({{schema}})。请将应用和模组同时更新到匹配版本；无法创建时间线记录。",
     "error.campaignIdentityInvalid": "当前快照中的 campaign 身份无效：{{reason}}。请更新模组并重启；无法创建时间线记录。",
+    "info.legacySaveAdoptedTitle": "Voices of the Court：存档已升级",
+    "info.legacySaveAdopted": "该存档由较旧版本的 VOTC 游玩，刚刚为它新建了 campaign 身份（{{campaignId}}）。已有的对话、总结、日记、信件和战报都会保留并继续可见；升级前的旧记录在这些战役中均可见，直到被显式导入。",
     "history.datePrefix": "日期",
     "history.narratorPrefix": "旁白"
 };

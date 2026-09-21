@@ -22,6 +22,9 @@ module.exports = {
   },
   dialog: {
     showOpenDialog: jest.fn(),
+    // The main process reports campaign/timeline problems and save upgrades
+    // through this; without it those paths cannot be exercised under jest.
+    showMessageBox: jest.fn(),
   },
   autoUpdater: {
     checkForUpdatesAndNotify: jest.fn(),

@@ -705,6 +705,103 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 const MAX_LAWS = 10;
 const MAX_MODIFIERS_PER_CHARACTER = 60;
 
+/**
+ * Last log line containing `marker`, read from the end of the file so a large
+ * debug.log is never loaded in full. Returns undefined when no line matches.
+ *
+ * Used at app startup for identity lines emitted while the app was not yet
+ * tailing the log (the app can be started after a save was loaded).
+ */
+export async function readLastLogLineContaining(filePath: string, marker: string): Promise<string | undefined> {
+    const CHUNK_SIZE = 512 * 1024;
+    let handle;
+    try {
+        handle = await fs.promises.open(filePath, 'r');
+        const {size} = await handle.stat();
+
+        let position = Math.max(0, size - CHUNK_SIZE);
+        let currentReadSize = size - position;
+
+        while (true) {
+            const buffer = Buffer.alloc(currentReadSize);
+            await handle.read(buffer, 0, currentReadSize, position);
+            const content = buffer.toString('utf8');
+
+            const lastIndex = content.lastIndexOf(marker);
+            if (lastIndex !== -1) {
+                const lineStart = content.lastIndexOf('\n', lastIndex) + 1;
+                const lineEnd = content.indexOf('\n', lastIndex);
+                const line = content.slice(lineStart, lineEnd === -1 ? content.length : lineEnd);
+                return line.replace(/\r$/, '');
+            }
+
+            if (position === 0) break;
+
+            // Step back another chunk, keeping an overlap so a marker spanning
+            // the boundary is still found.
+            const newPosition = Math.max(0, position - CHUNK_SIZE);
+            currentReadSize = position - newPosition + marker.length;
+            position = newPosition;
+        }
+    } catch (err) {
+        console.error(`Error reading log file efficiently: ${err}`);
+    } finally {
+        if (handle) await handle.close();
+    }
+    return undefined;
+}
+
+/** Fields of the mod's save-load identity line (`VOTC:CAMPAIGN/;/loaded/;...`). */
+export interface CampaignLoadedLine {
+    playerId: string;
+    campaignSchema: number;
+    campaignParts: {a: number, b: number, c: number, d: number};
+    bootstrapKind?: number;
+    checkpointEpoch?: number;
+}
+
+/**
+ * Parses the identity line the mod's save-load relay emits (see the mod's
+ * `votc_game_start_init_relay`), which reports the campaign a just-loaded save
+ * belongs to before any conversation exists.
+ *
+ * Debug log lines carry an engine timestamp/level/source prefix, so the marker
+ * is matched as a substring and everything after it is the payload — the same
+ * convention the other VOTC parsers follow. The trailing `\r` of a CRLF line
+ * lands on the last field and is stripped with it.
+ *
+ * Returns undefined for any other line, and for a line whose campaign schema or
+ * segments are missing or non-positive: the mod bootstraps the campaign before
+ * logging, so zeros mean the identity is not committed, and reporting no
+ * identity is better than reporting a wrong one.
+ */
+export function parseCampaignLoadedLine(line: string): CampaignLoadedLine | undefined {
+    const marker = 'VOTC:CAMPAIGN/;/loaded/;/';
+    const markerIndex = line.indexOf(marker);
+    if (markerIndex < 0) return undefined;
+
+    const fields = line.slice(markerIndex + marker.length).replace(/\r$/, '').split('/;/');
+    const [playerId, campaignSchema, a, b, c, d, bootstrapKind, checkpointEpoch] = fields;
+    const parts = {a: Number(a), b: Number(b), c: Number(c), d: Number(d)};
+
+    const isPositiveInt = (value: number): boolean => Number.isInteger(value) && value > 0;
+    if (typeof playerId !== 'string' || playerId.length === 0) return undefined;
+    if (!isPositiveInt(Number(campaignSchema))) return undefined;
+    if (!isPositiveInt(parts.a) || !isPositiveInt(parts.b) || !isPositiveInt(parts.c) || !isPositiveInt(parts.d)) {
+        return undefined;
+    }
+
+    const parsedBootstrapKind = Number(bootstrapKind);
+    const parsedCheckpointEpoch = Number(checkpointEpoch);
+    return {
+        playerId,
+        campaignSchema: Number(campaignSchema),
+        campaignParts: parts,
+        bootstrapKind: Number.isFinite(parsedBootstrapKind) ? parsedBootstrapKind : undefined,
+        checkpointEpoch: Number.isFinite(parsedCheckpointEpoch) ? parsedCheckpointEpoch : undefined
+    };
+}
+
 export function extractMultilinePayload(element: string | undefined): string {
     if (!element) return "";
     const startIdx = element.indexOf('STARTMULTILINE');
