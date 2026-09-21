@@ -827,7 +827,16 @@
     "loading_content": "Loading conversation content...",
     "content_success": "Conversation content loaded successfully",
     "content_fail": "Failed to load conversation content: ",
-    "no_player_id": "Unable to parse player ID from game logs"
+    "no_player_id": "Unable to parse player ID from game logs",
+    "tab_conversations": "Conversations",
+    "tab_letters": "Letters",
+    "tab_battles": "Battle reports",
+    "checkpoint_label": "CHECKPOINT",
+    "section_kicker": "CHRONICLE",
+    "no_letters": "No letter correspondence",
+    "no_battle_reports": "No battle reports",
+    "letter_content_title": "Letter correspondence",
+    "battle_content_title": "Battle report"
   },
   "prompt_builder": {
     "summary_header": "Here are the dates and summaries of previous conversations:"

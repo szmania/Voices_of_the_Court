@@ -1,5 +1,5 @@
 import {ipcRenderer } from 'electron';
-import { Config } from '../../shared/Config';
+import { isPromptKey } from '../../shared/promptKeys';
 const template = document.createElement("template");
 
 function defineTemplate(rows: number, cols: number, placeholder: string){
@@ -66,39 +66,20 @@ class ConfigTextarea extends HTMLElement{
 
     async connectedCallback(){
         const confID: string = this.confID;
-        const promptKeys = [
-            'mainPrompt', 
-            'summarizePrompt', 
-            'memoriesPrompt', 
-            'suffixPrompt', 
-            'selfTalkPrompt', 
-            'selfTalkSummarizePrompt', 
-            'narrativePrompt', 
-            'sceneDescriptionPrompt'
-        ];
-
-        let config = await ipcRenderer.invoke('get-config');
-
-        //@ts-ignore
-        if (promptKeys.includes(confID)) {
-            this.textarea.value = config.prompts[config.language][confID];
-        } else {
-            this.textarea.value = config[confID];
+        // The preset editor owns prompt loading, language changes and saving.
+        // Reading config.prompts here races that editor and uses an obsolete schema.
+        if (!isPromptKey(confID)) {
+            const config = await ipcRenderer.invoke('get-config');
+            this.textarea.value = config[confID] ?? '';
+            this.textarea.addEventListener("change", () => {
+                ipcRenderer.send('config-change', confID, this.textarea.value);
+            });
         }
 
-        this.textarea.addEventListener("change", (e: any) => {
-            console.log(confID)
-
-            ipcRenderer.send('config-change', confID, this.textarea.value);
-        });
-
         this.languageUpdateHandler = async () => {
-            let config = await ipcRenderer.invoke('get-config');
-            //@ts-ignore
-            if (promptKeys.includes(confID)) {
-                this.textarea.value = config.prompts[config.language][confID];
-            } else {
-                this.textarea.value = config[confID];
+            if (!isPromptKey(confID)) {
+                const config = await ipcRenderer.invoke('get-config');
+                this.textarea.value = config[confID] ?? '';
             }
             const i18nKey = this.getAttribute('data-i18n');
             if (i18nKey) {

@@ -42,4 +42,10 @@ export class ConversationHistoryWindow{
     isDestroyed() {
         return this.window.isDestroyed();
     }
-}
+
+    sendCheckpointUpdate(epoch: number): void {
+        if (!this.window.isDestroyed()) {
+            this.window.webContents.send('checkpoint-update', epoch);
+        }
+    }
+}

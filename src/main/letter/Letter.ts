@@ -20,6 +20,13 @@ export class Letter implements ILetter {
     deliveryTimestamp?: Date;
     expectedDeliveryDate?: Date;
 
+    /** Timeline v2 payload allocated for this reply's thread (see LetterReplyGenerator). */
+    timelineScript?: string;
+    timelineEpoch?: number;
+    timelineCampaignId?: string;
+    timelinePlayerId?: string;
+    timelineNodeId?: string;
+
     constructor(
         id: string,
         sender: Character,
