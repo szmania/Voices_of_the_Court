@@ -12,8 +12,8 @@ import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 import { GameData } from "../../shared/gameData/GameData.js";
 
-export function getPromptsConfig(userDataPath: string, lang: string = 'en'): any {
-    const promptsDir = path.join(userDataPath, 'configs', 'prompts');
+export function getPromptsConfig(votcDataPath: string, lang: string = 'en'): any {
+    const promptsDir = path.join(votcDataPath, 'configs', 'prompts');
     const promptsPath = path.join(promptsDir, `${lang}.json`);
     const fallbackPath = path.join(promptsDir, 'en.json');
     let finalPath = promptsPath;
@@ -37,9 +37,9 @@ export function getPromptsConfig(userDataPath: string, lang: string = 'en'): any
 }
 
 let customPresets: any = null;
-function getCustomPresets(userDataPath: string) {
+function getCustomPresets(votcDataPath: string) {
     // For simplicity, we don't cache this so it can be reloaded if changed.
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(votcDataPath, 'configs', 'prompt_presets.json');
     if (fs.existsSync(presetsPath)) {
         try {
             return JSON.parse(fs.readFileSync(presetsPath, 'utf-8'));
@@ -51,10 +51,10 @@ function getCustomPresets(userDataPath: string) {
     return {};
 }
 
-export function getEffectivePrompts(config: Config, userDataPath: string, gameData: GameData): any {
+export function getEffectivePrompts(config: Config, votcDataPath: string, gameData: GameData): any {
     const lang = config.language || 'en';
-    const defaultPromptsConfig = getPromptsConfig(userDataPath, lang);
-    const customPresetsConfig = getCustomPresets(userDataPath);
+    const defaultPromptsConfig = getPromptsConfig(votcDataPath, lang);
+    const customPresetsConfig = getCustomPresets(votcDataPath);
 
     const activePreset = config.activePromptPreset || 'Default';
 
@@ -133,7 +133,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     console.log(`Building chat prompt for character: ${character.fullName}`);
     let chatPrompt: Message[]  = [];
 
-    const userDataPath = path.join(app.getPath('userData'), 'votc_data');
+    const userDataPath = app.getPath('userData');
+    const votcDataPath = path.join(userDataPath, 'votc_data');
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 
     let exampleMessagesScriptFileName: string;
@@ -177,8 +178,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     if (isSelfTalk) {
         exampleMessagesScriptFileName = conv.config.selectedSelfTalkExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
-        const selfTalkPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
-        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
+        const selfTalkPath = path.join(votcDataPath, 'scripts', 'prompts', 'example messages', 'self-talk', exampleMessagesScriptFileName);
+        const customPath = path.join(votcDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
 
         if (fs.existsSync(selfTalkPath)) {
             exampleMessagesPath = selfTalkPath;
@@ -191,8 +192,8 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     } else {
         exampleMessagesScriptFileName = conv.config.selectedExMsgScript;
         exampleMessagesScriptFileName = path.basename(exampleMessagesScriptFileName);
-        const standardPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'standard', exampleMessagesScriptFileName);
-        const customPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
+        const standardPath = path.join(votcDataPath, 'scripts', 'prompts', 'example messages', 'standard', exampleMessagesScriptFileName);
+        const customPath = path.join(votcDataPath, 'scripts', 'prompts', 'example messages', 'custom', exampleMessagesScriptFileName);
 
         if (fs.existsSync(standardPath)) {
             exampleMessagesPath = standardPath;
@@ -235,7 +236,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     })
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
-    const descriptionPath = path.join(userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    const descriptionPath = path.join(votcDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
     const originalAiId = conv.gameData.aiID; // Store it before the try block
     const originalPlayerId = conv.gameData.playerID; // Store playerID
@@ -305,7 +306,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData))
+        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData))
     }
 
 
@@ -316,7 +317,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     const compactedMemoryMessage: Message = {
         role: "system",
-        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData), character)
+        content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData), character)
     }
 
     if(compactedMemoryMessage.content){
@@ -415,7 +416,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     chatPrompt = chatPrompt.concat(messages);
 
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const prompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
 
     if (!isAiToAi && !isNonTargetedResponse) {
         const originalAiId = conv.gameData.aiID;
@@ -576,7 +577,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 //SUMMARIZATION
 
 export function buildSummarizeChatPrompt(conv: Conversation, character: Character): Message[]{
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const prompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
     let output: Message[] = [];
 
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
@@ -598,7 +599,7 @@ export function buildSummarizeChatPrompt(conv: Conversation, character: Characte
 }
 
 export function buildResummarizeChatPrompt(conv: Conversation, messagesToSummarize: Message[]): Message[]{
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const prompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
     let prompt: Message[] = [];
     const isSelfTalk = conv.gameData.characters.size === 1 && conv.gameData.characters.has(conv.gameData.playerID);
 

@@ -28,7 +28,7 @@ let filteredDiaries: any[] = [];
 let currentPlayerId: string | null = null;
 let selectedCharacterId: string = 'all';
 let unsavedChanges = false;
-let userDataPath = '';
+let votcDataPath = '';
 let currentDiaryIndex = -1;
 let editingDiaryIndex = -1;
 let dirtyEntries = new Map<string, any>();
@@ -70,7 +70,7 @@ async function init() {
         window.LocalizationManager.applyTranslations();
     }
     
-    userDataPath = await ipcRenderer.invoke('get-userdata-path');
+    votcDataPath = await ipcRenderer.invoke('get-userdata-path');
 
     setupEventListeners();
     await loadPlayerIds();
@@ -307,7 +307,7 @@ function filterAndRenderDiaries() {
     editingDiaryIndex = -1;
 
     if (selectedCharacterId !== 'all' && currentPlayerId) {
-        diaryPathInput.value = `${userDataPath}/diary_history/${currentPlayerId}/${selectedCharacterId}.json`.replace(/\\/g, '/');
+        diaryPathInput.value = `${votcDataPath}/diary_history/${currentPlayerId}/${selectedCharacterId}.json`.replace(/\\/g, '/');
     } else {
         diaryPathInput.value = '';
     }
@@ -440,7 +440,7 @@ function selectDiary(index: number) {
 
     const entry = filteredDiaries[index];
     if (entry && entry.character_id && currentPlayerId) {
-        diaryPathInput.value = `${userDataPath}/diary_history/${currentPlayerId}/${entry.character_id}.json`.replace(/\\/g, '/');
+        diaryPathInput.value = `${votcDataPath}/diary_history/${currentPlayerId}/${entry.character_id}.json`.replace(/\\/g, '/');
     }
 
     renderDiaryList();

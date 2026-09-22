@@ -43,13 +43,13 @@ class openFolderButton extends HTMLElement{
 
     async connectedCallback(){
 
-        let userdataPath = await ipcRenderer.invoke('get-userdata-path');
+        let votcDataPath = await ipcRenderer.invoke('get-userdata-path');
 
         this.button.addEventListener("click", (e: any) => {
 
 
             //ipcRenderer.send('open-folder', this.path);
-            shell.openPath(path.resolve(path.join(userdataPath, this.path)));
+            shell.openPath(path.resolve(path.join(votcDataPath, this.path)));
         });
 
         // Handle localization

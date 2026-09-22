@@ -223,15 +223,15 @@ async function init(){
         console.log('selectedExMsgScript:', config.selectedExMsgScript);
         console.log('selectedBookmarkScript:', config.selectedBookmarkScript);
 
-        const userDataPath = await ipcRenderer.invoke('get-userdata-path');
-        console.log('userDataPath:', userDataPath);
+        const votcDataPath = await ipcRenderer.invoke('get-userdata-path');
+        console.log('votcDataPath:', votcDataPath);
 
         // Compute fallback paths from default_userdata (located two levels up from this file)
         const defaultScriptsBase = path.join(__dirname, '..', '..', 'default_userdata', 'scripts');
         console.log('Default scripts base:', defaultScriptsBase);
         console.log('Default scripts base exists?', fs.existsSync(defaultScriptsBase));
 
-        const descPath = path.join(userDataPath, 'scripts', 'prompts', 'description');
+        const descPath = path.join(votcDataPath, 'scripts', 'prompts', 'description');
         const fallbackDescPath = path.join(defaultScriptsBase, 'prompts', 'description');
         console.log('Populating desc scripts from:', descPath, 'fallback:', fallbackDescPath);
         console.log('Description folder exists?', fs.existsSync(descPath));
@@ -240,7 +240,7 @@ async function init(){
         descScriptSelect.value = config.selectedDescScript;
         console.log('Selected desc script:', config.selectedDescScript, 'options count:', descScriptSelect.options.length);
 
-        const exMsgPath = path.join(userDataPath, 'scripts', 'prompts', 'example messages');
+        const exMsgPath = path.join(votcDataPath, 'scripts', 'prompts', 'example messages');
         const fallbackExMsgPath = path.join(defaultScriptsBase, 'prompts', 'example messages');
         console.log('Populating exMsg scripts from:', exMsgPath, 'fallback:', fallbackExMsgPath);
         console.log('Example messages folder exists?', fs.existsSync(exMsgPath));
@@ -249,7 +249,7 @@ async function init(){
         exMessagesScriptSelect.value = config.selectedExMsgScript;
         console.log('Selected exMsg script:', config.selectedExMsgScript, 'options count:', exMessagesScriptSelect.options.length);
 
-        const bookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks');
+        const bookmarkPath = path.join(votcDataPath, 'scripts', 'bookmarks');
         const fallbackBookmarkPath = path.join(defaultScriptsBase, 'bookmarks');
         console.log('Populating bookmark scripts from:', bookmarkPath, 'fallback:', fallbackBookmarkPath);
         console.log('Bookmarks folder exists?', fs.existsSync(bookmarkPath));

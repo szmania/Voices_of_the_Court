@@ -77,9 +77,9 @@ async function init(){
 
      disabledActions= config!.disabledActions;
 
-    // Wait for userDataPath to be resolved before loading actions
-    const userDataPath = await ipcRenderer.invoke('get-userdata-path');
-    actionsPath = path.join(userDataPath, 'scripts', 'actions');
+    // Wait for votcDataPath to be resolved before loading actions
+    const votcDataPath = await ipcRenderer.invoke('get-userdata-path');
+    actionsPath = path.join(votcDataPath, 'scripts', 'actions');
     loadactions();
 
     refreshactionsButton.addEventListener('click', ()=>{

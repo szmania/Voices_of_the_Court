@@ -7,12 +7,12 @@ import AdmZip from 'adm-zip';
 
 /**
  * Gets all player IDs by scanning summary directories.
- * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param votcDataPath The path to the user data directory (e.g., .../votc_data).
  * @returns A promise that resolves to an array of player ID strings.
  */
-export async function getAllPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
+export async function getAllPlayerIds(votcDataPath: string): Promise<{ id: string, name: string }[]> {
     try {
-        const summaryDir = path.join(userDataPath, 'conversation_summaries');
+        const summaryDir = path.join(votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summaryDir)) {
             return [];
         }
@@ -40,7 +40,7 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
         const playerTimestamps = await Promise.all(playerDirsData.map(async (player) => {
             let latestTimestamp = 0;
             try {
-                const summaries = await readSummaryFile(userDataPath, player.id);
+                const summaries = await readSummaryFile(votcDataPath, player.id);
                 for (const summary of summaries) {
                     if ((summary as any).creationTimestamp) {
                         const timestamp = new Date((summary as any).creationTimestamp).getTime();
@@ -68,12 +68,12 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
 /**
  * Gets the most recent player ID by scanning summary directories.
  * This is determined by finding the most recently modified player directory.
- * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param votcDataPath The path to the user data directory (e.g., .../votc_data).
  * @returns A promise that resolves to an object containing the player ID.
  */
-export async function getPlayerId(userDataPath: string): Promise<{playerId: string}> {
+export async function getPlayerId(votcDataPath: string): Promise<{playerId: string}> {
     try {
-        const summaryDir = path.join(userDataPath, 'conversation_summaries');
+        const summaryDir = path.join(votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summaryDir)) {
             throw new Error(`Conversation summaries directory not found at: ${summaryDir}`);
         }
@@ -108,13 +108,13 @@ export async function getPlayerId(userDataPath: string): Promise<{playerId: stri
 
 /**
  * Reads all summary files for a given player.
- * @param userDataPath The path to the user data directory.
+ * @param votcDataPath The path to the user data directory.
  * @param playerId The ID of the player whose summaries to read.
  * @returns A promise that resolves to an array of all summaries.
  */
-export async function readSummaryFile(userDataPath: string, playerId: string): Promise<Summary[]> {
+export async function readSummaryFile(votcDataPath: string, playerId: string): Promise<Summary[]> {
     try {
-        const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
+        const summaryDir = path.join(votcDataPath, 'conversation_summaries', playerId);
         
         // Ensure directory exists
         if (!fs.existsSync(summaryDir)) {
@@ -173,13 +173,13 @@ export async function readSummaryFile(userDataPath: string, playerId: string): P
 
 /**
  * Saves summaries to their respective character files for a given player.
- * @param userDataPath The path to the user data directory.
+ * @param votcDataPath The path to the user data directory.
  * @param playerId The ID of the player.
  * @param summaries An array of all summaries to save.
  */
-export async function saveSummaryFile(userDataPath: string, playerId: string, summaries: Summary[]): Promise<void> {
+export async function saveSummaryFile(votcDataPath: string, playerId: string, summaries: Summary[]): Promise<void> {
     try {
-        const summaryDir = path.join(userDataPath, 'conversation_summaries', playerId);
+        const summaryDir = path.join(votcDataPath, 'conversation_summaries', playerId);
         
         // Ensure directory exists
         if (!fs.existsSync(summaryDir)) {
@@ -226,13 +226,13 @@ export async function saveSummaryFile(userDataPath: string, playerId: string, su
 
 /**
  * Reads the character map for a given player.
- * @param userDataPath The path to the user data directory.
+ * @param votcDataPath The path to the user data directory.
  * @param playerId The ID of the player whose character map to read.
  * @returns A promise that resolves to a map of character IDs to names.
  */
-export async function readCharacterMap(userDataPath: string, playerId: string): Promise<Map<string, string>> {
+export async function readCharacterMap(votcDataPath: string, playerId: string): Promise<Map<string, string>> {
     try {
-        const mapFilePath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const mapFilePath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
         const characterMap = new Map<string, string>();
 
         if (fs.existsSync(mapFilePath)) {
@@ -252,13 +252,13 @@ export async function readCharacterMap(userDataPath: string, playerId: string): 
 
 /**
  * Saves the character map for a given player.
- * @param userDataPath The path to the user data directory.
+ * @param votcDataPath The path to the user data directory.
  * @param playerId The ID of the player whose character map to save.
  * @param characterMap An object mapping character IDs to names.
  */
-export async function saveCharacterMap(userDataPath: string, playerId: string, characterMap: object): Promise<void> {
+export async function saveCharacterMap(votcDataPath: string, playerId: string, characterMap: object): Promise<void> {
     try {
-        const mapFilePath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const mapFilePath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
         const summaryDir = path.dirname(mapFilePath);
 
         // Ensure directory exists
@@ -312,11 +312,11 @@ export async function getAllCompactedMemories(playerId: string): Promise<Compact
  * Includes: conversation_summaries, compacted_memory, diary_history, diary_summaries,
  * letter_history, letter_summaries, conversation_history, prompt_history.
  * Compacted memory files are already encrypted at rest and are exported as-is.
- * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param votcDataPath The path to the user data directory (e.g., .../votc_data).
  * @param outputZipPath The full path where the zip file should be written.
  * @returns A promise that resolves when the export is complete.
  */
-export async function exportPlayerData(userDataPath: string, outputZipPath: string): Promise<void> {
+export async function exportPlayerData(votcDataPath: string, outputZipPath: string): Promise<void> {
     const zip = new AdmZip();
 
     const directoriesToExport = [
@@ -331,7 +331,7 @@ export async function exportPlayerData(userDataPath: string, outputZipPath: stri
     ];
 
     for (const dirName of directoriesToExport) {
-        const dirPath = path.join(userDataPath, dirName);
+        const dirPath = path.join(votcDataPath, dirName);
         if (fs.existsSync(dirPath)) {
             try {
                 zip.addLocalFolder(dirPath, dirName);
@@ -358,11 +358,11 @@ export async function exportPlayerData(userDataPath: string, outputZipPath: stri
  * Imports player data from a zip file.
  * Extracts all directories into the user data path, overwriting existing files.
  * Compacted memory files remain encrypted at rest as they were exported as-is.
- * @param userDataPath The path to the user data directory (e.g., .../votc_data).
+ * @param votcDataPath The path to the user data directory (e.g., .../votc_data).
  * @param inputZipPath The full path to the zip file to import.
  * @returns A promise that resolves when the import is complete.
  */
-export async function importPlayerData(userDataPath: string, inputZipPath: string): Promise<void> {
+export async function importPlayerData(votcDataPath: string, inputZipPath: string): Promise<void> {
     if (!fs.existsSync(inputZipPath)) {
         throw new Error(`Import file not found at: ${inputZipPath}`);
     }
@@ -415,12 +415,12 @@ export async function importPlayerData(userDataPath: string, inputZipPath: strin
     }
 
     try {
-        zip.extractAllTo(userDataPath, true);
+        zip.extractAllTo(votcDataPath, true);
         console.log(`Player data imported successfully from: ${inputZipPath}`);
 
         // Post-extraction migration for backward compatibility
-        const oldExtractedPath = path.join(userDataPath, oldCompactedDirName);
-        const newExtractedPath = path.join(userDataPath, 'memories_compacted');
+        const oldExtractedPath = path.join(votcDataPath, oldCompactedDirName);
+        const newExtractedPath = path.join(votcDataPath, 'memories_compacted');
         if (fs.existsSync(oldExtractedPath) && !fs.existsSync(newExtractedPath)) {
             fs.renameSync(oldExtractedPath, newExtractedPath);
             console.log(`Renamed imported 'compacted_memory' to 'memories_compacted'.`);

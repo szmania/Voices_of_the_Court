@@ -241,8 +241,6 @@ export class ApiConnection{
         // Apply a default request timeout so a hung provider can't stall initialization.
         // Merged with the caller's abort signal so either one can cancel the request.
         const REQUEST_TIMEOUT_MS = 120_000;
-        const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-        const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 
@@ -252,6 +250,10 @@ export class ApiConnection{
         let retries = 0;
 
         while (retries < MAX_RETRIES) {
+            // Recreate the timeout signal per attempt so a timed-out request can be retried
+            // with a fresh timeout instead of failing instantly on the already-aborted signal.
+            const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+            const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
             try {
                 if (this.type === 'gemini') {
@@ -611,8 +613,17 @@ export class ApiConnection{
                 }
             } catch (error) {
                 if (isAbortError(error)) {
-                    console.log('API request was aborted.');
-                    throw error; // Re-throw to be handled by the caller
+                    // A genuine user cancellation (the caller aborted) must not be retried.
+                    if (signal && signal.aborted) {
+                        console.log('API request was aborted by the caller.');
+                        throw error; // Re-throw to be handled by the caller
+                    }
+                    // Otherwise it's a transient abort (e.g. the request timeout fired).
+                    // Retry with a small backoff so long generations (letters, etc.) recover.
+                    retries++;
+                    console.debug(`Retry ${retries}/${MAX_RETRIES} after request abort, delaying for ${RETRY_DELAY * Math.pow(2, retries)}ms`);
+                    await delay(RETRY_DELAY * Math.pow(2, retries));
+                    continue;
                 }
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);

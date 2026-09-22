@@ -253,7 +253,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     let output: Message[] = [];
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
-    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    const descriptionPath = path.join(conv.votcDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
     try{
         delete require.cache[require.resolve(descriptionPath)];
@@ -304,7 +304,7 @@ function buildActionChatPrompt(conv: Conversation, actions: Action[]): Message[]
     listOfActions += `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, arg1, arg2), actionName2(sourceId, targetId)</actions>`
     listOfActions += `\nCRITICAL: The first two arguments of every action MUST be the source character ID and the target character ID, in that exact order. The action's own arguments (if any) come AFTER the source and target IDs. Never place an action's arguments before the IDs. Only use actions whose argument count matches the signature shown above.`
 
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const prompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
 
     output.push({
         role: "system",

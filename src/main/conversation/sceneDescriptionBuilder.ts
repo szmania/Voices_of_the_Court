@@ -19,7 +19,7 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     console.log('Building scene description prompt...');
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
-    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    const descriptionPath = path.join(conv.votcDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
     try{
         delete require.cache[require.resolve(descriptionPath)];
@@ -30,7 +30,7 @@ export function buildSceneDescriptionPrompt(conv: Conversation): Message[] {
     }
 
     // 构建提示词，只包含当前对话描述
-    const effectivePrompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const effectivePrompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
     
     // The configurable prompt from the UI is the main system instruction.
     const systemPromptContent = effectivePrompts.sceneDescriptionPrompt;

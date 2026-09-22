@@ -20,11 +20,11 @@ export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
     private actionsApiConnection: ApiConnection;
     private config: Config;
-    private userDataPath: string;
+    private votcDataPath: string;
 
-    constructor(config: Config, userDataPath: string, encoder: Tiktoken | null) {
+    constructor(config: Config, votcDataPath: string, encoder: Tiktoken | null) {
         this.config = config;
-        this.userDataPath = userDataPath;
+        this.votcDataPath = votcDataPath;
 
         // Create API connection
         console.log('[LetterReplyGenerator] Creating ApiConnection...');
@@ -74,7 +74,7 @@ export class LetterReplyGenerator {
         try {
             // @ts-ignore
             const depth = this.config.summaries_insert_depth || 3;
-            const summaries: Summary[] = await readSummaryFile(this.userDataPath, String(player.id));
+            const summaries: Summary[] = await readSummaryFile(this.votcDataPath, String(player.id));
             const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id)).slice(0, depth);
 
             if (aiSummaries.length > 0) {
@@ -120,7 +120,7 @@ export class LetterReplyGenerator {
                 textGenApiConnection: this.apiConnection
             } as any;
 
-            const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.userDataPath, gameData).memoriesPrompt };
+            const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.votcDataPath, gameData).memoriesPrompt };
             const memoryString = createMemoryString(tempConversation, prompts);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
@@ -132,7 +132,7 @@ export class LetterReplyGenerator {
             console.warn(`Failed to load memory content: ${error}`);
         }
 
-        const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+        const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
         let prompt = effectivePrompts.letterPrompt;
 
         prompt = prompt.replace('{{aiName}}', ai?.fullName || '')
@@ -158,7 +158,7 @@ export class LetterReplyGenerator {
         console.log('[LetterReplyGenerator] Starting letter action generation via LLM.');
 
         // Load available actions (only distance-capable ones for letters)
-        const actionsPath = path.join(this.userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(this.votcDataPath, 'scripts', 'actions');
         const availableActions: Action[] = [];
 
         const loadDir = (dir: string) => {
@@ -225,7 +225,7 @@ export class LetterReplyGenerator {
         listOfActions += `\nResponse format: <rationale>Reasoning.</rationale><actions>actionName1(sourceId, targetId, arg1, arg2), actionName2(sourceId, targetId)</actions>`;
         listOfActions += `\nCRITICAL: The first two arguments of every action MUST be the source character ID and the target character ID, in that exact order. The action's own arguments (if any) come AFTER the source and target IDs. Never place an action's arguments before the IDs. Only use actions whose argument count matches the signature shown above.`;
 
-        const prompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+        const prompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
         const actionPrompt = prompts.actionPrompt;
 
         const userContent = `Based on the following letter and reply, choose the most relevant actions. Actions can be triggered by EITHER character: the letter sender (${player.fullName}) based on what they wrote in their letter, or the reply author (${ai.fullName}) based on what they wrote in their reply.\n${characterList}\n"Letter from ${player.fullName}:\n${latestLetter.content}\n\nReply from ${ai.fullName}:\n${replyContent}\n${listOfActions}`;
@@ -545,7 +545,7 @@ export class LetterReplyGenerator {
             }
 
             // Build summary generation prompt
-            const effectivePrompts = getEffectivePrompts(this.config, this.userDataPath, gameData);
+            const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
             let summaryPrompt = effectivePrompts.letterSummaryPrompt;
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
