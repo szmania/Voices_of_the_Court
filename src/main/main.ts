@@ -420,7 +420,25 @@ function removeLettersAfterDate(cutoffDate: number): void {
  * live-approve code path. Returns true on success. Used both for immediate approval of
  * the active player's actions and for executing queued approvals when a player resumes.
  */
-async function executeLetterActionEffect(actionSignature: string, args: any[], sourceId: number, targetId: number): Promise<boolean> {
+/**
+ * Resolves the letter thread name (e.g. "letter_1") for a queued/approved letter action
+ * by looking up the stored letter and extracting the thread pattern from its subject.
+ */
+function resolveLetterName(playerId: string, characterId: string, letterId: string): string {
+    try {
+        const letter = LetterManager.getInstance().getAllLetters(playerId).find(l => l.id === letterId);
+        const subject = letter?.subject ?? '';
+        const match = subject.match(/letter_\d+/);
+        if (match) return match[0];
+        if (subject) return subject;
+    } catch (e) {
+        console.warn(`resolveLetterName: Failed to resolve letter name for letter ${letterId}:`, e);
+    }
+    console.warn(`resolveLetterName: Could not resolve letter name for letter ${letterId}; falling back to 'letter_1'.`);
+    return 'letter_1';
+}
+
+async function executeLetterActionEffect(actionSignature: string, args: any[], sourceId: number, targetId: number, letterName: string): Promise<boolean> {
     try {
         const allActions: any[] = [];
         const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
@@ -452,7 +470,9 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
         let effectBody = "";
         action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
 
-        ActionEffectWriter.writeEffect(letterRunFileManager, gameData, sourceId, targetId, effectBody);
+        // Letter approvals use the letter-specific global scope variables, not the
+        // positional conversation list prelude.
+        ActionEffectWriter.writeLetterEffect(letterRunFileManager, sourceId, targetId, gameData.playerID, letterName, effectBody);
         letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
         // Clear the letter actions file after the game has consumed it,
         // mirroring the conversation run file pattern (Conversation.ts ~line 1746).
@@ -477,7 +497,8 @@ async function processQueuedApprovals(playerId: string): Promise<void> {
     if (queued.length === 0) return;
     console.log(`[LetterApprovalQueue] Processing ${queued.length} queued letter action approval(s) for player ${playerId}.`);
     for (const entry of queued) {
-        const ok = await executeLetterActionEffect(entry.actionSignature, entry.args, entry.sourceId, entry.targetId);
+        const letterName = entry.letterName ?? resolveLetterName(entry.playerId, entry.characterId, entry.letterId);
+        const ok = await executeLetterActionEffect(entry.actionSignature, entry.args, entry.sourceId, entry.targetId, letterName);
         if (ok) {
             LetterApprovalQueue.removeQueuedApproval(entry.id);
             console.log(`[LetterApprovalQueue] Executed queued letter action '${entry.actionSignature}' for player ${playerId}.`);
@@ -2143,8 +2164,9 @@ ipcMain.on('approve-letter-action', async (event, { playerId, characterId, lette
     console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
     try {
         const isActivePlayer = currentSessionPlayerId != null && playerId === currentSessionPlayerId;
+        const letterName = resolveLetterName(playerId, characterId, letterId);
         if (isActivePlayer) {
-            const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId);
+            const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId, letterName);
             if (!ok) {
                 throw new Error(`Failed to execute approved letter action '${actionSignature}'.`);
             }
@@ -2153,7 +2175,7 @@ ipcMain.on('approve-letter-action', async (event, { playerId, characterId, lette
             // The letter belongs to a player who is not currently played. Persist the
             // approval status now, but queue the actual effect execution until that player
             // becomes the active session player.
-            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId });
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName });
             console.log(`Approved letter action '${actionSignature}' for non-active player ${playerId}. Queued for execution when that player is played.`);
         }
         // Persist the approval status so it survives navigation and app restarts.

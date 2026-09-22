@@ -48,6 +48,17 @@ export class LetterActionTrigger {
     return null;
   }
 
+  /**
+   * Derives the letter thread name (e.g. "letter_1") from the letter subject.
+   * Player-sent letters use the thread name as subject; replies use "Re: letter_N".
+   * Falls back to the raw subject if no thread pattern is found.
+   */
+  private static deriveLetterName(letter: Letter): string {
+    const subject = letter.subject || '';
+    const match = subject.match(/letter_\d+/);
+    return match ? match[0] : subject;
+  }
+
   public static async executeLetterAction(
     letter: Letter,
     actionSpec: LetterAssociatedAction,
@@ -99,11 +110,15 @@ export class LetterActionTrigger {
     try {
       action.run(gameData, runGameEffect, actionSpec.args, sourceId, targetId);
 
-      ActionEffectWriter.appendEffect(
+      // Letter actions use dedicated global scope variables (message_first_scope /
+      // message_second_scope_<letterName>) instead of the positional conversation list.
+      const letterName = LetterActionTrigger.deriveLetterName(letter);
+      ActionEffectWriter.appendLetterEffect(
         this.letterRunFileManager,
-        gameData,
         sourceId,
         targetId,
+        gameData.playerID,
+        letterName,
         effectBody
       );
 

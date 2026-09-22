@@ -18,6 +18,8 @@ export interface QueuedLetterApproval {
     args: any[];
     sourceId: number;
     targetId: number;
+    /** Letter thread name (e.g. "letter_1"). Optional for backward compat with pre-existing queued entries. */
+    letterName?: string;
 }
 
 export class LetterApprovalQueue {
