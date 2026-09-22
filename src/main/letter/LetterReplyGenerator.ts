@@ -14,6 +14,7 @@ import { Letter } from "./Letter.js";
 import { Letter as ILetter, LetterType, LetterSummary } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 import { getEffectivePrompts } from "../conversation/promptBuilder.js";
+import { getEffectiveCharacterDescription } from "../characterDescription";
 
 export class LetterReplyGenerator {
     private apiConnection: ApiConnection;
@@ -60,7 +61,13 @@ export class LetterReplyGenerator {
 
         // Use pListLetter.js to build character description
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
-        const characterDescription = pListLetter(gameData);
+        let characterDescription = pListLetter(gameData);
+
+        // Inject the user-authored character description for the AI character writing the reply.
+        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(player.id), String(ai.id));
+        if (userCharacterDescription) {
+            characterDescription += `\n\nCharacter description for ${ai.fullName} (provided by the player):\n${userCharacterDescription}`;
+        }
 
         // Read conversation summary
         let conversationSummary = '';
@@ -114,7 +121,7 @@ export class LetterReplyGenerator {
             } as any;
             
             const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.userDataPath, gameData).memoriesPrompt };
-            const memoryString = createMemoryString(tempConversation, prompts);
+            const memoryString = createMemoryString(tempConversation, prompts, ai);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
                 console.log(`Loaded memory content for letter prompt: ${memoryString.substring(0, 100)}...`);
