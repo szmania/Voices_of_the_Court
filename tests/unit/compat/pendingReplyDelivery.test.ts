@@ -9,7 +9,7 @@
  * either stranding it forever or claiming it for whichever campaign is loaded.
  */
 import { app } from 'electron';
-import { checkAndDeliverLetters, _private_getStoredLetters, _private_setConfig, _private_setCurrentTotalDays, _private_setLastLetterSentToGame } from '../../../src/main/main';
+import { checkAndDeliverLetters, _private_getStoredLetters, _private_setConfig, _private_setCurrentTotalDays, _private_setLastLetterSentToGame, _private_setObservedCampaignIdProvider } from '../../../src/main/main';
 import * as parseLog from '../../../src/shared/gameData/parseLog';
 import { LetterManager } from '../../../src/main/letter/LetterManager';
 import { evaluateReplyDeliveryGate } from '../../../src/main/letter/letterDeliveryGate';
@@ -89,6 +89,7 @@ describe('pending reply delivery gate', () => {
         _private_setLastLetterSentToGame(null);
         _private_setCurrentTotalDays(100);
         _private_setConfig({userFolderPath: process.cwd()} as never);
+        _private_setObservedCampaignIdProvider(null);
         deliveryMock().mockClear();
         (app.getPath as jest.Mock).mockReturnValue(process.cwd());
     });
@@ -196,6 +197,26 @@ describe('pending reply delivery gate', () => {
 
             expect(deliveryMock()).toHaveBeenCalledTimes(1);
             expect(_private_getStoredLetters().has('reply-legacy-mod')).toBe(false);
+        });
+
+        it('deferred: a campaign-mismatched reply is skipped, not re-parsed on every scheduler tick', async () => {
+            // Same campaign the mocked log snapshot reports, so the skip
+            // recorded at deferral time matches the observed campaign.
+            _private_setObservedCampaignIdProvider(() => IDENTITY.campaignId);
+            const parseSpy = jest.spyOn(parseLog, 'parseLog').mockResolvedValue(gameDataWithCampaign as never);
+            queueReply('reply-foreign-tick', OTHER_CAMPAIGN_ID);
+
+            await checkAndDeliverLetters();
+            const callsAfterFirstPass = parseSpy.mock.calls.length;
+            expect(callsAfterFirstPass).toBeGreaterThan(0);
+            expect(deliveryMock()).not.toHaveBeenCalled();
+
+            await checkAndDeliverLetters();
+            await checkAndDeliverLetters();
+
+            expect(parseSpy.mock.calls.length).toBe(callsAfterFirstPass);
+            expect(deliveryMock()).not.toHaveBeenCalled();
+            expect(_private_getStoredLetters().has('reply-foreign-tick')).toBe(true);
         });
     });
 });

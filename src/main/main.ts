@@ -286,6 +286,17 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+// Replies rejected by the campaign delivery gate remember the campaign they
+// were rejected under, so a foreign-campaign reply is not re-evaluated (and
+// does not trigger a full game-log parse) on every date heartbeat tick.
+// The entry is refreshed on each new rejection and ignored once the observed
+// campaign changes, so switching campaigns/saves re-evaluates exactly once.
+const campaignMismatchSkips = new Map<string, string | undefined>();
+// Seamed for tests: the pre-scan consults the observed campaign through this
+// provider. Jest cannot feed the campaignLoadObserver singleton that main.ts
+// sees (the '.js'-suffixed import resolves to a different module instance),
+// so tests inject a provider instead.
+let observedCampaignIdProvider: () => string | undefined = getObservedCampaignId;
 // Conversation-active probe for code declared above `conversation` (the
 // variable itself lives further down this file). Wired to the real
 // conversation right after the variable is declared.
@@ -299,6 +310,9 @@ export function _private_setSessionPlayerId(id: string | null): void { currentSe
 // The real config is built in app.whenReady() from the user's config file, which
 // tests do not have; this lets a test exercise config-dependent flows.
 export function _private_setConfig(value: Config): void { config = value; }
+export function _private_setObservedCampaignIdProvider(provider: (() => string | undefined) | null): void {
+    observedCampaignIdProvider = provider ?? getObservedCampaignId;
+}
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
@@ -360,6 +374,28 @@ function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
 export async function checkAndDeliverLetters() {
     if (currentTotalDays === 0) {
         console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
+        return;
+    }
+
+    // Cheap in-memory pre-scan before touching the game log. The date
+    // heartbeat re-triggers this check on every ~2s runner tick; without
+    // the pre-scan each tick parses the whole debug.log even when nothing
+    // is deliverable (and a campaign-mismatched reply would be re-logged
+    // every tick forever). A pending confirmation must still fall through
+    // so the timeout clear below gets its chance to run.
+    const observedCampaign = (observedCampaignIdProvider() ?? '');
+    const hasDeliverableCandidate = Array.from(storedLetters.entries()).some(([id, stored]) => {
+        if (currentTotalDays < stored.expectedDeliveryDay) {
+            return false;
+        }
+        // Skip only when a rejection was recorded for THIS letter under the
+        // SAME observed campaign. Map.get cannot distinguish "no entry"
+        // from "entry stored as undefined", so probe with has() first — a
+        // fresh letter must never be excluded just because no campaign is
+        // observable (both sides undefined).
+        return !(campaignMismatchSkips.has(id) && campaignMismatchSkips.get(id) === observedCampaign);
+    });
+    if (!hasDeliverableCandidate && !lastLetterSentToGame) {
         return;
     }
 
@@ -437,6 +473,15 @@ export async function checkAndDeliverLetters() {
                 {allowUnstampedLegacyReplies: true}
             );
             if (!verdict.deliverable) {
+                if (verdict.reason === 'campaign_mismatch') {
+                    // Remember the campaign that rejected this reply so the
+                    // cheap pre-scan above can skip it until the observed
+                    // campaign changes, instead of re-parsing the game log
+                    // and re-logging the deferral on every heartbeat tick.
+                    // '' stands for "no campaign observable" so the entry
+                    // still matches a later undefined observation.
+                    campaignMismatchSkips.set(letterId, currentCampaignId ?? '');
+                }
                 console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
                 continue;
             }
@@ -450,6 +495,7 @@ export async function checkAndDeliverLetters() {
             lastLetterSentToGame = storedLetter; // Track the letter sent
             lastLetterSentToGameTime = Date.now();
             storedLetters.delete(letterId); // Remove from pending queue
+            campaignMismatchSkips.delete(letterId); // Delivered: drop any stale skip marker
 
             // Since the mod probably handles one at a time, break after sending one.
             break;

@@ -655,10 +655,14 @@ function toLetterArchiveEntry(record: any, id: string, fallbackTime: number): Ar
 }
 
 export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<ArchiveHistoryEntry[]> {
-    // Reads both the campaign-scoped and the legacy flat letter-history layout
-    // (see letterHistoryCandidateDirs) so records written before campaign
-    // identities existed stay visible. LetterManager chat letters use a
-    // different directory and record shape and are never read here.
+    // Reads three sources and merges them:
+    //  - the campaign-scoped archive layout (authoritative for records
+    //    written since identities existed),
+    //  - the legacy flat archive layout (`letter_history/player_<id>`, the
+    //    1.x channel) so pre-identity records stay visible,
+    //  - the LetterManager chat-letter store (`letter_history/<playerId>/`),
+    //    which is what the live app actually writes today — without it the
+    //    Letters tab would stay empty for every real user.
     const recordsByFileName = new Map<string, { campaignRecords: any[], legacyRecords: any[], fallbackTime: number, sourceDir: string }>();
     for (const {dir, isLegacy} of letterHistoryCandidateDirs(playerId, identity)) {
         if (!fs.existsSync(dir)) {
@@ -717,7 +721,64 @@ export async function getLetterHistoryEntries(playerId: string, checkpointEpoch?
         }
     }
 
+    entries.push(...getChatLetterEntries(playerId, checkpointEpoch, registry, currentNodeId));
+
     return entries.sort((a, b) => b.modifiedTime - a.modifiedTime);
+}
+
+// LetterManager chat letters: one file per counterpart at
+// `votc_data/letter_history/<playerId>/<characterId>.json`, each an array of
+// {sender, recipient, content, subject, status, delivered, creationTimestamp,
+// ...}. This is the store the live app writes, so the archive view must read
+// it or its Letters tab stays empty. Records carry no timeline stamps yet, so
+// they pass the epoch/visibility filter as legacy records; once deliveries
+// stamp them, the same isRecordVisible path scopes them per branch.
+function getChatLetterEntries(
+    playerId: string,
+    checkpointEpoch?: number,
+    registry?: TimelineRegistry,
+    currentNodeId?: string
+): ArchiveHistoryEntry[] {
+    const chatDir = path.join(app.getPath('userData'), 'votc_data', 'letter_history', playerId);
+    if (!fs.existsSync(chatDir)) {
+        return [];
+    }
+
+    const entries: ArchiveHistoryEntry[] = [];
+    for (const fileName of fs.readdirSync(chatDir).filter(file => file.endsWith('.json'))) {
+        const filePath = path.join(chatDir, fileName);
+        let fallbackTime: number;
+        try {
+            fallbackTime = fs.statSync(filePath).mtime.getTime();
+            const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            if (!Array.isArray(parsed)) {
+                continue;
+            }
+            parsed.forEach((record: any, index: number) => {
+                if (!record || typeof record !== 'object') {
+                    return;
+                }
+                if (!isRecordVisible(record, registry, currentNodeId, checkpointEpoch)) {
+                    return;
+                }
+                const senderName = record.sender?.shortName || record.sender?.fullName || 'Unknown';
+                const recipientName = record.recipient?.shortName || record.recipient?.fullName || 'Unknown';
+                const playerSent = Boolean(record.isPlayerSender) || Number(record.sender?.id) === Number(playerId);
+                const created = Date.parse(record.creationTimestamp ?? '');
+                entries.push({
+                    id: `letter:chat:${fileName}:${index}`,
+                    type: 'letter',
+                    title: playerSent ? `To ${recipientName}` : `From ${senderName}`,
+                    subtitle: record.subject || '',
+                    modifiedTime: Number.isFinite(created) ? created : fallbackTime,
+                    content: `${senderName}:\n${record.content ?? ''}`
+                });
+            });
+        } catch (error) {
+            console.error(`Failed to read chat letter history ${filePath}:`, error);
+        }
+    }
+    return entries;
 }
 
 export async function getBattleReportHistoryEntries(playerId: string, checkpointEpoch?: number, registry?: TimelineRegistry, currentNodeId?: string, identity?: CampaignPlayerIdentity): Promise<ArchiveHistoryEntry[]> {
