@@ -11,6 +11,7 @@ import { parseGameDate, getDateDifference } from '../../shared/dateUtils.js';
 import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 import { GameData } from "../../shared/gameData/GameData.js";
+import { getEffectiveCharacterDescription } from "../characterDescription";
 
 export function getPromptsConfig(votcDataPath: string, lang: string = 'en'): any {
     const promptsDir = path.join(votcDataPath, 'configs', 'prompts');
@@ -22,7 +23,7 @@ export function getPromptsConfig(votcDataPath: string, lang: string = 'en'): any
         console.warn(`Prompt file for language '${lang}' not found at ${promptsPath}. Falling back to 'en.json'.`);
         finalPath = fallbackPath;
     }
-    
+
     if (!fs.existsSync(finalPath)) {
         console.error(`Fallback prompt file 'en.json' not found at ${fallbackPath}. Cannot load prompts.`);
         return { prompts: {}, mod_prompt_sets: {} };
@@ -62,7 +63,7 @@ export function getEffectivePrompts(config: Config, votcDataPath: string, gameDa
     if (defaultPromptsConfig.mod_prompt_sets?.[activePreset]) {
         return { ...defaultPromptsConfig.prompts, ...defaultPromptsConfig.mod_prompt_sets[activePreset] };
     }
-    
+
     // 2. Check for the "Default" preset
     if (activePreset === 'Default') {
         return defaultPromptsConfig.prompts;
@@ -263,7 +264,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
                     }
                     return result;
                 }
-            
+
                 return key; // fallback to key if not a string
             };
         }
@@ -303,10 +304,22 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`Inserted description for ${character.fullName} at depth: ${conv.config.descInsertDepth}.`);
     }
 
+    // Inject the user-authored character description for the character being prompted.
+    // This is an optional, player-provided layer on top of the description script output.
+    const userCharacterDescription = getEffectiveCharacterDescription(conv.userDataPath, String(conv.gameData.playerID), String(character.id));
+    if (userCharacterDescription) {
+        const userDescMessage: Message = {
+            role: "system",
+            content: `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}`
+        };
+        insertMessageAtDepth(messages, userDescMessage, conv.config.descInsertDepth);
+        console.log(`Inserted user character description for ${character.fullName} at depth: ${conv.config.descInsertDepth}.`);
+    }
+
 
     const memoryMessage: Message = {
         role: "system",
-        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData))
+        content: createMemoryString(conv, getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData), character)
     }
 
 
@@ -669,14 +682,21 @@ function insertMessageAtDepth(messages: Message[], messageToInsert: Message, ins
 
 
 
-export function createMemoryString(conv: Conversation, prompts: any): string{
+export function createMemoryString(conv: Conversation, prompts: any, character?: Character): string{
     let allMemories: Memory[] = [];
 
-    conv.gameData.characters.forEach((value, key) => {
-        allMemories = allMemories.concat(value!.memories);
-    })
-    // allMemories =allMemories.concat(conv.gameData.characters.get(conv.gameData.playerID)!.memories);
-    // allMemories = allMemories.concat(conv.gameData.characters.get(conv.gameData.aiID)!.memories);
+    if (character) {
+        // Scoped: only the speaking character's own memories.
+        // Prevents unrelated characters (e.g. a wife absent from a private event)
+        // from receiving memories that belong to the player or other characters.
+        allMemories = allMemories.concat(character.memories);
+    } else {
+        // Fallback for legacy callers without a character context: player + main AI only.
+        const player = conv.gameData.characters.get(conv.gameData.playerID);
+        const ai = conv.gameData.characters.get(conv.gameData.aiID);
+        if (player) allMemories = allMemories.concat(player.memories);
+        if (ai) allMemories = allMemories.concat(ai.memories);
+    }
 
     allMemories.sort((a, b) => (b.relevanceWeight - a.relevanceWeight));
 
@@ -720,7 +740,7 @@ export function createCompactedMemoryString(conv: Conversation, prompts: any, ch
     if (compactedMemories.length === 0) return "";
 
     let output = prompts.compactedMemoriesPrompt || "The following is a summary of key long-term memories and narrative threads:\\n";
-    
+
     const phase2Memories = compactedMemories.filter(m => m.compactionLevel === 2);
     const phase1Memories = compactedMemories.filter(m => m.compactionLevel === 1).slice(-3); // Only last 3 phase-1 summaries
 
