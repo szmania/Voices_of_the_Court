@@ -1027,7 +1027,12 @@
     "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
     "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
     "legacy_status_no_legacy": "No legacy memories found",
-    "legacy_status_error": "Error checking legacy memory status"
+    "legacy_status_error": "Error checking legacy memory status",
+    "reindex_button": "Re-index Vector DB",
+    "reindex_tooltip": "Re-embed all stored memories at the currently configured embedding dimension and rebuild the vector index. Use this after changing the embedding model or dimension override so existing memories are preserved.",
+    "reindex_start": "Re-indexing vector database. Please wait...",
+    "reindex_complete": "Re-index complete: {embedded}/{total} memories embedded.",
+    "reindex_fail": "Re-index failed: {error}"
   },
   "compaction": {
     "header": "Memory Management",

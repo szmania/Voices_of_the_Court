@@ -883,6 +883,7 @@ app.on('ready',  async () => {
         baseUrl: string;
         apiKey: string;
         expectedDimension?: number;
+        embeddingInputType?: string;
     }) => {
         console.log('IPC: Received test-embedding-connection event.');
         try {
@@ -891,7 +892,8 @@ app.on('ready',  async () => {
                 providerConfig.model,
                 providerConfig.baseUrl,
                 providerConfig.apiKey,
-                providerConfig.expectedDimension
+                providerConfig.expectedDimension,
+                providerConfig.embeddingInputType
             );
             const result = await provider.testConnection();
             return result;
@@ -1086,6 +1088,44 @@ app.on('ready',  async () => {
             return { success: true, count };
         } catch (error: any) {
             console.error('Error getting memory count:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    // Re-embed all stored memories at the currently configured embedding dimension
+    // and rebuild the sqlite-vec index. Used when the user changes the embedding
+    // model / dimension override so existing memories are preserved, not discarded.
+    ipcMain.handle('reindex-embedding-dimensions', async () => {
+        console.log('IPC: Received reindex-embedding-dimensions event.');
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const conn = config?.embeddingApiConnectionConfig?.connection;
+            if (!conn || !conn.type || !conn.model || !conn.baseUrl) {
+                return { success: false, error: 'Embedding API connection is not configured.' };
+            }
+
+            const targetDimension = getEffectiveEmbeddingDimension(conn);
+            const provider = new EmbeddingProvider(
+                conn.type as any,
+                conn.model,
+                conn.baseUrl,
+                conn.key,
+                targetDimension,
+                conn.embeddingInputType
+            );
+
+            // Brief rate limiting between calls to avoid flooding external APIs.
+            const result = await memoryManager.reindexMemories(async (text) => {
+                const vector = await provider.embed(text);
+                await sleep(75);
+                return vector;
+            }, targetDimension);
+
+            return { success: true, ...result };
+        } catch (error: any) {
+            console.error('Error reindexing embedding dimensions:', error);
             return { success: false, error: error?.message || String(error) };
         }
     });

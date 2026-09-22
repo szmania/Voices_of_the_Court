@@ -31,6 +31,7 @@ export interface Connection{
     customContext: number;
     embeddingDimension?: number; // dimension of embedding vectors (default 1536)
     useCustomEmbeddingDimension?: boolean; // only honor embeddingDimension when true
+    embeddingInputType?: string; // optional 'input_type' for asymmetric embedding models (e.g. NVIDIA NIM)
     apiKeys?: { [apiType: string]: any }; // 存储所有API类型的配置
 }
 
@@ -930,7 +931,9 @@ export class ApiConnection{
             this.config.type as EmbeddingProviderType,
             this.config.model,
             this.config.baseUrl,
-            this.config.key
+            this.config.key,
+            getEffectiveEmbeddingDimension(this.config),
+            this.config.embeddingInputType
         );
         return provider.embed(text);
     }
@@ -970,13 +973,15 @@ export class EmbeddingProvider {
     private baseUrl: string;
     private apiKey: string;
     private expectedDimension?: number;
+    private embeddingInputType?: string;
 
-    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string, expectedDimension?: number) {
+    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string, expectedDimension?: number, embeddingInputType?: string) {
         this.provider = provider;
         this.model = model;
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
         this.expectedDimension = expectedDimension;
+        this.embeddingInputType = embeddingInputType;
     }
 
     /**
@@ -1061,7 +1066,8 @@ export class EmbeddingProvider {
             body: JSON.stringify({
                 model: this.model,
                 input: text,
-                ...(this.expectedDimension ? { dimensions: this.expectedDimension } : {})
+                ...(this.expectedDimension ? { dimensions: this.expectedDimension } : {}),
+                ...(this.embeddingInputType ? { input_type: this.embeddingInputType } : {})
             })
         });
 

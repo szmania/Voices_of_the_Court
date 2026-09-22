@@ -26,6 +26,9 @@
     "description": "캐릭터의 일기 항목을 관리합니다."
   },
   "memory_constellation": {
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
     "empty_title": "기억을 찾을 수 없습니다",
     "empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다.",
     "legacy_status_loaded": "Legacy memories loaded ({count})",

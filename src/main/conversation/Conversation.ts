@@ -1693,7 +1693,7 @@ Statement by ${character.fullName}:`
                     const memoriesToInsert: Memory[] = [];
 
                     const { connection } = this.config.embeddingApiConnectionConfig;
-                    const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key);
+                    const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key, getEffectiveEmbeddingDimension(connection), connection.embeddingInputType);
 
 
                     for (const compacted of result.newlyCompactedMemories) {

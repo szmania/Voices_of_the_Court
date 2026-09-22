@@ -26,6 +26,9 @@
     "description": "管理角色的日记条目。"
   },
   "memory_constellation": {
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
     "empty_title": "未找到记忆",
     "empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。",
     "legacy_status_loaded": "Legacy memories loaded ({count})",

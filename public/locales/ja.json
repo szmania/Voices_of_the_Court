@@ -26,6 +26,9 @@
     "description": "キャラクターの日記エントリを管理します。"
   },
   "memory_constellation": {
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
     "empty_title": "記憶が見つかりません",
     "empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。",
     "legacy_status_loaded": "Legacy memories loaded ({count})",

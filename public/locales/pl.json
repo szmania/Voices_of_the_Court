@@ -26,6 +26,9 @@
     "description": "Zarządzaj wpisami do dziennika dla postaci."
   },
   "memory_constellation": {
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
     "empty_title": "Nie znaleziono wspomnień",
     "empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze.",
     "legacy_status_loaded": "Legacy memories loaded ({count})",
