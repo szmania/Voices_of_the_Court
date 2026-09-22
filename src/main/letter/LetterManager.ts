@@ -436,13 +436,17 @@ trigger_event = message_event.362`;
         const runFolder = path.join(ck3Folder, "run");
         const letterFilePath = path.join(runFolder, "letters.txt");
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
-    
-        if (fs.existsSync(letterFilePath)) {
-          fs.writeFileSync(letterFilePath, '', "utf-8");
-          console.log("Cleared letters.txt file");
-        } else {
-          console.log("letters.txt file does not exist, nothing to clear");
-        }
+
+        // Never empty this file: line 1 is the date heartbeat. The mod-side
+        // letters_runner executes run/letters.txt every ~2s and the app reads
+        // the current game date from the VOTC:DATE line the placeholder logs
+        // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Writing ''
+        // here freezes the app's date tracking — pending letter deliveries
+        // never reach their delivery day and the whole game integration goes
+        // silent. "Clearing" means restoring the placeholder.
+        const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
+        fs.writeFileSync(letterFilePath, placeholder, "utf-8");
+        console.log("Reset letters.txt to the blank heartbeat placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<void> {

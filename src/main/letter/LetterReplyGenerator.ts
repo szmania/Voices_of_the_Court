@@ -62,7 +62,13 @@ function buildLetterReplyRunFile(
         ? `${indentCk3Block(timeline.script, '\t')}\n`
         : '';
 
-    return `if = {
+    // The first line doubles as the app's date heartbeat: the mod-side
+    // letters_runner executes run/letters.txt every ~2s and the app reads
+    // the current game date from the VOTC:DATE line this debug_log emits
+    // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Every
+    // payload written into letters.txt must keep it as line 1.
+    return `debug_log = "[Localize('talk_event.9999.desc')]"
+if = {
 \tlimit = {
 \t\texists = global_var:votc_letter_${letterNumber}
 \t}
