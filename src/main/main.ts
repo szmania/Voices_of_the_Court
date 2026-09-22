@@ -494,9 +494,11 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
  * that player.
  */
 async function processQueuedApprovals(playerId: string): Promise<void> {
-    const queued = LetterApprovalQueue.getQueuedApprovalsForPlayer(playerId);
+    // Only drain entries that are due: legacy entries with no game-date stamp (treated as due)
+    // and entries whose gameDateTotalDays <= currentTotalDays. Future-dated entries stay queued.
+    const queued = LetterApprovalQueue.getDueApprovalsForPlayer(playerId, currentTotalDays);
     if (queued.length === 0) return;
-    console.log(`[LetterApprovalQueue] Processing ${queued.length} queued letter action approval(s) for player ${playerId}.`);
+    console.log(`[LetterApprovalQueue] Processing ${queued.length} due queued letter action approval(s) for player ${playerId} (current day: ${currentTotalDays}).`);
     for (const entry of queued) {
         const letterName = entry.letterName ?? resolveLetterName(entry.playerId, entry.characterId, entry.letterId);
         const ok = await executeLetterActionEffect(entry.actionSignature, entry.args, entry.sourceId, entry.targetId, letterName);
@@ -555,6 +557,13 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
     console.log(`Game date updated to: ${currentTotalDays}`);
     checkAndDeliverLetters();
+
+    // Drain due queued letter-action approvals for the active player on EVERY date tick,
+    // not only on player change or conversation start. Future-dated entries remain queued
+    // until their game date passes (handled inside processQueuedApprovals).
+    if (currentSessionPlayerId != null && currentTotalDays > 0) {
+        processQueuedApprovals(currentSessionPlayerId);
+    }
 
     // Broadcast the date update to all renderer windows
     BrowserWindow.getAllWindows().forEach(win => {
@@ -2164,7 +2173,25 @@ ipcMain.handle('get-current-session-player', () => currentSessionPlayerId);
 ipcMain.on('approve-letter-action', async (event, { playerId, characterId, letterId, actionSignature, args, sourceId, targetId }) => {
     console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
     try {
-        const isActivePlayer = currentSessionPlayerId != null && playerId === currentSessionPlayerId;
+        // Robust active-player detection: trust the cached session player first (fast path),
+        // then fall back to a fresh parse of debug.log when the cache is null or disagrees.
+        // This prevents approvals for the currently played character from being queued just
+        // because no conversation has started this session (cache never set) or is stale.
+        let isActivePlayer = currentSessionPlayerId != null && playerId === currentSessionPlayerId;
+        if (isActivePlayer) {
+            console.log(`[LetterApprovalQueue] Active-player check passed via cached currentSessionPlayerId (${currentSessionPlayerId}).`);
+        } else {
+            const freshGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            const freshPlayerId = freshGameData?.playerID != null ? String(freshGameData.playerID) : null;
+            if (freshPlayerId != null && freshPlayerId === playerId) {
+                isActivePlayer = true;
+                console.log(`[LetterApprovalQueue] Active-player check passed via fresh debug.log parse (player ${playerId}); refreshing cached session player.`);
+                currentSessionPlayerId = freshPlayerId;
+                broadcastCurrentSessionPlayer();
+            } else {
+                console.log(`[LetterApprovalQueue] Active-player check failed for player ${playerId}: cached=${currentSessionPlayerId}, log=${freshPlayerId}. Approval will be queued.`);
+            }
+        }
         const letterName = resolveLetterName(playerId, characterId, letterId);
         if (isActivePlayer) {
             const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId, letterName);
@@ -2176,7 +2203,7 @@ ipcMain.on('approve-letter-action', async (event, { playerId, characterId, lette
             // The letter belongs to a player who is not currently played. Persist the
             // approval status now, but queue the actual effect execution until that player
             // becomes the active session player.
-            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName });
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: currentTotalDays });
             console.log(`Approved letter action '${actionSignature}' for non-active player ${playerId}. Queued for execution when that player is played.`);
         }
         // Persist the approval status so it survives navigation and app restarts.

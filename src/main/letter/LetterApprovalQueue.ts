@@ -20,6 +20,8 @@ export interface QueuedLetterApproval {
     targetId: number;
     /** Letter thread name (e.g. "letter_1"). Optional for backward compat with pre-existing queued entries. */
     letterName?: string;
+    /** In-game day number (totalDays) when this approval was queued. Optional for backward compat; missing = treat as due. */
+    gameDateTotalDays?: number;
 }
 
 export class LetterApprovalQueue {
@@ -66,6 +68,18 @@ export class LetterApprovalQueue {
 
     public static getQueuedApprovalsForPlayer(playerId: string): QueuedLetterApproval[] {
         return this.readQueue().filter(q => q.playerId === playerId);
+    }
+
+    /**
+     * Returns queued approvals for the given player that are due for execution:
+     * entries with no gameDateTotalDays (legacy, treated as due) or with
+     * gameDateTotalDays <= currentTotalDays. Future-dated entries remain queued.
+     */
+    public static getDueApprovalsForPlayer(playerId: string, currentTotalDays: number): QueuedLetterApproval[] {
+        return this.readQueue().filter(q =>
+            q.playerId === playerId &&
+            (q.gameDateTotalDays == null || q.gameDateTotalDays <= currentTotalDays)
+        );
     }
 
     public static removeQueuedApproval(id: string): void {
