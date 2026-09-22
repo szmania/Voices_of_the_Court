@@ -3,7 +3,15 @@ import {  app, BrowserWindow, ipcMain, screen} from "electron";
 import { OverlayController, OVERLAY_WINDOW_OPTS } from 'electron-overlay-window';
 import path from 'path';
 
+// Do not import @paymoapp/active-window on Linux. Loading it calls XSetErrorHandler()
+// at require() time (inside the native addon's Init function), which replaces
+// Electron/Chromium's global X11 error handler process-wide and silently breaks
+// clipboard.readText() in the main process.
 let ActiveWindow: any = null;
+if (process.platform !== 'linux') {
+    ActiveWindow = require('@paymoapp/active-window').default;
+    ActiveWindow.initialize();
+}
 
 // 'pending': OverlayController has not attached to the game window yet.
 // 'overlay': it attached; the library positions, shows and hides this window.
@@ -15,6 +23,7 @@ export class ChatWindow{
     window: BrowserWindow;
     conversation: any;
     isShown: boolean;
+    windowWatchId: number;
     interval: any;
     overlayMode: OverlayMode;
     // 'blur' listeners that attachByTitle() adds to this.window. They hide the window
@@ -57,6 +66,8 @@ export class ChatWindow{
         }
 
         //this.window.setShape([{x:0, y:0, width: 650, height: 800}])
+
+        this.windowWatchId = 0;
 
         this.window.loadFile('./public/chatWindow/chat.html')
         this.window.removeMenu();
@@ -127,9 +138,12 @@ export class ChatWindow{
         }
         this.isShown = true;
 
-        // Send the show event once the renderer is ready (load-safe).
-        this.showPending = true;
-        this.sendShowWhenReady();
+        // Send the show event after a short delay to ensure the renderer is ready
+        setTimeout(() => {
+            if (this.window && !this.window.isDestroyed()) {
+                this.window.webContents.send('chat-show');
+            }
+        }, 150);
 
         /*this.windowWatchId = ActiveWindow.subscribe( (winInfo) =>{
             if(winInfo?.title == "Crusader Kings III" && this.isShown ){
@@ -251,6 +265,8 @@ export class ChatWindow{
             this.window.hide();
         }
         this.isShown = false;
+
+        if (ActiveWindow) ActiveWindow.unsubscribe(this.windowWatchId);
 
         clearInterval(this.interval);
     }
