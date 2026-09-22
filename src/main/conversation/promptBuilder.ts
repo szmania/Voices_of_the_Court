@@ -306,7 +306,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     // Inject the user-authored character description for the character being prompted.
     // This is an optional, player-provided layer on top of the description script output.
-    const userCharacterDescription = getEffectiveCharacterDescription(conv.userDataPath, String(conv.gameData.playerID), String(character.id));
+    const userCharacterDescription = getEffectiveCharacterDescription(conv.votcDataPath, String(conv.gameData.playerID), String(character.id));
     if (userCharacterDescription) {
         const userDescMessage: Message = {
             role: "system",

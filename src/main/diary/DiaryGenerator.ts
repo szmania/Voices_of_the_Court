@@ -77,7 +77,7 @@ export class DiaryGenerator {
         const replacedPrompt = diaryPrompt.replace(/{{charName}}/g, character.fullName);
 
         // Inject the user-authored character description for the character writing the diary.
-        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), characterId);
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), characterId);
         const characterDescriptionContent = userCharacterDescription
             ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
             : '';
@@ -120,7 +120,7 @@ export class DiaryGenerator {
         if (!diaryPrompt) return null;
 
         // Inject the user-authored character description for the character writing the diary.
-        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), String(character.id));
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), String(character.id));
         const characterDescriptionContent = userCharacterDescription
             ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
             : '';

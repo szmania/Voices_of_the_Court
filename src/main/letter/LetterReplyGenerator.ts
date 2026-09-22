@@ -71,7 +71,7 @@ export class LetterReplyGenerator {
         let characterDescription = pListLetter(gameData);
 
         // Inject the user-authored character description for the AI character writing the reply.
-        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(player.id), String(ai.id));
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(player.id), String(ai.id));
         if (userCharacterDescription) {
             characterDescription += `\n\nCharacter description for ${ai.fullName} (provided by the player):\n${userCharacterDescription}`;
         }
