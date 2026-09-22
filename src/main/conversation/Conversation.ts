@@ -1715,14 +1715,23 @@ Statement by ${character.fullName}:`
                         } catch (e) {
                             console.error(`Failed to generate embedding for compacted memory ${compacted.id}:`, e);
                         }
-                    }
-
                     if (memoriesToInsert.length > 0) {
                         this.memoryManager.batchInsertMemories(memoriesToInsert);
-                    }
-                }
 
-                if (result.phase1Run) {
+                        // Automatic upkeep: decay stale memories and consolidate near-duplicates
+                        // for every character that just received new memories.
+                        const charIds = new Set(memoriesToInsert.map(m => m.characterId).filter(Boolean));
+                        for (const cid of charIds) {
+                            try {
+                                this.memoryManager.applyDecay(cid);
+                                this.memoryManager.consolidateMemories(cid);
+                            } catch (e) {
+                                console.error(`Memory upkeep (decay/consolidation) failed for character ${cid}:`, e);
+                            }
+                        }
+                    }
+                        this.memoryManager.batchInsertMemories(memoriesToInsert);
+                }
                     console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
                     if (result.metrics) {
                         console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);

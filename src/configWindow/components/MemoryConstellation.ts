@@ -248,7 +248,7 @@ function defineTemplate() {
             </div>
             <div class="editor-status" id="editor-status"></div>
         </div>
-        <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Click a node to edit</div>
+        <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Right-drag to pan &middot; Click a node to edit</div>
     </div>
     `;
 }
@@ -266,6 +266,8 @@ class MemoryConstellation extends HTMLElement {
     private raycaster = new THREE.Raycaster();
     private mouse = new THREE.Vector2();
     private isDragging = false;
+    private isPanning = false;
+    private panStart = { x: 0, y: 0 };
     private dragStart = { x: 0, y: 0 };
     private rotationStart = { x: 0, y: 0 };
     private autoRotate = true;
@@ -353,13 +355,16 @@ class MemoryConstellation extends HTMLElement {
             this.camera.position.z = Math.max(2, Math.min(20, this.camera.position.z + delta));
         }, { passive: false });
 
-        // Drag to rotate
+        // Drag to rotate (left button) or pan (right / middle button)
+        this.container.addEventListener('contextmenu', (e) => e.preventDefault());
         this.container.addEventListener('mousedown', (e) => {
             this.isDragging = true;
+            this.isPanning = e.button === 2 || e.button === 1;
             this.autoRotate = false;
             this.container.classList.add('dragging');
             this.dragStart = { x: e.clientX, y: e.clientY };
             this.rotationStart = { x: this.scene.rotation.y, y: this.scene.rotation.x };
+            this.panStart = { x: this.camera.position.x, y: this.camera.position.y };
             this.mouseDownPos = { x: e.clientX, y: e.clientY };
         });
 
@@ -367,8 +372,14 @@ class MemoryConstellation extends HTMLElement {
             if (this.isDragging) {
                 const dx = e.clientX - this.dragStart.x;
                 const dy = e.clientY - this.dragStart.y;
-                this.scene.rotation.y = this.rotationStart.x + dx * 0.01;
-                this.scene.rotation.x = this.rotationStart.y + dy * 0.01;
+                if (this.isPanning) {
+                    const panScale = this.camera.position.z * 0.0016;
+                    this.camera.position.x = this.panStart.x - dx * panScale;
+                    this.camera.position.y = this.panStart.y + dy * panScale;
+                } else {
+                    this.scene.rotation.y = this.rotationStart.x + dx * 0.01;
+                    this.scene.rotation.x = this.rotationStart.y + dy * 0.01;
+                }
             } else {
                 this.handleHover(e);
             }
@@ -377,6 +388,7 @@ class MemoryConstellation extends HTMLElement {
         window.addEventListener('mouseup', () => {
             if (this.isDragging) {
                 this.isDragging = false;
+                this.isPanning = false;
                 this.container.classList.remove('dragging');
             }
         });
@@ -605,6 +617,22 @@ class MemoryConstellation extends HTMLElement {
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
+        // Vertex colors: hue from emotion, brightness from recency.
+        const colors = new Float32Array(memories.length * 3);
+        const timestamps = memories.map((m: any) => m.timestamp || 0);
+        const minTs = Math.min(...timestamps);
+        const maxTs = Math.max(...timestamps);
+        const tsRange = Math.max(1, maxTs - minTs);
+        memories.forEach((memory: any, i: number) => {
+            const base = this.emotionColor(memory.emotion);
+            const recency = ((memory.timestamp || 0) - minTs) / tsRange; // 0 = oldest, 1 = newest
+            const brightness = 0.35 + 0.65 * recency;
+            colors[i * 3] = base.r * brightness;
+            colors[i * 3 + 1] = base.g * brightness;
+            colors[i * 3 + 2] = base.b * brightness;
+        });
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
         // Use a circular sprite texture so points render as glowing dots, not squares.
         const canvas = document.createElement('canvas');
         canvas.width = 64;
@@ -619,7 +647,8 @@ class MemoryConstellation extends HTMLElement {
         const texture = new THREE.CanvasTexture(canvas);
 
         const material = new THREE.PointsMaterial({
-            color: 0xcca43b,
+            color: 0xffffff,
+            vertexColors: true,
             size: 0.35,
             map: texture,
             transparent: true,
@@ -630,6 +659,16 @@ class MemoryConstellation extends HTMLElement {
         this.scene.add(this.points);
 
         this.buildRelationLines(memories, positions);
+    }
+
+    private emotionColor(emotion: string): { r: number; g: number; b: number } {
+        const e = (emotion || '').toLowerCase();
+        if (/hap|joy|excit|grateful|love/.test(e)) return { r: 1.0, g: 0.8, b: 0.2 };
+        if (/sad|grief|sorrow|melanch/.test(e)) return { r: 0.3, g: 0.5, b: 1.0 };
+        if (/ang|rage|furi|hate/.test(e)) return { r: 1.0, g: 0.25, b: 0.2 };
+        if (/fear|afraid|worried|anx|terrif/.test(e)) return { r: 0.6, g: 0.3, b: 0.9 };
+        if (/calm|content|peace|serene/.test(e)) return { r: 0.3, g: 0.9, b: 0.6 };
+        return { r: 0.8, g: 0.64, b: 0.23 }; // neutral gold
     }
 
     private animateLoop = () => {
