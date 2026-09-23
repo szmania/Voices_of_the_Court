@@ -16,6 +16,7 @@
  * id with no explanation.
  */
 import { dialog } from 'electron';
+import fs from 'fs';
 import { t } from '../shared/i18n.js';
 import { parseCampaignLoadedLine } from '../shared/gameData/parseLog.js';
 import { buildIdentityFromParts } from '../shared/gameData/CampaignIdentity.js';
@@ -25,6 +26,8 @@ export interface ObservedCampaignLoad {
     playerId: string;
     bootstrapKind?: number;
     checkpointEpoch?: number;
+    /** Current timeline node of the loaded save, when the mod reported one. */
+    nodeId?: string;
 }
 
 let observedLoad: ObservedCampaignLoad | undefined;
@@ -69,7 +72,10 @@ export function observeCampaignLoadLine(line: string): boolean {
         campaignId,
         playerId: parsed.playerId,
         bootstrapKind: parsed.bootstrapKind,
-        checkpointEpoch: parsed.checkpointEpoch
+        checkpointEpoch: parsed.checkpointEpoch,
+        ...(parsed.nodeA !== undefined && parsed.nodeB !== undefined
+            ? {nodeId: `${parsed.nodeA}-${parsed.nodeB}`}
+            : {})
     };
     console.log(`[timeline] Save-load identity observed: campaign ${campaignId}, player ${parsed.playerId}, bootstrapKind ${parsed.bootstrapKind ?? 'unknown'}, checkpoint epoch ${parsed.checkpointEpoch ?? 'unknown'}.`);
     announceAdoptedSave(observedLoad);
@@ -92,4 +98,114 @@ function announceAdoptedSave(load: ObservedCampaignLoad): void {
         title: t('info.legacySaveAdoptedTitle'),
         message: t('info.legacySaveAdopted', {campaignId: load.campaignId})
     });
+}
+
+export interface DeliverySnapshotEvidence {
+    /** Which evidence was freshest in the log: a save-load line, an init block, or neither (observer/memory). */
+    source: 'load' | 'init' | 'observed' | 'none';
+    campaignId?: string;
+    nodeId?: string;
+    playerId?: string;
+}
+
+const LOAD_MARKER = 'VOTC:CAMPAIGN/;/loaded/;/';
+const INIT_MARKER = 'VOTC:IN/;/init/;/';
+
+/**
+ * Resolve the current delivery identity from the game log by file order.
+ *
+ * The log survives save loads, so after loading save B the last `VOTC:IN`
+ * init block can still describe abandoned campaign A while the `loaded` line
+ * already reports B. Comparing the byte offsets of the two markers tells
+ * which evidence is actually newer; a fresh load wins over a stale init
+ * block. Scanning backwards in chunks keeps this cheap on large logs.
+ *
+ * `nodeId` is populated only when the winning load line carries the save's
+ * current timeline node (v2 protocol tail). When an init block wins, callers
+ * should prefer the node components on their freshly parsed gameData.
+ */
+export function scanDeliverySnapshotEvidence(logPath: string): DeliverySnapshotEvidence {
+    let loadOffset = -1;
+    let loadLine: string | undefined;
+    let initOffset = -1;
+    try {
+        if (!fs.existsSync(logPath)) {
+            return observedFallback();
+        }
+        const stat = fs.statSync(logPath);
+        const CHUNK = 512 * 1024;
+        const OVERLAP = 1024; // markers are short; a 1KB overlap covers straddles
+        const fd = fs.openSync(logPath, 'r');
+        try {
+            let end = stat.size;
+            while (end > 0 && (loadOffset < 0 || initOffset < 0)) {
+                const start = Math.max(0, end - CHUNK);
+                const readEnd = Math.min(stat.size, end + OVERLAP);
+                const buffer = Buffer.alloc(readEnd - start);
+                fs.readSync(fd, buffer, 0, buffer.length, start);
+                const text = buffer.toString('utf8');
+                // Only consider markers starting inside [start, end); the overlap
+                // exists so a marker straddling the chunk edge is still complete.
+                const own = text.slice(0, end - start);
+                if (initOffset < 0) {
+                    const idx = own.lastIndexOf(INIT_MARKER);
+                    if (idx >= 0) {
+                        initOffset = start + idx;
+                    }
+                }
+                if (loadOffset < 0) {
+                    const idx = own.lastIndexOf(LOAD_MARKER);
+                    if (idx >= 0) {
+                        // Read the full line containing the marker (may extend into the overlap).
+                        const eol = text.indexOf('\n', idx);
+                        loadLine = text.slice(idx, eol >= 0 ? eol : text.length);
+                        loadOffset = start + idx;
+                    }
+                }
+                end = start;
+            }
+        } finally {
+            fs.closeSync(fd);
+        }
+    } catch (error) {
+        console.warn(`[timeline] Delivery evidence scan failed for ${logPath}:`, error);
+        return observedFallback();
+    }
+
+    if (loadOffset >= 0 && (initOffset < 0 || loadOffset > initOffset)) {
+        const parsed = loadLine ? parseCampaignLoadedLine(loadLine) : undefined;
+        if (parsed) {
+            try {
+                return {
+                    source: 'load',
+                    campaignId: buildIdentityFromParts(parsed.campaignParts, parsed.playerId).campaignId,
+                    playerId: parsed.playerId,
+                    ...(parsed.nodeA !== undefined && parsed.nodeB !== undefined
+                        ? {nodeId: `${parsed.nodeA}-${parsed.nodeB}`}
+                        : {})
+                };
+            } catch (error) {
+                console.warn('[timeline] Malformed save-load identity line during delivery evidence scan:', error);
+            }
+        }
+        // The load line won the ordering but cannot be parsed; do not fall
+        // back to the older init block's identity — fail closed.
+        return {source: 'load'};
+    }
+    if (initOffset >= 0) {
+        return {source: 'init'};
+    }
+    return observedFallback();
+}
+
+function observedFallback(): DeliverySnapshotEvidence {
+    if (observedLoad) {
+        return {
+            source: 'observed',
+            campaignId: observedLoad.campaignId,
+            playerId: observedLoad.playerId,
+            ...(observedLoad.nodeId !== undefined ? {nodeId: observedLoad.nodeId} : {})
+        };
+    }
+    return {source: 'none'};
 }

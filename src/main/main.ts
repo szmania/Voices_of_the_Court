@@ -31,7 +31,7 @@ import type { TimelineWindowContext } from "./managerClipboardPayload.js";
 import { decideManagerWindowContext } from "./managerClipboardPayload.js";
 import { reportUnsupportedTimelineSchema } from "./timelineRegistryRecovery.js";
 import { buildContextFromGameData } from "./timelineManager.js";
-import { observeCampaignLoadLine, getObservedCampaignId } from "./campaignLoadObserver.js";
+import { observeCampaignLoadLine, getObservedCampaignId, getObservedCampaignLoad, scanDeliverySnapshotEvidence } from "./campaignLoadObserver.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -353,13 +353,19 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-// Campaign id of the live game context, as far as the log can tell. The parsed
-// snapshot is authoritative; when it carries no v2 tail yet (a save that was
-// just loaded and has had no conversation or letter since), the identity the
-// mod reported on load is used instead. Undefined only when neither source
-// knows — a legacy mod, a malformed protocol tail, or a log that predates the
-// load-time line.
+// Campaign id of the live game context, decided by log chronology. The log
+// survives save loads, so after loading save B the last `VOTC:IN` init block
+// can still describe abandoned campaign A; the save-load identity line is
+// then the newer evidence and must win, or A's replies would pass the gate in
+// B. When the newest evidence is an init block, its parsed snapshot identity
+// is used; the observer's memory is only the last resort.
 function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
+    const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (evidence.source === 'load') {
+        // A fresher load line outranks any older init block — including one
+        // that failed to parse (fail closed rather than trust stale data).
+        return evidence.campaignId;
+    }
     try {
         const parsedIdentity = buildContextFromGameData(gameData).identity?.campaignId;
         if (parsedIdentity) {
@@ -369,6 +375,27 @@ function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
         console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
     }
     return getObservedCampaignId();
+}
+
+// The save's current timeline node, by the same log-chronology rule as the
+// delivery identity: a fresher load line that reports the node wins; else the
+// freshest init snapshot's node; else the observer's memory. Undefined only
+// when no evidence exists — the caller then falls back to the registry head.
+function resolveCurrentTimelineNodeId(gameData: GameData): string | undefined {
+    const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (evidence.source === 'load' && evidence.nodeId) {
+        return evidence.nodeId;
+    }
+    const a = gameData.votcTimelineNodeA;
+    const b = gameData.votcTimelineNodeB;
+    if (a !== undefined && b !== undefined) {
+        return `${a}-${b}`;
+    }
+    return evidence.nodeId ?? observedTimelineNodeId();
+}
+
+function observedTimelineNodeId(): string | undefined {
+    return getObservedCampaignLoad()?.nodeId;
 }
 
 export async function checkAndDeliverLetters() {
@@ -443,8 +470,6 @@ export async function checkAndDeliverLetters() {
         if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
-            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-
             // Every delivery path needs the identity of the context it writes
             // into, so the check runs before the date is even chosen. The queue
             // can hold replies rehydrated from another campaign's store or
@@ -454,6 +479,12 @@ export async function checkAndDeliverLetters() {
             // this release carry no campaign stamp at all and are delivered on
             // the player check alone — back-filling a campaign id here would
             // claim them for whichever campaign is loaded.
+            //
+            // gameData comes from the function-level resolution above (fresh
+            // parse with the same-campaign cache fallback). Re-parsing here
+            // would strand due replies whenever the log was cleared or
+            // rebuilt and no new init block exists yet — the cache, the load
+            // identity and the date heartbeat are enough to verify.
             if (!gameData) {
                 // No log, no player and no campaign: nothing can be verified, so
                 // the reply keeps its place in the queue. A date fallback would
@@ -490,8 +521,13 @@ export async function checkAndDeliverLetters() {
             }
 
             const currentDateString = gameData.date;
+            // The save's current timeline node decides whether the reply's
+            // pre-allocated checkpoint script may ride along (claim: the
+            // registry's newest node can belong to an abandoned branch after
+            // a rollback, so the node must come from game evidence).
+            const currentTimelineNodeId = resolveCurrentTimelineNodeId(gameData);
             // The letter is being sent to the game, but not yet confirmed as delivered.
-            letterManager.deliverLetter(storedLetter, config, currentDateString);
+            letterManager.deliverLetter(storedLetter, config, currentDateString, currentTimelineNodeId);
             lastLetterSentToGame = storedLetter; // Track the letter sent
             lastLetterSentToGameTime = Date.now();
             storedLetters.delete(letterId); // Remove from pending queue

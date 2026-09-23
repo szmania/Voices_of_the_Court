@@ -326,7 +326,7 @@ export class LetterManager {
         }
     }
 
-    public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string) {
+    public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string, currentTimelineNodeId?: string) {
         const userFolderPath = config.userFolderPath;
         if (!userFolderPath) {
             console.error("Cannot deliver letter, user folder path is not set.");
@@ -380,10 +380,16 @@ trigger_event = message_event.362`;
         // days and conversations can advance the checkpoint meanwhile. The
         // allocated script is only applied while the save has not moved past
         // its target epoch, so delivery never rolls the timeline state back.
+        // The save's current node comes from game evidence (the caller's
+        // snapshot / load line), NOT from the registry's newest node: after a
+        // rollback to a sibling branch the newest registry node belongs to the
+        // abandoned branch, and trusting it would re-point the save at the
+        // wrong branch. The registry head is only a last-resort fallback for
+        // when no snapshot evidence exists at all.
         const timelineScript = storedLetter.letter.timelineScript;
         let appliedTimelineScript = timelineScript;
         if (timelineScript && storedLetter.letter.timelineNodeId) {
-            const headNodeId = readCampaignRegistryHeadNodeId(
+            const headNodeId = currentTimelineNodeId ?? readCampaignRegistryHeadNodeId(
                 storedLetter.letter.timelineCampaignId,
                 storedLetter.letter.timelinePlayerId
             );

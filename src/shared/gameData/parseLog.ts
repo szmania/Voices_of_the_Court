@@ -758,6 +758,9 @@ export interface CampaignLoadedLine {
     campaignParts: {a: number, b: number, c: number, d: number};
     bootstrapKind?: number;
     checkpointEpoch?: number;
+    /** Current timeline node of the loaded save (v2 protocol); absent on older mods. */
+    nodeA?: number;
+    nodeB?: number;
 }
 
 /**
@@ -781,7 +784,7 @@ export function parseCampaignLoadedLine(line: string): CampaignLoadedLine | unde
     if (markerIndex < 0) return undefined;
 
     const fields = line.slice(markerIndex + marker.length).replace(/\r$/, '').split('/;/');
-    const [playerId, campaignSchema, a, b, c, d, bootstrapKind, checkpointEpoch] = fields;
+    const [playerId, campaignSchema, a, b, c, d, bootstrapKind, checkpointEpoch, nodeA, nodeB] = fields;
     const parts = {a: Number(a), b: Number(b), c: Number(c), d: Number(d)};
 
     const isPositiveInt = (value: number): boolean => Number.isInteger(value) && value > 0;
@@ -793,12 +796,19 @@ export function parseCampaignLoadedLine(line: string): CampaignLoadedLine | unde
 
     const parsedBootstrapKind = Number(bootstrapKind);
     const parsedCheckpointEpoch = Number(checkpointEpoch);
+    // Optional trailing node components (v2 protocol): present only when the
+    // mod's save-load relay reports the loaded save's current timeline node.
+    const parsedNodeA = Number(nodeA);
+    const parsedNodeB = Number(nodeB);
     return {
         playerId,
         campaignSchema: Number(campaignSchema),
         campaignParts: parts,
         bootstrapKind: Number.isFinite(parsedBootstrapKind) ? parsedBootstrapKind : undefined,
-        checkpointEpoch: Number.isFinite(parsedCheckpointEpoch) ? parsedCheckpointEpoch : undefined
+        checkpointEpoch: Number.isFinite(parsedCheckpointEpoch) ? parsedCheckpointEpoch : undefined,
+        ...(isPositiveInt(parsedNodeA) && isPositiveInt(parsedNodeB)
+            ? {nodeA: parsedNodeA, nodeB: parsedNodeB}
+            : {})
     };
 }
 
