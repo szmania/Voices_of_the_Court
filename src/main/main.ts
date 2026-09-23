@@ -463,11 +463,19 @@ export async function checkAndDeliverLetters() {
     }
 
     // Use a copy of keys to allow modification during iteration
+    const observedNow = observedCampaignIdProvider() ?? '';
     const letterIds = Array.from(storedLetters.keys());
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
         if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
+            // A reply already rejected under the currently observed campaign
+            // stays skipped inside the loop too: the pre-scan only guards
+            // function entry, and another due letter would otherwise pull the
+            // mismatch back in and re-log its deferral on every such pass.
+            if (campaignMismatchSkips.has(letterId) && campaignMismatchSkips.get(letterId) === observedNow) {
+                continue;
+            }
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
             // Every delivery path needs the identity of the context it writes
