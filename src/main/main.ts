@@ -388,7 +388,7 @@ function resolveCurrentTimelineNodeId(gameData: GameData): string | undefined {
     }
     const a = gameData.votcTimelineNodeA;
     const b = gameData.votcTimelineNodeB;
-    if (a !== undefined && b !== undefined) {
+    if (a && b) {
         return `${a}-${b}`;
     }
     return evidence.nodeId ?? observedTimelineNodeId();
@@ -505,13 +505,17 @@ export async function checkAndDeliverLetters() {
             );
             if (!verdict.deliverable) {
                 if (verdict.reason === 'campaign_mismatch') {
-                    // Remember the campaign that rejected this reply so the
-                    // cheap pre-scan above can skip it until the observed
-                    // campaign changes, instead of re-parsing the game log
+                    // Remember the OBSERVED campaign at rejection time so the
+                    // cheap pre-scan above can skip this reply until the
+                    // observation changes, instead of re-parsing the game log
                     // and re-logging the deferral on every heartbeat tick.
-                    // '' stands for "no campaign observable" so the entry
-                    // still matches a later undefined observation.
-                    campaignMismatchSkips.set(letterId, currentCampaignId ?? '');
+                    // The observed value (not the snapshot-resolved one) is
+                    // the key because it is the only campaign signal the
+                    // pre-scan can consult without parsing; '' stands for
+                    // "nothing observed" and still matches a later undefined
+                    // observation. A save load that changes the observation
+                    // re-evaluates the reply exactly once.
+                    campaignMismatchSkips.set(letterId, observedCampaignIdProvider() ?? '');
                 }
                 console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
                 continue;

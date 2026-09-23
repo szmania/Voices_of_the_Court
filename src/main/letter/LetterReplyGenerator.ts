@@ -566,7 +566,7 @@ export class LetterReplyGenerator {
             currentCampaignId = snapshotIdentity?.campaignId;
             currentPlayerId = String(gameData.playerID);
             currentNodeId = snapshotIdentity
-                ? (gameData.votcTimelineNodeA !== undefined && gameData.votcTimelineNodeB !== undefined
+                ? (gameData.votcTimelineNodeA && gameData.votcTimelineNodeB
                     ? `${gameData.votcTimelineNodeA}-${gameData.votcTimelineNodeB}`
                     : undefined)
                 : currentNodeId;

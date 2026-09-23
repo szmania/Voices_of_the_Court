@@ -40,6 +40,24 @@ function readCampaignRegistryHeadNodeId(campaignId: string | undefined, playerId
     }
 }
 
+// Parent of one specific node, used to tell "the save still sits on the
+// branch point this reply was allocated from" (apply the script) apart from
+// "the save has moved onto a different branch" (skip it).
+function readCampaignRegistryNodeParentId(campaignId: string | undefined, playerId: string | undefined, nodeId: string): string | null | undefined {
+    if (!campaignId || !playerId) return undefined;
+    try {
+        const registryPath = timelineRegistryPath(app.getPath('userData'), { campaignId, playerId } as CampaignPlayerIdentity);
+        if (!fs.existsSync(registryPath)) return undefined;
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { parentId?: string | null }> };
+        const node = data.nodes?.[nodeId];
+        if (!node) return undefined;
+        return node.parentId ?? null;
+    } catch (error) {
+        console.warn('[LetterManager] Could not read the campaign timeline registry for delivery validation:', error);
+        return undefined;
+    }
+}
+
 export class LetterManager {
     private static instance: LetterManager;
     private letterHistoryPath!: string;
@@ -378,8 +396,10 @@ trigger_event = message_event.362`;
     
         // Re-validate at delivery time: the reply may travel several in-game
         // days and conversations can advance the checkpoint meanwhile. The
-        // allocated script is only applied while the save has not moved past
-        // its target epoch, so delivery never rolls the timeline state back.
+        // allocated script is only applied while the save still sits on the
+        // branch point the reply was allocated from (the reply node's parent),
+        // or already on the reply node itself (idempotent re-delivery) — so a
+        // save that has moved past the letter's origin is never rolled back.
         // The save's current node comes from game evidence (the caller's
         // snapshot / load line), NOT from the registry's newest node: after a
         // rollback to a sibling branch the newest registry node belongs to the
@@ -389,13 +409,20 @@ trigger_event = message_event.362`;
         const timelineScript = storedLetter.letter.timelineScript;
         let appliedTimelineScript = timelineScript;
         if (timelineScript && storedLetter.letter.timelineNodeId) {
-            const headNodeId = currentTimelineNodeId ?? readCampaignRegistryHeadNodeId(
+            const currentNodeId = currentTimelineNodeId ?? readCampaignRegistryHeadNodeId(
                 storedLetter.letter.timelineCampaignId,
                 storedLetter.letter.timelinePlayerId
             );
-            if (headNodeId !== undefined && headNodeId !== storedLetter.letter.timelineNodeId) {
-                console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save's current timeline node is ${headNodeId}, not the ${storedLetter.letter.timelineNodeId} allocated for this reply.`);
-                appliedTimelineScript = undefined;
+            if (currentNodeId !== undefined && currentNodeId !== storedLetter.letter.timelineNodeId) {
+                const parentNodeId = readCampaignRegistryNodeParentId(
+                    storedLetter.letter.timelineCampaignId,
+                    storedLetter.letter.timelinePlayerId,
+                    storedLetter.letter.timelineNodeId
+                );
+                if (currentNodeId !== parentNodeId) {
+                    console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save's current timeline node is ${currentNodeId}, not the ${storedLetter.letter.timelineNodeId} allocated for this reply or its parent ${parentNodeId ?? 'unknown'}.`);
+                    appliedTimelineScript = undefined;
+                }
             }
         }
         if (appliedTimelineScript) {

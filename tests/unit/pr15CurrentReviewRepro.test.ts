@@ -111,6 +111,40 @@ test('reloading an existing sibling branch must prevent applying the latest allo
     expect(payload).not.toContain(pending.script);
 });
 
+test('a due reply still applies its checkpoint script when the save sits on the branch point', async () => {
+    // Normal path: no rollback, the save still sits on the node the reply was
+    // allocated from (the reply node's parent), so the checkpoint script must
+    // ride along with the delivery.
+    writeLog(initLine);
+    const initial: any = await parseLog(path.join(root, 'logs', 'debug.log'));
+    const parent = await runConversationTimelineTransition({userDataDir: root, identity: identityA, gameData: initial,
+        requestKey: 'parent', eventSignature: 'parent', targetEpoch: 6, scopeVar: 'talk_first_scope'});
+    const atParent: any = {...initial, votcCheckpointEpoch: 6, votcTimelineNodeA: Number(parent.targetNodeId.split('-')[0]),
+        votcTimelineNodeB: Number(parent.targetNodeId.split('-')[1]),
+        timelineSnapshotResult: {status: 'valid', snapshot: {...initial.timelineSnapshotResult.snapshot, epoch: 6,
+            nodeA: Number(parent.targetNodeId.split('-')[0]), nodeB: Number(parent.targetNodeId.split('-')[1])}}};
+    const pending = await runLetterReplyTimelineTransition({userDataDir: root, identity: identityA, gameData: atParent,
+        slotId: 'letter_1', letterDeliveryId: 389000, eventSignature: 'reply-normal', targetEpoch: 7, scopeVar: 'global_var:message_first_scope'});
+    // The save's own init line still reports the branch point (epoch 6).
+    const currentFields = [...initFields];
+    currentFields[8] = '6';
+    [currentFields[9], currentFields[10]] = parent.targetNodeId.split('-');
+    currentFields[11] = '0';
+    currentFields[12] = '0';
+    writeLog(prefix + 'VOTC:IN/;/init/;/' + currentFields.join('/;/'));
+    _private_getStoredLetters().set('original', {
+        letter: {id: 'reply', subject: 'Re: letter_1', content: 'Reply from the branch point', sender: {id: 1002}, recipient: {id: 1001},
+            timelineCampaignId: identityA.campaignId, timelinePlayerId: '1001', timelineNodeId: pending.targetNodeId,
+            timelineScript: pending.script, timelineEpoch: 7} as any,
+        originalLetter: {id: 'original', subject: 'letter_1', totalDays: 389000, delay: 1} as any,
+        expectedDeliveryDay: 389001
+    });
+    await checkAndDeliverLetters();
+    const file = path.join(root, 'run', 'letters.txt');
+    const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+    expect(payload).toContain(pending.script);
+});
+
 test('a generation failure after campaign switch must not clear the new campaign letter slot', async () => {
     writeLog(initLine);
     observeCampaignLoadLine(loadA);
