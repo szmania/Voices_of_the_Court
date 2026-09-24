@@ -214,7 +214,8 @@ export class ApiConnection{
         stream: boolean,
         otherArgs: object,
         streamRelay?: (arg1: MessageChunk) => void,
-        signal?: AbortSignal
+        signal?: AbortSignal,
+        timeoutMs?: number
     ): Promise<MessageChunk | string | void> {
         if (this.type === 'novelai') {
             const token = this.config.key;
@@ -275,7 +276,9 @@ export class ApiConnection{
 
         // Apply a default request timeout so a hung provider can't stall initialization.
         // Merged with the caller's abort signal so either one can cancel the request.
-        const REQUEST_TIMEOUT_MS = 120_000;
+        // Background fire-and-forget callers (e.g. post-conversation summarization)
+        // can pass a larger timeoutMs so slow providers don't abort mid-request.
+        const REQUEST_TIMEOUT_MS = timeoutMs ?? 120_000;
         const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
         const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
         const MAX_RETRIES = 5; // Maximum number of retries

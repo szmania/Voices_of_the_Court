@@ -1086,13 +1086,26 @@ app.on('ready',  async () => {
         }
     });
 
-    ipcMain.handle('get-memory-count', async (event, characterId: string) => {
-        console.log(`IPC: Received get-memory-count for character: ${characterId}`);
+    ipcMain.handle('get-memory-count', async (event, filter: { playerId?: string; characterId?: string } | string) => {
+        // Support both legacy (characterId string) and new ({ playerId, characterId }) calling conventions
+        let characterId: string;
+        let playerId: string | undefined;
+        if (typeof filter === 'string') {
+            characterId = filter;
+        } else if (filter && typeof filter === 'object') {
+            characterId = filter.characterId || '';
+            playerId = filter.playerId || undefined;
+        } else {
+            characterId = '';
+        }
+        console.log(`IPC: Received get-memory-count for character: ${characterId}, player: ${playerId || 'any'}`);
         try {
             if (!memoryManager) {
                 return { success: false, error: 'Memory manager not initialized.' };
             }
-            const count = characterId ? memoryManager.getMemoryCount(characterId) : memoryManager.getTotalMemoryCount();
+            const count = playerId
+                ? memoryManager.getPlayerMemoryCount(playerId, characterId || undefined)
+                : (characterId ? memoryManager.getMemoryCount(characterId) : memoryManager.getTotalMemoryCount());
             return { success: true, count };
         } catch (error: any) {
             console.error('Error getting memory count:', error);

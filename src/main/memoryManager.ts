@@ -42,6 +42,8 @@ export class MemoryManager {
     private dbPath: string;
     private vecAvailable: boolean = false;
     private embeddingDimension: number;
+    /** Set when the on-disk vec0 index dimension differed from the configured dimension at startup. */
+    public dimensionMismatchDetected: boolean = false;
 
     /**
      * Initialize the memory database at the given path.
@@ -131,6 +133,24 @@ export class MemoryManager {
             const sqliteVec = require('sqlite-vec');
             this.db.loadExtension(sqliteVec.getLoadablePath());
             this.vecAvailable = true;
+
+            // Detect a stale vec0 index dimension: vec0 tables cannot be resized in
+            // place, so if the on-disk FLOAT[N] differs from the configured dimension,
+            // drop the index (base `memories` text rows are untouched) and recreate it.
+            try {
+                const tableInfo = this.db.prepare("SELECT sql FROM sqlite_master WHERE name='memory_vectors'").get() as any;
+                const match = tableInfo?.sql?.match(/FLOAT\[(\d+)\]/);
+                if (match) {
+                    const existingDim = parseInt(match[1], 10);
+                    if (existingDim !== this.embeddingDimension) {
+                        console.warn(`MemoryManager: memory_vectors dimension mismatch (index=${existingDim}, config=${this.embeddingDimension}). Dropping stale vec0 index; run Re-index to rebuild.`);
+                        this.db.exec('DROP TABLE IF EXISTS memory_vectors');
+                        this.dimensionMismatchDetected = true;
+                    }
+                }
+            } catch (e) {
+                console.warn('MemoryManager: Could not inspect memory_vectors schema:', e);
+            }
 
             // Create the vector virtual table for similarity search
             this.db.exec(`
@@ -493,8 +513,32 @@ export class MemoryManager {
     }
 
     /**
+     * Count memories scoped to a player, optionally filtered to one character.
+     * @param playerId - The player ID to scope the count to.
+     * @param characterId - Optional character ID to further filter by.
+     */
+    getPlayerMemoryCount(playerId: string, characterId?: string): number {
+        if (characterId) {
+            const row = this.db.prepare(
+                'SELECT COUNT(*) as count FROM memories WHERE player_id = ? AND character_id = ?'
+            ).get(playerId, characterId) as any;
+            return row?.count || 0;
+        }
+        const row = this.db.prepare(
+            'SELECT COUNT(*) as count FROM memories WHERE player_id = ?'
+        ).get(playerId) as any;
+        return row?.count || 0;
+    }
+
+    /**
      * Close the database connection.
      */
+    /** Total count of all memories across all characters. */
+    getTotalMemoryCount(): number {
+        const row = this.db.prepare('SELECT COUNT(*) as count FROM memories').get() as any;
+        return row?.count || 0;
+    }
+
     close(): void {
         this.db.close();
     }

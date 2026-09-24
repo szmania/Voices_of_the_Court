@@ -89,7 +89,7 @@ export class DiaryGenerator {
         const promptForApi = [{ role: 'user', content: fullPrompt }];
 
         // @ts-ignore - using complete instead of generate
- const result = await this.apiConnection.complete(promptForApi, false, {});
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const generatedContent = typeof result === 'string' ? result : (result?.content ?? '');
 
         if (!generatedContent) {
@@ -131,7 +131,7 @@ export class DiaryGenerator {
             .replace(/{{letterContent}}/g, letterContent);
 
         const promptForApi: Message[] = [{ role: 'user', content: `${characterDescriptionContent}${replacedPrompt}` }];
- const result = await this.apiConnection.complete(promptForApi, false, {});
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const generatedContent = typeof result === 'string' ? result : (result?.content ?? '');
 
         if (!generatedContent) return null;
@@ -168,7 +168,7 @@ export class DiaryGenerator {
 
         const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
 
- const result = await this.apiConnection.complete(promptForApi, false, {});
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
         
         if (!summaryContent) {

@@ -32,7 +32,10 @@ async function updateMemoryCount() {
 
     try {
         const idToCount = selectedCharacterId === 'all' ? '' : selectedCharacterId;
-        const response = await ipcRenderer.invoke('get-memory-count', idToCount);
+        const response = await ipcRenderer.invoke('get-memory-count', {
+            playerId: selectedPlayerId,
+            characterId: idToCount
+        });
         let count = 0;
         if (response && response.success && typeof response.count === 'number') {
             count = response.count;
@@ -51,14 +54,7 @@ async function updateMemoryCount() {
         // @ts-ignore
         const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
         
-        if (selectedCharacterId === 'all') {
-            countText = t('memory_constellation.total_memories', 'Total memories: {count}').replace('{count}', String(count));
-        } else {
-            const characterName = characterSelect.options[characterSelect.selectedIndex]?.textContent?.split(' (')[0] || selectedCharacterId;
-            countText = t('memory_constellation.memories_for_character', 'Memories for {characterName}: {count}')
-                .replace('{characterName}', characterName)
-                .replace('{count}', String(count));
-        }
+        countText = t('memory_constellation.total_memories', 'Player Character Total Memories: {count}').replace('{count}', String(count));
         memoryCountDisplay.textContent = countText;
     } catch (err) {
         console.error('Error updating memory count:', err);

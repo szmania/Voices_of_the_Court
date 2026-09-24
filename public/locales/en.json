@@ -212,8 +212,7 @@
     "compaction_phase1_summaries": "Phase 1 Summaries:",
     "compaction_phase1_threshold_label": "Threshold",
     "compaction_never_run": "Never run",
-    "total_memories": "Total memories: {count}",
-    "memories_for_character": "Memories for {characterName}: {count}",
+    "total_memories": "Player Character Total Memories: {count}",
     "max_tokens": "max new tokens",
     "max_tokens_tooltip": "The maximum number of tokens (words/characters) the AI can generate in a single response. Higher values allow for longer replies.",
     "max_memory_tokens": "max memory tokens",
@@ -316,8 +315,7 @@
     "compaction_phase1_summaries": "Phase 1 Summaries:",
     "compaction_phase1_threshold_label": "Threshold",
     "compaction_never_run": "Never run",
-    "total_memories": "Total memories: {count}",
-    "memories_for_character": "Memories for {characterName}: {count}",
+    "total_memories": "Player Character Total Memories: {count}",
     "phase1_threshold_desc": "Percentage of context window to trigger Phase 1 compaction",
     "phase2_threshold_desc": "Number of Phase 1 summaries before triggering Phase 2",
     "cooldown_desc": "Minimum minutes between compaction runs",
@@ -1045,7 +1043,8 @@
     "reindex_tooltip": "Re-embed all stored memories at the currently configured embedding dimension and rebuild the vector index. Use this after changing the embedding model or dimension override so existing memories are preserved.",
     "reindex_start": "Re-indexing vector database. Please wait...",
     "reindex_complete": "Re-index complete: {embedded}/{total} memories embedded.",
-    "reindex_fail": "Re-index failed: {error}"
+    "reindex_fail": "Re-index failed: {error}",
+    "total_memories": "Player Character Total Memories: {count}"
   },
   "compaction": {
     "header": "Memory Management",

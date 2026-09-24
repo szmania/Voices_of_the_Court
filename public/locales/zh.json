@@ -36,8 +36,7 @@
     "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
     "legacy_status_no_legacy": "No legacy memories found",
     "legacy_status_error": "Error checking legacy memory status",
-    "total_memories": "Total memories: {count}",
-    "memories_for_character": "Memories for {characterName}: {count}"
+    "total_memories": "Player Character Total Memories: {count}"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",

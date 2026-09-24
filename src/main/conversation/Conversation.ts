@@ -1996,7 +1996,7 @@ Statement by ${character.fullName}:`
                 const prompt = buildSummarizeChatPrompt(this, character);
 
                 // Generate summary from this character's perspective
-                const result = await this.summarizationApiConnection.complete(prompt, false, {});
+                const result = await this.summarizationApiConnection.complete(prompt, false, {}, undefined, undefined, 300_000);
                 const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
 
                 const newSummary: Summary = {
@@ -2043,7 +2043,11 @@ Statement by ${character.fullName}:`
                 });
             }
         } catch (error) {
-            console.error("Error in background summary/diary generation process:", error);
+            if (isAbortError(error)) {
+                console.warn('Background summarization request timed out or was aborted; summaries for this conversation were not generated.');
+            } else {
+                console.error("Error in background summary/diary generation process:", error);
+            }
         }
     }
 
