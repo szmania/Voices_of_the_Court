@@ -195,16 +195,23 @@ export class LetterManager {
             letters[letterIndex].isRead = true;
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
-                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
-                const letter = letters[letterIndex];
-                // Guard: never auto-execute letter actions when manual approval is enabled.
-                // This branch is currently dead (associatedAction is never assigned), but if it
-                // is ever enabled, it must still respect manualLetterActionApproval.
-                if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'read') {
-                    LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
-                }
+            // Non-blocking write: the previous synchronous, pretty-printed full-file
+            // rewrite on every unread-letter click stalled the Electron main event loop
+            // (and all IPC behind it), causing visible letters-tab lag. The in-memory
+            // flag is already set above; persist compact JSON in the background.
+            // ponytail: fire-and-forget persist - a same-tick re-read could miss this
+            // pending write; upgrade path is a per-file write queue.
+            fs.promises.writeFile(filePath, JSON.stringify(letters), 'utf8')
+                .catch(error => console.error(`Error marking letter as read for player ${playerId}, character ${characterId}:`, error));
+            const letter = letters[letterIndex];
+            // Guard: never auto-execute letter actions when manual approval is enabled.
+            // This branch is currently dead (associatedAction is never assigned), but if it
+            // is ever enabled, it must still respect manualLetterActionApproval.
+            if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'read') {
+                LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
+            }
             } catch (error) {
-                console.error(`Error marking letter as read for player ${playerId}, character ${characterId}:`, error);
+                console.error(`Error marking letter ${letterId} as read for player ${playerId}, character ${characterId}:`, error);
             }
         }
     }
