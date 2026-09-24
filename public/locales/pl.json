@@ -35,7 +35,9 @@
     "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
     "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
     "legacy_status_no_legacy": "No legacy memories found",
-    "legacy_status_error": "Error checking legacy memory status"
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Total memories: {count}",
+    "memories_for_character": "Memories for {characterName}: {count}"
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",

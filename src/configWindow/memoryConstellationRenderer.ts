@@ -20,6 +20,51 @@ document.getElementById("container")!.style.display = "block";
 
 init();
 
+async function updateMemoryCount() {
+    const memoryCountDisplay = document.getElementById('memory-count-display');
+    if (!memoryCountDisplay) return;
+    
+    // Default fallback UI if no player/data
+    if (!selectedPlayerId) {
+        memoryCountDisplay.textContent = '';
+        return;
+    }
+
+    try {
+        const idToCount = selectedCharacterId === 'all' ? '' : selectedCharacterId;
+        const response = await ipcRenderer.invoke('get-memory-count', idToCount);
+        let count = 0;
+        if (response && response.success && typeof response.count === 'number') {
+            count = response.count;
+        } else {
+            // Mild fallback: actually fetch the memories if `get-memory-count` fails or returns malformed
+            const memResponse = await ipcRenderer.invoke('get-memories', {
+                playerId: selectedPlayerId,
+                characterId: idToCount
+            });
+            if (memResponse && memResponse.success && Array.isArray(memResponse.memories)) {
+                count = memResponse.memories.length;
+            }
+        }
+        
+        let countText = '';
+        // @ts-ignore
+        const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+        
+        if (selectedCharacterId === 'all') {
+            countText = t('memory_constellation.total_memories', 'Total memories: {count}').replace('{count}', String(count));
+        } else {
+            const characterName = characterSelect.options[characterSelect.selectedIndex]?.textContent?.split(' (')[0] || selectedCharacterId;
+            countText = t('memory_constellation.memories_for_character', 'Memories for {characterName}: {count}')
+                .replace('{characterName}', characterName)
+                .replace('{count}', String(count));
+        }
+        memoryCountDisplay.textContent = countText;
+    } catch (err) {
+        console.error('Error updating memory count:', err);
+    }
+}
+
 // Apply theme function
 function applyTheme(theme: string) {
     const body = document.querySelector('body');
@@ -96,6 +141,8 @@ async function init() {
     // Load player IDs and populate dropdowns
     await loadPlayerIds();
     await updateLegacyMemoryStatus();
+    updateMemoryCount();
+    await updateLegacyMemoryStatus();
 
     // Warn if existing memories use a specific embedding dimension
     await checkExistingMemoryDimensions();
@@ -129,6 +176,7 @@ async function init() {
                     showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.import_success', 'Successfully imported {count} legacy memories.').replace('{count}', String(result.count)), 'success');
                     updateLegacyMemoryStatus();
                     updateMemoryConstellation();
+                    updateMemoryCount();
                 } else {
                     // @ts-ignore
                     showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.import_fail', 'Import failed: {error}').replace('{error}', result.error), 'error');
@@ -179,6 +227,7 @@ async function init() {
                     showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.reindex_complete', 'Re-index complete: {embedded}/{total} memories embedded.').replace('{embedded}', String(result.embedded)).replace('{total}', String(result.total)), 'success');
                     updateLegacyMemoryStatus();
                     updateMemoryConstellation();
+                    updateMemoryCount();
                     checkExistingMemoryDimensions();
                 } else {
                     // @ts-ignore
@@ -333,6 +382,7 @@ function setupFilterDropdowns() {
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
         updateMemoryConstellation();
+        updateMemoryCount();
     });
 }
 

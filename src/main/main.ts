@@ -843,6 +843,13 @@ app.on('ready',  async () => {
     // --- Neural Memory System IPC Handlers ---
 
     // Embedding configuration handlers
+    ipcMain.handle('check-dimension-mismatch', async () => {
+        if (memoryManager) {
+            return memoryManager.dimensionMismatchDetected && (memoryManager.getTotalMemoryCount() > 0);
+        }
+        return false;
+    });
+
     ipcMain.handle('get-embedding-config', async () => {
         console.log('IPC: Received get-embedding-config event.');
         if (config?.embeddingApiConnectionConfig) {
@@ -1085,7 +1092,7 @@ app.on('ready',  async () => {
             if (!memoryManager) {
                 return { success: false, error: 'Memory manager not initialized.' };
             }
-            const count = memoryManager.getMemoryCount(characterId);
+            const count = characterId ? memoryManager.getMemoryCount(characterId) : memoryManager.getTotalMemoryCount();
             return { success: true, count };
         } catch (error: any) {
             console.error('Error getting memory count:', error);
