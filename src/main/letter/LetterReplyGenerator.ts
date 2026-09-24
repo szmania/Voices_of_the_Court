@@ -410,18 +410,26 @@ export class LetterReplyGenerator {
                 console.error('[LetterReplyGenerator] Background letter summary generation failed:', err);
             });
 
-            // Execute actions automatically if manual approval is disabled.
-            // Player actions run against the sent letter; AI actions against the reply.
+            // Execute actions automatically if manual approval is disabled. Actions
+            // are gated on the letter's delivery to the AI (stage 1 of the journey):
+            // they only fire once the in-game date has reached that stage. Otherwise
+            // they are deferred; the delivery/approval flow handles them later.
             if (!this.config.manualLetterActionApproval) {
-                for (const action of playerActions) {
-                    LetterActionTrigger.executeLetterAction(latestLetter, action, this.config);
-                }
-                if (replyLetter) {
-                    for (const action of replyLetter.triggeredActions) {
-                        LetterActionTrigger.executeLetterAction(replyLetter, action, this.config);
+                const stage1EndDay = latestLetter.totalDays + Math.floor(latestLetter.delay * 4 / 9);
+                if (gameData.totalDays != null && gameData.totalDays >= stage1EndDay) {
+                    for (const action of playerActions) {
+                        LetterActionTrigger.executeLetterAction(latestLetter, action, this.config);
                     }
+                    if (replyLetter) {
+                        for (const action of replyLetter.triggeredActions) {
+                            LetterActionTrigger.executeLetterAction(replyLetter, action, this.config);
+                        }
+                    }
+                } else {
+                    console.log(`[LetterReplyGenerator] Letter not yet delivered to AI (current day ${gameData.totalDays}, stage-1 day ${stage1EndDay}). Actions deferred.`);
                 }
             }
+
 
             // Update original letter status back to 'sent' since reply is now pending
             const letterManager = LetterManager.getInstance();

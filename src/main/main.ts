@@ -2193,17 +2193,33 @@ ipcMain.on('approve-letter-action', async (event, { playerId, characterId, lette
             }
         }
         const letterName = resolveLetterName(playerId, characterId, letterId);
-        if (isActivePlayer) {
+        // Timeline gating: an action must not fire before the letter has reached its
+        // recipient (stage 1 of the journey = totalDays + floor(delay * 4/9)). If the
+        // letter is still en route, queue the approval instead of executing now —
+        // processQueuedApprovals drains it once the in-game date passes the due day.
+        const approvalLetter = LetterManager.getInstance().getAllLetters(playerId).find(l => l.id === letterId);
+        const stage1EndDay = approvalLetter
+            ? approvalLetter.totalDays + Math.floor((approvalLetter.delay || 0) * 4 / 9)
+            : null;
+        const isDue = stage1EndDay == null || currentTotalDays >= stage1EndDay;
+
+        if (isActivePlayer && isDue) {
             const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId, letterName);
             if (!ok) {
                 throw new Error(`Failed to execute approved letter action '${actionSignature}'.`);
             }
             console.log(`Approved letter action '${actionSignature}' executed successfully.`);
+        } else if (isActivePlayer && !isDue) {
+            // Active player, but letter has not arrived at the AI character yet.
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: stage1EndDay! });
+            console.log(`Approved letter action '${actionSignature}' queued until letter delivery (day ${stage1EndDay}; current day ${currentTotalDays}).`);
         } else {
             // The letter belongs to a player who is not currently played. Persist the
             // approval status now, but queue the actual effect execution until that player
-            // becomes the active session player.
-            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: currentTotalDays });
+            // becomes the active session player. If the letter is still en route at that
+            // point, stage1EndDay gates it; otherwise it is due immediately (currentTotalDays).
+            const dueDay = stage1EndDay != null && stage1EndDay > currentTotalDays ? stage1EndDay : currentTotalDays;
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: dueDay });
             console.log(`Approved letter action '${actionSignature}' for non-active player ${playerId}. Queued for execution when that player is played.`);
         }
         // Persist the approval status so it survives navigation and app restarts.
