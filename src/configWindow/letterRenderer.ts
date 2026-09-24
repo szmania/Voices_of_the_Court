@@ -72,7 +72,7 @@ function dateToTotalDays(date: Date): number {
 function getLetterStatus(letter: Letter): { text: string, overdue: boolean, journey?: { currentStage: number } } | null {
     // 1. Status for player-sent letters (OUTBOX)
     if (letter.isPlayerSender) {
-        const reply = allLetters.find(l => l.replyToId === letter.id);
+        const reply = repliesByReplyToId.get(letter.id);
 
         if (letter.totalDays === undefined || typeof letter.delay === 'undefined') {
             return null;
@@ -104,9 +104,6 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
             // Case A: No reply yet, or reply not delivered. Show pending/overdue status.
             const sentDay = letter.totalDays;
             const totalJourneyTime = letter.delay;
-
-            // Find the reply letter if it exists
-            const reply = allLetters.find(l => l.replyToId === letter.id);
 
             // Calculate the expected reply date. Use the reply's date if it exists, otherwise estimate from original.
             const expectedReplyDate = reply && reply.expectedDeliveryDate
@@ -213,6 +210,14 @@ let currentSessionPlayerId: string | null = null;
 // never show an approved/denied action as pending again, even if the disk write raced.
 const userActionStatuses = new Map<string, 'approved' | 'denied'>();
 
+// Lookup maps rebuilt in loadLetters() whenever allLetters changes, so per-render and
+// per-click lookups are O(1) instead of O(N) array scans.
+let lettersById = new Map<string, Letter>();
+let repliesByReplyToId = new Map<string, Letter>();
+// Tracks the currently selected letter list item so selection updates toggle classes on
+// the old/new elements instead of sweeping the whole document.
+let selectedLetterItemEl: HTMLElement | null = null;
+
 function renderTriggeredActionsListForListItem(letter: Letter | undefined): string {
     if (!letter || !letter.triggeredActions || letter.triggeredActions.length === 0) {
         // @ts-ignore
@@ -268,7 +273,8 @@ function renderStatusSummary() {
             }
             // Player letter pending non-overdue reply
             if (l.isPlayerSender) {
-                const hasReply = allLetters.some(a => a.replyToId === l.id && a.delivered);
+                const replyForCount = repliesByReplyToId.get(l.id);
+                const hasReply = !!(replyForCount && replyForCount.delivered);
                 if (hasReply) return false;
                 if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                 const expectedReplyDay = l.totalDays + l.delay;
@@ -278,7 +284,8 @@ function renderStatusSummary() {
         }).length,
         reply_overdue: lettersForCounts.filter(l => {
             if (!l.isPlayerSender) return false;
-            const hasReply = allLetters.some(a => a.replyToId === l.id && a.delivered);
+            const replyForCount = repliesByReplyToId.get(l.id);
+            const hasReply = !!(replyForCount && replyForCount.delivered);
             if (hasReply) return false;
             if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
             const expectedReplyDay = l.totalDays + l.delay;
@@ -439,6 +446,7 @@ function renderLetters() {
     // Clear the list at the start so every render starts fresh. This prevents stale
     // letters from a previous player/character from lingering, and prevents repeated
     // "No letters found." messages from accumulating when there are no letters.
+    selectedLetterItemEl = null;
     letterList.innerHTML = '';
 
     const fragment = document.createDocumentFragment();
@@ -489,7 +497,8 @@ letterPairs = cachedLetterPairs;
             } else if (statusFilter === 'reply_overdue') {
                 characterFilteredLetters = characterFilteredLetters.filter(l => {
                     if (!l.isPlayerSender) return false;
-                    const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
+                    const r = repliesByReplyToId.get(l.id);
+                    const hasReply = !!(r && r.delivered);
                     if (hasReply) return false;
                     if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                     const expectedReplyDay = l.totalDays + l.delay;
@@ -501,7 +510,8 @@ letterPairs = cachedLetterPairs;
                         return true;
                     }
                     if (l.isPlayerSender) {
-                        const hasReply = allLetters.some(reply => reply.replyToId === l.id && reply.delivered);
+                        const r = repliesByReplyToId.get(l.id);
+                        const hasReply = !!(r && r.delivered);
                         if (hasReply) return false;
                         if (currentGameDay === 0 || !l.totalDays || typeof l.delay === 'undefined') return false;
                         const expectedReplyDay = l.totalDays + l.delay;
@@ -658,7 +668,7 @@ cachedLetterPairs = letterPairs;
             const letterId = target.dataset.letterId;
             if (!letterId) return;
 
-            const letter = allLetters.find(l => l.id === letterId);
+            const letter = lettersById.get(letterId);
             if (!letter) return;
 
             selectedLetter = letter;
@@ -672,9 +682,12 @@ cachedLetterPairs = letterPairs;
                 if (pairElement) pairElement.classList.remove('unread');
             }
 
-            // Highlight selected
-            document.querySelectorAll('.letter-item.selected').forEach(el => el.classList.remove('selected'));
+            // Highlight selected without sweeping the full document
+            if (selectedLetterItemEl) {
+                selectedLetterItemEl.classList.remove('selected');
+            }
             target.classList.add('selected');
+            selectedLetterItemEl = target;
         });
     });
     // @ts-ignore
@@ -688,27 +701,53 @@ cachedLetterPairs = letterPairs;
         performSearch(currentSearchTerm);
     }
 }
+// Session-level caches so per-letter rendering doesn't hit the disk repeatedly:
+// action modules loaded lazily once per signature, and resolved localized descriptions
+// cached per language+signature (keyed by language so no invalidation is needed when
+// the UI language changes).
+const actionModuleCache = new Map<string, any | null>();
+const actionDescriptionCache = new Map<string, string | null>();
+
+function loadActionModule(signature: string): any | null {
+    if (actionModuleCache.has(signature)) {
+        return actionModuleCache.get(signature) || null;
+    }
+    let actionModule: any | null = null;
+    if (actionsPath) {
+        for (const folder of ['standard', 'custom']) {
+            try {
+                const filePath = path.join(actionsPath, folder, `${signature}.js`);
+                if (!fs.existsSync(filePath)) continue;
+                actionModule = require(filePath);
+                break;
+            } catch (e) {
+                // Ignore and try the next folder.
+            }
+        }
+    }
+    actionModuleCache.set(signature, actionModule);
+    return actionModule;
+}
+
 // Resolves the localized description for an action module (by signature) from the
 // user's scripts/actions/{standard,custom} folders, falling back to the signature text.
 function getActionDescription(signature: string): string | null {
-    if (!actionsPath) return null;
-    for (const folder of ['standard', 'custom']) {
-        try {
-            const filePath = path.join(actionsPath, folder, `${signature}.js`);
-            if (!fs.existsSync(filePath)) continue;
-            const actionModule = require(filePath);
-            const desc = actionModule && actionModule.description;
-            if (!desc) return null;
-            if (typeof desc === 'string') return desc;
-            if (typeof desc === 'object') {
-                return desc[currentLanguage] || desc['en'] || Object.values(desc)[0] || null;
-            }
-            return null;
-        } catch (e) {
-            // Ignore and try the next folder.
+    const cacheKey = `${currentLanguage}|${signature}`;
+    if (actionDescriptionCache.has(cacheKey)) {
+        return actionDescriptionCache.get(cacheKey) || null;
+    }
+    let resolved: string | null = null;
+    const actionModule = loadActionModule(signature);
+    if (actionModule) {
+        const desc = actionModule.description;
+        if (typeof desc === 'string') {
+            resolved = desc;
+        } else if (desc && typeof desc === 'object') {
+            resolved = desc[currentLanguage] || desc['en'] || Object.values(desc)[0] || null;
         }
     }
-    return null;
+    actionDescriptionCache.set(cacheKey, resolved);
+    return resolved;
 }
 
 // Resolves the localized, human-readable chat message for an action (by signature) from
@@ -717,180 +756,136 @@ function getActionDescription(signature: string): string | null {
 // args, localizes the result, and substitutes {{character1Name}}/{{character2Name}} etc.
 // Falls back to the localized description, then the signature.
 function getActionChatMessage(letter: Letter, action: { signature: string; args: any[] }): string {
-    if (actionsPath) {
-        for (const folder of ['standard', 'custom']) {
-            try {
-                const filePath = path.join(actionsPath, folder, `${action.signature}.js`);
-                if (!fs.existsSync(filePath)) continue;
-                const actionModule = require(filePath);
-                if (actionModule && typeof actionModule.chatMessage === 'function') {
-                    let message = actionModule.chatMessage(action.args || []);
-                    if (typeof message === 'object' && message !== null) {
-                        message = message[currentLanguage] || message['en'] || Object.values(message)[0] || '';
-                    }
-                    if (typeof message === 'string' && message) {
-                        const sourceName = (letter.sender && letter.sender.shortName) || 'someone';
-                        const targetName = (letter.recipient && letter.recipient.shortName) || 'someone';
-                        const vars: Record<string, string> = { character1Name: sourceName, character2Name: targetName };
-                        return message.replace(/\{\{([^}]+)\}\}/gi, (_, key: string) => vars[key.trim()] || '');
-                    }
-                }
-                break;
-            } catch (e) {
-                // Ignore and try the next folder.
-            }
+    const actionModule = loadActionModule(action.signature);
+    if (actionModule && typeof actionModule.chatMessage === 'function') {
+        let message = actionModule.chatMessage(action.args || []);
+        if (typeof message === 'object' && message !== null) {
+            message = message[currentLanguage] || message['en'] || Object.values(message)[0] || '';
+        }
+        if (typeof message === 'string' && message) {
+            const sourceName = (letter.sender && letter.sender.shortName) || 'someone';
+            const targetName = (letter.recipient && letter.recipient.shortName) || 'someone';
+            const vars: Record<string, string> = { character1Name: sourceName, character2Name: targetName };
+            return message.replace(/\{\{([^}]+)\}\}/gi, (_, key: string) => vars[key.trim()] || '');
         }
     }
     return getActionDescription(action.signature) || action.signature;
 }
 
-function renderTriggeredActionsSection(container: HTMLElement, letter: Letter): void {
-    const section = document.createElement('div');
-    section.className = 'triggered-actions-section';
-
-    // Section header
-    const header = document.createElement('h4');
-    header.setAttribute('data-i18n', 'letters.triggered_actions');
+// Builds the triggered-actions section HTML for the letter view. Returns markup only;
+// call wireTriggeredActions() after insertion to attach approve/deny handlers. Splitting
+// build from wiring lets renderLetterContent() run its single search-highlight pass
+// (which rewrites innerHTML) before any listeners are attached.
+function buildTriggeredActionsHtml(letter: Letter): string {
     // @ts-ignore
-    header.textContent = window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions');
-    section.appendChild(header);
+    const headerText = window.LocalizationManager.getTranslation('letters.triggered_actions', 'Triggered Actions');
+    let html = `<div class="triggered-actions-section"><h4 data-i18n="letters.triggered_actions">${headerText}</h4>`;
 
-    // Show actions or "no actions" message
     if (!letter.triggeredActions || letter.triggeredActions.length === 0) {
-        const noActionsSpan = document.createElement('span');
-        noActionsSpan.className = 'no-actions-text';
-        noActionsSpan.setAttribute('data-i18n', 'letters.no_actions_triggered');
         // @ts-ignore
-        noActionsSpan.textContent = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
-        section.appendChild(noActionsSpan);
-    } else {
-        if (manualLetterActionApproval) {
-            const approvalContainer = document.createElement('div');
-            approvalContainer.classList.add('action-approval-container');
+        const noActionsText = window.LocalizationManager.getTranslation('letters.no_actions_triggered', 'No actions triggered.');
+        html += `<span class="no-actions-text" data-i18n="letters.no_actions_triggered">${noActionsText}</span>`;
+    } else if (manualLetterActionApproval) {
+        // @ts-ignore
+        const approveText = window.LocalizationManager.getTranslation('letters.approve_action', 'Approve');
+        // @ts-ignore
+        const denyText = window.LocalizationManager.getTranslation('letters.deny_action', 'Deny');
+        // @ts-ignore
+        const approveTooltip = window.LocalizationManager.getTranslation('letters.action_approve_tooltip', 'Approve this action...');
+        // @ts-ignore
+        const denyTooltip = window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...');
 
-            letter.triggeredActions.forEach(action => {
-                const actionPrompt = document.createElement('div');
-                actionPrompt.classList.add('action-prompt');
-                actionPrompt.id = `action-prompt-${letter.id}-${action.signature}`;
+        html += '<div class="action-approval-container">';
+        letter.triggeredActions.forEach((action, index) => {
+            const actionDescription = getActionDescription(action.signature);
+            const tooltipAttr = actionDescription ? ` data-tooltip="${actionDescription.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"` : '';
+            const actionMessage = getActionChatMessage(letter, action);
 
-                // Surface the action's localized description as a tooltip on the action item.
-                const actionDescription = getActionDescription(action.signature);
-                if (actionDescription) {
-                    actionPrompt.setAttribute('data-tooltip', actionDescription);
-                }
-
-                // Human-readable, localized message for this action (same wording as the chat window).
-                const actionMessage = getActionChatMessage(letter, action);
-
-                // Actions that have already gone through approval are shown as a colored
-                // confirmation (green = approved, red = denied) instead of buttons.
-                if (action.status === 'approved') {
-                    actionPrompt.classList.add('action-approved');
-                    const text = document.createElement('span');
-                    // @ts-ignore
-                    text.textContent = window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage);
-                    actionPrompt.appendChild(text);
-                } else if (action.status === 'denied') {
-                    actionPrompt.classList.add('action-denied');
-                    const text = document.createElement('span');
-                    // @ts-ignore
-                    text.textContent = window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage);
-                    actionPrompt.appendChild(text);
-                } else {
-                    // Pending action: show Approve/Deny buttons.
-                    const text = document.createElement('span');
-                    text.textContent = actionMessage;
-
-                    const buttons = document.createElement('div');
-                    buttons.classList.add('action-buttons');
-
-                    const approveButton = document.createElement('button');
-                    approveButton.setAttribute('data-i18n', 'letters.approve_action');
-                    // @ts-ignore
-                    approveButton.textContent = window.LocalizationManager.getTranslation('letters.approve_action', 'Approve');
-                    approveButton.classList.add('action-approve-button');
-                    // @ts-ignore
-                    approveButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_approve_tooltip', 'Approve this action...'));
-
-                    approveButton.onclick = () => {
-                        action.status = 'approved';
-                        userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'approved');
-                        action.status = 'approved';
-                        ipcRenderer.send('approve-letter-action', {
-                            playerId: selectedPlayerId,
-                            characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
-                            letterId: letter.id,
-                            actionSignature: action.signature,
-                            args: action.args,
-                            sourceId: letter.sender.id,
-                            targetId: letter.recipient.id
-                        });
-                        actionPrompt.classList.add('action-approved');
-                        // @ts-ignore
-                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage)}</span>`;
-                    };
-
-                    const denyButton = document.createElement('button');
-                    denyButton.setAttribute('data-i18n', 'letters.deny_action');
-                     // @ts-ignore
-                    denyButton.textContent = window.LocalizationManager.getTranslation('letters.deny_action', 'Deny');
-                    denyButton.classList.add('action-decline-button');
-                     // @ts-ignore
-                    denyButton.setAttribute('data-tooltip', window.LocalizationManager.getTranslation('letters.action_deny_tooltip', 'Deny this action...'));
-
-                    denyButton.onclick = () => {
-                        action.status = 'denied';
-                        userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'denied');
-                        action.status = 'denied';
-                        ipcRenderer.send('deny-letter-action', {
-                            playerId: selectedPlayerId,
-                            characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
-                            letterId: letter.id,
-                            actionSignature: action.signature
-                        });
-                        actionPrompt.classList.add('action-denied');
-                         // @ts-ignore
-                        actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage)}</span>`;
-                    };
-
-                    buttons.appendChild(approveButton);
-                    buttons.appendChild(denyButton);
-                    actionPrompt.appendChild(text);
-                    actionPrompt.appendChild(buttons);
-                }
-                approvalContainer.appendChild(actionPrompt);
-            });
-            section.appendChild(approvalContainer);
-        } else {
-            const list = document.createElement('ul');
-            list.className = 'triggered-actions-list';
-
-            for (const action of letter.triggeredActions) {
-                const item = document.createElement('li');
-                item.className = 'triggered-action-item';
-
-                const signature = (action && action.signature) || 'Unknown Action';
-                const triggerOn = (action && action.triggerOn) || 'unknown';
+            if (action.status === 'approved') {
                 // @ts-ignore
-                const signatureLabel = window.LocalizationManager.getTranslation('letters.action_signature', 'Action');
+                const approvedText = window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage);
+                html += `<div class="action-prompt action-approved" id="action-prompt-${letter.id}-${action.signature}"${tooltipAttr}><span>${approvedText}</span></div>`;
+            } else if (action.status === 'denied') {
                 // @ts-ignore
-                const triggerLabel = window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger');
-
-                item.textContent = `${signatureLabel}: ${signature} (${triggerLabel}: ${triggerOn})`;
-                list.appendChild(item);
+                const deniedText = window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage);
+                html += `<div class="action-prompt action-denied" id="action-prompt-${letter.id}-${action.signature}"${tooltipAttr}><span>${deniedText}</span></div>`;
+            } else {
+                html += `<div class="action-prompt" id="action-prompt-${letter.id}-${action.signature}" data-action-index="${index}"${tooltipAttr}>`
+                    + `<span>${actionMessage}</span>`
+                    + `<div class="action-buttons">`
+                    + `<button data-i18n="letters.approve_action" class="action-approve-button" data-tooltip="${String(approveTooltip).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${approveText}</button>`
+                    + `<button data-i18n="letters.deny_action" class="action-decline-button" data-tooltip="${String(denyTooltip).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${denyText}</button>`
+                    + `</div></div>`;
             }
-            section.appendChild(list);
-        }
-    }
-
-    container.appendChild(section);
-
-    // Apply translations to the new section
-    // @ts-ignore
-    if (window.LocalizationManager) {
+        });
+        html += '</div>';
+    } else {
         // @ts-ignore
-        window.LocalizationManager.applyTranslations(section);
+        const signatureLabel = window.LocalizationManager.getTranslation('letters.action_signature', 'Action');
+        // @ts-ignore
+        const triggerLabel = window.LocalizationManager.getTranslation('letters.action_trigger', 'Trigger');
+
+        html += '<ul class="triggered-actions-list">';
+        for (const action of letter.triggeredActions) {
+            const signature = (action && action.signature) || 'Unknown Action';
+            const triggerOn = (action && action.triggerOn) || 'unknown';
+            html += `<li class="triggered-action-item">${signatureLabel}: ${signature} (${triggerLabel}: ${triggerOn})</li>`;
+        }
+        html += '</ul>';
     }
+
+    html += '</div>';
+    return html;
+}
+
+// Attaches approve/deny handlers to the pending action prompts built by
+// buildTriggeredActionsHtml(). Must run after the section HTML is in the DOM.
+function wireTriggeredActions(container: HTMLElement, letter: Letter): void {
+    if (!manualLetterActionApproval || !letter.triggeredActions || letter.triggeredActions.length === 0) return;
+
+    letter.triggeredActions.forEach((action, index) => {
+        if (action.status === 'approved' || action.status === 'denied') return;
+        const actionPrompt = container.querySelector<HTMLElement>(`.action-prompt[data-action-index="${index}"]`);
+        if (!actionPrompt) return;
+        const actionMessage = getActionChatMessage(letter, action);
+
+        const approveButton = actionPrompt.querySelector<HTMLButtonElement>('.action-approve-button');
+        if (approveButton) {
+            approveButton.onclick = () => {
+                action.status = 'approved';
+                userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'approved');
+                ipcRenderer.send('approve-letter-action', {
+                    playerId: selectedPlayerId,
+                    characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
+                    letterId: letter.id,
+                    actionSignature: action.signature,
+                    args: action.args,
+                    sourceId: letter.sender.id,
+                    targetId: letter.recipient.id
+                });
+                actionPrompt.classList.add('action-approved');
+                // @ts-ignore
+                actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_approved', 'Action approved: {signature}').replace('{signature}', actionMessage)}</span>`;
+            };
+        }
+
+        const denyButton = actionPrompt.querySelector<HTMLButtonElement>('.action-decline-button');
+        if (denyButton) {
+            denyButton.onclick = () => {
+                action.status = 'denied';
+                userActionStatuses.set(`${letter.id}|${action.signature}|${action.triggerOn}`, 'denied');
+                ipcRenderer.send('deny-letter-action', {
+                    playerId: selectedPlayerId,
+                    characterId: letter.sender.id === Number(selectedPlayerId) ? String(letter.recipient.id) : String(letter.sender.id),
+                    letterId: letter.id,
+                    actionSignature: action.signature
+                });
+                actionPrompt.classList.add('action-denied');
+                // @ts-ignore
+                actionPrompt.innerHTML = `<span>${window.LocalizationManager.getTranslation('letters.action_denied', 'Action denied: {signature}').replace('{signature}', actionMessage)}</span>`;
+            };
+        }
+    });
 }
 
 function renderLetterContent(letter: Letter) {
@@ -898,7 +893,7 @@ function renderLetterContent(letter: Letter) {
     if (!letterViewContainer) return;
 
     let statusHtml = '';
-    const reply = allLetters.find(l => l.replyToId === letter.id);
+    const reply = repliesByReplyToId.get(letter.id);
 
     if (letter.isPlayerSender && reply && reply.delivered) {
         const status = getLetterStatus(letter);
@@ -940,7 +935,10 @@ function renderLetterContent(letter: Letter) {
         metaHtml += `<span><strong>Received on:</strong> ${formatDate(new Date(letter.deliveryTimestamp))}</span>`;
     }
 
-    letterViewContainer.innerHTML = `
+    // Build the view HTML as a single string (including triggered actions markup),
+    // then apply search highlighting BEFORE setting innerHTML and wiring listeners.
+    // This eliminates the second innerHTML rewrite that previously wiped event listeners.
+    let viewHtml = `
         <div class="letter-view-header">
             <h3>${letter.subject}</h3>
             ${statusHtml}
@@ -954,8 +952,25 @@ function renderLetterContent(letter: Letter) {
         <div class="letter-view-controls">
             <button id="letter-delete-btn" class="btn btn-danger" data-i18n="letters.delete">Delete</button>
         </div>
+        ${buildTriggeredActionsHtml(letter)}
     `;
 
+    if (currentSearchTerm) {
+        const regex = new RegExp(`(${currentSearchTerm})`, 'gi');
+        viewHtml = viewHtml.replace(regex, '<mark>$1</mark>');
+    }
+
+    letterViewContainer.innerHTML = viewHtml;
+
+    if (currentSearchTerm) {
+        matches = Array.from(letterViewContainer.querySelectorAll('mark'));
+        if (matches.length > 0) {
+            currentMatchIndex = 0;
+            matches[0].classList.add('current-match');
+        }
+    }
+
+    // Wire listeners after single DOM build + highlight
     const deleteBtn = letterViewContainer.querySelector('#letter-delete-btn');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', async () => {
@@ -998,35 +1013,28 @@ function renderLetterContent(letter: Letter) {
         });
     }
 
-    // Render triggered actions with approve/deny buttons if setting is enabled
-    renderTriggeredActionsSection(letterViewContainer, letter);
+    wireTriggeredActions(letterViewContainer, letter);
 
     const viewReplyBtn = letterViewContainer.querySelector('.view-reply-btn');
     if (viewReplyBtn) {
         viewReplyBtn.addEventListener('click', (e) => {
             const replyId = (e.currentTarget as HTMLElement).dataset.replyId;
-            const replyLetter = allLetters.find(l => l.id === replyId);
+            const replyLetter = replyId ? lettersById.get(replyId) : undefined;
             if (replyLetter) {
                 selectedLetter = replyLetter;
                 renderLetterContent(replyLetter);
-                document.querySelectorAll('.letter-item.selected').forEach(el => el.classList.remove('selected'));
-                const newListItem = document.querySelector(`.letter-item[data-letter-id="${replyId}"]`);
+                if (selectedLetterItemEl) {
+                    selectedLetterItemEl.classList.remove('selected');
+                }
+                const letterListEl = document.getElementById('letter-list');
+                const newListItem = letterListEl ? letterListEl.querySelector(`.letter-item[data-letter-id="${replyId}"]`) as HTMLElement | null : null;
                 if (newListItem) {
                     newListItem.classList.add('selected');
+                    selectedLetterItemEl = newListItem;
                     newListItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }
         });
-    }
-
-    // Re-apply search highlighting if there's an active search term
-    if (currentSearchTerm) {
-        highlightText(letterViewContainer, currentSearchTerm);
-        matches = Array.from(letterViewContainer.querySelectorAll('mark'));
-        if (matches.length > 0) {
-            currentMatchIndex = 0;
-            matches[0].classList.add('current-match');
-        }
     }
 
     // @ts-ignore
@@ -1131,6 +1139,14 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
 
 async function loadLetters(playerId: string) {
     allLetters = await ipcRenderer.invoke('get-all-letters-for-player', playerId);
+    // Rebuild O(1) lookup maps for getLetterStatus(), renderStatusSummary(), click
+    // handlers, and renderLetterContent().
+    lettersById = new Map();
+    repliesByReplyToId = new Map();
+    for (const l of allLetters) {
+        if (l && l.id) lettersById.set(l.id, l);
+        if (l && l.replyToId && !repliesByReplyToId.has(l.replyToId)) repliesByReplyToId.set(l.replyToId, l);
+    }
     // Reconcile any user-set approval/denial statuses from this session onto the freshly
     // reloaded objects. This guarantees a reload cannot show an approved/denied action as
     // pending again within the same session, even if the disk write raced with the reload.
