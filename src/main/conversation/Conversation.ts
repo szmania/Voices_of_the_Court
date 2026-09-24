@@ -2003,7 +2003,7 @@ Statement by ${character.fullName}:`
                     date: this.gameData.date,
                     content: summaryContent
                 };
-                console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+                console.log(`ursation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
 
                 const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
@@ -2011,6 +2011,13 @@ Statement by ${character.fullName}:`
                 this.summaryFileWatcher.pauseWatcher(summaryFile);
 
                 const existingSummaries = this.summaries.get(character.id) || [];
+
+                const isErrorText = /low balance|not enough credits|top up|api error|too many requests|rate limit/i.test(newSummary.content);
+                if (isErrorText) {
+                    console.warn(`Summary content looks like an API/billing error for character ${character.id}, skipping save and vectorization: ${newSummary.content.substring(0, 100)}...`);
+                    this.summaryFileWatcher.resumeWatcher(summaryFile);
+                    continue;
+                }
 
                 if (newSummary.content.trim()) {
                     existingSummaries.unshift(newSummary);

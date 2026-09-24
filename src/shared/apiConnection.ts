@@ -15,6 +15,28 @@ export function isAbortError(error: any): boolean {
         (error.name === 'AbortError' || error.name === 'APIUserAbortError');
 }
 
+/** HTTP status codes that indicate a transient failure worth retrying. */
+const RETRYABLE_HTTP_STATUSES: ReadonlySet<number> = new Set([429, 500, 502, 503, 504]);
+
+/**
+ * Classifies an embedding HTTP error as transient (retryable) or permanent.
+ * Retryable: 429 (rate limit) and 5xx server errors (500/502/503/504).
+ * Permanent client errors (400/401/403/404/410), e.g. a dead model ("410 Gone")
+ * or a "dimensions must be one of 2048" rejection, return false so callers
+ * fail fast instead of burning retries on actionable configuration problems.
+ */
+export function isRetryableHttpError(err: any): boolean {
+    if (!err) return false;
+    // Preferred: HTTP status attached by the embedding error paths (err.status).
+    const status = (err as any).status ?? (err as any).statusCode;
+    if (typeof status === 'number') {
+        return RETRYABLE_HTTP_STATUSES.has(status);
+    }
+    // Fallback: parse the "API error (NNN)" pattern used in embedding error messages.
+    const match = /API error \((\d{3})\)/.exec(String((err as any).message ?? ''));
+    return !!match && RETRYABLE_HTTP_STATUSES.has(parseInt(match[1], 10));
+}
+
 export interface apiConnectionTestResult{
     success: boolean,
     overwriteWarning?: boolean;
@@ -995,7 +1017,7 @@ export class EmbeddingProvider {
         }
         switch (this.provider) {
             case 'ollama':
-                return this.generateOllamaEmbedding(text);
+                return this.embedWithRetry(() => this.generateOllamaEmbedding(text));
             case 'onnx':
                 return this.generateOnnxEmbedding(text);
             // All OpenAI-compatible providers (openai, custom, openrouter, deepseek,
@@ -1009,9 +1031,39 @@ export class EmbeddingProvider {
             case 'glm':
             case 'player2':
             case 'anthropic':
-                return this.generateOpenAIEmbedding(text);
+                return this.embedWithRetry(() => this.generateOpenAIEmbedding(text));
             default:
                 throw new Error(`Unsupported embedding provider: ${this.provider}`);
+        }
+    }
+
+    /**
+     * Runs an embedding attempt, retrying transient HTTP failures (429/5xx)
+     * with exponential backoff, mirroring the retry pattern used by
+     * ApiConnection.complete(). Permanent errors (400/401/403/404/410,
+     * unsupported providers, empty input) are rethrown immediately so the
+     * original status and response body stay visible in the caller's logs.
+     */
+    private async embedWithRetry(attemptFn: () => Promise<EmbeddingResult>): Promise<EmbeddingResult> {
+        const MAX_RETRIES = 4; // retries after the first attempt -> up to 5 total attempts
+        const RETRY_DELAY = 750; // base delay in ms; doubles each retry: 750ms, 1.5s, 3s, 6s
+        let retries = 0;
+        while (true) {
+            try {
+                return await attemptFn();
+            } catch (error) {
+                const retryable = isRetryableHttpError(error);
+                if (!retryable || retries >= MAX_RETRIES) {
+                    if (retryable) {
+                        console.error(`EmbeddingProvider: embedding still failing after ${retries + 1} attempts: ${error instanceof Error ? error.message : String(error)}`);
+                    }
+                    throw error;
+                }
+                retries++;
+                const delayMs = RETRY_DELAY * Math.pow(2, retries - 1);
+                console.warn(`EmbeddingProvider: transient embedding failure, retry ${retries}/${MAX_RETRIES} in ${delayMs}ms: ${error instanceof Error ? error.message : String(error)}`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
         }
     }
 
@@ -1067,13 +1119,17 @@ export class EmbeddingProvider {
                 model: this.model,
                 input: text,
                 ...(this.expectedDimension ? { dimensions: this.expectedDimension } : {}),
-                ...(this.embeddingInputType ? { input_type: this.embeddingInputType } : {})
+                ...(this.embeddingInputType ? { input_type: this.embeddingInputType } : { input_type: 'passage' })
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`OpenAI embedding API error (${response.status}): ${errorText}`);
+            const error = new Error(`OpenAI embedding API error (${response.status}): ${errorText}`);
+            // Attach the HTTP status so isRetryableHttpError can classify the failure:
+            // 429/5xx get retried; permanent client errors (400/404/410...) fail fast.
+            (error as any).status = response.status;
+            throw error;
         }
 
         const data = await response.json();
@@ -1111,7 +1167,10 @@ export class EmbeddingProvider {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Ollama embedding API error (${response.status}): ${errorText}`);
+            const error = new Error(`Ollama embedding API error (${response.status}): ${errorText}`);
+            // Attach the HTTP status so isRetryableHttpError can classify the failure.
+            (error as any).status = response.status;
+            throw error;
         }
 
         const data = await response.json();
