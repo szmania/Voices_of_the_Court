@@ -353,37 +353,46 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-// Campaign id of the live game context, decided by log chronology. The log
-// survives save loads, so after loading save B the last `VOTC:IN` init block
-// can still describe abandoned campaign A; the save-load identity line is
-// then the newer evidence and must win, or A's replies would pass the gate in
-// B. When the newest evidence is an init block, its parsed snapshot identity
-// is used; the observer's memory is only the last resort.
-function resolveDeliveryCampaignId(gameData: GameData): string | undefined {
+// Identity (campaign + player) of the live game context, decided by ONE
+// log-chronology evidence snapshot. The log survives save loads, so after
+// loading save B the last `VOTC:IN` init block can still describe abandoned
+// campaign A; the evidence scan returns each field from the newest line that
+// carries it — campaign from the newest load/init evidence, player (and
+// node/epoch) also from a fresher checkpoint receipt. Mixing fields from
+// different generations (e.g. B's campaign with A's player) rejected replies
+// that belonged to the loaded save, so campaign and player are always
+// resolved from the same snapshot.
+function resolveDeliveryIdentity(gameData: GameData): { campaignId: string | undefined; playerId: string } {
     const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
-    if (evidence.source === 'load') {
-        // A fresher load line outranks any older init block — including one
-        // that failed to parse (fail closed rather than trust stale data).
-        return evidence.campaignId;
-    }
-    try {
-        const parsedIdentity = buildContextFromGameData(gameData).identity?.campaignId;
-        if (parsedIdentity) {
-            return parsedIdentity;
+    // The evidence scan only sets campaignId when a load line legitimately
+    // outranks the last init block (its own parse failed -> fail closed,
+    // campaignId stays undefined). A checkpoint receipt never carries a
+    // campaign id, so in that case the campaign still comes from the load
+    // line beneath it; otherwise the parsed init snapshot owns it, with the
+    // observer's memory as last resort.
+    let campaignId = evidence.campaignId;
+    if (!campaignId && evidence.source !== 'load') {
+        try {
+            campaignId = buildContextFromGameData(gameData).identity?.campaignId;
+        } catch (error) {
+            console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
         }
-    } catch (error) {
-        console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
+        campaignId ??= getObservedCampaignId();
     }
-    return getObservedCampaignId();
+    const playerId = evidence.playerId ?? String(gameData.playerID);
+    return {campaignId, playerId};
 }
 
 // The save's current timeline node, by the same log-chronology rule as the
-// delivery identity: a fresher load line that reports the node wins; else the
-// freshest init snapshot's node; else the observer's memory. Undefined only
-// when no evidence exists — the caller then falls back to the registry head.
+// delivery identity: a fresher load line that reports the node wins; a
+// checkpoint receipt fresher than both the load line and the last init block
+// wins too — the receipt is the game applying a transition, so it describes
+// the node AFTER a conversation completed, which the init block (a
+// conversation-start snapshot) never does. Undefined only when no evidence
+// exists — the caller then falls back to the registry head.
 function resolveCurrentTimelineNodeId(gameData: GameData): string | undefined {
     const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
-    if (evidence.source === 'load' && evidence.nodeId) {
+    if ((evidence.source === 'load' || evidence.source === 'checkpoint') && evidence.nodeId) {
         return evidence.nodeId;
     }
     const a = gameData.votcTimelineNodeA;
@@ -501,14 +510,14 @@ export async function checkAndDeliverLetters() {
                 continue;
             }
 
-            const currentCampaignId = resolveDeliveryCampaignId(gameData);
+            const {campaignId: currentCampaignId, playerId: currentPlayerId} = resolveDeliveryIdentity(gameData);
             const verdict = evaluateReplyDeliveryGate(
                 {
                     recipientId: String(storedLetter.letter.recipient.id),
                     campaignId: storedLetter.letter.timelineCampaignId
                 },
                 currentCampaignId ? {campaignId: currentCampaignId} : undefined,
-                String(gameData.playerID),
+                currentPlayerId,
                 {allowUnstampedLegacyReplies: true}
             );
             if (!verdict.deliverable) {
@@ -525,7 +534,7 @@ export async function checkAndDeliverLetters() {
                     // re-evaluates the reply exactly once.
                     campaignMismatchSkips.set(letterId, observedCampaignIdProvider() ?? '');
                 }
-                console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${gameData.playerID}. Keeping it pending.`);
+                console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${currentPlayerId}. Keeping it pending.`);
                 continue;
             }
             if (verdict.reason === 'legacy_reply_unstamped') {
@@ -2337,7 +2346,7 @@ ipcMain.handle('read-summary-file', async (event, playerId, checkpointEpoch?: nu
         // Resolve through the timeline context so node-tagged summaries are
         // filtered by branch visibility (no manager window context yet; the
         // legacy parts-only resolution keeps today's behavior until P7).
-        const { context, registry, identity } = resolveTimelineWindowRequest(undefined, playerId, checkpointEpoch);
+        const { context, registry, identity } = await resolveTimelineWindowRequest(undefined, playerId, checkpointEpoch);
         const summaries = await readSummaryFile(userDataPath, playerId, checkpointEpoch ?? context.checkpointEpoch, registry, context.timelineNodeId, identity);
 
         const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');

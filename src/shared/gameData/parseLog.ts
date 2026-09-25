@@ -812,6 +812,64 @@ export function parseCampaignLoadedLine(line: string): CampaignLoadedLine | unde
     };
 }
 
+/** Fields of a checkpoint receipt line (`VOTC:CHECKPOINT/;/set/;...`). */
+export interface TimelineCheckpointSetLine {
+    playerId: string;
+    checkpointEpoch?: number;
+    nodeA?: number;
+    nodeB?: number;
+    parentA?: number;
+    parentB?: number;
+}
+
+/**
+ * Parses a checkpoint receipt line the app writes into its run scripts (see
+ * `buildCheckpointSetEffect`, the battle-report run script and the
+ * conversation-close effect). Two tail shapes exist:
+ *   transition receipts: player/epoch/nodeA/nodeB/parentA/parentB
+ *   conversation close:  player/epoch[/nodeA/nodeB/parentA/parentB]/date
+ * so the node segment is only accepted when the field after the epoch parses
+ * as a positive integer — a date never does.
+ *
+ * The epoch can be empty (`${epoch ?? ''}` in buildCheckpointSetEffect); it is
+ * then reported as undefined. The trailing `\r` of a CRLF line lands on the
+ * last field and is stripped with it.
+ */
+export function parseTimelineCheckpointSetLine(line: string): TimelineCheckpointSetLine | undefined {
+    const marker = 'VOTC:CHECKPOINT/;/set/;/';
+    const markerIndex = line.indexOf(marker);
+    if (markerIndex < 0) return undefined;
+
+    const fields = line.slice(markerIndex + marker.length).replace(/\r$/, '').split('/;/');
+    const [playerId, epochRaw, nodeARaw, nodeBRaw, parentARaw, parentBRaw] = fields;
+    if (typeof playerId !== 'string' || playerId.length === 0) return undefined;
+
+    const parsedEpoch = Number(epochRaw);
+    const result: TimelineCheckpointSetLine = {
+        playerId,
+        ...(epochRaw !== undefined && epochRaw !== '' && Number.isInteger(parsedEpoch) && parsedEpoch >= 0
+            ? {checkpointEpoch: parsedEpoch}
+            : {})
+    };
+
+    const parsedNodeA = Number(nodeARaw);
+    if (nodeARaw !== undefined && Number.isInteger(parsedNodeA) && parsedNodeA > 0) {
+        const parsedNodeB = Number(nodeBRaw);
+        if (Number.isInteger(parsedNodeB) && parsedNodeB > 0) {
+            result.nodeA = parsedNodeA;
+            result.nodeB = parsedNodeB;
+            const parsedParentA = Number(parentARaw);
+            const parsedParentB = Number(parentBRaw);
+            if (Number.isInteger(parsedParentA) && parsedParentA > 0
+                && Number.isInteger(parsedParentB) && parsedParentB > 0) {
+                result.parentA = parsedParentA;
+                result.parentB = parsedParentB;
+            }
+        }
+    }
+    return result;
+}
+
 export function extractMultilinePayload(element: string | undefined): string {
     if (!element) return "";
     const startIdx = element.indexOf('STARTMULTILINE');

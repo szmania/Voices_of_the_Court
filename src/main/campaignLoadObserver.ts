@@ -18,7 +18,7 @@
 import { dialog } from 'electron';
 import fs from 'fs';
 import { t } from '../shared/i18n.js';
-import { parseCampaignLoadedLine } from '../shared/gameData/parseLog.js';
+import { parseCampaignLoadedLine, parseTimelineCheckpointSetLine, type CampaignLoadedLine } from '../shared/gameData/parseLog.js';
 import { buildIdentityFromParts } from '../shared/gameData/CampaignIdentity.js';
 
 export interface ObservedCampaignLoad {
@@ -101,33 +101,53 @@ function announceAdoptedSave(load: ObservedCampaignLoad): void {
 }
 
 export interface DeliverySnapshotEvidence {
-    /** Which evidence was freshest in the log: a save-load line, an init block, or neither (observer/memory). */
-    source: 'load' | 'init' | 'observed' | 'none';
+    /**
+     * Which evidence was freshest in the log: a save-load line, an init
+     * block, a checkpoint receipt, or neither (observer/memory).
+     */
+    source: 'load' | 'init' | 'checkpoint' | 'observed' | 'none';
     campaignId?: string;
     nodeId?: string;
     playerId?: string;
+    checkpointEpoch?: number;
 }
 
 const LOAD_MARKER = 'VOTC:CAMPAIGN/;/loaded/;/';
 const INIT_MARKER = 'VOTC:IN/;/init/;/';
+const CHECKPOINT_SET_MARKER = 'VOTC:CHECKPOINT/;/set/;/';
 
 /**
  * Resolve the current delivery identity from the game log by file order.
  *
  * The log survives save loads, so after loading save B the last `VOTC:IN`
  * init block can still describe abandoned campaign A while the `loaded` line
- * already reports B. Comparing the byte offsets of the two markers tells
- * which evidence is actually newer; a fresh load wins over a stale init
- * block. Scanning backwards in chunks keeps this cheap on large logs.
+ * already reports B. Comparing the byte offsets of the markers tells which
+ * evidence is actually newer; a fresh load wins over a stale init block.
+ * Checkpoint receipts (`VOTC:CHECKPOINT/;/set`) are written when the game
+ * applies a transition — i.e. AFTER the load/init that scheduled it — so a
+ * receipt fresher than both describes the save's post-conversation state and
+ * must win for node/player/epoch: the last init block reports the node a
+ * conversation STARTED on, never the node it committed. Scanning backwards in
+ * chunks keeps this cheap on large logs.
  *
- * `nodeId` is populated only when the winning load line carries the save's
- * current timeline node (v2 protocol tail). When an init block wins, callers
- * should prefer the node components on their freshly parsed gameData.
+ * Field-wise, each value comes from the newest evidence that carries it:
+ *   - campaignId: only load lines carry a campaign id; a load that outranks
+ *     the init decides (failing to parse it fails closed rather than trust
+ *     the stale init identity). Checkpoint receipts never carry one.
+ *   - playerId/nodeId/checkpointEpoch: taken from the freshest marker
+ *     overall (checkpoint > load > init). An init-win leaves them undefined;
+ *     the caller's freshly parsed gameData describes that same init block.
+ *
+ * `nodeId` is populated only when the winning load line or checkpoint
+ * receipt reports the save's current timeline node. When an init block wins,
+ * callers should prefer the node components on their freshly parsed gameData.
  */
 export function scanDeliverySnapshotEvidence(logPath: string): DeliverySnapshotEvidence {
     let loadOffset = -1;
     let loadLine: string | undefined;
     let initOffset = -1;
+    let checkpointOffset = -1;
+    let checkpointLine: string | undefined;
     try {
         if (!fs.existsSync(logPath)) {
             return observedFallback();
@@ -138,7 +158,7 @@ export function scanDeliverySnapshotEvidence(logPath: string): DeliverySnapshotE
         const fd = fs.openSync(logPath, 'r');
         try {
             let end = stat.size;
-            while (end > 0 && (loadOffset < 0 || initOffset < 0)) {
+            while (end > 0 && (loadOffset < 0 || initOffset < 0 || checkpointOffset < 0)) {
                 const start = Math.max(0, end - CHUNK);
                 const readEnd = Math.min(stat.size, end + OVERLAP);
                 const buffer = Buffer.alloc(readEnd - start);
@@ -162,6 +182,15 @@ export function scanDeliverySnapshotEvidence(logPath: string): DeliverySnapshotE
                         loadOffset = start + idx;
                     }
                 }
+                if (checkpointOffset < 0) {
+                    const idx = own.lastIndexOf(CHECKPOINT_SET_MARKER);
+                    if (idx >= 0) {
+                        // Read the full line containing the marker (may extend into the overlap).
+                        const eol = text.indexOf('\n', idx);
+                        checkpointLine = text.slice(idx, eol >= 0 ? eol : text.length);
+                        checkpointOffset = start + idx;
+                    }
+                }
                 end = start;
             }
         } finally {
@@ -172,25 +201,48 @@ export function scanDeliverySnapshotEvidence(logPath: string): DeliverySnapshotE
         return observedFallback();
     }
 
+    // Campaign: the newest campaign-carrying evidence decides. Only the load
+    // line can outrank an init block here; a load that won the ordering but
+    // cannot be parsed fails closed (no fallback to the stale init identity).
+    let loadParsed: CampaignLoadedLine | undefined;
+    let campaignId: string | undefined;
     if (loadOffset >= 0 && (initOffset < 0 || loadOffset > initOffset)) {
-        const parsed = loadLine ? parseCampaignLoadedLine(loadLine) : undefined;
-        if (parsed) {
-            try {
-                return {
-                    source: 'load',
-                    campaignId: buildIdentityFromParts(parsed.campaignParts, parsed.playerId).campaignId,
-                    playerId: parsed.playerId,
-                    ...(parsed.nodeA !== undefined && parsed.nodeB !== undefined
-                        ? {nodeId: `${parsed.nodeA}-${parsed.nodeB}`}
-                        : {})
-                };
-            } catch (error) {
-                console.warn('[timeline] Malformed save-load identity line during delivery evidence scan:', error);
-            }
+        loadParsed = loadLine ? parseCampaignLoadedLine(loadLine) : undefined;
+        if (!loadParsed) {
+            console.warn('[timeline] Malformed save-load identity line during delivery evidence scan.');
+            return {source: 'load'};
         }
-        // The load line won the ordering but cannot be parsed; do not fall
-        // back to the older init block's identity — fail closed.
-        return {source: 'load'};
+        try {
+            campaignId = buildIdentityFromParts(loadParsed.campaignParts, loadParsed.playerId).campaignId;
+        } catch (error) {
+            console.warn('[timeline] Malformed save-load identity line during delivery evidence scan:', error);
+            return {source: 'load'};
+        }
+    }
+
+    const checkpointParsed = checkpointLine ? parseTimelineCheckpointSetLine(checkpointLine) : undefined;
+
+    if (checkpointOffset >= 0 && checkpointOffset > initOffset && checkpointOffset > loadOffset) {
+        return {
+            source: 'checkpoint',
+            campaignId,
+            ...(checkpointParsed?.playerId !== undefined ? {playerId: checkpointParsed.playerId} : {}),
+            ...(checkpointParsed?.nodeA !== undefined && checkpointParsed?.nodeB !== undefined
+                ? {nodeId: `${checkpointParsed.nodeA}-${checkpointParsed.nodeB}`}
+                : {}),
+            ...(checkpointParsed?.checkpointEpoch !== undefined ? {checkpointEpoch: checkpointParsed.checkpointEpoch} : {})
+        };
+    }
+    if (loadParsed) {
+        return {
+            source: 'load',
+            campaignId,
+            playerId: loadParsed.playerId,
+            ...(loadParsed.nodeA !== undefined && loadParsed.nodeB !== undefined
+                ? {nodeId: `${loadParsed.nodeA}-${loadParsed.nodeB}`}
+                : {}),
+            ...(loadParsed.checkpointEpoch !== undefined ? {checkpointEpoch: loadParsed.checkpointEpoch} : {})
+        };
     }
     if (initOffset >= 0) {
         return {source: 'init'};

@@ -554,7 +554,7 @@ export class LetterReplyGenerator {
             }
         })();
 
-        if (evidence.source === 'load' || evidence.source === 'observed') {
+        if (evidence.source === 'load' || evidence.source === 'observed' || evidence.source === 'checkpoint') {
             currentCampaignId = evidence.campaignId;
             currentPlayerId = evidence.playerId;
             currentNodeId = evidence.nodeId;
@@ -562,14 +562,17 @@ export class LetterReplyGenerator {
         if (!currentCampaignId || !currentPlayerId) {
             // No fresher evidence than the generation-time snapshot: the
             // freshest init block (or, failing that, the snapshot the
-            // generator itself parsed) stands for the current game.
-            currentCampaignId = snapshotIdentity?.campaignId;
-            currentPlayerId = String(gameData.playerID);
-            currentNodeId = snapshotIdentity
+            // generator itself parsed) stands for the current game. Fields
+            // a fresher evidence line (e.g. a checkpoint receipt) already
+            // supplied are kept — a receipt's node describes the save after
+            // the newest applied transition, which the init block never does.
+            currentCampaignId = currentCampaignId ?? snapshotIdentity?.campaignId;
+            currentPlayerId = currentPlayerId ?? String(gameData.playerID);
+            currentNodeId = currentNodeId ?? (snapshotIdentity
                 ? (gameData.votcTimelineNodeA && gameData.votcTimelineNodeB
                     ? `${gameData.votcTimelineNodeA}-${gameData.votcTimelineNodeB}`
                     : undefined)
-                : currentNodeId;
+                : currentNodeId);
         }
 
         if (!currentCampaignId || !currentPlayerId) {
