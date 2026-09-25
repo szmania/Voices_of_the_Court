@@ -24,7 +24,7 @@ jest.mock('../../../src/main/userDataCheck', () => ({checkUserData: jest.fn()}))
 // return undefined for getInstance and blow up before the assertion.
 jest.mock('../../../src/main/letter/LetterManager', () => {
     const deliverLetter = jest.fn();
-    const instance = {deliverLetter};
+    const instance = {deliverLetter, hasPendingLetterFallbacks: () => false, flushNextLetterFallback: jest.fn()};
     return {
         LetterManager: {
             getInstance: () => instance,

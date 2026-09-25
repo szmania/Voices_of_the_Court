@@ -24,6 +24,7 @@ import {
 } from '../timelineManager.js';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
+import { parseLog } from '../../shared/gameData/parseLog.js';
 import { reportCampaignIdentityUnavailable, reportCorruptTimelineRegistry, reportTimelineParentNotFound, reportUnsupportedTimelineSchema } from '../timelineRegistryRecovery.js';
 import { runLetterReplyTimelineTransition } from '../timelineBusinessWire.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
@@ -414,7 +415,7 @@ export class LetterReplyGenerator {
  const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
     if (!response || response.trim() === '') {
                 console.warn('[LetterReplyGenerator] Empty response from LLM for letter reply');
-                this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
+                await this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
                 return null;
             }
 
@@ -439,7 +440,7 @@ export class LetterReplyGenerator {
                 // thread would dangle in the save. Deliver the fallback so
                 // the game-side thread is cleaned up anyway.
                 console.warn('[LetterReplyGenerator] Letter history could not be saved; delivering the fallback thread cleanup.');
-                this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
+                await this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
                 return null;
             }
             console.log('[LetterReplyGenerator] Letter history saved.');
@@ -473,7 +474,7 @@ export class LetterReplyGenerator {
             } else {
                 console.error('[LetterReplyGenerator] An unknown error occurred during letter reply generation:', error);
             }
-            this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
+            await this.deliverFallbackRunBlockToGame(snapshot, timeline, transitionIdentity, gameData);
             return null;
         }
     }
@@ -494,21 +495,27 @@ export class LetterReplyGenerator {
      * at all, fail closed: the thread stays dangling in its own campaign
      * instead of corrupting another one.
      */
-    private deliverFallbackRunBlockToGame(
+    private async deliverFallbackRunBlockToGame(
         snapshot: { slotId: string; deliveryId: number } | undefined,
         timeline: CreateChildNodeResult | undefined,
         transitionIdentity: CampaignPlayerIdentity | undefined,
         gameData: GameData
-    ): void {
+    ): Promise<void> {
         if (!snapshot) return;
         const letterNumber = snapshot.slotId.match(/^letter_([1-9])$/)?.[1];
         if (!letterNumber) return;
-        const gate = this.fallbackDeliveryGate(snapshot, timeline, transitionIdentity, gameData);
+        const gate = await this.fallbackDeliveryGate(snapshot, timeline, transitionIdentity, gameData);
         if (!gate.passed) {
             return;
         }
         const fallbackRunBlock = buildLetterReplyRunFile(letterNumber, snapshot.deliveryId, 'votc_letter_reply_fallback_desc', gate.timeline);
-        LetterManager.getInstance().deliverLetterFallback(letterNumber, snapshot.deliveryId, fallbackRunBlock, this.config);
+        // Queue instead of writing directly: letters.txt is a single
+        // whole-file-overwrite channel, and a direct write here could clobber
+        // a successful reply that is still awaiting VOTC:LETTER_ACCEPTED (that
+        // reply has already left the pending queue, so the loss would be
+        // permanent). checkAndDeliverLetters flushes one queued fallback per
+        // pass once the channel is idle.
+        LetterManager.getInstance().queueLetterFallback(letterNumber, snapshot.deliveryId, fallbackRunBlock);
     }
 
     /**
@@ -519,18 +526,22 @@ export class LetterReplyGenerator {
      * as a normal reply: when generation outlives a campaign/player switch,
      * writing it into the newly loaded game would clear THAT game's letter
      * slot and re-point ITS timeline. The current context is resolved from
-     * log-order evidence (a fresher save-load line outranks the generation
-     * snapshot); with no newer evidence the generation-time snapshot is
-     * trusted, since a switch always writes a load line first. The timeline
+     * log-order evidence (a fresher save-load line or checkpoint receipt
+     * outranks everything older). When the freshest evidence is an init
+     * block, it is re-parsed: that block may be NEWER than the snapshot this
+     * reply was generated from (a save was loaded and a new conversation
+     * started mid-generation), and the generation-time snapshot must not vouch
+     * for it. Unconfirmable context fails closed: the thread stays pending in
+     * its own campaign instead of clearing a foreign slot. The timeline
      * script is dropped when the save's current node no longer matches the
      * branch the reply was allocated on.
      */
-    private fallbackDeliveryGate(
+    private async fallbackDeliveryGate(
         snapshot: { slotId: string; deliveryId: number },
         timeline: CreateChildNodeResult | undefined,
         transitionIdentity: CampaignPlayerIdentity | undefined,
         gameData: GameData
-    ): { passed: boolean; timeline: CreateChildNodeResult | undefined } {
+    ): Promise<{ passed: boolean; timeline: CreateChildNodeResult | undefined }> {
         const identity = transitionIdentity ?? timeline?.context?.identity;
         // Legacy mod (no timeline identity): no campaign concept exists, so
         // the pre-gate behaviour is kept. The danger scenario requires the v2
@@ -538,21 +549,12 @@ export class LetterReplyGenerator {
         if (!identity) {
             return {passed: true, timeline};
         }
-        const evidence = scanDeliverySnapshotEvidence(path.join(this.config.userFolderPath, 'logs', 'debug.log'));
+        const logPath = path.join(this.config.userFolderPath, 'logs', 'debug.log');
+        const evidence = scanDeliverySnapshotEvidence(logPath);
 
         let currentCampaignId: string | undefined;
         let currentPlayerId: string | undefined;
         let currentNodeId: string | undefined;
-        const snapshotIdentity = (() => {
-            try {
-                return requireCampaignIdentity({
-                    playerID: gameData.playerID,
-                    timelineSnapshotResult: gameData.timelineSnapshotResult
-                });
-            } catch {
-                return undefined;
-            }
-        })();
 
         if (evidence.source === 'load' || evidence.source === 'observed' || evidence.source === 'checkpoint') {
             currentCampaignId = evidence.campaignId;
@@ -560,17 +562,29 @@ export class LetterReplyGenerator {
             currentNodeId = evidence.nodeId;
         }
         if (!currentCampaignId || !currentPlayerId) {
-            // No fresher evidence than the generation-time snapshot: the
-            // freshest init block (or, failing that, the snapshot the
-            // generator itself parsed) stands for the current game. Fields
-            // a fresher evidence line (e.g. a checkpoint receipt) already
-            // supplied are kept — a receipt's node describes the save after
-            // the newest applied transition, which the init block never does.
-            currentCampaignId = currentCampaignId ?? snapshotIdentity?.campaignId;
-            currentPlayerId = currentPlayerId ?? String(gameData.playerID);
-            currentNodeId = currentNodeId ?? (snapshotIdentity
-                ? (gameData.votcTimelineNodeA && gameData.votcTimelineNodeB
-                    ? `${gameData.votcTimelineNodeA}-${gameData.votcTimelineNodeB}`
+            // No load line or checkpoint receipt established the context, so
+            // the freshest init block decides — and it can be newer than the
+            // generation-time snapshot. Re-parse the log instead of trusting
+            // gameData; a parse failure leaves the fields undefined and the
+            // gate below refuses (fail closed).
+            const freshGameData = await parseLog(logPath);
+            const freshIdentity = freshGameData
+                ? (() => {
+                    try {
+                        return requireCampaignIdentity({
+                            playerID: freshGameData.playerID,
+                            timelineSnapshotResult: freshGameData.timelineSnapshotResult
+                        });
+                    } catch {
+                        return undefined;
+                    }
+                })()
+                : undefined;
+            currentCampaignId = currentCampaignId ?? freshIdentity?.campaignId;
+            currentPlayerId = currentPlayerId ?? (freshGameData ? String(freshGameData.playerID) : undefined);
+            currentNodeId = currentNodeId ?? (freshIdentity
+                ? (freshGameData!.votcTimelineNodeA && freshGameData!.votcTimelineNodeB
+                    ? `${freshGameData!.votcTimelineNodeA}-${freshGameData!.votcTimelineNodeB}`
                     : undefined)
                 : currentNodeId);
         }

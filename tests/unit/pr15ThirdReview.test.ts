@@ -59,6 +59,16 @@ describe('PR15 third review', () => {
         return fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8');
     }
 
+    // The round-7 fallback gate re-parses the freshest init from debug.log and
+    // refuses when the context cannot be confirmed; without this log the
+    // fallback would (correctly) never queue.
+    function writeIdentityLog(config: any) {
+        const logs = path.join(config.userFolderPath, 'logs');
+        fs.mkdirSync(logs, {recursive: true});
+        fs.writeFileSync(path.join(logs, 'debug.log'),
+            '[12:00:00][D][jomini_effect_impl.cpp:450]: VOTC:IN/;/init/;/1001/;/Player/;/1002/;/Other/;/1066.1.1/;/talk_scene_test/;/Paris/;/Player/;/5/;/0/;/0/;/0/;/0/;/0/;/0/;/2/;/1/;/1/;/2/;/3/;/4/;/1/;/1\r\n');
+    }
+
     it('does not overwrite a different current node at the same epoch', async () => {
         const {identity, gameData, config, original, generator} = setup();
         const reply = await generator.generateLetterReply(gameData, original);
@@ -85,9 +95,14 @@ describe('PR15 third review', () => {
 
     it('makes a failure fallback available to the actual CK3 letters runner', async () => {
         const {gameData, config, original, generator} = setup();
+        writeIdentityLog(config);
         generator.apiConnection.complete.mockRejectedValue(new Error('API request failed'));
         expect(await generator.generateLetterReply(gameData, original)).toBeNull();
         expect(fs.existsSync(path.join(root, 'votc_data', 'run', 'letter1.txt'))).toBe(true);
+        // Round 7: the fallback queues for the shared letters.txt channel and
+        // is flushed once the channel is idle, instead of writing immediately.
+        expect(LetterManager.getInstance().hasPendingLetterFallbacks()).toBe(true);
+        LetterManager.getInstance().flushNextLetterFallback(config);
         expect(fs.existsSync(path.join(config.userFolderPath, 'run', 'letters.txt'))).toBe(true);
     });
 

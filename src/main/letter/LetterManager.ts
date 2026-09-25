@@ -457,6 +457,33 @@ trigger_event = message_event.362`;
         console.log(`Delivered letter fallback (letter_${letterNumber}/${deliveryId}) by writing to: ${letterFilePath}`);
     }
 
+    /**
+     * Fallback blocks waiting for the shared letters.txt channel. A fallback
+     * must never be written while a normal delivery is still awaiting
+     * VOTC:LETTER_ACCEPTED: the whole-file overwrite would destroy that
+     * reply, which has already left the pending queue and would not be
+     * re-queued. Queued blocks are flushed one per delivery pass, only when
+     * the channel is idle (checkAndDeliverLetters).
+     */
+    private pendingLetterFallbacks: Array<{letterNumber: string; deliveryId: number; runBlock: string}> = [];
+
+    public queueLetterFallback(letterNumber: string, deliveryId: number, runBlock: string): void {
+        this.pendingLetterFallbacks.push({letterNumber, deliveryId, runBlock});
+        console.log(`Queued letter fallback (letter_${letterNumber}/${deliveryId}); ${this.pendingLetterFallbacks.length} fallback(s) pending an idle letters.txt channel.`);
+    }
+
+    public hasPendingLetterFallbacks(): boolean {
+        return this.pendingLetterFallbacks.length > 0;
+    }
+
+    /** Write the oldest queued fallback into letters.txt. Caller must hold the channel. */
+    public flushNextLetterFallback(config: Config): boolean {
+        const next = this.pendingLetterFallbacks.shift();
+        if (!next) return false;
+        this.deliverLetterFallback(next.letterNumber, next.deliveryId, next.runBlock, config);
+        return true;
+    }
+
     public clearLettersFile(config: Config): void {
         const ck3Folder = config.userFolderPath;
         console.log(`LetterManager.clearLettersFile: CK3 user path: ${ck3Folder}`);

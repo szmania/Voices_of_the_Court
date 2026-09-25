@@ -413,6 +413,17 @@ export async function checkAndDeliverLetters() {
         return;
     }
 
+    // Queued generation-failure fallback blocks share the single whole-file
+    // letters.txt channel with normal deliveries. Flush at most one per pass
+    // and only when the channel is idle (no delivery awaiting
+    // VOTC:LETTER_ACCEPTED, no open conversation pausing the mod-side
+    // letters_runner): a fallback written over a pending reply would destroy
+    // it permanently, since that reply has already left the pending queue.
+    if (!lastLetterSentToGame && !conversationOpenChecker() && LetterManager.getInstance().hasPendingLetterFallbacks()) {
+        LetterManager.getInstance().flushNextLetterFallback(config);
+        return;
+    }
+
     // Cheap in-memory pre-scan before touching the game log. The date
     // heartbeat re-triggers this check on every ~2s runner tick; without
     // the pre-scan each tick parses the whole debug.log even when nothing

@@ -36,7 +36,7 @@ jest.mock('../../../src/shared/gameData/parseLog', () => ({
 }));
 jest.mock('../../../src/main/userDataCheck', () => ({checkUserData: jest.fn()}));
 jest.mock('../../../src/main/letter/LetterManager', () => {
-    const instance = {deliverLetter: jest.fn()};
+    const instance = {deliverLetter: jest.fn(), hasPendingLetterFallbacks: () => false, flushNextLetterFallback: jest.fn()};
     return {LetterManager: {getInstance: () => instance}};
 });
 

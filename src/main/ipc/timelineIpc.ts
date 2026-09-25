@@ -271,13 +271,18 @@ export async function resolveTimelineWindowRequest(
         }
         const resolvedContext = resolveTimelineContext(registry, context);
         if (derivedFromLog && identity && resolvedContext.timelineNodeId === undefined) {
-            // The log evidence carried no node (the save has not applied a
-            // checkpoint transition since the reported init/load state). The
-            // campaign registry's newest committed node is the best remaining
-            // estimate of the visible branch — without it every node-tagged
-            // transcript would be filtered out of this window.
+            // The log evidence carried no node (e.g. the reported init/load
+            // state predates the first checkpoint commit). The campaign
+            // registry's newest committed node is only a valid stand-in when
+            // it already exists at the save's reported checkpoint: a node
+            // from a LATER epoch belongs to a future branch (rolled back to
+            // before the first commit, the save reports node 0/0) and its
+            // records must stay hidden.
             const headNodeId = newestRegistryNodeId(registry);
-            if (headNodeId) {
+            const headEpoch = headNodeId !== undefined ? registry.getNode(headNodeId)?.epoch : undefined;
+            if (headNodeId && headEpoch !== undefined
+                && resolvedContext.checkpointEpoch !== undefined
+                && headEpoch <= resolvedContext.checkpointEpoch) {
                 return {context: {...resolvedContext, timelineNodeId: headNodeId}, registry, identity};
             }
         }
