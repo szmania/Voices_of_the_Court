@@ -91,6 +91,9 @@ export class Conversation{
     memoryManager: MemoryManager;
     embeddingApiConnection!: ApiConnection;
 
+    /** Fired (fire-and-forget) after new memories are inserted into the vector store. */
+    public onMemoriesEmbedded?: () => void;
+
     constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null, memoryManager?: MemoryManager){
         this.encoder = encoder;
         console.log('Conversation initialized.');
@@ -1803,6 +1806,8 @@ Statement by ${character.fullName}:`
 
         if (memoriesToInsert.length > 0) {
             this.memoryManager.batchInsertMemories(memoriesToInsert);
+            // Fire-and-forget: lets main broadcast a Memories-tab refresh without blocking.
+            this.onMemoriesEmbedded?.();
 
             // Automatic upkeep: decay stale memories and consolidate near-duplicates
             // for every character that just received new memories.

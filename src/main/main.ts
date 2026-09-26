@@ -503,6 +503,14 @@ function positionConfigWindow() {
     configWindow.window.setBounds(target);
 }
 
+// Broadcast to the Memories tab (hosted in the config window) that new memories
+// were inserted into the vector DB, so the Memory Constellation auto-refreshes.
+function sendMemoriesChanged() {
+    if (configWindow && !configWindow.window.isDestroyed()) {
+        configWindow.window.webContents.send('memory-constellation:memories-changed');
+    }
+}
+
 
 ipcMain.on('request-config-toggle', () => {
     configWindow.toggle();
@@ -1106,6 +1114,15 @@ app.on('ready',  async () => {
             const count = playerId
                 ? memoryManager.getPlayerMemoryCount(playerId, characterId || undefined)
                 : (characterId ? memoryManager.getMemoryCount(characterId) : memoryManager.getTotalMemoryCount());
+            // Diagnostic: if a player-scoped count returns 0 but memories exist elsewhere,
+            // surface the likely player_id mismatch in the debug log so the UI is diagnosable.
+            if (playerId && count === 0) {
+                const total = memoryManager.getTotalMemoryCount();
+                const characterOnly = characterId ? memoryManager.getMemoryCount(characterId) : 0;
+                if (total > 0 || characterOnly > 0) {
+                    console.warn(`get-memory-count: player-scoped count is 0 for playerId=${playerId}${characterId ? ', characterId=' + characterId : ''}, but total=${total}, character-only=${characterOnly}. Likely a player_id mismatch on stored memories.`);
+                }
+            }
             return { success: true, count };
         } catch (error: any) {
             console.error('Error getting memory count:', error);
@@ -1144,6 +1161,7 @@ app.on('ready',  async () => {
                 return vector;
             }, targetDimension);
 
+            sendMemoriesChanged();
             return { success: true, ...result };
         } catch (error: any) {
             console.error('Error reindexing embedding dimensions:', error);
@@ -1197,6 +1215,7 @@ app.on('ready',  async () => {
             // 4. Batch insert into the new database
             if (memoriesToInsert.length > 0) {
               localMemoryManager.batchInsertMemories(memoriesToInsert);
+              sendMemoriesChanged();
             }
         
             localMemoryManager.close();
@@ -1565,6 +1584,9 @@ clipboardListener.on('VOTC:IN', async () =>{
                 updateCurrentDate(gameData.totalDays);
             }
             conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            // Wire the memory-insertion callback so main broadcasts a Memories-tab refresh
+            // whenever this conversation embeds new memories (compaction / summary embedding).
+            conversation.onMemoriesEmbedded = () => sendMemoriesChanged();
             await conversation.loadHistory();
             await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
@@ -2493,33 +2515,48 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         const letterManager = LetterManager.getInstance();
         const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
 
-        // Get diary player IDs
+        // Get diary player IDs with their latest diary activity (same pattern as the get-all-diary-player-ids handler)
         const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
-
-        // Merge all player IDs, ensuring uniqueness
-        const allPlayerIds = new Map<string, { id: string, name: string }>();
-
-        // Add conversation player IDs
-        conversationPlayerIds.forEach(player => {
-            allPlayerIds.set(player.id, player);
-        });
-
-        // Add letter player IDs
-        letterPlayerIds.forEach(player => {
-            if (!allPlayerIds.has(player.id)) {
-                allPlayerIds.set(player.id, player);
+        const diaryPlayersWithTs = await Promise.all(diaryPlayerIds.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const characterIds = await getDiaryFiles(player.id);
+                for (const charId of characterIds) {
+                    const diaryData = await readDiaryFile(player.id, charId);
+                    if (diaryData && diaryData.diary_entries) {
+                        for (const entry of diaryData.diary_entries) {
+                            if (entry.creationTimestamp) {
+                                const ts = new Date(entry.creationTimestamp).getTime();
+                                if (ts > latestTimestamp) latestTimestamp = ts;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing diaries for player ${player.id}:`, e);
             }
-        });
+            return { ...player, latestTimestamp };
+        }));
 
-        // Add diary player IDs
-        diaryPlayerIds.forEach(player => {
-            if (!allPlayerIds.has(player.id)) {
-                allPlayerIds.set(player.id, player);
+        // Merge all player IDs, keeping the greatest latestTimestamp seen across sources
+        // (latestTimestamp is an additive/optional field exposed by getAllPlayerIds and LetterManager.getAllPlayerIdsWithLetters).
+        const allPlayerIds = new Map<string, { id: string, name: string, latestTimestamp?: number }>();
+        const mergePlayer = (player: { id: string, name: string, latestTimestamp?: number }) => {
+            const existing = allPlayerIds.get(player.id);
+            if (!existing) {
+                allPlayerIds.set(player.id, { id: player.id, name: player.name, latestTimestamp: player.latestTimestamp || 0 });
+            } else {
+                existing.latestTimestamp = Math.max(existing.latestTimestamp || 0, player.latestTimestamp || 0);
             }
-        });
+        };
+        conversationPlayerIds.forEach(mergePlayer);
+        letterPlayerIds.forEach(mergePlayer);
+        diaryPlayersWithTs.forEach(mergePlayer);
 
-        const mergedPlayerIds = Array.from(allPlayerIds.values());
-        return { success: true, ids: mergedPlayerIds };
+        // Sort by most recent activity first so the currently-played save is at the top of the dropdown.
+        const mergedPlayerIds = Array.from(allPlayerIds.values()).sort((a, b) => (b.latestTimestamp || 0) - (a.latestTimestamp || 0));
+        // Strip the additive field from the response so the IPC contract ({ id, name }) is unchanged.
+        return { success: true, ids: mergedPlayerIds.map(({ id, name }) => ({ id, name })) };
     } catch (error) {
         console.error('Error getting all player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -2546,7 +2583,8 @@ ipcMain.handle('get-character-description-players', async () => {
             if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); }
         });
 
-        return { success: true, ids: Array.from(allPlayerIds.values()) };
+        // Strip the additive latestTimestamp field so the IPC response stays { id, name }.
+        return { success: true, ids: Array.from(allPlayerIds.values()).map(({ id, name }) => ({ id, name })) };
     } catch (error) {
         console.error('Error getting character description players:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -2992,7 +3030,8 @@ ipcMain.handle('import-letters-from-log', async (event, args) => {
 ipcMain.handle('get-letter-players', async () => {
     console.log('IPC: Received get-letter-players event.');
     const letterManager = LetterManager.getInstance();
-    return letterManager.getAllPlayerIdsWithLetters();
+    // Strip the additive latestTimestamp field so the IPC response stays { id, name }.
+    return letterManager.getAllPlayerIdsWithLetters().map(({ id, name }) => ({ id, name }));
 });
 
 ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {

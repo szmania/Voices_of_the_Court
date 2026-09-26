@@ -16,6 +16,25 @@ const characterSelect = document.getElementById('mc-characterSelect') as HTMLSel
 const statusMessage = document.getElementById('mc-statusMessage') as HTMLDivElement;
 const legacyMemoryStatus = document.getElementById('legacy-memory-status') as HTMLSpanElement;
 
+// Persisted player/character filter selection, restored across tab switches (page reloads).
+const LAST_FILTER_KEY = 'mc-lastFilter';
+
+function readPersisted(): { playerId?: string; characterId?: string } {
+    try {
+        return JSON.parse(localStorage.getItem(LAST_FILTER_KEY) || '{}') || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function savePersisted() {
+    try {
+        localStorage.setItem(LAST_FILTER_KEY, JSON.stringify({ playerId: selectedPlayerId, characterId: selectedCharacterId }));
+    } catch (e) {
+        // Best-effort persistence; storage failures are non-fatal.
+    }
+}
+
 document.getElementById("container")!.style.display = "block";
 
 init();
@@ -87,8 +106,16 @@ const languageUpdateHandler = async (event: IpcRendererEvent, lang: string) => {
 };
 ipcRenderer.on('update-language', languageUpdateHandler);
 
+// Auto-refresh: main broadcasts this whenever new memories are inserted into the vector DB.
+const memoriesChangedHandler = () => {
+    updateMemoryConstellation();
+    updateMemoryCount();
+};
+ipcRenderer.on('memory-constellation:memories-changed', memoriesChangedHandler);
+
 window.addEventListener('beforeunload', () => {
     ipcRenderer.removeListener('update-language', languageUpdateHandler);
+    ipcRenderer.removeListener('memory-constellation:memories-changed', memoriesChangedHandler);
 }, { once: true });
 
 async function init() {
@@ -370,15 +397,19 @@ async function checkExistingMemoryDimensions() {
 
 
 function setupFilterDropdowns() {
-    playerIdSelect.addEventListener('change', () => {
+    playerIdSelect.addEventListener('change', async () => {
         selectedPlayerId = playerIdSelect.value;
-        loadCharactersForPlayer();
+        // Await so the count is computed after the character filter settles on the new player.
+        await loadCharactersForPlayer();
+        updateMemoryCount();
+        savePersisted();
     });
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
         updateMemoryConstellation();
         updateMemoryCount();
+        savePersisted();
     });
 }
 
@@ -403,8 +434,16 @@ async function loadPlayerIds() {
                 playerIdSelect.appendChild(option);
             });
 
-            selectedPlayerId = playerIdSelect.value;
-            await loadCharactersForPlayer();
+            // Restore the persisted player selection if it still exists; otherwise keep the default (most recent).
+            const persisted = readPersisted();
+            if (persisted.playerId && ids.some((p: { id: string }) => p.id === persisted.playerId)) {
+                selectedPlayerId = persisted.playerId;
+                playerIdSelect.value = persisted.playerId;
+            } else {
+                selectedPlayerId = playerIdSelect.value;
+            }
+            await loadCharactersForPlayer(persisted.characterId);
+            updateMemoryCount();
         } else {
             showStatusMessage(
                 // @ts-ignore
@@ -426,7 +465,7 @@ async function loadPlayerIds() {
     }
 }
 
-async function loadCharactersForPlayer() {
+async function loadCharactersForPlayer(preserveCharacterId?: string) {
     if (!selectedPlayerId) {
         showStatusMessage(
             // @ts-ignore
@@ -453,8 +492,11 @@ async function loadCharactersForPlayer() {
         }
 
         memoryConstellation?.setCharacterMap(characterMap);
-        populateCharacterSelect();
+        // populateCharacterSelect restores preserveCharacterId when present in the options, else defaults to 'all'.
+        populateCharacterSelect(preserveCharacterId);
         updateMemoryConstellation();
+        updateMemoryCount();
+        savePersisted();
     } catch (error: any) {
         const errorMsg =
             // @ts-ignore
