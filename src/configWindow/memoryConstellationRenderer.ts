@@ -19,6 +19,11 @@ const legacyMemoryStatus = document.getElementById('legacy-memory-status') as HT
 // Persisted player/character filter selection, restored across tab switches (page reloads).
 const LAST_FILTER_KEY = 'mc-lastFilter';
 
+// Periodic auto-refresh: reload the Memory Constellation and the Total Memories
+// count every 20s so memories written in the background appear without user action.
+const AUTO_REFRESH_MS = 20_000;
+let autoRefreshIntervalId: number | undefined;
+
 function readPersisted(): { playerId?: string; characterId?: string } {
     try {
         return JSON.parse(localStorage.getItem(LAST_FILTER_KEY) || '{}') || {};
@@ -113,7 +118,23 @@ const memoriesChangedHandler = () => {
 };
 ipcRenderer.on('memory-constellation:memories-changed', memoriesChangedHandler);
 
+function startAutoRefresh() {
+    if (autoRefreshIntervalId !== undefined) return;
+    autoRefreshIntervalId = window.setInterval(() => {
+        updateMemoryConstellation();
+        updateMemoryCount();
+    }, AUTO_REFRESH_MS);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshIntervalId !== undefined) {
+        clearInterval(autoRefreshIntervalId);
+        autoRefreshIntervalId = undefined;
+    }
+}
+
 window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
     ipcRenderer.removeListener('update-language', languageUpdateHandler);
     ipcRenderer.removeListener('memory-constellation:memories-changed', memoriesChangedHandler);
 }, { once: true });
@@ -163,6 +184,8 @@ async function init() {
 
     // Load player IDs and populate dropdowns
     await loadPlayerIds();
+    // Start the periodic auto-refresh once the initial player/filter load has completed.
+    startAutoRefresh();
     await updateLegacyMemoryStatus();
     updateMemoryCount();
     await updateLegacyMemoryStatus();
@@ -233,6 +256,21 @@ async function init() {
                 console.log('Player data imported from:', result.filePath);
             } else {
                 console.error('Import failed:', result.error);
+            }
+        });
+    }
+
+    const mcRefreshBtn = document.getElementById('mc-refresh-button') as HTMLButtonElement | null;
+    if (mcRefreshBtn) {
+        mcRefreshBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // Disable while the refresh is in flight to prevent rapid replays.
+            mcRefreshBtn.disabled = true;
+            try {
+                updateMemoryConstellation();
+                await updateMemoryCount();
+            } finally {
+                mcRefreshBtn.disabled = false;
             }
         });
     }
