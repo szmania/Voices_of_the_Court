@@ -93,7 +93,7 @@ export class LetterManager {
         return allLetters;
     }
 
-    public getAllPlayerIdsWithLetters(): { id: string, name: string }[] {
+    public getAllPlayerIdsWithLetters(): { id: string, name: string, latestTimestamp?: number }[] {
         this.initPaths();
         const playerFolderPath = this.letterHistoryPath;
         if (!fs.existsSync(playerFolderPath)) {
@@ -130,8 +130,8 @@ export class LetterManager {
         // Sort by the latest timestamp in descending order
         playerDirs.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
 
-        // Return only id and name, as expected by the caller
-        return playerDirs.map(({ id, name }) => ({ id, name }));
+        // Keep latestTimestamp (additive field) so callers can sort merged lists by recency.
+        return playerDirs;
     }
 
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {

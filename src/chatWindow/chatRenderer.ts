@@ -1691,6 +1691,14 @@ function showInlineActionForm(action: any) {
     }
 }
 
+// Notify the main process that the renderer has finished loading and its IPC
+// listeners are registered, so a pending 'chat-show' can be delivered safely.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => ipcRenderer.send('chat-renderer-loaded'), { once: true });
+} else {
+    ipcRenderer.send('chat-renderer-loaded');
+}
+
 ipcRenderer.on('chat-show', () =>{
     if (chatMessages) {
         chatMessages.innerHTML = '';

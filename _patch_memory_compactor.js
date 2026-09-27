@@ -64,7 +64,7 @@ content = content.replace(
 // 6. Add metrics? to CompactionResult interface
 content = content.replace(
   '    accuracyScore?: number;\n}',
-  '    accuracyScore?: number;\n    metrics?: CompactionMetrics;\n}'
+  '    accuracyScore?: number;\n    metrics?: CompactionMetrics;\n    newlyCompactedMemories?: CompactedMemory[];\n}'
 );
 
 console.log('Writing file...');

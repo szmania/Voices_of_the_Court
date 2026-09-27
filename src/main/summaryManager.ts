@@ -10,7 +10,7 @@ import AdmZip from 'adm-zip';
  * @param userDataPath The path to the user data directory (e.g., .../votc_data).
  * @returns A promise that resolves to an array of player ID strings.
  */
-export async function getAllPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
+export async function getAllPlayerIds(userDataPath: string): Promise<{ id: string, name: string, latestTimestamp?: number }[]> {
     try {
         const summaryDir = path.join(userDataPath, 'conversation_summaries');
         if (!fs.existsSync(summaryDir)) {
@@ -57,7 +57,8 @@ export async function getAllPlayerIds(userDataPath: string): Promise<{ id: strin
 
         playerTimestamps.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
 
-        return playerTimestamps.map(({ id, name }) => ({ id, name }));
+        // Keep latestTimestamp (additive field) so callers can sort merged lists by recency.
+        return playerTimestamps;
 
     } catch (error) {
         console.error('Error getting all player IDs from summaries:', error);

@@ -30,6 +30,9 @@ import { compactedMemoryStore } from '../compactedMemoryStore.js';
 import { ActionEffectWriter } from './ActionEffectWriter.js';
 import { Tiktoken } from "js-tiktoken";
 import { readCharacterMap } from '../summaryManager.js';
+import { MemoryManager, Memory } from '../memoryManager.js';
+import { CompactedMemory } from '../../shared/compactionTypes.js';
+import { EmbeddingProvider, getEffectiveEmbeddingDimension } from '../../shared/apiConnection.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -85,7 +88,13 @@ export class Conversation{
     pendingPlayerRequest: boolean;
     encoder: Tiktoken | null;
 
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null){
+    memoryManager: MemoryManager;
+    embeddingApiConnection!: ApiConnection;
+
+    /** Fired (fire-and-forget) after new memories are inserted into the vector store. */
+    public onMemoriesEmbedded?: () => void;
+
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null, memoryManager?: MemoryManager){
         this.encoder = encoder;
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
@@ -322,6 +331,12 @@ export class Conversation{
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
+
+        // Initialize Memory Systems.
+        // Reuse the shared MemoryManager injected from main.ts (a second instance
+        // against the same SQLite file was the VOTC deadlock suspect). The fallback
+        // only exists for tests that construct Conversation directly.
+        this.memoryManager = memoryManager ?? new MemoryManager(this.userDataPath, getEffectiveEmbeddingDimension(this.config?.embeddingApiConnectionConfig?.connection));
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
@@ -1676,8 +1691,13 @@ Statement by ${character.fullName}:`
             console.log('Starting agentic memory compaction due to context limit.');
             try {
                 const result = await this.memoryCompactor.compact(this);
+
+                // After compaction, vectorize the new memories and insert them into the vector store.
+                if (result.newlyCompactedMemories && result.newlyCompactedMemories.length > 0) {
+                    await this.vectorizeCompactedMemories(result.newlyCompactedMemories);
+                }
                 if (result.phase1Run) {
-                    console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
+                    console.log(`Compaction Phase 1 complete. Accuracy: ${((result.accuracyScore ?? 0) * 100).toFixed(1)}%`);
                     if (result.metrics) {
                         console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);
                     }
@@ -1728,6 +1748,78 @@ Statement by ${character.fullName}:`
                 console.log("New current summary after resummarization: "+this.currentSummary);
             } else {
                 console.log('No messages to summarize during resummarization.');
+            }
+        }
+    }
+
+    /**
+     * Vectorizes newly compacted memories and inserts them into the shared vector
+     * store so they become semantically searchable. Used after memory compaction
+     * (automatic via resummarize, or manual via the Memories tab button).
+     */
+    public async vectorizeCompactedMemories(memories: CompactedMemory[]): Promise<void> {
+        if (!memories || memories.length === 0 || !this.config.embeddingApiConnectionConfig) {
+            return;
+        }
+        console.log(`Vectorizing ${memories.length} new compacted memories.`);
+        await this.embedAndInsertMemories(memories.map(m => ({
+            id: m.id,
+            characterId: m.characterIds[0]?.toString() || '', // Primary character
+            text: m.content,
+            timestamp: m.creationTimestamp
+        })));
+    }
+
+    /**
+     * Shared helper: embeds texts with the configured embedding provider and
+     * batch-inserts them into the shared MemoryManager, then runs decay and
+     * consolidation upkeep for every affected character. Never throws —
+     * individual embedding failures are logged and skipped.
+     */
+    private async embedAndInsertMemories(items: { id?: string; characterId: string; text: string; timestamp?: number }[]): Promise<void> {
+        if (items.length === 0 || !this.config.embeddingApiConnectionConfig) {
+            return;
+        }
+        const { connection } = this.config.embeddingApiConnectionConfig;
+        const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key, getEffectiveEmbeddingDimension(connection), connection.embeddingInputType);
+
+        const memoriesToInsert: Memory[] = [];
+        for (const item of items) {
+            try {
+                const embedding = await embeddingProvider.embed(item.text);
+                memoriesToInsert.push({
+                    id: item.id ?? randomUUID(),
+                    characterId: item.characterId,
+                    playerId: this.gameData.playerID.toString(),
+                    scene: this.gameData.scene || '',
+                    text: item.text,
+                    vector: embedding,
+                    timestamp: item.timestamp ?? Date.now(),
+                    emotion: 'neutral', // TODO: Derive emotion from content
+                    decay: 0,
+                    accessCount: 0,
+                    lastAccessed: Date.now()
+                });
+            } catch (e) {
+                console.error(`Failed to generate embedding for memory ${item.id ?? item.characterId}:`, e);
+            }
+        }
+
+        if (memoriesToInsert.length > 0) {
+            this.memoryManager.batchInsertMemories(memoriesToInsert);
+            // Fire-and-forget: lets main broadcast a Memories-tab refresh without blocking.
+            this.onMemoriesEmbedded?.();
+
+            // Automatic upkeep: decay stale memories and consolidate near-duplicates
+            // for every character that just received new memories.
+            const charIds = new Set(memoriesToInsert.map(m => m.characterId).filter(Boolean));
+            for (const cid of charIds) {
+                try {
+                    this.memoryManager.applyDecay(cid);
+                    this.memoryManager.consolidateMemories(cid);
+                } catch (e) {
+                    console.error(`Memory upkeep (decay/consolidation) failed for character ${cid}:`, e);
+                }
             }
         }
     }
@@ -1902,6 +1994,7 @@ Statement by ${character.fullName}:`
             fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
             console.log(`Updated character map at: ${characterMapPath}`);
 
+            const newSummariesToEmbed: { characterId: string; content: string }[] = [];
             for (const character of this.gameData.characters.values()) {
                 if (character.id === this.gameData.playerID) continue;
 
@@ -1909,14 +2002,14 @@ Statement by ${character.fullName}:`
                 const prompt = buildSummarizeChatPrompt(this, character);
 
                 // Generate summary from this character's perspective
-                const result = await this.summarizationApiConnection.complete(prompt, false, {});
+                const result = await this.summarizationApiConnection.complete(prompt, false, {}, undefined, undefined, 300_000);
                 const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
 
                 const newSummary: Summary = {
                     date: this.gameData.date,
                     content: summaryContent
                 };
-                console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+                console.log(`ursation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
 
                 const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
@@ -1925,8 +2018,16 @@ Statement by ${character.fullName}:`
 
                 const existingSummaries = this.summaries.get(character.id) || [];
 
+                const isErrorText = /low balance|not enough credits|top up|api error|too many requests|rate limit/i.test(newSummary.content);
+                if (isErrorText) {
+                    console.warn(`Summary content looks like an API/billing error for character ${character.id}, skipping save and vectorization: ${newSummary.content.substring(0, 100)}...`);
+                    this.summaryFileWatcher.resumeWatcher(summaryFile);
+                    continue;
+                }
+
                 if (newSummary.content.trim()) {
                     existingSummaries.unshift(newSummary);
+                    newSummariesToEmbed.push({ characterId: character.id.toString(), content: newSummary.content });
                     fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
                     console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
                 } else {
@@ -1935,8 +2036,24 @@ Statement by ${character.fullName}:`
 
                 this.summaryFileWatcher.resumeWatcher(summaryFile);
             }
+
+            // Fire-and-forget: embed the new conversation summaries into the vector
+            // store so they become semantically searchable. Never blocks teardown.
+            if (newSummariesToEmbed.length > 0 && this.config.embeddingApiConnectionConfig) {
+                void this.embedAndInsertMemories(
+                    newSummariesToEmbed.map(s => ({ characterId: s.characterId, text: s.content }))
+                ).then(() => {
+                    console.log(`Inserted ${newSummariesToEmbed.length} summary memories into the vector store.`);
+                }).catch(err => {
+                    console.error('Failed to embed conversation summaries into the vector store:', err);
+                });
+            }
         } catch (error) {
-            console.error("Error in background summary/diary generation process:", error);
+            if (isAbortError(error)) {
+                console.warn('Background summarization request timed out or was aborted; summaries for this conversation were not generated.');
+            } else {
+                console.error("Error in background summary/diary generation process:", error);
+            }
         }
     }
 
@@ -2035,6 +2152,14 @@ Statement by ${character.fullName}:`
         this.actionsApiConnection = this.config.actionsUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+
+        // Safely initialize embedding connection
+        if (this.config.embeddingApiConnectionConfig) {
+            this.embeddingApiConnection = new ApiConnection(this.config.embeddingApiConnectionConfig.connection, this.config.embeddingApiConnectionConfig.parameters, this.encoder);
+        } else {
+            console.warn("Embedding API connection config not found. Using text generation API as a fallback for embeddings.");
+            this.embeddingApiConnection = this.textGenApiConnection;
+        }
 
         this.loadActions();
     }

@@ -5,16 +5,17 @@
     <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
     <link rel="stylesheet" href="config.css" />
     <link rel="stylesheet" href="../chatWindow/theme.css" />
-    
+
   </head>
   <body>
-    
-    
+
+
     <div class="navbar">
       <ul>
         <li class="active"><a href="connection.html" data-i18n="nav.connection" data-i18n-title="nav.connection_tooltip">Connection</a></li>
         <li><a href="actions.html" data-i18n="nav.actions" data-i18n-title="nav.actions_tooltip">Actions</a></li>
         <li><a href="summarization.html" data-i18n="nav.summarization" data-i18n-title="nav.summarization_tooltip">Summarization</a></li>
+        <li><a href="memories.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
         <li><a href="prompts.html" data-i18n="nav.prompts" data-i18n-title="nav.prompts_tooltip">Prompts</a></li>
         <li><a href="letters.html" data-i18n="nav.letters" data-i18n-title="nav.letters_tooltip">Letters</a></li>
         <li><a href="diaries.html" data-i18n="nav.diaries" data-i18n-title="nav.diaries_tooltip">Diaries</a></li>
@@ -23,10 +24,10 @@
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help" data-i18n-title="nav.help_tooltip">Help</a></li>
         <language-selector></language-selector>
         <li class="close-menu"><a href="#" id="close-config-window" data-i18n-title="nav.close_tooltip">×</a></li>
-      </ul> 
+      </ul>
     </div>
-    
-    
+
+
 
     <div class="container" id="container">
 
@@ -49,7 +50,7 @@
     <script>require("../../dist/configWindow/components/apiSelector.js")</script>
     <script>require("../../dist/configWindow/components/tooltip.js")</script>
     <script>require("../../dist/configWindow/connectionRenderer.js")</script>
-    
+
     <script>
       // 添加帮助菜单点击事件
       document.addEventListener('DOMContentLoaded', function() {
@@ -63,6 +64,6 @@
         }
       });
     </script>
-    
+
   </body>
 </html>

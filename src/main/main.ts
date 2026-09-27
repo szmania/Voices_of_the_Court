@@ -33,6 +33,9 @@ import { updateElectronApp } from 'update-electron-app';
 import { ReadmeWindow } from './windows/ReadmeWindow';
 import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gameDataCache';
 import { compactedMemoryStore } from './compactedMemoryStore';
+import { MemoryManager, Memory } from './memoryManager';
+import { ApiConnection, EmbeddingProvider, getEffectiveEmbeddingDimension } from '../shared/apiConnection';
+import { getConfig } from "./configManager";
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
 
@@ -264,6 +267,7 @@ const createTray = () => {
 let clipboardListener: ClipboardListener;
 let config: Config;
 let diaryGenerator: DiaryGenerator;
+let memoryManager: MemoryManager;
 
 let letterThreadCount = 0;
 let letterThreadFullNotified = false;
@@ -499,6 +503,14 @@ function positionConfigWindow() {
     configWindow.window.setBounds(target);
 }
 
+// Broadcast to the Memories tab (hosted in the config window) that new memories
+// were inserted into the vector DB, so the Memory Constellation auto-refreshes.
+function sendMemoriesChanged() {
+    if (configWindow && !configWindow.window.isDestroyed()) {
+        configWindow.window.webContents.send('memory-constellation:memories-changed');
+    }
+}
+
 
 ipcMain.on('request-config-toggle', () => {
     configWindow.toggle();
@@ -631,6 +643,8 @@ app.on('ready',  async () => {
 
     config = new Config(path.join(userDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
+    const embeddingDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
+    memoryManager = new MemoryManager(userDataPath, embeddingDimension);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -662,6 +676,18 @@ app.on('ready',  async () => {
     const letterManager = LetterManager.getInstance();
     for (const { id } of letterManager.getAllPlayerIdsWithLetters()) {
         rehydratePendingReplyLetters(id);
+    }
+
+    // Automatically import legacy memories for the current player on startup
+    if (config.userFolderPath) {
+        getPlayerId(userDataPath).then(playerInfo => {
+            if (playerInfo && playerInfo.playerId) {
+                console.log(`Startup: Found current player ID ${playerInfo.playerId}. Triggering legacy memory import.`);
+                importLegacyMemories(playerInfo.playerId);
+            }
+        }).catch(err => {
+            console.error('Startup: Could not determine player ID for automatic legacy import.', err);
+        });
     }
 
     autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
@@ -822,6 +848,428 @@ app.on('ready',  async () => {
         return 8192;
     });
 
+    // --- Neural Memory System IPC Handlers ---
+
+    // Embedding configuration handlers
+    ipcMain.handle('check-dimension-mismatch', async () => {
+        if (memoryManager) {
+            return memoryManager.dimensionMismatchDetected && (memoryManager.getTotalMemoryCount() > 0);
+        }
+        return false;
+    });
+
+    ipcMain.handle('get-embedding-config', async () => {
+        console.log('IPC: Received get-embedding-config event.');
+        if (config?.embeddingApiConnectionConfig) {
+            return config.embeddingApiConnectionConfig;
+        }
+        // Return sensible defaults if not configured
+        return {
+            connection: {
+                type: 'openai',
+                baseUrl: 'https://api.openai.com/v1',
+                key: '',
+                model: 'text-embedding-3-small',
+                forceInstruct: false,
+                overwriteContext: false,
+                customContext: 0
+            },
+            parameters: {}
+        };
+    });
+
+    ipcMain.handle('save-embedding-config', async (event, newConfig: any) => {
+        console.log('IPC: Received save-embedding-config event.');
+        try {
+            if (!config.embeddingApiConnectionConfig) {
+                config.embeddingApiConnectionConfig = {} as any;
+            }
+            Object.assign(config.embeddingApiConnectionConfig, newConfig);
+            config.export();
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error saving embedding config:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('test-embedding-connection', async (event, providerConfig: {
+        provider: string;
+        model: string;
+        baseUrl: string;
+        apiKey: string;
+        expectedDimension?: number;
+        embeddingInputType?: string;
+    }) => {
+        console.log('IPC: Received test-embedding-connection event.');
+        try {
+            const provider = new EmbeddingProvider(
+                providerConfig.provider as any,
+                providerConfig.model,
+                providerConfig.baseUrl,
+                providerConfig.apiKey,
+                providerConfig.expectedDimension,
+                providerConfig.embeddingInputType
+            );
+            const result = await provider.testConnection();
+            return result;
+        } catch (error: any) {
+            console.error('Error testing embedding connection:', error);
+            return {
+                success: false,
+                message: error?.message || String(error),
+                provider: providerConfig.provider
+            };
+        }
+    });
+
+    // Memory CRUD handlers
+    ipcMain.handle('get-memories', async (event, filter: { playerId?: string; characterId?: string; limit?: number } | string, legacyLimit?: number) => {
+        // Support both old (string) and new (object) calling conventions
+        let characterId: string;
+        let playerId: string | undefined;
+        let limit: number | undefined;
+
+        if (typeof filter === 'string') {
+            // Legacy: called as get-memories(characterId, limit)
+            characterId = filter;
+            limit = legacyLimit;
+        } else if (filter && typeof filter === 'object') {
+            // New: called as get-memories({ playerId, characterId })
+            characterId = filter.characterId || '';
+            playerId = filter.playerId || undefined;
+            limit = filter.limit;
+        } else {
+            characterId = '';
+        }
+
+        console.log(`IPC: Received get-memories for character: ${characterId}, player: ${playerId || 'any'}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const memories = memoryManager.getMemoriesByCharacter(characterId, limit || 100, playerId);
+            // Convert Float32Array vectors to regular arrays for IPC serialization
+            const serializable = memories.map(m => ({
+                ...m,
+                vector: Array.from(m.vector || [])
+            }));
+            return { success: true, memories: serializable };
+        } catch (error: any) {
+            console.error('Error getting memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('add-memory', async (event, memoryData: {
+        characterId: string;
+        text: string;
+        vector?: number[];
+        emotion?: string;
+        scene?: string;
+        timestamp?: number;
+    }) => {
+        console.log(`IPC: Received add-memory for character: ${memoryData.characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            if (!memoryData.characterId) {
+                return { success: false, error: 'characterId is required.' };
+            }
+            if (!memoryData.text) {
+                return { success: false, error: 'text is required.' };
+            }
+
+            const memory = {
+                id: randomUUID(),
+                characterId: memoryData.characterId,
+                scene: memoryData.scene || '',
+                text: memoryData.text,
+                vector: memoryData.vector || [],
+                timestamp: memoryData.timestamp || Date.now(),
+                emotion: memoryData.emotion || 'neutral',
+                decay: 0.0,
+                accessCount: 0,
+                lastAccessed: Date.now()
+            };
+
+            memoryManager.insertMemory(memory);
+            return { success: true, id: memory.id };
+        } catch (error: any) {
+            console.error('Error adding memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('search-memories', async (event, characterId: string, queryVector: number[], topK?: number) => {
+        console.log(`IPC: Received search-memories for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const results = memoryManager.searchSimilar(characterId, queryVector, { topK: topK || 10 });
+            const serializable = results.map(m => ({
+                ...m,
+                vector: Array.from(m.vector || [])
+            }));
+            return { success: true, memories: serializable };
+        } catch (error: any) {
+            console.error('Error searching memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('delete-memory', async (event, memoryId: string) => {
+        console.log(`IPC: Received delete-memory for id: ${memoryId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.deleteMemory(memoryId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error deleting memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('update-memory', async (event, memoryData: { id: string; text?: string; emotion?: string }) => {
+        console.log(`IPC: Received update-memory for id: ${memoryData.id}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            if (!memoryData.id) {
+                return { success: false, error: 'id is required.' };
+            }
+            const updates: any = {};
+            if (memoryData.text !== undefined) updates.text = memoryData.text;
+            if (memoryData.emotion !== undefined) updates.emotion = memoryData.emotion;
+            memoryManager.updateMemory(memoryData.id, updates);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error updating memory:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('delete-memories-by-character', async (event, characterId: string) => {
+        console.log(`IPC: Received delete-memories-by-character for: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.deleteMemoriesByCharacter(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error deleting memories by character:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('apply-memory-decay', async (event, characterId: string) => {
+        console.log(`IPC: Received apply-memory-decay for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.applyDecay(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error applying memory decay:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('consolidate-memories', async (event, characterId: string) => {
+        console.log(`IPC: Received consolidate-memories for character: ${characterId}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            memoryManager.consolidateMemories(characterId);
+            return { success: true };
+        } catch (error: any) {
+            console.error('Error consolidating memories:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    ipcMain.handle('get-memory-count', async (event, filter: { playerId?: string; characterId?: string } | string) => {
+        // Support both legacy (characterId string) and new ({ playerId, characterId }) calling conventions
+        let characterId: string;
+        let playerId: string | undefined;
+        if (typeof filter === 'string') {
+            characterId = filter;
+        } else if (filter && typeof filter === 'object') {
+            characterId = filter.characterId || '';
+            playerId = filter.playerId || undefined;
+        } else {
+            characterId = '';
+        }
+        console.log(`IPC: Received get-memory-count for character: ${characterId}, player: ${playerId || 'any'}`);
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const count = playerId
+                ? memoryManager.getPlayerMemoryCount(playerId, characterId || undefined)
+                : (characterId ? memoryManager.getMemoryCount(characterId) : memoryManager.getTotalMemoryCount());
+            // Diagnostic: if a player-scoped count returns 0 but memories exist elsewhere,
+            // surface the likely player_id mismatch in the debug log so the UI is diagnosable.
+            if (playerId && count === 0) {
+                const total = memoryManager.getTotalMemoryCount();
+                const characterOnly = characterId ? memoryManager.getMemoryCount(characterId) : 0;
+                if (total > 0 || characterOnly > 0) {
+                    console.warn(`get-memory-count: player-scoped count is 0 for playerId=${playerId}${characterId ? ', characterId=' + characterId : ''}, but total=${total}, character-only=${characterOnly}. Likely a player_id mismatch on stored memories.`);
+                }
+            }
+            return { success: true, count };
+        } catch (error: any) {
+            console.error('Error getting memory count:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    // Re-embed all stored memories at the currently configured embedding dimension
+    // and rebuild the sqlite-vec index. Used when the user changes the embedding
+    // model / dimension override so existing memories are preserved, not discarded.
+    ipcMain.handle('reindex-embedding-dimensions', async () => {
+        console.log('IPC: Received reindex-embedding-dimensions event.');
+        try {
+            if (!memoryManager) {
+                return { success: false, error: 'Memory manager not initialized.' };
+            }
+            const conn = config?.embeddingApiConnectionConfig?.connection;
+            if (!conn || !conn.type || !conn.model || !conn.baseUrl) {
+                return { success: false, error: 'Embedding API connection is not configured.' };
+            }
+
+            const targetDimension = getEffectiveEmbeddingDimension(conn);
+            const provider = new EmbeddingProvider(
+                conn.type as any,
+                conn.model,
+                conn.baseUrl,
+                conn.key,
+                targetDimension,
+                conn.embeddingInputType
+            );
+
+            // Brief rate limiting between calls to avoid flooding external APIs.
+            const result = await memoryManager.reindexMemories(async (text) => {
+                const vector = await provider.embed(text);
+                await sleep(75);
+                return vector;
+            }, targetDimension);
+
+            sendMemoriesChanged();
+            return { success: true, ...result };
+        } catch (error: any) {
+            console.error('Error reindexing embedding dimensions:', error);
+            return { success: false, error: error?.message || String(error) };
+        }
+    });
+
+    // Function to handle the import logic, callable from multiple places
+    async function importLegacyMemories(playerId: string) {
+        try {
+            console.log(`Executing import of legacy memories for player ${playerId}`);
+            const currentConfig = config; // Use the live app configuration (updated when the user saves settings), not the stale cached config from configManager
+        
+            // 1. Load all legacy compacted memories from JSON files
+            const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            if (!compactedMemories || compactedMemories.length === 0) {
+              console.log(`No legacy memories found for player ${playerId}. Import not needed.`);
+              return { success: true, count: 0, message: 'No legacy memories found to import.' };
+            }
+    
+            // 2. Initialize the necessary tools
+            const importDimension = getEffectiveEmbeddingDimension(currentConfig?.embeddingApiConnectionConfig?.connection);
+            const localMemoryManager = new MemoryManager(userDataPath, importDimension);
+            if (!currentConfig.embeddingApiConnectionConfig) {
+                throw new Error("Embedding API connection is not configured.");
+            }
+            const embeddingApi = new ApiConnection(currentConfig.embeddingApiConnectionConfig.connection, currentConfig.embeddingApiConnectionConfig.parameters, null);
+    
+            // 3. Transform and vectorize the legacy memories
+            const memoriesToInsert: Memory[] = [];
+            for (const compacted of compactedMemories) {
+              try {
+                const embedding = await embeddingApi.embed(compacted.content);
+                memoriesToInsert.push({
+                  id: compacted.id,
+                  characterId: compacted.characterIds[0]?.toString() || '',
+                  playerId: playerId,
+                  text: compacted.content,
+                  vector: embedding,
+                  timestamp: compacted.creationTimestamp,
+                  emotion: 'neutral', // Legacy memories don't have emotion
+                  decay: 0,
+                  accessCount: 0,
+                  lastAccessed: Date.now(),
+                });
+              } catch (e) {
+                console.error(`Failed to generate embedding for legacy memory ${compacted.id}:`, e);
+              }
+            }
+    
+            // 4. Batch insert into the new database
+            if (memoriesToInsert.length > 0) {
+              localMemoryManager.batchInsertMemories(memoriesToInsert);
+              sendMemoriesChanged();
+            }
+        
+            localMemoryManager.close();
+            console.log(`Finished importing ${memoriesToInsert.length} legacy memories for player ${playerId}.`);
+            return { success: true, count: memoriesToInsert.length };
+          } catch (error: any) {
+            console.error(`Failed to import legacy memories for player ${playerId}:`, error);
+            return { success: false, error: error.message };
+          }
+    }
+
+    // Checks how many legacy compacted memories are already embedded in the vector DB.
+    async function getLegacyMemoryStatus(playerId: string) {
+        try {
+            const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
+            if (!compactedMemories || compactedMemories.length === 0) {
+                return { success: true, hasLegacy: false, totalLegacy: 0, loadedCount: 0, allLoaded: false };
+            }
+
+            const statusDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
+            const localMemoryManager = new MemoryManager(userDataPath, statusDimension);
+            let loadedCount = 0;
+            for (const compacted of compactedMemories) {
+                if (localMemoryManager.hasMemory(compacted.id)) {
+                    loadedCount++;
+                }
+            }
+            localMemoryManager.close();
+
+            return {
+                success: true,
+                hasLegacy: true,
+                totalLegacy: compactedMemories.length,
+                loadedCount,
+                allLoaded: loadedCount >= compactedMemories.length
+            };
+        } catch (error: any) {
+            console.error(`Failed to check legacy memory status for player ${playerId}:`, error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    ipcMain.handle('import-legacy-memories', async (event, playerId: string) => {
+        console.log(`IPC: Received request to import legacy memories for player ${playerId}`);
+        return await importLegacyMemories(playerId);
+    });
+
+
+    ipcMain.handle('get-legacy-memory-status', async (event, playerId: string) => {
+        console.log(`IPC: Received request to check legacy memory status for player ${playerId}`);
+        return await getLegacyMemoryStatus(playerId);
+    });
 
     //logging
     var util = require('util');
@@ -1138,6 +1586,9 @@ clipboardListener.on('VOTC:IN', async () =>{
                 updateCurrentDate(gameData.totalDays);
             }
             conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            // Wire the memory-insertion callback so main broadcasts a Memories-tab refresh
+            // whenever this conversation embeds new memories (compaction / summary embedding).
+            conversation.onMemoriesEmbedded = () => sendMemoriesChanged();
             await conversation.loadHistory();
             await conversation.letterManager.importLettersFromLog(config, gameData, String(gameData.playerID), gameData.date, String(gameData.aiID));
 
@@ -1640,6 +2091,11 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string, newValue: any) =>{
     console.log(`IPC: Received config-change-nested event. Outer ID: ${outerConfID}, Inner ID: ${innerConfID}, New Value: ${newValue}`);
 
+    // Ensure the outer config object exists (e.g. embeddingApiConnectionConfig)
+    if (!(config as any)[outerConfID]) {
+        (config as any)[outerConfID] = {};
+    }
+
     //@ts-ignore
     const previous = config[outerConfID]?.[innerConfID];
 
@@ -2061,33 +2517,48 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         const letterManager = LetterManager.getInstance();
         const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
 
-        // Get diary player IDs
+        // Get diary player IDs with their latest diary activity (same pattern as the get-all-diary-player-ids handler)
         const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
-
-        // Merge all player IDs, ensuring uniqueness
-        const allPlayerIds = new Map<string, { id: string, name: string }>();
-
-        // Add conversation player IDs
-        conversationPlayerIds.forEach(player => {
-            allPlayerIds.set(player.id, player);
-        });
-
-        // Add letter player IDs
-        letterPlayerIds.forEach(player => {
-            if (!allPlayerIds.has(player.id)) {
-                allPlayerIds.set(player.id, player);
+        const diaryPlayersWithTs = await Promise.all(diaryPlayerIds.map(async (player) => {
+            let latestTimestamp = 0;
+            try {
+                const characterIds = await getDiaryFiles(player.id);
+                for (const charId of characterIds) {
+                    const diaryData = await readDiaryFile(player.id, charId);
+                    if (diaryData && diaryData.diary_entries) {
+                        for (const entry of diaryData.diary_entries) {
+                            if (entry.creationTimestamp) {
+                                const ts = new Date(entry.creationTimestamp).getTime();
+                                if (ts > latestTimestamp) latestTimestamp = ts;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error processing diaries for player ${player.id}:`, e);
             }
-        });
+            return { ...player, latestTimestamp };
+        }));
 
-        // Add diary player IDs
-        diaryPlayerIds.forEach(player => {
-            if (!allPlayerIds.has(player.id)) {
-                allPlayerIds.set(player.id, player);
+        // Merge all player IDs, keeping the greatest latestTimestamp seen across sources
+        // (latestTimestamp is an additive/optional field exposed by getAllPlayerIds and LetterManager.getAllPlayerIdsWithLetters).
+        const allPlayerIds = new Map<string, { id: string, name: string, latestTimestamp?: number }>();
+        const mergePlayer = (player: { id: string, name: string, latestTimestamp?: number }) => {
+            const existing = allPlayerIds.get(player.id);
+            if (!existing) {
+                allPlayerIds.set(player.id, { id: player.id, name: player.name, latestTimestamp: player.latestTimestamp || 0 });
+            } else {
+                existing.latestTimestamp = Math.max(existing.latestTimestamp || 0, player.latestTimestamp || 0);
             }
-        });
+        };
+        conversationPlayerIds.forEach(mergePlayer);
+        letterPlayerIds.forEach(mergePlayer);
+        diaryPlayersWithTs.forEach(mergePlayer);
 
-        const mergedPlayerIds = Array.from(allPlayerIds.values());
-        return { success: true, ids: mergedPlayerIds };
+        // Sort by most recent activity first so the currently-played save is at the top of the dropdown.
+        const mergedPlayerIds = Array.from(allPlayerIds.values()).sort((a, b) => (b.latestTimestamp || 0) - (a.latestTimestamp || 0));
+        // Strip the additive field from the response so the IPC contract ({ id, name }) is unchanged.
+        return { success: true, ids: mergedPlayerIds.map(({ id, name }) => ({ id, name })) };
     } catch (error) {
         console.error('Error getting all player IDs:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -2114,7 +2585,8 @@ ipcMain.handle('get-character-description-players', async () => {
             if (!allPlayerIds.has(player.id)) { allPlayerIds.set(player.id, player); }
         });
 
-        return { success: true, ids: Array.from(allPlayerIds.values()) };
+        // Strip the additive latestTimestamp field so the IPC response stays { id, name }.
+        return { success: true, ids: Array.from(allPlayerIds.values()).map(({ id, name }) => ({ id, name })) };
     } catch (error) {
         console.error('Error getting character description players:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -2560,7 +3032,8 @@ ipcMain.handle('import-letters-from-log', async (event, args) => {
 ipcMain.handle('get-letter-players', async () => {
     console.log('IPC: Received get-letter-players event.');
     const letterManager = LetterManager.getInstance();
-    return letterManager.getAllPlayerIdsWithLetters();
+    // Strip the additive latestTimestamp field so the IPC response stays { id, name }.
+    return letterManager.getAllPlayerIdsWithLetters().map(({ id, name }) => ({ id, name }));
 });
 
 ipcMain.handle('get-corresponded-characters', async (event, playerId: string) => {
@@ -2611,8 +3084,7 @@ ipcMain.on('api-config-change', (e, configType: string, apiType: string, configD
 
     // 确保配置对象存在
     if (!(config as any)[configType]) {
-        console.error(`Configuration type ${configType} not found`);
-        return;
+        (config as any)[configType] = {};
     }
 
     // 确保connection对象存在

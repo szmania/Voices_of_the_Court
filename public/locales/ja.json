@@ -15,11 +15,34 @@
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
     "steam_tooltip": "Steamワークショップで表示",
-    "website_tooltip": "ウェブサイトにアクセス"
+    "website_tooltip": "ウェブサイトにアクセス",
+    "memory_constellation": "記憶の星座",
+    "memory_constellation_tooltip": "キャラクターの記憶を3Dで視覚化",
+    "memory_constellation.empty_title": "記憶が見つかりません",
+    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
   },
   "diaries": {
     "header": "日記",
     "description": "キャラクターの日記エントリを管理します。"
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "記憶が見つかりません",
+    "empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "手紙",
+    "location_label": "場所: ",
+    "location_unknown": "不明",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",

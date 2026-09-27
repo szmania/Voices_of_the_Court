@@ -16,11 +16,33 @@
     "discord_tooltip": "加入我们的Discord",
     "steam_tooltip": "在Steam创意工坊上查看",
     "website_tooltip": "访问我们的网站",
-    "close": "关闭"
+    "memory_constellation": "记忆星座",
+    "memory_constellation_tooltip": "以3D方式可视化角色记忆",
+    "memory_constellation.empty_title": "未找到记忆",
+    "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。"
   },
   "diaries": {
     "header": "日记",
     "description": "管理角色的日记条目。"
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "未找到记忆",
+    "empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "信件",
+    "location_label": "地点：",
+    "location_unknown": "未知",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",

@@ -113,6 +113,27 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
             const playerId = dirent.name;
             const mapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
             let playerName = `Player ${playerId}`;
+            let latestTimestamp = 0;
+            try {
+                const playerDir = path.join(diariesRootPath, playerId);
+                const files = fs.readdirSync(playerDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+                for (const file of files) {
+                    try {
+                        const data = JSON.parse(fs.readFileSync(path.join(playerDir, file), 'utf8'));
+                        const summaries = Array.isArray(data) ? data : data.diary_entries || [];
+                        for (const s of summaries) {
+                            if (s.creationTimestamp) {
+                                const ts = new Date(s.creationTimestamp).getTime();
+                                if (!isNaN(ts) && ts > latestTimestamp) latestTimestamp = ts;
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`Error reading diary summary file ${file} for player ${playerId}:`, e);
+                    }
+                }
+            } catch (e) {
+                console.error(`Error scanning diary summaries for player ${playerId}:`, e);
+            }
             if (fs.existsSync(mapPath)) {
                 try {
                     const mapData = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
@@ -123,7 +144,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
                     console.error(`Error reading character map for player ${playerId}:`, e);
                 }
             }
-            return { id: playerId, name: playerName };
+            return { id: playerId, name: playerName, latestTimestamp };
         });
     return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
 }

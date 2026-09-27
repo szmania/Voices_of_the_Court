@@ -8,11 +8,38 @@ export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 import { getEncoding, Tiktoken } from "js-tiktoken";
 
 // The OpenAI SDK throws APIUserAbortError (not the DOM AbortError) when a request
-// is cancelled, either by the user or by our AbortSignal.timeout. This helper
-// recognizes both so aborts are treated as cancellations, not unexpected errors.
+// is cancelled, either by the user or by our AbortSignal.timeout. The SDK's error
+// classes never assign `this.name`, so `error.name` stays 'Error' (inherited from
+// Error.prototype); the real class name only exists on `error.constructor.name`.
+// This helper checks both so aborts are treated as cancellations, not unexpected errors.
 export function isAbortError(error: any): boolean {
-    return !!error && typeof error === 'object' && 'name' in error &&
-        (error.name === 'AbortError' || error.name === 'APIUserAbortError');
+    if (!error) return false;
+    const name = error.name ?? '';
+    const ctorName = error.constructor?.name ?? '';
+    return name === 'AbortError' || name === 'APIUserAbortError' ||
+        ctorName === 'AbortError' || ctorName === 'APIUserAbortError';
+}
+
+/** HTTP status codes that indicate a transient failure worth retrying. */
+const RETRYABLE_HTTP_STATUSES: ReadonlySet<number> = new Set([429, 500, 502, 503, 504]);
+
+/**
+ * Classifies an embedding HTTP error as transient (retryable) or permanent.
+ * Retryable: 429 (rate limit) and 5xx server errors (500/502/503/504).
+ * Permanent client errors (400/401/403/404/410), e.g. a dead model ("410 Gone")
+ * or a "dimensions must be one of 2048" rejection, return false so callers
+ * fail fast instead of burning retries on actionable configuration problems.
+ */
+export function isRetryableHttpError(err: any): boolean {
+    if (!err) return false;
+    // Preferred: HTTP status attached by the embedding error paths (err.status).
+    const status = (err as any).status ?? (err as any).statusCode;
+    if (typeof status === 'number') {
+        return RETRYABLE_HTTP_STATUSES.has(status);
+    }
+    // Fallback: parse the "API error (NNN)" pattern used in embedding error messages.
+    const match = /API error \((\d{3})\)/.exec(String((err as any).message ?? ''));
+    return !!match && RETRYABLE_HTTP_STATUSES.has(parseInt(match[1], 10));
 }
 
 export interface apiConnectionTestResult{
@@ -29,7 +56,20 @@ export interface Connection{
     forceInstruct: boolean ;//only used by openrouter
     overwriteContext: boolean;
     customContext: number;
+    embeddingDimension?: number; // dimension of embedding vectors (default 1536)
+    useCustomEmbeddingDimension?: boolean; // only honor embeddingDimension when true
+    embeddingInputType?: string; // optional 'input_type' for asymmetric embedding models (e.g. NVIDIA NIM)
     apiKeys?: { [apiType: string]: any }; // 存储所有API类型的配置
+}
+
+/** Resolve the effective embedding dimension from a connection config.
+ *  Only honors the custom overwrite when explicitly enabled; otherwise
+ *  falls back to the standard default (1536). */
+export function getEffectiveEmbeddingDimension(connection?: Connection): number {
+    if (connection?.useCustomEmbeddingDimension && connection.embeddingDimension) {
+        return connection.embeddingDimension;
+    }
+    return 1536;
 }
 
 export interface Parameters{
@@ -179,7 +219,8 @@ export class ApiConnection{
         stream: boolean,
         otherArgs: object,
         streamRelay?: (arg1: MessageChunk) => void,
-        signal?: AbortSignal
+        signal?: AbortSignal,
+        timeoutMs?: number
     ): Promise<MessageChunk | string | void> {
         if (this.type === 'novelai') {
             const token = this.config.key;
@@ -240,9 +281,9 @@ export class ApiConnection{
 
         // Apply a default request timeout so a hung provider can't stall initialization.
         // Merged with the caller's abort signal so either one can cancel the request.
-        const REQUEST_TIMEOUT_MS = 120_000;
-        const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-        const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+        // Background fire-and-forget callers (e.g. post-conversation summarization)
+        // can pass a larger timeoutMs so slow providers don't abort mid-request.
+        const REQUEST_TIMEOUT_MS = timeoutMs ?? 120_000;
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 
@@ -252,6 +293,11 @@ export class ApiConnection{
         let retries = 0;
 
         while (retries < MAX_RETRIES) {
+            // Build a FRESH timeout signal per attempt: AbortSignal.timeout stays
+            // aborted forever once it fires, so reusing it would make every retry
+            // fail instantly instead of getting its own timeout window.
+            const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+            const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
             try {
                 if (this.type === 'gemini') {
@@ -611,8 +657,23 @@ export class ApiConnection{
                 }
             } catch (error) {
                 if (isAbortError(error)) {
-                    console.log('API request was aborted.');
-                    throw error; // Re-throw to be handled by the caller
+                    if (signal?.aborted) {
+                        // Caller's signal was aborted: genuine user cancel, do not retry.
+                        console.log('API request was aborted by caller.');
+                        throw error;
+                    }
+                    // No caller signal (or caller signal not aborted): the abort came
+                    // from the internal timeout or a network-level abort (e.g. the
+                    // server closed the connection). Retry with exponential backoff.
+                    retries++;
+                    if (retries >= MAX_RETRIES) {
+                        console.debug(`Failed after ${MAX_RETRIES} attempts (abort/timeout).`);
+                        throw error;
+                    }
+                    const delayMs = RETRY_DELAY * Math.pow(2, retries);
+                    console.warn(`API request aborted (timeout or network), retry ${retries}/${MAX_RETRIES} in ${delayMs}ms`);
+                    await delay(delayMs);
+                    continue;
                 }
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);
@@ -908,5 +969,287 @@ export class ApiConnection{
         return sum;
     }
 
+    async embed(text: string): Promise<number[]> {
+        // This method acts as a proxy to the EmbeddingProvider, using the connection's own config.
+        // This is necessary because other parts of the app use ApiConnection for all remote calls.
+        if (!this.config || !this.config.type || !this.config.model || !this.config.baseUrl) {
+            throw new Error("ApiConnection is not configured for embedding.");
+        }
+        const provider = new EmbeddingProvider(
+            this.config.type as EmbeddingProviderType,
+            this.config.model,
+            this.config.baseUrl,
+            this.config.key,
+            getEffectiveEmbeddingDimension(this.config),
+            this.config.embeddingInputType
+        );
+        return provider.embed(text);
+    }
+}
 
+// --- Embedding Provider ---
+
+/** Supported embedding provider types */
+export type EmbeddingProviderType = 'openai' | 'ollama' | 'onnx' | 'custom' | 'openrouter' | 'deepseek' | 'grok' | 'nvidia' | 'glm' | 'player2' | 'anthropic';
+
+/** Result of an embedding generation request */
+export interface EmbeddingResult {
+    vector: Float32Array;
+    dimensions: number;
+    provider: EmbeddingProviderType;
+    model: string;
+}
+
+/** Result of an embedding connection test */
+export interface EmbeddingTestResult {
+    success: boolean;
+    message: string;
+    dimensions?: number;
+    provider: EmbeddingProviderType;
+    model?: string;
+    expectedDimension?: number;
+    mismatch?: boolean;
+}
+
+/**
+ * EmbeddingProvider generates vector embeddings from text using
+ * OpenAI, Ollama, or ONNX runtime backends.
+ */
+export class EmbeddingProvider {
+    private provider: EmbeddingProviderType;
+    private model: string;
+    private baseUrl: string;
+    private apiKey: string;
+    private expectedDimension?: number;
+    private embeddingInputType?: string;
+
+    constructor(provider: EmbeddingProviderType, model: string, baseUrl: string, apiKey: string, expectedDimension?: number, embeddingInputType?: string) {
+        this.provider = provider;
+        this.model = model;
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+        this.expectedDimension = expectedDimension;
+        this.embeddingInputType = embeddingInputType;
+    }
+
+    /**
+     * Generate an embedding vector for the given text.
+     * @param text - The input text to embed.
+     * @returns An EmbeddingResult containing the vector and metadata.
+     */
+    async generateEmbedding(text: string): Promise<EmbeddingResult> {
+        if (!text || text.trim().length === 0) {
+            throw new Error('Cannot generate embedding for empty text.');
+        }
+        switch (this.provider) {
+            case 'ollama':
+                return this.embedWithRetry(() => this.generateOllamaEmbedding(text));
+            case 'onnx':
+                return this.generateOnnxEmbedding(text);
+            // All OpenAI-compatible providers (openai, custom, openrouter, deepseek,
+            // grok, nvidia, glm, player2, anthropic) use the standard /embeddings endpoint.
+            case 'openai':
+            case 'custom':
+            case 'openrouter':
+            case 'deepseek':
+            case 'grok':
+            case 'nvidia':
+            case 'glm':
+            case 'player2':
+            case 'anthropic':
+                return this.embedWithRetry(() => this.generateOpenAIEmbedding(text));
+            default:
+                throw new Error(`Unsupported embedding provider: ${this.provider}`);
+        }
+    }
+
+    /**
+     * Runs an embedding attempt, retrying transient HTTP failures (429/5xx)
+     * with exponential backoff, mirroring the retry pattern used by
+     * ApiConnection.complete(). Permanent errors (400/401/403/404/410,
+     * unsupported providers, empty input) are rethrown immediately so the
+     * original status and response body stay visible in the caller's logs.
+     */
+    private async embedWithRetry(attemptFn: () => Promise<EmbeddingResult>): Promise<EmbeddingResult> {
+        const MAX_RETRIES = 4; // retries after the first attempt -> up to 5 total attempts
+        const RETRY_DELAY = 750; // base delay in ms; doubles each retry: 750ms, 1.5s, 3s, 6s
+        let retries = 0;
+        while (true) {
+            try {
+                return await attemptFn();
+            } catch (error) {
+                const retryable = isRetryableHttpError(error);
+                if (!retryable || retries >= MAX_RETRIES) {
+                    if (retryable) {
+                        console.error(`EmbeddingProvider: embedding still failing after ${retries + 1} attempts: ${error instanceof Error ? error.message : String(error)}`);
+                    }
+                    throw error;
+                }
+                retries++;
+                const delayMs = RETRY_DELAY * Math.pow(2, retries - 1);
+                console.warn(`EmbeddingProvider: transient embedding failure, retry ${retries}/${MAX_RETRIES} in ${delayMs}ms: ${error instanceof Error ? error.message : String(error)}`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+    }
+
+    /**
+     * Test the connection to the configured embedding provider.
+     * Sends a minimal embedding request to verify connectivity.
+     */
+    async testConnection(): Promise<EmbeddingTestResult> {
+        try {
+            const result = await this.generateEmbedding('test');
+            if (this.expectedDimension && result.dimensions !== this.expectedDimension) {
+                return {
+                    success: false,
+                    message: `Overwrite dimension mismatch: requested ${this.expectedDimension} but model returned ${result.dimensions}. Disable "Overwrite embedding dimension" or correct the value.`,
+                    dimensions: result.dimensions,
+                    provider: this.provider,
+                    model: result.model,
+                    expectedDimension: this.expectedDimension,
+                    mismatch: true
+                };
+            }
+            return {
+                success: true,
+                message: this.expectedDimension
+                    ? `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions} (matches overwrite).`
+                    : `Connection successful. Model: ${result.model}, Dimensions: ${result.dimensions}`,
+                dimensions: result.dimensions,
+                provider: this.provider,
+                model: result.model,
+                expectedDimension: this.expectedDimension
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: error?.message || String(error),
+                provider: this.provider
+            };
+        }
+    }
+
+    /**
+     * Generate embedding using OpenAI's embeddings API.
+     */
+    private async generateOpenAIEmbedding(text: string): Promise<EmbeddingResult> {
+        const url = `${this.baseUrl}/embeddings`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`
+            },
+            body: JSON.stringify({
+                model: this.model,
+                input: text,
+                ...(this.expectedDimension ? { dimensions: this.expectedDimension } : {}),
+                ...(this.embeddingInputType ? { input_type: this.embeddingInputType } : { input_type: 'passage' })
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`OpenAI embedding API error (${response.status}): ${errorText}`);
+            // Attach the HTTP status so isRetryableHttpError can classify the failure:
+            // 429/5xx get retried; permanent client errors (400/404/410...) fail fast.
+            (error as any).status = response.status;
+            throw error;
+        }
+
+        const data = await response.json();
+        const embedding = data.data?.[0]?.embedding;
+        if (!embedding || !Array.isArray(embedding)) {
+            throw new Error('OpenAI embedding API returned an unexpected response format.');
+        }
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: this.provider,
+            model: this.model
+        };
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: 'openai',
+            model: this.model
+        };
+    }
+
+    /**
+     * Generate embedding using a local Ollama server.
+     */
+    private async generateOllamaEmbedding(text: string): Promise<EmbeddingResult> {
+        const url = `${this.baseUrl}/api/embeddings`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: this.model,
+                prompt: text
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            const error = new Error(`Ollama embedding API error (${response.status}): ${errorText}`);
+            // Attach the HTTP status so isRetryableHttpError can classify the failure.
+            (error as any).status = response.status;
+            throw error;
+        }
+
+        const data = await response.json();
+        const embedding = data.embedding;
+        if (!embedding || !Array.isArray(embedding)) {
+            throw new Error('Ollama embedding API returned an unexpected response format.');
+        }
+
+        return {
+            vector: new Float32Array(embedding),
+            dimensions: embedding.length,
+            provider: 'ollama',
+            model: this.model
+        };
+    }
+
+    /**
+     * Generate embedding using ONNX runtime (offline).
+     * This is a placeholder — actual ONNX integration requires onnxruntime-node.
+     */
+    private async generateOnnxEmbedding(text: string): Promise<EmbeddingResult> {
+        // ONNX runtime requires the optional onnxruntime-node dependency.
+        // This is a stub that throws a descriptive error if the dependency is missing.
+        try {
+            const ort = require('onnxruntime-node');
+            // In a full implementation, this would:
+            // 1. Tokenize the text using the model's tokenizer
+            // 2. Run the ONNX session with the tokenized input
+            // 3. Return the pooled embedding vector
+            throw new Error(
+                'ONNX embedding is not yet fully implemented. ' +
+                'The onnxruntime-node package is installed but the model pipeline is not configured. ' +
+                'Please use OpenAI or Ollama providers for now.'
+            );
+        } catch (error: any) {
+            if (error?.message?.includes('not yet fully implemented')) {
+                throw error;
+            }
+            throw new Error(
+                'ONNX runtime is not available. ' +
+                'Install onnxruntime-node as an optional dependency or use OpenAI/Ollama providers. ' +
+                `Original error: ${error?.message || String(error)}`
+            );
+        }
+    }
+
+    /**
+     * Generate an embedding vector for the given text, returning a simple array.
+     * @param text - The input text to embed.
+     * @returns A raw array of numbers representing the vector.
+     */
+    async embed(text: string): Promise<number[]> {
+        const result = await this.generateEmbedding(text);
+        return Array.from(result.vector);
+    }
 }
