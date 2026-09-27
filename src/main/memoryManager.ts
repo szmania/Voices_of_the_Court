@@ -52,9 +52,9 @@ export class MemoryManager {
      * @param userDataPath - Base path for user data storage.
      * @param embeddingDimension - Dimension of embedding vectors (default 1536).
      */
-    constructor(userDataPath: string, embeddingDimension: number = 1536) {
+    constructor(votcDataPath: string, embeddingDimension: number = 1536) {
         this.embeddingDimension = embeddingDimension;
-        const memoryDir = path.join(userDataPath, 'memory');
+        const memoryDir = path.join(votcDataPath, 'memory');
         if (!fs.existsSync(memoryDir)) {
             fs.mkdirSync(memoryDir, { recursive: true });
         }
@@ -254,7 +254,7 @@ export class MemoryManager {
     getMemoriesByCharacter(characterId: string, limit: number = 100, playerId?: string): Memory[] {
         let query: string;
         let params: any[];
-        
+
         if (playerId && characterId) {
             query = 'SELECT * FROM memories WHERE character_id = ? AND player_id = ? ORDER BY timestamp DESC LIMIT ?';
             params = [characterId, playerId, limit];
@@ -269,7 +269,7 @@ export class MemoryManager {
             query = 'SELECT * FROM memories ORDER BY timestamp DESC LIMIT ?';
             params = [limit];
         }
-        
+
         const stmt = this.db.prepare(query);
         const rows = stmt.all(...params) as any[];
         return rows.map(row => this.rowToMemory(row));

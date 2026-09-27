@@ -762,7 +762,7 @@ app.on('ready',  async () => {
     config = new Config(path.join(votcDataPath, 'configs', 'config.json'));
     diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder);
     const embeddingDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
-    memoryManager = new MemoryManager(userDataPath, embeddingDimension);
+    memoryManager = new MemoryManager(votcDataPath, embeddingDimension);
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
@@ -798,7 +798,7 @@ app.on('ready',  async () => {
 
     // Automatically import legacy memories for the current player on startup
     if (config.userFolderPath) {
-        getPlayerId(userDataPath).then(playerInfo => {
+        getPlayerId(votcDataPath).then(playerInfo => {
             if (playerInfo && playerInfo.playerId) {
                 console.log(`Startup: Found current player ID ${playerInfo.playerId}. Triggering legacy memory import.`);
                 importLegacyMemories(playerInfo.playerId);
@@ -1304,7 +1304,7 @@ app.on('ready',  async () => {
 
             // 2. Initialize the necessary tools
             const importDimension = getEffectiveEmbeddingDimension(currentConfig?.embeddingApiConnectionConfig?.connection);
-            const localMemoryManager = new MemoryManager(userDataPath, importDimension);
+            const localMemoryManager = new MemoryManager(votcDataPath, importDimension);
             if (!currentConfig.embeddingApiConnectionConfig) {
                 throw new Error("Embedding API connection is not configured.");
             }
@@ -1356,7 +1356,7 @@ app.on('ready',  async () => {
             }
 
             const statusDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
-            const localMemoryManager = new MemoryManager(userDataPath, statusDimension);
+            const localMemoryManager = new MemoryManager(votcDataPath, statusDimension);
             let loadedCount = 0;
             for (const compacted of compactedMemories) {
                 if (localMemoryManager.hasMemory(compacted.id)) {
