@@ -275,7 +275,9 @@ class MemoryConstellation extends HTMLElement {
     private pinnedMemory: any = null;
     private mouseDownPos = { x: 0, y: 0 };
     private characterMap: Record<string, string> = {};
-    private lines!: THREE.LineSegments;
+    // Parallel metadata for each rendered relation-line segment (index -> shared characterId), for hover tooltips.
+    private lineReasons: string[] = [];
+    private lines: THREE.LineSegments | null = null;
     private editorDrag = { dragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
 
     constructor() {
@@ -412,6 +414,26 @@ class MemoryConstellation extends HTMLElement {
                 }
             }
         });
+
+        // Double-click a node opens the same editor popup (same raycast + drag guard as click).
+        this.container.addEventListener('dblclick', (e) => {
+            const dx = e.clientX - this.mouseDownPos.x;
+            const dy = e.clientY - this.mouseDownPos.y;
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
+            if (!this.points || this.memories.length === 0) return;
+            const rect = this.container.getBoundingClientRect();
+            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            this.raycaster.setFromCamera(this.mouse, this.camera);
+            this.raycaster.params.Points!.threshold = 0.3;
+            const intersects = this.raycaster.intersectObject(this.points);
+            if (intersects.length > 0) {
+                const index = intersects[0].index;
+                if (index !== undefined && this.memories[index]) {
+                    this.showEditor(this.memories[index]);
+                }
+            }
+        });
     }
 
     private handleHover(e: MouseEvent) {
@@ -429,6 +451,24 @@ class MemoryConstellation extends HTMLElement {
             } else {
                 this.hideTooltip();
             }
+        } else if (this.lines && this.lineReasons.length > 0) {
+            // No node hit — try relation-line hover so the user can read WHY a link exists.
+            this.raycaster.params.Line!.threshold = 0.2;
+            const lineHits = this.raycaster.intersectObject(this.lines);
+            let shown = false;
+            if (lineHits.length > 0) {
+                const idx = lineHits[0].index;
+                if (idx !== undefined) {
+                    // LineSegments intersections index vertices (2 per segment), so halve to get the segment index.
+                    const characterId = this.lineReasons[idx >>> 1] || '';
+                    const name = this.getCharacterName(characterId);
+                    const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
+                    this.tooltip.innerHTML = '<div>' + this.escapeHtml(t('memory_constellation.edge_tooltip_same_character', 'Linked memories — both belong to {characterName}').replace('{characterName}', name)) + '</div>';
+                    this.tooltip.style.display = 'block';
+                    shown = true;
+                }
+            }
+            if (!shown) this.hideTooltip();
         } else {
             this.hideTooltip();
         }
@@ -533,6 +573,15 @@ class MemoryConstellation extends HTMLElement {
         if (memory.emotion) {
             parts.push('Emotion: ' + this.escapeHtml(memory.emotion));
         }
+        // Location is always rendered: localized scene name, "Letter" for letter-sourced
+        // memories, or a localized "Unknown" fallback when the scene is empty.
+        const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
+        const sceneName = memory.scene === 'letter'
+            ? t('memory_constellation.scene_letter', 'Letter')
+            : (memory.scene
+                ? t(`locations.${memory.scene}`, memory.scene)
+                : t('memory_constellation.location_unknown', 'Unknown'));
+        parts.push(t('memory_constellation.location_label', 'Location: ') + this.escapeHtml(sceneName));
         return parts.join('<br>');
     }
 
@@ -556,6 +605,7 @@ class MemoryConstellation extends HTMLElement {
                         positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2],
                         positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]
                     );
+                    this.lineReasons.push(String(memories[i].characterId || ''));
                 }
             }
         }
@@ -596,6 +646,9 @@ class MemoryConstellation extends HTMLElement {
             this.scene.remove(this.scene.children[0]); 
         }
         this.hideTooltip();
+        // Reset relation-line state; buildRelationLines repopulates both for the new data.
+        this.lines = null;
+        this.lineReasons = [];
         this.memories = memories || [];
 
         if (!memories || memories.length === 0) {

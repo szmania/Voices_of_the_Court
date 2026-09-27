@@ -1006,6 +1006,9 @@
     "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
   },
   "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
     "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
     "embedding_test_success": "Connection successful. Model: {model}, Dimensions: {dimensions}.",
     "embedding_test_success_matches": "Connection successful. Model: {model}, Dimensions: {dimensions} (matches overwrite).",
@@ -1044,6 +1047,9 @@
     "reindex_start": "Re-indexing vector database. Please wait...",
     "reindex_complete": "Re-index complete: {embedded}/{total} memories embedded.",
     "reindex_fail": "Re-index failed: {error}",
+    "scene_letter": "Letter",
+    "location_label": "Location: ",
+    "location_unknown": "Unknown",
     "total_memories": "Player Character Total Memories: {count}"
   },
   "compaction": {

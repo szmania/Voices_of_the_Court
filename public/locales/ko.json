@@ -26,6 +26,8 @@
     "description": "캐릭터의 일기 항목을 관리합니다."
   },
   "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
     "embedding_input_type": "Embedding input type",
     "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
     "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
@@ -36,7 +38,11 @@
     "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
     "legacy_status_no_legacy": "No legacy memories found",
     "legacy_status_error": "Error checking legacy memory status",
-    "total_memories": "Player Character Total Memories: {count}"
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "편지",
+    "location_label": "장소: ",
+    "location_unknown": "알 수 없음",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",
