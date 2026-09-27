@@ -8,11 +8,16 @@ export const player2BaseUrl = 'http://127.0.0.1:4315/v1';
 import { getEncoding, Tiktoken } from "js-tiktoken";
 
 // The OpenAI SDK throws APIUserAbortError (not the DOM AbortError) when a request
-// is cancelled, either by the user or by our AbortSignal.timeout. This helper
-// recognizes both so aborts are treated as cancellations, not unexpected errors.
+// is cancelled, either by the user or by our AbortSignal.timeout. The SDK's error
+// classes never assign `this.name`, so `error.name` stays 'Error' (inherited from
+// Error.prototype); the real class name only exists on `error.constructor.name`.
+// This helper checks both so aborts are treated as cancellations, not unexpected errors.
 export function isAbortError(error: any): boolean {
-    return !!error && typeof error === 'object' && 'name' in error &&
-        (error.name === 'AbortError' || error.name === 'APIUserAbortError');
+    if (!error) return false;
+    const name = error.name ?? '';
+    const ctorName = error.constructor?.name ?? '';
+    return name === 'AbortError' || name === 'APIUserAbortError' ||
+        ctorName === 'AbortError' || ctorName === 'APIUserAbortError';
 }
 
 /** HTTP status codes that indicate a transient failure worth retrying. */
@@ -279,8 +284,6 @@ export class ApiConnection{
         // Background fire-and-forget callers (e.g. post-conversation summarization)
         // can pass a larger timeoutMs so slow providers don't abort mid-request.
         const REQUEST_TIMEOUT_MS = timeoutMs ?? 120_000;
-        const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-        const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 
@@ -290,6 +293,11 @@ export class ApiConnection{
         let retries = 0;
 
         while (retries < MAX_RETRIES) {
+            // Build a FRESH timeout signal per attempt: AbortSignal.timeout stays
+            // aborted forever once it fires, so reusing it would make every retry
+            // fail instantly instead of getting its own timeout window.
+            const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+            const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
             console.debug(`Attempt ${retries + 1} of ${MAX_RETRIES}`);
             try {
                 if (this.type === 'gemini') {
@@ -649,8 +657,23 @@ export class ApiConnection{
                 }
             } catch (error) {
                 if (isAbortError(error)) {
-                    console.log('API request was aborted.');
-                    throw error; // Re-throw to be handled by the caller
+                    if (signal?.aborted) {
+                        // Caller's signal was aborted: genuine user cancel, do not retry.
+                        console.log('API request was aborted by caller.');
+                        throw error;
+                    }
+                    // No caller signal (or caller signal not aborted): the abort came
+                    // from the internal timeout or a network-level abort (e.g. the
+                    // server closed the connection). Retry with exponential backoff.
+                    retries++;
+                    if (retries >= MAX_RETRIES) {
+                        console.debug(`Failed after ${MAX_RETRIES} attempts (abort/timeout).`);
+                        throw error;
+                    }
+                    const delayMs = RETRY_DELAY * Math.pow(2, retries);
+                    console.warn(`API request aborted (timeout or network), retry ${retries}/${MAX_RETRIES} in ${delayMs}ms`);
+                    await delay(delayMs);
+                    continue;
                 }
                 console.debug(`--- API CONNECTION: complete() caught an error on attempt ${retries + 1} ---`);
                 console.error(error);

@@ -966,6 +966,7 @@ app.on('ready',  async () => {
         text: string;
         vector?: number[];
         emotion?: string;
+        scene?: string;
         timestamp?: number;
     }) => {
         console.log(`IPC: Received add-memory for character: ${memoryData.characterId}`);
@@ -983,6 +984,7 @@ app.on('ready',  async () => {
             const memory = {
                 id: randomUUID(),
                 characterId: memoryData.characterId,
+                scene: memoryData.scene || '',
                 text: memoryData.text,
                 vector: memoryData.vector || [],
                 timestamp: memoryData.timestamp || Date.now(),

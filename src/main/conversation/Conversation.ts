@@ -1791,6 +1791,7 @@ Statement by ${character.fullName}:`
                     id: item.id ?? randomUUID(),
                     characterId: item.characterId,
                     playerId: this.gameData.playerID.toString(),
+                    scene: this.gameData.scene || '',
                     text: item.text,
                     vector: embedding,
                     timestamp: item.timestamp ?? Date.now(),

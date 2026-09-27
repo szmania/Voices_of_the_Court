@@ -10,6 +10,7 @@ export interface Memory {
     id: string;
     characterId: string;
     playerId?: string;
+    scene?: string;
     text: string;
     vector: Float32Array | number[];
     timestamp: number;
@@ -77,6 +78,7 @@ export class MemoryManager {
                 id TEXT PRIMARY KEY,
                 character_id TEXT NOT NULL,
                 player_id TEXT DEFAULT '',
+                scene TEXT DEFAULT '',
                 text TEXT NOT NULL,
                 embedding BLOB,
                 timestamp INTEGER NOT NULL,
@@ -94,6 +96,11 @@ export class MemoryManager {
                 if (!columns.some(col => col.name === 'player_id')) {
                     console.log("MemoryManager: Old schema detected. Adding 'player_id' column to memories table for backward compatibility.");
                     this.db.exec("ALTER TABLE memories ADD COLUMN player_id TEXT DEFAULT ''");
+                }
+                // Backwards compatibility: Add scene if it doesn't exist.
+                if (!columns.some(col => col.name === 'scene')) {
+                    console.log("MemoryManager: Old schema detected. Adding 'scene' column to memories table for backward compatibility.");
+                    this.db.exec("ALTER TABLE memories ADD COLUMN scene TEXT DEFAULT ''");
                 }
                 // Migration from 'vector' to 'embedding'
                 if (columns.some(col => col.name === 'vector') && !columns.some(col => col.name === 'embedding')) {
@@ -186,14 +193,15 @@ export class MemoryManager {
         const vectorBlob = this.vectorToBlob(memory.vector);
 
         const stmt = this.db.prepare(`
-            INSERT INTO memories (id, character_id, player_id, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run(
             memory.id,
             memory.characterId,
             memory.playerId || '',
+            memory.scene || '',
             memory.text,
             vectorBlob,
             memory.timestamp,
@@ -576,6 +584,7 @@ export class MemoryManager {
             id: row.id,
             characterId: row.character_id,
             playerId: row.player_id || '',
+            scene: row.scene || '',
             text: row.text,
             vector: row.embedding ? this.blobToVector(row.embedding) : new Float32Array(),
             timestamp: row.timestamp,
@@ -653,8 +662,8 @@ export class MemoryManager {
         }
 
         const insertStmt = this.db.prepare(`
-            INSERT OR REPLACE INTO memories (id, character_id, player_id, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         const insertVectorStmt = this.vecAvailable ? this.db.prepare(
@@ -668,6 +677,7 @@ export class MemoryManager {
                     memory.id,
                     memory.characterId,
                     memory.playerId || '',
+                    memory.scene || '',
                     memory.text,
                     vectorBlob,
                     memory.timestamp,

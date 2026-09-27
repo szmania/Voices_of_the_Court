@@ -100,6 +100,7 @@ export class MemoryCompactor {
         let phase2DurationMs = 0;
 
         const result: CompactionResult = { phase1Run: false, phase2Run: false, memoriesCreated: 0 };
+        const newlyCompactedMemories: CompactedMemory[] = [];
         let compactedMessageIds: string[] = [];
 
         if (!this.config.enableMemoryCompaction) {
@@ -166,6 +167,7 @@ export class MemoryCompactor {
                 conv.messages = conv.messages.filter(m => !m.id || !compactedIdSet.has(m.id));
                 console.log(`Removed ${compactedMessageIds.length} compacted messages from conversation. Remaining: ${conv.messages.length}`);
 
+                newlyCompactedMemories.push(...phase1Results);
                 result.phase1Run = true;
                 result.memoriesCreated += phase1Results.length;
                 result.accuracyScore = accuracyScore;
@@ -214,6 +216,7 @@ export class MemoryCompactor {
                 }
             }
 
+            newlyCompactedMemories.push(...phase2Memories);
             result.phase2Run = true;
             result.memoriesCreated += phase2Memories.length;
         }
@@ -237,6 +240,7 @@ export class MemoryCompactor {
             endTimestamp: Date.now(),
         };
 
+        result.newlyCompactedMemories = newlyCompactedMemories;
         return result;
     }
 
