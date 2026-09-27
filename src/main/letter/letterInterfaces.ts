@@ -25,6 +25,8 @@ export interface Letter {
   deliveryTimestamp?: Date;
   expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
+  associatedAction?: LetterAssociatedAction;
+  triggeredActions: LetterAssociatedAction[];
   characterContext?: {
     playerId: string;
     playerName: string;
@@ -36,6 +38,14 @@ export interface Letter {
     locationController: string;
     totalDays: number;
   };
+}
+
+
+export interface LetterAssociatedAction {
+  signature: string;
+  args: any[];
+  triggerOn: 'send' | 'receive' | 'read';
+  status?: 'pending' | 'approved' | 'denied';
 }
 
 export interface StoredLetter {

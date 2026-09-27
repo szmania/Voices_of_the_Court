@@ -36,18 +36,18 @@ type ConversationSummary = SummaryEntry[];
  * 处理书签数据并将其写入角色对话摘要文件
  * 
  * @param bookmarkData 从游戏日志中解析出的书签数据，包含玩家信息和角色映射
- * @param userDataPath 用户数据路径，用于定位脚本和摘要文件
+ * @param votcDataPath 用户数据路径，用于定位脚本和摘要文件
  * @param bookmarkScriptPath 书签脚本文件路径，相对于bookmarks目录
  */
 export async function processBookmarkToSummary(
     bookmarkData: BookmarkData,
-    userDataPath: string,
+    votcDataPath: string,
     bookmarkScriptPath: string
 ): Promise<void> {
     console.log(`正在为玩家 ${bookmarkData.player.name} 处理书签摘要`);
     
     // 构建书签脚本文件的完整路径
-    const fullBookmarkPath = path.join(userDataPath, 'scripts', 'bookmarks', bookmarkScriptPath);
+    const fullBookmarkPath = path.join(votcDataPath, 'scripts', 'bookmarks', bookmarkScriptPath);
     
     // 检查书签脚本文件是否存在
     if (!fs.existsSync(fullBookmarkPath)) {
@@ -90,7 +90,7 @@ export async function processBookmarkToSummary(
     console.log(`找到 ${matchingEntries.length} 个匹配的书签条目`);
     
     // 创建对话摘要目录（如果不存在）
-    const summaryDir = path.join(userDataPath, 'conversation_summaries', bookmarkData.player.id);
+    const summaryDir = path.join(votcDataPath, 'conversation_summaries', bookmarkData.player.id);
     
     if (!fs.existsSync(summaryDir)) {
         fs.mkdirSync(summaryDir, { recursive: true });

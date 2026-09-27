@@ -804,6 +804,8 @@
     "tooltip_completed": "Anzahl der erfolgreich gesendeten oder gelesenen Briefe.",
     "search": "Suchen:",
     "search_placeholder": "Briefe durchsuchen...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "Tagen",
     "est": "gesch.",
     "reply_expected_in": "Antwort erwartet in",
@@ -823,7 +825,12 @@
     "status_journey_began": "Reise zu {character} hat begonnen",
     "status_awaiting_reply": "Warte auf Antwort von {character}",
     "status_reply_en_route": "Antwort ist unterwegs",
-    "estimated_reply": "Vorauss. Antwort: {date}"
+    "estimated_reply": "Vorauss. Antwort: {date}",
+    "triggered_actions": "Ausgelöste Aktionen",
+    "action_signature": "Aktion",
+    "action_trigger": "Auslöser",
+    "no_actions_triggered": "Keine Aktionen ausgelöst.",
+    "player_mismatch_warning": "Warnung: Der ausgewählte Spieler ist nicht die aktuell gespielte Figur. Genehmigte Aktionen werden in die Warteschlange gestellt, bis dieser Spieler gespielt wird."
   },
   "history": {
     "header": "Gesprächsverlaufs-Viewer",

@@ -105,6 +105,7 @@
   "actionsUseTextGenApi": true,
   "actionsEnableAll": true,
   "manualActionApproval": true,
+  "manualLetterActionApproval": true,
   "showPreviousConversations": true,
   "disableHistoricalConversations": false,
   "maxHistoricalConversations": 5,

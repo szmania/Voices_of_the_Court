@@ -118,7 +118,7 @@ module.exports = {
     pt: "Executar quando um personagem e outro se casam, casam-se matrilinearmente ou ficam noivos. A fonte (personagem 1) e o alvo (personagem 2) são as duas partes envolvidas.",
     tr: "Bir karakter başka biriyle evlendiğinde, matrilineal olarak evlendiğinde veya nişanlandığında çalıştırılır. Kaynak (karakter 1) ve hedef (karakter 2), ilgili iki taraftır."
   },
-
+  canPerformAtDistance: true,
   /**
    * @param {GameData} gameData
    * @param {number} sourceId
@@ -251,5 +251,5 @@ module.exports = {
     }
   },
 
-  chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
 };

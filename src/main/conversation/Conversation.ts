@@ -49,7 +49,7 @@ function getTranslations(lang: string): any {
 }
 
 export class Conversation{
-    userDataPath: string;
+    votcDataPath: string;
     chatWindow: ChatWindow;
     isOpen: boolean;
     gameData: GameData;
@@ -94,11 +94,11 @@ export class Conversation{
     /** Fired (fire-and-forget) after new memories are inserted into the vector store. */
     public onMemoriesEmbedded?: () => void;
 
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null, memoryManager?: MemoryManager){
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, votcDataPath: string, encoder: Tiktoken | null, memoryManager?: MemoryManager){
         this.encoder = encoder;
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
-        this.userDataPath = userDataPath;
+        this.votcDataPath = votcDataPath;
         this.config = config;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
@@ -159,7 +159,7 @@ export class Conversation{
         this.isGeneratingScene = false;
         this.pendingPlayerRequest = false;
 
-        const diariesBasePath = path.join(this.userDataPath, 'diary_history');
+        const diariesBasePath = path.join(this.votcDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
             fs.mkdirSync(diariesBasePath, { recursive: true });
         }
@@ -170,7 +170,7 @@ export class Conversation{
 
         // Create/Update character map for the current player in the conversation_summaries folder
         // This is the critical fix for the history loading on first run.
-        const summaryMapPath = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
+        const summaryMapPath = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
         let characterMap: { [key: string]: string } = {};
         if (fs.existsSync(summaryMapPath)) {
             try {
@@ -200,7 +200,7 @@ export class Conversation{
         fs.writeFileSync(diaryMapPath, JSON.stringify(characterMap, null, '\t'));
         console.log(`Character map for diaries updated at ${diaryMapPath}`);
 
-        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
+        const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
             fs.mkdirSync(summariesBasePath);
             console.log('Created conversation_summaries directory.');
@@ -330,13 +330,13 @@ export class Conversation{
         this.checkForSummariesFromOtherPlayers();
 
         // Initialize diary generator
-        this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
+        this.diaryGenerator = new DiaryGenerator(this.config, this.votcDataPath, this.encoder);
 
         // Initialize Memory Systems.
         // Reuse the shared MemoryManager injected from main.ts (a second instance
         // against the same SQLite file was the VOTC deadlock suspect). The fallback
         // only exists for tests that construct Conversation directly.
-        this.memoryManager = memoryManager ?? new MemoryManager(this.userDataPath, getEffectiveEmbeddingDimension(this.config?.embeddingApiConnectionConfig?.connection));
+        this.memoryManager = memoryManager ?? new MemoryManager(this.votcDataPath, getEffectiveEmbeddingDimension(this.config?.embeddingApiConnectionConfig?.connection));
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
@@ -378,7 +378,7 @@ export class Conversation{
             return;
         }
 
-        const historyDir = path.join(this.userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        const historyDir = path.join(this.votcDataPath, 'conversation_history', this.gameData.playerID.toString());
         if (!fs.existsSync(historyDir)) {
             return;
         }
@@ -391,7 +391,7 @@ export class Conversation{
 
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 
-        const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
+        const globalCharacterMap = await readCharacterMap(this.votcDataPath, this.gameData.playerID.toString());
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
         const INITIAL_BATCH_SIZE = 3; // Using 3 as requested for the initial synchronous load.
@@ -489,7 +489,7 @@ export class Conversation{
 
             const narrativeLabels = { en: "[Narrative]:", zh: "[旁白]:", ru: "[Повествование]:", fr: "[Récit]:", es: "[Narrativa]:", de: "[Erzählung]:", ja: "[ナラティブ]:", ko: "[내레이션]:", pl: "[Narracja]:", pt: "[Narrativa]:" };
             const narrativeRegex = new RegExp(`^(${Object.values(narrativeLabels).map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
-            const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+            const actionLabel = getEffectivePrompts(this.config, this.votcDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
             const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
 
             const historyCharacterIds = fileInfo.fileName.split('_').slice(0, -1);
@@ -1851,7 +1851,7 @@ Statement by ${character.fullName}:`
     private _saveHistoryToFile(): void {
         try {
             // Ensure the conversation_history directory exists
-            const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+            const historyDir = path.join(this.votcDataPath, 'conversation_history' ,this.gameData.playerID.toString());
 
             if (!fs.existsSync(historyDir)) {
               fs.mkdirSync(historyDir, { recursive: true });
@@ -1908,7 +1908,7 @@ Statement by ${character.fullName}:`
 
                 const actions = this.executedActions.get(msg.id);
                 if (actions && actions.length > 0) {
-                    const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
+                    const actionLabel = getEffectivePrompts(this.config, this.votcDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
                     actions.forEach(action => {
                         textContent += `${actionLabel} ${action.chatMessage}\n`;
                     });
@@ -1921,7 +1921,7 @@ Statement by ${character.fullName}:`
             const allCharacterIds = Array.from(this.gameData.characters.keys());
             const characterIdsString = allCharacterIds.join('_');
             const historyFile = path.join(
-                this.userDataPath,
+                this.votcDataPath,
                 'conversation_history',
                 this.gameData.playerID.toString(),
                 `${characterIdsString}_${new Date().getTime()}.txt`
@@ -1976,7 +1976,7 @@ Statement by ${character.fullName}:`
                 return;
             }
 
-            const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+            const summaryDirForMap = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString());
             const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
             let characterMap: {[key: number]: string} = {};
             if (fs.existsSync(characterMapPath)) {
@@ -2011,7 +2011,7 @@ Statement by ${character.fullName}:`
                 };
                 console.log(`ursation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
 
-                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryDir = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
 
                 this.summaryFileWatcher.pauseWatcher(summaryFile);
@@ -2191,7 +2191,7 @@ Statement by ${character.fullName}:`
         console.log('Loading actions from scripts.');
         this.actions = [];
 
-        const actionsPath = path.join(this.userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(this.votcDataPath, 'scripts', 'actions');
         let standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
         let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 
@@ -2257,6 +2257,20 @@ Statement by ${character.fullName}:`
      * isInitial determines if it's for the start of the conversation or a mid-conversation update.
      */
     public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
+        // Prevent duplicate scene descriptions if the last message is already a scene description.
+        if (this.messages.length > 0) {
+            const lastMessage = this.messages[this.messages.length - 1];
+            if (lastMessage.role === 'system' && (lastMessage as any).type === 'scene') {
+                console.log('Skipping scene description generation: last message is already a scene description.');
+                // If there's a pending player request, we still need to process it.
+                if (this.pendingPlayerRequest) {
+                    this.pendingPlayerRequest = false;
+                    setTimeout(() => this.generateAIsMessages(), 0);
+                }
+                return;
+            }
+        }
+
         console.log(`Starting scene description generation. Initial: ${isInitial}`);
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
 
@@ -2316,6 +2330,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state
             } else {
                 console.error('Error generating scene description:', error);
+                this.chatWindow.window.webContents.send('error-message', 'Failed to generate scene description.');
                 // If generation fails, it does not affect the normal flow of the conversation.
                 // Still need to clear loading state.
                 this.chatWindow.window.webContents.send('scene-description', null);
@@ -2323,21 +2338,17 @@ Statement by ${character.fullName}:`
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
             this.isGeneratingScene = false;
+            this.isGenerating = false; // Release the main lock
+            this.abortController = null;
 
             // If a player message came in while the scene was generating, process it now.
             if (this.pendingPlayerRequest) {
                 console.log('Processing queued player request after scene generation finished.');
                 this.pendingPlayerRequest = false;
-                // Ensure the main generation lock is released before starting the new generation.
-                this.isGenerating = false;
-                this.abortController = null;
-                this.generateAIsMessages();
+                setTimeout(() => this.generateAIsMessages(), 0);
             } else {
-                // If no pending request, just reset the state if we were the ones who set it.
-                if (!wasGenerating) {
-                    this.isGenerating = false;
-                    this.abortController = null;
-                }
+                 // Explicitly re-enable input if no pending requests
+                 this.chatWindow.window.webContents.send('generation-finished', true);
             }
         }
 
@@ -2507,7 +2518,7 @@ Statement by ${character.fullName}:`
 
     private async checkForSummariesFromOtherPlayers(): Promise<void> {
         console.log('Checking for summaries from other players...');
-        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
+        const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)) return;
 
         const playerDirs = fs.readdirSync(summariesBasePath, { withFileTypes: true })
@@ -2597,6 +2608,9 @@ Statement by ${character.fullName}:`
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
+                // Update UI to show who is speaking now
+                this.chatWindow.window.webContents.send('queue-update', [], { name: targetAI.shortName, id: targetAI.id });
+
                 // Generate AI2 -> AI1 response
                 const { actions } = await this.processCharacterList([targetAI], false, false, true);
 
@@ -2611,8 +2625,7 @@ Statement by ${character.fullName}:`
                 this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
-        // Notify the frontend that all generation is complete to re-enable the input field.
-        this.chatWindow.window.webContents.send('generation-finished', true);
+        // The main generateAIsMessages finally block will handle re-enabling the input.
     }
 
     public async initiateConversation(){

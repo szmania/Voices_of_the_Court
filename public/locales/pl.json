@@ -800,6 +800,8 @@
     "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane.",
     "search": "Szukaj:",
     "search_placeholder": "Szukaj listów...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "dni",
     "est": "szac.",
     "reply_expected_in": "Odpowiedź oczekiwana za",
@@ -819,7 +821,12 @@
     "status_journey_began": "Rozpoczęto podróż do {character}",
     "status_awaiting_reply": "Oczekiwanie na odpowiedź od {character}",
     "status_reply_en_route": "Odpowiedź jest w drodze",
-    "estimated_reply": "Szac. odp.: {date}"
+    "estimated_reply": "Szac. odp.: {date}",
+    "triggered_actions": "Wyzwolone akcje",
+    "action_signature": "Akcja",
+    "action_trigger": "Wyzwalacz",
+    "no_actions_triggered": "Nie wyzwolono żadnych akcji.",
+    "player_mismatch_warning": "Ostrzeżenie: wybrany gracz nie jest aktualnie odgrywaną postacią. Zatwierdzone akcje zostaną umieszczone w kolejce, dopóki ten gracz nie będzie odgrywany."
   },
   "history": {
     "header": "Przeglądarka historii rozmów",

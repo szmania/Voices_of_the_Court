@@ -37,7 +37,7 @@ module.exports = {
         pt: `Executado quando o diálogo ou ação de um personagem melhora significativamente a opinião que outro tem dele.`,
         tr: `Bir karakterin diyaloğu veya eylemi başka birinin ona olan görüşünü önemli ölçüde iyileştirdiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -102,5 +102,5 @@ module.exports = {
             tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} arttı.`
         }
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
 }

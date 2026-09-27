@@ -24,6 +24,7 @@ module.exports = {
         pt: `Executado quando um personagem decide demitir ou destituir outro personagem do seu conselho.`,
         tr: `Bir karakter başka birini konseyinden kovmaya veya azletmeye karar verdiğinde çalıştırılır.`
     },
+  canPerformAtDistance: true,
 
     /**
      * @param {GameData} gameData 
@@ -80,5 +81,5 @@ module.exports = {
             tr: `{{character1Name}}, {{character2Name}}'yi konseyden kovdu.`
         }
     },
-    chatMessageClass: "negative-action-message"
+    chatMessageClass: "negative-action-message",
 }

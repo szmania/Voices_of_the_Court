@@ -98,7 +98,7 @@ export class ApiConnection{
     constructor(connection: Connection, parameters: any, encoder: Tiktoken | null){
         this.encoder = encoder;
         console.debug("--- API CONNECTION: Constructor ---");
-        
+
         // Create a deep copy for logging to ensure original object is not modified.
         const redactedConnection = JSON.parse(JSON.stringify(connection));
         redactedConnection.key = '[REDACTED]';
@@ -151,7 +151,7 @@ export class ApiConnection{
         }
         this.model = connection.model;
         this.forceInstruct = connection.forceInstruct;
-        
+
         const apiParams: Parameters = {};
         if (parameters.enableTemperature) {
             apiParams.temperature = parameters.temperature;
@@ -225,7 +225,7 @@ export class ApiConnection{
         if (this.type === 'novelai') {
             const token = this.config.key;
             const baseHost = 'https://text.novelai.net/oa/v1/completions';
-            
+
             // Convert VOTC message array into a single text prompt using System, User, and Assistant labels
             const promptString = Array.isArray(prompt)
                 ? prompt.map((p: any) => {
@@ -921,7 +921,7 @@ export class ApiConnection{
             // An empty response is still a success — the API returned 2xx with no body.
             console.log("API returned an empty response");
             return {success: true, overwriteWarning: this.overwriteWarning };
-            
+
         }).catch( (err) =>{
             console.debug("testConnection caught an error from complete():", err);
 
@@ -934,7 +934,7 @@ export class ApiConnection{
             if (err instanceof Error) {
                 return {success: false, overwriteWarning: false, errorMessage: err.message};
             }
-            
+
             // Handle other structured errors from `complete`
             if (err && err.error && err.error.message) {
                 return {success: false, overwriteWarning: false, errorMessage: err.error.message};

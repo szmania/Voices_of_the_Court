@@ -7,13 +7,16 @@ import {SummaryManagerWindow} from './windows/SummaryManagerWindow';
 import { ConversationHistoryWindow } from './windows/ConversationHistoryWindow';
 import { Config } from '../shared/Config';
 import { DiaryGenerator } from './diary/DiaryGenerator';
+import { RunFileManager } from './RunFileManager.js';
 import { ClipboardListener } from "./ClipboardListener";
 import { Conversation } from "./conversation/Conversation";
 import { GameData } from "../shared/gameData/GameData";
 import { Letter } from "./letter/Letter";
-import { StoredLetter } from "./letter/letterInterfaces";
+import { Letter as ILetter, StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { LetterManager } from "./letter/LetterManager";
+import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
+import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
 import { parseLog } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
@@ -101,6 +104,7 @@ process.on('unhandledRejection', (error, p) => {
 
 //check config files
 let userDataPath: string;
+let votcDataPath: string;
 
 const compareVersions = (v1: string, v2: string): number => {
     const parse = (v: string) => {
@@ -318,8 +322,11 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 
     if (rehydratedCount > 0) {
-        console.log(`rehydratePendingReplyLetters: Re-hydrated ${rehydratedCount} pending letter replies.`);
-        checkAndDeliverLetters();
+        if (currentTotalDays > 0) {
+            checkAndDeliverLetters();
+        } else {
+            console.log('rehydratePendingReplyLetters: Skipping immediate delivery check as currentTotalDays is not yet initialized.');
+        }
     }
 }
 
@@ -345,7 +352,7 @@ export async function checkAndDeliverLetters() {
 
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
     if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
-        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} — no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
+        console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} Ã¢â‚¬â€ no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
         lastLetterSentToGame = null;
     }
 
@@ -377,8 +384,8 @@ export async function checkAndDeliverLetters() {
     }
 }
 
-export function totalDaysToDateString(totalDays: number): string {
-    const year = Math.floor(totalDays / 365);
+function totalDaysToDateString(totalDays: number): string {
+    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -413,6 +420,107 @@ function removeLettersAfterDate(cutoffDate: number): void {
     }
 }
 
+/**
+ * Loads the action module and writes its effect to the letter run file, mirroring the
+ * live-approve code path. Returns true on success. Used both for immediate approval of
+ * the active player's actions and for executing queued approvals when a player resumes.
+ */
+/**
+ * Resolves the letter thread name (e.g. "letter_1") for a queued/approved letter action
+ * by looking up the stored letter and extracting the thread pattern from its subject.
+ */
+function resolveLetterName(playerId: string, characterId: string, letterId: string): string {
+    try {
+        const letter = LetterManager.getInstance().getAllLetters(playerId).find(l => l.id === letterId);
+        const subject = letter?.subject ?? '';
+        const match = subject.match(/letter_\d+/);
+        if (match) return match[0];
+        if (subject) return subject;
+    } catch (e) {
+        console.warn(`resolveLetterName: Failed to resolve letter name for letter ${letterId}:`, e);
+    }
+    console.warn(`resolveLetterName: Could not resolve letter name for letter ${letterId}; falling back to 'letter_1'.`);
+    return 'letter_1';
+}
+
+async function executeLetterActionEffect(actionSignature: string, args: any[], sourceId: number, targetId: number, letterName: string): Promise<boolean> {
+    try {
+        const allActions: any[] = [];
+        const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
+        const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
+        const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
+
+        for (const file of standardActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'standard', file))];
+            allActions.push(require(path.join(actionsPath, 'standard', file)));
+        }
+        for (const file of customActionFiles) {
+            delete require.cache[require.resolve(path.join(actionsPath, 'custom', file))];
+            allActions.push(require(path.join(actionsPath, 'custom', file)));
+        }
+
+        const action = allActions.find(a => a.signature === actionSignature);
+        if (!action) {
+            console.error(`[LetterApprovalQueue] Action with signature '${actionSignature}' not found.`);
+            return false;
+        }
+
+        const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (!gameData) {
+            console.error('[LetterApprovalQueue] Could not parse gameData to execute letter action.');
+            return false;
+        }
+
+        const letterRunFileManager = new RunFileManager(config.userFolderPath);
+        let effectBody = "";
+        action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
+
+        // Letter approvals use the letter-specific global scope variables, not the
+        // positional conversation list prelude.
+        ActionEffectWriter.writeLetterEffect(letterRunFileManager, sourceId, targetId, gameData.playerID, letterName, effectBody);
+        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
+        // Clear the letter actions file after the game has consumed it,
+        // mirroring the conversation run file pattern (Conversation.ts ~line 1746).
+        setTimeout(() => {
+            letterRunFileManager.clear();
+            console.log('[LetterApprovalQueue] Cleared letter actions file after trigger event.');
+        }, 800);
+        return true;
+    } catch (e: any) {
+        console.error(`[LetterApprovalQueue] Failed to execute letter action '${actionSignature}': ${e.message}`);
+        return false;
+    }
+}
+
+/**
+ * Executes every queued approval belonging to the given player exactly once, removing
+ * each entry from the queue on success. Called when the active session player becomes
+ * that player.
+ */
+async function processQueuedApprovals(playerId: string): Promise<void> {
+    // Only drain entries that are due: legacy entries with no game-date stamp (treated as due)
+    // and entries whose gameDateTotalDays <= currentTotalDays. Future-dated entries stay queued.
+    const queued = LetterApprovalQueue.getDueApprovalsForPlayer(playerId, currentTotalDays);
+    if (queued.length === 0) return;
+    console.log(`[LetterApprovalQueue] Processing ${queued.length} due queued letter action approval(s) for player ${playerId} (current day: ${currentTotalDays}).`);
+    for (const entry of queued) {
+        const letterName = entry.letterName ?? resolveLetterName(entry.playerId, entry.characterId, entry.letterId);
+        const ok = await executeLetterActionEffect(entry.actionSignature, entry.args, entry.sourceId, entry.targetId, letterName);
+        if (ok) {
+            LetterApprovalQueue.removeQueuedApproval(entry.id);
+            console.log(`[LetterApprovalQueue] Executed queued letter action '${entry.actionSignature}' for player ${playerId}.`);
+        } else {
+            console.warn(`[LetterApprovalQueue] Skipping queued letter action '${entry.actionSignature}' for player ${playerId} (execution failed).`);
+        }
+    }
+}
+
+function broadcastCurrentSessionPlayer(): void {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('current-session-player-changed', currentSessionPlayerId);
+    });
+}
+
 export function updateCurrentDate(newTotalDays: number) {
     const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
@@ -433,13 +541,15 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
 
     // After a potential time travel or large jump, re-evaluate the player ID
-    if (fs.existsSync(userDataPath)) {
-        getPlayerId(userDataPath).then(result => {
+    if (fs.existsSync(votcDataPath)) {
+        getPlayerId(votcDataPath).then(result => {
             const newPlayerId = result.playerId;
             if (newPlayerId && oldPlayerId !== newPlayerId) {
                 console.log(`Player session changed from ${oldPlayerId} to ${newPlayerId}. Clearing cache.`);
                 clearCachedGameData();
                 currentSessionPlayerId = newPlayerId;
+                broadcastCurrentSessionPlayer();
+                processQueuedApprovals(newPlayerId);
             }
         });
     }
@@ -451,6 +561,13 @@ export function updateCurrentDate(newTotalDays: number) {
     currentTotalDays = newTotalDays;
     console.log(`Game date updated to: ${currentTotalDays}`);
     checkAndDeliverLetters();
+
+    // Drain due queued letter-action approvals for the active player on EVERY date tick,
+    // not only on player change or conversation start. Future-dated entries remain queued
+    // until their game date passes (handled inside processQueuedApprovals).
+    if (currentSessionPlayerId != null && currentTotalDays > 0) {
+        processQueuedApprovals(currentSessionPlayerId);
+    }
 
     // Broadcast the date update to all renderer windows
     BrowserWindow.getAllWindows().forEach(win => {
@@ -552,7 +669,7 @@ async function initCurrentDateFromLog(): Promise<void> {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
     if (!config.userFolderPath || !fs.existsSync(debugLogPath)) return;
 
-    const CHUNK_SIZE = 512 * 1024; // 512KB — enough to find a recent VOTC:DATE
+    const CHUNK_SIZE = 512 * 1024; // 512KB Ã¢â‚¬â€ enough to find a recent VOTC:DATE
     let handle;
     try {
         handle = await fs.promises.open(debugLogPath, 'r');
@@ -629,20 +746,21 @@ app.on('ready',  async () => {
         console.error("Failed to initialize tiktoken encoder at startup:", e);
     }
     console.log('App is ready event triggered.');
-    userDataPath = path.join(app.getPath('userData'), 'votc_data');
+    userDataPath = app.getPath('userData');
+    votcDataPath = path.join(userDataPath, 'votc_data');
 
    await checkUserData();
    compactedMemoryStore.migrateDataDirectory();
    console.log('User data check completed.');
 
     // Relocated config loading to happen earlier
-    if (!fs.existsSync(path.join(userDataPath, 'configs', 'config.json'))){
-        let conf = await JSON.parse(fs.readFileSync(path.join(userDataPath, 'configs', 'default_config.json')).toString());
-        await fs.writeFileSync(path.join(userDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
+    if (!fs.existsSync(path.join(votcDataPath, 'configs', 'config.json'))){
+        let conf = await JSON.parse(fs.readFileSync(path.join(votcDataPath, 'configs', 'default_config.json')).toString());
+        await fs.writeFileSync(path.join(votcDataPath, 'configs', 'config.json'), JSON.stringify(conf, null, '\t'))
     }
 
-    config = new Config(path.join(userDataPath, 'configs', 'config.json'));
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
+    config = new Config(path.join(votcDataPath, 'configs', 'config.json'));
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder);
     const embeddingDimension = getEffectiveEmbeddingDimension(config?.embeddingApiConnectionConfig?.connection);
     memoryManager = new MemoryManager(userDataPath, embeddingDimension);
     loadTranslations(config.language);
@@ -1176,14 +1294,14 @@ app.on('ready',  async () => {
         try {
             console.log(`Executing import of legacy memories for player ${playerId}`);
             const currentConfig = config; // Use the live app configuration (updated when the user saves settings), not the stale cached config from configManager
-        
+
             // 1. Load all legacy compacted memories from JSON files
             const { memories: compactedMemories } = await compactedMemoryStore.getAllCompactedMemories(playerId);
             if (!compactedMemories || compactedMemories.length === 0) {
               console.log(`No legacy memories found for player ${playerId}. Import not needed.`);
               return { success: true, count: 0, message: 'No legacy memories found to import.' };
             }
-    
+
             // 2. Initialize the necessary tools
             const importDimension = getEffectiveEmbeddingDimension(currentConfig?.embeddingApiConnectionConfig?.connection);
             const localMemoryManager = new MemoryManager(userDataPath, importDimension);
@@ -1191,7 +1309,7 @@ app.on('ready',  async () => {
                 throw new Error("Embedding API connection is not configured.");
             }
             const embeddingApi = new ApiConnection(currentConfig.embeddingApiConnectionConfig.connection, currentConfig.embeddingApiConnectionConfig.parameters, null);
-    
+
             // 3. Transform and vectorize the legacy memories
             const memoriesToInsert: Memory[] = [];
             for (const compacted of compactedMemories) {
@@ -1213,13 +1331,13 @@ app.on('ready',  async () => {
                 console.error(`Failed to generate embedding for legacy memory ${compacted.id}:`, e);
               }
             }
-    
+
             // 4. Batch insert into the new database
             if (memoriesToInsert.length > 0) {
               localMemoryManager.batchInsertMemories(memoriesToInsert);
               sendMemoriesChanged();
             }
-        
+
             localMemoryManager.close();
             console.log(`Finished importing ${memoriesToInsert.length} legacy memories for player ${playerId}.`);
             return { success: true, count: memoriesToInsert.length };
@@ -1274,7 +1392,7 @@ app.on('ready',  async () => {
     //logging
     var util = require('util');
 
-    var log_file = fs.createWriteStream(path.join(userDataPath, 'logs', 'debug.log'), {flags : 'w'});
+    var log_file = fs.createWriteStream(path.join(votcDataPath, 'logs', 'debug.log'), {flags : 'w'});
 
     const originalConsole = {
         log: console.log,
@@ -1444,7 +1562,7 @@ app.on('ready',  async () => {
     readmeWindow = new ReadmeWindow();
     console.log('ReadmeWindow created.');
 
-    // 检查是否是首次启动
+    // Ã¦Â£â‚¬Ã¦Å¸Â¥Ã¦ËœÂ¯Ã¥ÂÂ¦Ã¦ËœÂ¯Ã©Â¦â€“Ã¦Â¬Â¡Ã¥ÂÂ¯Ã¥Å Â¨
     // checkFirstRunAndShowReadme(); // Disabled: Don't show help window on startup
 
     chatWindow.window.on('closed', () =>{
@@ -1456,7 +1574,6 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
-    startLogTailing();
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -1464,7 +1581,7 @@ app.on('ready',  async () => {
     });
 
 ipcMain.on('open-external-link', (event, url: string) => {
-    console.log('IPC: 打开外部链接:', url);
+    console.log('IPC: Ã¦â€°â€œÃ¥Â¼â‚¬Ã¥Â¤â€“Ã©Æ’Â¨Ã©â€œÂ¾Ã¦Å½Â¥:', url);
     shell.openExternal(url);
 });
 
@@ -1473,20 +1590,20 @@ ipcMain.on('update-app', ()=>{
     checkForUpdates();
 });
 
-// README窗口相关IPC事件
+// READMEÃ§Âªâ€”Ã¥ÂÂ£Ã§â€ºÂ¸Ã¥â€¦Â³IPCÃ¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('close-readme-window', () => {
-    console.log('IPC: 关闭README窗口');
+    console.log('IPC: Ã¥â€¦Â³Ã©â€”Â­READMEÃ§Âªâ€”Ã¥ÂÂ£');
     if (readmeWindow && !readmeWindow.isDestroyed()) {
         readmeWindow.close();
     }
 });
 
   ipcMain.on('open-readme-window', () => {
-      console.log('IPC: 打开README窗口');
+      console.log('IPC: Ã¦â€°â€œÃ¥Â¼â‚¬READMEÃ§Âªâ€”Ã¥ÂÂ£');
       if (readmeWindow && !readmeWindow.isDestroyed()) {
           readmeWindow.show();
       } else {
-          // 如果窗口不存在或被销毁，重新创建
+          // Ã¥Â¦â€šÃ¦Å¾Å“Ã§Âªâ€”Ã¥ÂÂ£Ã¤Â¸ÂÃ¥Â­ËœÃ¥Å“Â¨Ã¦Ë†â€“Ã¨Â¢Â«Ã©â€â‚¬Ã¦Â¯ÂÃ¯Â¼Å’Ã©â€¡ÂÃ¦â€“Â°Ã¥Ë†â€ºÃ¥Â»Âº
           readmeWindow = new ReadmeWindow();
           readmeWindow.show();
       }
@@ -1504,7 +1621,7 @@ ipcMain.on('clear-summaries', ()=>{
       dialog.showMessageBox(dialogOpts).then((returnValue) => {
         console.log(`User chose to ${returnValue.response === 0 ? 'confirm' : 'cancel'} clearing summaries.`);
         if (returnValue.response === 0){
-            const remPath = path.join(userDataPath, 'conversation_summaries');
+            const remPath = path.join(votcDataPath, 'conversation_summaries');
 
             fs.readdir(remPath, (err, files) => {
                 if (err) throw err;
@@ -1581,11 +1698,13 @@ clipboardListener.on('VOTC:IN', async () =>{
             }
             setCachedGameData(gameData);
             currentSessionPlayerId = String(gameData.playerID);
+            broadcastCurrentSessionPlayer();
+            processQueuedApprovals(String(gameData.playerID));
 
             if (gameData.totalDays) {
                 updateCurrentDate(gameData.totalDays);
             }
-            conversation = new Conversation(gameData, config, chatWindow, userDataPath, tiktokenEncoder);
+            conversation = new Conversation(gameData, config, chatWindow, votcDataPath, tiktokenEncoder);
             // Wire the memory-insertion callback so main broadcasts a Memories-tab refresh
             // whenever this conversation embeds new memories (compaction / summary embedding).
             conversation.onMemoriesEmbedded = () => sendMemoriesChanged();
@@ -1676,6 +1795,13 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
             );
 
             lastLetterSentToGame = null; // Clear the tracked letter
+
+            // Guard: never auto-execute letter actions when manual approval is enabled.
+            // This branch is currently dead (associatedAction is never assigned), but if it
+            // is ever enabled, it must still respect manualLetterActionApproval.
+            if (!config.manualLetterActionApproval && replyLetter.associatedAction?.triggerOn === 'send') {
+              LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
+            }
 
             // Notify UI of the final status change
             if (configWindow && !configWindow.window.isDestroyed()) {
@@ -1775,7 +1901,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
         const letterManager = LetterManager.getInstance();
 
         // First, update the character map with the latest data from the log
-        let characterNameMap: Map<string, string> = await readCharacterMap(userDataPath, playerId);
+        let characterNameMap: Map<string, string> = await readCharacterMap(votcDataPath, playerId);
 
         // Add all characters from the current gameData to the map
         gameData.characters.forEach(char => {
@@ -1789,22 +1915,39 @@ clipboardListener.on('VOTC:LETTER', async () => {
         characterNameMap.forEach((name, id) => {
             mapToSave[id] = name;
         });
-        await saveCharacterMap(userDataPath, playerId, mapToSave);
+        await saveCharacterMap(votcDataPath, playerId, mapToSave);
         console.log(`Updated character map before letter import for player ${playerId}`);
 
 
         // Import letters from log, which now also saves them.
-        await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
-        console.log("Imported and saved letters immediately after VOTC:LETTER event.");
+        // Retry import up to 5 times with increasing delays to handle log flush timing
+        let latestLetter: ILetter | null = null;
+        let allPlayerLetters: ILetter[] = [];
+        const maxRetries = 5;
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            await letterManager.importLettersFromLog(config, gameData, playerId, gameDate, recipientId);
+            console.log(`Imported and saved letters immediately after VOTC:LETTER event (attempt ${attempt + 1}/${maxRetries}).`);
 
-        // Refresh the letters UI to show the new letter in the outbox
-        if (configWindow && !configWindow.window.isDestroyed()) {
-            configWindow.window.webContents.send('letter-status-changed');
+            // Refresh the letters UI to show the new letter in the outbox
+            if (configWindow && !configWindow.window.isDestroyed()) {
+                configWindow.window.webContents.send('letter-status-changed');
+            }
+
+            // Get all letters for the player and find the most recent one by creation date.
+            allPlayerLetters = letterManager.getAllLetters(playerId);
+            latestLetter = letterManager.getLatestLetter(playerId);
+
+            if (latestLetter) {
+                console.log(`Found latest letter ${latestLetter.id} on attempt ${attempt + 1}.`);
+                break;
+            }
+
+            if (attempt < maxRetries - 1) {
+                const delay = 250 * (attempt + 1); // 250ms, 500ms, 750ms, 1000ms
+                console.log(`No letters found after import on attempt ${attempt + 1}. Retrying in ${delay}ms...`);
+                await sleep(delay);
+            }
         }
-
-        // Get all letters for the player and find the most recent one by creation date.
-        const allPlayerLetters = letterManager.getAllLetters(playerId);
-        const latestLetter = letterManager.getLatestLetter(playerId);
 
         if (!latestLetter) {
             console.error("VOTC:LETTER event, but no letters found after import.");
@@ -1864,7 +2007,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
             updateCurrentDate(gameData.totalDays);
         }
 
-        const letterReplyGenerator = new LetterReplyGenerator(config, userDataPath, tiktokenEncoder);
+        const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
         const replyLetter = await letterReplyGenerator.generateLetterReply(gameData, latestLetter);
 
         // Diary entry for player sending a letter
@@ -1899,6 +2042,12 @@ clipboardListener.on('VOTC:LETTER', async () => {
         storedLetters.set(latestLetter.id, storedLetter);
         console.log(`Letter ${latestLetter.id} reply generated and stored. Will deliver on day ${expectedDeliveryDay}. Current day: ${currentTotalDays}`);
 
+        // Guard: never auto-execute letter actions when manual approval is enabled.
+        // This branch is currently dead (associatedAction is never assigned), but if it
+        // is ever enabled, it must still respect manualLetterActionApproval.
+        if (!config.manualLetterActionApproval && replyLetter.associatedAction?.triggerOn === 'send') {
+          LetterActionTrigger.executeLetterAction(replyLetter, replyLetter.associatedAction, config);
+        }
         // Diary entry for AI receiving a letter and replying
         if (config.diaryGenerationChance > 0 && Math.random() < (config.diaryGenerationChance / 100)) {
             const aiCharacter = gameData.getCharacter(replyLetter.sender.id);
@@ -1944,7 +2093,7 @@ ipcMain.on('message-send', async (e, message: Message) =>{
     }
 });
 
-    // 处理获取推荐输入语句的请求
+    // Ã¥Â¤â€žÃ§Ââ€ Ã¨Å½Â·Ã¥Ââ€“Ã¦Å½Â¨Ã¨ÂÂÃ¨Â¾â€œÃ¥â€¦Â¥Ã¨Â¯Â­Ã¥ÂÂ¥Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
     ipcMain.on('get-suggestions', async (event) => {
         if (conversation) {
             try {
@@ -1983,7 +2132,7 @@ ipcMain.handle('get-userdata-path', () => {
 
 ipcMain.handle('get-prompt-presets', async () => {
     console.log('IPC: Received get-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(votcDataPath, 'configs', 'prompt_presets.json');
     if (fs.existsSync(presetsPath)) {
         try {
             const presetsRaw = await fs.promises.readFile(presetsPath, 'utf-8');
@@ -2031,7 +2180,7 @@ ipcMain.handle('get-default-prompts', async () => {
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {
     console.log('IPC: Received save-prompt-presets event.');
-    const presetsPath = path.join(userDataPath, 'configs', 'prompt_presets.json');
+    const presetsPath = path.join(votcDataPath, 'configs', 'prompt_presets.json');
     try {
         await fs.promises.writeFile(presetsPath, JSON.stringify(presets, null, '\t'));
         return { success: true };
@@ -2065,6 +2214,11 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
 
     if (promptKeys.includes(confID)) {
         // @ts-ignore
+        if (!config.prompts) {
+            // @ts-ignore
+            config.prompts = {};
+        }
+        // @ts-ignore
         if (!config.prompts[config.language]) {
             // @ts-ignore
             config.prompts[config.language] = {};
@@ -2077,12 +2231,12 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
 
-    // 将配置变更发送到聊天窗口
+    // Ã¥Â°â€ Ã©â€¦ÂÃ§Â½Â®Ã¥ÂËœÃ¦â€ºÂ´Ã¥Ââ€˜Ã©â‚¬ÂÃ¥Ë†Â°Ã¨ÂÅ Ã¥Â¤Â©Ã§Âªâ€”Ã¥ÂÂ£
     if (chatWindow.window) {
         chatWindow.window.webContents.send('config-change', confID, newValue);
     }
@@ -2157,7 +2311,7 @@ ipcMain.on('config-change-nested', (e, outerConfID: string, innerConfID: string,
     }
 
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -2174,7 +2328,7 @@ ipcMain.on('config-change-nested-nested', (e, outerConfID: string, middleConfID:
     //@ts-ignore
     config[outerConfID][middleConfID][innerConfID] = newValue;
     config.export();
-    diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder); // Re-initialize with new config
+    diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
@@ -2252,7 +2406,7 @@ ipcMain.handle('export-player-data', async () => {
             return { success: false, error: 'Export cancelled by user.' };
         }
 
-        await exportPlayerData(userDataPath, result.filePath);
+        await exportPlayerData(votcDataPath, result.filePath);
         return { success: true, filePath: result.filePath };
     } catch (error) {
         console.error('Error exporting player data:', error);
@@ -2276,7 +2430,7 @@ ipcMain.handle('import-player-data', async () => {
         }
 
         const importPath = result.filePaths[0];
-        await importPlayerData(userDataPath, importPath);
+        await importPlayerData(votcDataPath, importPath);
         return { success: true, filePath: importPath };
     } catch (error) {
         console.error('Error importing player data:', error);
@@ -2464,6 +2618,87 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
     }
 });
 
+function broadcastCurrentSessionPlayer(): void {
+    BrowserWindow.getAllWindows().forEach(win => {
+        win.webContents.send('current-session-player-changed', currentSessionPlayerId);
+    });
+}
+
+ipcMain.handle('get-current-session-player', () => currentSessionPlayerId);
+
+ipcMain.on('approve-letter-action', async (event, { playerId, characterId, letterId, actionSignature, args, sourceId, targetId }) => {
+    console.log(`IPC: Received approve-letter-action for action: ${actionSignature}`);
+    try {
+        // Robust active-player detection: trust the cached session player first (fast path),
+        // then fall back to a fresh parse of debug.log when the cache is null or disagrees.
+        // This prevents approvals for the currently played character from being queued just
+        // because no conversation has started this session (cache never set) or is stale.
+        let isActivePlayer = currentSessionPlayerId != null && playerId === currentSessionPlayerId;
+        if (isActivePlayer) {
+            console.log(`[LetterApprovalQueue] Active-player check passed via cached currentSessionPlayerId (${currentSessionPlayerId}).`);
+        } else {
+            const freshGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+            const freshPlayerId = freshGameData?.playerID != null ? String(freshGameData.playerID) : null;
+            if (freshPlayerId != null && freshPlayerId === playerId) {
+                isActivePlayer = true;
+                console.log(`[LetterApprovalQueue] Active-player check passed via fresh debug.log parse (player ${playerId}); refreshing cached session player.`);
+                currentSessionPlayerId = freshPlayerId;
+                broadcastCurrentSessionPlayer();
+            } else {
+                console.log(`[LetterApprovalQueue] Active-player check failed for player ${playerId}: cached=${currentSessionPlayerId}, log=${freshPlayerId}. Approval will be queued.`);
+            }
+        }
+        const letterName = resolveLetterName(playerId, characterId, letterId);
+        // Timeline gating: an action must not fire before the letter has reached its
+        // recipient (stage 1 of the journey = totalDays + floor(delay * 4/9)). If the
+        // letter is still en route, queue the approval instead of executing now —
+        // processQueuedApprovals drains it once the in-game date passes the due day.
+        const approvalLetter = LetterManager.getInstance().getAllLetters(playerId).find(l => l.id === letterId);
+        const stage1EndDay = approvalLetter
+            ? approvalLetter.totalDays + Math.floor((approvalLetter.delay || 0) * 4 / 9)
+            : null;
+        const isDue = stage1EndDay == null || currentTotalDays >= stage1EndDay;
+
+        if (isActivePlayer && isDue) {
+            const ok = await executeLetterActionEffect(actionSignature, args, sourceId, targetId, letterName);
+            if (!ok) {
+                throw new Error(`Failed to execute approved letter action '${actionSignature}'.`);
+            }
+            console.log(`Approved letter action '${actionSignature}' executed successfully.`);
+        } else if (isActivePlayer && !isDue) {
+            // Active player, but letter has not arrived at the AI character yet.
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: stage1EndDay! });
+            console.log(`Approved letter action '${actionSignature}' queued until letter delivery (day ${stage1EndDay}; current day ${currentTotalDays}).`);
+        } else {
+            // The letter belongs to a player who is not currently played. Persist the
+            // approval status now, but queue the actual effect execution until that player
+            // becomes the active session player. If the letter is still en route at that
+            // point, stage1EndDay gates it; otherwise it is due immediately (currentTotalDays).
+            const dueDay = stage1EndDay != null && stage1EndDay > currentTotalDays ? stage1EndDay : currentTotalDays;
+            LetterApprovalQueue.queueApproval({ playerId, characterId, letterId, actionSignature, args, sourceId, targetId, letterName, gameDateTotalDays: dueDay });
+            console.log(`Approved letter action '${actionSignature}' for non-active player ${playerId}. Queued for execution when that player is played.`);
+        }
+        // Persist the approval status so it survives navigation and app restarts.
+        if (playerId && characterId) {
+            LetterManager.getInstance().updateLetterActionStatus(playerId, characterId, letterId, actionSignature, 'approved');
+        }
+        event.sender.send('letter-action-approved', { letterId, actionSignature });
+
+    } catch (e: any) {
+        const errMsg = `Failed to execute approved letter action: ${e.message}`;
+        console.error(errMsg);
+        event.sender.send('error-message', errMsg);
+    }
+});
+
+ipcMain.on('deny-letter-action', (event, { playerId, characterId, letterId, actionSignature }) => {
+    console.log(`User denied letter action '${actionSignature}' for letter ${letterId}.`);
+    // Persist the denial status so it survives navigation and app restarts.
+    if (playerId && characterId) {
+        LetterManager.getInstance().updateLetterActionStatus(playerId, characterId, letterId, actionSignature, 'denied');
+    }
+    event.sender.send('letter-action-denied', { letterId, actionSignature });
+});
 
 ipcMain.on("select-user-folder", (event) => {
     console.log('IPC: Received select-user-folder event.');
@@ -2500,7 +2735,7 @@ ipcMain.on('open-roaming-data-folder', () => {
 ipcMain.handle('get-summary-ids', async () => {
     console.log('IPC: Received get-summary-ids event.');
     try {
-        const ids = await getPlayerId(userDataPath);
+        const ids = await getPlayerId(votcDataPath);
         return ids;
     } catch (error) {
         console.error('Error getting summary IDs:', error);
@@ -2513,12 +2748,12 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
     console.log('IPC: Received get-all-summary-player-ids event.');
     try {
         // Get player IDs from all three sources and merge them
-        const conversationPlayerIds = await getAllPlayerIds(userDataPath);
+        const conversationPlayerIds = await getAllPlayerIds(votcDataPath);
         const letterManager = LetterManager.getInstance();
         const letterPlayerIds = letterManager.getAllPlayerIdsWithLetters();
 
         // Get diary player IDs with their latest diary activity (same pattern as the get-all-diary-player-ids handler)
-        const diaryPlayerIds = await getAllDiaryPlayerIds(userDataPath);
+        const diaryPlayerIds = await getAllDiaryPlayerIds(votcDataPath);
         const diaryPlayersWithTs = await Promise.all(diaryPlayerIds.map(async (player) => {
             let latestTimestamp = 0;
             try {
@@ -2543,6 +2778,7 @@ ipcMain.handle('get-all-summary-player-ids', async () => {
         // Merge all player IDs, keeping the greatest latestTimestamp seen across sources
         // (latestTimestamp is an additive/optional field exposed by getAllPlayerIds and LetterManager.getAllPlayerIdsWithLetters).
         const allPlayerIds = new Map<string, { id: string, name: string, latestTimestamp?: number }>();
+
         const mergePlayer = (player: { id: string, name: string, latestTimestamp?: number }) => {
             const existing = allPlayerIds.get(player.id);
             if (!existing) {
@@ -2665,9 +2901,9 @@ ipcMain.handle('save-character-description', async (event, playerId: string, cha
 ipcMain.handle('read-summary-file', async (event, playerId) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaries = await readSummaryFile(userDataPath, playerId);
+        const summaries = await readSummaryFile(votcDataPath, playerId);
 
-        const characterMapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+        const characterMapPath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
         if (fs.existsSync(characterMapPath)) {
             try {
@@ -2695,7 +2931,7 @@ ipcMain.handle('read-summary-file', async (event, playerId) => {
 ipcMain.handle('save-summary-file', async (event, playerId, summaryData) => {
     console.log(`IPC: Received save-summary-file event for player: ${playerId}`);
     try {
-        await saveSummaryFile(userDataPath, playerId, summaryData);
+        await saveSummaryFile(votcDataPath, playerId, summaryData);
         return { success: true };
     } catch (error) {
         console.error('Error saving summary file:', error);
@@ -2823,7 +3059,7 @@ ipcMain.handle('get-current-game-day', () => {
 ipcMain.handle('get-character-map', async (event, playerId) => {
     console.log(`IPC: Received get-character-map event for player: ${playerId}`);
     try {
-        const map = await readCharacterMap(userDataPath, playerId);
+        const map = await readCharacterMap(votcDataPath, playerId);
         return { success: true, map: Object.fromEntries(map) };
     } catch (error) {
         console.error('Error getting character map:', error);
@@ -2848,7 +3084,7 @@ ipcMain.handle('get-diary-character-map', async (event, playerId) => {
 ipcMain.handle('get-diary-ids', async () => {
     console.log('IPC: Received get-diary-ids event.');
     try {
-        const ids = await getAllDiaryPlayerIds(userDataPath);
+        const ids = await getAllDiaryPlayerIds(votcDataPath);
         return { success: true, ids: ids };
     } catch (error) {
         console.error('Error getting diary IDs:', error);
@@ -2860,7 +3096,7 @@ ipcMain.handle('get-diary-ids', async () => {
 ipcMain.handle('get-all-diary-player-ids', async () => {
     console.log('IPC: Received get-all-diary-player-ids event.');
     try {
-        const players = await getAllDiaryPlayerIds(userDataPath);
+        const players = await getAllDiaryPlayerIds(votcDataPath);
 
         const playerTimestamps = await Promise.all(players.map(async (player) => {
             let latestTimestamp = 0;
@@ -2934,7 +3170,7 @@ ipcMain.handle('save-diary-file', async (event, playerId, characterId, diaryData
 ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEntries, deletedEntries }) => {
     console.log(`IPC: Regenerating summaries for player ${playerId}. Edited: ${editedEntries.length}, Deleted: ${deletedEntries.length}`);
     if (!diaryGenerator) {
-        diaryGenerator = new DiaryGenerator(config, userDataPath, tiktokenEncoder);
+        diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder);
     }
 
     try {
@@ -3007,7 +3243,7 @@ ipcMain.handle('read-conversation-history-file', async (event, playerId, filenam
 ipcMain.handle('import-letters-from-log', async (event, args) => {
     console.log('IPC: Received import-letters-from-log event with args:', args);
     try {
-        const playerId = args ? args.playerId : (await getPlayerId(userDataPath)).playerId;
+        const playerId = args ? args.playerId : (await getPlayerId(votcDataPath)).playerId;
 
         if (playerId) {
             const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
@@ -3067,7 +3303,7 @@ ipcMain.on('get-letters', (event) => {
 ipcMain.on('mark-letter-as-read', (event, { playerId, characterId, letterId }: { playerId: string, characterId: string, letterId: string }) => {
     console.log(`IPC: Received mark-letter-as-read event for letter ID: ${letterId} for player ${playerId} and character ${characterId}`);
     const letterManager = LetterManager.getInstance();
-    letterManager.markAsRead(playerId, characterId, letterId);
+    letterManager.markAsRead(playerId, characterId, letterId, config);
     console.log(`Letter ${letterId} marked as read.`);
 });
 
@@ -3078,45 +3314,45 @@ ipcMain.handle('delete-letter', async (event, { playerId, characterId, letterId 
 });
 
 
-// 处理API配置更改事件
+// Ã¥Â¤â€žÃ§Ââ€ APIÃ©â€¦ÂÃ§Â½Â®Ã¦â€ºÂ´Ã¦â€Â¹Ã¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('api-config-change', (e, configType: string, apiType: string, configData: any) => {
     console.log(`IPC: Received api-config-change event. Config Type: ${configType}, API Type: ${apiType}`);
 
-    // 确保配置对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂÃ©â€¦ÂÃ§Â½Â®Ã¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType]) {
         (config as any)[configType] = {};
     }
 
-    // 确保connection对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂconnectionÃ¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType].connection) {
         (config as any)[configType].connection = {};
     }
 
-    // 确保apiKeys对象存在
+    // Ã§Â¡Â®Ã¤Â¿ÂapiKeysÃ¥Â¯Â¹Ã¨Â±Â¡Ã¥Â­ËœÃ¥Å“Â¨
     if (!(config as any)[configType].connection.apiKeys) {
         (config as any)[configType].connection.apiKeys = {};
     }
 
-    // 保存API配置到apiKeys对象中
+    // Ã¤Â¿ÂÃ¥Â­ËœAPIÃ©â€¦ÂÃ§Â½Â®Ã¥Ë†Â°apiKeysÃ¥Â¯Â¹Ã¨Â±Â¡Ã¤Â¸Â­
     (config as any)[configType].connection.apiKeys[apiType] = configData;
 
-    // 如果是当前选中的API类型，同时更新connection对象中的主要字段
+    // Ã¥Â¦â€šÃ¦Å¾Å“Ã¦ËœÂ¯Ã¥Â½â€œÃ¥â€°ÂÃ©â‚¬â€°Ã¤Â¸Â­Ã§Å¡â€žAPIÃ§Â±Â»Ã¥Å¾â€¹Ã¯Â¼Å’Ã¥ÂÅ’Ã¦â€”Â¶Ã¦â€ºÂ´Ã¦â€“Â°connectionÃ¥Â¯Â¹Ã¨Â±Â¡Ã¤Â¸Â­Ã§Å¡â€žÃ¤Â¸Â»Ã¨Â¦ÂÃ¥Â­â€”Ã¦Â®Âµ
     if ((config as any)[configType].connection.type === apiType) {
         (config as any)[configType].connection.key = configData.key || '';
         (config as any)[configType].connection.baseUrl = configData.baseUrl || '';
         (config as any)[configType].connection.model = configData.model || '';
     }
 
-    // 导出配置
+    // Ã¥Â¯Â¼Ã¥â€¡ÂºÃ©â€¦ÂÃ§Â½Â®
     config.export();
 
-    // 如果聊天窗口已显示，更新对话配置
+    // Ã¥Â¦â€šÃ¦Å¾Å“Ã¨ÂÅ Ã¥Â¤Â©Ã§Âªâ€”Ã¥ÂÂ£Ã¥Â·Â²Ã¦ËœÂ¾Ã§Â¤ÂºÃ¯Â¼Å’Ã¦â€ºÂ´Ã¦â€“Â°Ã¥Â¯Â¹Ã¨Â¯ÂÃ©â€¦ÂÃ§Â½Â®
     if(chatWindow.isShown){
         conversation.updateConfig(config);
     }
 });
 
-// 处理关闭对话历史窗口的请求
+// Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¥Â¯Â¹Ã¨Â¯ÂÃ¥Å½â€ Ã¥ÂÂ²Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
 ipcMain.on('close-conversation-history', () => {
     console.log('IPC: Received close-conversation-history event.');
     if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
@@ -3125,7 +3361,7 @@ ipcMain.on('close-conversation-history', () => {
     }
 });
 
-// 处理关闭总结管理器窗口的请求
+// Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¦â‚¬Â»Ã§Â»â€œÃ§Â®Â¡Ã§Ââ€ Ã¥â„¢Â¨Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
 ipcMain.on('close-summary-manager', () => {
     console.log('IPC: Received close-summary-manager event.');
     if (summaryManagerWindow && !summaryManagerWindow.isDestroyed()) {
@@ -3134,7 +3370,7 @@ ipcMain.on('close-summary-manager', () => {
     }
 });
 
-// 处理主题切换事件
+// Ã¥Â¤â€žÃ§Ââ€ Ã¤Â¸Â»Ã©Â¢ËœÃ¥Ë†â€¡Ã¦ÂÂ¢Ã¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('theme-changed', (event, theme: string) => {
     console.log(`IPC: Received theme-changed event. Theme: ${theme}`);
 
@@ -3151,10 +3387,9 @@ ipcMain.on('theme-changed', (event, theme: string) => {
             win.window.webContents.send('update-theme', theme);
         }
     });
-});
+
 });
 
-// 处理语言切换事件
 ipcMain.on('language-changed', (event, lang: string) => {
     console.log(`IPC: Received language-changed event. Language: ${lang}`);
 
@@ -3175,4 +3410,5 @@ ipcMain.on('language-changed', (event, lang: string) => {
             win.window.webContents.send('update-language', lang);
         }
     });
+});
 });

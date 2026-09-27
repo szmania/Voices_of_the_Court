@@ -800,6 +800,8 @@
     "tooltip_completed": "正常に送信または読まれた手紙の数。",
     "search": "検索:",
     "search_placeholder": "手紙を検索...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "日",
     "est": "推定",
     "reply_expected_in": "返信予定",
@@ -819,7 +821,12 @@
     "status_journey_began": "{character}への旅が始まりました",
     "status_awaiting_reply": "{character}からの返信を待っています",
     "status_reply_en_route": "返信が輸送中です",
-    "estimated_reply": "推定返信日: {date}"
+    "estimated_reply": "推定返信日: {date}",
+    "triggered_actions": "トリガーされたアクション",
+    "action_signature": "アクション",
+    "action_trigger": "トリガー",
+    "no_actions_triggered": "トリガーされたアクションはありません。",
+    "player_mismatch_warning": "警告: 選択したプレイヤーは現在プレイ中のキャラクターではありません。承認したアクションは、そのプレイヤーがプレイされるまでキューに入れられます。"
   },
   "history": {
     "header": "会話履歴ビューアー",

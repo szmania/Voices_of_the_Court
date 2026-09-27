@@ -804,6 +804,8 @@
     "tooltip_completed": "Nombre de lettres qui ont été envoyées ou lues avec succès.",
     "search": "Rechercher:",
     "search_placeholder": "Rechercher des lettres...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "jours",
     "est": "est.",
     "reply_expected_in": "Réponse attendue dans",
@@ -823,7 +825,12 @@
     "status_journey_began": "Le voyage vers {character} a commencé",
     "status_awaiting_reply": "En attente de la réponse de {character}",
     "status_reply_en_route": "La réponse est en route",
-    "estimated_reply": "Rép. est. : {date}"
+    "estimated_reply": "Rép. est. : {date}",
+    "triggered_actions": "Actions déclenchées",
+    "action_signature": "Action",
+    "action_trigger": "Déclencheur",
+    "no_actions_triggered": "Aucune action déclenchée.",
+    "player_mismatch_warning": "Avertissement : le joueur sélectionné n'est pas le personnage actuellement joué. Les actions approuvées seront mises en file d'attente jusqu'à ce que ce joueur soit joué."
   },
   "history": {
     "header": "Visionneuse d'historique de conversation",

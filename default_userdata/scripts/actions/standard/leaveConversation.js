@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem deixa a conversa. O alvo (character2) é o personagem que está saindo. A fonte (character1) não é usada.`,
         tr: `Bir karakter konuşmadan ayrıldığında çalıştırılır. Hedef (character2) ayrılan karakterdir. Kaynak (character1) kullanılmaz.`
     },
-
+  canPerformAtDistance: false,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -423,5 +423,5 @@ module.exports = {
             tr: `{{character2Name}}, konuşmadan ayrıldı.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
 }

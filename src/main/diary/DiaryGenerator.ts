@@ -17,11 +17,11 @@ import { getEffectiveCharacterDescription } from "../characterDescription";
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
-    private userDataPath: string;
+    private votcDataPath: string;
 
-    constructor(config: Config, userDataPath: string, encoder: Tiktoken | null = null) {
+    constructor(config: Config, votcDataPath: string, encoder: Tiktoken | null = null) {
         this.config = config;
-        this.userDataPath = userDataPath;
+        this.votcDataPath = votcDataPath;
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
             config.textGenerationApiConnectionConfig.parameters,
@@ -39,7 +39,7 @@ export class DiaryGenerator {
             .map(msg => `${msg.name}: ${msg.content}`)
             .join('\n');
 
-        let prompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
+        let prompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryPrompt;
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
@@ -68,7 +68,7 @@ export class DiaryGenerator {
           return null;
         }
 
-        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryPrompt;
 
         if (!diaryPrompt) {
           return null;
@@ -77,7 +77,7 @@ export class DiaryGenerator {
         const replacedPrompt = diaryPrompt.replace(/{{charName}}/g, character.fullName);
 
         // Inject the user-authored character description for the character writing the diary.
-        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), characterId);
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), characterId);
         const characterDescriptionContent = userCharacterDescription
             ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
             : '';
@@ -116,11 +116,11 @@ export class DiaryGenerator {
     }
 
     public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
-        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryForLetterPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryForLetterPrompt;
         if (!diaryPrompt) return null;
 
         // Inject the user-authored character description for the character writing the diary.
-        const userCharacterDescription = getEffectiveCharacterDescription(this.userDataPath, String(gameData.playerID), String(character.id));
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), String(character.id));
         const characterDescriptionContent = userCharacterDescription
             ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
             : '';
@@ -158,7 +158,7 @@ export class DiaryGenerator {
             return null;
         }
 
-        const diarySummarizePrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diarySummarizePrompt;
+        const diarySummarizePrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diarySummarizePrompt;
         if (!diarySummarizePrompt) {
             return null;
         }

@@ -31,7 +31,7 @@ function getTranslations(lang: string): any {
 export function buildSuggestionPrompt(conv: Conversation): Message[] {
     console.log('Building suggestion prompt...');
 
-    const prompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const prompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
     const suggestionPromptTemplate = prompts.suggestionPrompt;
 
     if (!suggestionPromptTemplate) {
@@ -40,7 +40,7 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     }
 
     const descriptionScriptFileName = conv.config.selectedDescScript;
-    const descriptionPath = path.join(conv.userDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
+    const descriptionPath = path.join(conv.votcDataPath, 'scripts', 'prompts', 'description', descriptionScriptFileName);
     let description = "";
     try {
         delete require.cache[require.resolve(descriptionPath)];

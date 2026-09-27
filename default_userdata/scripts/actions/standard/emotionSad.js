@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem se sente triste.`,
         tr: `Bir karakter üzgün hissettiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -59,6 +59,5 @@ module.exports = {
             tr: `{{character2Name}} üzgün hissediyor.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
 }
-

@@ -810,6 +810,8 @@
     "tooltip_thread_status": "Oyunun mektup dizisinde kullanılan mevcut mektup sayısını gösterir. Dizi 9/9'a ulaştığında oyun içinde karar (decision) yoluyla sıfırlanmalıdır.",
     "search": "Ara:",
     "search_placeholder": "Mektuplarda ara...",
+    "hide_future": "Gelecek Mektupları Gizle",
+    "show_all": "Tüm Mektupları Göster",
     "days": "gün",
     "est": "tah.",
     "reply_expected_in": "Cevap bekleniyor:",
@@ -829,7 +831,12 @@
     "status_journey_began": "{character} karakterine yolculuk başladı",
     "status_awaiting_reply": "{character} karakterinden cevap bekleniyor",
     "status_reply_en_route": "Cevap yolda",
-    "estimated_reply": "Tah. Cevap: {date}"
+    "estimated_reply": "Tah. Cevap: {date}",
+    "triggered_actions": "Tetiklenen eylemler",
+    "action_signature": "Eylem",
+    "action_trigger": "Tetikleyici",
+    "no_actions_triggered": "Hiçbir eylem tetiklenmedi.",
+    "player_mismatch_warning": "Uyarı: Seçilen oyuncu şu anda oynanan karakter değil. Onaylanan eylemler, o oyuncu oynanana kadar kuyruğa alınacaktır."
   },
   "history": {
     "header": "Konuşma Geçmişi Görüntüleyici",

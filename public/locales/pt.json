@@ -804,6 +804,8 @@
     "tooltip_completed": "Número de cartas que foram enviadas ou lidas com sucesso.",
     "search": "Procurar:",
     "search_placeholder": "Procurar cartas...",
+    "hide_future": "Ocultar Cartas Futuras",
+    "show_all": "Mostrar Todas as Cartas",
     "days": "dias",
     "est": "est.",
     "reply_expected_in": "Resposta esperada em",
@@ -823,7 +825,12 @@
     "status_journey_began": "A jornada para {character} começou",
     "status_awaiting_reply": "Aguardando resposta de {character}",
     "status_reply_en_route": "A resposta está a caminho",
-    "estimated_reply": "Resposta est.: {date}"
+    "estimated_reply": "Resposta est.: {date}",
+    "triggered_actions": "Ações desencadeadas",
+    "action_signature": "Ação",
+    "action_trigger": "Disparador",
+    "no_actions_triggered": "Nenhuma ação desencadeada.",
+    "player_mismatch_warning": "Aviso: o jogador selecionado não é o personagem atualmente jogado. As ações aprovadas serão colocadas na fila até que esse jogador seja jogado."
   },
   "history": {
     "header": "Visualizador do histórico de conversas",

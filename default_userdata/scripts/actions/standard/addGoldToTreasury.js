@@ -8,7 +8,7 @@ module.exports = {
             name: "amount",
             type: "number",
             min: 1,
-            desc: { 
+            desc: {
                 en: "the amount of gold {{character1Name}}'s treasury gets, should be always positive",
                 zh: "{{character1Name}}的国库获得的金币数量，应始终为正数",
                 ru: "количество золота, которое получает казна {{character1Name}}, всегда должно быть положительным",
@@ -36,9 +36,9 @@ module.exports = {
         pt: `Executado quando o tesouro de um personagem recebe renda. A fonte (character1) é o personagem cujo tesouro recebe o ouro. O alvo (character2) não é usado nesta ação.`,
         tr: `Bir karakterin hazinesi gelir aldığında çalıştırılır. Kaynak (character1), hazinesi altını alan karakterdir. Hedef (character2) bu eylemde kullanılmaz.`
     },
-    
+    canPerformAtDistance: true,
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {number} sourceId
      * @param {number} targetId
      */
@@ -47,9 +47,9 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      * @param {number} sourceId
      * @param {number} targetId
      */
@@ -73,8 +73,7 @@ module.exports = {
                 pl: `Skarbiec {{character1Name}} otrzymał ${args[0]} sztuk złota.`,
                 pt: `O tesouro de {{character1Name}} recebeu ${args[0]} de ouro.`,
                 tr: `{{character1Name}}'in hazinesi ${args[0]} altın aldı.`
-            }
-        }
-    ,
+            };
+    },
     chatMessageClass: "neutral-action-message"
 }

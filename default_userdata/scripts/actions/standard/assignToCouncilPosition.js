@@ -56,7 +56,7 @@ const action = {
         pt: `Executado quando um personagem nomeia outro para um cargo no conselho. A fonte (character1) é o GOVERNANTE/NOMEADOR. O alvo (character2) é o personagem sendo NOMEADO.`,
         tr: `Bir karakter başka birini konsey görevine atadığında çalıştırılır. Kaynak (character1) HÜKÜMDAR/ATAYAN'dır. Hedef (character2) ATANAN karakterdir.`
     },
-
+    canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId

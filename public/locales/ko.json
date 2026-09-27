@@ -800,6 +800,8 @@
     "tooltip_completed": "성공적으로 보내거나 읽은 편지 수.",
     "search": "검색:",
     "search_placeholder": "편지 검색...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "일",
     "est": "예상",
     "reply_expected_in": "답장 예상",
@@ -819,7 +821,12 @@
     "status_journey_began": "{character}에게 가는 여정 시작됨",
     "status_awaiting_reply": "{character}의 답장을 기다리는 중",
     "status_reply_en_route": "답장이 오는 중",
-    "estimated_reply": "예상 답장: {date}"
+    "estimated_reply": "예상 답장: {date}",
+    "triggered_actions": "트리거된 액션",
+    "action_signature": "액션",
+    "action_trigger": "트리거",
+    "no_actions_triggered": "트리거된 액션이 없습니다.",
+    "player_mismatch_warning": "경고: 선택한 플레이어는 현재 플레이 중인 캐릭터가 아닙니다. 승인된 작업은 해당 플레이어가 플레이될 때까지 대기열에 저장됩니다."
   },
   "history": {
     "header": "대화 기록 뷰어",

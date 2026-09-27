@@ -95,7 +95,7 @@ function buildNarrativePrompt(conv: Conversation, actionResponses: ActionRespons
     const actionResults = actionResponses.map(action => action.chatMessage).join("\n");
     
     // 使用配置中的narrativePrompt，并替换变量
-    const effectivePrompts = getEffectivePrompts(conv.config, conv.userDataPath, conv.gameData);
+    const effectivePrompts = getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData);
     const promptTemplate = effectivePrompts.narrativePrompt;
     const promptContent = parseVariables(promptTemplate, conv.gameData);
 
