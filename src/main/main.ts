@@ -1819,6 +1819,15 @@ app.on('ready',  async () => {
     });
     console.log('Timeline IPC handlers registered.');
 
+    // Live date tracking: tail debug.log for VOTC:DATE lines. The merged
+    // upstream flow only refreshes currentTotalDays at parse points guarded
+    // on the init line's date fields, which mods without the date 5-tuple
+    // never satisfy — the letters.txt heartbeat written above would then
+    // have no consumer and letter delivery would stall forever. The tailer
+    // is what the heartbeat design assumes; keep it alongside the parse
+    // points (updateCurrentDate is idempotent for repeated same-day ticks).
+    startLogTailing();
+
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
