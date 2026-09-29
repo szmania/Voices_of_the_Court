@@ -37,7 +37,7 @@ module.exports = {
         pt: `Executado quando o diálogo ou ação de um personagem diminui significativamente a opinião que outro tem dele. A fonte (character1) é o personagem cujas ações estão sendo julgadas. O alvo (character2) é o personagem cuja opinião está DIMINUINDO.`,
         tr: `Bir karakterin diyaloğu veya eylemi, başka birinin onun hakkındaki görüşünü önemli ölçüde düşürdüğünde çalıştırılır. Kaynak (character1) yargılanan eylemleri yapan karakterdir. Hedef (character2) görüşü DÜŞEN karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -91,5 +91,5 @@ module.exports = {
             tr: `{{character2Name}}'nin {{character1Name}} hakkındaki görüşü ${args[0]} azaldı.`
         }
     },
-    chatMessageClass: "negative-action-message"
+chatMessageClass: "negative-action-message",
 }

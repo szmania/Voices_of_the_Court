@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando um personagem se converte à religião de outro, voluntariamente ou à força.`,
         tr: `Bir karakter başka birinin dinine gönüllü veya zorla döndüğünde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
 	
     /**
      * @param {GameData} gameData 
@@ -120,6 +120,5 @@ module.exports = {
             tr: `{{character2Name}}, {{character1Name}}'nin dinine döndü.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
 }
-

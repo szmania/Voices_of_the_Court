@@ -12,15 +12,16 @@ import { Tiktoken } from "js-tiktoken";
 import * as path from "path";
 import * as fs from "fs";
 import { getEffectivePrompts } from "../conversation/promptBuilder.js";
+import { getEffectiveCharacterDescription } from "../characterDescription";
 
 export class DiaryGenerator {
     private apiConnection: ApiConnection;
     private config: Config;
-    private userDataPath: string;
+    private votcDataPath: string;
 
-    constructor(config: Config, userDataPath: string, encoder: Tiktoken | null = null) {
+    constructor(config: Config, votcDataPath: string, encoder: Tiktoken | null = null) {
         this.config = config;
-        this.userDataPath = userDataPath;
+        this.votcDataPath = votcDataPath;
         this.apiConnection = new ApiConnection(
             config.textGenerationApiConnectionConfig.connection,
             config.textGenerationApiConnectionConfig.parameters,
@@ -38,7 +39,7 @@ export class DiaryGenerator {
             .map(msg => `${msg.name}: ${msg.content}`)
             .join('\n');
 
-        let prompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
+        let prompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryPrompt;
 
         // Add letter summaries
         const letterManager = LetterManager.getInstance();
@@ -67,7 +68,7 @@ export class DiaryGenerator {
           return null;
         }
 
-        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryPrompt;
 
         if (!diaryPrompt) {
           return null;
@@ -75,14 +76,20 @@ export class DiaryGenerator {
 
         const replacedPrompt = diaryPrompt.replace(/{{charName}}/g, character.fullName);
 
+        // Inject the user-authored character description for the character writing the diary.
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), characterId);
+        const characterDescriptionContent = userCharacterDescription
+            ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
+            : '';
+
         const conversationHistory = conversation.getHistory().map(msg => `${msg.name}: ${msg.content}`).join('\n');
 
-        const fullPrompt = `${replacedPrompt}\n\n${conversationHistory}`;
+        const fullPrompt = `${replacedPrompt}\n\n${characterDescriptionContent}${conversationHistory}`;
 
         const promptForApi = [{ role: 'user', content: fullPrompt }];
 
         // @ts-ignore - using complete instead of generate
- const result = await this.apiConnection.complete(promptForApi, false, {});
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const generatedContent = typeof result === 'string' ? result : (result?.content ?? '');
 
         if (!generatedContent) {
@@ -109,16 +116,22 @@ export class DiaryGenerator {
     }
 
     public async generateDiaryEntryForLetter(gameData: GameData, character: Character, letterContent: string, letterDirection: 'sent' | 'received'): Promise<DiaryEntry | null> {
-        const diaryPrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diaryForLetterPrompt;
+        const diaryPrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diaryForLetterPrompt;
         if (!diaryPrompt) return null;
+
+        // Inject the user-authored character description for the character writing the diary.
+        const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(gameData.playerID), String(character.id));
+        const characterDescriptionContent = userCharacterDescription
+            ? `Character description for ${character.fullName} (provided by the player):\n${userCharacterDescription}\n\n`
+            : '';
 
         const replacedPrompt = diaryPrompt
             .replace(/{{charName}}/g, character.fullName)
             .replace(/{{letterDirection}}/g, letterDirection)
             .replace(/{{letterContent}}/g, letterContent);
 
-        const promptForApi: Message[] = [{ role: 'user', content: replacedPrompt }];
- const result = await this.apiConnection.complete(promptForApi, false, {});
+        const promptForApi: Message[] = [{ role: 'user', content: `${characterDescriptionContent}${replacedPrompt}` }];
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const generatedContent = typeof result === 'string' ? result : (result?.content ?? '');
 
         if (!generatedContent) return null;
@@ -145,7 +158,7 @@ export class DiaryGenerator {
             return null;
         }
 
-        const diarySummarizePrompt = getEffectivePrompts(this.config, this.userDataPath, gameData).diarySummarizePrompt;
+        const diarySummarizePrompt = getEffectivePrompts(this.config, this.votcDataPath, gameData).diarySummarizePrompt;
         if (!diarySummarizePrompt) {
             return null;
         }
@@ -155,7 +168,7 @@ export class DiaryGenerator {
 
         const promptForApi: Message[] = [{ role: 'user', name: 'user', content: fullPrompt }];
 
- const result = await this.apiConnection.complete(promptForApi, false, {});
+ const result = await this.apiConnection.complete(promptForApi, false, {}, undefined, undefined, 300_000);
     const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
         
         if (!summaryContent) {

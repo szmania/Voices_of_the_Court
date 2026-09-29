@@ -45,7 +45,8 @@ describe('PR 15 business integration reproductions', () => {
             }}
         };
         const config: any = {userFolderPath: path.join(root, 'ck3'), language: 'en', maxTokens: 100,
-            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
+            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}},
+            actionsUseTextGenApi: true, actionsApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
         const original: any = {id: 'original', subject: 'letter_1', totalDays: 389000,
             content: 'Hello', sender: {id: 1001}, recipient: {id: 1002}};
         const reply: any = {id: 'reply', content: 'Greetings'};
@@ -102,11 +103,13 @@ describe('PR 15 business integration reproductions', () => {
             const pending = new Map([['old-player-letter', {playerId: '1001'}]]);
             let countAtDateUpdate = -1;
             const sandbox: any = {
-                console, path, config: {userFolderPath: root}, userDataPath: root, tiktokenEncoder: null,
+                console, path, config: {userFolderPath: root}, userDataPath: root, votcDataPath: root, tiktokenEncoder: null,
                 fs: {existsSync: () => false}, sleep: async () => {}, parseLog: async () => data,
                 currentSessionPlayerId: '1001', storedLetters: pending, lastLetterSentToGame: {},
                 setCachedGameData: () => {},
                 updateCurrentDate: () => {countAtDateUpdate = pending.size;},
+                broadcastCurrentSessionPlayer: () => {}, processQueuedApprovals: () => {},
+                sendMemoriesChanged: () => {},
                 chatWindow: {window: {webContents: {send: () => {}}}},
                 pendingMessages: [], isConversationReady: false, conversation: null,
                 Conversation: class {

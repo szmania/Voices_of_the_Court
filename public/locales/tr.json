@@ -15,11 +15,34 @@
     "language_tooltip": "Uygulama dilini seçin",
     "discord_tooltip": "Discord sunucumuza katılın",
     "steam_tooltip": "Steam Atölyesi'nde görüntüle",
-    "website_tooltip": "Web sitemizi ziyaret edin"
+    "website_tooltip": "Web sitemizi ziyaret edin",
+    "memory_constellation": "Anı Takımyıldızı",
+    "memory_constellation_tooltip": "Karakter anılarını 3D olarak görselleştir",
+    "memory_constellation.empty_title": "Anı bulunamadı",
+    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
   },
   "diaries": {
     "header": "Günlükler",
     "description": "Karakterler için günlük girişlerini yönetin."
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "Anı bulunamadı",
+    "empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek.",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "Mektup",
+    "location_label": "Konum: ",
+    "location_unknown": "Bilinmiyor",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",
@@ -140,7 +163,20 @@
     "mod_princes_of_darkness": "Karanlığın Prensleri",
     "total_tokens_header": "Toplam Token Sayısı",
     "total_conversation_tokens": "Toplam Konuşma Tokenları:",
-    "total_letter_tokens": "Toplam Mektup Tokenları:"
+    "total_letter_tokens": "Toplam Mektup Tokenları:",
+    "character_description": "Karakter Açıklaması",
+    "char_desc_tooltip": "Bir karakter için kalıcı bir açıklama yazın (görünüm, geçmiş, özellikler). Yapay zeka, karakter konuştuğunda veya hitap edildiğinde bunu hatırlar. Temizlemek için boş bırakın.",
+    "char_desc_player": "Oyuncu:",
+    "char_desc_player_tooltip": "Açıklama için oyuncu bağlamını seçin.",
+    "char_desc_character": "Karakter:",
+    "char_desc_character_tooltip": "Açıklanacak karakteri seçin.",
+    "char_desc_character_note": "Soldaki 'Oyuncuya Göre Filtrele' kutusu, burada hangi karakterlerin görüneceğini belirler.",
+    "char_desc_save": "Açıklamayı kaydet",
+    "char_desc_saved": "Karakter açıklaması başarıyla kaydedildi.",
+    "char_desc_placeholder": "Karakterin görünümünü, geçmişini, kişilik özelliklerini ve önemli olayları anlatın...",
+    "char_desc_none": "Açıklama ayarlanmadı.",
+    "char_desc_select_alert": "Lütfen önce bir oyuncu ve karakter seçin.",
+    "char_desc_save_error": "Karakter açıklaması kaydedilemedi."
   },
   "settings": {
     "header": "Ayarlar",
@@ -774,6 +810,8 @@
     "tooltip_thread_status": "Oyunun mektup dizisinde kullanılan mevcut mektup sayısını gösterir. Dizi 9/9'a ulaştığında oyun içinde karar (decision) yoluyla sıfırlanmalıdır.",
     "search": "Ara:",
     "search_placeholder": "Mektuplarda ara...",
+    "hide_future": "Gelecek Mektupları Gizle",
+    "show_all": "Tüm Mektupları Göster",
     "days": "gün",
     "est": "tah.",
     "reply_expected_in": "Cevap bekleniyor:",
@@ -793,7 +831,12 @@
     "status_journey_began": "{character} karakterine yolculuk başladı",
     "status_awaiting_reply": "{character} karakterinden cevap bekleniyor",
     "status_reply_en_route": "Cevap yolda",
-    "estimated_reply": "Tah. Cevap: {date}"
+    "estimated_reply": "Tah. Cevap: {date}",
+    "triggered_actions": "Tetiklenen eylemler",
+    "action_signature": "Eylem",
+    "action_trigger": "Tetikleyici",
+    "no_actions_triggered": "Hiçbir eylem tetiklenmedi.",
+    "player_mismatch_warning": "Uyarı: Seçilen oyuncu şu anda oynanan karakter değil. Onaylanan eylemler, o oyuncu oynanana kadar kuyruğa alınacaktır."
   },
   "history": {
     "header": "Konuşma Geçmişi Görüntüleyici",

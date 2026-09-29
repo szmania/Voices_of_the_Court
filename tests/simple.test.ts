@@ -1,1 +1,3 @@
-"test('simple test', () => { expect(1).toBe(1); });" 
+test('simple test', () => {
+  expect(1).toBe(1);
+});

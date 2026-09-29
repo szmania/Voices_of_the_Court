@@ -110,6 +110,7 @@ module.exports = {
         pt: `Muda o cenário de fundo.`,
         tr: `Sahne arka planını değiştirir.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData
@@ -162,5 +163,5 @@ module.exports = {
             tr: `Sahne ${locationName} olarak değiştirildi`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
 };

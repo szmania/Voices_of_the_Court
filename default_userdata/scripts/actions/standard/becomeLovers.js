@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se amantes. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam amantes.`,
         tr: `İki karakter sevgili olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), sevgili olan iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -119,5 +119,5 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, sevgili oldular.`
         }
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
 }

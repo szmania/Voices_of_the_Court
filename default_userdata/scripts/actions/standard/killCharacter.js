@@ -20,6 +20,7 @@ module.exports = {
 
 ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (character2) ÖLDÜRÜLEN karakterdir.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData
@@ -60,5 +61,5 @@ ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (ch
             tr: `{{character2Name}}, {{character1Name}} tarafından öldürüldü.`
         };
     },
-    chatMessageClass: "negative-action-message"
+    chatMessageClass: "negative-action-message",
 }

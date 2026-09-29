@@ -28,12 +28,14 @@ export class Config{
     textGenerationApiConnectionConfig!: ApiConnectionConfig;
     summarizationApiConnectionConfig!: ApiConnectionConfig;
     actionsApiConnectionConfig!: ApiConnectionConfig;
+    embeddingApiConnectionConfig!: ApiConnectionConfig;
 
     summarizationUseTextGenApi!: boolean;
     actionsUseTextGenApi!: boolean;
 
     actionsEnableAll!: boolean;
     manualActionApproval!: boolean;
+    manualLetterActionApproval!: boolean;
     narrativeEnable!: boolean;
     disabledActions!: string[];
 
@@ -88,6 +90,24 @@ export class Config{
     constructor(configPath: string){
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
+
+        // Ensure embedding API config exists (used by the Memories tab)
+        if (!this.embeddingApiConnectionConfig) {
+            this.embeddingApiConnectionConfig = {
+                connection: {
+                    type: 'openai',
+                    baseUrl: 'https://api.openai.com/v1',
+                    key: '',
+                    model: 'text-embedding-3-small',
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 8192,
+                    embeddingDimension: 1536,
+                    useCustomEmbeddingDimension: false,
+                },
+                parameters: {}
+            };
+        }
     }
 
     export(){
@@ -95,7 +115,7 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
 
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig',  'compactionApiConnectionConfig'];
         configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection &&
                 configData[configType].connection.apiKeys) {

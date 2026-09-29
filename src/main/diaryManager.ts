@@ -6,9 +6,10 @@ import { app } from 'electron';
 import { DiaryEntry, DiarySummary } from './ts/diary_interfaces';
 import { randomUUID } from 'crypto';
 
-const userDataPath = path.join(app.getPath('userData'), 'votc_data');
-const diariesDir = path.join(userDataPath, 'diary_history');
-const diarySummariesDir = path.join(userDataPath, 'diary_summaries');
+const userDataPath = app.getPath('userData');
+const votcDataPath = path.join(userDataPath, 'votc_data');
+const diariesDir = path.join(votcDataPath, 'diary_history');
+const diarySummariesDir = path.join(votcDataPath, 'diary_summaries');
 
 function getPlayerDiaryDir(playerId: string): string {
     return path.join(diariesDir, playerId);
@@ -102,8 +103,8 @@ export async function parseDiaryIdsFromLog(logFilePath: string): Promise<{ playe
     });
 }
 
-export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: string, name: string }[]> {
-    const diariesRootPath = path.join(userDataPath, 'diary_summaries');
+export async function getAllDiaryPlayerIds(votcDataPath: string): Promise<{ id: string, name: string }[]> {
+    const diariesRootPath = path.join(votcDataPath, 'diary_summaries');
     if (!fs.existsSync(diariesRootPath)) {
         return [];
     }
@@ -111,8 +112,29 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
         .filter(dirent => dirent.isDirectory())
         .map(dirent => {
             const playerId = dirent.name;
-            const mapPath = path.join(userDataPath, 'conversation_summaries', playerId, '_character_map.json');
+            const mapPath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
             let playerName = `Player ${playerId}`;
+            let latestTimestamp = 0;
+            try {
+                const playerDir = path.join(diariesRootPath, playerId);
+                const files = fs.readdirSync(playerDir).filter(file => file.endsWith('.json') && file !== '_character_map.json');
+                for (const file of files) {
+                    try {
+                        const data = JSON.parse(fs.readFileSync(path.join(playerDir, file), 'utf8'));
+                        const summaries = Array.isArray(data) ? data : data.diary_entries || [];
+                        for (const s of summaries) {
+                            if (s.creationTimestamp) {
+                                const ts = new Date(s.creationTimestamp).getTime();
+                                if (!isNaN(ts) && ts > latestTimestamp) latestTimestamp = ts;
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`Error reading diary summary file ${file} for player ${playerId}:`, e);
+                    }
+                }
+            } catch (e) {
+                console.error(`Error scanning diary summaries for player ${playerId}:`, e);
+            }
             if (fs.existsSync(mapPath)) {
                 try {
                     const mapData = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
@@ -123,7 +145,7 @@ export async function getAllDiaryPlayerIds(userDataPath: string): Promise<{ id: 
                     console.error(`Error reading character map for player ${playerId}:`, e);
                 }
             }
-            return { id: playerId, name: playerName };
+            return { id: playerId, name: playerName, latestTimestamp };
         });
     return playerDirs.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -154,7 +176,7 @@ export async function readDiaryFile(playerId: string, characterId: string): Prom
 }
 
 export async function saveDiaryFile(playerId: string, characterId: string, diaryData: any): Promise<void> {
-    const diaryPath = path.join(app.getPath('userData'), 'votc_data', 'diary_history', playerId);
+    const diaryPath = path.join(votcDataPath, 'diary_history', playerId);
     if (!fs.existsSync(diaryPath)) {
         fs.mkdirSync(diaryPath, { recursive: true });
     }
@@ -193,8 +215,7 @@ export async function saveDiaryFile(playerId: string, characterId: string, diary
 }
 
 export async function getCharacterMap(playerId: string): Promise<{ [key: string]: string }> {
-    const userDataPath = app.getPath('userData');
-    const mapPath = path.join(userDataPath, 'votc_data', 'diary_history', playerId, '_character_map.json');
+    const mapPath = path.join(votcDataPath, 'diary_history', playerId, '_character_map.json');
     if (fs.existsSync(mapPath)) {
         try {
             return JSON.parse(fs.readFileSync(mapPath, 'utf8'));

@@ -15,11 +15,34 @@
     "language_tooltip": "Выберите язык приложения",
     "discord_tooltip": "Присоединяйтесь к нашему Discord",
     "steam_tooltip": "Посмотреть в Мастерской Steam",
-    "website_tooltip": "Посетите наш сайт"
+    "website_tooltip": "Посетите наш сайт",
+    "memory_constellation": "Созвездие Воспоминаний",
+    "memory_constellation_tooltip": "Визуализация воспоминаний персонажей в 3D",
+    "memory_constellation.empty_title": "Воспоминания не найдены",
+    "memory_constellation.empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре."
   },
   "diaries": {
     "header": "Дневники",
     "description": "Управление записями в дневнике для персонажей."
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "Воспоминания не найдены",
+    "empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре.",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "Письмо",
+    "location_label": "Место: ",
+    "location_unknown": "Неизвестно",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",
@@ -133,7 +156,20 @@
     "mod_princes_of_darkness": "Князья Тьмы",
     "total_tokens_header": "Всего токенов",
     "total_conversation_tokens": "Всего токенов разговора:",
-    "total_letter_tokens": "Всего токенов письма:"
+    "total_letter_tokens": "Всего токенов письма:",
+    "character_description": "Описание персонажа",
+    "char_desc_tooltip": "Введите постоянное описание персонажа (внешность, биография, черты). ИИ запомнит его, когда персонаж говорит или к нему обращаются. Пусто — очистить.",
+    "char_desc_player": "Игрок:",
+    "char_desc_player_tooltip": "Выберите контекст игрока для описания.",
+    "char_desc_character": "Персонаж:",
+    "char_desc_character_tooltip": "Выберите персонажа для описания.",
+    "char_desc_character_note": "Поле «Фильтр по игроку» слева определяет, какие персонажи отображаются здесь.",
+    "char_desc_save": "Сохранить описание",
+    "char_desc_saved": "Описание персонажа успешно сохранено.",
+    "char_desc_placeholder": "Опишите внешность, биографию, черты личности и значимые события персонажа...",
+    "char_desc_none": "Описание не задано.",
+    "char_desc_select_alert": "Сначала выберите игрока и персонажа.",
+    "char_desc_save_error": "Не удалось сохранить описание персонажа."
   },
   "settings": {
     "header": "Настройки",
@@ -757,7 +793,6 @@
     "status_reply_overdue": "Ответ просрочен",
     "status_failed": "Ошибка",
     "status_completed": "Завершено",
-    "no_reply": "Пока нет ответа.",
     "load_success": "Данные писем успешно загружены",
     "thread_status": "Цепочка писем",
     "tooltip_thread_status": "Указывает текущее количество писем, использованных в цепочке писем игры. Цепочка должна быть сброшена в игре через решение, как только достигнет 9/9.",
@@ -767,9 +802,10 @@
     "tooltip_reply_overdue": "Количество отправленных писем, ответы на которые просрочены.",
     "tooltip_failed": "Количество писем, которые не удалось сгенерировать или отправить.",
     "tooltip_completed": "Количество писем, которые были успешно отправлены или прочитаны.",
-    "load_success": "Данные писем успешно загружены",
     "search": "Поиск:",
     "search_placeholder": "Искать письма...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "дней",
     "est": "прим.",
     "reply_expected_in": "Ответ ожидается через",
@@ -789,7 +825,12 @@
     "status_journey_began": "Путешествие к {character} началось",
     "status_awaiting_reply": "Ожидание ответа от {character}",
     "status_reply_en_route": "Ответ в пути",
-    "estimated_reply": "Прим. ответ: {date}"
+    "estimated_reply": "Прим. ответ: {date}",
+    "triggered_actions": "Инициированные действия",
+    "action_signature": "Действие",
+    "action_trigger": "Триггер",
+    "no_actions_triggered": "Действия не инициированы.",
+    "player_mismatch_warning": "Предупреждение: выбранный игрок не является текущим персонажем. Одобренные действия будут поставлены в очередь, пока этот игрок не будет играть."
   },
   "history": {
     "header": "Просмотр истории разговоров",
@@ -831,10 +872,10 @@
     "yes": "Да",
     "no": "Нет",
     "age_suffix": {
-        "infant": "(Младенец)",
-        "toddler": "(Малыш)",
-        "child": "(Ребенок)",
-        "teenager": "(Подросток)"
+      "infant": "(Младенец)",
+      "toddler": "(Малыш)",
+      "child": "(Ребенок)",
+      "teenager": "(Подросток)"
     },
     "valid": "Valid",
     "invalid": "Invalid"

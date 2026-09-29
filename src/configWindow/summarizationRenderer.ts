@@ -44,7 +44,7 @@ let filteredDiaries: any[] = [];
 let currentSummaryIndex = -1;
 let selectedPlayerId = '';
 let selectedCharacterId = 'all';
-let userDataPath = '';
+let votcDataPath = '';
 let currentHighlightIndex = -1;
 let allHighlightMarks: HTMLElement[] = [];
 let editingSummaryIndex = -1;
@@ -180,7 +180,7 @@ function addExternalLinks() {
 // Summary Manager Logic
 async function initSummaryManager() {
     try {
-        userDataPath = await ipcRenderer.invoke('get-userdata-path');
+        votcDataPath = await ipcRenderer.invoke('get-userdata-path');
         await loadPlayerIds(); // Load player IDs first
         setupEventListeners();
     } catch (error: any) {
@@ -440,11 +440,11 @@ function filterCurrentTabData() {
     if (selectedCharacterId !== 'all') {
         let path = '';
         if (activeTab === 'conversations') {
-            path = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${selectedCharacterId}.json`;
+            path = `${votcDataPath}/conversation_summaries/${selectedPlayerId}/${selectedCharacterId}.json`;
         } else if (activeTab === 'letters') {
-            path = `${userDataPath}/letter_history/${selectedPlayerId}/${selectedCharacterId}.json`;
+            path = `${votcDataPath}/letter_history/${selectedPlayerId}/${selectedCharacterId}.json`;
         } else if (activeTab === 'diaries') {
-            path = `${userDataPath}/diary_history/${selectedPlayerId}/${selectedCharacterId}.json`;
+            path = `${votcDataPath}/diary_history/${selectedPlayerId}/${selectedCharacterId}.json`;
         }
         summaryPathInput.value = path.replace(/\\/g, '/');
     } else {
@@ -666,17 +666,17 @@ function selectSummary(index: number) {
         if (index < 0 || index >= filteredSummaries.length) return;
         item = filteredSummaries[index];
         characterId = item.characterId || 'Unknown';
-        filePath = `${userDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
+        filePath = `${votcDataPath}/conversation_summaries/${selectedPlayerId}/${characterId}.json`;
     } else if (activeTab === 'letters') {
         if (index < 0 || index >= filteredLetters.length) return;
         item = filteredLetters[index];
         characterId = item.characterId || 'Unknown';
-        filePath = `${userDataPath}/letter_summaries/${selectedPlayerId}/${characterId}.json`;
+        filePath = `${votcDataPath}/letter_summaries/${selectedPlayerId}/${characterId}.json`;
     } else if (activeTab === 'diaries') {
         if (index < 0 || index >= filteredDiaries.length) return;
         item = filteredDiaries[index];
         characterId = item.characterId || 'Unknown';
-        filePath = `${userDataPath}/diary_summaries/${selectedPlayerId}/${characterId}.json`;
+        filePath = `${votcDataPath}/diary_summaries/${selectedPlayerId}/${characterId}.json`;
     }
 
     // Update file path

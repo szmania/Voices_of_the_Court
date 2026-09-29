@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { Character } from "../../shared/gameData/Character.js";
 import { GameData } from '../../shared/gameData/GameData.js';
-import { Letter as ILetter, LetterType, StoredLetter, LetterSummary } from "./letterInterfaces.js";
+import { Letter as ILetter, LetterType, StoredLetter, LetterSummary, LetterAssociatedAction } from "./letterInterfaces.js";
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
@@ -57,6 +57,7 @@ function readCampaignRegistryNodeParentId(campaignId: string | undefined, player
         return undefined;
     }
 }
+import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 export class LetterManager {
     private static instance: LetterManager;
@@ -111,7 +112,7 @@ export class LetterManager {
                     timestamp: new Date(l.timestamp),
                     creationTimestamp: l.creationTimestamp ? new Date(l.creationTimestamp) : new Date(l.timestamp),
                     isPlayerSender: l.sender.id === playerNumericId,
-                    totalDays: l.totalDays || 0 // Ensure totalDays has a default value
+                    totalDays: l.totalDays ?? 1 // Default to day 1 if missing
                 }));
             } catch (error) {
                 console.error(`Error reading letter history for player ${playerId}, character ${characterId}:`, error);
@@ -143,7 +144,7 @@ export class LetterManager {
         return allLetters;
     }
 
-    public getAllPlayerIdsWithLetters(): { id: string, name: string }[] {
+    public getAllPlayerIdsWithLetters(): { id: string, name: string, latestTimestamp?: number }[] {
         this.initPaths();
         const playerFolderPath = this.letterHistoryPath;
         if (!fs.existsSync(playerFolderPath)) {
@@ -180,8 +181,8 @@ export class LetterManager {
         // Sort by the latest timestamp in descending order
         playerDirs.sort((a, b) => b.latestTimestamp - a.latestTimestamp);
 
-        // Return only id and name, as expected by the caller
-        return playerDirs.map(({ id, name }) => ({ id, name }));
+        // Keep latestTimestamp (additive field) so callers can sort merged lists by recency.
+        return playerDirs;
     }
 
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
@@ -237,19 +238,35 @@ export class LetterManager {
         }
     }
 
-    public markAsRead(playerId: string, characterId: string, letterId: string): void {
+    public markAsRead(playerId: string, characterId: string, letterId: string, config: Config): void {
         const letters = this.getLetters(playerId, characterId);
         const letterIndex = letters.findIndex(l => l.id === letterId);
         if (letterIndex > -1) {
             letters[letterIndex].isRead = true;
             const filePath = this.getLetterFilePath(playerId, characterId);
             try {
-                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+            // Non-blocking write: the previous synchronous, pretty-printed full-file
+            // rewrite on every unread-letter click stalled the Electron main event loop
+            // (and all IPC behind it), causing visible letters-tab lag. The in-memory
+            // flag is already set above; persist compact JSON in the background.
+            // ponytail: fire-and-forget persist - a same-tick re-read could miss this
+            // pending write; upgrade path is a per-file write queue.
+            fs.promises.writeFile(filePath, JSON.stringify(letters), 'utf8')
+                .catch(error => console.error(`Error marking letter as read for player ${playerId}, character ${characterId}:`, error));
+            const letter = letters[letterIndex];
+            // Guard: never auto-execute letter actions when manual approval is enabled.
+            // This branch is currently dead (associatedAction is never assigned), but if it
+            // is ever enabled, it must still respect manualLetterActionApproval.
+            if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'read') {
+                LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
+            }
             } catch (error) {
-                console.error(`Error updating letter status for letter ${letterId}:`, error);
+                console.error(`Error marking letter ${letterId} as read for player ${playerId}, character ${characterId}:`, error);
             }
         }
     }
+
+
 
     public getLetterSummaryFilePath(playerId: string, characterId: string): string {
         this.initPaths();
@@ -509,20 +526,21 @@ trigger_event = message_event.362`;
         console.log("Reset letters.txt to the blank heartbeat placeholder");
     }
 
-    public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<void> {
+    public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {
         const ck3Folder = config.userFolderPath;
         if (!ck3Folder) {
             console.warn("LetterManager.importLettersFromLog: CK3 user folder is not configured.");
-            return;
+            return [];
         }
         const debugLogPath = path.join(ck3Folder, 'logs', 'debug.log');
 
         // Pass gameData to parseLettersFromLog so it can save letters immediately.
-        const newLetters = await parseLettersFromLog(debugLogPath, gameData, gameDate, playerId, recipientId);
+        const newLetters = await parseLettersFromLog(debugLogPath, gameData, gameDate, config, playerId, recipientId);
 
         if (newLetters.length > 0) {
             console.log(`Imported and saved ${newLetters.length} new letters.`);
         }
+        return newLetters;
     }
 
     public getLatestLetter(playerId: string): ILetter | null {
@@ -555,6 +573,58 @@ trigger_event = message_event.362`;
             }
         } else {
             console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update status.`);
+        }
+    }
+
+    public updateLetterActions(playerId: string, characterId: string, letterId: string, actions: LetterAssociatedAction[]): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            // Preserve any user-set approval/denial status from the stored actions so that
+            // reply regeneration does not reset approved/denied actions back to pending.
+            // New actions (no prior stored match) keep no status and stay pending.
+            const storedActions = letters[letterIndex].triggeredActions || [];
+            const storedByKey = new Map<string, LetterAssociatedAction>();
+            for (const stored of storedActions) {
+                storedByKey.set(`${stored.signature}|${stored.triggerOn}`, stored);
+            }
+            for (const action of actions) {
+                const stored = storedByKey.get(`${action.signature}|${action.triggerOn}`);
+                if (stored && stored.status) {
+                    action.status = stored.status;
+                }
+            }
+            letters[letterIndex].triggeredActions = actions;
+            const filePath = this.getLetterFilePath(playerId, characterId);
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                console.log(`Updated triggered actions of letter ${letterId} (${actions.length} actions)`);
+            } catch (error) {
+                console.error(`Error updating triggered actions for letter ${letterId}:`, error);
+            }
+        } else {
+            console.warn(`Could not find letter ${letterId} for player ${playerId} / char ${characterId} to update actions.`);
+        }
+    }
+
+    public updateLetterActionStatus(playerId: string, characterId: string, letterId: string, actionSignature: string, status: 'approved' | 'denied'): void {
+        const letters = this.getLetters(playerId, characterId);
+        const letterIndex = letters.findIndex(l => l.id === letterId);
+        if (letterIndex > -1) {
+            const letter = letters[letterIndex];
+            if (letter.triggeredActions) {
+                const action = letter.triggeredActions.find(a => a.signature === actionSignature);
+                if (action) {
+                    action.status = status;
+                    const filePath = this.getLetterFilePath(playerId, characterId);
+                    try {
+                        fs.writeFileSync(filePath, JSON.stringify(letters, null, 2), 'utf8');
+                        console.log(`Updated action '${actionSignature}' status to '${status}' for letter ${letterId}`);
+                    } catch (error) {
+                        console.error(`Error updating action status for letter ${letterId}:`, error);
+                    }
+                }
+            }
         }
     }
 

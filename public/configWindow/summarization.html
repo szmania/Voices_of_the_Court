@@ -133,30 +133,31 @@
         margin-top: 5px;
       }
     </style>
-    
+
   </head>
   <body>
     <div class="navbar">
       <ul>
-        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
-        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
-        <li class="active"><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
-        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
-        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
-        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
-        <li><a href="system.html" data-i18n="nav.system">System</a></li>
-        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <li><a href="connection.html" data-i18n="nav.connection" data-i18n-title="nav.connection_tooltip">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions" data-i18n-title="nav.actions_tooltip">Actions</a></li>
+        <li class="active"><a href="summarization.html" data-i18n="nav.summarization" data-i18n-title="nav.summarization_tooltip">Summarization</a></li>
+        <li><a href="memories.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts" data-i18n-title="nav.prompts_tooltip">Prompts</a></li>
+        <li><a href="letters.html" data-i18n="nav.letters" data-i18n-title="nav.letters_tooltip">Letters</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries" data-i18n-title="nav.diaries_tooltip">Diaries</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings" data-i18n-title="nav.settings_tooltip">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system" data-i18n-title="nav.system_tooltip">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help" data-i18n-title="nav.help_tooltip">Help</a></li>
         <language-selector></language-selector>
-      </ul> 
+      </ul>
     </div>
-    
+
     <div class="container" id="container">
 
         <config-checkbox id="use-connection-api" confID="summarizationUseTextGenApi" data-i18n="summarization.use_same_api"></config-checkbox>
 
-        <div class="border">   
-            <config-api-selector id="api-selector" confID="summarizationApiConnectionConfig"></config-api-selector>      
+        <div class="border">
+            <config-api-selector id="api-selector" confID="summarizationApiConnectionConfig"></config-api-selector>
         </div>
         <br>
 
@@ -167,19 +168,19 @@
         <div id="summary-manager-container" class="border">
             <div id="summary-manager-loader" class="loader" style="display: none;"></div>
             <h2 data-i18n="summary_manager.header">Summary Manager</h2>
-            
+
             <!-- Tab Navigation -->
             <div id="summary-manager-tabs" class="tab-navigation">
                 <button id="summary-tab-conversations" class="tab-button active" data-tab="conversations" data-i18n="summary_manager.tab_conversations">Conversations</button>
                 <button id="summary-tab-letters" class="tab-button" data-tab="letters" data-i18n="summary_manager.tab_letters">Letters</button>
                 <button id="summary-tab-diaries" class="tab-button" data-tab="diaries" data-i18n="summary_manager.tab_diaries">Diaries</button>
             </div>
-            
+
             <div class="header-controls">
                 <button id="summary-manager-refreshBtn" class="btn" data-i18n="summary_manager.refresh" data-i18n-title="summary_manager.tooltip_refresh">Refresh</button>
                 <button id="summary-manager-saveBtn" class="btn btn-success" data-i18n="summary_manager.save_all" data-i18n-title="summary_manager.tooltip_save_all">Save All</button>
             </div>
-        
+
             <div class="info-panel">
                 <div class="info-item">
                     <label for="summary-manager-playerIdSelect" data-i18n="summary_manager.player_id">Player ID:</label>
@@ -196,7 +197,7 @@
                     <input type="text" id="summary-manager-summaryPath" readonly data-i18n-title="summary_manager.tooltip_summary_path">
                 </div>
             </div>
-        
+
             <div class="summary-list-container">
                 <div class="summary-list-header">
                   <h3 data-i18n="summary_manager.list_header">Summary List</h3>
@@ -217,10 +218,10 @@
                     <button id="summary-manager-addSummaryBtn" class="btn" data-i18n="summary_manager.add_new" data-i18n-title="summary_manager.tooltip_add">Add</button>
                 </div>
             </div>
-        
+
             <div id="summary-manager-statusMessage" class="status-message"></div>
         </div>
-             
+
     </div>
 
     <script>require("../../dist/shared/LocalizationManager.js")</script>
@@ -230,11 +231,11 @@
     </script>
     <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
-    <script>require("../../dist/configWindow/components/apiSelector.js")</script> 
+    <script>require("../../dist/configWindow/components/apiSelector.js")</script>
     <script>require("../../dist/configWindow/components/configSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
     <script>require("../../dist/configWindow/summarizationRenderer.js")</script>
-    
+
     <script>
       // 添加帮助菜单点击事件
       document.addEventListener('DOMContentLoaded', function() {
@@ -248,6 +249,6 @@
         }
       });
     </script>
-    
+
   </body>
 </html>

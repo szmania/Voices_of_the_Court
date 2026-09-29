@@ -35,7 +35,7 @@ module.exports = {
         pt: `Executado quando dois personagens tornam-se almas gêmeas apaixonadas. A fonte (character1) e o alvo (character2) são os dois personagens que se tornam almas gêmeas.`,
         tr: `İki karakter tutkulu ruh eşi olduğunda çalıştırılır. Kaynak (character1) ve hedef (character2), ruh eşi olan iki karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -119,5 +119,5 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, ruh eşi oldular.`
         }
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
 }

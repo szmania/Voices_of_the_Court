@@ -15,11 +15,34 @@
     "language_tooltip": "アプリケーションの言語を選択",
     "discord_tooltip": "Discordに参加",
     "steam_tooltip": "Steamワークショップで表示",
-    "website_tooltip": "ウェブサイトにアクセス"
+    "website_tooltip": "ウェブサイトにアクセス",
+    "memory_constellation": "記憶の星座",
+    "memory_constellation_tooltip": "キャラクターの記憶を3Dで視覚化",
+    "memory_constellation.empty_title": "記憶が見つかりません",
+    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
   },
   "diaries": {
     "header": "日記",
     "description": "キャラクターの日記エントリを管理します。"
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "記憶が見つかりません",
+    "empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "手紙",
+    "location_label": "場所: ",
+    "location_unknown": "不明",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
@@ -129,7 +152,20 @@
     "mod_princes_of_darkness": "プリンス・オブ・ダークネス",
     "total_tokens_header": "合計トークン",
     "total_conversation_tokens": "合計会話トークン:",
-    "total_letter_tokens": "合計手紙トークン:"
+    "total_letter_tokens": "合計手紙トークン:",
+    "character_description": "キャラクター説明",
+    "char_desc_tooltip": "キャラクターの永続的な説明(外見・過去・特徴)を記入します。キャラクターが話す際にAIが記憶します。空欄でクリア。",
+    "char_desc_player": "プレイヤー:",
+    "char_desc_player_tooltip": "説明用のプレイヤーコンテキストを選択。",
+    "char_desc_character": "キャラクター:",
+    "char_desc_character_tooltip": "説明するキャラクターを選択します。",
+    "char_desc_character_note": "左の「プレイヤーでフィルタ」ボックスで、ここに表示されるキャラクターが決まります。",
+    "char_desc_save": "説明を保存",
+    "char_desc_saved": "キャラクター説明を保存しました。",
+    "char_desc_placeholder": "外見・過去・性格・重要な出来事を記述...",
+    "char_desc_none": "説明は設定されていません。",
+    "char_desc_select_alert": "最初にプレイヤーとキャラクターを選択してください。",
+    "char_desc_save_error": "キャラクター説明の保存に失敗しました。"
   },
   "settings": {
     "header": "設定",
@@ -742,7 +778,7 @@
     "no_letters": "手紙が見つかりません。",
     "select": "読む手紙を選択してください。",
     "refresh": "更新",
-    "no_reply": "まだ返信がありません。",
+    "no_reply": "まだ返信はありません。",
     "outbound_not_found": "送信済みレターが見つかりません。",
     "sort_by": "並べ替え:",
     "sort_game_date": "ゲームの日付",
@@ -753,7 +789,6 @@
     "status_reply_overdue": "返信遅延",
     "status_failed": "失敗",
     "status_completed": "完了",
-    "no_reply": "まだ返信はありません。",
     "load_success": "手紙のデータが正常に読み込まれました",
     "thread_status": "手紙スレッド",
     "tooltip_thread_status": "ゲームの手紙スレッドで使用されている現在の手紙の数を示します。9/9に達すると、ゲーム内で決断を通じてスレッドをリセットする必要があります。",
@@ -763,9 +798,10 @@
     "tooltip_reply_overdue": "返信が遅れている送信済み手紙の数。",
     "tooltip_failed": "生成または送信に失敗した手紙の数。",
     "tooltip_completed": "正常に送信または読まれた手紙の数。",
-    "load_success": "手紙のデータが正常に読み込まれました",
     "search": "検索:",
     "search_placeholder": "手紙を検索...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "日",
     "est": "推定",
     "reply_expected_in": "返信予定",
@@ -785,7 +821,12 @@
     "status_journey_began": "{character}への旅が始まりました",
     "status_awaiting_reply": "{character}からの返信を待っています",
     "status_reply_en_route": "返信が輸送中です",
-    "estimated_reply": "推定返信日: {date}"
+    "estimated_reply": "推定返信日: {date}",
+    "triggered_actions": "トリガーされたアクション",
+    "action_signature": "アクション",
+    "action_trigger": "トリガー",
+    "no_actions_triggered": "トリガーされたアクションはありません。",
+    "player_mismatch_warning": "警告: 選択したプレイヤーは現在プレイ中のキャラクターではありません。承認したアクションは、そのプレイヤーがプレイされるまでキューに入れられます。"
   },
   "history": {
     "header": "会話履歴ビューアー",
@@ -827,10 +868,10 @@
     "yes": "はい",
     "no": "いいえ",
     "age_suffix": {
-        "infant": "（乳児）",
-        "toddler": "（幼児）",
-        "child": "（子供）",
-        "teenager": "（ティーンエイジャー）"
+      "infant": "（乳児）",
+      "toddler": "（幼児）",
+      "child": "（子供）",
+      "teenager": "（ティーンエイジャー）"
     },
     "valid": "有効",
     "invalid": "無効"

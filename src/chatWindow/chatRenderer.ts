@@ -931,10 +931,11 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
     if (!queueStatusDiv) return;
 
     if (!currentSpeaker && queue.length === 0) {
-        queueStatusDiv.innerHTML = '';
+        queueStatusDiv.style.display = 'none';
         return;
     }
 
+    queueStatusDiv.style.display = 'block';
     let statusHTML = '';
     if (currentSpeaker) {
         const speakingText = window.LocalizationManager?.getNestedTranslation('chat.status_speaking') || 'Speaking:';
@@ -953,6 +954,7 @@ function updateQueueStatus(queue: {name: string, id: number}[], currentSpeaker: 
 function updateStatusText(textKey: string, vars?: any) {
     if (!queueStatusDiv) return;
     if (textKey) {
+        queueStatusDiv.style.display = 'block';
         const statusText = window.LocalizationManager?.getNestedTranslation(textKey) || textKey;
         let statusHTML = `<div><span class="current-speaker">`;
 
@@ -976,6 +978,7 @@ function updateStatusText(textKey: string, vars?: any) {
         queueStatusDiv.innerHTML = statusHTML;
     } else {
         queueStatusDiv.innerHTML = '';
+        queueStatusDiv.style.display = 'none';
     }
 }
 
@@ -1691,6 +1694,14 @@ function showInlineActionForm(action: any) {
     }
 }
 
+// Notify the main process that the renderer has finished loading and its IPC
+// listeners are registered, so a pending 'chat-show' can be delivered safely.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => ipcRenderer.send('chat-renderer-loaded'), { once: true });
+} else {
+    ipcRenderer.send('chat-renderer-loaded');
+}
+
 ipcRenderer.on('chat-show', () =>{
     if (chatMessages) {
         chatMessages.innerHTML = '';
@@ -2019,8 +2030,10 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     displayNarrative(narrativeMessage);
 
     const shouldEnableInput = !isAiToAi;
-    removeLoadingDots(true);
-    updateStatusText('');
+    removeLoadingDots(shouldEnableInput);
+    if (shouldEnableInput) {
+        updateStatusText('');
+    }
 })
 
 ipcRenderer.on('update-base-tokens', (e, count: number) => {

@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem se despe, voluntariamente ou à força. A fonte (character1) é o personagem que causa a ação (pode ser o mesmo que o alvo). O alvo (character2) é o personagem que está SE DESPIRINDO.`,
         tr: `Bir karakter soyunduğunda çalıştırılır, gönüllü olarak veya zorla. Kaynak (character1) eyleme neden olan karakterdir (hedef ile aynı olabilir). Hedef (character2) SOYUNAN karakterdir.`
     },
-
+  canPerformAtDistance: false,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -59,5 +59,5 @@ module.exports = {
             tr: `{{character2Name}} soyundu.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
 }

@@ -67,7 +67,7 @@ const action = {
         pt: `Executado quando um personagem nomeia outro para um cargo na corte. A fonte (character1) é o GOVERNANTE/NOMEADOR. O alvo (character2) é o personagem sendo NOMEADO.`,
         tr: `Bir karakter başka birini saray görevine atadığında çalıştırılır. Kaynak (character1) HÜKÜMDAR/ATAYAN'dır. Hedef (character2) ATANAN karakterdir.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -402,6 +402,7 @@ const action = {
             tr: `{{character1Name}}, {{character2Name}}'yi ${positionNames.tr} görevine atadı.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message"
 }
+
 module.exports = action;

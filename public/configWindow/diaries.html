@@ -20,17 +20,18 @@
   <body>
     <div class="navbar">
       <ul>
-        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
-        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
-        <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
-        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
-        <li class="active"><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
-        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
-        <li><a href="system.html" data-i18n="nav.system">System</a></li>
-        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <li><a href="connection.html" data-i18n="nav.connection" data-i18n-title="nav.connection_tooltip">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions" data-i18n-title="nav.actions_tooltip">Actions</a></li>
+        <li><a href="summarization.html" data-i18n="nav.summarization" data-i18n-title="nav.summarization_tooltip">Summarization</a></li>
+        <li><a href="memories.html" data-i18n="nav.memories" data-i18n-title="nav.memories_tooltip">Memories</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts" data-i18n-title="nav.prompts_tooltip">Prompts</a></li>
+        <li><a href="letters.html" data-i18n="nav.letters" data-i18n-title="nav.letters_tooltip">Letters</a></li>
+        <li class="active"><a href="diaries.html" data-i18n="nav.diaries" data-i18n-title="nav.diaries_tooltip">Diaries</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings" data-i18n-title="nav.settings_tooltip">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system" data-i18n-title="nav.system_tooltip">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help" data-i18n-title="nav.help_tooltip">Help</a></li>
         <language-selector></language-selector>
-      </ul> 
+      </ul>
     </div>
 
     <div class="container" id="container">
@@ -44,7 +45,7 @@
                 <div class="loader-inline" style="display: none;"></div>
             </button>
         </div>
-    
+
         <div class="info-panel">
             <div class="info-item">
                 <label for="diary-manager-playerIdSelect" data-i18n="diary_manager.player_id">Player ID:</label>
@@ -61,7 +62,7 @@
                 <input type="text" id="diary-manager-diaryPath" readonly data-i18n-title="diary_manager.tooltip_diary_path">
             </div>
         </div>
-    
+
         <div class="summary-list-container">
             <div class="summary-list-header">
               <h3 data-i18n="diary_manager.list_header">Diary List</h3>
@@ -82,7 +83,7 @@
                 <button id="diary-manager-addDiaryBtn" class="btn" data-i18n="diary_manager.add_new" data-i18n-title="diary_manager.tooltip_add">Add</button>
             </div>
         </div>
-    
+
         <div id="diary-manager-statusMessage" class="status-message"></div>
     </div>
     </div>

@@ -45,7 +45,8 @@ describe('PR15 second review integration reproductions', () => {
                     campaignBootstrapKind: 1, playerTimelineSchema: 1}
             }}};
         const config: any = {userFolderPath: path.join(root, 'ck3'), language: 'en', maxTokens: 100,
-            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
+            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}},
+            actionsUseTextGenApi: true, actionsApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
         const original: any = {id: 'original', subject: 'letter_1', totalDays: 389000, delay: 9,
             content: 'Hello', sender: player, recipient: ai, timestamp: new Date('1066-01-01T12:00:00Z')};
         const generator: any = new LetterReplyGenerator(config, path.join(root, 'votc_data'), null);

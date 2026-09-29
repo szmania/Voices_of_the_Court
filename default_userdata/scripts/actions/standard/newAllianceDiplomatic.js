@@ -18,7 +18,7 @@ module.exports = {
         pt: `Executado quando dois personagens concordam em formar uma aliança. A fonte (character1) e o alvo (character2) são as duas partes que formam a aliança.`,
         tr: `İki karakter bir ittifak kurmayı kabul ettiğinde çalıştırılır. Kaynak (character1) ve hedef (character2), ittifakı kuran iki taraftır.`
     },
-	
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData
      * @param {number} sourceId
@@ -107,5 +107,5 @@ module.exports = {
             tr: `{{character1Name}} ve {{character2Name}}, bir ittifak kurdu.`
         };
     },
-    chatMessageClass: "positive-action-message"
+chatMessageClass: "positive-action-message",
 }

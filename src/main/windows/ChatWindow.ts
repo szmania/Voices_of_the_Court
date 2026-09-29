@@ -30,6 +30,11 @@ export class ChatWindow{
     // whenever the library thinks the game is not focused, which is always the case
     // if it never attached, so plain mode removes them.
     private overlayBlurListeners: Array<(...args: any[]) => void>;
+    // Set once the renderer signals it has finished loading and registered its
+    // IPC listeners (via 'chat-renderer-loaded' or did-finish-load).
+    private rendererLoaded: boolean = false;
+    // True when show() was called but the 'chat-show' message hasn't been sent yet.
+    private showPending: boolean = false;
 
 
     constructor(){
@@ -66,6 +71,18 @@ export class ChatWindow{
 
         this.window.loadFile('./public/chatWindow/chat.html')
         this.window.removeMenu();
+
+        // Track renderer readiness so show() never fires 'chat-show' into a
+        // renderer that hasn't registered its listener yet (cold-start race).
+        this.window.webContents.on('did-finish-load', () => {
+            this.rendererLoaded = true;
+            if (this.showPending) this.sendShowWhenReady();
+        });
+        ipcMain.on('chat-renderer-loaded', (event) => {
+            if (event.sender !== this.window.webContents) return;
+            this.rendererLoaded = true;
+            if (this.showPending) this.sendShowWhenReady();
+        });
 
         this.overlayMode = 'pending';
         OverlayController.events.on('attach', () => this.onOverlayAttach());
@@ -210,6 +227,26 @@ export class ChatWindow{
         console.warn("Chat window: overlay never attached to 'Crusader Kings III'; falling back to a plain always-on-top window.");
         for (const listener of this.overlayBlurListeners) {
             this.window.removeListener('blur', listener);
+        }
+    }
+
+    // Sends 'chat-show' with the historical 150ms delay, but only once the
+    // renderer has finished loading. If it hasn't, defers until did-finish-load
+    // (or the renderer's own 'chat-renderer-loaded' ping) fires.
+    private sendShowWhenReady(){
+        if (!this.window || this.window.isDestroyed()) return;
+        const send = () => {
+            this.showPending = false;
+            setTimeout(() => {
+                if (this.window && !this.window.isDestroyed()) {
+                    this.window.webContents.send('chat-show');
+                }
+            }, 150);
+        };
+        if (this.rendererLoaded || !this.window.webContents.isLoading()) {
+            send();
+        } else {
+            this.window.webContents.once('did-finish-load', send);
         }
     }
 

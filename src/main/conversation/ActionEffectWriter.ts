@@ -105,6 +105,91 @@ ordered_in_global_list = {
   }
 
   /**
+   * Compose CK3 prelude for LETTER actions using dedicated global variables instead
+   * of the positional conversation list (letter actions fire outside the conversation
+   * scene, so `ordered_in_global_list` positions are unreliable there).
+   *
+   * Sets:
+   *  - global_var:message_first_scope = the player (root)
+   *  - global_var:message_second_scope_<letterName> = the other letter participant
+   *  - global_var:votcce_action_source / votcce_action_target = derived from the two
+   *    message scopes above, so existing action scripts keep working unchanged.
+   *
+   * @param sourceId  Action source character id.
+   * @param targetId  Action target character id.
+   * @param playerId  The player character id (letter owner).
+   * @param letterName Letter thread name, e.g. "letter_1" .. "letter_9".
+   */
+  static composeLetterScopePrelude(sourceId: number, targetId: number, playerId: number, letterName: string): string {
+    const otherId = sourceId === playerId ? targetId : sourceId;
+    const sourceVar = sourceId === playerId ? 'message_first_scope' : `message_second_scope_${letterName}`;
+    const targetVar = targetId === playerId ? 'message_first_scope' : `message_second_scope_${letterName}`;
+    return `
+root = {
+    set_global_variable = {
+        name = message_first_scope
+        value = root
+    }
+}
+character:${otherId} = {
+    set_global_variable = {
+        name = message_second_scope_${letterName}
+        value = this
+    }
+}
+set_global_variable = {
+    name = votcce_action_source
+    value = global_var:${sourceVar}
+}
+set_global_variable = {
+    name = votcce_action_target
+    value = global_var:${targetVar}
+}
+`;
+  }
+
+  /**
+   * Compose a full letter-action effect (letter scope prelude + effect body).
+   */
+  static composeFullLetterEffect(
+    sourceId: number,
+    targetId: number,
+    playerId: number,
+    letterName: string,
+    effectBody: string
+  ): string {
+    return `${this.composeLetterScopePrelude(sourceId, targetId, playerId, letterName)}\n${effectBody}\n`;
+  }
+
+  /**
+   * Write a letter-action effect to run file (overwrites).
+   */
+  static writeLetterEffect(
+    runFileManager: RunFileManager,
+    sourceId: number,
+    targetId: number,
+    playerId: number,
+    letterName: string,
+    effectBody: string
+  ): void {
+    runFileManager.write(this.composeFullLetterEffect(sourceId, targetId, playerId, letterName, effectBody));
+  }
+
+  /**
+   * Append a letter-action effect to run file.
+   */
+  static appendLetterEffect(
+    runFileManager: RunFileManager,
+    sourceId: number,
+    targetId: number,
+    playerId: number,
+    letterName: string,
+    effectBody: string
+  ): void {
+    runFileManager.append(this.composeFullLetterEffect(sourceId, targetId, playerId, letterName, effectBody));
+  }
+
+  /**
    * Compute 0-based position for character id in the ordered list.
    * Uses getCharacterIds() character id list matches the positions in ck3.
    */

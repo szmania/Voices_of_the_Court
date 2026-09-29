@@ -36,6 +36,7 @@ module.exports = {
         pt: `Executado quando um personagem dá ouro a outro. O iniciador (character1) é o DOADOR. O alvo (character2) é o RECEPTOR.`,
         tr: `Bir karakter başka birine altın verdiğinde çalıştırılır. Başlatan (character1) VEREN'dir. Hedef (character2) ALAN'dır.`
     },
+  canPerformAtDistance: true,
 
     /**
      * @param {GameData} gameData
@@ -109,5 +110,5 @@ module.exports = {
             tr: `{{character1Name}}, {{character2Name}}'ye ${args[0]} altın verdi.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "positive-action-message",
 }

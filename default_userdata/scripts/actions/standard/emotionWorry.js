@@ -17,7 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem se sente preocupado.`,
         tr: `Bir karakter endişeli hissettiğinde çalıştırılır.`
     },
-
+  canPerformAtDistance: true,
     /**
      * @param {GameData} gameData 
      * @param {number} sourceId
@@ -59,6 +59,5 @@ module.exports = {
             tr: `{{character2Name}} endişeli.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+    chatMessageClass: "neutral-action-message",
 }
-

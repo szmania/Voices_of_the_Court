@@ -153,7 +153,7 @@ module.exports = {
     pt: "Adiciona um traço a um personagem. A fonte (personagem 1) fornece o contexto, enquanto o alvo (personagem 2) recebe o traço.",
     tr: "Bir karaktere bir özellik ekler. Kaynak (character1) bağlam sağlar, hedef (character2) ise özelliği alır."
   },
-
+  canPerformAtDistance: true,
   /**
    * @param {GameData} gameData
    * @param {number} sourceId
@@ -190,7 +190,7 @@ module.exports = {
         message: `Invalid trait key "${rawTrait}". Could not normalize to a valid key.`
       };
     }
-    
+
     args[0] = traitKey; // Update with normalized key
     return { success: true };
   },
@@ -245,6 +245,5 @@ module.exports = {
       tr: `{{character2Name}}, ${traitKey} özelliğini kazandı.`
     };
   },
-
   chatMessageClass: "neutral-action-message"
-};
+}

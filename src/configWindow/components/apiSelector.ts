@@ -225,10 +225,30 @@ function defineTemplate(label: string){
         </div>
 
         <hr>
-        <input type="checkbox" id="overwrite-context"/>
-        <label data-i18n="connection.overwrite_context">Overwrite context size</label> <br>
-        <input type="number" id="custom-context" min="0" style="width: 10%;"/>
-    </div>
+        <div id="context-size-fields">
+            <input type="checkbox" id="overwrite-context"/>
+            <label data-i18n="connection.overwrite_context">Overwrite context size</label> <br>
+            <input type="number" id="custom-context" min="0" style="width: 10%;"/>
+        </div>
+
+        <div id="embedding-dim-fields">
+            <div class="input-group">
+                <label for="embedding-dimension-enabled" data-i18n="memory_constellation.embedding_dimension" data-i18n-title="memory_constellation.embedding_dimension_tooltip">Embedding Dimension</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="embedding-dimension-enabled" data-i18n-title="memory_constellation.embedding_dimension_enabled_tooltip" />
+                    <input type="number" id="embedding-dimension-input" min="1" max="8192" step="1" value="1536" disabled />
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="embedding-input-type" data-i18n="memory_constellation.embedding_input_type" data-i18n-title="memory_constellation.embedding_input_type_tooltip">Input type (optional)</label>
+                <select id="embedding-input-type">
+                    <option value="">(default)</option>
+                    <option value="query">query</option>
+                    <option value="passage">passage</option>
+                    <option value="document">document</option>
+                </select>
+            </div>
+        </div>
 
   <button type="button" id="connection-test-button" data-i18n="connection.test_connection">Test Connection</button> <span id="connection-test-span"></span>
 `
@@ -289,6 +309,11 @@ class ApiSelector extends HTMLElement{
 
     overwriteContextCheckbox!: HTMLInputElement;
     customContextNumber!: HTMLInputElement;
+
+    embeddingDimFields!: HTMLDivElement;
+    embeddingDimensionEnabled!: HTMLInputElement;
+    embeddingDimensionInput!: HTMLInputElement;
+    embeddingInputType!: HTMLSelectElement;
 
     novelaiPasswordInput!: HTMLInputElement;
     novelaiModelInput!: HTMLInputElement;
@@ -357,6 +382,11 @@ class ApiSelector extends HTMLElement{
         this.overwriteContextCheckbox = this.shadow.querySelector("#overwrite-context")! as HTMLInputElement;
         this.customContextNumber = this.shadow.querySelector("#custom-context")! as HTMLInputElement;
 
+        this.embeddingDimFields = this.shadow.querySelector("#embedding-dim-fields")!;
+        this.embeddingDimensionEnabled = this.shadow.querySelector("#embedding-dimension-enabled")! as HTMLInputElement;
+        this.embeddingDimensionInput = this.shadow.querySelector("#embedding-dimension-input")! as HTMLInputElement;
+        this.embeddingInputType = this.shadow.querySelector("#embedding-input-type")! as HTMLSelectElement;
+
         this.novelaiPasswordInput = this.shadow.querySelector("#novelai-password")! as HTMLInputElement;
         this.novelaiModelInput = this.shadow.querySelector("#novelai-model-input")! as HTMLInputElement;
         this.novelaiModelDatalist = this.shadow.querySelector("#novelai-models")! as HTMLDataListElement;
@@ -421,14 +451,17 @@ class ApiSelector extends HTMLElement{
         }
 
         // 加载Custom配置
-        if (apiKeys.custom) {
-            this.customUrlInput.value = apiKeys.custom.baseUrl || "";
-            this.customKeyInput.value = apiKeys.custom.key || "";
-            this.customModelInput.value = apiKeys.custom.model || "";
-        } else if(apiConfig.type == "custom"){
+        // Prefer the authoritative connection (apiConfig) for the ACTIVE type so the
+        // fields reflect the saved connection (including the key). Only fall back to the
+        // per-type apiKeys cache when custom is NOT the active type.
+        if(apiConfig.type == "custom"){
             this.customUrlInput.value = apiConfig.baseUrl;
             this.customKeyInput.value = apiConfig.key;
             this.customModelInput.value = apiConfig.model;
+        } else if (apiKeys.custom) {
+            this.customUrlInput.value = apiKeys.custom.baseUrl || "";
+            this.customKeyInput.value = apiKeys.custom.key || "";
+            this.customModelInput.value = apiKeys.custom.model || "";
         }
 
         // 加载Gemini配置
@@ -498,6 +531,37 @@ class ApiSelector extends HTMLElement{
 
         this.overwriteContextCheckbox.checked = apiConfig.overwriteContext;
         this.customContextNumber.value = apiConfig.customContext;
+
+        // Context size is irrelevant for embeddings; hide it for the embedding config.
+        if (confID === 'embeddingApiConnectionConfig') {
+            const contextFields = this.shadow.querySelector('#context-size-fields');
+            if (contextFields) {
+                (contextFields as HTMLElement).style.display = 'none';
+                const hr = (contextFields as HTMLElement).previousElementSibling;
+                if (hr && hr.tagName === 'HR') (hr as HTMLElement).style.display = 'none';
+            }
+        }
+
+        // Embedding-only controls: show only for the embedding config.
+        if (confID === 'embeddingApiConnectionConfig') {
+            this.embeddingDimFields.style.display = 'block';
+            this.embeddingDimensionEnabled.checked = !!apiConfig.useCustomEmbeddingDimension;
+            if (apiConfig.embeddingDimension) {
+                this.embeddingDimensionInput.value = String(apiConfig.embeddingDimension);
+            }
+            this.embeddingInputType.value = apiConfig.embeddingInputType || '';
+            this.toggleEmbeddingDimension();
+        } else {
+            this.embeddingDimFields.style.display = 'none';
+        }
+        if (confID === 'embeddingApiConnectionConfig') {
+            const contextFields = this.shadow.querySelector('#context-size-fields');
+            if (contextFields) {
+                (contextFields as HTMLElement).style.display = 'none';
+                const hr = (contextFields as HTMLElement).previousElementSibling;
+                if (hr && hr.tagName === 'HR') (hr as HTMLElement).style.display = 'none';
+            }
+        }
 
 
 
@@ -614,11 +678,50 @@ class ApiSelector extends HTMLElement{
             }
             console.debug("Using config:", configToLog);
 
-            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters, null);
-
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
 
+            // The embedding config tests the embedding endpoint, not chat completions.
+            if (this.confID === 'embeddingApiConnectionConfig') {
+                const conn = config[this.confID].connection;
+                const payload: any = {
+                    provider: conn.type,
+                    model: conn.model,
+                    baseUrl: conn.baseUrl,
+                    apiKey: conn.key
+                };
+                if (conn.useCustomEmbeddingDimension && conn.embeddingDimension) {
+                    payload.expectedDimension = conn.embeddingDimension;
+                }
+                if (conn.embeddingInputType) {
+                    payload.embeddingInputType = conn.embeddingInputType;
+                }
+                const result = await ipcRenderer.invoke('test-embedding-connection', payload);
+                console.debug("--- API SELECTOR: Embedding Test Result ---");
+                console.debug(result);
+                // @ts-ignore
+                const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+                if (result.success) {
+                    this.testConnectionSpan.style.color = "green";
+                    if (result.expectedDimension && result.dimensions === result.expectedDimension) {
+                        this.testConnectionSpan.innerText = t('memory_constellation.embedding_test_success_matches', 'Connection successful. Model: {model}, Dimensions: {dimensions} (matches overwrite).')
+                            .replace('{model}', result.model).replace('{dimensions}', String(result.dimensions));
+                    } else {
+                        this.testConnectionSpan.innerText = t('memory_constellation.embedding_test_success', 'Connection successful. Model: {model}, Dimensions: {dimensions}.')
+                            .replace('{model}', result.model).replace('{dimensions}', String(result.dimensions));
+                    }
+                } else if (result.mismatch) {
+                    this.testConnectionSpan.style.color = "red";
+                    this.testConnectionSpan.innerText = t('memory_constellation.embedding_test_mismatch', 'Overwrite dimension mismatch: requested {requested} but model returned {returned}. Disable "Overwrite embedding dimension" or correct the value.')
+                        .replace('{requested}', String(result.expectedDimension)).replace('{returned}', String(result.dimensions));
+                } else {
+                    this.testConnectionSpan.style.color = "red";
+                    this.testConnectionSpan.innerText = result.message || t('memory_constellation.embedding_test_failed', 'Connection failed.');
+                }
+                return;
+            }
+
+            let con = new ApiConnection(config[this.confID].connection, config[this.confID].parameters, null);
 
             con.testConnection().then( (result) =>{
 
@@ -663,10 +766,27 @@ class ApiSelector extends HTMLElement{
             ipcRenderer.send('config-change-nested-nested', this.confID, "connection", "customContext", this.customContextNumber.value);
         })
 
+        this.embeddingDimensionEnabled.addEventListener('change', () => {
+            this.toggleEmbeddingDimension();
+            ipcRenderer.send('config-change-nested-nested', this.confID, "connection", "useCustomEmbeddingDimension", this.embeddingDimensionEnabled.checked);
+        });
+
+        this.embeddingDimensionInput.addEventListener('change', () => {
+            const value = parseInt(this.embeddingDimensionInput.value, 10);
+            if (isNaN(value) || value < 1) {
+                this.embeddingDimensionInput.value = '1536';
+                return;
+            }
+            ipcRenderer.send('config-change-nested-nested', this.confID, "connection", "embeddingDimension", value);
+        });
+
+        this.embeddingInputType.addEventListener('change', () => {
+            ipcRenderer.send('config-change-nested-nested', this.confID, "connection", "embeddingInputType", this.embeddingInputType.value);
+        });
+
 
 
     }
-
     toggleCustomContext(){
         if(this.overwriteContextCheckbox.checked){
             this.customContextNumber.style.opacity = "1";
@@ -676,6 +796,10 @@ class ApiSelector extends HTMLElement{
             this.customContextNumber.style.opacity = "0.5";
             this.customContextNumber.disabled = true;
         }
+    }
+
+    toggleEmbeddingDimension(){
+        this.embeddingDimensionInput.disabled = !this.embeddingDimensionEnabled.checked;
     }
 
     displaySelectedApiBox(){

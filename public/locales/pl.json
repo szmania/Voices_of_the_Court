@@ -15,11 +15,34 @@
     "language_tooltip": "Wybierz język aplikacji",
     "discord_tooltip": "Dołącz do naszego Discorda",
     "steam_tooltip": "Zobacz w Warsztacie Steam",
-    "website_tooltip": "Odwiedź naszą stronę internetową"
+    "website_tooltip": "Odwiedź naszą stronę internetową",
+    "memory_constellation": "Konstelacja Wspomnień",
+    "memory_constellation_tooltip": "Wizualizuj wspomnienia postaci w 3D",
+    "memory_constellation.empty_title": "Nie znaleziono wspomnień",
+    "memory_constellation.empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze."
   },
   "diaries": {
     "header": "Dzienniki",
     "description": "Zarządzaj wpisami do dziennika dla postaci."
+  },
+  "memory_constellation": {
+    "refresh_button": "Refresh",
+    "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
+    "embedding_input_type": "Embedding input type",
+    "embedding_input_type_tooltip": "Some embedding models (e.g. NVIDIA NIM asymmetric models) require an input type (query, passage, or document). Leave as default to auto-detect.",
+    "embedding_dimension_enabled_tooltip": "Enable to override the embedding dimension produced by the model.",
+    "empty_title": "Nie znaleziono wspomnień",
+    "empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze.",
+    "legacy_status_loaded": "Legacy memories loaded ({count})",
+    "legacy_status_partial": "Legacy memories partially loaded ({loaded}/{total})",
+    "legacy_status_not_loaded": "Legacy memories not loaded ({loaded}/{total})",
+    "legacy_status_no_legacy": "No legacy memories found",
+    "legacy_status_error": "Error checking legacy memory status",
+    "total_memories": "Player Character Total Memories: {count}",
+    "scene_letter": "List",
+    "location_label": "Lokalizacja: ",
+    "location_unknown": "Nieznana",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",
@@ -129,7 +152,20 @@
     "mod_princes_of_darkness": "Książęta Ciemności",
     "total_tokens_header": "Całkowita liczba tokenów",
     "total_conversation_tokens": "Całkowita liczba tokenów konwersacji:",
-    "total_letter_tokens": "Całkowita liczba tokenów listu:"
+    "total_letter_tokens": "Całkowita liczba tokenów listu:",
+    "character_description": "Opis postaci",
+    "char_desc_tooltip": "Napisz trwały opis postaci (wygląd, historia, cechy). AI zapamięta go, gdy postać mówi lub jest adresowana. Puste pole czyści opis.",
+    "char_desc_player": "Gracz:",
+    "char_desc_player_tooltip": "Wybierz kontekst gracza dla opisu.",
+    "char_desc_character": "Postać:",
+    "char_desc_character_tooltip": "Wybierz postać do opisania.",
+    "char_desc_character_note": "Pole „Filtruj według gracza” po lewej określa, które postacie pojawiają się tutaj.",
+    "char_desc_save": "Zapisz opis",
+    "char_desc_saved": "Opis postaci zapisano pomyślnie.",
+    "char_desc_placeholder": "Opisz wygląd, historię, cechy osobowości i ważne wydarzenia postaci...",
+    "char_desc_none": "Nie ustawiono opisu.",
+    "char_desc_select_alert": "Najpierw wybierz gracza i postać.",
+    "char_desc_save_error": "Nie udało się zapisać opisu postaci."
   },
   "settings": {
     "header": "Ustawienia",
@@ -742,7 +778,7 @@
     "no_letters": "Nie znaleziono listów.",
     "select": "Wybierz list do przeczytania.",
     "refresh": "Odśwież",
-    "no_reply": "Jeszcze brak odpowiedzi.",
+    "no_reply": "Brak odpowiedzi.",
     "outbound_not_found": "Nie znaleziono listu wychodzącego.",
     "sort_by": "Sortuj według:",
     "sort_game_date": "Data w grze",
@@ -753,7 +789,6 @@
     "status_reply_overdue": "Odpowiedź opóźniona",
     "status_failed": "Niepowodzenie",
     "status_completed": "Ukończono",
-    "no_reply": "Brak odpowiedzi.",
     "load_success": "Dane listów załadowane pomyślnie",
     "thread_status": "Wątek listów",
     "tooltip_thread_status": "Wskazuje aktualną liczbę listów użytych w wątku listów w grze. Wątek musi zostać zresetowany w grze poprzez decyzję, gdy osiągnie 9/9.",
@@ -763,9 +798,10 @@
     "tooltip_reply_overdue": "Liczba wysłanych listów, na które odpowiedź jest opóźniona.",
     "tooltip_failed": "Liczba listów, których generowanie lub wysłanie nie powiodło się.",
     "tooltip_completed": "Liczba listów, które zostały pomyślnie wysłane lub przeczytane.",
-    "load_success": "Dane listów załadowane pomyślnie",
     "search": "Szukaj:",
     "search_placeholder": "Szukaj listów...",
+    "hide_future": "Hide Future Letters",
+    "show_all": "Show All Letters",
     "days": "dni",
     "est": "szac.",
     "reply_expected_in": "Odpowiedź oczekiwana za",
@@ -785,7 +821,12 @@
     "status_journey_began": "Rozpoczęto podróż do {character}",
     "status_awaiting_reply": "Oczekiwanie na odpowiedź od {character}",
     "status_reply_en_route": "Odpowiedź jest w drodze",
-    "estimated_reply": "Szac. odp.: {date}"
+    "estimated_reply": "Szac. odp.: {date}",
+    "triggered_actions": "Wyzwolone akcje",
+    "action_signature": "Akcja",
+    "action_trigger": "Wyzwalacz",
+    "no_actions_triggered": "Nie wyzwolono żadnych akcji.",
+    "player_mismatch_warning": "Ostrzeżenie: wybrany gracz nie jest aktualnie odgrywaną postacią. Zatwierdzone akcje zostaną umieszczone w kolejce, dopóki ten gracz nie będzie odgrywany."
   },
   "history": {
     "header": "Przeglądarka historii rozmów",
@@ -827,10 +868,10 @@
     "yes": "Tak",
     "no": "Nie",
     "age_suffix": {
-        "infant": "(Niemowlę)",
-        "toddler": "(Małe dziecko)",
-        "child": "(Dziecko)",
-        "teenager": "(Nastolatek)"
+      "infant": "(Niemowlę)",
+      "toddler": "(Małe dziecko)",
+      "child": "(Dziecko)",
+      "teenager": "(Nastolatek)"
     },
     "valid": "Prawidłowa",
     "invalid": "Nieprawidłowa"

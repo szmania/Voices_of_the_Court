@@ -77,7 +77,7 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
 
     // 保留用户配置中不在默认配置中的特殊字段（如apiKeys）
     // 这些字段对于API配置的持久化至关重要
-    const specialFields = ['apiKeys'];
+    const specialFields = ['apiKeys', 'embeddingApiConnectionConfig'];
     for (const field of specialFields) {
         if (userConfig.hasOwnProperty(field)) {
             merged[field] = userConfig[field];
@@ -126,9 +126,19 @@ export async function checkUserData(){
         synchronizeDirectory(sourcePromptsConfigPath, promptsConfigPath);
     }
 
+    // Sync the bundled default_config.json into the user folder so the user's copy
+    // tracks newly-added keys from newer app versions. Without this, the user's stale
+    // copy (which lacks e.g. embeddingApiConnectionConfig) is used as the merge
+    // baseline below, and mergeConfigsStrict strips any key not present in it.
+    const bundledDefaultConfigPath = path.join(defaultUserdataPath, 'configs', 'default_config.json');
+    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
+    if (fs.existsSync(bundledDefaultConfigPath)) {
+        fs.copyFileSync(bundledDefaultConfigPath, defaultConfigDestPath);
+        console.log(`Synchronized default_config.json from ${bundledDefaultConfigPath} to ${defaultConfigDestPath}`);
+    }
+
     // The old validation logic for config can still be useful
     const configPath = path.join(userPath, "configs", "config.json");
-    const defaultConfigDestPath = path.join(userPath, 'configs', 'default_config.json');
     console.log(`Validating config file at: ${configPath}`);
 
     if(existsSync(configPath)){

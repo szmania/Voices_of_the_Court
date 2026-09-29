@@ -9,13 +9,13 @@ const UTF8_BOM = '\uFEFF';
 export class RunFileManager {
     private path: string;
 
-    constructor(userFolderPath: string) {
+    constructor(userFolderPath: string, filename: string = 'votc.txt') {
         if (!userFolderPath) {
             console.error("RunFileManager error: userFolderPath is not provided. Run file operations will be disabled.");
             this.path = '';
             return;
         }
-        this.path = path.join(userFolderPath, "run", "votc.txt");
+        this.path = path.join(userFolderPath, "run", filename);
         console.log(`RunFileManager initialized. File path: ${this.path}`);
         this.createRunFolder(userFolderPath);
     }
@@ -59,7 +59,7 @@ export class RunFileManager {
             const currentText = this.readCurrent();
             const separator = currentText.trim() === '' ? '' : '\n';
             this.writeUtf8Bom(`${currentText}${separator}${text}`);
-            console.log(`RunFileManager: Appended to run file: ${text}`);
+            console.log(`RunFileManager: Appended to run file ${this.path}: ${text}`);
         } catch (error) {
             console.error(`RunFileManager: Failed to append to file ${this.path}:`, error);
         }

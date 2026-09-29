@@ -1,10 +1,13 @@
 import fs from 'fs';
-import { Letter } from './Letter.js';
+import { Letter as LetterClass } from './Letter.js';
+import { Letter } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
 import { GameData } from '../../shared/gameData/GameData.js';
+import { Config } from '../../shared/Config.js';
+import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.floor(totalDays / 365);
+    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -23,7 +26,7 @@ function totalDaysToDateString(totalDays: number): string {
     return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
-export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, playerId?: string, recipientId?: string): Promise<Letter[]> {
+export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
     if (!fs.existsSync(debugLogPath)) {
@@ -73,25 +76,57 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     writtenDateInDays = gameData.totalDays; // Fallback only if missing or invalid
                 }
                 const delay = parseInt(parts[3].trim(), 10) || 0;
-                const senderIdFromLog = parts[4] ? parts[4].trim() : playerId;
-                const recipientIdFromLog = parts[5] ? parts[5].trim() : recipientId;
+                const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
+                const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
 
-                if (content && letterId && senderIdFromLog && recipientIdFromLog) {
-                    const sender = gameData.characters.get(Number(senderIdFromLog));
-                    const recipient = gameData.characters.get(Number(recipientIdFromLog));
+                // Use the playerId and recipientId from the function arguments if they exist,
+                // as they are more reliable than the potentially swapped log values.
+                const finalSenderId = playerId || senderIdFromLog;
+                const finalRecipientId = recipientId || recipientIdFromLog;
+
+                // Parse triggered actions from remaining parts (parts[6+])
+                // Format: signature:arg1,arg2,...:triggerOn
+                const triggeredActions: any[] = [];
+                for (let i = 6; i < parts.length; i++) {
+                    const actionPart = parts[i].trim();
+                    if (actionPart) {
+                        const actionFields = actionPart.split(":");
+                        if (actionFields.length >= 3) {
+                            const signature = actionFields[0];
+                            const argsStr = actionFields[1];
+                            const triggerOn = actionFields[2];
+                            const args = argsStr ? argsStr.split(",").map(a => {
+                                const num = Number(a);
+                                return isNaN(num) ? a : num;
+                            }) : [];
+                            triggeredActions.push({ signature, args, triggerOn });
+                        }
+                    }
+                }
+
+                if (content && letterId && finalSenderId && finalRecipientId) {
+                    const sender = gameData.characters.get(Number(finalSenderId));
+                    const recipient = gameData.characters.get(Number(finalRecipientId));
 
                     if (sender && recipient) {
                         const correctedGameDate = totalDaysToDateString(writtenDateInDays);
                         const creationTimestamp = new Date(Date.now() + parseTimeOffset);
                         parseTimeOffset++;
-                        const letter = Letter.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
+                            letter.triggeredActions = triggeredActions;
+                            // Guard: never auto-execute letter actions when manual approval is enabled.
+                            // This branch is currently dead (associatedAction is never assigned), but if it
+                            // is ever enabled, it must still respect manualLetterActionApproval.
+                            if (!config.manualLetterActionApproval && letter.associatedAction?.triggerOn === 'receive') {
+                                LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
+                            }
                             letters.push(letter);
                             // The player is the sender of the letter being imported from the log
-                            LetterManager.getInstance().saveLetter(letter, senderIdFromLog);
+                            LetterManager.getInstance().saveLetter(letter, finalSenderId);
                         }
                     } else {
-                        console.error(`Could not find sender (${senderIdFromLog}) or recipient (${recipientIdFromLog}) in gameData for letter.`);
+                        console.error(`Could not find sender (${finalSenderId}) or recipient (${finalRecipientId}) in gameData for letter.`);
                     }
                 }
             }

@@ -33,6 +33,9 @@ function page(presets = {}, activePreset = 'Default') {
                     stored = clone(value);
                     return { success: true };
                 case 'get-all-summary-player-ids': return { success: true, ids: [] };
+                case 'get-character-description-characters': return { success: true, ids: [] };
+                case 'get-character-description': return '';
+                case 'save-character-description': return { success: true };
                 case 'get-userdata-path': return '/unused-user-data';
                 case 'calculate-tokens': return 1;
                 case 'get-context-limit': return 4096;

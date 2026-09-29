@@ -48,7 +48,7 @@ export type Relative = {
     otherParentName?: string;
 }
 
-/** 
+/**
  * @class
 */
 export class GameData {
@@ -82,7 +82,7 @@ export class GameData {
             this.scene = data[5].substring(11),
             this.location = data[6],
             this.locationController = data[7],
-    
+
             this.characters = new Map<number,Character>
     }
 
@@ -91,7 +91,7 @@ export class GameData {
     }
 
     /**
-     * 
+     *
      * @return {Character} ai
      */
     getAi(): Character{
@@ -154,9 +154,9 @@ export class GameData {
                 // It's a plain object
                 entries = Object.entries(obj.characters);
             }
-            
+
             console.log(`[GameData.fromPlainObject] Characters entries count: ${entries.length}`);
-            
+
             for (const [id, charObj] of entries) {
                 const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
                 const characterInstance = Character.fromPlainObject(charObj);
@@ -166,7 +166,7 @@ export class GameData {
         } else {
             console.log(`[GameData.fromPlainObject] No characters found in obj.characters`);
         }
-        
+
         return instance;
     }
 
@@ -176,7 +176,7 @@ export class GameData {
      */
     setCharacterNames(): void {
         // const nonPlayerCharacters = this.getOtherCharacters();
-        
+
         // this.character1Name = nonPlayerCharacters[0]?.shortName || "someone";
         // this.character2Name = nonPlayerCharacters[1]?.shortName || "another person";
     }
@@ -186,9 +186,9 @@ export class GameData {
 /** @class */
 export class Character {
     /**@property {number} id - the ID of the character */
-    id: number; 
+    id: number;
     /**@property {string} shortName - example: Count Janos*/
-    shortName: string; 
+    shortName: string;
     fullName: string;
     primaryTitle: string;
     sheHe: string;
@@ -208,7 +208,7 @@ export class Character {
     firstName: string;
     capitalLocation: string;
     topLiege: string;
-    prowess: number; 
+    prowess: number;
     isKnight: boolean;
     liegeRealmLaw: string //used for knowing landless camp purpose
     isLandedRuler: boolean;
@@ -269,7 +269,7 @@ export class Character {
     /**
      * Check if the character has a trait with a given name.
      * @param name - the name of the trait
-     * @return {boolean} 
+     * @return {boolean}
      */
     hasTrait(name: string): boolean{
         return this.traits.some(trait => trait.name.toLowerCase() == name.toLowerCase())
@@ -278,7 +278,7 @@ export class Character {
     /**
      * Append a new trait to the character.
      * @param {Trait }trait
-     * @returns {void} 
+     * @returns {void}
      */
     addTrait(trait: Trait): void{
         this.traits.push(trait);
@@ -335,7 +335,7 @@ export class Character {
             }
         }
         this.opinionOfPlayer = sum;
-    }   
+    }
 
     /**
      * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.

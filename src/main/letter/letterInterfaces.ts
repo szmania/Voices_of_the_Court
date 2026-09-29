@@ -25,6 +25,8 @@ export interface Letter {
   deliveryTimestamp?: Date;
   expectedDeliveryDate?: Date;
   isPlayerSender?: boolean;
+  associatedAction?: LetterAssociatedAction;
+  triggeredActions: LetterAssociatedAction[];
   /** Timeline v2 script (node/parent variables) allocated for this reply's thread; applied on delivery. */
   timelineScript?: string;
   /** Checkpoint epoch the script targets; delivery re-validates it against the registry. */
@@ -45,6 +47,14 @@ export interface Letter {
     locationController: string;
     totalDays: number;
   };
+}
+
+
+export interface LetterAssociatedAction {
+  signature: string;
+  args: any[];
+  triggerOn: 'send' | 'receive' | 'read';
+  status?: 'pending' | 'approved' | 'denied';
 }
 
 export interface StoredLetter {

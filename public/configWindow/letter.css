@@ -1,0 +1,111 @@
+.btn {
+    background-color: #2d2d2d;
+    color: #b8860b;
+    border: 1px solid #5a4a35;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Gitan', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background-color: #3d2e1e;
+    color: #ffd700;
+}
+
+.btn.active {
+    background-color: #591919;
+    color: #ffd700;
+    border-color: #cca43b;
+}
+
+/* Triggered Actions Section */
+.letter-view-actions {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #5a4a35;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.letter-view-actions-heading {
+    margin: 0 0 10px 0;
+    color: #cca43b;
+    font-family: 'Paradox', serif;
+    font-size: 18px;
+    font-weight: normal;
+    border-bottom: 1px solid #5a4a35;
+    padding-bottom: 5px;
+}
+
+.triggered-actions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.triggered-action-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(90, 74, 53, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.triggered-action-item:last-child {
+    border-bottom: none;
+}
+
+.triggered-action-item .action-signature {
+    color: #d4c3a4;
+    font-weight: bold;
+}
+
+.triggered-action-item .action-trigger {
+    color: #8c735a;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.triggered-actions-empty {
+    color: #8c735a;
+    font-style: italic;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+/* Letter action item tooltip (shows the action's localized description on hover) */
+.action-prompt[data-tooltip] {
+    position: relative;
+}
+
+.action-prompt[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-family: 'Gitan', sans-serif;
+    font-size: 0.8rem;
+    width: max-content;
+    max-width: 220px;
+    white-space: normal;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1001;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.action-prompt[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}

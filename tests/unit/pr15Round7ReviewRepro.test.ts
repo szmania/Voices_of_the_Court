@@ -29,7 +29,7 @@ function init(values = fields) { return prefix + 'VOTC:IN/;/init/;/' + values.jo
 beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'votc-pr15-round7-'));
     (app.getPath as jest.Mock).mockReturnValue(root);
-    config = {userFolderPath: root, language: 'en', textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
+    config = {userFolderPath: root, language: 'en', textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}, actionsUseTextGenApi: true, actionsApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
     fs.mkdirSync(path.join(root, 'logs'));
     _resetCampaignLoadObserver();
     _private_resetLegacyWindowContext();

@@ -44,7 +44,8 @@ describe('PR15 third review', () => {
                     campaignBootstrapKind: 1, playerTimelineSchema: 1}
             }}};
         const config: any = {userFolderPath: path.join(root, 'ck3'), language: 'en', maxTokens: 100,
-            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
+            textGenerationApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}},
+            actionsUseTextGenApi: true, actionsApiConnectionConfig: {connection: {}, parameters: {temperature: 0.5}}};
         const original: any = {id: 'original', subject: 'letter_1', totalDays: 389000, delay: 9,
             content: 'Hello', sender: player, recipient: ai, timestamp: new Date('1066-01-01T12:00:00Z')};
         const generator: any = new LetterReplyGenerator(config, path.join(root, 'votc_data'), null);
@@ -119,7 +120,7 @@ describe('PR15 third review', () => {
         visit(source);
         const js = ts.transpileModule(`(async function() ${method!.body!.getText(source)})`, {compilerOptions: {target: ts.ScriptTarget.ES2022}}).outputText;
         const queued: any[] = [];
-        const receiver: any = {userDataPath: path.join(root, 'votc_data'),
+        const receiver: any = {votcDataPath: path.join(root, 'votc_data'),
             config: {showPreviousConversations: true, maxHistoricalConversations: 5, maxConversationsInHistoryWindow: 15},
             gameData: {playerID: 1001, votcCheckpointEpoch: 0, characters: new Map([[1001, {}], [1002, {}]])},
             campaignIdentity: undefined,

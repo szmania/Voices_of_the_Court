@@ -19,6 +19,9 @@ export class Letter implements ILetter {
     delivered?: boolean;
     deliveryTimestamp?: Date;
     expectedDeliveryDate?: Date;
+    isPlayerSender?: boolean;
+    associatedAction?: import('./letterInterfaces.js').LetterAssociatedAction;
+    triggeredActions: import('./letterInterfaces.js').LetterAssociatedAction[];
 
     /** Timeline v2 payload allocated for this reply's thread (see LetterReplyGenerator). */
     timelineScript?: string;
@@ -26,6 +29,18 @@ export class Letter implements ILetter {
     timelineCampaignId?: string;
     timelinePlayerId?: string;
     timelineNodeId?: string;
+
+    characterContext?: {
+        playerId: string;
+        playerName: string;
+        recipientId: string;
+        recipientName: string;
+        gameDate: string;
+        scene: string;
+        location: string;
+        locationController: string;
+        totalDays: number;
+    };
 
     constructor(
         id: string,
@@ -60,6 +75,7 @@ export class Letter implements ILetter {
         this.status = status;
         this.delivered = delivered;
         this.expectedDeliveryDate = expectedDeliveryDate;
+        this.triggeredActions = []; // Initialize triggered actions array
 
         if (deliveryTimestamp && timestamp && deliveryTimestamp < timestamp) {
             console.warn(`Delivery timestamp for letter ${id} is before its written timestamp. Adjusting delivery timestamp to be same as written timestamp.`);
@@ -87,10 +103,15 @@ export class Letter implements ILetter {
                 return null;
             }
             const [year, month, day] = dateParts;
+            // Validate year is within the game's timeline (>= 867). Years < 867 map to 1900 in JS Date.
+            if (year < 867) {
+                console.error(`Invalid year in gameDate provided to Letter.fromLog: ${gameDate}`);
+                return null;
+            }
             // Month is 0-indexed in JavaScript Date, and we use UTC to avoid timezone issues.
             const writtenTimestamp = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-            if (isNaN(writtenTimestamp.getTime())) {
-                console.error(`Could not create valid date from gameDate: ${gameDate}`);
+            if (isNaN(writtenTimestamp.getTime()) || totalDays < 0) {
+                console.error(`Could not create valid date from gameDate: ${gameDate} or totalDays: ${totalDays}`);
                 return null;
             }
 

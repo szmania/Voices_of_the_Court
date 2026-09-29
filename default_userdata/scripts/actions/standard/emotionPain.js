@@ -17,6 +17,7 @@ module.exports = {
         pt: `Executado quando um personagem sente dor ou está ferido.`,
         tr: `Bir karakter ağrı hissettiğinde veya yaralandığında çalıştırılır.`
     },
+  canPerformAtDistance: false,
 
     /**
      * @param {GameData} gameData 
@@ -59,6 +60,5 @@ module.exports = {
             tr: `{{character2Name}} ağrı içinde.`
         }
     },
-    chatMessageClass: "neutral-action-message"
+chatMessageClass: "neutral-action-message",
 }
-

@@ -154,6 +154,8 @@ test('a generation failure after campaign switch must not clear the new campaign
     gameData.characters = new Map([[1001, player], [1002, ai]]);
     config.language = 'en';
     config.textGenerationApiConnectionConfig = {connection: {}, parameters: {temperature: 0.5}};
+    config.actionsUseTextGenApi = true;
+    config.actionsApiConnectionConfig = {connection: {}, parameters: {temperature: 0.5}};
     const original: any = {id: 'original', subject: 'letter_1', totalDays: 389000, delay: 9,
         content: 'Hello from A', sender: player, recipient: ai, timestamp: new Date('1066-01-01T12:00:00Z')};
     const generator: any = new LetterReplyGenerator(config, path.join(root, 'votc_data'), null);

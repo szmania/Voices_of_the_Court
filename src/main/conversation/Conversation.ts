@@ -56,6 +56,9 @@ import { runConversationTimelineTransition } from '../timelineBusinessWire.js';
 // 1.x CLOSE_CONVERSATION_ONLY_EFFECT ('trigger_event = talk_event.9002'),
 // adapted to the 2CE mod's close event id.
 const CLOSE_CONVERSATION_ONLY_EFFECT = 'trigger_event = mcc_event_v2.9002';
+import { MemoryManager, Memory } from '../memoryManager.js';
+import { CompactedMemory } from '../../shared/compactionTypes.js';
+import { EmbeddingProvider, getEffectiveEmbeddingDimension } from '../../shared/apiConnection.js';
 
 function getTranslations(lang: string): any {
     const localePath = path.join(app.getAppPath(), 'public', 'locales', `${lang}.json`);
@@ -72,7 +75,7 @@ function getTranslations(lang: string): any {
 }
 
 export class Conversation{
-    userDataPath: string;
+    votcDataPath: string;
     chatWindow: ChatWindow;
     isOpen: boolean;
     gameData: GameData;
@@ -132,11 +135,19 @@ export class Conversation{
     // close attempt; cleared when the close reaches terminal state.
     private currentCloseRequestKey: string | undefined;
 
-    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, userDataPath: string, encoder: Tiktoken | null){
+
+    memoryManager: MemoryManager;
+    embeddingApiConnection!: ApiConnection;
+
+    /** Fired (fire-and-forget) after new memories are inserted into the vector store. */
+    public onMemoriesEmbedded?: () => void;
+
+
+    constructor(gameData: GameData, config: Config, chatWindow: ChatWindow, votcDataPath: string, encoder: Tiktoken | null, memoryManager?: MemoryManager){
         this.encoder = encoder;
         console.log('Conversation initialized.');
         console.log(`[Conversation.ts CONSTRUCTOR] Initializing with scene: '${gameData.scene}'`);
-        this.userDataPath = userDataPath;
+        this.votcDataPath = votcDataPath;
         this.config = config;
         this.chatWindow = chatWindow;
         this.chatWindow.conversation = this;
@@ -197,7 +208,7 @@ export class Conversation{
         this.isGeneratingScene = false;
         this.pendingPlayerRequest = false;
 
-        const diariesBasePath = path.join(this.userDataPath, 'diary_history');
+        const diariesBasePath = path.join(this.votcDataPath, 'diary_history');
         if (!fs.existsSync(diariesBasePath)) {
             fs.mkdirSync(diariesBasePath, { recursive: true });
         }
@@ -227,7 +238,7 @@ export class Conversation{
 
         // Create/Update character map for the current player in the conversation_summaries folder
         // This is the critical fix for the history loading on first run.
-        const summaryMapPath = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
+        const summaryMapPath = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
         let characterMap: { [key: string]: string } = {};
         if (fs.existsSync(summaryMapPath)) {
             try {
@@ -257,7 +268,7 @@ export class Conversation{
         fs.writeFileSync(diaryMapPath, JSON.stringify(characterMap, null, '\t'));
         console.log(`Character map for diaries updated at ${diaryMapPath}`);
 
-        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
+        const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)){
             fs.mkdirSync(summariesBasePath);
             console.log('Created conversation_summaries directory.');
@@ -396,7 +407,13 @@ export class Conversation{
         this.checkForSummariesFromOtherPlayers();
 
         // Initialize diary generator
-        this.diaryGenerator = new DiaryGenerator(this.config, this.userDataPath, this.encoder);
+        this.diaryGenerator = new DiaryGenerator(this.config, this.votcDataPath, this.encoder);
+
+        // Initialize Memory Systems.
+        // Reuse the shared MemoryManager injected from main.ts (a second instance
+        // against the same SQLite file was the VOTC deadlock suspect). The fallback
+        // only exists for tests that construct Conversation directly.
+        this.memoryManager = memoryManager ?? new MemoryManager(this.votcDataPath, getEffectiveEmbeddingDimension(this.config?.embeddingApiConnectionConfig?.connection));
         this.memoryCompactor = new MemoryCompactor(this.config);
     }
 
@@ -503,7 +520,7 @@ export class Conversation{
             return;
         }
 
-        const historyDir = path.join(this.userDataPath, 'conversation_history', this.gameData.playerID.toString());
+        const historyDir = path.join(this.votcDataPath, 'conversation_history', this.gameData.playerID.toString());
         if (!fs.existsSync(historyDir)) {
             return;
         }
@@ -527,7 +544,7 @@ export class Conversation{
 
         this.chatWindow.window.webContents.send('historical-conversations-loading', true);
 
-        const globalCharacterMap = await readCharacterMap(this.userDataPath, this.gameData.playerID.toString());
+        const globalCharacterMap = await readCharacterMap(this.votcDataPath, this.gameData.playerID.toString());
         const initialBatch: any[] = [];
         const remainingFiles: any[] = [];
         const INITIAL_BATCH_SIZE = 3; // Using 3 as requested for the initial synchronous load.
@@ -625,7 +642,7 @@ export class Conversation{
 
             const narrativeLabels = { en: "[Narrative]:", zh: "[旁白]:", ru: "[Повествование]:", fr: "[Récit]:", es: "[Narrativa]:", de: "[Erzählung]:", ja: "[ナラティブ]:", ko: "[내레이션]:", pl: "[Narracja]:", pt: "[Narrativa]:" };
             const narrativeRegex = new RegExp(`^(${Object.values(narrativeLabels).map(v => v.replace(/[\[\]:]/g, '\\$&')).join('|')})`);
-            const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
+            const actionLabel = getEffectivePrompts(this.config, this.votcDataPath, this.gameData)?.actionTriggeredPrompt || "\\[Action Triggered\\]:";
             const actionRegex = new RegExp(`^${actionLabel.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\s*(.*)`);
 
             const historyCharacterIds = fileInfo.fileName.split('_').slice(0, -1);
@@ -1827,8 +1844,13 @@ Statement by ${character.fullName}:`
             console.log('Starting agentic memory compaction due to context limit.');
             try {
                 const result = await this.memoryCompactor.compact(this);
+
+                // After compaction, vectorize the new memories and insert them into the vector store.
+                if (result.newlyCompactedMemories && result.newlyCompactedMemories.length > 0) {
+                    await this.vectorizeCompactedMemories(result.newlyCompactedMemories);
+                }
                 if (result.phase1Run) {
-                    console.log(`Compaction Phase 1 complete. Accuracy: ${(result.accuracyScore! * 100).toFixed(1)}%`);
+                    console.log(`Compaction Phase 1 complete. Accuracy: ${((result.accuracyScore ?? 0) * 100).toFixed(1)}%`);
                     if (result.metrics) {
                         console.log(`Compaction metrics: memory ${(result.metrics.memoryBeforeBytes / 1024 / 1024).toFixed(1)}MB → ${(result.metrics.memoryAfterBytes / 1024 / 1024).toFixed(1)}MB, duration ${result.metrics.totalDurationMs}ms (P1: ${result.metrics.phase1DurationMs}ms, P2: ${result.metrics.phase2DurationMs}ms), serialization ${result.metrics.serializationTimeMs}ms, accuracy ${(result.metrics.accuracyScore * 100).toFixed(1)}%`);
                     }
@@ -1906,6 +1928,78 @@ Statement by ${character.fullName}:`
      */
     private clearCloseRequestKey(): void {
         this.currentCloseRequestKey = undefined;
+    }
+
+    /**
+     * Vectorizes newly compacted memories and inserts them into the shared vector
+     * store so they become semantically searchable. Used after memory compaction
+     * (automatic via resummarize, or manual via the Memories tab button).
+     */
+    public async vectorizeCompactedMemories(memories: CompactedMemory[]): Promise<void> {
+        if (!memories || memories.length === 0 || !this.config.embeddingApiConnectionConfig) {
+            return;
+        }
+        console.log(`Vectorizing ${memories.length} new compacted memories.`);
+        await this.embedAndInsertMemories(memories.map(m => ({
+            id: m.id,
+            characterId: m.characterIds[0]?.toString() || '', // Primary character
+            text: m.content,
+            timestamp: m.creationTimestamp
+        })));
+    }
+
+    /**
+     * Shared helper: embeds texts with the configured embedding provider and
+     * batch-inserts them into the shared MemoryManager, then runs decay and
+     * consolidation upkeep for every affected character. Never throws —
+     * individual embedding failures are logged and skipped.
+     */
+    private async embedAndInsertMemories(items: { id?: string; characterId: string; text: string; timestamp?: number }[]): Promise<void> {
+        if (items.length === 0 || !this.config.embeddingApiConnectionConfig) {
+            return;
+        }
+        const { connection } = this.config.embeddingApiConnectionConfig;
+        const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key, getEffectiveEmbeddingDimension(connection), connection.embeddingInputType);
+
+        const memoriesToInsert: Memory[] = [];
+        for (const item of items) {
+            try {
+                const embedding = await embeddingProvider.embed(item.text);
+                memoriesToInsert.push({
+                    id: item.id ?? randomUUID(),
+                    characterId: item.characterId,
+                    playerId: this.gameData.playerID.toString(),
+                    scene: this.gameData.scene || '',
+                    text: item.text,
+                    vector: embedding,
+                    timestamp: item.timestamp ?? Date.now(),
+                    emotion: 'neutral', // TODO: Derive emotion from content
+                    decay: 0,
+                    accessCount: 0,
+                    lastAccessed: Date.now()
+                });
+            } catch (e) {
+                console.error(`Failed to generate embedding for memory ${item.id ?? item.characterId}:`, e);
+            }
+        }
+
+        if (memoriesToInsert.length > 0) {
+            this.memoryManager.batchInsertMemories(memoriesToInsert);
+            // Fire-and-forget: lets main broadcast a Memories-tab refresh without blocking.
+            this.onMemoriesEmbedded?.();
+
+            // Automatic upkeep: decay stale memories and consolidate near-duplicates
+            // for every character that just received new memories.
+            const charIds = new Set(memoriesToInsert.map(m => m.characterId).filter(Boolean));
+            for (const cid of charIds) {
+                try {
+                    this.memoryManager.applyDecay(cid);
+                    this.memoryManager.consolidateMemories(cid);
+                } catch (e) {
+                    console.error(`Memory upkeep (decay/consolidation) failed for character ${cid}:`, e);
+                }
+            }
+        }
     }
 
     private buildCloseConversationEffect(checkpointEpoch: number, timeline?: CreateChildNodeResult): string {
@@ -2043,7 +2137,7 @@ ${timelineLines}
     private _saveHistoryToFile(stamp?: { timelineNodeId?: string; checkpointEpoch?: number }): void {
         try {
             // Ensure the conversation_history directory exists
-            const historyDir = path.join(this.userDataPath, 'conversation_history' ,this.gameData.playerID.toString());
+            const historyDir = path.join(this.votcDataPath, 'conversation_history' ,this.gameData.playerID.toString());
 
             if (!fs.existsSync(historyDir)) {
               fs.mkdirSync(historyDir, { recursive: true });
@@ -2100,7 +2194,7 @@ ${timelineLines}
 
                 const actions = this.executedActions.get(msg.id);
                 if (actions && actions.length > 0) {
-                    const actionLabel = getEffectivePrompts(this.config, this.userDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
+                    const actionLabel = getEffectivePrompts(this.config, this.votcDataPath, this.gameData)?.actionTriggeredPrompt || "[Action Triggered]:";
                     actions.forEach(action => {
                         textContent += `${actionLabel} ${action.chatMessage}\n`;
                     });
@@ -2122,7 +2216,7 @@ ${timelineLines}
                     ? `_ckpt${stamp.checkpointEpoch}`
                     : '';
             const historyFile = path.join(
-                this.userDataPath,
+                this.votcDataPath,
                 'conversation_history',
                 this.gameData.playerID.toString(),
                 `${characterIdsString}${stampSegment}_${new Date().getTime()}.txt`
@@ -2191,7 +2285,7 @@ ${timelineLines}
                 return;
             }
 
-            const summaryDirForMap = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+            const summaryDirForMap = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString());
             const characterMapPath = path.join(summaryDirForMap, '_character_map.json');
             let characterMap: {[key: number]: string} = {};
             if (fs.existsSync(characterMapPath)) {
@@ -2209,6 +2303,7 @@ ${timelineLines}
             fs.writeFileSync(characterMapPath, JSON.stringify(characterMap, null, '\t'));
             console.log(`Updated character map at: ${characterMapPath}`);
 
+            const newSummariesToEmbed: { characterId: string; content: string }[] = [];
             for (const character of this.gameData.characters.values()) {
                 if (character.id === this.gameData.playerID) continue;
 
@@ -2216,7 +2311,7 @@ ${timelineLines}
                 const prompt = buildSummarizeChatPrompt(this, character);
 
                 // Generate summary from this character's perspective
-                const result = await this.summarizationApiConnection.complete(prompt, false, {});
+                const result = await this.summarizationApiConnection.complete(prompt, false, {}, undefined, undefined, 300_000);
                 const summaryContent = typeof result === 'string' ? result : (result?.content ?? '');
 
                 const newSummary: Summary = {
@@ -2229,17 +2324,25 @@ ${timelineLines}
                         }
                         : {})
                 };
-                console.log(`Generated new summary for conversation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
+                console.log(`ursation from ${character.fullName}'s perspective: ${newSummary.content.substring(0, 100)}...`);
 
-                const summaryDir = path.join(this.userDataPath, 'conversation_summaries', this.gameData.playerID.toString());
+                const summaryDir = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString());
                 const summaryFile = path.join(summaryDir, `${character.id.toString()}.json`);
 
                 this.summaryFileWatcher.pauseWatcher(summaryFile);
 
                 const existingSummaries = this.summaries.get(character.id) || [];
 
+                const isErrorText = /low balance|not enough credits|top up|api error|too many requests|rate limit/i.test(newSummary.content);
+                if (isErrorText) {
+                    console.warn(`Summary content looks like an API/billing error for character ${character.id}, skipping save and vectorization: ${newSummary.content.substring(0, 100)}...`);
+                    this.summaryFileWatcher.resumeWatcher(summaryFile);
+                    continue;
+                }
+
                 if (newSummary.content.trim()) {
                     existingSummaries.unshift(newSummary);
+                    newSummariesToEmbed.push({ characterId: character.id.toString(), content: newSummary.content });
                     fs.writeFileSync(summaryFile, JSON.stringify(existingSummaries, null, '\t'));
                     console.log(`Saved updated summaries for AI ID ${character.id} to ${summaryFile}. Total summaries: ${existingSummaries.length}`);
                 } else {
@@ -2248,8 +2351,24 @@ ${timelineLines}
 
                 this.summaryFileWatcher.resumeWatcher(summaryFile);
             }
+
+            // Fire-and-forget: embed the new conversation summaries into the vector
+            // store so they become semantically searchable. Never blocks teardown.
+            if (newSummariesToEmbed.length > 0 && this.config.embeddingApiConnectionConfig) {
+                void this.embedAndInsertMemories(
+                    newSummariesToEmbed.map(s => ({ characterId: s.characterId, text: s.content }))
+                ).then(() => {
+                    console.log(`Inserted ${newSummariesToEmbed.length} summary memories into the vector store.`);
+                }).catch(err => {
+                    console.error('Failed to embed conversation summaries into the vector store:', err);
+                });
+            }
         } catch (error) {
-            console.error("Error in background summary/diary generation process:", error);
+            if (isAbortError(error)) {
+                console.warn('Background summarization request timed out or was aborted; summaries for this conversation were not generated.');
+            } else {
+                console.error("Error in background summary/diary generation process:", error);
+            }
         }
     }
 
@@ -2349,6 +2468,14 @@ ${timelineLines}
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
 
+        // Safely initialize embedding connection
+        if (this.config.embeddingApiConnectionConfig) {
+            this.embeddingApiConnection = new ApiConnection(this.config.embeddingApiConnectionConfig.connection, this.config.embeddingApiConnectionConfig.parameters, this.encoder);
+        } else {
+            console.warn("Embedding API connection config not found. Using text generation API as a fallback for embeddings.");
+            this.embeddingApiConnection = this.textGenApiConnection;
+        }
+
         this.loadActions();
     }
 
@@ -2379,7 +2506,7 @@ ${timelineLines}
         console.log('Loading actions from scripts.');
         this.actions = [];
 
-        const actionsPath = path.join(this.userDataPath, 'scripts', 'actions');
+        const actionsPath = path.join(this.votcDataPath, 'scripts', 'actions');
         let standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
         let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
 
@@ -2445,6 +2572,20 @@ ${timelineLines}
      * isInitial determines if it's for the start of the conversation or a mid-conversation update.
      */
     public async generateSceneDescription(isInitial: boolean = false): Promise<void> {
+        // Prevent duplicate scene descriptions if the last message is already a scene description.
+        if (this.messages.length > 0) {
+            const lastMessage = this.messages[this.messages.length - 1];
+            if (lastMessage.role === 'system' && (lastMessage as any).type === 'scene') {
+                console.log('Skipping scene description generation: last message is already a scene description.');
+                // If there's a pending player request, we still need to process it.
+                if (this.pendingPlayerRequest) {
+                    this.pendingPlayerRequest = false;
+                    setTimeout(() => this.generateAIsMessages(), 0);
+                }
+                return;
+            }
+        }
+
         console.log(`Starting scene description generation. Initial: ${isInitial}`);
         console.log(`[Conversation.ts] Generating scene description for scene: '${this.gameData.scene}'`);
 
@@ -2504,6 +2645,7 @@ ${timelineLines}
                 this.chatWindow.window.webContents.send('scene-description', null); // Clear loading state
             } else {
                 console.error('Error generating scene description:', error);
+                this.chatWindow.window.webContents.send('error-message', 'Failed to generate scene description.');
                 // If generation fails, it does not affect the normal flow of the conversation.
                 // Still need to clear loading state.
                 this.chatWindow.window.webContents.send('scene-description', null);
@@ -2511,21 +2653,17 @@ ${timelineLines}
         } finally {
             this.chatWindow.window.webContents.send('status-update', '');
             this.isGeneratingScene = false;
+            this.isGenerating = false; // Release the main lock
+            this.abortController = null;
 
             // If a player message came in while the scene was generating, process it now.
             if (this.pendingPlayerRequest) {
                 console.log('Processing queued player request after scene generation finished.');
                 this.pendingPlayerRequest = false;
-                // Ensure the main generation lock is released before starting the new generation.
-                this.isGenerating = false;
-                this.abortController = null;
-                this.generateAIsMessages();
+                setTimeout(() => this.generateAIsMessages(), 0);
             } else {
-                // If no pending request, just reset the state if we were the ones who set it.
-                if (!wasGenerating) {
-                    this.isGenerating = false;
-                    this.abortController = null;
-                }
+                 // Explicitly re-enable input if no pending requests
+                 this.chatWindow.window.webContents.send('generation-finished', true);
             }
         }
 
@@ -2695,7 +2833,7 @@ ${timelineLines}
 
     private async checkForSummariesFromOtherPlayers(): Promise<void> {
         console.log('Checking for summaries from other players...');
-        const summariesBasePath = path.join(this.userDataPath, 'conversation_summaries');
+        const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
         if (!fs.existsSync(summariesBasePath)) return;
 
         const playerDirs = fs.readdirSync(summariesBasePath, { withFileTypes: true })
@@ -2785,6 +2923,9 @@ ${timelineLines}
                 }
                 this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, true);
 
+                // Update UI to show who is speaking now
+                this.chatWindow.window.webContents.send('queue-update', [], { name: targetAI.shortName, id: targetAI.id });
+
                 // Generate AI2 -> AI1 response
                 const { actions } = await this.processCharacterList([targetAI], false, false, true);
 
@@ -2799,8 +2940,7 @@ ${timelineLines}
                 this.chatWindow.window.webContents.send('actions-receive', actions, responseNarrative, true);
             }
         }
-        // Notify the frontend that all generation is complete to re-enable the input field.
-        this.chatWindow.window.webContents.send('generation-finished', true);
+        // The main generateAIsMessages finally block will handle re-enabling the input.
     }
 
     public async initiateConversation(){
