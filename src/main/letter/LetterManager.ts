@@ -340,7 +340,7 @@ create_artifact = {
 \tvisuals = scroll
 \tcreator = global_var:message_second_scope_${letterId}
 \tmodifier = artifact_monthly_minor_prestige_1_modifier
-\twealth = scope:wealth
+\twealth = 0
 \tsave_scope_as = votc_latest_letter
 }
 if = {
