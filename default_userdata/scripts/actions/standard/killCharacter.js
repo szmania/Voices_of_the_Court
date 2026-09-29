@@ -44,7 +44,13 @@ ldürüldüğünde çalıştırılır. Kaynak (character1) KATİL'dir. Hedef (ch
 				death = {
 					death_reason = death_murder killer = global_var:votcce_action_source
 				}
-        }`)
+            }
+            global_var:votcce_action_source = {
+                create_character_memory = {
+                    type = successful_murder
+                    participants = { victim = global_var:votcce_action_target }
+                }
+            }`)
     },
     chatMessage: () => {
         return {

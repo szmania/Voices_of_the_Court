@@ -71,10 +71,15 @@ module.exports = {
      * @param {number} targetId
      */
     run: (gameData, runGameEffect, args, sourceId, targetId) => {
-        console.log(`Releasing character ${targetId} from prison by ${sourceId}`);
         runGameEffect(`
             global_var:votcce_action_target = {
                 release_from_prison = yes
+            }
+            global_var:votcce_action_target = {
+                create_character_memory = {
+                    type = released_from_prison_memory
+                    participants = { imprisoner = global_var:votcce_action_source }
+                }
             }`);
     },
 

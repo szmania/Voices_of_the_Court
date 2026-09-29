@@ -184,11 +184,22 @@ module.exports = {
     if (!sourceCharacter || !targetCharacter) return;
 
     const unionType = args[0] === "betrothal" ? "betrothal" : args[0] === "marriage_matrilineal" ? "marriage_matrilineal" : "marriage";
-
     if (unionType === "marriage" || unionType === "marriage_matrilineal") {
       runGameEffect(`
         global_var:votcce_action_source = {
             ${unionType === "marriage_matrilineal" ? "marry_matrilineal" : "marry"} = global_var:votcce_action_target
+        }
+        global_var:votcce_action_source = {
+            create_character_memory = {
+                type = married
+                participants = { spouse = global_var:votcce_action_target }
+            }
+        }
+        global_var:votcce_action_target = {
+            create_character_memory = {
+                type = married
+                participants = { spouse = global_var:votcce_action_source }
+            }
         }`);
 
       removeRelationFromBoth(sourceCharacter, targetCharacter, sourceId, targetId, BETROTHED_STRINGS);
