@@ -584,7 +584,10 @@ export async function checkAndDeliverLetters() {
 }
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
+    // The mod writes GetDateAsTotalDays, which is an absolute year*365+dayOfYear
+    // count (verified: 430583 == 5 Sep 1179). Upstream's 867 + ... offset assumes
+    // days-since-867 and shifts every displayed date 867 years into the future.
+    const year = Math.floor(totalDays / 365);
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
