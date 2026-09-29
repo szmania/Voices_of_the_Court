@@ -1086,6 +1086,7 @@ app.on('ready',  async () => {
         emotion?: string;
         scene?: string;
         timestamp?: number;
+        gameDate?: string;
     }) => {
         console.log(`IPC: Received add-memory for character: ${memoryData.characterId}`);
         try {
@@ -1109,7 +1110,8 @@ app.on('ready',  async () => {
                 emotion: memoryData.emotion || 'neutral',
                 decay: 0.0,
                 accessCount: 0,
-                lastAccessed: Date.now()
+                lastAccessed: Date.now(),
+                gameDate: memoryData.gameDate || ''
             };
 
             memoryManager.insertMemory(memory);

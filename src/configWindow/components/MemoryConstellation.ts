@@ -262,6 +262,9 @@ class MemoryConstellation extends HTMLElement {
     private emptyState!: HTMLDivElement;
     private tooltip!: HTMLDivElement;
     private points!: THREE.Points;
+    private selectedIndex: number | null = null;
+    private selectedRing: THREE.Sprite | null = null;
+    private ringTexture: THREE.Texture | null = null;
     private memories: any[] = [];
     private raycaster = new THREE.Raycaster();
     private mouse = new THREE.Vector2();
@@ -397,43 +400,90 @@ class MemoryConstellation extends HTMLElement {
 
         // Click a node to pin the editable popup (only if it wasn't a drag)
         this.container.addEventListener('click', (e) => {
-            const dx = e.clientX - this.mouseDownPos.x;
-            const dy = e.clientY - this.mouseDownPos.y;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
-            if (!this.points || this.memories.length === 0) return;
-            const rect = this.container.getBoundingClientRect();
-            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            this.raycaster.params.Points!.threshold = 0.3;
-            const intersects = this.raycaster.intersectObject(this.points);
-            if (intersects.length > 0) {
-                const index = intersects[0].index;
-                if (index !== undefined && this.memories[index]) {
-                    this.showEditor(this.memories[index]);
-                }
+            if (Math.abs(e.clientX - this.mouseDownPos.x) > 5 || Math.abs(e.clientY - this.mouseDownPos.y) > 5) return; // was a drag, not a click
+            const index = this.pickMemoryAt(e);
+            if (index !== null) {
+                this.setSelectedIndex(index);
+                this.showEditor(this.memories[index]);
+            } else {
+                this.setSelectedIndex(null);
             }
         });
 
         // Double-click a node opens the same editor popup (same raycast + drag guard as click).
         this.container.addEventListener('dblclick', (e) => {
-            const dx = e.clientX - this.mouseDownPos.x;
-            const dy = e.clientY - this.mouseDownPos.y;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
-            if (!this.points || this.memories.length === 0) return;
-            const rect = this.container.getBoundingClientRect();
-            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            this.raycaster.params.Points!.threshold = 0.3;
-            const intersects = this.raycaster.intersectObject(this.points);
-            if (intersects.length > 0) {
-                const index = intersects[0].index;
-                if (index !== undefined && this.memories[index]) {
-                    this.showEditor(this.memories[index]);
-                }
+            if (Math.abs(e.clientX - this.mouseDownPos.x) > 5 || Math.abs(e.clientY - this.mouseDownPos.y) > 5) return; // was a drag, not a click
+            const index = this.pickMemoryAt(e);
+            if (index !== null) {
+                this.setSelectedIndex(index);
+                this.showEditor(this.memories[index]);
             }
         });
+    }
+
+    /**
+     * Shared raycast-pick used by the click/dblclick handlers.
+     * Returns the index of the picked memory node, or null when nothing was hit.
+     */
+    private pickMemoryAt(e: MouseEvent): number | null {
+        if (!this.points || this.memories.length === 0) return null;
+        const rect = this.container.getBoundingClientRect();
+        this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        this.raycaster.params.Points!.threshold = 0.3;
+        const intersects = this.raycaster.intersectObject(this.points);
+        if (intersects.length > 0) {
+            const index = intersects[0].index;
+            if (index !== undefined && this.memories[index]) return index;
+        }
+        return null;
+    }
+
+    /**
+     * Highlights the picked node with a halo ring sprite so the selection stays
+     * visible while the scene auto-rotates. Pass null to clear the selection.
+     */
+    private setSelectedIndex(index: number | null): void {
+        this.selectedIndex = index;
+        if (this.selectedRing) {
+            this.scene.remove(this.selectedRing);
+            this.selectedRing = null;
+        }
+        if (index === null || !this.points) return;
+        const positionAttr = this.points.geometry.getAttribute('position') as THREE.BufferAttribute;
+        if (!positionAttr) return;
+
+        // Lazily build the annulus ring texture: transparent center, bright gold ring band.
+        if (!this.ringTexture) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d')!;
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradient.addColorStop(0.55, 'rgba(204, 164, 59, 0)');
+            gradient.addColorStop(0.72, 'rgba(255, 215, 0, 1)');
+            gradient.addColorStop(0.82, 'rgba(204, 164, 59, 0.9)');
+            gradient.addColorStop(1, 'rgba(204, 164, 59, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            this.ringTexture = new THREE.CanvasTexture(canvas);
+        }
+
+        const x = positionAttr.getX(index);
+        const y = positionAttr.getY(index);
+        const z = positionAttr.getZ(index);
+        const ring = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: this.ringTexture,
+            color: 0xffffff,
+            transparent: true,
+            depthWrite: false
+        }));
+        ring.scale.set(1.5, 1.5, 1);
+        ring.position.set(x, y, z);
+        this.selectedRing = ring;
+        this.scene.add(ring);
     }
 
     private handleHover(e: MouseEvent) {
@@ -527,6 +577,7 @@ class MemoryConstellation extends HTMLElement {
     private hideEditor() {
         this.editor.classList.remove('visible');
         this.pinnedMemory = null;
+        this.setSelectedIndex(null);
     }
 
     private async saveMemory() {
@@ -564,23 +615,29 @@ class MemoryConstellation extends HTMLElement {
 
     private buildMemoryMeta(memory: any): string {
         const parts: string[] = [];
+        const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
         if (memory.characterId) {
             parts.push('Character: ' + this.escapeHtml(this.getCharacterName(memory.characterId)));
         }
+        // Game Date: the in-game date when the memory was created (localized "Unknown"
+        // for legacy memories predating game-date storage). Real Date/Time: wall clock.
+        const gameDate = memory.gameDate || memory.date || '';
+        parts.push(t('memory_constellation.game_date_label', 'Game Date: ') + this.escapeHtml(gameDate || t('memory_constellation.game_date_unknown', 'Unknown')));
         if (memory.timestamp) {
-            parts.push('Date: ' + this.escapeHtml(new Date(memory.timestamp).toLocaleString()));
+            parts.push(t('memory_constellation.real_date_label', 'Real Date/Time: ') + this.escapeHtml(new Date(memory.timestamp).toLocaleString()));
         }
         if (memory.emotion) {
             parts.push('Emotion: ' + this.escapeHtml(memory.emotion));
         }
-        // Location is always rendered: localized scene name, "Letter" for letter-sourced
-        // memories, or a localized "Unknown" fallback when the scene is empty.
-        const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
+        // Location is always rendered: "Letter"/"Diary" for letter/diary-sourced memories,
+        // a localized scene name for scene memories, or a localized "Unknown" fallback.
         const sceneName = memory.scene === 'letter'
             ? t('memory_constellation.scene_letter', 'Letter')
-            : (memory.scene
-                ? t(`locations.${memory.scene}`, memory.scene)
-                : t('memory_constellation.location_unknown', 'Unknown'));
+            : memory.scene === 'diary'
+                ? t('memory_constellation.scene_diary', 'Diary')
+                : (memory.scene
+                    ? t(`locations.${memory.scene}`, memory.scene)
+                    : t('memory_constellation.location_unknown', 'Unknown'));
         parts.push(t('memory_constellation.location_label', 'Location: ') + this.escapeHtml(sceneName));
         return parts.join('<br>');
     }
@@ -646,10 +703,13 @@ class MemoryConstellation extends HTMLElement {
             this.scene.remove(this.scene.children[0]); 
         }
         this.hideTooltip();
-        // Reset relation-line state; buildRelationLines repopulates both for the new data.
+        // Reset relation-line and selection state; buildRelationLines and the next
+        // pick repopulate both for the new data.
         this.lines = null;
         this.lineReasons = [];
         this.memories = memories || [];
+        this.selectedIndex = null;
+        this.selectedRing = null;
 
         if (!memories || memories.length === 0) {
             this.emptyState.classList.add('visible');
