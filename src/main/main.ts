@@ -385,7 +385,7 @@ export async function checkAndDeliverLetters() {
 }
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.max(1, 867 + Math.floor(totalDays / 365));
+    const year = Math.max(1, Math.floor(totalDays / 365));
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];

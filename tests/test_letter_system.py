@@ -34,9 +34,12 @@ class TestLetterSystemDateFix(unittest.TestCase):
         self.assertIn('Math.max(1,', func_body,
                      'totalDaysToDateString should use Math.max(1, ...) to prevent year 0')
         
-        # Verify the calculation: 867 + Math.floor(totalDays / 365)
-        self.assertIn('867 + Math.floor(totalDays / 365)', func_body,
-                     'Year calculation should use 867 base year')
+        # Verify the calculation: Math.floor(totalDays / 365) - days since Year 0 (VOTC:DATE)
+        self.assertIn('Math.floor(totalDays / 365)', func_body,
+                     'Year calculation should use Year-0 base (Jomini total days)')
+        # Regression guard: must not add 867 to total days (causes the 2048 bug)
+        self.assertNotIn('867 + Math.floor', func_body,
+                     'Year calculation must not add 867 to Jomini total days')
 
     def test_2_totalDaysToDateString_uses_math_max_in_parse_log(self):
         """Verify totalDaysToDateString in parseLogForLetters.ts uses Math.max(1, ...)."""
@@ -50,8 +53,11 @@ class TestLetterSystemDateFix(unittest.TestCase):
         func_body = func_match.group(0)
         self.assertIn('Math.max(1,', func_body,
                      'totalDaysToDateString should use Math.max(1, ...) to prevent year 0')
-        self.assertIn('867 + Math.floor(totalDays / 365)', func_body,
-                     'Year calculation should use 867 base year')
+        self.assertIn('Math.floor(totalDays / 365)', func_body,
+                     'Year calculation should use Year-0 base (Jomini total days)')
+        # Regression guard: must not add 867 to total days (causes the 2048 bug)
+        self.assertNotIn('867 + Math.floor', func_body,
+                     'Year calculation must not add 867 to Jomini total days')
 
     def test_3_letter_fromlog_validates_year_minimum(self):
         """Verify Letter.fromLog validates year >= 867."""
