@@ -755,7 +755,7 @@ function startLogTailing() {
     try {
         lastSize = fs.statSync(debugLogPath).size;
 
-        fs.watchFile(debugLogPath, { interval: 2000 }, (curr, prev) => {
+        fs.watchFile(debugLogPath, { interval: 500 }, (curr, prev) => {
             if (curr.mtime > prev.mtime && curr.size > lastSize) {
                 const bufferSize = curr.size - lastSize;
                 const buffer = Buffer.alloc(bufferSize);
@@ -2273,6 +2273,17 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     } else {
         // @ts-ignore
         config[confID] = newValue;
+    }
+
+    // Live-toggle the clipboard listener when the user flips the setting.
+    if (confID === 'useClipboardTriggers' && clipboardListener) {
+        if (newValue && !clipboardListener.isListening) {
+            clipboardListener.start();
+            console.log('ClipboardListener started via config change.');
+        } else if (!newValue && clipboardListener.isListening) {
+            clipboardListener.stop();
+            console.log('ClipboardListener stopped via config change.');
+        }
     }
 
     config.export();
