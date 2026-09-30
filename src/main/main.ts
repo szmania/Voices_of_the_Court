@@ -330,7 +330,20 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
+let isCheckingLetters = false;
 export async function checkAndDeliverLetters() {
+    if (isCheckingLetters) {
+        return;
+    }
+    isCheckingLetters = true;
+    try {
+        await _checkAndDeliverLetters();
+    } finally {
+        isCheckingLetters = false;
+    }
+}
+
+async function _checkAndDeliverLetters() {
     if (currentTotalDays === 0) {
         console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
         return;
@@ -522,6 +535,12 @@ function broadcastCurrentSessionPlayer(): void {
 }
 
 export function updateCurrentDate(newTotalDays: number) {
+    // The game writes VOTC:DATE frequently; skip redundant updates for the same day
+    // so we don't spawn a parseLog/queue-read storm that exhausts file descriptors.
+    if (newTotalDays === currentTotalDays) {
+        return;
+    }
+
     const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
@@ -655,6 +674,41 @@ ipcMain.on('request-config-close', () => {
     }
 });
 
+// Log-based trigger channel. The CK3 mod writes "<KEYWORD>/;/clipboard" to debug.log
+// (e.g. "VOTC:IN/;/clipboard") to fire the same handlers the clipboard listener used to.
+const TRIGGER_SUFFIX = 'clipboard';
+const TRIGGER_KEYWORDS = new Set([
+    'VOTC:IN',
+    'VOTC:EFFECT_ACCEPTED',
+    'VOTC:LETTER_ACCEPTED',
+    'VOTC:BOOKMARK',
+    'VOTC:SUMMARY_MANAGER',
+    'VOTC:CONVERSATION_HISTORY',
+    'VOTC:LETTER',
+]);
+const TRIGGER_COOLDOWN_MS = 1000;
+const triggerCooldowns: Map<string, number> = new Map();
+
+function dispatchTrigger(keyword: string): void {
+    if (!TRIGGER_KEYWORDS.has(keyword)) {
+        console.warn(`processLogLine: Unknown VOTC trigger keyword "${keyword}". Ignoring.`);
+        return;
+    }
+    if (!clipboardListener) {
+        console.warn(`processLogLine: Trigger "${keyword}" received before ClipboardListener was initialized. Ignoring.`);
+        return;
+    }
+    const now = Date.now();
+    const last = triggerCooldowns.get(keyword) ?? 0;
+    if (now - last < TRIGGER_COOLDOWN_MS) {
+        console.log(`processLogLine: Suppressing duplicate trigger "${keyword}" (cooldown).`);
+        return;
+    }
+    triggerCooldowns.set(keyword, now);
+    console.log(`processLogLine: Dispatching VOTC trigger from log: ${keyword}`);
+    clipboardListener.emit(keyword);
+}
+
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
@@ -662,6 +716,13 @@ function processLogLine(line: string) {
     if (match) {
       const newTotalDays = Number(match[1]);
       updateCurrentDate(newTotalDays);
+    }
+
+    // Detect "<KEYWORD>/;/clipboard" trigger lines written by the mod.
+    const parts = line.split('/;/');
+    if (parts.length >= 2 && parts[1].trim() === TRIGGER_SUFFIX) {
+        const keyword = parts[0].trim().split(/\s+/).pop() || '';
+        dispatchTrigger(keyword);
     }
 }
 
@@ -700,6 +761,32 @@ async function initCurrentDateFromLog(): Promise<void> {
 }
 
 let lastSize = 0;
+let logPollIntervalMs = 2000;
+let logWatchActive = false;
+
+function handleLogFileChange(curr: fs.Stats, prev: fs.Stats) {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (curr.mtime > prev.mtime && curr.size > lastSize) {
+        const bufferSize = curr.size - lastSize;
+        const buffer = Buffer.alloc(bufferSize);
+        const fd = fs.openSync(debugLogPath, 'r');
+        try {
+            fs.readSync(fd, buffer, 0, bufferSize, lastSize);
+        } finally {
+            fs.closeSync(fd);
+        }
+
+        const newContent = buffer.toString('utf8');
+        newContent.split(/\r?\n/).forEach(line => {
+            if (line) processLogLine(line);
+        });
+        lastSize = curr.size;
+    } else if (curr.size < lastSize) {
+        // Log file was likely cleared/rotated
+        lastSize = curr.size;
+    }
+}
+
 function startLogTailing() {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
     if (!config.userFolderPath || !fs.existsSync(debugLogPath)) {
@@ -712,28 +799,23 @@ function startLogTailing() {
 
     try {
         lastSize = fs.statSync(debugLogPath).size;
-
-        fs.watchFile(debugLogPath, { interval: 2000 }, (curr, prev) => {
-            if (curr.mtime > prev.mtime && curr.size > lastSize) {
-                const bufferSize = curr.size - lastSize;
-                const buffer = Buffer.alloc(bufferSize);
-                const fd = fs.openSync(debugLogPath, 'r');
-                fs.readSync(fd, buffer, 0, bufferSize, lastSize);
-                fs.closeSync(fd);
-
-                const newContent = buffer.toString('utf8');
-                newContent.split(/\r?\n/).forEach(line => {
-                    if (line) processLogLine(line);
-                });
-                lastSize = curr.size;
-            } else if (curr.size < lastSize) {
-                // Log file was likely cleared/rotated
-                lastSize = curr.size;
-            }
-        });
+        fs.watchFile(debugLogPath, { interval: logPollIntervalMs }, handleLogFileChange);
+        logWatchActive = true;
     } catch (error) {
         console.error("Error starting log tailing:", error);
     }
+}
+
+// Poll the log every 2s while idle; poll faster (500ms) during an active conversation
+// so triggers are picked up promptly.
+function setLogPollInterval(ms: number) {
+    if (ms === logPollIntervalMs) return;
+    logPollIntervalMs = ms;
+    if (!logWatchActive) return;
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    fs.unwatchFile(debugLogPath, handleLogFileChange);
+    fs.watchFile(debugLogPath, { interval: logPollIntervalMs }, handleLogFileChange);
+    console.log(`Log poll interval set to ${logPollIntervalMs}ms.`);
 }
 
 
@@ -1574,6 +1656,9 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
+    // Start tailing debug.log so "<KEYWORD>/;/clipboard" lines fire the same handlers.
+    startLogTailing();
+
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -1739,6 +1824,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
             // 6. Mark conversation as ready and process any queued messages.
             isConversationReady = true;
+            setLogPollInterval(500);
             chatWindow.window.webContents.send('chat-ready');
             console.log('Conversation is ready. Processing pending messages.');
             if (pendingMessages.length > 0) {
@@ -2230,6 +2316,17 @@ ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
         config[confID] = newValue;
     }
 
+    // Live-toggle the clipboard listener when the user flips the setting.
+    if (confID === 'useClipboardTriggers' && clipboardListener) {
+        if (newValue && !clipboardListener.isListening) {
+            clipboardListener.start();
+            console.log('ClipboardListener started via config change.');
+        } else if (!newValue && clipboardListener.isListening) {
+            clipboardListener.stop();
+            console.log('ClipboardListener stopped via config change.');
+        }
+    }
+
     config.export();
     diaryGenerator = new DiaryGenerator(config, votcDataPath, tiktokenEncoder); // Re-initialize with new config
     if(chatWindow.isShown){
@@ -2350,6 +2447,7 @@ ipcMain.on('chat-stop', () =>{
 
     // Reset conversation state
     isConversationReady = false;
+    setLogPollInterval(2000);
     pendingMessages = [];
     // @ts-ignore
     conversation = null;
