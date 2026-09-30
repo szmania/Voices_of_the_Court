@@ -742,6 +742,29 @@ async function initCurrentDateFromLog(): Promise<void> {
 }
 
 let lastSize = 0;
+let logPollIntervalMs = 500;
+let logWatchActive = false;
+
+function handleLogFileChange(curr: fs.Stats, prev: fs.Stats) {
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    if (curr.mtime > prev.mtime && curr.size > lastSize) {
+        const bufferSize = curr.size - lastSize;
+        const buffer = Buffer.alloc(bufferSize);
+        const fd = fs.openSync(debugLogPath, 'r');
+        fs.readSync(fd, buffer, 0, bufferSize, lastSize);
+        fs.closeSync(fd);
+
+        const newContent = buffer.toString('utf8');
+        newContent.split(/\r?\n/).forEach(line => {
+            if (line) processLogLine(line);
+        });
+        lastSize = curr.size;
+    } else if (curr.size < lastSize) {
+        // Log file was likely cleared/rotated
+        lastSize = curr.size;
+    }
+}
+
 function startLogTailing() {
     const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
     if (!config.userFolderPath || !fs.existsSync(debugLogPath)) {
@@ -754,28 +777,23 @@ function startLogTailing() {
 
     try {
         lastSize = fs.statSync(debugLogPath).size;
-
-        fs.watchFile(debugLogPath, { interval: 500 }, (curr, prev) => {
-            if (curr.mtime > prev.mtime && curr.size > lastSize) {
-                const bufferSize = curr.size - lastSize;
-                const buffer = Buffer.alloc(bufferSize);
-                const fd = fs.openSync(debugLogPath, 'r');
-                fs.readSync(fd, buffer, 0, bufferSize, lastSize);
-                fs.closeSync(fd);
-
-                const newContent = buffer.toString('utf8');
-                newContent.split(/\r?\n/).forEach(line => {
-                    if (line) processLogLine(line);
-                });
-                lastSize = curr.size;
-            } else if (curr.size < lastSize) {
-                // Log file was likely cleared/rotated
-                lastSize = curr.size;
-            }
-        });
+        fs.watchFile(debugLogPath, { interval: logPollIntervalMs }, handleLogFileChange);
+        logWatchActive = true;
     } catch (error) {
         console.error("Error starting log tailing:", error);
     }
+}
+
+// During an active conversation, poll the log less aggressively (2s) to reduce load;
+// otherwise poll faster (500ms) so triggers are picked up promptly.
+function setLogPollInterval(ms: number) {
+    if (ms === logPollIntervalMs) return;
+    logPollIntervalMs = ms;
+    if (!logWatchActive) return;
+    const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+    fs.unwatchFile(debugLogPath, handleLogFileChange);
+    fs.watchFile(debugLogPath, { interval: logPollIntervalMs }, handleLogFileChange);
+    console.log(`Log poll interval set to ${logPollIntervalMs}ms.`);
 }
 
 
@@ -1784,6 +1802,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
             // 6. Mark conversation as ready and process any queued messages.
             isConversationReady = true;
+            setLogPollInterval(2000);
             chatWindow.window.webContents.send('chat-ready');
             console.log('Conversation is ready. Processing pending messages.');
             if (pendingMessages.length > 0) {
@@ -2406,6 +2425,7 @@ ipcMain.on('chat-stop', () =>{
 
     // Reset conversation state
     isConversationReady = false;
+    setLogPollInterval(500);
     pendingMessages = [];
     // @ts-ignore
     conversation = null;
