@@ -15,9 +15,9 @@ module.exports = {
         pt: `Executado quando um personagem fica em silêncio ou é silenciado durante a conversa. O alvo (personagem 2) é o personagem que fica em silêncio. A fonte (personagem 1) é quem o causou. Esta é uma ação do lado do aplicativo: nenhum efeito de jogo é emitido.`,
         tr: `Bir karakter konuşma sırasında sustuğunda veya susturulduğunda çalıştırılır. Hedef (karakter 2) susan karakterdir. Kaynak (karakter 1) bunu neden olandır. Bu uygulama tarafında bir eylemdir: hiçbir oyun efekti tetiklenmez.`
     },
-    canPerformAtDistance: true,
+    canPerformAtDistance: false,
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {number} sourceId
      * @param {number} targetId
      */
@@ -26,9 +26,9 @@ module.exports = {
     },
 
     /**
-     * @param {GameData} gameData 
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
-     * @param {string[]} args 
+     * @param {string[]} args
      * @param {number} sourceId
      * @param {number} targetId
      */
