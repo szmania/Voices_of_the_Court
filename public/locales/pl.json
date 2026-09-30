@@ -42,6 +42,10 @@
     "scene_letter": "List",
     "location_label": "Lokalizacja: ",
     "location_unknown": "Nieznana",
+    "game_date_label": "Data w grze: ",
+    "real_date_label": "Prawdziwa data/godzina: ",
+    "scene_diary": "Dziennik",
+    "game_date_unknown": "Nieznana",
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {

@@ -42,6 +42,10 @@
     "scene_letter": "Письмо",
     "location_label": "Место: ",
     "location_unknown": "Неизвестно",
+    "game_date_label": "Игровая дата: ",
+    "real_date_label": "Реальная дата/время: ",
+    "scene_diary": "Дневник",
+    "game_date_unknown": "Неизвестно",
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {

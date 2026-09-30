@@ -42,6 +42,10 @@
     "scene_letter": "信件",
     "location_label": "地点：",
     "location_unknown": "未知",
+    "game_date_label": "游戏日期： ",
+    "real_date_label": "现实日期/时间： ",
+    "scene_diary": "日记",
+    "game_date_unknown": "未知",
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {

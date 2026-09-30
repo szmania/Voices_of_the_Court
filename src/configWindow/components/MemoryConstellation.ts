@@ -53,7 +53,7 @@ function defineTemplate() {
             top: 10px;
             left: 10px;
             max-width: 320px;
-            max-height: 220px;
+            max-height: 280px;
             overflow-y: auto;
             background: rgba(0, 0, 0, 0.88);
             border: 1px solid #5a4a35;
@@ -221,6 +221,85 @@ function defineTemplate() {
         }
         #memory-editor .editor-status.success { color: #8af88a; }
         #memory-editor .editor-status.error { color: #f88a8a; }
+        /* Bottom-middle hover reveal zone for the search bar */
+        #search-reveal-zone {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 28px;
+            z-index: 25;
+        }
+        #search-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translate(-50%, 120%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 320px;
+            background: rgba(0, 0, 0, 0.92);
+            border: 1px solid #cca43b;
+            border-radius: 4px;
+            padding: 6px 8px;
+            z-index: 30;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+        #search-bar.visible {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #search-bar input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #5a4a35;
+            border-radius: 3px;
+            padding: 5px 8px;
+            font-size: 12px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        #search-bar input[type="text"]:focus {
+            outline: none;
+            border-color: #cca43b;
+        }
+        #search-bar .search-counter {
+            color: #8a8a8a;
+            font-size: 11px;
+            white-space: nowrap;
+            min-width: 44px;
+            text-align: center;
+        }
+        #search-bar button {
+            background-color: #591919;
+            color: #e0e0e0;
+            border: 1px solid #8c2b2b;
+            border-radius: 2px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #search-bar button:hover {
+            background-color: #7a2222;
+            border-color: #cca43b;
+            color: #fff;
+        }
+        #memory-tooltip mark {
+            background: #cca43b;
+            color: #1a1a1a;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
     </style>
     <div id="constellation-container">
         <div id="empty-state">
@@ -249,7 +328,13 @@ function defineTemplate() {
             <div class="editor-status" id="editor-status"></div>
         </div>
         <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Right-drag to pan &middot; Click a node to edit</div>
-    </div>
+        <div id="search-reveal-zone"></div>
+        <div id="search-bar">
+            <input type="text" id="search-input" data-i18n-placeholder="memory_constellation.search_placeholder" placeholder="Search memories..." />
+            <span class="search-counter" id="search-counter">0 / 0</span>
+            <button id="search-prev" data-i18n-title="memory_constellation.search_prev_tooltip" title="Previous match">&#9650;</button>
+            <button id="search-next" data-i18n-title="memory_constellation.search_next_tooltip" title="Next match">&#9660;</button>
+        </div>
     `;
 }
 
@@ -282,6 +367,14 @@ class MemoryConstellation extends HTMLElement {
     private lineReasons: string[] = [];
     private lines: THREE.LineSegments | null = null;
     private editorDrag = { dragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+    // Search state: term, matching memory indices, and the current match cursor.
+    private searchTerm = '';
+    private searchMatches: number[] = [];
+    private searchCursor = -1;
+    // Signature of the last rendered dataset, used to skip redundant rebuilds.
+    private lastDataSignature = '';
+    // Fixed orthonormal projection basis for deterministic 3D positions (built once).
+    private projectionBasis: THREE.Vector3[] | null = null;
 
     constructor() {
         super();
@@ -301,6 +394,7 @@ class MemoryConstellation extends HTMLElement {
         }
         this.initThree();
         this.setupEditor();
+        this.setupSearchBar();
         this.animateLoop();
         const characterId = this.getAttribute('character-id') || undefined;
         await this.loadMemories(undefined, characterId);
@@ -526,10 +620,22 @@ class MemoryConstellation extends HTMLElement {
     private showTooltip(memory: any) {
         this.tooltip.innerHTML = `
             <div class="tooltip-title">Memory</div>
-            <div>${this.escapeHtml(memory.text || '')}</div>
+            <div>${this.highlightTerm(this.escapeHtml(memory.text || ''))}</div>
             <div class="tooltip-meta">${this.buildMemoryMeta(memory)}</div>
         `;
         this.tooltip.style.display = 'block';
+    }
+
+    /** Wraps occurrences of the active search term in <mark> for tooltip highlighting. */
+    private highlightTerm(escapedText: string): string {
+        if (!this.searchTerm) return escapedText;
+        const escapedTerm = this.escapeHtml(this.searchTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!escapedTerm) return escapedText;
+        try {
+            return escapedText.replace(new RegExp(escapedTerm, 'gi'), (m) => `<mark>${m}</mark>`);
+        } catch (e) {
+            return escapedText;
+        }
     }
 
     private hideTooltip() {
@@ -558,6 +664,125 @@ class MemoryConstellation extends HTMLElement {
         title?.addEventListener('mousedown', (e) => this.startEditorDrag(e));
         window.addEventListener('mousemove', (e) => this.onEditorDrag(e));
         window.addEventListener('mouseup', () => this.stopEditorDrag());
+    }
+
+    /**
+     * Wires up the bottom-middle search bar: reveal on hover, live match counting,
+     * prev/next navigation, and keyboard handling. Input keydown stops propagation so
+     * it never triggers the container's drag/click handlers.
+     */
+    private setupSearchBar() {
+        const revealZone = this.shadow.querySelector('#search-reveal-zone') as HTMLDivElement;
+        const bar = this.shadow.querySelector('#search-bar') as HTMLDivElement;
+        const input = this.shadow.querySelector('#search-input') as HTMLInputElement;
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        const prevBtn = this.shadow.querySelector('#search-prev') as HTMLButtonElement;
+        const nextBtn = this.shadow.querySelector('#search-next') as HTMLButtonElement;
+        if (!bar || !input) return;
+
+        const show = () => bar.classList.add('visible');
+        const hide = () => { if (document.activeElement !== input) bar.classList.remove('visible'); };
+
+        revealZone?.addEventListener('mouseenter', show);
+        bar.addEventListener('mouseenter', show);
+        bar.addEventListener('mouseleave', hide);
+        input.addEventListener('focus', show);
+        input.addEventListener('blur', () => { if (!bar.matches(':hover')) bar.classList.remove('visible'); });
+
+        input.addEventListener('input', () => {
+            this.searchTerm = input.value.trim();
+            this.updateSearchMatches();
+            if (this.searchMatches.length > 0) {
+                this.searchCursor = 0;
+                this.goToMatch(0);
+            } else {
+                this.searchCursor = -1;
+            }
+            this.updateSearchCounter(counter);
+        });
+
+        // Stop propagation so typing never rotates/pans the scene or picks nodes.
+        input.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                e.preventDefault();
+                this.cycleMatch(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.cycleMatch(-1);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.clearSearch();
+                bar.classList.remove('visible');
+                input.blur();
+            }
+        });
+
+        prevBtn?.addEventListener('click', (e) => { e.stopPropagation(); this.cycleMatch(-1); });
+        nextBtn?.addEventListener('click', (e) => { e.stopPropagation(); this.cycleMatch(1); });
+    }
+
+    /** Recomputes the list of memory indices matching the current search term. */
+    private updateSearchMatches(): void {
+        const term = this.searchTerm.toLowerCase();
+        if (!term) { this.searchMatches = []; return; }
+        this.searchMatches = [];
+        this.memories.forEach((memory: any, i: number) => {
+            const text = String(memory.text || '').toLowerCase();
+            const name = this.getCharacterName(memory.characterId).toLowerCase();
+            if (text.includes(term) || name.includes(term)) {
+                this.searchMatches.push(i);
+            }
+        });
+    }
+
+    private updateSearchCounter(counter: HTMLSpanElement | null): void {
+        if (!counter) return;
+        const total = this.searchMatches.length;
+        const current = total > 0 && this.searchCursor >= 0 ? this.searchCursor + 1 : 0;
+        counter.textContent = `${current} / ${total}`;
+    }
+
+    /** Cycles the match cursor with wrap-around and navigates to the match. */
+    private cycleMatch(delta: number): void {
+        if (this.searchMatches.length === 0) return;
+        const n = this.searchMatches.length;
+        this.searchCursor = ((this.searchCursor + delta) % n + n) % n;
+        this.goToMatch(this.searchCursor);
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        this.updateSearchCounter(counter);
+    }
+
+    /** Selects the match, centers the camera on it, and shows the highlighted tooltip. */
+    private goToMatch(cursor: number): void {
+        const index = this.searchMatches[cursor];
+        if (index === undefined || !this.memories[index]) return;
+        this.autoRotate = false;
+        this.setSelectedIndex(index);
+        // Center the camera on the node's world position (accounting for scene rotation).
+        const positionAttr = this.points?.geometry.getAttribute('position') as THREE.BufferAttribute;
+        if (positionAttr) {
+            const world = new THREE.Vector3(
+                positionAttr.getX(index),
+                positionAttr.getY(index),
+                positionAttr.getZ(index)
+            ).applyEuler(this.scene.rotation);
+            this.camera.position.x = world.x;
+            this.camera.position.y = world.y;
+        }
+        this.showTooltip(this.memories[index]);
+    }
+
+    private clearSearch(): void {
+        this.searchTerm = '';
+        this.searchMatches = [];
+        this.searchCursor = -1;
+        const input = this.shadow.querySelector('#search-input') as HTMLInputElement;
+        if (input) input.value = '';
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        this.updateSearchCounter(counter);
+        this.setSelectedIndex(null);
+        this.hideTooltip();
     }
 
     private showEditor(memory: any) {
@@ -698,6 +923,22 @@ class MemoryConstellation extends HTMLElement {
     }
 
     updatePoints(memories: any[]) {
+        const nextMemories = memories || [];
+
+        // Skip redundant rebuilds: the 20s auto-refresh calls this constantly, but
+        // when the dataset is unchanged we must not clear the ring/tooltip or touch
+        // the scene (which would reset the user's view).
+        const signature = JSON.stringify(nextMemories.map((m: any) => [m.id, m.timestamp, m.text ? m.text.length : 0]));
+        if (signature === this.lastDataSignature) {
+            return;
+        }
+        this.lastDataSignature = signature;
+
+        // Preserve the user's view across real rebuilds.
+        const savedRotation = { x: this.scene.rotation.x, y: this.scene.rotation.y, z: this.scene.rotation.z };
+        const savedCamera = { x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z };
+        const previousSelectedIndex = this.selectedIndex;
+
         // Clear existing points
         while(this.scene.children.length > 0){ 
             this.scene.remove(this.scene.children[0]); 
@@ -707,11 +948,11 @@ class MemoryConstellation extends HTMLElement {
         // pick repopulate both for the new data.
         this.lines = null;
         this.lineReasons = [];
-        this.memories = memories || [];
+        this.memories = nextMemories;
         this.selectedIndex = null;
         this.selectedRing = null;
 
-        if (!memories || memories.length === 0) {
+        if (!nextMemories || nextMemories.length === 0) {
             this.emptyState.classList.add('visible');
             return;
         }
@@ -719,24 +960,29 @@ class MemoryConstellation extends HTMLElement {
         this.emptyState.classList.remove('visible');
 
         const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(memories.length * 3);
+        const positions = new Float32Array(nextMemories.length * 3);
 
-        memories.forEach((memory: any, i: number) => {
-            // This is a placeholder for the PCA projection
-            positions[i * 3] = (Math.random() - 0.5) * 10;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        nextMemories.forEach((memory: any, i: number) => {
+            // Deterministic projection of the embedding vector (Johnson-Lindenstrauss
+            // style): unit-normalize the vector and dot it with 3 fixed orthonormal
+            // basis vectors, scaled to the existing +/-5 range. Falls back to a hash
+            // of the memory id when no vector is available, so the layout stays stable
+            // across rebuilds even without embeddings.
+            const p = this.projectMemory(memory);
+            positions[i * 3] = p.x;
+            positions[i * 3 + 1] = p.y;
+            positions[i * 3 + 2] = p.z;
         });
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         // Vertex colors: hue from emotion, brightness from recency.
-        const colors = new Float32Array(memories.length * 3);
-        const timestamps = memories.map((m: any) => m.timestamp || 0);
+        const colors = new Float32Array(nextMemories.length * 3);
+        const timestamps = nextMemories.map((m: any) => m.timestamp || 0);
         const minTs = Math.min(...timestamps);
         const maxTs = Math.max(...timestamps);
         const tsRange = Math.max(1, maxTs - minTs);
-        memories.forEach((memory: any, i: number) => {
+        nextMemories.forEach((memory: any, i: number) => {
             const base = this.emotionColor(memory.emotion);
             const recency = ((memory.timestamp || 0) - minTs) / tsRange; // 0 = oldest, 1 = newest
             const brightness = 0.35 + 0.65 * recency;
@@ -771,7 +1017,84 @@ class MemoryConstellation extends HTMLElement {
         this.points = new THREE.Points(geometry, material);
         this.scene.add(this.points);
 
-        this.buildRelationLines(memories, positions);
+        this.buildRelationLines(nextMemories, positions);
+
+        // Restore the user's view and re-attach the selection ring for the still-valid
+        // selected index (clear it only if the index is now out of range).
+        this.scene.rotation.set(savedRotation.x, savedRotation.y, savedRotation.z);
+        this.camera.position.set(savedCamera.x, savedCamera.y, savedCamera.z);
+        if (previousSelectedIndex !== null && previousSelectedIndex < nextMemories.length) {
+            this.setSelectedIndex(previousSelectedIndex);
+        }
+    }
+
+    /**
+     * Builds (once) a fixed orthonormal basis of 3 unit vectors used to project
+     * embedding vectors into 3D. Uses a seeded PRNG + Gram-Schmidt so the basis is
+     * deterministic across sessions and rebuilds.
+     */
+    private getProjectionBasis(): THREE.Vector3[] {
+        if (this.projectionBasis) return this.projectionBasis;
+        // Deterministic PRNG (mulberry32) seeded with a constant.
+        let seed = 0x9e3779b9;
+        const rand = () => {
+            seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const basis: THREE.Vector3[] = [];
+        for (let i = 0; i < 3; i++) {
+            const v = new THREE.Vector3(rand() - 0.5, rand() - 0.5, rand() - 0.5);
+            // Gram-Schmidt against the already-accepted basis vectors.
+            for (const b of basis) {
+                v.sub(b.clone().multiplyScalar(v.dot(b)));
+            }
+            if (v.lengthSq() < 1e-6) { v.set(1, 0, 0); }
+            v.normalize();
+            basis.push(v);
+        }
+        this.projectionBasis = basis;
+        return basis;
+    }
+
+    /**
+     * Deterministic 3D position for a memory. Projects the (unit-normalized)
+     * embedding vector onto the fixed basis, scaled to the +/-5 range. Falls back
+     * to a hash of the memory id when no usable vector is present.
+     */
+    private projectMemory(memory: any): { x: number; y: number; z: number } {
+        const SCALE = 5;
+        const vec = memory && memory.vector;
+        if (vec && vec.length > 0) {
+            let norm = 0;
+            for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
+            norm = Math.sqrt(norm);
+            if (norm > 1e-9) {
+                const basis = this.getProjectionBasis();
+                const out = [0, 0, 0];
+                for (let b = 0; b < 3; b++) {
+                    let dot = 0;
+                    const bv = basis[b];
+                    for (let i = 0; i < vec.length; i++) {
+                        dot += (vec[i] / norm) * bv.getComponent(i % 3);
+                    }
+                    out[b] = dot;
+                }
+                return { x: out[0] * SCALE, y: out[1] * SCALE, z: out[2] * SCALE };
+            }
+        }
+        // Fallback: deterministic position from a hash of the memory id.
+        const id = String((memory && memory.id) || '');
+        let h = 2166136261;
+        for (let i = 0; i < id.length; i++) {
+            h ^= id.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        const hx = ((h >>> 0) % 1000) / 1000 - 0.5;
+        const hy = (((h >>> 10) >>> 0) % 1000) / 1000 - 0.5;
+        const hz = (((h >>> 20) >>> 0) % 1000) / 1000 - 0.5;
+        return { x: hx * 2 * SCALE, y: hy * 2 * SCALE, z: hz * 2 * SCALE };
     }
 
     private emotionColor(emotion: string): { r: number; g: number; b: number } {

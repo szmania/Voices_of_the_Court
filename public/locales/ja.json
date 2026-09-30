@@ -42,6 +42,10 @@
     "scene_letter": "手紙",
     "location_label": "場所: ",
     "location_unknown": "不明",
+    "game_date_label": "ゲーム日付： ",
+    "real_date_label": "現实の日付/時刻： ",
+    "scene_diary": "日記",
+    "game_date_unknown": "不明",
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {

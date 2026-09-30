@@ -1066,6 +1066,10 @@
     "scene_letter": "Letter",
     "location_label": "Location: ",
     "location_unknown": "Unknown",
+    "game_date_label": "Game Date: ",
+    "real_date_label": "Real Date/Time: ",
+    "scene_diary": "Diary",
+    "game_date_unknown": "Unknown",
     "total_memories": "Player Character Total Memories: {count}"
   },
   "compaction": {

@@ -42,6 +42,10 @@
     "scene_letter": "Carta",
     "location_label": "Local: ",
     "location_unknown": "Desconhecido",
+    "game_date_label": "Data do jogo: ",
+    "real_date_label": "Data/hora real: ",
+    "scene_diary": "Diário",
+    "game_date_unknown": "Desconhecido",
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
   },
   "connection": {
