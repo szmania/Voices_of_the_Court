@@ -655,6 +655,41 @@ ipcMain.on('request-config-close', () => {
     }
 });
 
+// Log-based trigger channel. The CK3 mod writes "<KEYWORD>/;/clipboard" to debug.log
+// (e.g. "VOTC:IN/;/clipboard") to fire the same handlers the clipboard listener used to.
+const TRIGGER_SUFFIX = 'clipboard';
+const TRIGGER_KEYWORDS = new Set([
+    'VOTC:IN',
+    'VOTC:EFFECT_ACCEPTED',
+    'VOTC:LETTER_ACCEPTED',
+    'VOTC:BOOKMARK',
+    'VOTC:SUMMARY_MANAGER',
+    'VOTC:CONVERSATION_HISTORY',
+    'VOTC:LETTER',
+]);
+const TRIGGER_COOLDOWN_MS = 1000;
+const triggerCooldowns: Map<string, number> = new Map();
+
+function dispatchTrigger(keyword: string): void {
+    if (!TRIGGER_KEYWORDS.has(keyword)) {
+        console.warn(`processLogLine: Unknown VOTC trigger keyword "${keyword}". Ignoring.`);
+        return;
+    }
+    if (!clipboardListener) {
+        console.warn(`processLogLine: Trigger "${keyword}" received before ClipboardListener was initialized. Ignoring.`);
+        return;
+    }
+    const now = Date.now();
+    const last = triggerCooldowns.get(keyword) ?? 0;
+    if (now - last < TRIGGER_COOLDOWN_MS) {
+        console.log(`processLogLine: Suppressing duplicate trigger "${keyword}" (cooldown).`);
+        return;
+    }
+    triggerCooldowns.set(keyword, now);
+    console.log(`processLogLine: Dispatching VOTC trigger from log: ${keyword}`);
+    clipboardListener.emit(keyword);
+}
+
 function processLogLine(line: string) {
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
@@ -662,6 +697,13 @@ function processLogLine(line: string) {
     if (match) {
       const newTotalDays = Number(match[1]);
       updateCurrentDate(newTotalDays);
+    }
+
+    // Detect "<KEYWORD>/;/clipboard" trigger lines written by the mod.
+    const parts = line.split('/;/');
+    if (parts.length >= 2 && parts[1].trim() === TRIGGER_SUFFIX) {
+        const keyword = parts[0].trim().split(/\s+/).pop() || '';
+        dispatchTrigger(keyword);
     }
 }
 
@@ -1573,6 +1615,9 @@ app.on('ready',  async () => {
     clipboardListener = new ClipboardListener();
     clipboardListener.start();
     console.log('ClipboardListener started.');
+
+    // Start tailing debug.log so "<KEYWORD>/;/clipboard" lines fire the same handlers.
+    startLogTailing();
 
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
