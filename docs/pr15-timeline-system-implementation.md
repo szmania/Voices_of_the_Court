@@ -186,13 +186,19 @@ Consumers:
 │     ├─ summary_overrides.json  migration.json
 │     ├─ chronicle/{entries,attempts,memory_observations,source_digests}.json
 │     ├─ save_facts/{current.json,snapshots/,diagnostics.json,entity_names.json}
-│     └─ agency/{events,attempts,sources/<enc>/<digest>.json}
+│     ├─ agency/{events,attempts,sources/<enc>/<digest>.json}
+│     ├─ diary_history/<characterId>/…          # 规划项：日记本体+_character_map（现平铺于 votc_data/diary_history/<pid>/）
+│     ├─ diary_summaries/<characterId>.json     # 规划项：日记摘要（现平铺于 votc_data/diary_summaries/<pid>/）
+│     └─ memory/                                # 规划项：MemoryManager 整个目录（memories.db 等，现平铺于 votc_data/memory/）
 ├─ .lock/campaign_<cid>_player_<pid>.lock     # 文件锁（timelineLock.ts:49-62）
 ├─ timeline_registry/player_<pid>.json        # legacy player-only registry（迁移源）
 ├─ conversation_history/<pid>/                # legacy 对话历史 .txt
 ├─ conversation_summaries/<pid>/              # 摘要实际写入处（Conversation.ts:2234-2235）
+├─ diary_history/<pid>/  diary_summaries/<pid>/  memory/   # legacy 平铺（上述三个规划项的迁移源，迁移前继续读写）
 └─ legacy_backups/<时间戳>/…                   # 迁移前一次性备份（createFirstMigrationBackup）
 ```
+
+**Planned: diaries and memories join the campaign tree.** The earlier rationale for leaving them flat — "characterId already namespaces by save" — only holds for custom/ruler-designer characters. Historical (non-custom) characters use fixed database IDs that repeat across saves and campaigns, so the same person shares `diary_history/<pid>/<charId>/` and the characterId-keyed `memory/memories.db` across campaigns: cross-campaign leakage, same failure mode as un-namespaced conversation history. Both subsystems are therefore planned into the same layout: `campaignDataPaths` gains diaryHistoryDir/diarySummariesDir/memoryDir under campaignPlayerDir; reads/writes use the same dual-end pattern as the rest (legacy flat + campaign store, campaign wins, merge-on-read like summaryManager); migration reuses campaignMigration with the one-time `legacy_backups/` snapshot. The memory vector store moves as a whole directory (a sqlite file cannot be dual-written across dirs) during a one-shot, app-at-rest migration that also rewrites the path reference.
 
 ### 6.2 TimelineRegistry (v1 graph, `timelineManager.ts:289-573`)
 
