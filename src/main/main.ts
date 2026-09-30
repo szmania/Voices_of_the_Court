@@ -330,7 +330,20 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
+let isCheckingLetters = false;
 export async function checkAndDeliverLetters() {
+    if (isCheckingLetters) {
+        return;
+    }
+    isCheckingLetters = true;
+    try {
+        await _checkAndDeliverLetters();
+    } finally {
+        isCheckingLetters = false;
+    }
+}
+
+async function _checkAndDeliverLetters() {
     if (currentTotalDays === 0) {
         console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
         return;
@@ -522,6 +535,12 @@ function broadcastCurrentSessionPlayer(): void {
 }
 
 export function updateCurrentDate(newTotalDays: number) {
+    // The game writes VOTC:DATE frequently; skip redundant updates for the same day
+    // so we don't spawn a parseLog/queue-read storm that exhausts file descriptors.
+    if (newTotalDays === currentTotalDays) {
+        return;
+    }
+
     const oldPlayerId = currentSessionPlayerId;
     const oldTotalDays = currentTotalDays;
 
@@ -742,7 +761,7 @@ async function initCurrentDateFromLog(): Promise<void> {
 }
 
 let lastSize = 0;
-let logPollIntervalMs = 500;
+let logPollIntervalMs = 2000;
 let logWatchActive = false;
 
 function handleLogFileChange(curr: fs.Stats, prev: fs.Stats) {
@@ -751,8 +770,11 @@ function handleLogFileChange(curr: fs.Stats, prev: fs.Stats) {
         const bufferSize = curr.size - lastSize;
         const buffer = Buffer.alloc(bufferSize);
         const fd = fs.openSync(debugLogPath, 'r');
-        fs.readSync(fd, buffer, 0, bufferSize, lastSize);
-        fs.closeSync(fd);
+        try {
+            fs.readSync(fd, buffer, 0, bufferSize, lastSize);
+        } finally {
+            fs.closeSync(fd);
+        }
 
         const newContent = buffer.toString('utf8');
         newContent.split(/\r?\n/).forEach(line => {
@@ -784,8 +806,8 @@ function startLogTailing() {
     }
 }
 
-// During an active conversation, poll the log less aggressively (2s) to reduce load;
-// otherwise poll faster (500ms) so triggers are picked up promptly.
+// Poll the log every 2s while idle; poll faster (500ms) during an active conversation
+// so triggers are picked up promptly.
 function setLogPollInterval(ms: number) {
     if (ms === logPollIntervalMs) return;
     logPollIntervalMs = ms;
@@ -1802,7 +1824,7 @@ clipboardListener.on('VOTC:IN', async () =>{
 
             // 6. Mark conversation as ready and process any queued messages.
             isConversationReady = true;
-            setLogPollInterval(2000);
+            setLogPollInterval(500);
             chatWindow.window.webContents.send('chat-ready');
             console.log('Conversation is ready. Processing pending messages.');
             if (pendingMessages.length > 0) {
@@ -2425,7 +2447,7 @@ ipcMain.on('chat-stop', () =>{
 
     // Reset conversation state
     isConversationReady = false;
-    setLogPollInterval(500);
+    setLogPollInterval(2000);
     pendingMessages = [];
     // @ts-ignore
     conversation = null;
