@@ -760,9 +760,11 @@ export function updateCurrentDate(newTotalDays: number) {
         storedLetters.clear();
     }
 
-    currentTotalDays = newTotalDays;
-    console.log(`Game date updated to: ${currentTotalDays}`);
-    checkAndDeliverLetters();
+    if (currentTotalDays !== newTotalDays) {
+        currentTotalDays = newTotalDays;
+        console.log(`Game date updated to: ${currentTotalDays}`);
+        checkAndDeliverLetters();
+    }
 
     // Drain due queued letter-action approvals for the active player on EVERY date tick,
     // not only on player change or conversation start. Future-dated entries remain queued

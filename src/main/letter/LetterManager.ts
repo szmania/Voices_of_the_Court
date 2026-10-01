@@ -188,7 +188,7 @@ export class LetterManager {
     public getCorrespondedCharacters(playerId: string): {id: string, name: string}[] {
         const allLetters = this.getAllLetters(playerId);
         const characterInfo = new Map<string, string>();
-        
+
         const playerNumericId = Number(playerId);
 
         allLetters.forEach(letter => {
@@ -199,17 +199,17 @@ export class LetterManager {
                 characterInfo.set(String(letter.recipient.id), letter.recipient.fullName);
             }
         });
-        
+
         return Array.from(characterInfo.entries()).map(([id, name]) => ({ id, name }));
     }
-    
+
     public saveLetter(letter: ILetter, playerId: string): void {
         // Letters are stored based on the conversation between player and another character.
         // The file is named after the other character.
         const otherCharacterId = letter.sender.id === Number(playerId) ? String(letter.recipient.id) : String(letter.sender.id);
-        
+
         const filePath = this.getLetterFilePath(playerId, otherCharacterId);
-        
+
         let history: ILetter[] = [];
         if (fs.existsSync(filePath)) {
             history = this.getLetters(playerId, otherCharacterId);
@@ -367,18 +367,18 @@ export class LetterManager {
             console.error("Cannot deliver letter, user folder path is not set.");
             return;
         }
-    
+
         const letter = storedLetter.originalLetter;
         const replyContent = storedLetter.letter.content;
         const letterId = letter.subject; // This is 'letter_5' etc.
-    
+
         const runFolderPath = path.join(userFolderPath, "run");
         if (!fs.existsSync(runFolderPath)) {
             fs.mkdirSync(runFolderPath, { recursive: true });
         }
-    
+
         const letterFilePath = path.join(runFolderPath, "letters.txt");
-    
+
         // Single-channel note: letters.txt is one shared, whole-file-overwrite
         // channel polled by the mod-side letters_runner (~2s). A delivery and
         // a generation-failure fallback written inside the same window clobber
@@ -386,7 +386,7 @@ export class LetterManager {
         // (letters_runner.gui) and are out of scope here.
 
         const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        
+
         let gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
 remove_global_variable ?= votc_${letterId}
 create_artifact = {
@@ -410,7 +410,7 @@ if = {
 \t}
 }
 trigger_event = message_event.362`;
-    
+
         // Re-validate at delivery time: the reply may travel several in-game
         // days and conversations can advance the checkpoint meanwhile. The
         // allocated script is only applied while the save still sits on the
@@ -504,12 +504,12 @@ trigger_event = message_event.362`;
     public clearLettersFile(config: Config): void {
         const ck3Folder = config.userFolderPath;
         console.log(`LetterManager.clearLettersFile: CK3 user path: ${ck3Folder}`);
-        
+
         if (!ck3Folder) {
           console.warn("LetterManager.clearLettersFile: CK3 user folder is not configured; cannot clear letters file.");
           return;
         }
-    
+
         const runFolder = path.join(ck3Folder, "run");
         const letterFilePath = path.join(runFolder, "letters.txt");
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
@@ -523,7 +523,7 @@ trigger_event = message_event.362`;
         // silent. "Clearing" means restoring the placeholder.
         const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         fs.writeFileSync(letterFilePath, placeholder, "utf-8");
-        console.log("Reset letters.txt to the blank heartbeat placeholder");
+        console.log("Reset letters.txt to the blank heartbeat pt letters.txt to the blank heartbeat placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {
@@ -548,14 +548,14 @@ trigger_event = message_event.362`;
         if (allLetters.length === 0) {
             return null;
         }
-    
+
         // Sort by real-world creation timestamp, most recent first
         allLetters.sort((a, b) => {
             const timeA = a.creationTimestamp ? new Date(a.creationTimestamp).getTime() : 0;
             const timeB = b.creationTimestamp ? new Date(b.creationTimestamp).getTime() : 0;
             return timeB - timeA;
         });
-    
+
         return allLetters[0];
     }
 
