@@ -59,6 +59,18 @@ export class LetterActionTrigger {
     return match ? match[0] : subject;
   }
 
+  /**
+   * Clears the letter actions run file (run/votc_letter_actions.txt). Called when the
+   * game confirms execution via VOTC:LETTER_EFFECT_ACCEPTED (message_event.363).
+   * Safe to call before any letter action ran this session: creates the manager on demand.
+   */
+  public static clearLetterRunFile(config: Config): void {
+      if (!this.letterRunFileManager) {
+          this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
+      }
+      this.letterRunFileManager.clear();
+  }
+
   public static async executeLetterAction(
     letter: Letter,
     actionSpec: LetterAssociatedAction,
@@ -125,7 +137,7 @@ export class LetterActionTrigger {
       // Trigger the event to process the run file, then clear it after the game
       // has had time to consume it (mirrors the conversation run file pattern).
       this.letterRunFileManager.append(`
-        root = {trigger_event = mcc_event_v2.9003}
+        root = {trigger_event = message_event.363}
       `);
       setTimeout(() => {
         this.letterRunFileManager.clear();

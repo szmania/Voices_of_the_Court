@@ -870,6 +870,7 @@ const TRIGGER_KEYWORDS = new Set([
     'VOTC:IN',
     'VOTC:EFFECT_ACCEPTED',
     'VOTC:LETTER_ACCEPTED',
+    'VOTC:LETTER_EFFECT_ACCEPTED',
     'VOTC:BOOKMARK',
     'VOTC:SUMMARY_MANAGER',
     'VOTC:CONVERSATION_HISTORY',
@@ -2136,6 +2137,15 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
         }
     } catch (error) {
         console.error(`Failed to handle LETTER_ACCEPTED event: ${error}`);
+    }
+});
+
+clipboardListener.on('VOTC:LETTER_EFFECT_ACCEPTED', () => {
+    console.log('ClipboardListener: VOTC:LETTER_EFFECT_ACCEPTED event detected.');
+    try {
+        LetterActionTrigger.clearLetterRunFile(config);
+    } catch (error) {
+        console.error(`Failed to handle LETTER_EFFECT_ACCEPTED event: ${error}`);
     }
 });
 
