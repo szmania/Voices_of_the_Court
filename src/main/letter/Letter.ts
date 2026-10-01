@@ -22,6 +22,14 @@ export class Letter implements ILetter {
     isPlayerSender?: boolean;
     associatedAction?: import('./letterInterfaces.js').LetterAssociatedAction;
     triggeredActions: import('./letterInterfaces.js').LetterAssociatedAction[];
+
+    /** Timeline v2 payload allocated for this reply's thread (see LetterReplyGenerator). */
+    timelineScript?: string;
+    timelineEpoch?: number;
+    timelineCampaignId?: string;
+    timelinePlayerId?: string;
+    timelineNodeId?: string;
+
     characterContext?: {
         playerId: string;
         playerName: string;

@@ -290,3 +290,81 @@ body {
     color: #7f8c8d;
     font-style: italic;
 }
+
+/* ===== Checkpoint 标签（合并自 1.x 历史窗口） ===== */
+.timeline-label {
+    color: #cca43b;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    width: 120px;
+}
+
+.checkpoint-value {
+    color: #cca43b;
+    font-family: 'Gitan', sans-serif;
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* ===== Archive 标签页（合并自 1.x 历史窗口） ===== */
+.conversation-item {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+}
+
+.archive-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 10px 10px 0;
+    border-bottom: 2px solid #5a4a35;
+    background-color: #2b2b2b;
+}
+
+.archive-tab {
+    padding: 6px 3px;
+    border: 1px solid #5a4a35;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
+    color: #7f8c8d;
+    background-color: #1a1a1a;
+    font-family: 'Gitan', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.archive-tab:hover {
+    color: #e0e0e0;
+    border-color: #cca43b;
+}
+
+.archive-tab.active {
+    color: #ffd700;
+    background-color: #591919;
+    border-color: #cca43b;
+}
+
+/* ===== 查看器标题区（合并自 1.x 历史窗口） ===== */
+.section-kicker {
+    display: block;
+    padding: 15px 15px 0;
+    color: #cca43b;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    background-color: #2b2b2b;
+}
+
+.viewer-heading {
+    background-color: #2b2b2b;
+}
+
+.viewer-heading h2 {
+    margin: 0;
+}

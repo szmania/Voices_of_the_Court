@@ -99,6 +99,7 @@ module.exports = (gameData) =>{
         describeProwess(ai),
         marriage(ai),
         relatives(ai),
+        extendedFacts(ai),
         goldStatus(ai),
         age(ai),
         `信仰： ${ai.faith}`,
@@ -133,6 +134,7 @@ module.exports = (gameData) =>{
                     describeProwess(value),
                     marriage(value),
                     relatives(value),
+                    extendedFacts(value),
                     goldStatus(value),
                     age(value),
                     describeProwess(value),
@@ -260,6 +262,13 @@ module.exports = (gameData) =>{
 
     function relatives(char){
         return char.getRelativesDescription(gameData.totalDays) || null;
+    }
+
+    function extendedFacts(char){
+        if (typeof char.getExtendedFactsDescription === 'function') {
+            return char.getExtendedFactsDescription() || null;
+        }
+        return null;
     }
 
     function otherTraits(char){
