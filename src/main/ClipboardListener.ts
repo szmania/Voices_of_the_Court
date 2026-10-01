@@ -45,7 +45,13 @@ export class ClipboardListener extends EventEmitter{
         if(this.previousClipboard == currentClipboard) return;
 
         if(currentClipboard.startsWith('VOTC:')){
-            let command = currentClipboard.split(':')[1].trim();
+            // Mirror the 1.x listener: everything after "VOTC:<COMMAND>" is a
+            // "/;/"-separated payload (manager window contexts, letter slots,
+            // battle ids...). Handlers that do not need payloads simply ignore
+            // the extra argument.
+            const segments = currentClipboard.slice('VOTC:'.length).split('/;/');
+            const command = segments[0].trim();
+            const payloads = segments.slice(1).map(s => s.trim());
             console.log(`VOTC command detected: ${command}`);
             switch (command){
                 case "IN":
@@ -58,10 +64,10 @@ export class ClipboardListener extends EventEmitter{
                     this.emit('VOTC:BOOKMARK');
                     break;
                 case "SUMMARY_MANAGER":
-                    this.emit('VOTC:SUMMARY_MANAGER');
+                    this.emit('VOTC:SUMMARY_MANAGER', payloads);
                 break;
                 case "CONVERSATION_HISTORY":
-                    this.emit('VOTC:CONVERSATION_HISTORY');
+                    this.emit('VOTC:CONVERSATION_HISTORY', payloads);
                 break;
                 case "LETTER":
                     this.emit('VOTC:LETTER');

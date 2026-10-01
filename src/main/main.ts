@@ -1,3 +1,4 @@
+import { isPromptKey } from '../shared/promptKeys';
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 app.commandLine.appendSwitch('disable-gpu');
 import { getEncoding, Tiktoken } from "js-tiktoken";
@@ -17,7 +18,8 @@ import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
-import { parseLog } from "../shared/gameData/parseLog";
+import { evaluateReplyDeliveryGate } from "./letter/letterDeliveryGate.js";
+import { parseLog, readLastLogLineContaining } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
 import { processBookmarkToSummary } from "./bookmarktosummary";
@@ -28,6 +30,12 @@ import { getConversationHistoryFiles, readConversationHistoryFile } from "./conv
 import { readPromptHistory, savePromptHistory } from "./promptHistory";
 import { Message, ActionResponse } from "./ts/conversation_interfaces";
 import { ActionEffectWriter } from "./conversation/ActionEffectWriter";
+import { registerTimelineIpc, resolveTimelineWindowRequest } from "./ipc/timelineIpc.js";
+import type { TimelineWindowContext } from "./managerClipboardPayload.js";
+import { decideManagerWindowContext } from "./managerClipboardPayload.js";
+import { reportUnsupportedTimelineSchema } from "./timelineRegistryRecovery.js";
+import { buildContextFromGameData } from "./timelineManager.js";
+import { observeCampaignLoadLine, getObservedCampaignId, getObservedCampaignLoad, scanDeliverySnapshotEvidence } from "./campaignLoadObserver.js";
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from "crypto";
@@ -215,6 +223,12 @@ let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
 
+// Checkpoint evidence captured from the VOTC:CONVERSATION_HISTORY clipboard
+// payload (1.x main.ts conversationHistoryContext). Undefined when the mod
+// did not send a manager payload; the history channels then fall back to the
+// legacy debug.log lookup.
+let conversationHistoryContext: TimelineWindowContext | undefined;
+
 let tray: Tray;
 const createTray = () => {
     if (tray) tray.destroy();
@@ -281,12 +295,33 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+// Replies rejected by the campaign delivery gate remember the campaign they
+// were rejected under, so a foreign-campaign reply is not re-evaluated (and
+// does not trigger a full game-log parse) on every date heartbeat tick.
+// The entry is refreshed on each new rejection and ignored once the observed
+// campaign changes, so switching campaigns/saves re-evaluates exactly once.
+const campaignMismatchSkips = new Map<string, string | undefined>();
+// Seamed for tests: the pre-scan consults the observed campaign through this
+// provider. Jest cannot feed the campaignLoadObserver singleton that main.ts
+// sees (the '.js'-suffixed import resolves to a different module instance),
+// so tests inject a provider instead.
+let observedCampaignIdProvider: () => string | undefined = getObservedCampaignId;
+// Conversation-active probe for code declared above `conversation` (the
+// variable itself lives further down this file). Wired to the real
+// conversation right after the variable is declared.
+let conversationOpenChecker: () => boolean = () => false;
 
 // --- Private helpers for testing ---
 export function _private_setCurrentTotalDays(days: number): void { currentTotalDays = days; }
 export function _private_getStoredLetters(): Map<string, StoredLetter> { return storedLetters; }
 export function _private_setLastLetterSentToGame(letter: StoredLetter | null): void { lastLetterSentToGame = letter; }
 export function _private_setSessionPlayerId(id: string | null): void { currentSessionPlayerId = id; }
+// The real config is built in app.whenReady() from the user's config file, which
+// tests do not have; this lets a test exercise config-dependent flows.
+export function _private_setConfig(value: Config): void { config = value; }
+export function _private_setObservedCampaignIdProvider(provider: (() => string | undefined) | null): void {
+    observedCampaignIdProvider = provider ?? getObservedCampaignId;
+}
 const LETTER_DELIVERY_TIMEOUT_MS = 60_000; // 60 seconds — if no VOTC:LETTER_ACCEPTED, assume delivery failed
 
 
@@ -330,7 +365,60 @@ function rehydratePendingReplyLetters(playerId: string): void {
     }
 }
 
-let isCheckingLetters = false;
+// Identity (campaign + player) of the live game context, decided by ONE
+// log-chronology evidence snapshot. The log survives save loads, so after
+// loading save B the last `VOTC:IN` init block can still describe abandoned
+// campaign A; the evidence scan returns each field from the newest line that
+// carries it — campaign from the newest load/init evidence, player (and
+// node/epoch) also from a fresher checkpoint receipt. Mixing fields from
+// different generations (e.g. B's campaign with A's player) rejected replies
+// that belonged to the loaded save, so campaign and player are always
+// resolved from the same snapshot.
+function resolveDeliveryIdentity(gameData: GameData): { campaignId: string | undefined; playerId: string } {
+    const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    // The evidence scan only sets campaignId when a load line legitimately
+    // outranks the last init block (its own parse failed -> fail closed,
+    // campaignId stays undefined). A checkpoint receipt never carries a
+    // campaign id, so in that case the campaign still comes from the load
+    // line beneath it; otherwise the parsed init snapshot owns it, with the
+    // observer's memory as last resort.
+    let campaignId = evidence.campaignId;
+    if (!campaignId && evidence.source !== 'load') {
+        try {
+            campaignId = buildContextFromGameData(gameData).identity?.campaignId;
+        } catch (error) {
+            console.warn(`Could not resolve the current campaign id for letter delivery: ${error}`);
+        }
+        campaignId ??= getObservedCampaignId();
+    }
+    const playerId = evidence.playerId ?? String(gameData.playerID);
+    return {campaignId, playerId};
+}
+
+// The save's current timeline node, by the same log-chronology rule as the
+// delivery identity: a fresher load line that reports the node wins; a
+// checkpoint receipt fresher than both the load line and the last init block
+// wins too — the receipt is the game applying a transition, so it describes
+// the node AFTER a conversation completed, which the init block (a
+// conversation-start snapshot) never does. Undefined only when no evidence
+// exists — the caller then falls back to the registry head.
+function resolveCurrentTimelineNodeId(gameData: GameData): string | undefined {
+    const evidence = scanDeliverySnapshotEvidence(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if ((evidence.source === 'load' || evidence.source === 'checkpoint') && evidence.nodeId) {
+        return evidence.nodeId;
+    }
+    const a = gameData.votcTimelineNodeA;
+    const b = gameData.votcTimelineNodeB;
+    if (a && b) {
+        return `${a}-${b}`;
+    }
+    return evidence.nodeId ?? observedTimelineNodeId();
+}
+
+function observedTimelineNodeId(): string | undefined {
+    return getObservedCampaignLoad()?.nodeId;
+}
+
 export async function checkAndDeliverLetters() {
     if (isCheckingLetters) {
         return;
@@ -349,6 +437,39 @@ async function _checkAndDeliverLetters() {
         return;
     }
 
+    // Queued generation-failure fallback blocks share the single whole-file
+    // letters.txt channel with normal deliveries. Flush at most one per pass
+    // and only when the channel is idle (no delivery awaiting
+    // VOTC:LETTER_ACCEPTED, no open conversation pausing the mod-side
+    // letters_runner): a fallback written over a pending reply would destroy
+    // it permanently, since that reply has already left the pending queue.
+    if (!lastLetterSentToGame && !conversationOpenChecker() && LetterManager.getInstance().hasPendingLetterFallbacks()) {
+        LetterManager.getInstance().flushNextLetterFallback(config);
+        return;
+    }
+
+    // Cheap in-memory pre-scan before touching the game log. The date
+    // heartbeat re-triggers this check on every ~2s runner tick; without
+    // the pre-scan each tick parses the whole debug.log even when nothing
+    // is deliverable (and a campaign-mismatched reply would be re-logged
+    // every tick forever). A pending confirmation must still fall through
+    // so the timeout clear below gets its chance to run.
+    const observedCampaign = (observedCampaignIdProvider() ?? '');
+    const hasDeliverableCandidate = Array.from(storedLetters.entries()).some(([id, stored]) => {
+        if (currentTotalDays < stored.expectedDeliveryDay) {
+            return false;
+        }
+        // Skip only when a rejection was recorded for THIS letter under the
+        // SAME observed campaign. Map.get cannot distinguish "no entry"
+        // from "entry stored as undefined", so probe with has() first — a
+        // fresh letter must never be excluded just because no campaign is
+        // observable (both sides undefined).
+        return !(campaignMismatchSkips.has(id) && campaignMismatchSkips.get(id) === observedCampaign);
+    });
+    if (!hasDeliverableCandidate && !lastLetterSentToGame) {
+        return;
+    }
+
     let gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
     if (!gameData) {
         gameData = getCachedGameData() ?? undefined;
@@ -363,33 +484,110 @@ async function _checkAndDeliverLetters() {
     }
     const letterManager = LetterManager.getInstance();
 
+    // Defer scheduled deliveries while a conversation is open. The mod-side
+    // letters_runner pauses while the conversation holds talk_scene, so a
+    // reply written now cannot be executed or confirmed until the
+    // conversation ends — it would sit in run/letters.txt until the
+    // delivery timeout and leave stale content behind that the next
+    // write-letter interaction re-fires.
+    if (conversationOpenChecker()) {
+        return;
+    }
+
     // If a previous delivery never got VOTC:LETTER_ACCEPTED, unblock after the timeout.
     if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
         console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} Ã¢â‚¬â€ no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
         lastLetterSentToGame = null;
+        // The timed-out reply is still sitting in run/letters.txt and the
+        // mod-side letters_runner executes that file unconditionally on the
+        // next write-letter interaction — without this the old reply fires
+        // again in game. The letter itself stays pending and is re-delivered
+        // on a later pass, so clearing here loses nothing.
+        LetterManager.getInstance().clearLettersFile(config);
     }
 
     // Use a copy of keys to allow modification during iteration
+    const observedNow = observedCampaignIdProvider() ?? '';
     const letterIds = Array.from(storedLetters.keys());
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
         if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
+            // A reply already rejected under the currently observed campaign
+            // stays skipped inside the loop too: the pre-scan only guards
+            // function entry, and another due letter would otherwise pull the
+            // mismatch back in and re-log its deferral on every such pass.
+            if (campaignMismatchSkips.has(letterId) && campaignMismatchSkips.get(letterId) === observedNow) {
+                continue;
+            }
             console.log(`Sending letter reply for ${letterId} to game (current: ${currentTotalDays}, expected: ${storedLetter.expectedDeliveryDay})`);
 
-            const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
-            let currentDateString: string;
+            // Every delivery path needs the identity of the context it writes
+            // into, so the check runs before the date is even chosen. The queue
+            // can hold replies rehydrated from another campaign's store or
+            // produced by generation that finished after a campaign switch;
+            // delivering one into the wrong campaign would consume the current
+            // campaign's letter slot for a foreign letter. Replies queued before
+            // this release carry no campaign stamp at all and are delivered on
+            // the player check alone — back-filling a campaign id here would
+            // claim them for whichever campaign is loaded.
+            //
+            // gameData comes from the function-level resolution above (fresh
+            // parse with the same-campaign cache fallback). Re-parsing here
+            // would strand due replies whenever the log was cleared or
+            // rebuilt and no new init block exists yet — the cache, the load
+            // identity and the date heartbeat are enough to verify.
             if (!gameData) {
-                console.warn(`Could not parse game data during letter delivery. Using currentTotalDays fallback for date.`);
-                currentDateString = totalDaysToDateString(currentTotalDays);
-            } else {
-                currentDateString = gameData.date;
+                // No log, no player and no campaign: nothing can be verified, so
+                // the reply keeps its place in the queue. A date fallback would
+                // only make the write look safe while skipping the check.
+                console.warn(`Letter delivery for ${letterId} deferred: the game log could not be parsed, so the current campaign and player are unknown. Keeping it pending.`);
+                continue;
             }
+
+            const {campaignId: currentCampaignId, playerId: currentPlayerId} = resolveDeliveryIdentity(gameData);
+            const verdict = evaluateReplyDeliveryGate(
+                {
+                    recipientId: String(storedLetter.letter.recipient.id),
+                    campaignId: storedLetter.letter.timelineCampaignId
+                },
+                currentCampaignId ? {campaignId: currentCampaignId} : undefined,
+                currentPlayerId,
+                {allowUnstampedLegacyReplies: true}
+            );
+            if (!verdict.deliverable) {
+                if (verdict.reason === 'campaign_mismatch') {
+                    // Remember the OBSERVED campaign at rejection time so the
+                    // cheap pre-scan above can skip this reply until the
+                    // observation changes, instead of re-parsing the game log
+                    // and re-logging the deferral on every heartbeat tick.
+                    // The observed value (not the snapshot-resolved one) is
+                    // the key because it is the only campaign signal the
+                    // pre-scan can consult without parsing; '' stands for
+                    // "nothing observed" and still matches a later undefined
+                    // observation. A save load that changes the observation
+                    // re-evaluates the reply exactly once.
+                    campaignMismatchSkips.set(letterId, observedCampaignIdProvider() ?? '');
+                }
+                console.log(`Letter delivery for ${letterId} deferred (${verdict.reason}): reply campaign ${storedLetter.letter.timelineCampaignId ?? 'unknown'}, player ${storedLetter.letter.recipient.id}; current campaign ${currentCampaignId ?? 'unknown'}, player ${currentPlayerId}. Keeping it pending.`);
+                continue;
+            }
+            if (verdict.reason === 'legacy_reply_unstamped') {
+                console.log(`Letter delivery for ${letterId}: reply predates campaign stamping (no campaign id on the record); delivering on the player match and leaving it unclaimed by any campaign.`);
+            }
+
+            const currentDateString = gameData.date;
+            // The save's current timeline node decides whether the reply's
+            // pre-allocated checkpoint script may ride along (claim: the
+            // registry's newest node can belong to an abandoned branch after
+            // a rollback, so the node must come from game evidence).
+            const currentTimelineNodeId = resolveCurrentTimelineNodeId(gameData);
             // The letter is being sent to the game, but not yet confirmed as delivered.
-            letterManager.deliverLetter(storedLetter, config, currentDateString);
+            letterManager.deliverLetter(storedLetter, config, currentDateString, currentTimelineNodeId);
             lastLetterSentToGame = storedLetter; // Track the letter sent
             lastLetterSentToGameTime = Date.now();
             storedLetters.delete(letterId); // Remove from pending queue
+            campaignMismatchSkips.delete(letterId); // Delivered: drop any stale skip marker
 
             // Since the mod probably handles one at a time, break after sending one.
             break;
@@ -398,7 +596,10 @@ async function _checkAndDeliverLetters() {
 }
 
 function totalDaysToDateString(totalDays: number): string {
-    const year = Math.max(1, Math.floor(totalDays / 365));
+    // The mod writes GetDateAsTotalDays, which is an absolute year*365+dayOfYear
+    // count (verified: 430583 == 5 Sep 1179). Upstream's 867 + ... offset assumes
+    // days-since-867 and shifts every displayed date 867 years into the future.
+    const year = Math.floor(totalDays / 365);
     const dayOfYear = (totalDays % 365) + 1; // 1-indexed day
 
     const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -710,6 +911,10 @@ function dispatchTrigger(keyword: string): void {
 }
 
 function processLogLine(line: string) {
+    // Save-load identity from the mod's load relay: the earliest identity signal
+    // of a session, and the only one available before the first conversation.
+    observeCampaignLoadLine(line);
+
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
 
@@ -718,11 +923,12 @@ function processLogLine(line: string) {
       updateCurrentDate(newTotalDays);
     }
 
-    // Detect "<KEYWORD>/;/clipboard" trigger lines written by the mod.
-    const parts = line.split('/;/');
-    if (parts.length >= 2 && parts[1].trim() === TRIGGER_SUFFIX) {
-        const keyword = parts[0].trim().split(/\s+/).pop() || '';
-        dispatchTrigger(keyword);
+    // Letter fallback receipt: the fallback block cannot trigger
+    // message_event.362, so nothing else clears run/letters.txt after the
+    // mod-side letters_runner executes it - without this receipt the runner
+    // re-runs the file on every poll and spams the debug log.
+    if (line.includes('VOTC:FALLBACK/;/applied') || line.includes('VOTC:FALLBACK/;/skipped')) {
+        LetterManager.getInstance().clearLettersFile(config);
     }
 }
 
@@ -848,6 +1054,24 @@ app.on('ready',  async () => {
     loadTranslations(config.language);
     console.log('Configuration loaded successfully.');
 
+    // The app can be started after a save was loaded, in which case the load-time
+    // identity line is already in the log and the tail below will never see it.
+    // Read the last one so the session knows its campaign without waiting for a
+    // conversation; the tail keeps handling later loads.
+    if (config.userFolderPath) {
+        try {
+            const lastLoadLine = await readLastLogLineContaining(
+                path.join(config.userFolderPath, 'logs', 'debug.log'),
+                'VOTC:CAMPAIGN/;/loaded/;/'
+            );
+            if (lastLoadLine) {
+                observeCampaignLoadLine(lastLoadLine);
+            }
+        } catch (error) {
+            console.warn(`Could not read the last save-load identity line from the game log: ${error}`);
+        }
+    }
+
     // Initialize blank run files (letters.txt and votc.txt) if they don't exist
     if (config.userFolderPath) {
         const runFolderPath = path.join(config.userFolderPath, 'run');
@@ -856,10 +1080,14 @@ app.on('ready',  async () => {
             console.log(`Created CK3 run folder at: ${runFolderPath}`);
         }
         const lettersFilePath = path.join(runFolderPath, 'letters.txt');
-        if (!fs.existsSync(lettersFilePath)) {
-            fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
-            console.log(`Created blank letters.txt at: ${lettersFilePath}`);
-        }
+        // Always (re)initialize letters.txt to the blank placeholder. The
+        // mod-side letters_runner executes this file unconditionally on
+        // every write-letter interaction, so a stale reply left over from
+        // an earlier session or a timed-out delivery would re-fire the
+        // moment the player writes a new letter in game. votc.txt keeps
+        // the create-if-missing behaviour - it is executed only on demand.
+        fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+        console.log(`Initialized blank letters.txt at: ${lettersFilePath}`);
         const votcFilePath = path.join(runFolderPath, 'votc.txt');
         if (!fs.existsSync(votcFilePath)) {
             fs.writeFileSync(votcFilePath, '', 'utf-8');
@@ -1656,9 +1884,26 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
-    // Start tailing debug.log so "<KEYWORD>/;/clipboard" lines fire the same handlers.
-    startLogTailing();
+    registerTimelineIpc({
+        getWindowContext: () => conversationHistoryContext,
+        getDebugLogPath: () => path.join(config.userFolderPath, 'logs', 'debug.log'),
+        onCloseRequested: () => {
+            if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
+                conversationHistoryWindow.close();
+                console.log('Conversation history window closed.');
+            }
+        }
+    });
+    console.log('Timeline IPC handlers registered.');
 
+    // Live date tracking: tail debug.log for VOTC:DATE lines. The merged
+    // upstream flow only refreshes currentTotalDays at parse points guarded
+    // on the init line's date fields, which mods without the date 5-tuple
+    // never satisfy — the letters.txt heartbeat written above would then
+    // have no consumer and letter delivery would stall forever. The tailer
+    // is what the heartbeat design assumes; keep it alongside the parse
+    // points (updateCurrentDate is idempotent for repeated same-day ticks).
+    startLogTailing();
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
@@ -1728,6 +1973,11 @@ let isConversationReady = false;
 let pendingMessages: Message[] = [];
 let conversationLock: Promise<void> | null = null;
 
+// Conversation-active probe for code declared above `conversation` (the
+// variable itself lives further down this file). Wired to the real
+// conversation right after the variable is declared.
+conversationOpenChecker = () => Boolean(conversation && conversation.isOpen);
+
 clipboardListener.on('VOTC:IN', async () =>{
     console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
 
@@ -1786,8 +2036,8 @@ clipboardListener.on('VOTC:IN', async () =>{
             broadcastCurrentSessionPlayer();
             processQueuedApprovals(String(gameData.playerID));
 
-            if (gameData.totalDays) {
-                updateCurrentDate(gameData.totalDays);
+            if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+                updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
             }
             conversation = new Conversation(gameData, config, chatWindow, votcDataPath, tiktokenEncoder);
             // Wire the memory-insertion callback so main broadcasts a Memories-tab refresh
@@ -1934,6 +2184,9 @@ clipboardListener.on('VOTC:BOOKMARK', async () => {
     }
 })
 
+// Payload parsing is already in place (ClipboardListener emits the parsed
+// string[] payload for this command); wiring a dedicated summary-manager
+// window flow is deferred to P7.
 clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
     console.log('ClipboardListener: VOTC:SUMMARY_MANAGER event detected.');
     try {
@@ -1949,9 +2202,31 @@ clipboardListener.on('VOTC:SUMMARY_MANAGER', async () => {
     }
 })
 
-clipboardListener.on('VOTC:CONVERSATION_HISTORY', async () => {
+clipboardListener.on('VOTC:CONVERSATION_HISTORY', async (payloads?: string[]) => {
     console.log('ClipboardListener: VOTC:CONVERSATION_HISTORY event detected.');
     try {
+        // 1.x main.ts:2080 pattern: derive the checkpoint evidence from the
+        // clipboard payload. The current 2CE mod sends the bare command
+        // without payload fields; in that case keep the legacy behavior
+        // (window opens, channels resolve via the debug.log tail) instead of
+        // refusing to open.
+        const hasPayloads = Array.isArray(payloads) && payloads.length > 0;
+        if (hasPayloads) {
+            const decision = decideManagerWindowContext('Conversation history', payloads);
+            if (decision.status !== 'ok') {
+                console.error(decision.message);
+                if (decision.unsupportedSchema !== undefined) {
+                    reportUnsupportedTimelineSchema(decision.unsupportedSchema);
+                }
+                return;
+            }
+            const { extraFields, ...context } = decision.context;
+            conversationHistoryContext = context;
+        } else {
+            conversationHistoryContext = undefined;
+            console.log('No manager clipboard payload; history window will use the legacy debug.log lookup.');
+        }
+
         // Create or show the conversation history window
         if (!conversationHistoryWindow || conversationHistoryWindow.isDestroyed()) {
             conversationHistoryWindow = new ConversationHistoryWindow();
@@ -2089,8 +2364,8 @@ clipboardListener.on('VOTC:LETTER', async () => {
             configWindow.window.webContents.send('letter-status-changed');
         }
 
-        if (gameData.totalDays) {
-            updateCurrentDate(gameData.totalDays);
+        if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+            updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
         }
 
         const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
@@ -2278,43 +2553,16 @@ ipcMain.handle('save-prompt-presets', async (event, presets) => {
 });
 
 
-const promptKeys = [
-    'mainPrompt',
-    'summarizePrompt',
-    'memoriesPrompt',
-    'suffixPrompt',
-    'selfTalkPrompt',
-    'selfTalkSummarizePrompt',
-    'narrativePrompt',
-    'sceneDescriptionPrompt',
-    'actionPrompt',
-    'letterPrompt',
-    'letterSummaryPrompt',
-    'diaryPrompt',
-    'diarySummarizePrompt',
-    'diaryForLetterPrompt'
-];
-
 ipcMain.on('config-change', (e, confID: string, newValue: any) =>{
     console.log(`IPC: Received config-change event. ID: ${confID}, New Value: ${newValue}`);
 
-    if (promptKeys.includes(confID)) {
-        // @ts-ignore
-        if (!config.prompts) {
-            // @ts-ignore
-            config.prompts = {};
-        }
-        // @ts-ignore
-        if (!config.prompts[config.language]) {
-            // @ts-ignore
-            config.prompts[config.language] = {};
-        }
-        // @ts-ignore
-        config.prompts[config.language][confID] = newValue;
-    } else {
-        // @ts-ignore
-        config[confID] = newValue;
+    // Stale renderers must not write prompt values to the retired config schema.
+    // Prompt edits are persisted explicitly by the preset editor.
+    if (isPromptKey(confID)) {
+        return;
     }
+    //@ts-ignore
+    config[confID] = newValue;
 
     // Live-toggle the clipboard listener when the user flips the setting.
     if (confID === 'useClipboardTriggers' && clipboardListener) {
@@ -2436,8 +2684,8 @@ ipcMain.on('chat-stop', () =>{
     chatWindow.hide();
 
     if(conversation && conversation.isOpen){
-        if (conversation.gameData.totalDays) {
-            updateCurrentDate(conversation.gameData.totalDays);
+        if (conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays) {
+            updateCurrentDate(conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays);
         }
         // This now saves history synchronously and triggers async summarization
         conversation.saveHistoryAndTriggerSummarization();
@@ -2451,6 +2699,10 @@ ipcMain.on('chat-stop', () =>{
     pendingMessages = [];
     // @ts-ignore
     conversation = null;
+
+    // Flush any letter deliveries deferred while the conversation was open
+    // (checkAndDeliverLetters bails out while a conversation is active).
+    checkAndDeliverLetters();
 })
 
 // Memory Compaction IPC Handlers
@@ -2665,8 +2917,8 @@ ipcMain.on('execute-action', (event, signature: string, args: any[]) => {
                         chatWindow.window.webContents.send('chat-hide');
                         chatWindow.hide();
                         if (conversation && conversation.isOpen) {
-                            if (conversation.gameData.totalDays) {
-                                updateCurrentDate(conversation.gameData.totalDays);
+                            if (conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays) {
+                                updateCurrentDate(conversation.gameData.gameDate?.totalDays ?? conversation.gameData.totalDays);
                             }
                             conversation.saveHistoryAndTriggerSummarization();
                         }
@@ -2996,10 +3248,14 @@ ipcMain.handle('save-character-description', async (event, playerId: string, cha
     }
 });
 
-ipcMain.handle('read-summary-file', async (event, playerId) => {
+ipcMain.handle('read-summary-file', async (event, playerId, checkpointEpoch?: number) => {
     console.log(`IPC: Received read-summary-file event for player: ${playerId}`);
     try {
-        const summaries = await readSummaryFile(votcDataPath, playerId);
+        // Resolve through the timeline context so node-tagged summaries are
+        // filtered by branch visibility (no manager window context yet; the
+        // legacy parts-only resolution keeps today's behavior until P7).
+        const { context, registry, identity } = await resolveTimelineWindowRequest(undefined, playerId, checkpointEpoch);
+        const summaries = await readSummaryFile(votcDataPath, playerId, checkpointEpoch ?? context.checkpointEpoch, registry, context.timelineNodeId, identity);
 
         const characterMapPath = path.join(votcDataPath, 'conversation_summaries', playerId, '_character_map.json');
         let characterMap: {[key: string]: string} = {};
@@ -3313,29 +3569,8 @@ ipcMain.handle('regenerate-diary-summaries', async (event, { playerId, editedEnt
     }
 });
 
-// Conversation History IPC handlers
-
-ipcMain.handle('get-conversation-history-files', async (event, playerId) => {
-    console.log(`IPC: Received get-conversation-history-files event for player: ${playerId}`);
-    try {
-        const files = await getConversationHistoryFiles(playerId, [], 0);
-        return files;
-    } catch (error) {
-        console.error('Error getting conversation history files:', error);
-        return [];
-    }
-});
-
-ipcMain.handle('read-conversation-history-file', async (event, playerId, filename) => {
-    console.log(`IPC: Received read-conversation-history-file event for player: ${playerId}, file: ${filename}`);
-    try {
-        const content = await readConversationHistoryFile(playerId, filename);
-        return content;
-    } catch (error) {
-        console.error('Error reading conversation history file:', error);
-        return '';
-    }
-});
+// Conversation History IPC handlers are registered by registerTimelineIpc()
+// (see src/main/ipc/timelineIpc.ts) during app startup.
 
 // Letter IPC Handlers
 ipcMain.handle('import-letters-from-log', async (event, args) => {
@@ -3450,14 +3685,7 @@ ipcMain.on('api-config-change', (e, configType: string, apiType: string, configD
     }
 });
 
-// Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¥Â¯Â¹Ã¨Â¯ÂÃ¥Å½â€ Ã¥ÂÂ²Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
-ipcMain.on('close-conversation-history', () => {
-    console.log('IPC: Received close-conversation-history event.');
-    if (conversationHistoryWindow && !conversationHistoryWindow.isDestroyed()) {
-        conversationHistoryWindow.close();
-        console.log('Conversation history window closed.');
-    }
-});
+// 'close-conversation-history' is registered by registerTimelineIpc().
 
 // Ã¥Â¤â€žÃ§Ââ€ Ã¥â€¦Â³Ã©â€”Â­Ã¦â‚¬Â»Ã§Â»â€œÃ§Â®Â¡Ã§Ââ€ Ã¥â„¢Â¨Ã§Âªâ€”Ã¥ÂÂ£Ã§Å¡â€žÃ¨Â¯Â·Ã¦Â±â€š
 ipcMain.on('close-summary-manager', () => {
