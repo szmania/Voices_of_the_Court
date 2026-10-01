@@ -884,8 +884,11 @@ export class Conversation{
 
 
     fillNpcQueue(): void {
+        // Silenced characters are excluded so they never respond when spoken to
+        // or get picked as random responders (covers the AI-starts-conversation path).
         this.npcQueue = Array.from(this.gameData.characters.values()).filter(
-            (character) => character.id !== this.gameData.playerID
+            (character) => character.id !== this.gameData.playerID &&
+                !this.gameData.silencedCharacterIds?.has(character.id)
         );
         console.log(`NPC queue filled with ${this.npcQueue.length} characters.`);
     }
@@ -2577,8 +2580,10 @@ Statement by ${character.fullName}:`
         const lastRespondingCharacter = this.gameData.characters.get((initialMessages[initialMessages.length - 1] as any).characterId);
         if (!lastRespondingCharacter) return;
 
+        // Exclude silenced characters so they don't speak randomly in AI-to-AI chatter.
         const otherAIs = Array.from(this.gameData.characters.values()).filter(
-            c => c.id !== this.gameData.playerID && c.id !== lastRespondingCharacter.id
+            c => c.id !== this.gameData.playerID && c.id !== lastRespondingCharacter.id &&
+                !this.gameData.silencedCharacterIds?.has(c.id)
         );
 
         if (otherAIs.length > 0) {

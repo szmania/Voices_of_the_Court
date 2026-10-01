@@ -75,6 +75,12 @@ export class GameData {
 
     characters: Map<number,Character>
 
+    // Character IDs silenced during the current conversation. Mutated by the
+    // silenceCharacter/unsilenceCharacter actions (which communicate with the
+    // Conversation through gameData); filtered out of all speaker queues by
+    // Conversation.ts. Reset naturally when a new conversation re-parses gameData.
+    silencedCharacterIds: Set<number> = new Set<number>();
+
     constructor(data: string[]){
             this.playerID = Number(data[0]),
             this.playerName = removeTooltip(data[1]),

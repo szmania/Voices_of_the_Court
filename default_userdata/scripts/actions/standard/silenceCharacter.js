@@ -33,8 +33,13 @@ module.exports = {
      * @param {number} targetId
      */
     run: (gameData, runGameEffect, args, sourceId, targetId) => {
-        // App-side action: no game effect is emitted. The silence is purely
-        // narrative — the chat message below informs the conversation.
+        // App-side action: no game effect is emitted. The silence is tracked on
+        // gameData so Conversation.ts filters the silenced character out of all
+        // speaker queues (no responses, no random AI-to-AI speech).
+        if (!gameData.silencedCharacterIds) {
+            gameData.silencedCharacterIds = new Set();
+        }
+        gameData.silencedCharacterIds.add(targetId);
     },
     chatMessage: (args) =>{
         return {
