@@ -420,18 +420,6 @@ function observedTimelineNodeId(): string | undefined {
 }
 
 export async function checkAndDeliverLetters() {
-    if (isCheckingLetters) {
-        return;
-    }
-    isCheckingLetters = true;
-    try {
-        await _checkAndDeliverLetters();
-    } finally {
-        isCheckingLetters = false;
-    }
-}
-
-async function _checkAndDeliverLetters() {
     if (currentTotalDays === 0) {
         console.warn("Skipping letter delivery: currentTotalDays is uninitialized.");
         return;
