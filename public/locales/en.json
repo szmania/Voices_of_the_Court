@@ -1079,7 +1079,10 @@
     "real_date_label": "Real Date/Time: ",
     "scene_diary": "Diary",
     "game_date_unknown": "Unknown",
-    "total_memories": "Player Character Total Memories: {count}"
+    "total_memories": "Player Character Total Memories: {count}",
+    "search_placeholder": "Search memories...",
+    "search_prev_tooltip": "Previous match",
+    "search_next_tooltip": "Next match"
   },
   "compaction": {
     "header": "Memory Management",
