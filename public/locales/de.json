@@ -121,6 +121,8 @@
     "letter_tooltip": "Prompt zur Generierung von Briefantworten.",
     "letter_summary_prompt": "Briefzusammenfassungs-Prompt",
     "letter_summary_tooltip": "Prompt zur Zusammenfassung eines Briefwechsels.",
+    "incoming_letter_prompt": "Eingehender Brief-Prompt",
+    "incoming_letter_tooltip": "Prompt für Briefe, die ein NPC von sich aus an dich schreibt.",
     "diary_prompt": "Tagebuch-Prompt",
     "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
     "diary_summary_prompt": "Tagebuch-Zusammenfassungs-Prompt",

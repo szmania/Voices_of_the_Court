@@ -104,6 +104,8 @@
     "letter_tooltip": "Prompt for generating letter replies.",
     "letter_summary_prompt": "Letter Summary Prompt",
     "letter_summary_tooltip": "Prompt for summarizing a letter exchange.",
+    "incoming_letter_prompt": "Incoming Letter Prompt",
+    "incoming_letter_tooltip": "Prompt used when an NPC writes a letter to you first.",
     "diary_prompt": "Diary Prompt",
     "diary_tooltip": "This prompt is used to generate diary entries for characters after conversations. It helps maintain character consistency and depth.",
     "diary_summary_prompt": "Diary Summary Prompt",

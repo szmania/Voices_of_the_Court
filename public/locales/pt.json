@@ -121,6 +121,8 @@
     "letter_tooltip": "Prompt para gerar respostas a cartas.",
     "letter_summary_prompt": "Prompt de Resumo de Carta",
     "letter_summary_tooltip": "Prompt para resumir uma troca de cartas.",
+    "incoming_letter_prompt": "Prompt de carta recebida",
+    "incoming_letter_tooltip": "Prompt usado quando um NPC escreve uma carta para você primeiro.",
     "diary_prompt": "Prompt de Diário",
     "diary_tooltip": "Este prompt é usado para gerar entradas de diário para personagens após as conversas. Ajuda a manter a consistência e a profundidade do personagem.",
     "diary_summary_prompt": "Prompt de resumo do diário",

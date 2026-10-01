@@ -125,6 +125,8 @@
     "letter_tooltip": "Mektup yanıtları oluşturmak için istem.",
     "letter_summary_prompt": "Mektup Özeti İstemi",
     "letter_summary_tooltip": "Bir mektup alışverişini özetlemek için istem.",
+    "incoming_letter_prompt": "Gelen mektup istemi",
+    "incoming_letter_tooltip": "Bir NPC sana önce mektup yazdığında kullanılan istem.",
     "diary_prompt": "Günlük İstemi",
     "diary_tooltip": "Bu istem, konuşmalardan sonra karakterler için günlük girişleri oluşturmak için kullanılır. Karakter tutarlılığını ve derinliğini korumaya yardımcı olur.",
     "diary_summary_prompt": "Günlük Özeti İstemi",

@@ -123,6 +123,8 @@
     "diary_summary_tooltip": "このプロンプトは、キャラクターのすべての日記エントリを単一の要約にまとめるために使用されます。",
     "diary_for_letter_prompt": "このプロンプトは、送信または受信した手紙に基づいて日記のエントリを生成するために使用されます。",
     "diary_for_letter_tooltip": "このプロンプトは、送信または受信した手紙に基づいて日記のエントリを生成するために使用されます。",
+    "incoming_letter_prompt": "NPCからの手紙プロンプト",
+    "incoming_letter_tooltip": "NPCが先にあなたへ手紙を書いてきたときに使用されるプロンプト。",
     "suggestion_prompt": "提案プロンプト",
     "suggestion_prompt_tooltip": "このプロンプトは、プレイヤーの応答提案を生成するために使用されます。",
     "restore_defaults": "デフォルトのプロンプトを復元",

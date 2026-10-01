@@ -123,6 +123,8 @@
     "diary_summary_tooltip": "Ten prompt służy do podsumowania wszystkich wpisów do dziennika postaci w jedno streszczenie.",
     "diary_for_letter_prompt": "Ten prompt służy do generowania wpisu do dziennika na podstawie wysłanego lub otrzymanego listu.",
     "diary_for_letter_tooltip": "Ten prompt służy do generowania wpisu do dziennika na podstawie wysłanego lub otrzymanego listu.",
+    "incoming_letter_prompt": "Prompt listu przychodzącego",
+    "incoming_letter_tooltip": "Prompt używany, gdy NPC pierwszy pisze list do ciebie.",
     "suggestion_prompt": "Prompt sugestii",
     "suggestion_prompt_tooltip": "Ten prompt służy do generowania sugestii odpowiedzi dla gracza.",
     "restore_defaults": "Przywróć domyślne prompty",

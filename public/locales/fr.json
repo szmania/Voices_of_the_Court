@@ -121,6 +121,8 @@
     "letter_tooltip": "Prompt pour générer des réponses aux lettres.",
     "letter_summary_prompt": "Prompt de Résumé de Lettre",
     "letter_summary_tooltip": "Prompt pour résumer un échange de lettres.",
+    "incoming_letter_prompt": "Prompt de lettre entrante",
+    "incoming_letter_tooltip": "Prompt utilisé lorsqu'un PNJ vous écrit une lettre de sa propre initiative.",
     "diary_prompt": "Prompt de Journal",
     "diary_tooltip": "Ce prompt est utilisé pour générer des entrées de journal pour les personnages après les conversations. Il aide à maintenir la cohérence et la profondeur du personnage.",
     "diary_summary_prompt": "Prompt de résumé de journal",

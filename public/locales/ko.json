@@ -123,6 +123,8 @@
     "diary_summary_tooltip": "이 프롬프트는 캐릭터의 모든 일기 항목을 단일 요약으로 요약하는 데 사용됩니다。",
     "diary_for_letter_prompt": "이 프롬프트는 보내거나 받은 편지를 기반으로 일기 항목을 생성하는 데 사용됩니다.",
     "diary_for_letter_tooltip": "이 프롬프트는 보내거나 받은 편지를 기반으로 일기 항목을 생성하는 데 사용됩니다.",
+    "incoming_letter_prompt": "수신 편지 프롬프트",
+    "incoming_letter_tooltip": "NPC가 먼저 편지를 보내올 때 사용되는 프롬프트.",
     "suggestion_prompt": "제안 프롬프트",
     "suggestion_prompt_tooltip": "이 프롬프트는 플레이어의 응답 제안을 생성하는 데 사용됩니다.",
     "restore_defaults": "기본 프롬프트 복원",
