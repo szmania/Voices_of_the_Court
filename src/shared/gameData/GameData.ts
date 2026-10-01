@@ -352,6 +352,11 @@ export class GameData {
     // @deprecated
     character2Name: string = "";
 
+    // Used by the silenceCharacter/unsilenceCharacter actions' chat messages for the
+    // resolved silenced/unsilenced character (may differ from character2Name when a
+    // third party or the speaker themselves is silenced/unsilenced).
+    character3Name: string = "";
+
     characters: Map<number,Character>
     militarySnapshot?: MilitarySnapshot;
 

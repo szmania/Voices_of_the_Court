@@ -1,7 +1,41 @@
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
+
+// Resolves the character to silence/unsilence: prefers the explicit
+// targetCharacterId argument (may be the speaker themselves or a third
+// party in the conversation), falling back to the positional target
+// character. Returns the numeric ID, or null when no valid
+// in-conversation character resolves.
+function resolveSilenceTarget(gameData, args, sourceId, targetId) {
+    const argTarget = args && args[0] !== undefined && args[0] !== null ? parseInt(args[0], 10) : NaN;
+    if (!isNaN(argTarget) && gameData.getCharacterById(argTarget)) {
+        return argTarget;
+    }
+    if (targetId != null && gameData.getCharacterById(targetId)) {
+        return targetId;
+    }
+    return null;
+}
 module.exports = {
     signature: "silenceCharacter",
-    args: [],
+    args: [
+        {
+            name: "targetCharacterId",
+            type: "number",
+            desc: {
+                en: "ID of the character to silence. May be the speaker themselves or any character in the conversation (optional; defaults to the target character).",
+                zh: "要沉默的角色的ID。可以是说话者本人或对话中的任何角色（可选；默认为目标角色）。",
+                ru: "ID персонажа, которого нужно заглушить. Это может быть сам говорящий или любой персонаж разговора (необязательно; по умолчанию — целевой персонаж).",
+                fr: "ID du personnage à réduire au silence. Il peut s'agir du locuteur lui-même ou de n'importe quel personnage de la conversation (facultatif ; par défaut, le personnage cible).",
+                es: "ID del personaje a silenciar. Puede ser el propio hablante o cualquier personaje de la conversación (opcional; por defecto, el personaje objetivo).",
+                de: "ID des Charakters, der zum Schweigen gebracht werden soll. Dies kann der Sprecher selbst oder jeder Charakter im Gespräch sein (optional; Standardwert ist der Zielcharakter).",
+                ja: "沈黙させるキャラクターのID。話者本人または会話内の任意のキャラクターを指定できます（任意；デフォルトはターゲットキャラクター）。",
+                ko: "침묵시킬 캐릭터의 ID. 화자 본인이나 대화 중의 모든 캐릭터일 수 있습니다(선택 사항; 기본값은 대상 캐릭터).",
+                pl: "ID postaci, którą należy wyciszyć. Może to być sam mówca lub dowolna postać w rozmowie (opcjonalne; domyślnie postać docelowa).",
+                pt: "ID do personagem a silenciar. Pode ser o próprio falante ou qualquer personagem da conversa (opcional; por padrão, o personagem alvo).",
+                tr: "Susturulacak karakterin ID'si. Konuşan kişinin kendisi veya konuşmadaki herhangi bir karakter olabilir (isteğe bağlı; varsayılan hedef karakterdir)."
+            }
+        }
+    ],
     description: {
         en: `Executed when a character falls silent or is silenced during the conversation. The target (character2) is the character who goes silent. The source (character1) is the character who caused it. This is an app-side action: no game effect is emitted.`,
         zh: `当一个角色在对话中沉默或被制止时执行。目标（character2）是沉默的角色。源（character1）是导致沉默的角色。这是应用侧操作：不会发出任何游戏效果。`,
@@ -27,6 +61,21 @@ module.exports = {
 
     /**
      * @param {GameData} gameData
+     * @param {string[]} args
+     * @param {number} sourceId
+     * @param {number} targetId
+     * @returns {{success: boolean, message?: string}}
+     */
+    preCheck: (gameData, args, sourceId, targetId) => {
+        const resolved = resolveSilenceTarget(gameData, args, sourceId, targetId);
+        if (resolved == null) {
+            return { success: false, message: "Target character not found." };
+        }
+        return { success: true };
+    },
+
+    /**
+     * @param {GameData} gameData
      * @param {Function} runGameEffect
      * @param {string[]} args
      * @param {number} sourceId
@@ -39,21 +88,29 @@ module.exports = {
         if (!gameData.silencedCharacterIds) {
             gameData.silencedCharacterIds = new Set();
         }
-        gameData.silencedCharacterIds.add(targetId);
+        const resolvedTargetId = resolveSilenceTarget(gameData, args, sourceId, targetId);
+        if (resolvedTargetId == null) return;
+        gameData.silencedCharacterIds.add(resolvedTargetId);
+        // Store the resolved character's short name for the chat message
+        // ({{character3Name}}) — the callers run parseVariables after run.
+        const silencedChar = gameData.getCharacterById(resolvedTargetId);
+        if (silencedChar) {
+            gameData.character3Name = silencedChar.shortName;
+        }
     },
     chatMessage: (args) =>{
         return {
-            en: `{{character2Name}} falls silent.`,
-            zh: `{{character2Name}}陷入了沉默。`,
-            ru: `{{character2Name}} замолкает.`,
-            fr: `{{character2Name}} se tait.`,
-            es: `{{character2Name}} enmudece.`,
-            de: `{{character2Name}} verstummt.`,
-            ja: `{{character2Name}}は沈黙しました。`,
-            ko: `{{character2Name}}이(가) 침묵합니다.`,
-            pl: `{{character2Name}} milknie.`,
-            pt: `{{character2Name}} fica em silêncio.`,
-            tr: `{{character2Name}} susuyor.`
+            en: `{{character3Name}} falls silent.`,
+            zh: `{{character3Name}}陷入了沉默。`,
+            ru: `{{character3Name}} замолкает.`,
+            fr: `{{character3Name}} se tait.`,
+            es: `{{character3Name}} enmudece.`,
+            de: `{{character3Name}} verstummt.`,
+            ja: `{{character3Name}}は沈黙しました。`,
+            ko: `{{character3Name}}이(가) 침묵합니다.`,
+            pl: `{{character3Name}} milknie.`,
+            pt: `{{character3Name}} fica em silêncio.`,
+            tr: `{{character3Name}} susuyor.`
         }
     },
     chatMessageClass: "neutral-action-message",
