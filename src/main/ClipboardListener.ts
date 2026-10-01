@@ -78,6 +78,18 @@ export class ClipboardListener extends EventEmitter{
                 case "LETTER_EFFECT_ACCEPTED":
                     this.emit('VOTC:LETTER_EFFECT_ACCEPTED');
                     break;
+                case "INCOMING_LETTER":
+                    // Payload order matches the mod-side clipboard_codes bridge
+                    // keys: slotId, type, deliveryId. The trailing campaign
+                    // identity segments of the wire payload are ignored here;
+                    // the main.ts handler re-validates all three arguments.
+                    this.emit(
+                        'VOTC:INCOMING_LETTER',
+                        payloads[0],
+                        payloads[1],
+                        payloads[2]
+                    );
+                break;
             }
 
 
