@@ -46,7 +46,10 @@
     "real_date_label": "실제 날짜/시간: ",
     "scene_diary": "일기",
     "game_date_unknown": "알 수 없음",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "기억 검색...",
+    "search_prev_tooltip": "이전 일치",
+    "search_next_tooltip": "다음 일치"
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",

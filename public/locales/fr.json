@@ -46,7 +46,10 @@
     "real_date_label": "Date/heure réelle : ",
     "scene_diary": "Journal",
     "game_date_unknown": "Inconnu",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Rechercher des souvenirs...",
+    "search_prev_tooltip": "Correspondance précédente",
+    "search_next_tooltip": "Correspondance suivante"
   },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",

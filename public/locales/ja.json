@@ -46,7 +46,10 @@
     "real_date_label": "現实の日付/時刻： ",
     "scene_diary": "日記",
     "game_date_unknown": "不明",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "記憶を検索...",
+    "search_prev_tooltip": "前の一致",
+    "search_next_tooltip": "次の一致"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",

@@ -46,7 +46,10 @@
     "real_date_label": "现实日期/时间： ",
     "scene_diary": "日记",
     "game_date_unknown": "未知",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "搜索记忆...",
+    "search_prev_tooltip": "上一个匹配",
+    "search_next_tooltip": "下一个匹配"
   },
   "connection": {
     "ck3_path": "CK3 用户文件夹路径",

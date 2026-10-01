@@ -46,7 +46,10 @@
     "real_date_label": "Gerçek tarih/saat: ",
     "scene_diary": "Günlük",
     "game_date_unknown": "Bilinmiyor",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Anıları ara...",
+    "search_prev_tooltip": "Önceki eşleşme",
+    "search_next_tooltip": "Sonraki eşleşme"
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",
