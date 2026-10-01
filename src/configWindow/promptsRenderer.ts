@@ -1,3 +1,4 @@
+import { promptKeys } from '../shared/promptKeys';
 import { ipcRenderer} from "electron";
 import fs from 'fs';
 import path from 'path';
@@ -97,14 +98,6 @@ async function updateTokenCount(key: string) {
         }
     }
 }
-
-const promptKeys = [
-    "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
-    "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
-    "actionPrompt", "actionTriggeredPrompt",
-    "letterPrompt", "letterSummaryPrompt", "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt",
-    "suggestionPrompt"
-];
 
 let promptTextareas: { [key: string]: any } = {};
 promptKeys.forEach(key => {

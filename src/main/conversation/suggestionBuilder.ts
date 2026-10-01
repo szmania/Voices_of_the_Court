@@ -60,7 +60,7 @@ export function buildSuggestionPrompt(conv: Conversation): Message[] {
     let memoryString = createMemoryString(conv, prompts);
 
     let summaryString = "";
-    const characterSummaries = conv.summaries.get(aiCharacter.id) || [];
+    const characterSummaries = conv.getBranchVisibleSummaries(aiCharacter.id);
     if (characterSummaries.length > 0) {
         const summaryHeader = "Here are the dates and summaries of previous conversations:"; // Fallback
         summaryString = summaryHeader + "\n";

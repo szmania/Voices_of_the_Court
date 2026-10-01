@@ -7,6 +7,56 @@ import { Letter as ILetter, LetterType, StoredLetter, LetterSummary, LetterAssoc
 import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
+import { timelineRegistryPath } from '../campaignDataPaths.js';
+import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
+
+/**
+ * The registry node committed last, i.e. the node the save's timeline state
+ * currently points at: every checkpoint bump goes through a transition that
+ * commits a node, so the newest commit is the current branch head. Used to
+ * reject delivery-time timeline writes from stale/abandoned branches. Any
+ * read failure is non-fatal: the timeline block is then applied as-is (the
+ * generation-time behaviour).
+ */
+function readCampaignRegistryHeadNodeId(campaignId: string | undefined, playerId: string | undefined): string | undefined {
+    if (!campaignId || !playerId) return undefined;
+    try {
+        const registryPath = timelineRegistryPath(app.getPath('userData'), { campaignId, playerId } as CampaignPlayerIdentity);
+        if (!fs.existsSync(registryPath)) return undefined;
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { createdAt?: string }> };
+        let headNodeId: string | undefined;
+        let headCreatedAt = '';
+        for (const [nodeId, node] of Object.entries(data.nodes ?? {})) {
+            const createdAt = typeof node?.createdAt === 'string' ? node.createdAt : '';
+            if (createdAt > headCreatedAt || (createdAt === headCreatedAt && headNodeId !== undefined && nodeId > headNodeId)) {
+                headCreatedAt = createdAt;
+                headNodeId = nodeId;
+            }
+        }
+        return headNodeId;
+    } catch (error) {
+        console.warn('[LetterManager] Could not read the campaign timeline registry for delivery validation:', error);
+        return undefined;
+    }
+}
+
+// Parent of one specific node, used to tell "the save still sits on the
+// branch point this reply was allocated from" (apply the script) apart from
+// "the save has moved onto a different branch" (skip it).
+function readCampaignRegistryNodeParentId(campaignId: string | undefined, playerId: string | undefined, nodeId: string): string | null | undefined {
+    if (!campaignId || !playerId) return undefined;
+    try {
+        const registryPath = timelineRegistryPath(app.getPath('userData'), { campaignId, playerId } as CampaignPlayerIdentity);
+        if (!fs.existsSync(registryPath)) return undefined;
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8')) as { nodes?: Record<string, { parentId?: string | null }> };
+        const node = data.nodes?.[nodeId];
+        if (!node) return undefined;
+        return node.parentId ?? null;
+    } catch (error) {
+        console.warn('[LetterManager] Could not read the campaign timeline registry for delivery validation:', error);
+        return undefined;
+    }
+}
 import { LetterActionTrigger } from './LetterActionTrigger.js';
 
 export class LetterManager {
@@ -311,7 +361,7 @@ export class LetterManager {
         }
     }
 
-    public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string) {
+    public deliverLetter(storedLetter: StoredLetter, config: Config, gameDate: string, currentTimelineNodeId?: string) {
         const userFolderPath = config.userFolderPath;
         if (!userFolderPath) {
             console.error("Cannot deliver letter, user folder path is not set.");
@@ -329,9 +379,15 @@ export class LetterManager {
 
         const letterFilePath = path.join(runFolderPath, "letters.txt");
 
+        // Single-channel note: letters.txt is one shared, whole-file-overwrite
+        // channel polled by the mod-side letters_runner (~2s). A delivery and
+        // a generation-failure fallback written inside the same window clobber
+        // each other; per-slot runner files would need mod-side changes
+        // (letters_runner.gui) and are out of scope here.
+
         const escapedReply = replyContent.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
-        const gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
+        let gameCommand = `debug_log = "[Localize('talk_event.9999.desc')]"
 remove_global_variable ?= votc_${letterId}
 create_artifact = {
 \tname = votc_huixin_title${letterId.replace(/letter_/, "")}
@@ -355,8 +411,94 @@ if = {
 }
 trigger_event = message_event.362`;
 
+        // Re-validate at delivery time: the reply may travel several in-game
+        // days and conversations can advance the checkpoint meanwhile. The
+        // allocated script is only applied while the save still sits on the
+        // branch point the reply was allocated from (the reply node's parent),
+        // or already on the reply node itself (idempotent re-delivery) — so a
+        // save that has moved past the letter's origin is never rolled back.
+        // The save's current node comes from game evidence (the caller's
+        // snapshot / load line), NOT from the registry's newest node: after a
+        // rollback to a sibling branch the newest registry node belongs to the
+        // abandoned branch, and trusting it would re-point the save at the
+        // wrong branch. The registry head is only a last-resort fallback for
+        // when no snapshot evidence exists at all.
+        const timelineScript = storedLetter.letter.timelineScript;
+        let appliedTimelineScript = timelineScript;
+        if (timelineScript && storedLetter.letter.timelineNodeId) {
+            const currentNodeId = currentTimelineNodeId ?? readCampaignRegistryHeadNodeId(
+                storedLetter.letter.timelineCampaignId,
+                storedLetter.letter.timelinePlayerId
+            );
+            if (currentNodeId !== undefined && currentNodeId !== storedLetter.letter.timelineNodeId) {
+                const parentNodeId = readCampaignRegistryNodeParentId(
+                    storedLetter.letter.timelineCampaignId,
+                    storedLetter.letter.timelinePlayerId,
+                    storedLetter.letter.timelineNodeId
+                );
+                if (currentNodeId !== parentNodeId) {
+                    console.warn(`[LetterManager] Letter ${letter.id} timeline skipped: the save's current timeline node is ${currentNodeId}, not the ${storedLetter.letter.timelineNodeId} allocated for this reply or its parent ${parentNodeId ?? 'unknown'}.`);
+                    appliedTimelineScript = undefined;
+                }
+            }
+        }
+        if (appliedTimelineScript) {
+            gameCommand += '\n' + appliedTimelineScript;
+        }
+
         fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
+    }
+
+    /**
+     * Generation-failure handoff: the fallback block clears the letter thread
+     * and applies the journal-created node through the same letters.txt
+     * channel the mod-side letters_runner polls.
+     */
+    public deliverLetterFallback(letterNumber: string, deliveryId: number, runBlock: string, config: Config): void {
+        const userFolderPath = config.userFolderPath;
+        if (!userFolderPath) {
+            console.error("Cannot deliver letter fallback, user folder path is not set.");
+            return;
+        }
+
+        const runFolderPath = path.join(userFolderPath, "run");
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+        }
+
+        const letterFilePath = path.join(runFolderPath, "letters.txt");
+        // Shares the whole-file-overwrite channel with deliverLetter - see
+        // the single-channel note there.
+        fs.writeFileSync(letterFilePath, '\uFEFF' + runBlock, 'utf8');
+        console.log(`Delivered letter fallback (letter_${letterNumber}/${deliveryId}) by writing to: ${letterFilePath}`);
+    }
+
+    /**
+     * Fallback blocks waiting for the shared letters.txt channel. A fallback
+     * must never be written while a normal delivery is still awaiting
+     * VOTC:LETTER_ACCEPTED: the whole-file overwrite would destroy that
+     * reply, which has already left the pending queue and would not be
+     * re-queued. Queued blocks are flushed one per delivery pass, only when
+     * the channel is idle (checkAndDeliverLetters).
+     */
+    private pendingLetterFallbacks: Array<{letterNumber: string; deliveryId: number; runBlock: string}> = [];
+
+    public queueLetterFallback(letterNumber: string, deliveryId: number, runBlock: string): void {
+        this.pendingLetterFallbacks.push({letterNumber, deliveryId, runBlock});
+        console.log(`Queued letter fallback (letter_${letterNumber}/${deliveryId}); ${this.pendingLetterFallbacks.length} fallback(s) pending an idle letters.txt channel.`);
+    }
+
+    public hasPendingLetterFallbacks(): boolean {
+        return this.pendingLetterFallbacks.length > 0;
+    }
+
+    /** Write the oldest queued fallback into letters.txt. Caller must hold the channel. */
+    public flushNextLetterFallback(config: Config): boolean {
+        const next = this.pendingLetterFallbacks.shift();
+        if (!next) return false;
+        this.deliverLetterFallback(next.letterNumber, next.deliveryId, next.runBlock, config);
+        return true;
     }
 
     public clearLettersFile(config: Config): void {
@@ -372,12 +514,16 @@ trigger_event = message_event.362`;
         const letterFilePath = path.join(runFolder, "letters.txt");
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
 
-        if (fs.existsSync(letterFilePath)) {
-          fs.writeFileSync(letterFilePath, '', "utf-8");
-          console.log("Cleared letters.txt file");
-        } else {
-          console.log("letters.txt file does not exist, nothing to clear");
-        }
+        // Never empty this file: line 1 is the date heartbeat. The mod-side
+        // letters_runner executes run/letters.txt every ~2s and the app reads
+        // the current game date from the VOTC:DATE line the placeholder logs
+        // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Writing ''
+        // here freezes the app's date tracking — pending letter deliveries
+        // never reach their delivery day and the whole game integration goes
+        // silent. "Clearing" means restoring the placeholder.
+        const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
+        fs.writeFileSync(letterFilePath, placeholder, "utf-8");
+        console.log("Reset letters.txt to the blank heartbeat pt letters.txt to the blank heartbeat placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {

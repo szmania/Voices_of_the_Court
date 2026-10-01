@@ -1,4 +1,4 @@
-import {Memory, Trait, OpinionModifier, Secret, Relative} from "./GameData"
+import {Memory, Trait, OpinionModifier, Secret, Relative, StressInfo, LegitimacyInfo, MaaRegiment, KnownSecret, CharacterModifier, PersonaNumbers, OwnedSecret, CharacterScheme, ExposedTargetingScheme} from "./GameData"
 import { removeTooltip } from "./parseLog";
 
 /** @class */
@@ -34,6 +34,9 @@ export class Character {
     titleRankConcept: string;
 
     secrets: Secret[];
+    ownedSecrets: OwnedSecret[];
+    ownedSchemes: CharacterScheme[];
+    exposedTargetingSchemes: ExposedTargetingScheme[];
     memories: Memory[];
     traits: Trait[];
     relationsToPlayer: string[];
@@ -42,6 +45,26 @@ export class Character {
     opinions: { id: number, opinion: number}[];
     relatives: Relative[];
     birthTotalDays?: number;
+    // --- P0 extended facts ---
+    stress?: StressInfo;
+    legitimacy?: LegitimacyInfo;
+    incomeGold?: number;
+    incomeBalance?: number;
+    incomeBreakdown?: string;
+    treasuryAmount?: number;
+    treasuryTooltip?: string;
+    influenceAmount?: number;
+    influenceTooltip?: string;
+    herdAmount?: number;
+    herdBreakdown?: string;
+    vassalLeviesTotal?: number;
+    domainLevyHoldings: number[];
+    theocraticLeaseLevies?: number;
+    maaRegiments: MaaRegiment[];
+    laws: string[];
+    modifiers: CharacterModifier[];
+    knownSecrets: KnownSecret[];
+    personaNumbers?: PersonaNumbers;
     // TODO: Use a proper Summary type once it's available in a shared location.
     conversationSummaries: any[];
 
@@ -74,6 +97,9 @@ export class Character {
             this.heldCourtAndCouncilPositions = data[25],
             this.titleRankConcept = data[26],
             this.secrets = [],
+            this.ownedSecrets = [],
+            this.ownedSchemes = [],
+            this.exposedTargetingSchemes = [],
             this.memories = [],
             this.traits = [],
             this.relationsToPlayer = [],
@@ -82,6 +108,11 @@ export class Character {
             this.opinions = [];
             this.relatives = [];
             this.conversationSummaries = [];
+            this.domainLevyHoldings = [];
+            this.maaRegiments = [];
+            this.laws = [];
+            this.modifiers = [];
+            this.knownSecrets = [];
     }
 
     /**
@@ -154,6 +185,13 @@ export class Character {
         }
         this.opinionOfPlayer = sum;
     }   
+
+    /**
+     * Sum of all domain holding levy sizes logged this snapshot.
+     */
+    getTotalDomainLevies(): number {
+        return this.domainLevyHoldings.reduce((sum, n) => sum + n, 0);
+    }
 
     /**
      * Get a detailed formatted description of the character's relatives, including age, death/marital/trait info.
@@ -235,9 +273,129 @@ export class Character {
         return sections.join('; ');
     }
 
+    /**
+     * Compact, prompt-ready rendering of P0 extended facts.
+     * Token budget uses the chars/4 heuristic (same as calculateTokensFromText fallback).
+     * Sections are added in priority order; once the budget is hit, remaining sections are dropped.
+     */
+    getExtendedFactsDescription(maxTokens: number = 600): string {
+        const trimText = (s: string | undefined, max = 240): string =>
+            s && s.trim() ? s.trim().slice(0, max) : "";
+        const isNum = (v: number | undefined): v is number =>
+            typeof v === 'number' && Number.isFinite(v);
+
+        const sections: string[] = [];
+
+        if (this.stress) {
+            const s = this.stress;
+            const head = isNum(s.value) ? `Stress: ${s.value}` : 'Stress';
+            if (!s.level) {
+                sections.push(head);
+            }
+            else {
+                const detail = isNum(s.progress) ? ` (${s.level}, ${s.progress}%)` : ` (${s.level})`;
+                sections.push(head + detail);
+            }
+        }
+
+        if (this.legitimacy && isNum(this.legitimacy.value)) {
+            const l = this.legitimacy;
+            const expectations = [
+                l.powerfulVassalExpectation && `powerful vassals expect ${l.powerfulVassalExpectation}`,
+                l.vassalExpectation && `vassals expect ${l.vassalExpectation}`,
+                l.liegeExpectation && `liege expects ${l.liegeExpectation}`
+            ].filter(Boolean) as string[];
+            const legitimacyDetailParts = [
+                isNum(l.level) ? `level ${l.level}` : '',
+                l.type
+            ].filter(Boolean);
+            const legitimacyDetail = legitimacyDetailParts.length > 0 ? ` (${legitimacyDetailParts.join(', ')})` : '';
+            sections.push(`Legitimacy: ${l.value}${legitimacyDetail}${expectations.length ? '; ' + expectations.join(', ') : ''}`);
+        }
+
+        const financeParts: string[] = [];
+        const incomeParts: string[] = [];
+        if (isNum(this.incomeGold)) incomeParts.push(`gold ${this.incomeGold}`);
+        if (isNum(this.incomeBalance)) incomeParts.push(`monthly balance ${this.incomeBalance}`);
+        if (incomeParts.length > 0) financeParts.push(incomeParts.join(', '));
+        const balanceDetail = trimText(this.incomeBreakdown);
+        if (balanceDetail) financeParts.push(`balance detail: ${balanceDetail}`);
+        if (isNum(this.treasuryAmount)) {
+            const tt = trimText(this.treasuryTooltip, 120);
+            financeParts.push(`treasury ${this.treasuryAmount}${tt ? ' (' + tt + ')' : ''}`);
+        }
+        if (isNum(this.influenceAmount)) financeParts.push(`influence ${this.influenceAmount}`);
+        if (isNum(this.herdAmount)) {
+            const hb = trimText(this.herdBreakdown, 120);
+            financeParts.push(`herd ${this.herdAmount}${hb ? ' (' + hb + ')' : ''}`);
+        }
+        if (financeParts.length > 0) sections.push(`Finances: ${financeParts.join('; ')}`);
+
+        const troopParts: string[] = [];
+        if (isNum(this.vassalLeviesTotal)) troopParts.push(`vassal levies ${this.vassalLeviesTotal}`);
+        const validDomainLevies = this.domainLevyHoldings.filter(n => isNum(n));
+        if (validDomainLevies.length > 0) troopParts.push(`domain levies ${validDomainLevies.reduce((sum, n) => sum + n, 0)}`);
+        if (isNum(this.theocraticLeaseLevies)) troopParts.push(`theocratic lease ${this.theocraticLeaseLevies}`);
+        const validMaa = this.maaRegiments.filter(r => isNum(r.menAlive));
+        if (validMaa.length > 0) {
+            const shownMaa = validMaa.slice(0, 8);
+            const maaOverflow = validMaa.length - shownMaa.length;
+            troopParts.push('men-at-arms: ' + shownMaa.map(r => `${r.name} (${r.isPersonal ? 'personal' : 'non-personal'}, ${r.menAlive})`).join(', ') + (maaOverflow > 0 ? `, …+${maaOverflow} more` : ''));
+        }
+        if (troopParts.length > 0) sections.push(`Troops: ${troopParts.join('; ')}`);
+
+        if (this.laws.length > 0) sections.push(`Laws: ${this.laws.join('; ')}`);
+
+        if (this.personaNumbers) {
+            const axisText = Object.entries(this.personaNumbers)
+                .filter(([, v]) => isNum(v))
+                .map(([k, v]) => `${k} ${v}`)
+                .join(', ');
+            if (axisText) sections.push(`Personality axes (0-100): ${axisText}`);
+        }
+
+        if (this.knownSecrets.length > 0) {
+            const secretLines = this.knownSecrets.slice(0, 5).map(ks => {
+                const flags = [
+                    ks.isCriminal ? 'criminal' : (ks.isShunned ? 'shunned' : ''),
+                    ks.spent ? 'spent' : '',
+                    ks.canBeExposed ? 'can be exposed' : ''
+                ].filter(Boolean).join(', ');
+                const who = [ks.targetId ? `targets ${ks.targetName ?? ks.targetId}` : '',
+                             ks.ownerId ? `owned by ${ks.ownerName ?? ks.ownerId}` : ''].filter(Boolean).join(', ');
+                const knowers = ks.otherKnowers.length > 0 ? `; also known by ${ks.otherKnowers.map(k => k.name).join(', ')}` : '';
+                return `${ks.name}${who ? ' (' + who + ')' : ''}${flags ? ' [' + flags + ']' : ''}${knowers}`;
+            });
+            sections.push(`Known secrets: ${secretLines.join(' | ')}`);
+            const secretOverflow = this.knownSecrets.length - secretLines.length;
+            if (secretOverflow > 0) sections.push(`…+${secretOverflow} more secrets omitted`);
+        }
+
+        if (this.modifiers.length > 0) {
+            const shownModifiers = this.modifiers.slice(0, 20);
+            const modifierOverflow = this.modifiers.length - shownModifiers.length;
+            sections.push(`Notable modifiers: ${shownModifiers.map(m => m.name).join(', ')}${modifierOverflow > 0 ? `, …+${modifierOverflow} more` : ''}`);
+        }
+
+        let output = "";
+        let usedTokens = 0;
+        for (const section of sections) {
+            const cost = Math.ceil(section.length / 4) + 1; // +1 for newline
+            if (usedTokens + cost > maxTokens) break;
+            output += (output ? "\n" : "") + section;
+            usedTokens += cost;
+        }
+        return output.trim();
+    }
+
     static fromPlainObject(obj: any): Character {
         const instance = new Character(new Array(27).fill(''));
         Object.assign(instance, obj);
+        instance.domainLevyHoldings ??= [];
+        instance.maaRegiments ??= [];
+        instance.laws ??= [];
+        instance.modifiers ??= [];
+        instance.knownSecrets ??= [];
         return instance;
     }
 }

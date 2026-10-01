@@ -38,6 +38,9 @@ export interface Setting {
 export interface Summary{
     date: string,
     content: string,
+    /** Timeline v2 protocol: checkpoint epoch / node id stamped on summaries written after a close. */
+    votcCheckpointEpoch?: number,
+    votcTimelineNodeId?: string,
     characterId?: string;
 }
 
