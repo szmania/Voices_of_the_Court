@@ -77,7 +77,26 @@ function defineTemplate() {
         #memory-tooltip .tooltip-meta {
             color: #8a8a8a;
             font-size: 11px;
-            margin-top: 6px;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(204, 164, 59, 0.35);
+        }
+        /* Always-visible affordance hinting that hovering the bottom-middle reveals search */
+        #search-hint {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8a8a8a;
+            font-size: 11px;
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 26;
+            transition: opacity 0.18s ease;
+            white-space: nowrap;
+        }
+        #search-hint.hidden {
+            opacity: 0;
         }
         #zoom-hint {
             position: absolute;
@@ -328,6 +347,7 @@ function defineTemplate() {
             <div class="editor-status" id="editor-status"></div>
         </div>
         <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Right-drag to pan &middot; Click a node to edit</div>
+        <div id="search-hint" data-i18n="memory_constellation.search_hint">&#128269; Search memories (hover here)</div>
         <div id="search-reveal-zone"></div>
         <div id="search-bar">
             <input type="text" id="search-input" data-i18n-placeholder="memory_constellation.search_placeholder" placeholder="Search memories..." />
@@ -348,6 +368,9 @@ class MemoryConstellation extends HTMLElement {
     private tooltip!: HTMLDivElement;
     private points!: THREE.Points;
     private selectedIndex: number | null = null;
+    private hoveredIndex: number | null = null;
+    private linePairs: number[][] = [];
+    private basePointColors: Float32Array | null = null;
     private selectedRing: THREE.Sprite | null = null;
     private ringTexture: THREE.Texture | null = null;
     private memories: any[] = [];
@@ -446,9 +469,15 @@ class MemoryConstellation extends HTMLElement {
         });
         resizeObserver.observe(this.container);
 
-        // Zoom with the mouse wheel
+        // Wheel: scroll the hovered memory popup when one is open; otherwise zoom.
         this.container.addEventListener('wheel', (e) => {
             e.preventDefault();
+            // When a node tooltip is showing, the wheel scrolls the popup instead of
+            // zooming the camera (the popup is the only way to read a long memory).
+            if (this.hoveredIndex !== null && this.tooltip.style.display === 'block') {
+                this.tooltip.scrollTop += e.deltaY;
+                return;
+            }
             this.autoRotate = false;
             const delta = e.deltaY * 0.01;
             this.camera.position.z = Math.max(2, Math.min(20, this.camera.position.z + delta));
@@ -591,12 +620,16 @@ class MemoryConstellation extends HTMLElement {
         if (intersects.length > 0) {
             const index = intersects[0].index;
             if (index !== undefined && this.memories[index]) {
+                this.setHoveredIndex(index);
                 this.showTooltip(this.memories[index]);
             } else {
+                this.setHoveredIndex(null);
                 this.hideTooltip();
             }
         } else if (this.lines && this.lineReasons.length > 0) {
-            // No node hit — try relation-line hover so the user can read WHY a link exists.
+            // No node hit — clear the hover highlight, then try relation-line hover
+            // so the user can read WHY a link exists.
+            this.setHoveredIndex(null);
             this.raycaster.params.Line!.threshold = 0.2;
             const lineHits = this.raycaster.intersectObject(this.lines);
             let shown = false;
@@ -614,19 +647,75 @@ class MemoryConstellation extends HTMLElement {
             }
             if (!shown) this.hideTooltip();
         } else {
+            this.setHoveredIndex(null);
             this.hideTooltip();
         }
     }
+
+    /** Sets the hovered node (null = none) and refreshes the relation highlight. */
+    private setHoveredIndex(index: number | null): void {
+        if (this.hoveredIndex === index) return;
+        this.hoveredIndex = index;
+        this.applyHoverHighlight(index);
+    }
+
+    /**
+     * Highlights every relation line touching the hovered node plus the nodes those
+     * lines connect to (bright gold), restoring the base colors when the hover clears.
+     * Uses per-vertex colors on both the line and point geometries, so no shader is needed.
+     */
+    private applyHoverHighlight(index: number | null): void {
+        const gold = { r: 1.0, g: 0.843, b: 0.0 }; // 0xffd700
+        const dim = { r: 0x5a / 255, g: 0x4a / 255, b: 0x35 / 255 };
+        if (this.lines) {
+            const colorAttr = this.lines.geometry.getAttribute('color') as THREE.BufferAttribute;
+            if (colorAttr) {
+                for (let s = 0; s < this.linePairs.length; s++) {
+                    const pair = this.linePairs[s];
+                    const related = index !== null && (pair[0] === index || pair[1] === index);
+                    const c = related ? gold : dim;
+                    colorAttr.setXYZ(s * 2, c.r, c.g, c.b);
+                    colorAttr.setXYZ(s * 2 + 1, c.r, c.g, c.b);
+                }
+                colorAttr.needsUpdate = true;
+            }
+        }
+        if (this.points) {
+            const colorAttr = this.points.geometry.getAttribute('color') as THREE.BufferAttribute;
+            if (colorAttr && this.basePointColors && this.basePointColors.length === colorAttr.count * 3) {
+                const connected = new Set<number>();
+                if (index !== null) {
+                    for (const pair of this.linePairs) {
+                        if (pair[0] === index) connected.add(pair[1]);
+                        else if (pair[1] === index) connected.add(pair[0]);
+                    }
+                }
+                for (let i = 0; i < colorAttr.count; i++) {
+                    const r = this.basePointColors[i * 3];
+                    const g = this.basePointColors[i * 3 + 1];
+                    const b = this.basePointColors[i * 3 + 2];
+                    if (connected.has(i)) {
+                        colorAttr.setXYZ(i, Math.min(1, r + 0.55), Math.min(1, g + 0.55), Math.min(1, b + 0.55));
+                    } else {
+                        colorAttr.setXYZ(i, r, g, b);
+                    }
+                }
+                colorAttr.needsUpdate = true;
+            }
+        }
+    }
+
     private showTooltip(memory: any) {
         this.tooltip.innerHTML = `
             <div class="tooltip-title">Memory</div>
-            <div>${this.highlightTerm(this.escapeHtml(memory.text || ''))}</div>
             <div class="tooltip-meta">${this.buildMemoryMeta(memory)}</div>
+            <div class="tooltip-text">${this.highlightTerm(this.escapeHtml(memory.text || ''))}</div>
         `;
         this.tooltip.style.display = 'block';
+        // Start each newly hovered memory at the top of its (scrollable) popup.
+        this.tooltip.scrollTop = 0;
     }
 
-    /** Wraps occurrences of the active search term in <mark> for tooltip highlighting. */
     private highlightTerm(escapedText: string): string {
         if (!this.searchTerm) return escapedText;
         const escapedTerm = this.escapeHtml(this.searchTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -678,16 +767,21 @@ class MemoryConstellation extends HTMLElement {
         const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
         const prevBtn = this.shadow.querySelector('#search-prev') as HTMLButtonElement;
         const nextBtn = this.shadow.querySelector('#search-next') as HTMLButtonElement;
+        const hint = this.shadow.querySelector('#search-hint') as HTMLDivElement;
         if (!bar || !input) return;
 
-        const show = () => bar.classList.add('visible');
-        const hide = () => { if (document.activeElement !== input) bar.classList.remove('visible'); };
+        // The always-visible hint tells users search exists; it hides while the bar is open.
+        const show = () => { bar.classList.add('visible'); hint?.classList.add('hidden'); };
+        const hide = () => {
+            if (document.activeElement !== input) bar.classList.remove('visible');
+            if (!bar.matches(':hover')) hint?.classList.remove('hidden');
+        };
 
         revealZone?.addEventListener('mouseenter', show);
         bar.addEventListener('mouseenter', show);
         bar.addEventListener('mouseleave', hide);
         input.addEventListener('focus', show);
-        input.addEventListener('blur', () => { if (!bar.matches(':hover')) bar.classList.remove('visible'); });
+        input.addEventListener('blur', () => { if (!bar.matches(':hover')) { bar.classList.remove('visible'); hint?.classList.remove('hidden'); } });
 
         input.addEventListener('input', () => {
             this.searchTerm = input.value.trim();
@@ -879,6 +973,9 @@ class MemoryConstellation extends HTMLElement {
     private buildRelationLines(memories: any[], positions: Float32Array): void {
         if (memories.length < 2) return;
         const linePositions: number[] = [];
+        const lineColors: number[] = [];
+        const dim = { r: 0x5a / 255, g: 0x4a / 255, b: 0x35 / 255 };
+        this.linePairs = [];
         for (let i = 0; i < memories.length; i++) {
             for (let j = i + 1; j < memories.length; j++) {
                 const related = memories[i].characterId && memories[i].characterId === memories[j].characterId;
@@ -887,14 +984,19 @@ class MemoryConstellation extends HTMLElement {
                         positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2],
                         positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]
                     );
+                    // Per-vertex dim base colors so applyHoverHighlight can brighten
+                    // individual segments on hover without a custom shader.
+                    lineColors.push(dim.r, dim.g, dim.b, dim.r, dim.g, dim.b);
                     this.lineReasons.push(String(memories[i].characterId || ''));
+                    this.linePairs.push([i, j]);
                 }
             }
         }
         if (linePositions.length === 0) return;
         const lineGeo = new THREE.BufferGeometry();
         lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x5a4a35, transparent: true, opacity: 0.4 });
+        lineGeo.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+        const lineMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.4 });
         this.lines = new THREE.LineSegments(lineGeo, lineMat);
         this.scene.add(this.lines);
     }
@@ -948,6 +1050,9 @@ class MemoryConstellation extends HTMLElement {
         // pick repopulate both for the new data.
         this.lines = null;
         this.lineReasons = [];
+        this.linePairs = [];
+        this.hoveredIndex = null;
+        this.basePointColors = null;
         this.memories = nextMemories;
         this.selectedIndex = null;
         this.selectedRing = null;
@@ -991,6 +1096,8 @@ class MemoryConstellation extends HTMLElement {
             colors[i * 3 + 2] = base.b * brightness;
         });
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        // Snapshot the base (emotion) colors so the hover highlight can restore them.
+        this.basePointColors = new Float32Array(colors);
 
         // Use a circular sprite texture so points render as glowing dots, not squares.
         const canvas = document.createElement('canvas');

@@ -1082,7 +1082,8 @@
     "total_memories": "Player Character Total Memories: {count}",
     "search_placeholder": "Search memories...",
     "search_prev_tooltip": "Previous match",
-    "search_next_tooltip": "Next match"
+    "search_next_tooltip": "Next match",
+    "search_hint": "Search memories (hover here)"
   },
   "compaction": {
     "header": "Memory Management",

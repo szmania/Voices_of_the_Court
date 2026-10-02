@@ -49,7 +49,8 @@
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
     "search_placeholder": "기억 검색...",
     "search_prev_tooltip": "이전 일치",
-    "search_next_tooltip": "다음 일치"
+    "search_next_tooltip": "다음 일치",
+    "search_hint": "기억 검색(여기에 호버)"
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",

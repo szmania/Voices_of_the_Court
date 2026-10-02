@@ -49,7 +49,8 @@
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
     "search_placeholder": "Buscar recuerdos...",
     "search_prev_tooltip": "Coincidencia anterior",
-    "search_next_tooltip": "Coincidencia siguiente"
+    "search_next_tooltip": "Coincidencia siguiente",
+    "search_hint": "Buscar recuerdos (pase el cursor aquí)"
   },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",

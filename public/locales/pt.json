@@ -49,7 +49,8 @@
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
     "search_placeholder": "Pesquisar memórias...",
     "search_prev_tooltip": "Correspondência anterior",
-    "search_next_tooltip": "Correspondência seguinte"
+    "search_next_tooltip": "Correspondência seguinte",
+    "search_hint": "Pesquisar memórias (passe o cursor aqui)"
   },
   "connection": {
     "ck3_path": "Caminho da pasta de usuário do CK3",

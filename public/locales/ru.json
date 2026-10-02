@@ -49,7 +49,8 @@
     "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
     "search_placeholder": "Поиск воспоминаний...",
     "search_prev_tooltip": "Предыдущее совпадение",
-    "search_next_tooltip": "Следующее совпадение"
+    "search_next_tooltip": "Следующее совпадение",
+    "search_hint": "Поиск воспоминаний (наведите здесь)"
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",
