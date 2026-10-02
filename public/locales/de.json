@@ -42,7 +42,15 @@
     "scene_letter": "Brief",
     "location_label": "Ort: ",
     "location_unknown": "Unbekannt",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "game_date_label": "Spieldatum: ",
+    "real_date_label": "Reales Datum/Zeit: ",
+    "scene_diary": "Tagebuch",
+    "game_date_unknown": "Unbekannt",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Erinnerungen durchsuchen...",
+    "search_prev_tooltip": "Vorheriger Treffer",
+    "search_next_tooltip": "Nächster Treffer",
+    "search_hint": "Erinnerungen durchsuchen (hier hovern)"
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",

@@ -42,7 +42,15 @@
     "scene_letter": "List",
     "location_label": "Lokalizacja: ",
     "location_unknown": "Nieznana",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "game_date_label": "Data w grze: ",
+    "real_date_label": "Prawdziwa data/godzina: ",
+    "scene_diary": "Dziennik",
+    "game_date_unknown": "Nieznana",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Szukaj wspomnień...",
+    "search_prev_tooltip": "Poprzednie dopasowanie",
+    "search_next_tooltip": "Następne dopasowanie",
+    "search_hint": "Szukaj wspomnień (najedź tutaj)"
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",

@@ -42,7 +42,15 @@
     "scene_letter": "Carta",
     "location_label": "Local: ",
     "location_unknown": "Desconhecido",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "game_date_label": "Data do jogo: ",
+    "real_date_label": "Data/hora real: ",
+    "scene_diary": "Diário",
+    "game_date_unknown": "Desconhecido",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Pesquisar memórias...",
+    "search_prev_tooltip": "Correspondência anterior",
+    "search_next_tooltip": "Correspondência seguinte",
+    "search_hint": "Pesquisar memórias (passe o cursor aqui)"
   },
   "connection": {
     "ck3_path": "Caminho da pasta de usuário do CK3",
