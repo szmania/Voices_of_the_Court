@@ -139,11 +139,6 @@ export class LetterActionTrigger {
       this.letterRunFileManager.append(`
         root = {trigger_event = message_event.363}
       `);
-      setTimeout(() => {
-        this.letterRunFileManager.clear();
-        console.log('[LetterActionTrigger] Cleared votc_letter_actions.txt after trigger event.');
-      }, 800);
-
       return { success: true };
     } catch (e) {
       const message = `Error running action "${actionSpec.signature}": ${e instanceof Error ? e.message : String(e)}`;

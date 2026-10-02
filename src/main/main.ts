@@ -673,20 +673,14 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
             return false;
         }
 
-        const letterRunFileManager = new RunFileManager(config.userFolderPath);
+        const letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
         let effectBody = "";
         action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
 
         // Letter approvals use the letter-specific global scope variables, not the
         // positional conversation list prelude.
         ActionEffectWriter.writeLetterEffect(letterRunFileManager, sourceId, targetId, gameData.playerID, letterName, effectBody);
-        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
-        // Clear the letter actions file after the game has consumed it,
-        // mirroring the conversation run file pattern (Conversation.ts ~line 1746).
-        setTimeout(() => {
-            letterRunFileManager.clear();
-            console.log('[LetterApprovalQueue] Cleared letter actions file after trigger event.');
-        }, 800);
+        letterRunFileManager.append(`root = {trigger_event = message_event.363}`);
         return true;
     } catch (e: any) {
         console.error(`[LetterApprovalQueue] Failed to execute letter action '${actionSignature}': ${e.message}`);
