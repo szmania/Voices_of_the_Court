@@ -62,4 +62,6 @@ module.exports = {
         }
     },
     chatMessageClass: "neutral-action-message",
+    usesSource: true,
+    usesTarget: true,
 }
