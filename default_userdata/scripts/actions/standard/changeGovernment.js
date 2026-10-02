@@ -1,4 +1,4 @@
-//Made by: software_engineer
+//Made by: software_engineer_ck3
 
 /**@typedef {import('../../gamedata_typedefs.js').GameData} GameData */
 
