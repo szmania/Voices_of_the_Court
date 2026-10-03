@@ -328,6 +328,23 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         console.log(`Inserted memories at depth: ${conv.config.memoriesInsertDepth}.`);
     }
 
+    // Notify the speaking AI which conversation participants are currently silenced,
+    // so its reply can acknowledge the silence instead of addressing them.
+    const silencedIds = conv.gameData.silencedCharacterIds;
+    if (silencedIds && silencedIds.size > 0) {
+        const silencedNames = Array.from(silencedIds)
+            .map(id => conv.gameData.characters.get(id)?.shortName)
+            .filter((name): name is string => !!name);
+        if (silencedNames.length > 0) {
+            const silenceMessage: Message = {
+                role: "system",
+                content: `Note: ${silencedNames.join(', ')} ${silencedNames.length === 1 ? 'is' : 'are'} currently silent and will not be participating in the conversation.`
+            };
+            insertMessageAtDepth(messages, silenceMessage, conv.config.memoriesInsertDepth);
+            console.log(`Inserted silence state note for: ${silencedNames.join(', ')}.`);
+        }
+    }
+
     const compactedMemoryMessage: Message = {
         role: "system",
         content: createCompactedMemoryString(conv, getEffectivePrompts(conv.config, conv.votcDataPath, conv.gameData), character)
