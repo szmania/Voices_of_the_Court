@@ -53,7 +53,7 @@ function defineTemplate() {
             top: 10px;
             left: 10px;
             max-width: 320px;
-            max-height: 220px;
+            max-height: 280px;
             overflow-y: auto;
             background: rgba(0, 0, 0, 0.88);
             border: 1px solid #5a4a35;
@@ -77,7 +77,26 @@ function defineTemplate() {
         #memory-tooltip .tooltip-meta {
             color: #8a8a8a;
             font-size: 11px;
-            margin-top: 6px;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(204, 164, 59, 0.35);
+        }
+        /* Always-visible affordance hinting that hovering the bottom-middle reveals search */
+        #search-hint {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8a8a8a;
+            font-size: 11px;
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 26;
+            transition: opacity 0.18s ease;
+            white-space: nowrap;
+        }
+        #search-hint.hidden {
+            opacity: 0;
         }
         #zoom-hint {
             position: absolute;
@@ -221,6 +240,85 @@ function defineTemplate() {
         }
         #memory-editor .editor-status.success { color: #8af88a; }
         #memory-editor .editor-status.error { color: #f88a8a; }
+        /* Bottom-middle hover reveal zone for the search bar */
+        #search-reveal-zone {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 320px;
+            height: 28px;
+            z-index: 25;
+        }
+        #search-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translate(-50%, 120%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 320px;
+            background: rgba(0, 0, 0, 0.92);
+            border: 1px solid #cca43b;
+            border-radius: 4px;
+            padding: 6px 8px;
+            z-index: 30;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+        #search-bar.visible {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #search-bar input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #5a4a35;
+            border-radius: 3px;
+            padding: 5px 8px;
+            font-size: 12px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        #search-bar input[type="text"]:focus {
+            outline: none;
+            border-color: #cca43b;
+        }
+        #search-bar .search-counter {
+            color: #8a8a8a;
+            font-size: 11px;
+            white-space: nowrap;
+            min-width: 44px;
+            text-align: center;
+        }
+        #search-bar button {
+            background-color: #591919;
+            color: #e0e0e0;
+            border: 1px solid #8c2b2b;
+            border-radius: 2px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #search-bar button:hover {
+            background-color: #7a2222;
+            border-color: #cca43b;
+            color: #fff;
+        }
+        #memory-tooltip mark {
+            background: #cca43b;
+            color: #1a1a1a;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
     </style>
     <div id="constellation-container">
         <div id="empty-state">
@@ -249,7 +347,14 @@ function defineTemplate() {
             <div class="editor-status" id="editor-status"></div>
         </div>
         <div id="zoom-hint">Scroll to zoom &middot; Drag to rotate &middot; Right-drag to pan &middot; Click a node to edit</div>
-    </div>
+        <div id="search-hint" data-i18n="memory_constellation.search_hint">&#128269; Search memories (hover here)</div>
+        <div id="search-reveal-zone"></div>
+        <div id="search-bar">
+            <input type="text" id="search-input" data-i18n-placeholder="memory_constellation.search_placeholder" placeholder="Search memories..." />
+            <span class="search-counter" id="search-counter">0 / 0</span>
+            <button id="search-prev" data-i18n-title="memory_constellation.search_prev_tooltip" title="Previous match">&#9650;</button>
+            <button id="search-next" data-i18n-title="memory_constellation.search_next_tooltip" title="Next match">&#9660;</button>
+        </div>
     `;
 }
 
@@ -262,6 +367,12 @@ class MemoryConstellation extends HTMLElement {
     private emptyState!: HTMLDivElement;
     private tooltip!: HTMLDivElement;
     private points!: THREE.Points;
+    private selectedIndex: number | null = null;
+    private hoveredIndex: number | null = null;
+    private linePairs: number[][] = [];
+    private basePointColors: Float32Array | null = null;
+    private selectedRing: THREE.Sprite | null = null;
+    private ringTexture: THREE.Texture | null = null;
     private memories: any[] = [];
     private raycaster = new THREE.Raycaster();
     private mouse = new THREE.Vector2();
@@ -279,6 +390,14 @@ class MemoryConstellation extends HTMLElement {
     private lineReasons: string[] = [];
     private lines: THREE.LineSegments | null = null;
     private editorDrag = { dragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+    // Search state: term, matching memory indices, and the current match cursor.
+    private searchTerm = '';
+    private searchMatches: number[] = [];
+    private searchCursor = -1;
+    // Signature of the last rendered dataset, used to skip redundant rebuilds.
+    private lastDataSignature = '';
+    // Fixed orthonormal projection basis for deterministic 3D positions (built once).
+    private projectionBasis: THREE.Vector3[] | null = null;
 
     constructor() {
         super();
@@ -298,6 +417,7 @@ class MemoryConstellation extends HTMLElement {
         }
         this.initThree();
         this.setupEditor();
+        this.setupSearchBar();
         this.animateLoop();
         const characterId = this.getAttribute('character-id') || undefined;
         await this.loadMemories(undefined, characterId);
@@ -349,9 +469,15 @@ class MemoryConstellation extends HTMLElement {
         });
         resizeObserver.observe(this.container);
 
-        // Zoom with the mouse wheel
+        // Wheel: scroll the hovered memory popup when one is open; otherwise zoom.
         this.container.addEventListener('wheel', (e) => {
             e.preventDefault();
+            // When a node tooltip is showing, the wheel scrolls the popup instead of
+            // zooming the camera (the popup is the only way to read a long memory).
+            if (this.hoveredIndex !== null && this.tooltip.style.display === 'block') {
+                this.tooltip.scrollTop += e.deltaY;
+                return;
+            }
             this.autoRotate = false;
             const delta = e.deltaY * 0.01;
             this.camera.position.z = Math.max(2, Math.min(20, this.camera.position.z + delta));
@@ -397,43 +523,90 @@ class MemoryConstellation extends HTMLElement {
 
         // Click a node to pin the editable popup (only if it wasn't a drag)
         this.container.addEventListener('click', (e) => {
-            const dx = e.clientX - this.mouseDownPos.x;
-            const dy = e.clientY - this.mouseDownPos.y;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
-            if (!this.points || this.memories.length === 0) return;
-            const rect = this.container.getBoundingClientRect();
-            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            this.raycaster.params.Points!.threshold = 0.3;
-            const intersects = this.raycaster.intersectObject(this.points);
-            if (intersects.length > 0) {
-                const index = intersects[0].index;
-                if (index !== undefined && this.memories[index]) {
-                    this.showEditor(this.memories[index]);
-                }
+            if (Math.abs(e.clientX - this.mouseDownPos.x) > 5 || Math.abs(e.clientY - this.mouseDownPos.y) > 5) return; // was a drag, not a click
+            const index = this.pickMemoryAt(e);
+            if (index !== null) {
+                this.setSelectedIndex(index);
+                this.showEditor(this.memories[index]);
+            } else {
+                this.setSelectedIndex(null);
             }
         });
 
         // Double-click a node opens the same editor popup (same raycast + drag guard as click).
         this.container.addEventListener('dblclick', (e) => {
-            const dx = e.clientX - this.mouseDownPos.x;
-            const dy = e.clientY - this.mouseDownPos.y;
-            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) return; // was a drag, not a click
-            if (!this.points || this.memories.length === 0) return;
-            const rect = this.container.getBoundingClientRect();
-            this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-            this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-            this.raycaster.setFromCamera(this.mouse, this.camera);
-            this.raycaster.params.Points!.threshold = 0.3;
-            const intersects = this.raycaster.intersectObject(this.points);
-            if (intersects.length > 0) {
-                const index = intersects[0].index;
-                if (index !== undefined && this.memories[index]) {
-                    this.showEditor(this.memories[index]);
-                }
+            if (Math.abs(e.clientX - this.mouseDownPos.x) > 5 || Math.abs(e.clientY - this.mouseDownPos.y) > 5) return; // was a drag, not a click
+            const index = this.pickMemoryAt(e);
+            if (index !== null) {
+                this.setSelectedIndex(index);
+                this.showEditor(this.memories[index]);
             }
         });
+    }
+
+    /**
+     * Shared raycast-pick used by the click/dblclick handlers.
+     * Returns the index of the picked memory node, or null when nothing was hit.
+     */
+    private pickMemoryAt(e: MouseEvent): number | null {
+        if (!this.points || this.memories.length === 0) return null;
+        const rect = this.container.getBoundingClientRect();
+        this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        this.raycaster.params.Points!.threshold = 0.3;
+        const intersects = this.raycaster.intersectObject(this.points);
+        if (intersects.length > 0) {
+            const index = intersects[0].index;
+            if (index !== undefined && this.memories[index]) return index;
+        }
+        return null;
+    }
+
+    /**
+     * Highlights the picked node with a halo ring sprite so the selection stays
+     * visible while the scene auto-rotates. Pass null to clear the selection.
+     */
+    private setSelectedIndex(index: number | null): void {
+        this.selectedIndex = index;
+        if (this.selectedRing) {
+            this.scene.remove(this.selectedRing);
+            this.selectedRing = null;
+        }
+        if (index === null || !this.points) return;
+        const positionAttr = this.points.geometry.getAttribute('position') as THREE.BufferAttribute;
+        if (!positionAttr) return;
+
+        // Lazily build the annulus ring texture: transparent center, bright gold ring band.
+        if (!this.ringTexture) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d')!;
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradient.addColorStop(0.55, 'rgba(204, 164, 59, 0)');
+            gradient.addColorStop(0.72, 'rgba(255, 215, 0, 1)');
+            gradient.addColorStop(0.82, 'rgba(204, 164, 59, 0.9)');
+            gradient.addColorStop(1, 'rgba(204, 164, 59, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            this.ringTexture = new THREE.CanvasTexture(canvas);
+        }
+
+        const x = positionAttr.getX(index);
+        const y = positionAttr.getY(index);
+        const z = positionAttr.getZ(index);
+        const ring = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: this.ringTexture,
+            color: 0xffffff,
+            transparent: true,
+            depthWrite: false
+        }));
+        ring.scale.set(1.5, 1.5, 1);
+        ring.position.set(x, y, z);
+        this.selectedRing = ring;
+        this.scene.add(ring);
     }
 
     private handleHover(e: MouseEvent) {
@@ -447,12 +620,16 @@ class MemoryConstellation extends HTMLElement {
         if (intersects.length > 0) {
             const index = intersects[0].index;
             if (index !== undefined && this.memories[index]) {
+                this.setHoveredIndex(index);
                 this.showTooltip(this.memories[index]);
             } else {
+                this.setHoveredIndex(null);
                 this.hideTooltip();
             }
         } else if (this.lines && this.lineReasons.length > 0) {
-            // No node hit — try relation-line hover so the user can read WHY a link exists.
+            // No node hit — clear the hover highlight, then try relation-line hover
+            // so the user can read WHY a link exists.
+            this.setHoveredIndex(null);
             this.raycaster.params.Line!.threshold = 0.2;
             const lineHits = this.raycaster.intersectObject(this.lines);
             let shown = false;
@@ -470,16 +647,84 @@ class MemoryConstellation extends HTMLElement {
             }
             if (!shown) this.hideTooltip();
         } else {
+            this.setHoveredIndex(null);
             this.hideTooltip();
         }
     }
+
+    /** Sets the hovered node (null = none) and refreshes the relation highlight. */
+    private setHoveredIndex(index: number | null): void {
+        if (this.hoveredIndex === index) return;
+        this.hoveredIndex = index;
+        this.applyHoverHighlight(index);
+    }
+
+    /**
+     * Highlights every relation line touching the hovered node plus the nodes those
+     * lines connect to (bright gold), restoring the base colors when the hover clears.
+     * Uses per-vertex colors on both the line and point geometries, so no shader is needed.
+     */
+    private applyHoverHighlight(index: number | null): void {
+        const gold = { r: 1.0, g: 0.843, b: 0.0 }; // 0xffd700
+        const dim = { r: 0x5a / 255, g: 0x4a / 255, b: 0x35 / 255 };
+        if (this.lines) {
+            const colorAttr = this.lines.geometry.getAttribute('color') as THREE.BufferAttribute;
+            if (colorAttr) {
+                for (let s = 0; s < this.linePairs.length; s++) {
+                    const pair = this.linePairs[s];
+                    const related = index !== null && (pair[0] === index || pair[1] === index);
+                    const c = related ? gold : dim;
+                    colorAttr.setXYZ(s * 2, c.r, c.g, c.b);
+                    colorAttr.setXYZ(s * 2 + 1, c.r, c.g, c.b);
+                }
+                colorAttr.needsUpdate = true;
+            }
+        }
+        if (this.points) {
+            const colorAttr = this.points.geometry.getAttribute('color') as THREE.BufferAttribute;
+            if (colorAttr && this.basePointColors && this.basePointColors.length === colorAttr.count * 3) {
+                const connected = new Set<number>();
+                if (index !== null) {
+                    for (const pair of this.linePairs) {
+                        if (pair[0] === index) connected.add(pair[1]);
+                        else if (pair[1] === index) connected.add(pair[0]);
+                    }
+                }
+                for (let i = 0; i < colorAttr.count; i++) {
+                    const r = this.basePointColors[i * 3];
+                    const g = this.basePointColors[i * 3 + 1];
+                    const b = this.basePointColors[i * 3 + 2];
+                    if (connected.has(i)) {
+                        colorAttr.setXYZ(i, Math.min(1, r + 0.55), Math.min(1, g + 0.55), Math.min(1, b + 0.55));
+                    } else {
+                        colorAttr.setXYZ(i, r, g, b);
+                    }
+                }
+                colorAttr.needsUpdate = true;
+            }
+        }
+    }
+
     private showTooltip(memory: any) {
         this.tooltip.innerHTML = `
             <div class="tooltip-title">Memory</div>
-            <div>${this.escapeHtml(memory.text || '')}</div>
             <div class="tooltip-meta">${this.buildMemoryMeta(memory)}</div>
+            <div class="tooltip-text">${this.highlightTerm(this.escapeHtml(memory.text || ''))}</div>
         `;
         this.tooltip.style.display = 'block';
+        // Start each newly hovered memory at the top of its (scrollable) popup.
+        this.tooltip.scrollTop = 0;
+    }
+
+    private highlightTerm(escapedText: string): string {
+        if (!this.searchTerm) return escapedText;
+        const escapedTerm = this.escapeHtml(this.searchTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!escapedTerm) return escapedText;
+        try {
+            return escapedText.replace(new RegExp(escapedTerm, 'gi'), (m) => `<mark>${m}</mark>`);
+        } catch (e) {
+            return escapedText;
+        }
     }
 
     private hideTooltip() {
@@ -510,6 +755,130 @@ class MemoryConstellation extends HTMLElement {
         window.addEventListener('mouseup', () => this.stopEditorDrag());
     }
 
+    /**
+     * Wires up the bottom-middle search bar: reveal on hover, live match counting,
+     * prev/next navigation, and keyboard handling. Input keydown stops propagation so
+     * it never triggers the container's drag/click handlers.
+     */
+    private setupSearchBar() {
+        const revealZone = this.shadow.querySelector('#search-reveal-zone') as HTMLDivElement;
+        const bar = this.shadow.querySelector('#search-bar') as HTMLDivElement;
+        const input = this.shadow.querySelector('#search-input') as HTMLInputElement;
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        const prevBtn = this.shadow.querySelector('#search-prev') as HTMLButtonElement;
+        const nextBtn = this.shadow.querySelector('#search-next') as HTMLButtonElement;
+        const hint = this.shadow.querySelector('#search-hint') as HTMLDivElement;
+        if (!bar || !input) return;
+
+        // The always-visible hint tells users search exists; it hides while the bar is open.
+        const show = () => { bar.classList.add('visible'); hint?.classList.add('hidden'); };
+        const hide = () => {
+            if (document.activeElement !== input) bar.classList.remove('visible');
+            if (!bar.matches(':hover')) hint?.classList.remove('hidden');
+        };
+
+        revealZone?.addEventListener('mouseenter', show);
+        bar.addEventListener('mouseenter', show);
+        bar.addEventListener('mouseleave', hide);
+        input.addEventListener('focus', show);
+        input.addEventListener('blur', () => { if (!bar.matches(':hover')) { bar.classList.remove('visible'); hint?.classList.remove('hidden'); } });
+
+        input.addEventListener('input', () => {
+            this.searchTerm = input.value.trim();
+            this.updateSearchMatches();
+            if (this.searchMatches.length > 0) {
+                this.searchCursor = 0;
+                this.goToMatch(0);
+            } else {
+                this.searchCursor = -1;
+            }
+            this.updateSearchCounter(counter);
+        });
+
+        // Stop propagation so typing never rotates/pans the scene or picks nodes.
+        input.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                e.preventDefault();
+                this.cycleMatch(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.cycleMatch(-1);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.clearSearch();
+                bar.classList.remove('visible');
+                input.blur();
+            }
+        });
+
+        prevBtn?.addEventListener('click', (e) => { e.stopPropagation(); this.cycleMatch(-1); });
+        nextBtn?.addEventListener('click', (e) => { e.stopPropagation(); this.cycleMatch(1); });
+    }
+
+    /** Recomputes the list of memory indices matching the current search term. */
+    private updateSearchMatches(): void {
+        const term = this.searchTerm.toLowerCase();
+        if (!term) { this.searchMatches = []; return; }
+        this.searchMatches = [];
+        this.memories.forEach((memory: any, i: number) => {
+            const text = String(memory.text || '').toLowerCase();
+            const name = this.getCharacterName(memory.characterId).toLowerCase();
+            if (text.includes(term) || name.includes(term)) {
+                this.searchMatches.push(i);
+            }
+        });
+    }
+
+    private updateSearchCounter(counter: HTMLSpanElement | null): void {
+        if (!counter) return;
+        const total = this.searchMatches.length;
+        const current = total > 0 && this.searchCursor >= 0 ? this.searchCursor + 1 : 0;
+        counter.textContent = `${current} / ${total}`;
+    }
+
+    /** Cycles the match cursor with wrap-around and navigates to the match. */
+    private cycleMatch(delta: number): void {
+        if (this.searchMatches.length === 0) return;
+        const n = this.searchMatches.length;
+        this.searchCursor = ((this.searchCursor + delta) % n + n) % n;
+        this.goToMatch(this.searchCursor);
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        this.updateSearchCounter(counter);
+    }
+
+    /** Selects the match, centers the camera on it, and shows the highlighted tooltip. */
+    private goToMatch(cursor: number): void {
+        const index = this.searchMatches[cursor];
+        if (index === undefined || !this.memories[index]) return;
+        this.autoRotate = false;
+        this.setSelectedIndex(index);
+        // Center the camera on the node's world position (accounting for scene rotation).
+        const positionAttr = this.points?.geometry.getAttribute('position') as THREE.BufferAttribute;
+        if (positionAttr) {
+            const world = new THREE.Vector3(
+                positionAttr.getX(index),
+                positionAttr.getY(index),
+                positionAttr.getZ(index)
+            ).applyEuler(this.scene.rotation);
+            this.camera.position.x = world.x;
+            this.camera.position.y = world.y;
+        }
+        this.showTooltip(this.memories[index]);
+    }
+
+    private clearSearch(): void {
+        this.searchTerm = '';
+        this.searchMatches = [];
+        this.searchCursor = -1;
+        const input = this.shadow.querySelector('#search-input') as HTMLInputElement;
+        if (input) input.value = '';
+        const counter = this.shadow.querySelector('#search-counter') as HTMLSpanElement;
+        this.updateSearchCounter(counter);
+        this.setSelectedIndex(null);
+        this.hideTooltip();
+    }
+
     private showEditor(memory: any) {
         this.pinnedMemory = memory;
         const meta = this.shadow.querySelector('#editor-meta') as HTMLDivElement;
@@ -527,6 +896,7 @@ class MemoryConstellation extends HTMLElement {
     private hideEditor() {
         this.editor.classList.remove('visible');
         this.pinnedMemory = null;
+        this.setSelectedIndex(null);
     }
 
     private async saveMemory() {
@@ -564,23 +934,29 @@ class MemoryConstellation extends HTMLElement {
 
     private buildMemoryMeta(memory: any): string {
         const parts: string[] = [];
+        const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
         if (memory.characterId) {
             parts.push('Character: ' + this.escapeHtml(this.getCharacterName(memory.characterId)));
         }
+        // Game Date: the in-game date when the memory was created (localized "Unknown"
+        // for legacy memories predating game-date storage). Real Date/Time: wall clock.
+        const gameDate = memory.gameDate || memory.date || '';
+        parts.push(t('memory_constellation.game_date_label', 'Game Date: ') + this.escapeHtml(gameDate || t('memory_constellation.game_date_unknown', 'Unknown')));
         if (memory.timestamp) {
-            parts.push('Date: ' + this.escapeHtml(new Date(memory.timestamp).toLocaleString()));
+            parts.push(t('memory_constellation.real_date_label', 'Real Date/Time: ') + this.escapeHtml(new Date(memory.timestamp).toLocaleString()));
         }
         if (memory.emotion) {
             parts.push('Emotion: ' + this.escapeHtml(memory.emotion));
         }
-        // Location is always rendered: localized scene name, "Letter" for letter-sourced
-        // memories, or a localized "Unknown" fallback when the scene is empty.
-        const t = (k: string, d: string) => ((window as any).LocalizationManager?.getTranslation(k, d) ?? d);
+        // Location is always rendered: "Letter"/"Diary" for letter/diary-sourced memories,
+        // a localized scene name for scene memories, or a localized "Unknown" fallback.
         const sceneName = memory.scene === 'letter'
             ? t('memory_constellation.scene_letter', 'Letter')
-            : (memory.scene
-                ? t(`locations.${memory.scene}`, memory.scene)
-                : t('memory_constellation.location_unknown', 'Unknown'));
+            : memory.scene === 'diary'
+                ? t('memory_constellation.scene_diary', 'Diary')
+                : (memory.scene
+                    ? t(`locations.${memory.scene}`, memory.scene)
+                    : t('memory_constellation.location_unknown', 'Unknown'));
         parts.push(t('memory_constellation.location_label', 'Location: ') + this.escapeHtml(sceneName));
         return parts.join('<br>');
     }
@@ -597,6 +973,9 @@ class MemoryConstellation extends HTMLElement {
     private buildRelationLines(memories: any[], positions: Float32Array): void {
         if (memories.length < 2) return;
         const linePositions: number[] = [];
+        const lineColors: number[] = [];
+        const dim = { r: 0x5a / 255, g: 0x4a / 255, b: 0x35 / 255 };
+        this.linePairs = [];
         for (let i = 0; i < memories.length; i++) {
             for (let j = i + 1; j < memories.length; j++) {
                 const related = memories[i].characterId && memories[i].characterId === memories[j].characterId;
@@ -605,14 +984,19 @@ class MemoryConstellation extends HTMLElement {
                         positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2],
                         positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2]
                     );
+                    // Per-vertex dim base colors so applyHoverHighlight can brighten
+                    // individual segments on hover without a custom shader.
+                    lineColors.push(dim.r, dim.g, dim.b, dim.r, dim.g, dim.b);
                     this.lineReasons.push(String(memories[i].characterId || ''));
+                    this.linePairs.push([i, j]);
                 }
             }
         }
         if (linePositions.length === 0) return;
         const lineGeo = new THREE.BufferGeometry();
         lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x5a4a35, transparent: true, opacity: 0.4 });
+        lineGeo.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+        const lineMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.4 });
         this.lines = new THREE.LineSegments(lineGeo, lineMat);
         this.scene.add(this.lines);
     }
@@ -641,17 +1025,39 @@ class MemoryConstellation extends HTMLElement {
     }
 
     updatePoints(memories: any[]) {
+        const nextMemories = memories || [];
+
+        // Skip redundant rebuilds: the 20s auto-refresh calls this constantly, but
+        // when the dataset is unchanged we must not clear the ring/tooltip or touch
+        // the scene (which would reset the user's view).
+        const signature = JSON.stringify(nextMemories.map((m: any) => [m.id, m.timestamp, m.text ? m.text.length : 0]));
+        if (signature === this.lastDataSignature) {
+            return;
+        }
+        this.lastDataSignature = signature;
+
+        // Preserve the user's view across real rebuilds.
+        const savedRotation = { x: this.scene.rotation.x, y: this.scene.rotation.y, z: this.scene.rotation.z };
+        const savedCamera = { x: this.camera.position.x, y: this.camera.position.y, z: this.camera.position.z };
+        const previousSelectedIndex = this.selectedIndex;
+
         // Clear existing points
         while(this.scene.children.length > 0){ 
             this.scene.remove(this.scene.children[0]); 
         }
         this.hideTooltip();
-        // Reset relation-line state; buildRelationLines repopulates both for the new data.
+        // Reset relation-line and selection state; buildRelationLines and the next
+        // pick repopulate both for the new data.
         this.lines = null;
         this.lineReasons = [];
-        this.memories = memories || [];
+        this.linePairs = [];
+        this.hoveredIndex = null;
+        this.basePointColors = null;
+        this.memories = nextMemories;
+        this.selectedIndex = null;
+        this.selectedRing = null;
 
-        if (!memories || memories.length === 0) {
+        if (!nextMemories || nextMemories.length === 0) {
             this.emptyState.classList.add('visible');
             return;
         }
@@ -659,24 +1065,29 @@ class MemoryConstellation extends HTMLElement {
         this.emptyState.classList.remove('visible');
 
         const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(memories.length * 3);
+        const positions = new Float32Array(nextMemories.length * 3);
 
-        memories.forEach((memory: any, i: number) => {
-            // This is a placeholder for the PCA projection
-            positions[i * 3] = (Math.random() - 0.5) * 10;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        nextMemories.forEach((memory: any, i: number) => {
+            // Deterministic projection of the embedding vector (Johnson-Lindenstrauss
+            // style): unit-normalize the vector and dot it with 3 fixed orthonormal
+            // basis vectors, scaled to the existing +/-5 range. Falls back to a hash
+            // of the memory id when no vector is available, so the layout stays stable
+            // across rebuilds even without embeddings.
+            const p = this.projectMemory(memory);
+            positions[i * 3] = p.x;
+            positions[i * 3 + 1] = p.y;
+            positions[i * 3 + 2] = p.z;
         });
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
         // Vertex colors: hue from emotion, brightness from recency.
-        const colors = new Float32Array(memories.length * 3);
-        const timestamps = memories.map((m: any) => m.timestamp || 0);
+        const colors = new Float32Array(nextMemories.length * 3);
+        const timestamps = nextMemories.map((m: any) => m.timestamp || 0);
         const minTs = Math.min(...timestamps);
         const maxTs = Math.max(...timestamps);
         const tsRange = Math.max(1, maxTs - minTs);
-        memories.forEach((memory: any, i: number) => {
+        nextMemories.forEach((memory: any, i: number) => {
             const base = this.emotionColor(memory.emotion);
             const recency = ((memory.timestamp || 0) - minTs) / tsRange; // 0 = oldest, 1 = newest
             const brightness = 0.35 + 0.65 * recency;
@@ -685,6 +1096,8 @@ class MemoryConstellation extends HTMLElement {
             colors[i * 3 + 2] = base.b * brightness;
         });
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        // Snapshot the base (emotion) colors so the hover highlight can restore them.
+        this.basePointColors = new Float32Array(colors);
 
         // Use a circular sprite texture so points render as glowing dots, not squares.
         const canvas = document.createElement('canvas');
@@ -711,7 +1124,84 @@ class MemoryConstellation extends HTMLElement {
         this.points = new THREE.Points(geometry, material);
         this.scene.add(this.points);
 
-        this.buildRelationLines(memories, positions);
+        this.buildRelationLines(nextMemories, positions);
+
+        // Restore the user's view and re-attach the selection ring for the still-valid
+        // selected index (clear it only if the index is now out of range).
+        this.scene.rotation.set(savedRotation.x, savedRotation.y, savedRotation.z);
+        this.camera.position.set(savedCamera.x, savedCamera.y, savedCamera.z);
+        if (previousSelectedIndex !== null && previousSelectedIndex < nextMemories.length) {
+            this.setSelectedIndex(previousSelectedIndex);
+        }
+    }
+
+    /**
+     * Builds (once) a fixed orthonormal basis of 3 unit vectors used to project
+     * embedding vectors into 3D. Uses a seeded PRNG + Gram-Schmidt so the basis is
+     * deterministic across sessions and rebuilds.
+     */
+    private getProjectionBasis(): THREE.Vector3[] {
+        if (this.projectionBasis) return this.projectionBasis;
+        // Deterministic PRNG (mulberry32) seeded with a constant.
+        let seed = 0x9e3779b9;
+        const rand = () => {
+            seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const basis: THREE.Vector3[] = [];
+        for (let i = 0; i < 3; i++) {
+            const v = new THREE.Vector3(rand() - 0.5, rand() - 0.5, rand() - 0.5);
+            // Gram-Schmidt against the already-accepted basis vectors.
+            for (const b of basis) {
+                v.sub(b.clone().multiplyScalar(v.dot(b)));
+            }
+            if (v.lengthSq() < 1e-6) { v.set(1, 0, 0); }
+            v.normalize();
+            basis.push(v);
+        }
+        this.projectionBasis = basis;
+        return basis;
+    }
+
+    /**
+     * Deterministic 3D position for a memory. Projects the (unit-normalized)
+     * embedding vector onto the fixed basis, scaled to the +/-5 range. Falls back
+     * to a hash of the memory id when no usable vector is present.
+     */
+    private projectMemory(memory: any): { x: number; y: number; z: number } {
+        const SCALE = 5;
+        const vec = memory && memory.vector;
+        if (vec && vec.length > 0) {
+            let norm = 0;
+            for (let i = 0; i < vec.length; i++) norm += vec[i] * vec[i];
+            norm = Math.sqrt(norm);
+            if (norm > 1e-9) {
+                const basis = this.getProjectionBasis();
+                const out = [0, 0, 0];
+                for (let b = 0; b < 3; b++) {
+                    let dot = 0;
+                    const bv = basis[b];
+                    for (let i = 0; i < vec.length; i++) {
+                        dot += (vec[i] / norm) * bv.getComponent(i % 3);
+                    }
+                    out[b] = dot;
+                }
+                return { x: out[0] * SCALE, y: out[1] * SCALE, z: out[2] * SCALE };
+            }
+        }
+        // Fallback: deterministic position from a hash of the memory id.
+        const id = String((memory && memory.id) || '');
+        let h = 2166136261;
+        for (let i = 0; i < id.length; i++) {
+            h ^= id.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        const hx = ((h >>> 0) % 1000) / 1000 - 0.5;
+        const hy = (((h >>> 10) >>> 0) % 1000) / 1000 - 0.5;
+        const hz = (((h >>> 20) >>> 0) % 1000) / 1000 - 0.5;
+        return { x: hx * 2 * SCALE, y: hy * 2 * SCALE, z: hz * 2 * SCALE };
     }
 
     private emotionColor(emotion: string): { r: number; g: number; b: number } {

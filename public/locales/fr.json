@@ -42,7 +42,15 @@
     "scene_letter": "Lettre",
     "location_label": "Lieu : ",
     "location_unknown": "Inconnu",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "game_date_label": "Date du jeu : ",
+    "real_date_label": "Date/heure réelle : ",
+    "scene_diary": "Journal",
+    "game_date_unknown": "Inconnu",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Rechercher des souvenirs...",
+    "search_prev_tooltip": "Correspondance précédente",
+    "search_next_tooltip": "Correspondance suivante",
+    "search_hint": "Rechercher des souvenirs (survolez ici)"
   },
   "connection": {
     "ck3_path": "Chemin du dossier utilisateur CK3",
