@@ -338,7 +338,7 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         if (silencedNames.length > 0) {
             const silenceMessage: Message = {
                 role: "system",
-                content: `Note: ${silencedNames.join(', ')} ${silencedNames.length === 1 ? 'is' : 'are'} currently silent and will not be participating in the conversation.`
+                content: `Note: ${silencedNames.join(', ')} ${silencedNames.length === 1 ? 'is' : 'are'} currently silent and present, but will not be participating in the conversation.`
             };
             insertMessageAtDepth(messages, silenceMessage, conv.config.memoriesInsertDepth);
             console.log(`Inserted silence state note for: ${silencedNames.join(', ')}.`);
