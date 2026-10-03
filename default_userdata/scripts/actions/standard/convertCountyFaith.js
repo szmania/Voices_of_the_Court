@@ -177,10 +177,8 @@ module.exports = {
         if (!source || !target) return false;
         if (sourceId === targetId) return false;
         if (!target.isLandedRuler) return false;
-
-        const sourceFaith = String(source.faith || "").toLowerCase();
-        const targetFaith = String(target.faith || "").toLowerCase();
-        if (!sourceFaith || !targetFaith || sourceFaith === targetFaith) return false;
+        // Faith difference enforcement lives in preCheck (which sees the chosen
+        // enum/free-text args; check receives none and must not gate on it).
 
         return true;
     },
@@ -205,6 +203,18 @@ module.exports = {
             return { success: false, message: "The target must hold a landed title for their capital county to convert faith." };
         }
 
+        const quickPickFaith = args && args[0] ? String(args[0]).trim() : "";
+        const customFaithKey = args && args[1] ? String(args[1]).trim() : "";
+        const rawFaith = quickPickFaith || customFaithKey;
+
+        if (rawFaith) {
+            const faithKey = normalizeFaithKey(rawFaith);
+            if (!/^[a-z0-9_]{2,64}$/.test(faithKey)) {
+                return { success: false, message: `Invalid faith key "${rawFaith}". Could not normalize to a valid key.` };
+            }
+            return { success: true };
+        }
+
         const sourceFaith = String(source.faith || "").toLowerCase();
         const targetFaith = String(target.faith || "").toLowerCase();
         if (!sourceFaith || !targetFaith || sourceFaith === targetFaith) {
@@ -224,10 +234,22 @@ module.exports = {
         const target = gameData.getCharacterById(targetId);
         if (!target) return;
 
-        runGameEffect(`
-            global_var:votcce_action_target.capital_county = {
-                set_county_faith = ${faithToConvert.startsWith('global_var:') ? faithToConvert : `faith:${faithToConvert}`}
-            }`);
+        const quickPickFaith = args && args[0] ? String(args[0]).trim() : "";
+        const customFaithKey = args && args[1] ? String(args[1]).trim() : "";
+        const rawFaith = quickPickFaith || customFaithKey;
+        const faithKey = rawFaith ? normalizeFaithKey(rawFaith) : "";
+
+        if (faithKey) {
+            runGameEffect(`
+                global_var:votcce_action_target.capital_county = {
+                    set_county_faith = faith:${faithKey}
+                }`);
+        } else {
+            runGameEffect(`
+                global_var:votcce_action_target.capital_county = {
+                    set_county_faith = global_var:votcce_action_source.faith
+                }`);
+        }
     },
 
     chatMessage: (args) => {
