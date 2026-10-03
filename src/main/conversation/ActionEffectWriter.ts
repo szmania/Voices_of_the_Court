@@ -115,6 +115,12 @@ ordered_in_global_list = {
    *  - global_var:votcce_action_source / votcce_action_target = derived from the two
    *    message scopes above, so existing action scripts keep working unchanged.
    *
+   * All set_global_variable calls run inside valid character scopes: the
+   * message scopes are set inside root/character blocks, and the derived
+   * votcce_action_source / votcce_action_target assignments are wrapped in a
+   * root = { ... } block — CK3 errors with "Scoped object is not valid" when
+   * set_global_variable runs at the top level of a run file without a scope.
+   *
    * @param sourceId  Action source character id.
    * @param targetId  Action target character id.
    * @param playerId  The player character id (letter owner).
@@ -137,13 +143,15 @@ character:${otherId} = {
         value = this
     }
 }
-set_global_variable = {
-    name = votcce_action_source
-    value = global_var:${sourceVar}
-}
-set_global_variable = {
-    name = votcce_action_target
-    value = global_var:${targetVar}
+root = {
+    set_global_variable = {
+        name = votcce_action_source
+        value = global_var:${sourceVar}
+    }
+    set_global_variable = {
+        name = votcce_action_target
+        value = global_var:${targetVar}
+    }
 }
 `;
   }

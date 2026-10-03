@@ -18,6 +18,7 @@ export interface Memory {
     decay: number;
     accessCount: number;
     lastAccessed: number;
+    gameDate?: string;
 }
 
 /**
@@ -85,7 +86,8 @@ export class MemoryManager {
                 emotion TEXT DEFAULT 'neutral',
                 decay REAL DEFAULT 0.0,
                 access_count INTEGER DEFAULT 0,
-                last_accessed INTEGER DEFAULT 0
+                last_accessed INTEGER DEFAULT 0,
+                game_date TEXT DEFAULT ''
             );
         `);
 
@@ -101,6 +103,11 @@ export class MemoryManager {
                 if (!columns.some(col => col.name === 'scene')) {
                     console.log("MemoryManager: Old schema detected. Adding 'scene' column to memories table for backward compatibility.");
                     this.db.exec("ALTER TABLE memories ADD COLUMN scene TEXT DEFAULT ''");
+                }
+                // Backwards compatibility: Add game_date if it doesn't exist.
+                if (!columns.some(col => col.name === 'game_date')) {
+                    console.log("MemoryManager: Old schema detected. Adding 'game_date' column to memories table for backward compatibility.");
+                    this.db.exec("ALTER TABLE memories ADD COLUMN game_date TEXT DEFAULT ''");
                 }
                 // Migration from 'vector' to 'embedding'
                 if (columns.some(col => col.name === 'vector') && !columns.some(col => col.name === 'embedding')) {
@@ -193,8 +200,8 @@ export class MemoryManager {
         const vectorBlob = this.vectorToBlob(memory.vector);
 
         const stmt = this.db.prepare(`
-            INSERT INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed, game_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run(
@@ -208,7 +215,8 @@ export class MemoryManager {
             memory.emotion || 'neutral',
             memory.decay || 0.0,
             memory.accessCount || 0,
-            memory.lastAccessed || Date.now()
+            memory.lastAccessed || Date.now(),
+            memory.gameDate || ''
         );
 
         // Also insert into the vector index if available
@@ -382,6 +390,10 @@ export class MemoryManager {
         if (updates.timestamp !== undefined) {
             fields.push('timestamp = ?');
             values.push(updates.timestamp);
+        }
+        if (updates.gameDate !== undefined) {
+            fields.push('game_date = ?');
+            values.push(updates.gameDate);
         }
 
         if (fields.length === 0) return;
@@ -591,7 +603,8 @@ export class MemoryManager {
             emotion: row.emotion || 'neutral',
             decay: row.decay || 0.0,
             accessCount: row.access_count || 0,
-            lastAccessed: row.last_accessed || 0
+            lastAccessed: row.last_accessed || 0,
+            gameDate: row.game_date || ''
         };
     }
 
@@ -662,8 +675,8 @@ export class MemoryManager {
         }
 
         const insertStmt = this.db.prepare(`
-            INSERT OR REPLACE INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO memories (id, character_id, player_id, scene, text, embedding, timestamp, emotion, decay, access_count, last_accessed, game_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         const insertVectorStmt = this.vecAvailable ? this.db.prepare(
@@ -684,7 +697,8 @@ export class MemoryManager {
                     memory.emotion || 'neutral',
                     memory.decay || 0.0,
                     memory.accessCount || 0,
-                    memory.lastAccessed || Date.now()
+                    memory.lastAccessed || Date.now(),
+                    memory.gameDate || ''
                 );
 
                 if (insertVectorStmt && memory.vector && memory.vector.length > 0) {

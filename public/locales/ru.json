@@ -42,7 +42,15 @@
     "scene_letter": "Письмо",
     "location_label": "Место: ",
     "location_unknown": "Неизвестно",
-    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}"
+    "game_date_label": "Игровая дата: ",
+    "real_date_label": "Реальная дата/время: ",
+    "scene_diary": "Дневник",
+    "game_date_unknown": "Неизвестно",
+    "edge_tooltip_same_character": "Linked memories — both belong to {characterName}",
+    "search_placeholder": "Поиск воспоминаний...",
+    "search_prev_tooltip": "Предыдущее совпадение",
+    "search_next_tooltip": "Следующее совпадение",
+    "search_hint": "Поиск воспоминаний (наведите здесь)"
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",

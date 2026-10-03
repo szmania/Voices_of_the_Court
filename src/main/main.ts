@@ -674,20 +674,14 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
             return false;
         }
 
-        const letterRunFileManager = new RunFileManager(config.userFolderPath);
+        const letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
         let effectBody = "";
         action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
 
         // Letter approvals use the letter-specific global scope variables, not the
         // positional conversation list prelude.
         ActionEffectWriter.writeLetterEffect(letterRunFileManager, sourceId, targetId, gameData.playerID, letterName, effectBody);
-        letterRunFileManager.append(`root = {trigger_event = mcc_event_v2.9003}`);
-        // Clear the letter actions file after the game has consumed it,
-        // mirroring the conversation run file pattern (Conversation.ts ~line 1746).
-        setTimeout(() => {
-            letterRunFileManager.clear();
-            console.log('[LetterApprovalQueue] Cleared letter actions file after trigger event.');
-        }, 800);
+        letterRunFileManager.append(`root = {trigger_event = message_event.363}`);
         return true;
     } catch (e: any) {
         console.error(`[LetterApprovalQueue] Failed to execute letter action '${actionSignature}': ${e.message}`);
@@ -871,6 +865,7 @@ const TRIGGER_KEYWORDS = new Set([
     'VOTC:IN',
     'VOTC:EFFECT_ACCEPTED',
     'VOTC:LETTER_ACCEPTED',
+    'VOTC:LETTER_EFFECT_ACCEPTED',
     'VOTC:BOOKMARK',
     'VOTC:SUMMARY_MANAGER',
     'VOTC:CONVERSATION_HISTORY',
@@ -1385,6 +1380,7 @@ app.on('ready',  async () => {
         emotion?: string;
         scene?: string;
         timestamp?: number;
+        gameDate?: string;
     }) => {
         console.log(`IPC: Received add-memory for character: ${memoryData.characterId}`);
         try {
@@ -1408,7 +1404,8 @@ app.on('ready',  async () => {
                 emotion: memoryData.emotion || 'neutral',
                 decay: 0.0,
                 accessCount: 0,
-                lastAccessed: Date.now()
+                lastAccessed: Date.now(),
+                gameDate: memoryData.gameDate || ''
             };
 
             memoryManager.insertMemory(memory);
@@ -2137,6 +2134,15 @@ clipboardListener.on('VOTC:LETTER_ACCEPTED', async () => {
         }
     } catch (error) {
         console.error(`Failed to handle LETTER_ACCEPTED event: ${error}`);
+    }
+});
+
+clipboardListener.on('VOTC:LETTER_EFFECT_ACCEPTED', () => {
+    console.log('ClipboardListener: VOTC:LETTER_EFFECT_ACCEPTED event detected.');
+    try {
+        LetterActionTrigger.clearLetterRunFile(config);
+    } catch (error) {
+        console.error(`Failed to handle LETTER_EFFECT_ACCEPTED event: ${error}`);
     }
 });
 

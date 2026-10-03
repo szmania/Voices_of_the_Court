@@ -1947,7 +1947,8 @@ Statement by ${character.fullName}:`
             id: m.id,
             characterId: m.characterIds[0]?.toString() || '', // Primary character
             text: m.content,
-            timestamp: m.creationTimestamp
+            timestamp: m.creationTimestamp,
+            gameDate: m.gameDate
         })));
     }
 
@@ -1957,7 +1958,12 @@ Statement by ${character.fullName}:`
      * consolidation upkeep for every affected character. Never throws —
      * individual embedding failures are logged and skipped.
      */
-    private async embedAndInsertMemories(items: { id?: string; characterId: string; text: string; timestamp?: number }[]): Promise<void> {
+    private async embedAndInsertMemories(items: { id?: string; characterId: string; text: string; timestamp?: number; gameDate?: string; scene?: string }[]): Promise<void> {
+        // ponytail: letter and diary memories are not currently vectorized into the
+        // memory DB (only conversation summaries + compacted memories are), so the
+        // UI 'Letter'/'Diary' location labels have no producer yet. Upgrade path:
+        // call embedAndInsertMemories with scene='letter'/'diary' and gameDate from
+        // LetterManager/diaryManager when letter/diary memory embedding is wired.
         if (items.length === 0 || !this.config.embeddingApiConnectionConfig) {
             return;
         }
@@ -1972,14 +1978,15 @@ Statement by ${character.fullName}:`
                     id: item.id ?? randomUUID(),
                     characterId: item.characterId,
                     playerId: this.gameData.playerID.toString(),
-                    scene: this.gameData.scene || '',
+                    scene: item.scene ?? (this.gameData.scene || ''),
                     text: item.text,
                     vector: embedding,
                     timestamp: item.timestamp ?? Date.now(),
                     emotion: 'neutral', // TODO: Derive emotion from content
                     decay: 0,
                     accessCount: 0,
-                    lastAccessed: Date.now()
+                    lastAccessed: Date.now(),
+                    gameDate: item.gameDate || ''
                 });
             } catch (e) {
                 console.error(`Failed to generate embedding for memory ${item.id ?? item.characterId}:`, e);
@@ -2359,7 +2366,7 @@ ${timelineLines}
             // store so they become semantically searchable. Never blocks teardown.
             if (newSummariesToEmbed.length > 0 && this.config.embeddingApiConnectionConfig) {
                 void this.embedAndInsertMemories(
-                    newSummariesToEmbed.map(s => ({ characterId: s.characterId, text: s.content }))
+                    newSummariesToEmbed.map(s => ({ characterId: s.characterId, text: s.content, gameDate: this.gameData.date, scene: this.gameData.scene || '' }))
                 ).then(() => {
                     console.log(`Inserted ${newSummariesToEmbed.length} summary memories into the vector store.`);
                 }).catch(err => {

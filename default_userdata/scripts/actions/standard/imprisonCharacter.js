@@ -139,6 +139,13 @@ module.exports = {
                     }
                 `);
         }
+        runGameEffect(`
+            global_var:votcce_action_source = {
+                create_character_memory = {
+                    type = imprisoned_other
+                    participants = { imprisoned = global_var:votcce_action_target }
+                }
+            }`)
     },
 
     chatMessage: (args) => {

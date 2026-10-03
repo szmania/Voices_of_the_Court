@@ -74,7 +74,10 @@ export class ClipboardListener extends EventEmitter{
                 break;
                 case "LETTER_ACCEPTED":
                     this.emit('VOTC:LETTER_ACCEPTED');
-                break;
+                    break;
+                case "LETTER_EFFECT_ACCEPTED":
+                    this.emit('VOTC:LETTER_EFFECT_ACCEPTED');
+                    break;
             }
 
 
@@ -85,4 +88,3 @@ export class ClipboardListener extends EventEmitter{
         }
     }
 }
-

@@ -116,7 +116,16 @@ module.exports = {
 				death = {
 					death_reason = ${deathReason} killer = global_var:votcce_action_source
 				}
-        }`)
+            }`);
+        if (deathReason === "death_murder") {
+            runGameEffect(`
+            global_var:votcce_action_source = {
+                create_character_memory = {
+                    type = successful_murder
+                    participants = { victim = global_var:votcce_action_target }
+                }
+            }`);
+        }
     },
     chatMessage: (args) => {
         const quickPick = args && args[0] ? String(args[0]).trim() : "";
