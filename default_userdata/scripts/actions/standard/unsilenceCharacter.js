@@ -39,6 +39,7 @@ module.exports = {
         // App-side action: no game effect is emitted. The unsilence removes the
         // character from gameData's silenced set so Conversation.ts re-admits
         // them into the speaker queues.
+        // UI dropdown hint: resolves via global_var:votcce_action_source and global_var:votcce_action_target
         const target = gameData.getCharacterById(targetId);
         if (!target) return;
         if (!gameData.silencedCharacterIds) {

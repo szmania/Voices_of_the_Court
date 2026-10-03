@@ -39,6 +39,7 @@ module.exports = {
         // App-side action: no game effect is emitted. The silence is tracked on
         // gameData so Conversation.ts filters the silenced character out of all
         // speaker queues (no responses, no random AI-to-AI speech).
+        // UI dropdown hint: resolves via global_var:votcce_action_source and global_var:votcce_action_target
         const target = gameData.getCharacterById(targetId);
         if (!target) return;
         if (!gameData.silencedCharacterIds) {
