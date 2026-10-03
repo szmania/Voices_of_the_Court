@@ -5,6 +5,7 @@ import path from 'path';
 const FIXTURE_MARKER = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_ai_initiate.txt');
 const FIXTURE_BAD = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_ai_initiate_bad.txt');
 const FIXTURE_NONE = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_ai_initiate_none.txt');
+const FIXTURE_STALE = path.join(__dirname, '..', '..', 'fixtures', 'debuglog_ai_initiate_stale.txt');
 
 // The parser logs a lot; keep the test output readable.
 let logSpy: jest.SpyInstance;
@@ -21,18 +22,25 @@ afterEach(() => {
 });
 
 describe('ai_speaks_first marker parsing', () => {
-    it('sets aiInitiatorId from the marker (T.1)', async () => {
+    it('sets aiInitiatorId from the marker emitted BEFORE the init line (T.1)', async () => {
         const gd = await parseLog(FIXTURE_MARKER);
         expect(gd).toBeDefined();
         expect(gd!.aiInitiatorId).toBe(2000);
     });
 
-    it('leaves aiInitiatorId undefined without the marker (T.2)', async () => {
-        const gd = await parseLog(FIXTURE_NONE);
+    it('ignores a stale marker from a previous conversation', async () => {
+        // The last init block has no marker; the marker above belongs to an
+        // older conversation and must not leak into the current one.
+        const gd = await parseLog(FIXTURE_STALE);
         expect(gd).toBeDefined();
         expect(gd!.aiInitiatorId).toBeUndefined();
     });
 
+    it('ignores a malformed (non-numeric) id (T.3)', async () => {
+        const gd = await parseLog(FIXTURE_BAD);
+        expect(gd).toBeDefined();
+        expect(gd!.aiInitiatorId).toBeUndefined();
+    });
     it('ignores a malformed (non-numeric) id (T.3)', async () => {
         const gd = await parseLog(FIXTURE_BAD);
         expect(gd).toBeDefined();
