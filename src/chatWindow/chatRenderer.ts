@@ -140,6 +140,11 @@ let currentConversationMessageDivs: HTMLDivElement[] = [];
 let displayedMessageIds = new Set<string>();
 let basePromptTokens = 0;
 let chatReadyReceived = false;
+// AI-initiated conversation gate: when the mod's ai_speaks_first marker named
+// an initiating character, the input stays disabled until that character's
+// first message arrives (or generation ends/fails). Undefined for
+// player-initiated conversations.
+let aiInitiatorId: number | undefined = undefined;
 // Add input event listener for real-time token counting
 chatInput.addEventListener('input', function(e) {
     const text = chatInput.value;
@@ -1760,6 +1765,15 @@ ipcRenderer.on('chat-hide', () =>{
 
 ipcRenderer.on('chat-ready', () => {
     chatReadyReceived = true;
+    if (aiInitiatorId) {
+        // AI-initiated conversation: keep the input disabled until the
+        // initiating character's first message arrives (or generation ends).
+        chatInput.disabled = true;
+        showLoadingDots(true);
+        updateStatusText('chat.status_speaking', { characterName: currentGameData?.getCharacterById(aiInitiatorId)?.shortName ?? '', characterId: aiInitiatorId });
+        updateInputTooltip();
+        return;
+    }
     chatInput.disabled = false;
     chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
     chatInput.focus();
@@ -1799,6 +1813,10 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
     // Reset character color mapping for new conversation
     characterColorMap.clear();
     nextColorIndex = 0;
+
+    // AI-initiated conversation gate: capture the initiator id for this
+    // conversation (undefined for player-initiated ones).
+    aiInitiatorId = gameData.aiInitiatorId;
 
     document.body.style.display = '';
 
@@ -2011,6 +2029,16 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
         removeLoadingDots(true);
     }
 
+    // AI-initiated conversation gate: the initiating character's first message
+    // releases the input.
+    if (aiInitiatorId && message.role === 'assistant' && (message as any).characterId === aiInitiatorId) {
+        aiInitiatorId = undefined;
+        removeLoadingDots(true);
+        updateStatusText('');
+        chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
+        chatInput.focus();
+    }
+
     // Always keep loading dots visible until actions are received
     // Don't remove loading dots here - wait for actions-receive event
     if(waitForActions){
@@ -2063,10 +2091,20 @@ ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrativeMessage: Me
 })
 
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
+    // AI-initiated conversation gate: never leave the input locked on failure.
+    if (aiInitiatorId) {
+        aiInitiatorId = undefined;
+        updateStatusText('');
+    }
     displayErrorMessage(errorMessage);
 })
 
 ipcRenderer.on('generation-cancelled', () => {
+    // AI-initiated conversation gate: never leave the input locked on cancel.
+    if (aiInitiatorId) {
+        aiInitiatorId = undefined;
+        updateStatusText('');
+    }
     removeLoadingDots();
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -2080,6 +2118,11 @@ ipcRenderer.on('generation-cancelled', () => {
 });
 
 ipcRenderer.on('generation-finished', () => {
+    // AI-initiated conversation gate: generation ending (even without the
+    // initiator's message, e.g. an empty response) must release the input.
+    if (aiInitiatorId) {
+        aiInitiatorId = undefined;
+    }
     removeLoadingDots();
     updateStatusText('');
     updateRegenerateButtonState();

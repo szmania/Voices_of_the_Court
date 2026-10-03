@@ -357,6 +357,21 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         console.log(`[parseLog] GameData initialized with scene: '${gameData.scene}' and location: '${gameData.location}'`);
                     }
                 break;
+                case "ai_speaks_first": {
+                    // AI-initiated conversation marker: the mod emits it right after
+                    // the init line, so data[0] (after the 2-element splice) is the
+                    // initiating character's id. Invalid ids are ignored so a
+                    // malformed marker never breaks the conversation.
+                    if (!gameData) continue;
+                    const initiatorId = Number(data[0]);
+                    if (Number.isInteger(initiatorId) && initiatorId > 0) {
+                        gameData.aiInitiatorId = initiatorId;
+                        console.log(`[parseLog] AI-initiated conversation: character ${initiatorId} speaks first.`);
+                    } else {
+                        console.warn(`[parseLog] Ignoring malformed ai_speaks_first marker: "${data[0]}"`);
+                    }
+                    break;
+                }
                 case "character":
                     if (!gameData) continue;
                     let char = new Character(data);

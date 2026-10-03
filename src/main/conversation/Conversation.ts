@@ -135,6 +135,12 @@ export class Conversation{
     // close attempt; cleared when the close reaches terminal state.
     private currentCloseRequestKey: string | undefined;
 
+    // AI-initiated conversation (mod marker `ai_speaks_first`): when the mod
+    // named an initiating character, that character must produce the first
+    // message of the conversation, deterministically. The flag is consumed
+    // once so the forced turn runs at most once per conversation.
+    private aiSpeakFirstHandled = false;
+
 
     memoryManager: MemoryManager;
     embeddingApiConnection!: ApiConnection;
@@ -793,6 +799,9 @@ export class Conversation{
         if (message.role === "user") {
             this.consecutiveActionsCount = 0;
             this.currentTurnTriggeredActions.clear();
+            // The player has spoken: the forced AI-initiated first turn can no
+            // longer apply to this conversation.
+            this.aiSpeakFirstHandled = true;
             console.log('Player message sent, resetting consecutive actions count and duplicate action check.');
         }
     }
@@ -831,6 +840,15 @@ export class Conversation{
         try {
             // Ensure NPC queue is filled before determining targets.
             this.fillNpcQueue();
+
+            // AI-initiated conversation: the initiating character speaks first,
+            // deterministically, before any random/first-user logic can pick a
+            // different speaker. Runs at most once per conversation; the
+            // existing finally block still emits generation-finished.
+            if (await this.speakFirstIfAiInitiated()) {
+                return;
+            }
+
             const targetedCharacters = await this.determineTargetedCharacters();
 
             const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
@@ -2716,6 +2734,7 @@ ${timelineLines}
         this.currentSummary = "";
         this.consecutiveActionsCount = 0;
         this.lastActionMessageIndex = -1;
+        this.aiSpeakFirstHandled = false;
     }
 
     public cancelGeneration(): void {
@@ -2951,11 +2970,61 @@ ${timelineLines}
     }
 
     public async initiateConversation(){
+        // AI-initiated conversation: deterministic first speaker. The random
+        // aiStartConversationChance feature is a separate, pre-existing path and
+        // must not be entangled with the marker flow.
+        if (this.gameData.aiInitiatorId) {
+            await this.generateAIsMessages();
+            return;
+        }
         if(Math.random() < (this.config.aiStartConversationChance / 100)){
             // Send loading event to chat window when AI starts conversation
             this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
             await this.generateAIsMessages();
         }
+    }
+
+    /**
+     * AI-initiated conversation support: when the mod's `ai_speaks_first`
+     * marker named a character, that character must produce the first message
+     * of the conversation, deterministically, before any random or
+     * first-user-turn logic can pick a different speaker.
+     *
+     * Returns true when the forced turn was handled (the caller must then end
+     * the turn); false when there is nothing to force (no marker, already
+     * handled, a player message already exists, or the initiator is not part
+     * of the conversation). Never throws: a missing initiator falls back to
+     * the pre-existing behaviour.
+     */
+    private async speakFirstIfAiInitiated(): Promise<boolean> {
+        const initiatorId = this.gameData.aiInitiatorId;
+        if (!initiatorId || !Number.isInteger(initiatorId) || initiatorId <= 0) {
+            return false;
+        }
+        if (this.aiSpeakFirstHandled) {
+            return false;
+        }
+        // Only force the very first turn: once the player has spoken, the
+        // normal flow owns the conversation.
+        if (this.messages.some(m => m.role === 'user')) {
+            return false;
+        }
+        const initiator = this.gameData.getCharacterById(initiatorId);
+        if (!initiator) {
+            console.warn(`AI-initiated conversation: initiator character ${initiatorId} is not part of the conversation; falling back to normal behaviour.`);
+            this.aiSpeakFirstHandled = true;
+            return false;
+        }
+
+        this.aiSpeakFirstHandled = true;
+        console.log(`AI-initiated conversation: forcing ${initiator.shortName} (ID: ${initiatorId}) to speak first.`);
+        this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
+        try {
+            await this.processCharacterList([initiator], false, false, true);
+        } finally {
+            this.chatWindow.window.webContents.send('ai-first-conversation-loading', false);
+        }
+        return true;
     }
 
     /**
