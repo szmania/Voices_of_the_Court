@@ -21,16 +21,16 @@ module.exports = {
             name: "governmentType",
             type: "enum",
             options: [
-                { value: 'feudal_government', display: { en: 'Feudal', zh: '封建', ru: 'Феодальное', fr: 'Féodal', es: 'Feudal', de: 'Feudal', ja: '封建', ko: '봉건', pl: 'Feudalne', pt: 'Feudal', tr: 'Feodal' }},
-                { value: 'clan_government', display: { en: 'Clan', zh: '氏族', ru: 'Клановое', fr: 'Clanique', es: 'Clánico', de: 'Klan', ja: '氏族', ko: '씨족', pl: 'Klanowe', pt: 'Clã', tr: 'Klan' }},
-                { value: 'republic_government', display: { en: 'Republic', zh: '共和', ru: 'Республика', fr: 'République', es: 'República', de: 'Republik', ja: '共和制', ko: '공화정', pl: 'Republika', pt: 'República', tr: 'Cumhuriyet' }},
-                { value: 'tribal_government', display: { en: 'Tribal', zh: '部落', ru: 'Племенное', fr: 'Tribal', es: 'Tribal', de: 'Stamm', ja: '部族', ko: '부족', pl: 'Plemienne', pt: 'Tribal', tr: 'Kabile' }},
                 { value: 'administrative_government', display: { en: 'Administrative', zh: '行政', ru: 'Административное', fr: 'Administratif', es: 'Administrativo', de: 'Administrativ', ja: '行政', ko: '행정', pl: 'Administracyjne', pt: 'Administrativo', tr: 'İdari' }},
-                { value: 'theocracy_government', display: { en: 'Theocracy', zh: '神权', ru: 'Теократия', fr: 'Théocratie', es: 'Teocracia', de: 'Theokratie', ja: '神権制', ko: '신정', pl: 'Teokracja', pt: 'Teocracia', tr: 'Teokrasi' }},
-                { value: 'nomad_government', display: { en: 'Nomad', zh: '游牧', ru: 'Кочевое', fr: 'Nomade', es: 'Nómada', de: 'Nomadisch', ja: '遊牧', ko: '유목', pl: 'Koczownicze', pt: 'Nômade', tr: 'Göçebe' }},
+                { value: 'clan_government', display: { en: 'Clan', zh: '氏族', ru: 'Клановое', fr: 'Clanique', es: 'Clánico', de: 'Klan', ja: '氏族', ko: '씨족', pl: 'Klanowe', pt: 'Clã', tr: 'Klan' }},
+                { value: 'feudal_government', display: { en: 'Feudal', zh: '封建', ru: 'Феодальное', fr: 'Féodal', es: 'Feudal', de: 'Feudal', ja: '封建', ko: '봉건', pl: 'Feudalne', pt: 'Feudal', tr: 'Feodal' }},
                 { value: 'herder_government', display: { en: 'Herder', zh: '牧人', ru: 'Пастушье', fr: 'Berger', es: 'Pastoril', de: 'Hirten', ja: '牧畜', ko: '목축', pl: 'Pasterskie', pt: 'Pastoril', tr: 'Çoban' }},
                 { value: 'mandala_government', display: { en: 'Mandala', zh: '曼荼罗', ru: 'Мандала', fr: 'Mandala', es: 'Mandala', de: 'Mandala', ja: 'マンダラ', ko: '만다라', pl: 'Mandala', pt: 'Mandala', tr: 'Mandala' }},
-                { value: 'meritocratic_government', display: { en: 'Meritocratic', zh: '贤能', ru: 'Меритократия', fr: 'Méritocratie', es: 'Meritocrático', de: 'Meritokratisch', ja: '実力主義', ko: '능력주의', pl: 'Merytokratyczne', pt: 'Meritocrático', tr: 'Meritokratik' }}
+                { value: 'meritocratic_government', display: { en: 'Meritocratic', zh: '贤能', ru: 'Меритократия', fr: 'Méritocratie', es: 'Meritocrático', de: 'Meritokratisch', ja: '実力主義', ko: '능력주의', pl: 'Merytokratyczne', pt: 'Meritocrático', tr: 'Meritokratik' }},
+                { value: 'nomad_government', display: { en: 'Nomad', zh: '游牧', ru: 'Кочевое', fr: 'Nomade', es: 'Nómada', de: 'Nomadisch', ja: '遊牧', ko: '유목', pl: 'Koczownicze', pt: 'Nômade', tr: 'Göçebe' }},
+                { value: 'republic_government', display: { en: 'Republic', zh: '共和', ru: 'Республика', fr: 'République', es: 'República', de: 'Republik', ja: '共和制', ko: '공화정', pl: 'Republika', pt: 'República', tr: 'Cumhuriyet' }},
+                { value: 'theocracy_government', display: { en: 'Theocracy', zh: '神权', ru: 'Теократия', fr: 'Théocratie', es: 'Teocracia', de: 'Theokratie', ja: '神権制', ko: '신정', pl: 'Teokracja', pt: 'Teocracia', tr: 'Teokrasi' }},
+                { value: 'tribal_government', display: { en: 'Tribal', zh: '部落', ru: 'Племенное', fr: 'Tribal', es: 'Tribal', de: 'Stamm', ja: '部族', ko: '부족', pl: 'Plemienne', pt: 'Tribal', tr: 'Kabile' }}
             ],
             desc: {
                 en: "government type {{character2Name}} adopts under {{character1Name}}'s influence (optional, overrides free text).",
