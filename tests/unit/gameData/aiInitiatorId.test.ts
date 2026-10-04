@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 describe('ai_speaks_first marker parsing', () => {
-    it('sets aiInitiatorId from the marker emitted BEFORE the init line (T.1)', async () => {
+    it('sets aiInitiatorId from the marker emitted after the init line (T.1)', async () => {
         const gd = await parseLog(FIXTURE_MARKER);
         expect(gd).toBeDefined();
         expect(gd!.aiInitiatorId).toBe(2000);
@@ -36,11 +36,6 @@ describe('ai_speaks_first marker parsing', () => {
         expect(gd!.aiInitiatorId).toBeUndefined();
     });
 
-    it('ignores a malformed (non-numeric) id (T.3)', async () => {
-        const gd = await parseLog(FIXTURE_BAD);
-        expect(gd).toBeDefined();
-        expect(gd!.aiInitiatorId).toBeUndefined();
-    });
     it('ignores a malformed (non-numeric) id (T.3)', async () => {
         const gd = await parseLog(FIXTURE_BAD);
         expect(gd).toBeDefined();
