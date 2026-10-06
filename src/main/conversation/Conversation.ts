@@ -14,7 +14,7 @@ import { convertChatToText, buildChatPrompt, buildSummarizeChatPrompt, buildResu
 import { generateSuggestions } from './suggestionBuilder.js';
 import { generateSceneDescription } from './sceneDescriptionBuilder.js';
 import { generateNarrative } from './generateNarrative.js';
-import { cleanMessageContent } from './messageCleaner.js';
+import { cleanMessageContent, stripAsterisks } from './messageCleaner.js';
 import { DiaryGenerator } from '../diary/DiaryGenerator.js';
 import { readDiaryFile, saveDiaryFile, readDiarySummaries, saveDiarySummaries } from '../diaryManager.js';
 import fs from 'fs';
@@ -1410,6 +1410,13 @@ export class Conversation{
             console.log('Cleaning AI message content.');
             responseMessage.content = cleanMessageContent(responseMessage.content);
         }
+
+        // Remove all asterisks from dialogue content (configurable via removeAsterisks)
+        if (this.config.removeAsterisks) {
+            responseMessage.content = stripAsterisks(responseMessage.content);
+        }
+
+        let content = responseMessage.content.trim();
 
         let content = responseMessage.content.trim();
 

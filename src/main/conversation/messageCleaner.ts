@@ -12,3 +12,12 @@ export function cleanMessageContent(messageText: string){
     console.log(`Cleaning message. After: "${cleanedText}"`);
     return cleanedText;
 }
+
+export function stripAsterisks(text: string): string {
+    // Replace all asterisk runs with a single space to avoid gluing words
+    let cleaned = text.replace(/\*+/g, ' ');
+    // Collapse multiple spaces
+    cleaned = cleaned.replace(/ {2,}/g, ' ');
+    // Trim leading/trailing whitespace
+    return cleaned.trim();
+}
