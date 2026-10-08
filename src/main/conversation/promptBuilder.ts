@@ -166,7 +166,12 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
     } else {
         const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
         replyToName = conv.gameData.getPlayer()!.fullName; // Default to player
-        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.name !== character.fullName) {
+        // Placeholder ("Has not spoken yet") messages are not conversation
+        // partners: during an AI-initiated first turn the last message is a
+        // placeholder for another participant, and treating it as a speaker
+        // would flip isAiToAi true and stop the initiating AI from addressing
+        // the player. Same comparison pushMessage uses to find placeholders.
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.name !== character.fullName && lastMessage.content !== conv.notSpokenYetText) {
             const lastSpeaker = Array.from(conv.gameData.characters.values()).find(c => c.fullName === lastMessage.name || c.shortName === lastMessage.name);
             if (lastSpeaker) {
                 replyToName = lastSpeaker.fullName;
@@ -526,6 +531,29 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         roleplayInstruction = roleplayInstructionTemplate
             .replace(/{characterName}/g, character.fullName)
             .replace(/{playerName}/g, replyToName);
+    } else if (!isAiToAi && !isNonTargetedResponse && conv.gameData.aiInitiatorId === character.id && !conv.messages.some(m => m.role === 'user')) {
+        // Case 2.5: AI-initiated conversation (mod ai_speaks_first marker) - the
+        // initiating character opens the conversation itself with a self-invented
+        // reason/topic instead of replying to a previous player message. True only
+        // for the initiating character's first generation: the renderer releases
+        // the input gate when this message arrives, so the player cannot have
+        // typed before it.
+        const aiInitiatedTemplate = (translations.system && translations.system.roleplay_instruction_ai_initiated) || "[System instruction: You are {characterName}. You approached {playerName} and are opening this conversation yourself. Come up with a reason or topic to talk about (a request, news, a concern, a rumor, or a personal matter fitting your character, traits, and current situation) and open with it. Do not wait for a reply. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
+        roleplayInstruction = aiInitiatedTemplate
+            .replace(/{characterName}/g, character.fullName)
+            .replace(/{playerName}/g, replyToName);
+
+        const narratorPromptTemplate = (translations.system && translations.system.ai_initiated_narrator_prompt) || "Now, what does {sourceCharacterName} say to {playerName} to start this conversation?";
+        const narratorPrompt = narratorPromptTemplate
+            .replace(/{sourceCharacterName}/g, character.shortName)
+            .replace(/{playerName}/g, replyToName);
+
+        chatPrompt.push({
+            role: "user",
+            name: "Narrator",
+            content: narratorPrompt
+        });
+        console.log('Added AI-initiated narrator prompt.');
     } else {
         // Case 3: Normal reply to the player
         roleplayInstruction = roleplayInstructionTemplate
