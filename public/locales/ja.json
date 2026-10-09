@@ -311,6 +311,8 @@
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[システム指示: あなたは{characterName}です。あなたは{playerName}に近づき、この会話を自分から始めます。自分のキャラクター、特性、現在の状況に合う話題や理由（頼みごと、知らせ、懸念、噂、個人的な用事など）を考えて、それから会話を始めてください。返信を待たないでください。自分のキャラクターのメッセージのみを書いてください。他のキャラクターとして書かないでください。動作には*この*ようにマークダウンを使用してください。]",
+    "ai_initiated_narrator_prompt": "さて、{sourceCharacterName}は{playerName}に何と話しかけてこの会話を始めますか？",
     "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
   "chat": {
@@ -329,6 +331,7 @@
     "regenerate_tooltip": "AIが最後に話した場合にのみ応答を再生成できます。",
     "leave_tooltip": "現在の会話を終了し、要約を保存します。",
     "waiting_tooltip": "応答を待っています...",
+    "waiting_on_ai_first": "AIキャラクターが最初に話すのを待っています...",
     "action_tooltip": "アクションを含む応答は再生成できません。",
     "action_prompt_header": "アクションが提案されました",
     "action_approve": "承認",

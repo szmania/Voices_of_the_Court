@@ -315,6 +315,8 @@
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[Системная инструкция: Вы — {characterName}. Вы подошли к {playerName} и сами начинаете этот разговор. Придумайте причину или тему для разговора (просьба, новость, забота, слух или личное дело, подходящие вашему персонажу, его чертам и текущей ситуации) и начните с неё. Не ждите ответа. Напишите сообщение только от имени своего персонажа. Не пишите от имени других персонажей. Используйте markdown для действий, например *так*.]",
+    "ai_initiated_narrator_prompt": "Что теперь {sourceCharacterName} говорит {playerName}, чтобы начать этот разговор?",
     "start_writing_reply": "Теперь начните писать ответ {characterName}:"
   },
   "chat": {
@@ -333,6 +335,7 @@
     "regenerate_tooltip": "Вы можете перегенерировать ответ, только если ИИ говорил последним.",
     "leave_tooltip": "Закончить текущий разговор и сохранить сводку.",
     "waiting_tooltip": "Ожидание ответа...",
+    "waiting_on_ai_first": "Ожидание, пока персонажи ИИ заговорят первыми...",
     "action_tooltip": "Невозможно перегенерировать ответ, содержащий действия.",
     "action_prompt_header": "предложено действие",
     "action_approve": "принять",

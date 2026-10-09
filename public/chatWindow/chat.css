@@ -337,12 +337,46 @@ html{
 
 /* 输入容器样式 */
 .input-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
     height: auto; /* 改为自动高度 */
     flex-shrink: 0;
     margin-bottom: 10px;
+}
+
+/* Tooltip for the AI-initiated conversation gate: while the input is disabled
+   waiting for the initiating AI character's first message, hovering the input
+   area shows this tooltip (a native title on a disabled textarea is not
+   reliably shown by Chromium). */
+.input-container.awaiting-ai-first::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #111;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Gitan;
+    font-size: 0.9rem;
+    max-width: 250px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2000;
+    border: 1px solid #5a4a35;
+    pointer-events: none;
+}
+
+.input-container.awaiting-ai-first:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s;
 }
 
 /* 推荐输入语句容器样式 */

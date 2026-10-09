@@ -316,7 +316,9 @@
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
-    "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?"
+    "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[系统指令：你是{characterName}。你主动找到{playerName}，由你来开启这段对话。想一个聊天的话题或理由（请求、消息、担忧、传闻，或符合你的角色、性格和当前处境的私事），并以此开场。不要等待回复。只为你自己的角色写消息。不要以其他角色的身份书写。动作用markdown表示，如*这样*。]",
+    "ai_initiated_narrator_prompt": "现在，{sourceCharacterName}会对{playerName}说些什么来开始这段对话？"
   },
   "chat": {
     "target_label": "目标角色：",
@@ -334,6 +336,7 @@
     "regenerate_tooltip": "只有在AI最后发言时，您才能重新生成回应。",
     "leave_tooltip": "结束当前对话并保存摘要。",
     "waiting_tooltip": "等待回应...",
+    "waiting_on_ai_first": "等待AI角色先发言...",
     "action_tooltip": "无法重新生成包含动作的回应。",
     "action_prompt_header": "动作建议",
     "action_approve": "接受",

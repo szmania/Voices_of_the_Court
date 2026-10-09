@@ -356,7 +356,9 @@
     "ai_to_ai_context_switch": "[System note: The previous exchange is complete. You will now initiate a new exchange with a different character.]",
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
-    "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?"
+    "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[System instruction: You are {characterName}. You approached {playerName} and are opening this conversation yourself. Come up with a reason or topic to talk about (a request, news, a concern, a rumor, or a personal matter fitting your character, traits, and current situation) and open with it. Do not wait for a reply. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
+    "ai_initiated_narrator_prompt": "Now, what does {sourceCharacterName} say to {playerName} to start this conversation?"
   },
   "chat": {
     "target_label": "Target Character:",
@@ -374,6 +376,7 @@
     "regenerate_tooltip": "You can only regenerate a response if the AI was the last one to speak.",
     "leave_tooltip": "End the current conversation and save the summary.",
     "waiting_tooltip": "Waiting for response...",
+    "waiting_on_ai_first": "Waiting on AI characters to speak first...",
     "action_tooltip": "Cannot regenerate a response that includes actions.",
     "action_prompt_header": "action suggested",
     "action_approve": "accept",

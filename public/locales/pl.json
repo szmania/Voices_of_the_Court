@@ -311,6 +311,8 @@
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[Instrukcja systemowa: Jesteś {characterName}. Podszedłeś do {playerName} i sam rozpoczynasz tę rozmowę. Wymyśl powód lub temat do rozmowy (prośbę, wiadomość, troskę, plotkę lub osobistą sprawę pasującą do twojej postaci, jej cech i obecnej sytuacji) i zacznij od niego. Nie czekaj na odpowiedź. Napisz wiadomość tylko dla swojej postaci. Nie pisz jako inne postacie. Użyj markdownu dla akcji, jak *to*.]",
+    "ai_initiated_narrator_prompt": "Co teraz {sourceCharacterName} mówi do {playerName}, aby rozpocząć tę rozmowę?",
     "start_writing_reply": "Teraz zacznij pisać odpowiedź {characterName}:"
   },
   "chat": {
@@ -329,6 +331,7 @@
     "regenerate_tooltip": "Możesz zregenerować odpowiedź tylko wtedy, gdy AI mówiła jako ostatnia.",
     "leave_tooltip": "Zakończ bieżącą rozmowę i zapisz podsumowanie.",
     "waiting_tooltip": "Oczekiwanie na odpowiedź...",
+    "waiting_on_ai_first": "Oczekiwanie, aż postacie AI przemówią pierwsze...",
     "action_tooltip": "Nie można zregenerować odpowiedzi zawierającej akcje.",
     "action_prompt_header": "zaproponowano akcję",
     "action_approve": "zaakceptuj",

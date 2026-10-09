@@ -315,6 +315,8 @@
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[Instrucción del sistema: Eres {characterName}. Te acercaste a {playerName} y estás abriendo esta conversación tú mismo. Piensa en un motivo o tema del que hablar (una petición, una noticia, una preocupación, un rumor o un asunto personal que encaje con tu personaje, sus rasgos y tu situación actual) y ábrelo con ello. No esperes una respuesta. Escribe un mensaje solo para tu personaje. No escribas como otros personajes. Usa markdown para las acciones, como *esto*.]",
+    "ai_initiated_narrator_prompt": "¿Qué dice {sourceCharacterName} a {playerName} para comenzar esta conversación?",
     "start_writing_reply": "Ahora empieza a escribir la respuesta de {characterName}:"
   },
   "chat": {
@@ -333,6 +335,7 @@
     "regenerate_tooltip": "Solo puedes regenerar una respuesta si la IA fue la última en hablar.",
     "leave_tooltip": "Terminar la conversación actual y guardar el resumen.",
     "waiting_tooltip": "Esperando respuesta...",
+    "waiting_on_ai_first": "Esperando a que los personajes de la IA hablen primero...",
     "action_tooltip": "No se puede regenerar una respuesta que incluye acciones.",
     "action_prompt_header": "acción sugerida",
     "action_approve": "aceptar",

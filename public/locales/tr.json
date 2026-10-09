@@ -321,7 +321,9 @@
     "ai_to_ai_context_switch": "[Sistem notu: Önceki diyalog tamamlandı. Şimdi farklı bir karakterle yeni bir diyalog başlatacaksın.]",
     "ai_to_ai_narrator_prompt": "Şimdi, {sourceCharacterName}, {targetCharacterName} karakterine ne diyor?",
     "ai_to_ai_narrator_reply_prompt": "Şimdi, {sourceCharacterName} karakterinin {targetCharacterName} karakterine cevabı nedir?",
-    "ai_to_ai_narrator_non_targeted_prompt": "Şimdi, {sourceCharacterName} karakterinin devam eden konuşmadaki tepkisi nedir?"
+    "ai_to_ai_narrator_non_targeted_prompt": "Şimdi, {sourceCharacterName} karakterinin devam eden konuşmadaki tepkisi nedir?",
+    "roleplay_instruction_ai_initiated": "[Sistem talimatı: Sen {characterName}'sın. {playerName}'e yaklaştın ve bu konuşmayı kendin başlatıyorsun. Karakterine, özelliklerine ve mevcut durumuna uygun bir neden veya konu bul (bir rica, haber, endişe, söylenti veya kişisel bir mesele) ve ona göre başla. Cevap bekleme. Sadece kendi karakterin için bir mesaj yaz. Başka karakterler olarak yazma. Eylemler için *böyle* markdown kullan.]",
+    "ai_initiated_narrator_prompt": "Şimdi, {sourceCharacterName} bu konuşmayı başlatmak için {playerName}'e ne diyor?"
   },
   "chat": {
     "target_label": "Hedef Karakter:",
@@ -339,6 +341,7 @@
     "regenerate_tooltip": "Sadece AI en son konuşan tarafsa yanıtı yeniden oluşturabilirsiniz.",
     "leave_tooltip": "Mevcut konuşmayı bitir ve özeti kaydet.",
     "waiting_tooltip": "Yanıt bekleniyor...",
+    "waiting_on_ai_first": "YZ karakterlerinin önce konuşması bekleniyor...",
     "action_tooltip": "Eylem içeren bir yanıt yeniden oluşturulamaz.",
     "action_prompt_header": "eylem önerildi",
     "action_approve": "kabul et",

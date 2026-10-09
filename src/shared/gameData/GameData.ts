@@ -306,6 +306,13 @@ export class GameData {
      */
     totalDays!: number;
     votcCheckpointEpoch: number;
+    /**
+     * Character id of the AI that initiated this conversation, parsed from the
+     * mod's `VOTC:IN/;/ai_speaks_first/;/<id>/;/` marker. Undefined for
+     * player-initiated conversations (the mod only emits the marker for
+     * AI-initiated ones).
+     */
+    aiInitiatorId?: number;
     votcTimelineNodeA?: number;
     votcTimelineNodeB?: number;
     votcTimelineParentA?: number;

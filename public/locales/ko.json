@@ -311,6 +311,8 @@
     "ai_to_ai_narrator_prompt": "Now, what does {sourceCharacterName} say to {targetCharacterName}?",
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
+    "roleplay_instruction_ai_initiated": "[시스템 지시: 당신은 {characterName}입니다. 당신은 {playerName}에게 다가가 이 대화를 직접 시작합니다. 당신의 캐릭터, 성격, 현재 상황에 어울리는 이유나 주제(부탁, 소식, 걱정, 소문, 개인적인 일)를 정해 그것으로 대화를 시작하세요. 답장을 기다리지 마세요. 자신의 캐릭터의 메시지만 쓰세요. 다른 캐릭터로 쓰지 마세요. 동작에는 *이렇게* 마크다운을 사용하세요.]",
+    "ai_initiated_narrator_prompt": "이제 {sourceCharacterName}이(가) {playerName}에게 무엇이라 말하며 이 대화를 시작할까요?",
     "start_writing_reply": "이제 {characterName}의 답장을 작성하기 시작하세요:"
   },
   "chat": {
@@ -329,6 +331,7 @@
     "regenerate_tooltip": "AI가 마지막으로 말한 경우에만 응답을 재생성할 수 있습니다.",
     "leave_tooltip": "현재 대화를 종료하고 요약을 저장합니다.",
     "waiting_tooltip": "응답을 기다리는 중...",
+    "waiting_on_ai_first": "AI 캐릭터가 먼저 말하기를 기다리는 중...",
     "action_tooltip": "작업이 포함된 응답은 재생성할 수 없습니다.",
     "action_prompt_header": "작업 제안됨",
     "action_approve": "수락",
