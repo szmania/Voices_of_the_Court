@@ -704,12 +704,28 @@ function updateInputTooltip() {
     if (chatInput.disabled) {
         // @ts-ignore
         const lm = window.LocalizationManager;
-        const waitingTooltip = (lm ? lm.getNestedTranslation('chat.waiting_tooltip') : null) || "Waiting for response...";
+        // Native-title fallback: a native title on a disabled textarea is not
+        // reliably shown by Chromium (disabled controls are not hit-testable),
+        // so the .input-container ::after tooltip is the primary mechanism.
+        const tooltipKey = aiInitiatorId ? 'chat.waiting_on_ai_first' : 'chat.waiting_tooltip';
+        const tooltipFallback = aiInitiatorId ? "Waiting on AI characters to speak first..." : "Waiting for response...";
+        const waitingTooltip = (lm ? lm.getNestedTranslation(tooltipKey) : null) || tooltipFallback;
         chatInput.title = waitingTooltip;
         chatInput.style.cursor = 'not-allowed';
     } else {
         chatInput.title = '';
         chatInput.style.cursor = 'url(../assets/cursor.png), auto';
+    }
+}
+
+// Removes the AI-initiated gate tooltip (class + data-tooltip) from the input
+// container. Called on every gate release path so the normal tooltip is
+// restored once the initiating character has spoken (or generation ended).
+function clearAwaitingAiFirstTooltip() {
+    const inputContainer = chatInput.closest('.input-container');
+    if (inputContainer) {
+        inputContainer.classList.remove('awaiting-ai-first');
+        inputContainer.removeAttribute('data-tooltip');
     }
 }
 
@@ -1772,8 +1788,22 @@ ipcRenderer.on('chat-ready', () => {
         showLoadingDots(true);
         updateStatusText('chat.status_speaking', { characterName: currentGameData?.getCharacterById(aiInitiatorId)?.shortName ?? '', characterId: aiInitiatorId });
         updateInputTooltip();
+        // Container-level tooltip: a native title on a disabled textarea is not
+        // reliably shown by Chromium (disabled controls are not hit-testable),
+        // so the ::after tooltip on .input-container is the primary mechanism
+        // while the gate is active.
+        const gateInputContainer = chatInput.closest('.input-container');
+        if (gateInputContainer) {
+            // @ts-ignore
+            const lm = window.LocalizationManager;
+            const waitingText = (lm ? lm.getNestedTranslation('chat.waiting_on_ai_first') : null) || "Waiting on AI characters to speak first...";
+            gateInputContainer.classList.add('awaiting-ai-first');
+            gateInputContainer.setAttribute('data-tooltip', waitingText);
+        }
         return;
     }
+    // Reset any stale gate tooltip left over from a previous conversation.
+    clearAwaitingAiFirstTooltip();
     chatInput.disabled = false;
     chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
     chatInput.focus();
@@ -2033,6 +2063,7 @@ ipcRenderer.on('message-receive', async (e, message: Message, waitForActions: bo
     // releases the input.
     if (aiInitiatorId && message.role === 'assistant' && (message as any).characterId === aiInitiatorId) {
         aiInitiatorId = undefined;
+        clearAwaitingAiFirstTooltip();
         removeLoadingDots(true);
         updateStatusText('');
         chatInput.placeholder = window.LocalizationManager?.getNestedTranslation('chat.input_placeholder', 'Write a message...');
@@ -2094,6 +2125,7 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
     // AI-initiated conversation gate: never leave the input locked on failure.
     if (aiInitiatorId) {
         aiInitiatorId = undefined;
+        clearAwaitingAiFirstTooltip();
         updateStatusText('');
     }
     displayErrorMessage(errorMessage);
@@ -2103,6 +2135,7 @@ ipcRenderer.on('generation-cancelled', () => {
     // AI-initiated conversation gate: never leave the input locked on cancel.
     if (aiInitiatorId) {
         aiInitiatorId = undefined;
+        clearAwaitingAiFirstTooltip();
         updateStatusText('');
     }
     removeLoadingDots();
@@ -2122,6 +2155,7 @@ ipcRenderer.on('generation-finished', () => {
     // initiator's message, e.g. an empty response) must release the input.
     if (aiInitiatorId) {
         aiInitiatorId = undefined;
+        clearAwaitingAiFirstTooltip();
     }
     removeLoadingDots();
     updateStatusText('');

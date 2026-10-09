@@ -3,7 +3,7 @@ import { Character } from "./Character";
 const fs = require('fs');
 
 export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
-async function readLastRelevantBlock(filePath: string): Promise<{ content: string; initStart: number } | undefined> {
+async function readLastRelevantBlock(filePath: string): Promise<string | undefined> {
     const CHUNK_SIZE = 512 * 1024; // 512KB chunks
     const SEARCH_STRING = 'VOTC:IN/;/init';
 
@@ -28,9 +28,7 @@ async function readLastRelevantBlock(filePath: string): Promise<{ content: strin
                 const resultSize = size - absoluteStart;
                 const resultBuffer = Buffer.alloc(resultSize);
                 await handle.read(resultBuffer, 0, resultSize, absoluteStart);
-                // initStart is returned so the ai_speaks_first marker (which the
-                // mod emits just BEFORE the init line) can be scanned for.
-                return { content: resultBuffer.toString('utf8'), initStart: absoluteStart };
+                return resultBuffer.toString('utf8');
             }
 
             if (position === 0) break;
@@ -65,7 +63,7 @@ async function readLastRelevantBlock(filePath: string): Promise<{ content: strin
     const pendingKnownSecrets = new Map<number, Partial<KnownSecret> & { otherKnowers: { id: number; name: string }[] }>();
 
     // Efficiently find the last block by reading from the end of the file
-    let relevantLogBlock: { content: string; initStart: number } | undefined;
+    let relevantLogBlock: string | undefined;
     for (let i = 0; i < 3; i++) {
         relevantLogBlock = await readLastRelevantBlock(debugLogPath);
         if (relevantLogBlock) {
@@ -92,7 +90,7 @@ async function readLastRelevantBlock(filePath: string): Promise<{ content: strin
                 const lineStartIndex = content.lastIndexOf('\n', lastIndex);
                 // lineStartIndex === -1 means the init is at the content start;
                 // position + (-1) + 1 = position, which is then correct too.
-                relevantLogBlock = { content: content.substring(lineStartIndex + 1), initStart: position + lineStartIndex + 1 };
+                relevantLogBlock = content.substring(lineStartIndex + 1);
             }
         } catch (err) {
             console.error(`Error during fallback log read: ${err}`);
@@ -106,7 +104,7 @@ async function readLastRelevantBlock(filePath: string): Promise<{ content: strin
         return undefined;
     }
 
-    const lines = relevantLogBlock.content.split(/\r?\n/);
+    const lines = relevantLogBlock.split(/\r?\n/);
 
     console.log(`Starting to parse last VOTC:IN block from log file: ${debugLogPath}`);
     // console.log(`--- Relevant Log Block Start ---`);
@@ -587,16 +585,6 @@ async function readLastRelevantBlock(filePath: string): Promise<{ content: strin
         }
     }
 
-    // The mod emits the ai_speaks_first marker just BEFORE the init line,
-    // outside the block read above. When the block itself carried no marker,
-    // scan backward from the init line for the current conversation's marker.
-    if (gameData && gameData.aiInitiatorId === undefined) {
-        const beforeInitId = await readAiInitiatorIdBeforeInit(debugLogPath, relevantLogBlock.initStart);
-        if (beforeInitId !== undefined) {
-            gameData.aiInitiatorId = beforeInitId;
-            console.log(`[parseLog] AI-initiated conversation: character ${beforeInitId} speaks first.`);
-        }
-    }
 
     for (const entry of deferredRelations) {
         const charA = gameData?.characters.get(entry.charAID);
@@ -742,67 +730,6 @@ const MAX_MODIFIERS_PER_CHARACTER = 60;
  * Used at app startup for identity lines emitted while the app was not yet
  * tailing the log (the app can be started after a save was loaded).
  */
-/**
- * Reads the ai_speaks_first marker the mod emits just BEFORE the init line of
- * the current conversation. Scans backward from the init line's byte offset
- * and stops at the first earlier `VOTC:IN/;/init` line: a marker found first
- * belongs to the conversation being started, while an init found first means
- * the current conversation has no marker (also correctly ignores stale
- * markers from previous conversations). Returns the initiator character id,
- * or undefined when no marker belongs to this conversation.
- */
-async function readAiInitiatorIdBeforeInit(filePath: string, initStart: number): Promise<number | undefined> {
-    const MARKER = 'VOTC:IN/;/ai_speaks_first/;/';
-    const INIT = 'VOTC:IN/;/init';
-    const CHUNK_SIZE = 512 * 1024;
-
-    let handle;
-    try {
-        handle = await fs.promises.open(filePath, 'r');
-        const { size } = await handle.stat();
-        if (initStart <= 0 || initStart > size) return undefined;
-
-        let position = Math.max(0, initStart - CHUNK_SIZE);
-        let currentReadSize = initStart - position;
-
-        while (true) {
-            const buffer = Buffer.alloc(currentReadSize);
-            await handle.read(buffer, 0, currentReadSize, position);
-            const content = buffer.toString('utf8');
-
-            const markerIndex = content.lastIndexOf(MARKER);
-            const initIndex = content.lastIndexOf(INIT);
-
-            if (markerIndex !== -1 && (initIndex === -1 || markerIndex > initIndex)) {
-                // Marker belongs to the current conversation's init.
-                const lineStart = content.lastIndexOf('\n', markerIndex) + 1;
-                const lineEnd = content.indexOf('\n', markerIndex);
-                const line = content.slice(lineStart, lineEnd === -1 ? content.length : lineEnd);
-                const id = Number(line.slice(line.indexOf(MARKER) + MARKER.length).split('/;/')[0]);
-                return Number.isInteger(id) && id > 0 ? id : undefined;
-            }
-            if (initIndex !== -1 && (markerIndex === -1 || initIndex > markerIndex)) {
-                // An earlier init separates this conversation from any marker
-                // before it: the current conversation has no marker.
-                return undefined;
-            }
-
-            if (position === 0) return undefined;
-
-            // Step back one chunk; the small overlap re-reads the tail of the
-            // previous chunk so a marker substring spanning the boundary is
-            // still found.
-            const newPosition = Math.max(0, position - CHUNK_SIZE);
-            currentReadSize = (position - newPosition) + MARKER.length;
-            position = newPosition;
-        }
-    } catch (err) {
-        console.error(`Error reading ai_speaks_first marker before init: ${err}`);
-        return undefined;
-    } finally {
-        if (handle) await handle.close();
-    }
-}
 
 export async function readLastLogLineContaining(filePath: string, marker: string): Promise<string | undefined> {
     const CHUNK_SIZE = 512 * 1024;
