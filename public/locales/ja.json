@@ -980,5 +980,26 @@
     "description_label": "現在の会話情報：",
     "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
     "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI（ChatGPT サブスクリプション）",
+    "continue": "ChatGPT で続行",
+    "different": "別のアカウントまたはワークスペースを使用",
+    "cancel": "ログインをキャンセル",
+    "sign_out": "ログアウト",
+    "refresh": "モデルを更新",
+    "manage_usage": "使用量を管理",
+    "using_plan": "ChatGPT プランを使用中",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

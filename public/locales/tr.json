@@ -982,5 +982,26 @@
     "description_label": "Mevcut konuşma bilgileri:",
     "system_prompt": "Sen, rol yapma oyunları için canlı sahne atmosferi açıklamaları oluşturmaktan sorumlu bir sahne açıklaması üretim asistanısın.",
     "fallback_description": "{{date}} tarihinde, {{playerName}} ve {{aiName}} {{location}} konumunda bir konuşma başlattı."
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI (ChatGPT aboneliği)",
+    "continue": "ChatGPT ile devam et",
+    "different": "Farklı hesap veya çalışma alanı kullan",
+    "cancel": "Girişi iptal et",
+    "sign_out": "Çıkış yap",
+    "refresh": "Modelleri yenile",
+    "manage_usage": "Kullanımı yönet",
+    "using_plan": "ChatGPT planı kullanılıyor",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

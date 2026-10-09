@@ -1,4 +1,5 @@
 import { isPromptKey } from '../shared/promptKeys';
+import { initializeChatGPT } from './auth/chatgptRuntime';
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 app.commandLine.appendSwitch('disable-gpu');
 import { getEncoding, Tiktoken } from "js-tiktoken";
@@ -1010,6 +1011,9 @@ function setLogPollInterval(ms: number) {
 
 
 app.on('ready',  async () => {
+    await initializeChatGPT(() => [mainConfigWindow, configWindow?.window]).catch(() => {
+        console.warn('ChatGPT subscription authentication could not initialize. Existing providers remain available.');
+    });
     try {
         console.log("Initializing tiktoken encoder at startup...");
         tiktokenEncoder = getEncoding("cl100k_base");

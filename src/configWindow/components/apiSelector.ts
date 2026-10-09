@@ -1,4 +1,5 @@
 import {ipcRenderer } from 'electron';
+import './ChatGPTSettings';
 import { Config } from '../../shared/Config';
 import { ApiConnection, player2BaseUrl, Connection } from '../../shared/apiConnection';
 
@@ -24,6 +25,7 @@ function defineTemplate(label: string){
             <option value="player2" data-i18n="api.player2">Player2</option>
             <option value="novelai" data-i18n="api.novelai">NovelAI</option>
             <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
+            <option value="openai_chatgpt" data-i18n="chatgpt.provider">OpenAI (ChatGPT subscription)</option>
         </select>
     </div>
     
@@ -78,6 +80,8 @@ function defineTemplate(label: string){
             </select>
             </div>
         </div>
+
+        <div id="chatgpt-menu" style="display:none"><chatgpt-settings></chatgpt-settings></div>
 
         <div id="gemini-menu">
             <h2 data-i18n="api.gemini">Google Gemini</h2>
@@ -409,6 +413,7 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let apiConfig = config[confID].connection;
+        if (confID === 'embeddingApiConnectionConfig') this.typeSelector.querySelector('option[value="openai_chatgpt"]')?.remove();
 
 
         this.typeSelector.value = apiConfig.type;
@@ -579,6 +584,15 @@ class ApiSelector extends HTMLElement{
             }
 
             switch(this.typeSelector.value){
+                case 'openai_chatgpt':
+                    ipcRenderer.send('config-change-nested', this.confID, 'connection', {
+                        type: 'openai_chatgpt', baseUrl: 'https://api.openai.com/v1', key: '',
+                        model: (this.shadow.querySelector('chatgpt-settings') as any).model || '',
+                        forceInstruct: false, overwriteContext: this.overwriteContextCheckbox.checked,
+                        customContext: Number(this.customContextNumber.value)
+                    });
+                    void (this.shadow.querySelector('chatgpt-settings') as any).refreshModels();
+                    break;
                 case 'novelai':
                     this.saveNovelaiConfig();
                     break;
@@ -680,6 +694,13 @@ class ApiSelector extends HTMLElement{
 
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
+            if (this.typeSelector.value === 'openai_chatgpt') {
+                const response = await ipcRenderer.invoke('openai-chatgpt:test-connection', this.confID);
+                const result = response.ok ? response.value : { success: false, errorMessage: response.error };
+                this.testConnectionSpan.textContent = result.success ? 'Connection valid!' : result.errorMessage;
+                this.testConnectionSpan.style.color = result.success ? 'green' : 'red';
+                return;
+            }
 
             // The embedding config tests the embedding endpoint, not chat completions.
             if (this.confID === 'embeddingApiConnectionConfig') {
@@ -803,6 +824,9 @@ class ApiSelector extends HTMLElement{
     }
 
     displaySelectedApiBox(){
+        const subscription = this.typeSelector.value === 'openai_chatgpt';
+        (this.shadow.querySelector('#chatgpt-menu') as HTMLElement).style.display = subscription ? 'block' : 'none';
+        document.dispatchEvent(new CustomEvent('votc-provider-changed', { detail: { confID: this.confID, subscription } }));
         // Hide all divs first for simplicity and to prevent bugs
         this.openaiDiv.style.display = "none";
         this.oobaDiv.style.display = "none";
