@@ -9,7 +9,10 @@ module.exports = {
     //"asar":true
     ignore: /^(\/out|\/tests|\/logs|\/debug|\/\.)/
   },
-  rebuildConfig: {},
+  rebuildConfig: {
+    // These Node-API modules ship platform binaries that do not depend on Electron's ABI.
+    ignoreModules: ['argon2', 'electron-overlay-window', '@paymoapp/active-window']
+  },
   makers: [
     {
       name: '@electron-forge/maker-squirrel',

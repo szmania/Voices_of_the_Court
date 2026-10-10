@@ -984,5 +984,26 @@
     "description_label": "Informations sur la conversation en cours :",
     "system_prompt": "Vous êtes un assistant de génération de descriptions de scènes chargé de créer des descriptions d'ambiance de scènes vives pour les jeux de rôle.",
     "fallback_description": "Le {{date}}, {{playerName}} et {{aiName}} ont entamé une conversation à {{location}}."
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI (abonnement ChatGPT)",
+    "continue": "Continuer avec ChatGPT",
+    "different": "Utiliser un autre compte ou espace de travail",
+    "cancel": "Annuler la connexion",
+    "sign_out": "Se déconnecter",
+    "refresh": "Actualiser les modèles",
+    "manage_usage": "Gérer l’utilisation",
+    "using_plan": "Abonnement ChatGPT utilisé",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }
