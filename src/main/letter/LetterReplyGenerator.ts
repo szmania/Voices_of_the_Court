@@ -157,23 +157,28 @@ export class LetterReplyGenerator {
      * @param letterContent Letter content
      * @returns The constructed prompt
      */
-    private async buildLetterPrompt(gameData: GameData, latestLetter: ILetter): Promise<string> {
-        // Ensure sender and recipient from the letter are in the gameData context
-        if (!gameData.characters.has(latestLetter.sender.id)) {
-            gameData.addCharacter(latestLetter.sender.id, latestLetter.sender);
-        }
-        if (!gameData.characters.has(latestLetter.recipient.id)) {
-            gameData.addCharacter(latestLetter.recipient.id, latestLetter.recipient);
-        }
+    /**
+     * Creates a temporary conversation-like context object for prompt building
+     * (memory retrieval reads gameData/config/textGenApiConnection off it).
+     */
+    private asPromptContext(gameData: GameData): any {
+        return {
+            gameData: gameData,
+            config: {
+                maxMemoryTokens: 1000
+            },
+            textGenApiConnection: this.apiConnection
+        };
+    }
 
-        const player = gameData.characters.get(latestLetter.sender.id);
-        const ai = gameData.characters.get(latestLetter.recipient.id);
-
-        if (!player || !ai) {
-            // This should now be much less likely to happen
-            throw new Error('Player or AI character data not found in gameData');
-        }
-
+    /**
+     * Loads the grounding context shared by every letter prompt: the pList
+     * character description (plus the player-authored override for the AI
+     * character), prior conversation + letter summaries, and the AI's relevant
+     * memories. Kept in one place so the reply path and the NPC-initiated path
+     * stay grounded identically.
+     */
+    private async buildLetterGrounding(gameData: GameData, player: Character, ai: Character): Promise<{ characterDescription: string; conversationSummary: string; letterSummaryContent: string; memoryContent: string }> {
         // Use pListLetter.js to build character description
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
         let characterDescription = pListLetter(gameData);
@@ -193,7 +198,6 @@ export class LetterReplyGenerator {
             const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id)).slice(0, depth);
 
             if (aiSummaries.length > 0) {
-                // Read all summaries for this character, sorted by date (most recent first)
                 const allSummaries = aiSummaries.map((summary, index) =>
                     `${index + 1}. ${summary.date}: ${summary.content}`
                 ).join('\n');
@@ -226,17 +230,8 @@ export class LetterReplyGenerator {
         // Read memory content
         let memoryContent = '';
         try {
-            // Create a temporary conversation object to get memory content
-            const tempConversation = {
-                gameData: gameData,
-                config: {
-                    maxMemoryTokens: 1000
-                },
-                textGenApiConnection: this.apiConnection
-            } as any;
-
             const prompts = { memoriesPrompt: getEffectivePrompts(this.config, this.votcDataPath, gameData).memoriesPrompt };
-            const memoryString = createMemoryString(tempConversation, prompts, ai);
+            const memoryString = createMemoryString(this.asPromptContext(gameData), prompts, ai);
             if (memoryString && memoryString.trim() !== '') {
                 memoryContent = `${memoryString}\n\n`;
                 console.log(`Loaded memory content for letter prompt: ${memoryString.substring(0, 100)}...`);
@@ -245,6 +240,40 @@ export class LetterReplyGenerator {
             }
         } catch (error) {
             console.warn(`Failed to load memory content: ${error}`);
+        }
+
+        return { characterDescription, conversationSummary, letterSummaryContent, memoryContent };
+    }
+
+    private async buildLetterPrompt(gameData: GameData, latestLetter: ILetter): Promise<string> {
+        // Ensure sender and recipient from the letter are in the gameData context
+        if (!gameData.characters.has(latestLetter.sender.id)) {
+            gameData.addCharacter(latestLetter.sender.id, latestLetter.sender);
+        }
+        if (!gameData.characters.has(latestLetter.recipient.id)) {
+            gameData.addCharacter(latestLetter.recipient.id, latestLetter.recipient);
+        }
+
+        const player = gameData.characters.get(latestLetter.sender.id);
+        const ai = gameData.characters.get(latestLetter.recipient.id);
+
+        if (!player || !ai) {
+            // This should now be much less likely to happen
+            throw new Error('Player or AI character data not found in gameData');
+        }
+
+        const { characterDescription, conversationSummary, letterSummaryContent, memoryContent } = await this.buildLetterGrounding(gameData, player, ai);
+
+        // Thread continuity (VOTC-194): a player response linked to an NPC
+        // opening letter carries that opening as extra context, so the AI
+        // replies to the whole exchange rather than the latest line alone.
+        let threadContext = '';
+        if (latestLetter.replyToId) {
+            const priorLetters = LetterManager.getInstance().getAllLetters(String(player.id));
+            const opening = priorLetters.find(l => l.id === latestLetter.replyToId);
+            if (opening) {
+                threadContext = `Earlier in this correspondence you wrote:\n"${opening.content}"\n\n`;
+            }
         }
 
         const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
@@ -256,10 +285,132 @@ export class LetterReplyGenerator {
                        .replace('{{letterSummaryContent}}', letterSummaryContent || '')
                        .replace('{{memoryContent}}', memoryContent || '')
                        .replace('{{playerName}}', player?.fullName || '')
-                       .replace('{{letterContent}}', latestLetter?.content || '')
+                       .replace('{{letterContent}}', threadContext + (latestLetter?.content || ''))
                        .replace(/{{language}}/g, this.config.language || 'en');
 
         return prompt;
+    }
+
+    /**
+     * Relation-category tone guidance for an NPC-initiated opening letter.
+     * Applied as an extra instruction line so the shared letterPrompt template
+     * is reused verbatim.
+     */
+    private buildCategoryToneGuidance(category?: string): string {
+        const guidance: Record<string, string> = {
+            LOVER: 'You write to your lover: warm, intimate and personal, with affection and private concerns.',
+            FRIEND: 'You write to a friend: cordial, familiar and relaxed, sharing news and good humour.',
+            RIVAL: 'You write to a rival: cool, guarded and subtly barbed, without overt hostility.',
+            KIN: 'You write to a family member: familiar and concerned, bound by blood and duty.',
+            LIEGE: 'You write to your liege: deferential and formal, respectful of rank and obligation.',
+            MENTOR: 'You write to your mentor or student: instructive and encouraging, with guidance or reports.',
+            WARD: 'You write to your ward or guardian: protective and attentive, mindful of their upbringing.',
+            NONE: 'You write to an acquaintance: polite and measured, appropriate to your station.'
+        };
+        const key = (category || 'NONE').toUpperCase();
+        return guidance[key] || guidance.NONE;
+    }
+
+    private async buildNpcInitiationPrompt(gameData: GameData, npc: Character, player: Character, category: string | undefined, flavor: string): Promise<string> {
+        const { characterDescription, conversationSummary, letterSummaryContent, memoryContent } = await this.buildLetterGrounding(gameData, player, npc);
+
+        const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
+        let prompt = effectivePrompts.letterPrompt;
+
+        // The base template is phrased as a reply; re-anchor it as an opening
+        // letter that the NPC writes first, grounded in the payload's relation
+        // category and flavor text.
+        prompt = prompt.replace(
+            'You have received a letter from {{playerName}} with the following content:',
+            'You are writing a letter first, of your own initiative, to {{playerName}}. Your reason for writing now:'
+        );
+
+        prompt = prompt.replace('{{aiName}}', npc?.fullName || '')
+                       .replace('{{characterDescription}}', characterDescription || '')
+                       .replace('{{conversationSummary}}', conversationSummary || '')
+                       .replace('{{letterSummaryContent}}', letterSummaryContent || '')
+                       .replace('{{memoryContent}}', memoryContent || '')
+                       .replace('{{playerName}}', player?.fullName || '')
+                       .replace('{{letterContent}}', flavor || '')
+                       .replace(/{{language}}/g, this.config.language || 'en');
+
+        prompt += `\n\n${this.buildCategoryToneGuidance(category)} Write 200-500 words as a single letter. Write the letter content directly, without any explanation or description.`;
+
+        return prompt;
+    }
+
+    /**
+     * Generate the NPC's opening letter for an AI-initiated (npcltr) request.
+     * The NPC is the sender, the player the recipient; the returned letter is
+     * an inbox letter (isPlayerSender=false) that the caller queues for
+     * delivery on the npcltr channel.
+     */
+    public async generateNpcInitiationLetter(gameData: GameData, request: ILetter, category: string | undefined, flavor: string): Promise<ILetter | null> {
+        try {
+            const npc = gameData.characters.get(request.sender.id) ?? request.sender;
+            const player = gameData.characters.get(request.recipient.id) ?? request.recipient;
+            if (!npc || !player) {
+                console.error('[LetterReplyGenerator] NPC initiation: could not resolve sender/recipient characters.');
+                return null;
+            }
+            if (!gameData.characters.has(npc.id)) gameData.addCharacter(npc.id, npc);
+            if (!gameData.characters.has(player.id)) gameData.addCharacter(player.id, player);
+
+            const promptText = await this.buildNpcInitiationPrompt(gameData, npc, player, category, flavor);
+            console.log(`[LetterReplyGenerator] NPC initiation prompt: ${promptText.substring(0, 200)}...`);
+
+            const messages: Message[] = [{ role: 'user', content: promptText }];
+            const apiResult = await this.apiConnection.complete(messages, false, {
+                max_tokens: this.config.maxTokens,
+                temperature: this.config.textGenerationApiConnectionConfig.parameters.temperature
+            });
+            const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
+            if (!response || response.trim() === '') {
+                console.warn('[LetterReplyGenerator] Empty response from LLM for NPC initiation letter');
+                return null;
+            }
+            const escapedResponse = this.escapeQuotes(response.trim(), this.config.language);
+
+            const openingDay = request.totalDays > 0 ? request.totalDays : gameData.totalDays;
+            const delay = request.delay || 0;
+            const timestamp = new Date(request.timestamp);
+            timestamp.setUTCDate(timestamp.getUTCDate() + Math.floor(delay * 5 / 9));
+            const expectedDelivery = new Date(request.timestamp);
+            expectedDelivery.setUTCDate(expectedDelivery.getUTCDate() + delay);
+
+            const opening = new Letter(
+                randomUUID(),
+                npc,
+                player,
+                'npcltr',
+                escapedResponse,
+                LetterType.PERSONAL,
+                timestamp,
+                false,
+                delay,
+                openingDay,
+                undefined,
+                'pending',
+                false,
+                undefined,
+                undefined,
+                expectedDelivery
+            );
+            opening.npcLetterCategory = category;
+
+            const letterManager = LetterManager.getInstance();
+            letterManager.saveLetter(opening, String(player.id));
+
+            console.log(`[LetterReplyGenerator] NPC opening letter generated (${opening.id}) from ${npc.fullName} to ${player.fullName}.`);
+            return opening;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error(`[LetterReplyGenerator] Error generating NPC initiation letter: ${error.message}`);
+            } else {
+                console.error('[LetterReplyGenerator] Unknown error generating NPC initiation letter:', error);
+            }
+            return null;
+        }
     }
 
     /**

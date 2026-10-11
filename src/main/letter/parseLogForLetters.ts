@@ -82,11 +82,30 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
                 const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
 
+                // AI-initiated letter request (VOTC-194): the payload carries no
+                // sender/recipient fields; both ids come from the letter-session
+                // init block (gameData). The NPC is the sender, the player the
+                // recipient. Content signature: VOTC_CE_LETTER|<CATEGORY>|<flavor>.
+                const isNpcInitiated = letterId === 'npcltr' || content.startsWith('VOTC_CE_LETTER|');
+                let npcLetterCategory: string | undefined;
+                let letterContent = content;
+                if (isNpcInitiated) {
+                    const sigParts = content.split('|');
+                    if (sigParts.length >= 3 && sigParts[0] === 'VOTC_CE_LETTER') {
+                        npcLetterCategory = sigParts[1].trim() || undefined;
+                        letterContent = sigParts.slice(2).join('|').trim();
+                    }
+                }
+
                 // Use the playerId and recipientId from the function arguments if they exist,
                 // as they are more reliable than the potentially swapped log values.
-                const finalSenderId = playerId || senderIdFromLog;
-                const finalRecipientId = recipientId || recipientIdFromLog;
-
+                // For npcltr payloads the init block is the only id source.
+                const finalSenderId = isNpcInitiated
+                    ? String(gameData.aiID)
+                    : (playerId || senderIdFromLog);
+                const finalRecipientId = isNpcInitiated
+                    ? String(gameData.playerID)
+                    : (recipientId || recipientIdFromLog);
                 // Parse triggered actions from remaining parts (parts[6+])
                 // Format: signature:arg1,arg2,...:triggerOn
                 const triggeredActions: any[] = [];
@@ -107,7 +126,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     }
                 }
 
-                if (content && letterId && finalSenderId && finalRecipientId) {
+                if (letterContent && letterId && finalSenderId && finalRecipientId) {
                     const sender = gameData.characters.get(Number(finalSenderId));
                     const recipient = gameData.characters.get(Number(finalRecipientId));
 
@@ -115,9 +134,31 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const correctedGameDate = totalDaysToDateString(writtenDateInDays);
                         const creationTimestamp = new Date(Date.now() + parseTimeOffset);
                         parseTimeOffset++;
-                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, letterContent, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
+                            if (npcLetterCategory) {
+                                letter.npcLetterCategory = npcLetterCategory;
+                            }
+                            // Thread continuity (VOTC-194): a player response
+                            // written after an NPC opening letter is linked to
+                            // that opening so the letters tab can render the
+                            // full chain (AI opening -> player -> AI reply).
+                            if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
+                                const playerNumericId = Number(finalSenderId);
+                                const npcNumericId = Number(finalRecipientId);
+                                const priorLetters = LetterManager.getInstance().getAllLetters(finalSenderId);
+                                const opening = priorLetters.find(l =>
+                                    l.subject === 'npcltr' &&
+                                    l.sender.id === npcNumericId &&
+                                    l.recipient.id === playerNumericId &&
+                                    !priorLetters.some(r => r.replyToId === l.id)
+                                );
+                                if (opening) {
+                                    letter.replyToId = opening.id;
+                                    console.log(`Linked player letter ${letterId} to NPC opening letter ${opening.id}.`);
+                                }
+                            }
                             // Guard: never auto-execute letter actions when manual approval is enabled.
                             // This branch is currently dead (associatedAction is never assigned), but if it
                             // is ever enabled, it must still respect manualLetterActionApproval.
@@ -125,8 +166,13 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                                 LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                             }
                             letters.push(letter);
-                            // The player is the sender of the letter being imported from the log
-                            LetterManager.getInstance().saveLetter(letter, finalSenderId);
+                            // Letters are stored under the player's folder. For a
+                            // player-sent letter the sender IS the player; for an
+                            // npcltr request the sender is the NPC, so the player
+                            // id must be used explicitly or the opening letter
+                            // would land in the NPC's folder and never show in the
+                            // Letters tab.
+                            LetterManager.getInstance().saveLetter(letter, isNpcInitiated ? String(gameData.playerID) : finalSenderId);
                         }
                     } else {
                         console.error(`Could not find sender (${finalSenderId}) or recipient (${finalRecipientId}) in gameData for letter.`);

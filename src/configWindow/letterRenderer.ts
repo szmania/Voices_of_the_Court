@@ -181,6 +181,47 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
     return null;
 }
 
+function renderNpcCategoryBadge(letter: Letter): string {
+    if (!letter.npcLetterCategory) return '';
+    const key = `letters.category_${letter.npcLetterCategory.toLowerCase()}`;
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, letter.npcLetterCategory);
+    return `<span class="npc-category-badge">${label}</span>`;
+}
+
+function renderChainLetterHtml(letter: Letter, listItem: HTMLElement): string {
+    const isPlayerSender = letter.sender.id === Number(selectedPlayerId);
+    const itemClass = isPlayerSender ? 'sent' : 'received';
+
+    if (!isPlayerSender) {
+        const isUnread = !letter.isRead;
+        listItem.classList.toggle('unread', isUnread && !listItem.classList.contains('unread') ? true : listItem.classList.contains('unread'));
+    }
+
+    const status = getLetterStatus(letter);
+    let statusHtml = '';
+    if (status) {
+        const journeyHtml = renderJourneyTimeline(status);
+        statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+        if (!isPlayerSender && status.journey && status.journey.currentStage === undefined) {
+            // received letters get the plain status without a journey timeline
+        }
+    }
+    const triggeredActionsHtml = renderTriggeredActionsListForListItem(letter);
+    return `
+        <div class="letter-item ${itemClass}" data-letter-id="${letter.id}">
+            <div class="letter-item-header">
+                <span class="letter-item-party">From: ${letter.sender.shortName}<br>To: ${letter.recipient.shortName}</span>
+                ${renderNpcCategoryBadge(letter)}
+                <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
+            </div>
+            <div class="letter-item-subject">${letter.subject}</div>
+            ${statusHtml}
+            ${triggeredActionsHtml}
+        </div>
+    `;
+}
+
 // State
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
@@ -192,7 +233,7 @@ let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
-let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
+let cachedLetterChains: Letter[][] | null = null;
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
@@ -318,7 +359,7 @@ function renderStatusSummary() {
 
         statusItem.addEventListener('click', () => {
             statusFilter = status as any;
-            cachedLetterPairs = null;
+            cachedLetterChains = null;
             renderStatusSummary(); // Re-render summary to update selection
             renderLetters(); // Re-render letters with new filter
         });
@@ -463,10 +504,10 @@ function renderLetters() {
         return;
     }
 
-    let letterPairs: { sent?: Letter, received?: Letter }[] = [];
+    let letterChains: Letter[][] = [];
 
-if (cachedLetterPairs) {
-letterPairs = cachedLetterPairs;
+    if (cachedLetterChains) {
+        letterChains = cachedLetterChains;
     } else {
         const cleanLetters = allLetters.filter(l => {
             if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
@@ -524,65 +565,52 @@ letterPairs = cachedLetterPairs;
             }
         }
 
-const lettersToDisplay = characterFilteredLetters;
+        const lettersToDisplay = characterFilteredLetters;
 
-    // Store the filtered letters so renderStatusSummary() can use them for accurate counts.
-    // This ensures the status summary reflects the same filtered set as the displayed letter list.
-    currentFilteredLetters = characterFilteredLetters;
+        // Store the filtered letters so renderStatusSummary() can use them for accurate counts.
+        // This ensures the status summary reflects the same filtered set as the displayed letter list.
+        currentFilteredLetters = characterFilteredLetters;
 
-    const repliesMap = new Map<string, Letter>();
-    const rootLetters: Letter[] = [];
-
+        // Thread the letters through replyToId. A root is a letter whose parent
+        // is outside the filtered set (or has none); walking replyToId from a
+        // root yields the whole chain (AI opening -> player -> AI reply).
+        const repliesMap = new Map<string, Letter>();
         lettersToDisplay.forEach(l => {
-            if (l.replyToId) {
-                repliesMap.set(l.replyToId, l);
-            } else {
-                rootLetters.push(l);
-            }
+            if (l.replyToId) repliesMap.set(l.replyToId, l);
         });
+        const displayIds = new Set(lettersToDisplay.map(l => l.id));
+        const rootLetters = lettersToDisplay.filter(l => !l.replyToId || !displayIds.has(l.replyToId));
 
         rootLetters.forEach(root => {
-            const reply = repliesMap.get(root.id);
-            if (root.sender.id === Number(selectedPlayerId)) {
-                letterPairs.push({ sent: root, received: reply });
-            } else {
-                letterPairs.push({ received: root, sent: reply });
+            const chain: Letter[] = [root];
+            const seen = new Set<string>([root.id]);
+            let current = root;
+            while (repliesMap.has(current.id)) {
+                const next = repliesMap.get(current.id)!;
+                if (seen.has(next.id)) break; // cycle guard
+                chain.push(next);
+                seen.add(next.id);
+                current = next;
             }
+            letterChains.push(chain);
         });
 
-        repliesMap.forEach((reply, rootId) => {
-            if (!rootLetters.some(root => root.id === rootId)) {
-                if (reply.sender.id === Number(selectedPlayerId)) {
-                    letterPairs.push({ sent: reply });
-                } else {
-                    letterPairs.push({ received: reply });
-                }
-            }
-        });
-
-        letterPairs.sort((a, b) => {
-            const getTimestamp = (letter: Letter | undefined) => {
-                if (!letter) return 0;
+        letterChains.sort((a, b) => {
+            const getTimestamp = (letter: Letter) => {
                 const ts = sortMode === 'gameDate'
                     ? new Date(letter.timestamp)
                     : new Date(letter.creationTimestamp || letter.timestamp);
-                // Return 0 for invalid dates to avoid sorting errors
                 return isNaN(ts.getTime()) ? 0 : ts.getTime();
             };
-
-            // Get the latest timestamp from each pair to sort by the most recent activity
-            const timeA = Math.max(getTimestamp(a.sent), getTimestamp(a.received));
-            const timeB = Math.max(getTimestamp(b.sent), getTimestamp(b.received));
-
-            return timeB - timeA; // Sort descending
+            return Math.max(...b.map(getTimestamp)) - Math.max(...a.map(getTimestamp));
         });
 
-cachedLetterPairs = letterPairs;
+        cachedLetterChains = letterChains;
     }
 
 
 
-    if (letterPairs.length === 0) {
+    if (letterChains.length === 0) {
         const noLettersItem = document.createElement('li');
         noLettersItem.setAttribute('data-i18n', 'letters.no_letters');
         noLettersItem.textContent = 'No letters found.'; // Fallback text
@@ -594,68 +622,27 @@ cachedLetterPairs = letterPairs;
         return;
     }
 
-    letterPairs.forEach(pair => {
+    letterChains.forEach(chain => {
         const li = document.createElement('li');
         li.classList.add('letter-pair-item');
 
-        let receivedHtml = '';
-        if (pair.received) {
-            const isUnread = !pair.received.isRead;
-            li.classList.toggle('unread', isUnread);
-            const status = getLetterStatus(pair.received);
-            let statusHtml = '';
-            if (status) {
-                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
-            }
-            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.received);
-            receivedHtml = `
-                <div class="letter-item received" data-letter-id="${pair.received.id}">
-                    <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.received.sender.shortName}<br>To: ${pair.received.recipient.shortName}</span>
-                        <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
-                    </div>
-                    <div class="letter-item-subject">${pair.received.subject}</div>
-                    ${statusHtml}
-                    ${triggeredActionsHtml}
-                </div>
-            `;
+        const parts: string[] = [];
+        chain.forEach((letter, index) => {
+            if (index > 0) parts.push('<div class="letter-pair-connector"></div>');
+            parts.push(renderChainLetterHtml(letter, li));
+        });
+
+        // Trailing placeholder only for a thread root that expects a reply it has
+        // not received yet (an NPC opening letter, or a plain AI letter). A
+        // letter that is itself a reply (replyToId set) never gets one, so the
+        // AI's closing reply in a 3-letter chain is not flagged as unanswered.
+        const last = chain[chain.length - 1];
+        const lastIsPlayer = last.sender.id === Number(selectedPlayerId);
+        if (!lastIsPlayer && !last.replyToId) {
+            parts.push('<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>');
         }
 
-        let sentHtml = '';
-        if (pair.sent) {
-            const status = getLetterStatus(pair.sent);
-            let statusHtml = '';
-            if (status) {
-                const journeyHtml = renderJourneyTimeline(status);
-                statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
-            }
-            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.sent);
-            sentHtml = `
-                <div class="letter-item sent" data-letter-id="${pair.sent.id}">
-                    <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.sent.sender.shortName}<br>To: ${pair.sent.recipient.shortName}</span>
-                        <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
-                    </div>
-                    <div class="letter-item-subject">${pair.sent.subject}</div>
-                    ${statusHtml}
-                    ${triggeredActionsHtml}
-                </div>
-            `;
-        } else {
-            if (pair.received && pair.received.replyToId) {
-                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.outbound_not_found">Outbound letter not found.</div>`;
-            } else {
-                // Case where we have a received letter but no reply from the player yet
-                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
-            }
-        }
-
-        let connectorHtml = '';
-        if (pair.sent && pair.received) {
-            connectorHtml = '<div class="letter-pair-connector"></div>';
-        }
-
-        li.innerHTML = receivedHtml + connectorHtml + sentHtml;
+        li.innerHTML = parts.join('');
         fragment.appendChild(li);
     });
 
@@ -1161,7 +1148,7 @@ async function loadLetters(playerId: string) {
     }
     // Invalidate the cached letter pairs whenever fresh data arrives, so newly attached
     // triggered actions (e.g. player actions on a sent letter) are shown on refresh.
-    cachedLetterPairs = null;
+    cachedLetterChains = null;
     // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
     // and should not be derived from letter data here, as it causes bugs with date calculations.
     // Reset filtered letters to allLetters on load since no filter is active yet.
@@ -1247,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     sortSelect.addEventListener('change', () => {
         sortMode = sortSelect.value as 'gameDate' | 'realDate';
-        cachedLetterPairs = null;
+        cachedLetterChains = null;
         renderLetters();
     });
 
@@ -1305,7 +1292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
-        cachedLetterPairs = null;
+        cachedLetterChains = null;
         renderLetters();
         renderStatusSummary(); // Update status counts to reflect character filter
     });

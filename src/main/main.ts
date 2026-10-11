@@ -295,6 +295,14 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+
+// Dedicated channel for AI-initiated (npcltr) letters (VOTC-194). The mod has
+// no acceptance receipt for run/npcltr.txt yet, so its in-flight gate expires
+// purely on the timeout — the file is cleared once the gate trips regardless of
+// game confirmation. Upgrade path: add a VOTC:NPCLTR_ACCEPTED trigger keyword.
+let lastNpcltrSentToGame: StoredLetter | null = null;
+let lastNpcltrSentToGameTime: number = 0;
+
 // Replies rejected by the campaign delivery gate remember the campaign they
 // were rejected under, so a foreign-campaign reply is not re-evaluated (and
 // does not trigger a full game-log parse) on every date heartbeat tick.
@@ -355,13 +363,37 @@ function rehydratePendingReplyLetters(playerId: string): void {
         rehydratedCount++;
         console.log(`rehydratePendingReplyLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
     }
-
     if (rehydratedCount > 0) {
         if (currentTotalDays > 0) {
             checkAndDeliverLetters();
         } else {
             console.log('rehydratePendingReplyLetters: Skipping immediate delivery check as currentTotalDays is not yet initialized.');
         }
+    }
+
+    // Rehydrate undelivered NPC opening letters (VOTC-194) the same way: an
+    // opening generated just before an app restart is still status 'pending'
+    // with delivered=false; its own totalDays/delay recompute the npcltr due day.
+    const openings = allLetters.filter(l =>
+        !l.isPlayerSender &&
+        l.subject === 'npcltr' &&
+        l.status === 'pending' &&
+        l.delivered === false
+    );
+    for (const opening of openings) {
+        if (storedLetters.has(opening.id)) continue;
+        // The original request letter is the channel marker; reconstruct a
+        // minimal stored entry from the opening itself (same subject).
+        const expectedDeliveryDay = opening.totalDays + (opening.delay || 0);
+        storedLetters.set(opening.id, {
+            letter: opening,
+            originalLetter: opening,
+            expectedDeliveryDay
+        });
+        console.log('rehydratePendingReplyLetters: Re-queued NPC opening letter ' + opening.id);
+    }
+    if (openings.length > 0 && currentTotalDays > 0) {
+        checkAndDeliverLetters();
     }
 }
 
@@ -432,6 +464,15 @@ export async function checkAndDeliverLetters() {
     // VOTC:LETTER_ACCEPTED, no open conversation pausing the mod-side
     // letters_runner): a fallback written over a pending reply would destroy
     // it permanently, since that reply has already left the pending queue.
+    // The npcltr channel has no acceptance receipt; its in-flight gate expires
+    // on the timeout alone. Once tripped, the file is cleared so a stale opening
+    // is not re-executed by the mod-side npcltr runner on the next poll.
+    if (lastNpcltrSentToGame && Date.now() - lastNpcltrSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
+        console.warn(`npcltr delivery timed out for letter ${lastNpcltrSentToGame.originalLetter.id} — no acceptance receipt exists on this channel. Clearing to unblock future deliveries.`);
+        lastNpcltrSentToGame = null;
+        LetterManager.getInstance().clearNpcltrFile(config);
+    }
+
     if (!lastLetterSentToGame && !conversationOpenChecker() && LetterManager.getInstance().hasPendingLetterFallbacks()) {
         LetterManager.getInstance().flushNextLetterFallback(config);
         return;
@@ -501,11 +542,11 @@ export async function checkAndDeliverLetters() {
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
-        if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
-            // A reply already rejected under the currently observed campaign
-            // stays skipped inside the loop too: the pre-scan only guards
-            // function entry, and another due letter would otherwise pull the
-            // mismatch back in and re-log its deferral on every such pass.
+        // Each channel has its own in-flight gate so letters.txt and npcltr.txt
+        // whole-file overwrites never interleave.
+        const isNpcLetter = storedLetter?.originalLetter.subject === 'npcltr';
+        const channelBusy = isNpcLetter ? !!lastNpcltrSentToGame : !!lastLetterSentToGame;
+        if (storedLetter && !channelBusy && currentTotalDays >= storedLetter.expectedDeliveryDay) {
             if (campaignMismatchSkips.has(letterId) && campaignMismatchSkips.get(letterId) === observedNow) {
                 continue;
             }
@@ -573,8 +614,13 @@ export async function checkAndDeliverLetters() {
             const currentTimelineNodeId = resolveCurrentTimelineNodeId(gameData);
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString, currentTimelineNodeId);
-            lastLetterSentToGame = storedLetter; // Track the letter sent
-            lastLetterSentToGameTime = Date.now();
+            if (isNpcLetter) {
+                lastNpcltrSentToGame = storedLetter;
+                lastNpcltrSentToGameTime = Date.now();
+            } else {
+                lastLetterSentToGame = storedLetter; // Track the letter sent
+                lastLetterSentToGameTime = Date.now();
+            }
             storedLetters.delete(letterId); // Remove from pending queue
             campaignMismatchSkips.delete(letterId); // Delivered: drop any stale skip marker
 
@@ -1965,7 +2011,28 @@ let conversationLock: Promise<void> | null = null;
 conversationOpenChecker = () => Boolean(conversation && conversation.isOpen);
 
 clipboardListener.on('VOTC:IN', async () =>{
-    console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+    console.log('ClipboardListener: VOTC:IN event detected. Determining session type (talk vs letter).');
+
+    // Scene branch (VOTC-194): a letter-session init (flag:talk_letter ->
+    // scene 'letter') requests an NPC-initiated letter, not a conversation.
+    // Intercept it here so the chat window never opens; the following
+    // VOTC:LETTER trigger carries the npcltr payload and does the work.
+    try {
+        const initGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (initGameData && initGameData.scene === 'letter') {
+            console.log('VOTC:IN letter-session init detected (scene=letter); skipping chat window and running the NPC-letter initiation flow.');
+            currentSessionPlayerId = String(initGameData.playerID);
+            broadcastCurrentSessionPlayer();
+            if (initGameData.gameDate?.totalDays ?? initGameData.totalDays) {
+                updateCurrentDate(initGameData.gameDate?.totalDays ?? initGameData.totalDays);
+            }
+            return;
+        }
+    } catch (err) {
+        console.warn('VOTC:IN scene detection failed; falling through to the conversation flow:', err);
+    }
+
+    console.log('ClipboardListener: showing chat window.');
 
     // Reset state for the new conversation session
     isConversationReady = false;
@@ -2234,8 +2301,97 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async (payloads?: string[]) =>
     }
 })
 
+/**
+ * NPC-letter initiation flow (VOTC-194). Runs when the mod emits the
+ * letter-session init (scene 'letter') and the npcltr request payload. The
+ * NPC's opening letter is generated with the sender = NPC and recipient =
+ * player, saved to letter history, and queued for delivery on the dedicated
+ * run/npcltr.txt channel. The player's eventual response goes through the
+ * normal letter_N flow and is linked to this opening via replyToId.
+ */
+async function handleNpcLetterInitiation(gameData: GameData, request: ILetter): Promise<void> {
+    try {
+        const playerId = String(gameData.playerID);
+        const recipientId = String(gameData.aiID);
+
+        if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+            updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
+        }
+
+        // Refresh letters UI before generation starts
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
+
+        // The request payload's category rides on the parsed letter; its flavor
+        // text is the prompt seed. Rebuild both from the raw content if the
+        // parse stripped the signature.
+        let category = request.npcLetterCategory;
+        let flavor = request.content;
+        if (!category && flavor.startsWith('VOTC_CE_LETTER|')) {
+            const sigParts = flavor.split('|');
+            category = sigParts[1]?.trim() || undefined;
+            flavor = sigParts.slice(2).join('|').trim();
+        }
+
+        const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
+        const openingLetter = await letterReplyGenerator.generateNpcInitiationLetter(gameData, request, category, flavor);
+
+        if (!openingLetter) {
+            console.error(`Failed to generate the NPC opening letter for request ${request.id}.`);
+            return;
+        }
+
+        // Queue for delivery on the npcltr channel. The request letter itself is
+        // the channel marker (subject 'npcltr' -> deliverLetter routes to
+        // run/npcltr.txt); expected delivery is the request day + delay.
+        const expectedDeliveryDay = (request.totalDays > 0 ? request.totalDays : gameData.totalDays) + (request.delay || 0);
+        const storedLetter: StoredLetter = {
+            letter: openingLetter,
+            originalLetter: request,
+            expectedDeliveryDay
+        };
+        storedLetters.set(request.id, storedLetter);
+        console.log(`NPC opening letter for request ${request.id} generated and queued. Will deliver on day ${expectedDeliveryDay} (current day: ${currentTotalDays}).`);
+
+        checkAndDeliverLetters();
+
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
+    } catch (error) {
+        console.error('Error processing NPC letter initiation:', error);
+    }
+}
+
 clipboardListener.on('VOTC:LETTER', async () => {
     console.log('ClipboardListener: VOTC:LETTER event detected.');
+
+    // npcltr routing (VOTC-194): a peek at the newest VOTC:LETTER payload first.
+    // An AI-initiated request (content signature VOTC_CE_LETTER|... or letterId
+    // npcltr) must NOT clear letters.txt - a whole-file reset here would destroy
+    // an in-flight player reply awaiting VOTC:LETTER_ACCEPTED. The request is
+    // instead handed to the NPC-letter initiation flow below.
+    try {
+        await sleep(250); // Wait for log to flush
+        const peekGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (peekGameData) {
+            const freshLetters = await LetterManager.getInstance().importLettersFromLog(
+                config, peekGameData, String(peekGameData.playerID), peekGameData.date, String(peekGameData.aiID)
+            );
+            const npcRequest = [...freshLetters].reverse().find(l =>
+                l.subject === 'npcltr' || (l.content && l.content.startsWith('VOTC_CE_LETTER|'))
+            );
+            if (npcRequest) {
+                console.log(`VOTC:LETTER npcltr request detected (${npcRequest.id}); routing to NPC-letter initiation.`);
+                await handleNpcLetterInitiation(peekGameData, npcRequest);
+                return;
+            }
+        }
+    } catch (peekError) {
+        console.warn('npcltr peek failed; falling through to the player-letter flow:', peekError);
+    }
+
     try {
         LetterManager.getInstance().clearLettersFile(config);
         await sleep(250); // Wait for log to flush

@@ -36,6 +36,12 @@ export interface Letter {
   timelinePlayerId?: string;
   /** The registry node allocated for this reply; delivery re-validates it against the registry head. */
   timelineNodeId?: string;
+  /**
+   * Relation category carried by an AI-initiated (npcltr) letter request
+   * payload (`VOTC_CE_LETTER|<CATEGORY>|<flavor text>`). Undefined for
+   * player-initiated letters.
+   */
+  npcLetterCategory?: string;
   characterContext?: {
     playerId: string;
     playerName: string;

@@ -377,9 +377,14 @@ export class LetterManager {
             fs.mkdirSync(runFolderPath, { recursive: true });
         }
 
-        const letterFilePath = path.join(runFolderPath, "letters.txt");
+        // Channel routing (VOTC-194): an AI-initiated (npcltr) reply travels on
+        // its own whole-file-overwrite channel so it never clobbers an in-flight
+        // player reply on letters.txt (and vice versa). The idle gate for each
+        // channel is enforced by the caller (checkAndDeliverLetters).
+        const isNpcLetter = letterId === 'npcltr';
+        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "npcltr.txt" : "letters.txt");
 
-        // Single-channel note: letters.txt is one shared, whole-file-overwrite
+        // Single-channel note: each of letters.txt / npcltr.txt is one shared, whole-file-overwrite
         // channel polled by the mod-side letters_runner (~2s). A delivery and
         // a generation-failure fallback written inside the same window clobber
         // each other; per-slot runner files would need mod-side changes
@@ -408,8 +413,14 @@ if = {
 \t\tname = votc_latest_letter
 \t\tvalue = scope:votc_latest_letter
 \t}
-}
-trigger_event = message_event.362`;
+${isNpcLetter ? `\tset_global_variable = {
+\t\tname = votc_ce_letter_latest
+\t\tvalue = scope:votc_latest_letter
+\t}
+` : ''}
+}${isNpcLetter ? `
+trigger_event = votc_ce_initiative.152` : `
+trigger_event = message_event.362`}`;
 
         // Re-validate at delivery time: the reply may travel several in-game
         // days and conversations can advance the checkpoint meanwhile. The
@@ -446,7 +457,17 @@ trigger_event = message_event.362`;
             gameCommand += '\n' + appliedTimelineScript;
         }
 
-        fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
+        // Fallback contract (VOTC-194): if the dedicated npcltr channel cannot
+        // be written, degrade to the letters.txt normal flow — the game side
+        // handles the reply arriving via the standard mailbox path and cleans
+        // its own marker, so the feature degrades, never jams.
+        try {
+            fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
+        } catch (writeError: any) {
+            if (!isNpcLetter) throw writeError;
+            console.error(`Could not write npcltr.txt (${writeError?.message}); falling back to the letters.txt channel.`, writeError);
+            fs.writeFileSync(path.join(runFolderPath, "letters.txt"), '\uFEFF' + gameCommand, 'utf8');
+        }
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
     }
 
@@ -524,6 +545,25 @@ trigger_event = message_event.362`;
         const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         fs.writeFileSync(letterFilePath, placeholder, "utf-8");
         console.log("Reset letters.txt to the blank heartbeat pt letters.txt to the blank heartbeat placeholder");
+    }
+
+    /**
+     * Reset the AI-initiated (npcltr) run channel to its blank placeholder.
+     * Unlike letters.txt the npcltr runner does not carry the date heartbeat,
+     * but the blank guard keeps the mod-side runner from re-executing a stale
+     * block on every poll after a timed-out delivery.
+     */
+    public clearNpcltrFile(config: Config): void {
+        const ck3Folder = config.userFolderPath;
+        if (!ck3Folder) {
+          console.warn("LetterManager.clearNpcltrFile: CK3 user folder is not configured; cannot clear npcltr file.");
+          return;
+        }
+
+        const runFolder = path.join(ck3Folder, "run");
+        const npcltrFilePath = path.join(runFolder, "npcltr.txt");
+        fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
+        console.log("Reset npcltr.txt to the blank placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {
