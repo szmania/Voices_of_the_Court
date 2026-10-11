@@ -4,6 +4,7 @@ export const promptKeys = [
     'mainPrompt', 'selfTalkPrompt', 'summarizePrompt', 'selfTalkSummarizePrompt',
     'memoriesPrompt', 'suffixPrompt', 'narrativePrompt', 'sceneDescriptionPrompt',
     'actionPrompt', 'actionTriggeredPrompt', 'letterPrompt', 'letterSummaryPrompt',
+    'whisperPrompt',
     'diaryPrompt', 'diarySummarizePrompt', 'diaryForLetterPrompt', 'suggestionPrompt'
 ] as const;
 

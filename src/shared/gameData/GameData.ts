@@ -25,6 +25,8 @@ export type Memory = {
     desc: string,
     /**@property {number} relevanceWeight - how relevant the memory to the current conversation. The higher, the more relevant. */
     relevanceWeight: number,
+    /** Creation date as total days (whisper memory lines only; trailing 8th field). */
+    creationTotalDays?: number,
     creationGameDate?: Ck3GameDate,
     memoryTypeToken?: string,
     memoryTypeTokenSource?: MemoryTypeTokenSource,
@@ -344,6 +346,14 @@ export class GameData {
     saveSnapshotExtraResult?: SaveSnapshotExtraParseResult;
 
     scene: string;
+    /**
+     * Conversation kind derived from the init line's talk-scene slot. The Whisper
+     * Ledger report requests carry the literal `flag:whisper_ledger` there (ordinary
+     * talks carry a talk-scene flag name). Detected from the RAW slot value before
+     * the `substring(11)` scene extraction mangles it; `scene` is left empty for
+     * this kind. Undefined for ordinary conversations.
+     */
+    conversationKind?: 'whisper_ledger';
     location: string;
     locationController: string;
     recentEvent: { type: string; context: any } | null = null;
@@ -376,7 +386,8 @@ export class GameData {
             this.aiName = removeTooltip(data[3]),
             this.date = data[4],
             this.votcCheckpointEpoch = Number(data[8]) || 0,
-            this.scene = data[5].substring(11),
+            this.conversationKind = data[5] === 'flag:whisper_ledger' ? 'whisper_ledger' : undefined,
+            this.scene = this.conversationKind ? '' : data[5].substring(11),
             this.location = data[6],
             this.locationController = data[7],
 
