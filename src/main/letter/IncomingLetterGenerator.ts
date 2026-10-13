@@ -342,7 +342,8 @@ export class IncomingLetterGenerator {
         // Invalidate any older in-flight generation for this slot before doing
         // file or log parsing. A failed newer handoff must not be overwritten by
         // a late response for the previous occupant of the same slot.
-        latestSignatureBySlot.set(slotId, `${slotId}|${validatedType}|${deliveryId}|handoff`);
+        const handoffSignature = `${slotId}|${validatedType}|${deliveryId}|handoff`;
+        latestSignatureBySlot.set(slotId, handoffSignature);
 
         const context = this.parseContext(debugLogPath, slotId, validatedType, deliveryId);
         if (!context) {
@@ -369,7 +370,17 @@ export class IncomingLetterGenerator {
         const signature = `${context.slotId}|${gameData.playerID}|${context.senderId}|${context.sentDate}|${context.type}|${context.deliveryId}`;
 
         if (completed.has(signature) || inFlight.has(signature)) {
+            // A repeated notification must not expire the request it is
+            // deduplicating. Restore ownership only if no different handoff
+            // arrived while this snapshot was being parsed.
+            if (inFlight.has(signature) && latestSignatureBySlot.get(slotId) === handoffSignature) {
+                latestSignatureBySlot.set(slotId, signature);
+            }
             console.log(`[IncomingLetterGenerator] Signature already completed or in flight: ${signature}`);
+            return;
+        }
+        if (latestSignatureBySlot.get(slotId) !== handoffSignature) {
+            console.log(`[IncomingLetterGenerator] Expired handoff for ${slotId}/${deliveryId}, skipping generation`);
             return;
         }
         inFlight.add(signature);

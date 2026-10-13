@@ -35,10 +35,10 @@ const INIT_LINE = [
 function buildLog(variant: 'mismatch' | 'noInit'): string {
     const lines = ['noise line'];
     if (variant === 'noInit') {
-        lines.push('VOTC:INCOMING_LETTER/;/context/;/incoming_letter_2/;/vassal_memorial/;/1100.2.1/;/4242/;/11/sender_location=Paris');
+        lines.push('VOTC:INCOMING_LETTER/;/context/;/incoming_letter_2/;/vassal_memorial/;/1100.2.1/;/4242/;/11/;/sender_location=Paris');
     } else {
         lines.push(INIT_LINE);
-        lines.push('VOTC:INCOMING_LETTER/;/context/;/incoming_letter_2/;/vassal_memorial/;/1100.2.1/;/4242/;/11/sender_location=Paris');
+        lines.push('VOTC:INCOMING_LETTER/;/context/;/incoming_letter_2/;/vassal_memorial/;/1100.2.1/;/4242/;/11/;/sender_location=Paris');
     }
     return lines.join('\n') + '\n';
 }

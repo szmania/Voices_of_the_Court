@@ -899,6 +899,7 @@ function processLogLine(line: string) {
     // Save-load identity from the mod's load relay: the earliest identity signal
     // of a session, and the only one available before the first conversation.
     observeCampaignLoadLine(line);
+    clipboardListener?.readIncomingLetterLogLine(line);
 
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
