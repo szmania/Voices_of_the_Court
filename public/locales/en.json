@@ -1106,5 +1106,26 @@
     "status_idle": "Idle",
     "status_running": "Compacting...",
     "cooldown_label": "Cooldown"
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI (ChatGPT subscription)",
+    "continue": "Continue with ChatGPT",
+    "different": "Use a different account or workspace",
+    "cancel": "Cancel sign-in",
+    "sign_out": "Sign out",
+    "refresh": "Refresh models",
+    "manage_usage": "Manage usage",
+    "using_plan": "Using ChatGPT plan",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

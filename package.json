@@ -18,6 +18,7 @@
   "author": "VOTC Community",
   "license": "GNU GPLv3",
   "dependencies": {
+    "jsonwebtoken": "^9.0.2",
     "@paymoapp/active-window": "^2.1.1",
     "@types/adm-zip": "^0.5.8",
     "adm-zip": "^0.6.0",
@@ -39,6 +40,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
     "@electron-forge/cli": "^7.5.0",
     "@electron-forge/maker-deb": "^7.5.0",
     "@electron-forge/maker-dmg": "^7.4.0",

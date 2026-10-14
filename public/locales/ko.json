@@ -980,5 +980,26 @@
     "description_label": "현재 대화 정보:",
     "system_prompt": "당신은 롤플레잉 게임을 위한 생생한 장면 분위기 설명을 만드는 장면 설명 생성 도우미입니다.",
     "fallback_description": "{{date}}에 {{playerName}}와(과) {{aiName}}이(가) {{location}}에서 대화를 시작했습니다."
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI (ChatGPT 구독)",
+    "continue": "ChatGPT로 계속",
+    "different": "다른 계정 또는 작업 공간 사용",
+    "cancel": "로그인 취소",
+    "sign_out": "로그아웃",
+    "refresh": "모델 새로고침",
+    "manage_usage": "사용량 관리",
+    "using_plan": "ChatGPT 요금제 사용 중",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

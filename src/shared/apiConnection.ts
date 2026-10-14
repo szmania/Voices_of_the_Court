@@ -1,5 +1,6 @@
 import { Message, MessageChunk } from "../main/ts/conversation_interfaces";
 import OpenAI from "openai";
+import { CHATGPT_PROVIDER, getChatGPTAdapter, sanitizeSubscriptionConnection } from './chatgptSubscription';
 const contextLimits = require("../../public/contextLimits.json");
 
 export const player2GameKey = '019cb2bb-6704-7d22-89e5-41ce7c765942';
@@ -96,6 +97,7 @@ export class ApiConnection{
 
 
     constructor(connection: Connection, parameters: any, encoder: Tiktoken | null){
+        sanitizeSubscriptionConnection(connection);
         this.encoder = encoder;
         console.debug("--- API CONNECTION: Constructor ---");
 
@@ -122,7 +124,9 @@ export class ApiConnection{
         }
 
         this.type = connection.type;
-        if (this.type === 'player2') {
+        if (this.type === CHATGPT_PROVIDER) {
+            this.client = { baseURL: 'https://api.openai.com/v1' };
+        } else if (this.type === 'player2') {
             this.client = new OpenAI({
                 baseURL: player2BaseUrl,
                 apiKey: 'sk-dummy-key', // Player2 uses a dummy key
@@ -203,6 +207,7 @@ export class ApiConnection{
     }
 
     isChat(): boolean {
+        if (this.type === CHATGPT_PROVIDER) return true;
         console.debug(`--- API CONNECTION: isChat() check. Type: ${this.type}, forceInstruct: ${this.forceInstruct}`);
         if(this.type === "openai" || (this.type === "openrouter" && !this.forceInstruct ) || this.type === "custom" || this.type === 'gemini' || this.type === 'glm' || this.type === 'deepseek' || this.type === 'grok' || this.type === 'player2' || this.type === 'nvidia' || this.type === 'novelai' || this.type === 'anthropic'){
             return true;
@@ -222,6 +227,9 @@ export class ApiConnection{
         signal?: AbortSignal,
         timeoutMs?: number
     ): Promise<MessageChunk | string | void> {
+        if (this.type === CHATGPT_PROVIDER) {
+            return getChatGPTAdapter().complete(this.model, prompt, stream, streamRelay, signal, timeoutMs);
+        }
         if (this.type === 'novelai') {
             const token = this.config.key;
             const baseHost = 'https://text.novelai.net/oa/v1/completions';
@@ -724,6 +732,7 @@ export class ApiConnection{
     }
 
     async listModels(): Promise<any[]> {
+        if (this.type === CHATGPT_PROVIDER) return getChatGPTAdapter().models();
         if (this.type === 'novelai') {
             const token = await this.getNovelAIToken();
             const response = await fetch('https://api.novelai.net/ai/model/list', {
@@ -788,6 +797,12 @@ export class ApiConnection{
     }
 
     async testConnection(): Promise<apiConnectionTestResult>{
+        if (this.type === CHATGPT_PROVIDER) {
+            try {
+                await this.complete([{ role: 'user', content: 'Reply with OK.' }], false, {});
+                return { success: true, overwriteWarning: this.overwriteWarning };
+            } catch (error: any) { return { success: false, errorMessage: error.message }; }
+        }
         if (this.type === 'novelai') {
             try {
                 const token = this.config.key;
@@ -970,6 +985,7 @@ export class ApiConnection{
     }
 
     async embed(text: string): Promise<number[]> {
+        if (this.type === CHATGPT_PROVIDER) throw new Error('ChatGPT subscriptions do not support embeddings. Select a separate embedding provider.');
         // This method acts as a proxy to the EmbeddingProvider, using the connection's own config.
         // This is necessary because other parts of the app use ApiConnection for all remote calls.
         if (!this.config || !this.config.type || !this.config.model || !this.config.baseUrl) {

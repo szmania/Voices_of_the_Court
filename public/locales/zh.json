@@ -995,5 +995,26 @@
     "description_label": "当前对话信息：",
     "system_prompt": "你是一个场景描述生成助手，负责为角色扮演游戏创建生动的场景氛围描述。",
     "fallback_description": "在{{date}}，{{playerName}}和{{aiName}}在{{location}}开始了一段对话。"
+  },
+
+  "chatgpt": {
+    "provider": "OpenAI（ChatGPT 订阅）",
+    "continue": "使用 ChatGPT 继续",
+    "different": "使用其他账户或工作区",
+    "cancel": "取消登录",
+    "sign_out": "退出登录",
+    "refresh": "刷新模型",
+    "manage_usage": "管理用量",
+    "using_plan": "正在使用 ChatGPT 套餐",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }
