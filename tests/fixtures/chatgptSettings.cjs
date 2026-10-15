@@ -61,13 +61,13 @@ it('shows a replacement notice for an unavailable saved model and removes IPC li
     assert.equal(h.listeners.get('update-language').size, 0);
     h.dom.window.close();
 });
-it('connects the real text selector and excludes subscription from embeddings', async () => {
+it('connects the real text selector and includes subscription in embeddings', async () => {
     const h = page(true); await settle(); await settle();
     const [text, embedding] = h.dom.window.document.querySelectorAll('config-api-selector');
     assert.equal(text.shadowRoot.querySelector('#connection-api').value, 'openai_chatgpt');
     assert.equal(text.shadowRoot.querySelector('#chatgpt-menu').style.display, 'block');
     assert.equal(text.shadowRoot.querySelector('chatgpt-settings').shadowRoot.querySelector('select').value, 'saved-model');
-    assert.equal(embedding.shadowRoot.querySelector('option[value="openai_chatgpt"]'), null);
+    assert.notEqual(embedding.shadowRoot.querySelector('option[value="openai_chatgpt"]'), null);
     assert(h.sent.some(args => args[0] === 'config-change-nested-nested' && args[1] === 'textGenerationApiConnectionConfig'));
     h.dom.window.close();
 });

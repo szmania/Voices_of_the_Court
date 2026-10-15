@@ -12,7 +12,7 @@ export class ChatGPTSettings extends HTMLElement {
     constructor() {
         super();
         this.root.innerHTML = `<link rel="stylesheet" href="../../public/configWindow/config.css">
-            <h2 data-i18n="chatgpt.provider">OpenAI (ChatGPT subscription)</h2>
+            <h2 data-i18n="api.openai_chatgpt">OpenAI (ChatGPT subscription)</h2>
             <p id="status" role="status" aria-live="polite"></p>
             <p id="error" role="alert"></p>
             <p id="memory" data-i18n="chatgpt.memory_only" hidden>Secure storage is unavailable. Sign-in lasts until VOTC closes.</p>

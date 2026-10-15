@@ -1,4 +1,5 @@
 import { isPromptKey } from '../shared/promptKeys';
+import { CHATGPT_PROVIDER } from '../shared/chatgptSubscription';
 import { initializeChatGPT } from './auth/chatgptRuntime';
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 app.commandLine.appendSwitch('disable-gpu');
@@ -1320,6 +1321,14 @@ app.on('ready',  async () => {
         embeddingInputType?: string;
     }) => {
         console.log('IPC: Received test-embedding-connection event.');
+        // ChatGPT subscriptions expose only the Responses API; there is no embeddings endpoint.
+        if (providerConfig.provider === CHATGPT_PROVIDER) {
+            return {
+                success: false,
+                message: 'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.',
+                provider: providerConfig.provider
+            };
+        }
         try {
             const provider = new EmbeddingProvider(
                 providerConfig.provider as any,
@@ -1564,6 +1573,10 @@ app.on('ready',  async () => {
             const conn = config?.embeddingApiConnectionConfig?.connection;
             if (!conn || !conn.type || !conn.model || !conn.baseUrl) {
                 return { success: false, error: 'Embedding API connection is not configured.' };
+            }
+            // ChatGPT subscriptions expose only the Responses API; there is no embeddings endpoint.
+            if (conn.type === CHATGPT_PROVIDER) {
+                return { success: false, error: 'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.' };
             }
 
             const targetDimension = getEffectiveEmbeddingDimension(conn);
