@@ -19,7 +19,19 @@
     "memory_constellation": "記憶の星座",
     "memory_constellation_tooltip": "キャラクターの記憶を3Dで視覚化",
     "memory_constellation.empty_title": "記憶が見つかりません",
-    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
+    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。",
+    "actions_tooltip": "ゲーム内のアクションを有効にして設定します",
+    "close": "閉じる",
+    "connection_tooltip": "APIとゲームの接続設定を構成します",
+    "diaries_tooltip": "キャラクターの日記を管理します",
+    "help_tooltip": "ヘルプとドキュメントウィンドウを開きます",
+    "letters_tooltip": "ゲーム内の手紙を表示および管理します",
+    "memories": "記憶",
+    "memories_tooltip": "記憶を視覚化し、圧縮を管理します",
+    "prompts_tooltip": "AIのプロンプトと動作をカスタマイズします",
+    "settings_tooltip": "アプリケーションとAI生成の設定を調整します",
+    "summarization_tooltip": "会話の要約設定を管理します",
+    "system_tooltip": "システム設定、更新、データを管理します"
   },
   "diaries": {
     "header": "日記",
@@ -315,6 +327,22 @@
     "ai_initiated_narrator_prompt": "さて、{sourceCharacterName}は{playerName}に何と話しかけてこの会話を始めますか？",
     "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
+  "compaction": {
+    "cooldown_label": "クールダウン",
+    "desc_1": "メモリ圧縮は、長い会話履歴を自動的に圧縮し、主要な物語の詳細を保持しながらコンテキストスペースを節約します。",
+    "desc_2": "以下で圧縮のタイミングと方法を設定できます。",
+    "enable": "メモリ圧縮を有効にする",
+    "enable_tooltip": "古い会話の自動圧縮をオンにします",
+    "export_data": "プレイヤーデータのエクスポート",
+    "header": "メモリ管理",
+    "import_data": "プレイヤーデータのインポート",
+    "manual_trigger": "今すぐ圧縮を実行",
+    "phase1_threshold": "フェーズ1のしきい値 (%)",
+    "phase2_threshold": "フェーズ2のしきい値 (要約)",
+    "phase2_threshold_tooltip": "この数のフェーズ1の要約が存在する場合、フェーズ2の圧縮がそれらを長期的な知識グラフに統合します。",
+    "status_idle": "アイドル",
+    "status_running": "圧縮中..."
+  },
   "chat": {
     "target_label": "ターゲットキャラクター：",
     "target_auto": "自動検出",
@@ -359,7 +387,10 @@
     "edit_tooltip": "エンターキーを押すか、編集ボックスの外側をクリックして保存し、エスケープキーでキャンセルします。標準のCtrl+Z/Cmd+Zでの元に戻す操作がサポートされています。",
     "cancel_button": "キャンセル",
     "cancel_response_tooltip": "現在のAI応答生成をキャンセルします。",
-    "generation_cancelled": "ユーザーによって生成がキャンセルされました。"
+    "generation_cancelled": "ユーザーによって生成がキャンセルされました。",
+    "config_tooltip": "設定パネルを開く",
+    "restore_config_tooltip": "設定パネルを復元",
+    "loading_placeholder": "会話に接続中..."
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",
