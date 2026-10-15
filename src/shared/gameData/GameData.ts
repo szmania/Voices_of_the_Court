@@ -301,10 +301,11 @@ export class GameData {
     gameDate?: Ck3GameDate;
     /**
      * Legacy letter-scheduling field maintained by main.ts (assigned from its own
-     * currentTotalDays). No longer parsed from the init line: under protocol v2,
-     * index 8 is the checkpoint epoch, not totalDays.
+     * currentTotalDays). Initialized from the authoritative numeric game date so
+     * age math never receives `undefined` (which produced NaN ages); main.ts may
+     * later override it with its own currentTotalDays.
      */
-    totalDays!: number;
+    totalDays: number;
     votcCheckpointEpoch: number;
     /**
      * Character id of the AI that initiated this conversation, parsed from the
@@ -404,6 +405,10 @@ export class GameData {
             }
 
         this.gameDate = parseGameDateExtra(data);
+        // Keep the legacy totalDays field in sync with the authoritative numeric
+        // date. Falling back to 0 keeps it a finite number (0 is treated as
+        // "unknown day" by letter scheduling) instead of undefined/NaN.
+        this.totalDays = this.gameDate?.totalDays ?? 0;
 
         this.saveSnapshotExtraResult = parseSaveSnapshotExtra(data);
         const saveSnapshotParse = this.saveSnapshotExtraResult;
