@@ -17,6 +17,7 @@ function defineTemplate(label: string){
             <option value="openrouter" data-i18n="api.openrouter">OpenRouter</option>
             <option value="ooba" data-i18n="api.ooba">Text Gen WebUI (ooba)</option>
             <option value="openai" data-i18n="api.openai">OpenAI</option>
+            <option value="openai_chatgpt" data-i18n="api.openai_chatgpt">OpenAI (ChatGPT subscription)</option>
             <option value="gemini" data-i18n="api.gemini">Google Gemini</option>
             <option value="glm" data-i18n="api.glm">GLM</option>
             <option value="deepseek" data-i18n="api.deepseek">DeepSeek</option>
@@ -25,7 +26,6 @@ function defineTemplate(label: string){
             <option value="player2" data-i18n="api.player2">Player2</option>
             <option value="novelai" data-i18n="api.novelai">NovelAI</option>
             <option value="custom" data-i18n="api.custom">Custom (OpenAI-compatible)</option>
-            <option value="openai_chatgpt" data-i18n="chatgpt.provider">OpenAI (ChatGPT subscription)</option>
         </select>
     </div>
     

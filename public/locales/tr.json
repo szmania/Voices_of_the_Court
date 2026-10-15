@@ -91,6 +91,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Metin Üretim WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (ChatGPT aboneliği)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -997,7 +998,6 @@
   },
 
   "chatgpt": {
-    "provider": "OpenAI (ChatGPT aboneliği)",
     "continue": "ChatGPT ile devam et",
     "different": "Farklı hesap veya çalışma alanı kullan",
     "cancel": "Girişi iptal et",
