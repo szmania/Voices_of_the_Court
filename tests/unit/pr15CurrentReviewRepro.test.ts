@@ -108,7 +108,7 @@ test('reloading an existing sibling branch must prevent applying the latest allo
     await checkAndDeliverLetters();
     const file = path.join(root, 'run', 'letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-    expect(payload).not.toContain(pending.script);
+    expect(payload).not.toContain(pending.script.split('\n').map((line: string) => line ? `\t${line}` : '').join('\n'));
 });
 
 test('a due reply still applies its checkpoint script when the save sits on the branch point', async () => {
@@ -142,7 +142,7 @@ test('a due reply still applies its checkpoint script when the save sits on the 
     await checkAndDeliverLetters();
     const file = path.join(root, 'run', 'letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-    expect(payload).toContain(pending.script);
+    expect(payload).toContain(pending.script.split('\n').map((line: string) => line ? `\t${line}` : '').join('\n'));
 });
 
 test('a generation failure after campaign switch must not clear the new campaign letter slot', async () => {
