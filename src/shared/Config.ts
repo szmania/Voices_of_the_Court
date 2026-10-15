@@ -10,6 +10,11 @@ export interface ApiConnectionConfig{
 }
 
 export class Config{
+    chronicleFrequency?: 'disabled' | 'quarterly' | 'yearly' = 'yearly';
+    chronicleRawSourceCharLimit?: number = 30000;
+    chronicleOutputMaxTokens?: number = 1000;
+    chroniclePrompt?: string = '';
+
     userFolderPath!: string;
     language: 'en' | 'zh' | 'ru' | 'fr' | 'es' | 'de' | 'ja' | 'ko' | 'pl' | 'pt' = 'en';
     activePromptPreset!: string;

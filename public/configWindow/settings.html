@@ -112,7 +112,7 @@
                 <config-checkbox confID="manualActionApproval" data-i18n="settings.manual_approval"></config-checkbox> <tooltip-text side="top" data-i18n="settings.manual_approval_tooltip"></tooltip-text>
               </div>
               <div class="column">
-                <config-checkbox confID="c" data-i18n="settings.manual_letter_approval"></config-checkbox> <tooltip-text side="top" data-i18n="settings.manual_letter_approval_tooltip"></tooltip-text>
+                <config-checkbox confID="manualLetterActionApproval" label="Manual letter action approval" data-i18n="settings.manual_letter_approval"></config-checkbox> <tooltip-text side="top" data-i18n="settings.manual_letter_approval_tooltip">If enabled, actions triggered by AI letters must be manually approved or denied by the user in the letters tab before they are executed.</tooltip-text>
               </div>
             </div>
             <hr>
@@ -126,7 +126,7 @@
             <hr>
             <div class="row">
               <div class="column">
-                <config-checkbox confID="useClipboardTriggers" data-i18n="settings.use_clipboard_triggers"></config-checkbox> <tooltip-text side="top" data-i18n="settings.use_clipboard_triggers_tooltip"></tooltip-text>
+                <config-checkbox confID="useClipboardTriggers" label="Use clipboard triggers" data-i18n="settings.use_clipboard_triggers"></config-checkbox> <tooltip-text side="top" data-i18n="settings.use_clipboard_triggers_tooltip">When enabled, the app also listens to the clipboard for VOTC commands (legacy behavior). Disable to rely solely on debug.log keyword triggers.</tooltip-text>
               </div>
               <div>
               </div>
@@ -195,6 +195,42 @@
         </div>
       </div>
       <div class="column">
+        <h2 data-i18n="settings.chronicleTitle">Court Historian</h2>
+
+        <div class="border">
+          <div class="input-group">
+            <div class="row">
+              <div class="column">
+                <label data-i18n="settings.chronicleFrequency">Chronicle frequency</label>
+                <tooltip-text side="top" data-i18n="settings.chronicleFrequency_tooltip">How often the court historian writes a chronicle entry. Disabled turns off automatic generation.</tooltip-text>
+                <select id="chronicle-frequency-select">
+                  <option value="disabled" data-i18n="settings.chronicleFrequency_disabled">Disabled</option>
+                  <option value="quarterly" data-i18n="settings.chronicleFrequency_quarterly">Quarterly</option>
+                  <option value="yearly" data-i18n="settings.chronicleFrequency_yearly">Yearly</option>
+                </select>
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="column">
+                <config-number confID="chronicleRawSourceCharLimit" min="5000" max="100000" step="1000" data-i18n="settings.chronicleRawSourceCharLimit"></config-number>
+                <tooltip-text side="top" data-i18n="settings.chronicleRawSourceCharLimit_tooltip">Maximum total characters of raw source material sent to the model. Sources exceeding this limit are summarized.</tooltip-text>
+              </div>
+              <div class="column">
+                <config-number confID="chronicleOutputMaxTokens" min="100" max="4000" step="100" data-i18n="settings.chronicleOutputMaxTokens"></config-number>
+                <tooltip-text side="top" data-i18n="settings.chronicleOutputMaxTokens_tooltip">Maximum tokens for the generated chronicle entry.</tooltip-text>
+              </div>
+            </div>
+            <div class="input-group">
+              <label data-i18n="prompts.chroniclePrompt">Chronicle Prompt</label>
+              <tooltip-text side="top" data-i18n="prompts.chroniclePrompt_tooltip"></tooltip-text>
+              <config-textarea confID="chroniclePrompt" rows="5"></config-textarea>
+            </div>
+          </div>
+        </div>
+
+
+
         <h2 data-i18n="settings.text_gen_params">Text-generation parameters</h2>
         <parameters-box confID="textGenerationApiConnectionConfig" tempDefault="0.8" freqPenDefault ="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
       </div>
@@ -215,6 +251,7 @@
   <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
   <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
   <script>require("../../dist/configWindow/components/ConfigText.js")</script>
+  <script>require("../../dist/configWindow/components/configTextarea.js")</script>
   <script>require("../../dist/configWindow/components/ConfigNumber.js")</script>
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
@@ -369,6 +406,14 @@
           }
         }
       });
+
+      // Initialize the historian settings once when this page loads.
+      const chronicleFreqSelect = document.getElementById('chronicle-frequency-select');
+      if (chronicleFreqSelect) {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.invoke('get-config').then(config => { chronicleFreqSelect.value = config.chronicleFrequency || 'yearly'; });
+        chronicleFreqSelect.addEventListener('change', () => ipcRenderer.send('config-change', 'chronicleFrequency', chronicleFreqSelect.value));
+      }
 
       // Start polling when page is visible, stop when hidden
       function startCompactionPolling() {

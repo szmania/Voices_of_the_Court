@@ -1,3 +1,5 @@
+import { observeParsedGameDataForChronicle } from '../chronicle/chronicleObservation.js';
+import { reportChronicleObservationFailure } from '../chronicle/chronicleObservationFailure.js';
 import { ApiConnection } from "../../shared/apiConnection";
 import { Tiktoken } from "js-tiktoken";
 import { GameData } from "../../shared/gameData/GameData";
@@ -452,10 +454,11 @@ export class IncomingLetterGenerator {
             const sourceRecordId = randomUUID();
             const sourceGameDate = gameData.gameDate;
 
-            // P2 backfill point: the source line observes the parsed snapshot
-            // for the court chronicle here (observeParsedGameDataForChronicle
-            // with 'incoming_letter'); the chronicle belongs to a later PR, so
-            // P1 intentionally leaves generation self-contained.
+            try {
+                await observeParsedGameDataForChronicle(app.getPath('userData'), gameData, 'incoming_letter', this.config.language);
+            } catch (error) {
+                reportChronicleObservationFailure(gameData, error);
+            }
 
             const messages = await this.buildMessages(gameData, context);
             console.log(`[IncomingLetterGenerator] Generated prompt for ${signature}: ${messages.map(m => m.content).join('\n').substring(0, 200)}...`);

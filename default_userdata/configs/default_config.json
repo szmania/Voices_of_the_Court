@@ -179,5 +179,9 @@
       "enablePresencePenalty": true,
       "enableTopP": true
     }
-  }
+  },
+  "chronicleFrequency": "yearly",
+  "chronicleRawSourceCharLimit": 30000,
+  "chronicleOutputMaxTokens": 1000,
+  "chroniclePrompt": ""
 }
