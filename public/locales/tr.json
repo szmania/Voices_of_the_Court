@@ -19,7 +19,19 @@
     "memory_constellation": "Anı Takımyıldızı",
     "memory_constellation_tooltip": "Karakter anılarını 3D olarak görselleştir",
     "memory_constellation.empty_title": "Anı bulunamadı",
-    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
+    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek.",
+    "close": "Kapat",
+    "connection_tooltip": "API ve oyun bağlantı ayarlarını yapılandırın",
+    "actions_tooltip": "Oyun içi eylemleri etkinleştirin ve yapılandırın",
+    "summarization_tooltip": "Konuşma özetleme ayarlarını yönetin",
+    "prompts_tooltip": "AI istemlerini ve davranışlarını özelleştirin",
+    "letters_tooltip": "Oyun içi mektupları görüntüleyin ve yönetin",
+    "diaries_tooltip": "Karakter günlüklerini yönetin",
+    "settings_tooltip": "Uygulama ve AI üretim ayarlarını ayarlayın",
+    "system_tooltip": "Sistem ayarlarını, güncellemeleri ve verileri yönetin",
+    "help_tooltip": "Yardım ve belge penceresi açın",
+    "memories": "Anılar",
+    "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin"
   },
   "diaries": {
     "header": "Günlükler",

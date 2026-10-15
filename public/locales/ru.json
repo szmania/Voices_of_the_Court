@@ -19,7 +19,19 @@
     "memory_constellation": "Созвездие Воспоминаний",
     "memory_constellation_tooltip": "Визуализация воспоминаний персонажей в 3D",
     "memory_constellation.empty_title": "Воспоминания не найдены",
-    "memory_constellation.empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре."
+    "memory_constellation.empty_subtitle": "Воспоминания появятся здесь, когда ваш персонаж будет переживать события в игре.",
+    "close": "Закрыть",
+    "connection_tooltip": "Настроить параметры подключения API и игры",
+    "actions_tooltip": "Включить и настроить игровые действия",
+    "summarization_tooltip": "Управление настройками суммаризации диалогов",
+    "prompts_tooltip": "Настройка промптов и поведения ИИ",
+    "letters_tooltip": "Просмотр и управление игровыми письмами",
+    "diaries_tooltip": "Управление дневниками персонажей",
+    "settings_tooltip": "Настройка параметров приложения и генерации ИИ",
+    "system_tooltip": "Управление системными настройками, обновлениями и данными",
+    "help_tooltip": "Открыть окно помощи и документации",
+    "memories": "Воспоминания",
+    "memories_tooltip": "Визуализация воспоминаний и управление компактизацией"
   },
   "diaries": {
     "header": "Дневники",
@@ -72,8 +84,8 @@
     "player2_download_tooltip": "Скачать приложение Player2",
     "player2_connection_failed": "Сбой подключения к Player2. Загрузите приложение Player2 с https://player2.game, убедитесь, что оно запущено в фоновом режиме, и повторите попытку. Учетная запись не требуется.",
     "novelai_password": "Пароль",
-    "novelai_model": "Модель",
-    "novelai_password_tooltip": "Пароль вашей учетной записи NovelAI (не API-ключ)"
+    "email": "Электронная почта",
+    "password": "Пароль"
   },
   "api": {
     "openrouter": "OpenRouter",
