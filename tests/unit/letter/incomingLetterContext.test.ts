@@ -87,7 +87,7 @@ describe('IncomingLetterGenerator fallback pipeline', () => {
             }
         };
         const generator = new IncomingLetterGenerator(config, path.join(tmpDir, 'votc_data'), null);
-        // The generator writes to <userFolderPath>/run/incomingletter_v2_N.txt.
+        // The generator writes to <userFolderPath>/run/votc_ce_incomingletter_v2_N.txt.
         const userFolderPath = path.join(tmpDir, 'user_home');
         await generator.generateIncomingLetter(
             logPath,
@@ -100,7 +100,7 @@ describe('IncomingLetterGenerator fallback pipeline', () => {
     }
 
     function expectGuardedFallback(runDir: string): void {
-        const runFile = path.join(runDir, 'incomingletter_v2_2.txt');
+        const runFile = path.join(runDir, 'votc_ce_incomingletter_v2_2.txt');
         expect(fs.existsSync(runFile)).toBe(true);
         const content = fs.readFileSync(runFile, 'utf8');
         // CK3's run-file lexer requires UTF-8 BOM (both fallback and final writes).

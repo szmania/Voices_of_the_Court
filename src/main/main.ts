@@ -299,7 +299,7 @@ let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
 
 // Dedicated channel for AI-initiated (npcltr) letters (VOTC-194). The mod has
-// no acceptance receipt for run/npcltr.txt yet, so its in-flight gate expires
+// no acceptance receipt for run/votc_ce_npcltr.txt yet, so its in-flight gate expires
 // purely on the timeout — the file is cleared once the gate trips regardless of
 // game confirmation. Upgrade path: add a VOTC:NPCLTR_ACCEPTED trigger keyword.
 let lastNpcltrSentToGame: StoredLetter | null = null;
@@ -544,7 +544,7 @@ export async function checkAndDeliverLetters() {
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
-        // Each channel has its own in-flight gate so letters.txt and npcltr.txt
+        // Each channel has its own in-flight gate so letters.txt and votc_ce_npcltr.txt
         // whole-file overwrites never interleave.
         const isNpcLetter = storedLetter?.originalLetter.subject === 'npcltr';
         const channelBusy = isNpcLetter ? !!lastNpcltrSentToGame : !!lastLetterSentToGame;
@@ -2312,7 +2312,7 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async (payloads?: string[]) =>
  * letter-session init (scene 'letter') and the npcltr request payload. The
  * NPC's opening letter is generated with the sender = NPC and recipient =
  * player, saved to letter history, and queued for delivery on the dedicated
- * run/npcltr.txt channel. The player's eventual response goes through the
+ * run/votc_ce_npcltr.txt channel. The player's eventual response goes through the
  * normal letter_N flow and is linked to this opening via replyToId.
  */
 async function handleNpcLetterInitiation(gameData: GameData, request: ILetter): Promise<void> {
@@ -2350,7 +2350,7 @@ async function handleNpcLetterInitiation(gameData: GameData, request: ILetter): 
 
         // Queue for delivery on the npcltr channel. The request letter itself is
         // the channel marker (subject 'npcltr' -> deliverLetter routes to
-        // run/npcltr.txt); expected delivery is the request day + delay.
+        // run/votc_ce_npcltr.txt); expected delivery is the request day + delay.
         const expectedDeliveryDay = (request.totalDays > 0 ? request.totalDays : gameData.totalDays) + (request.delay || 0);
         const storedLetter: StoredLetter = {
             letter: openingLetter,

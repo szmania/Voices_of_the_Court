@@ -189,6 +189,19 @@ function renderNpcCategoryBadge(letter: Letter): string {
     return `<span class="npc-category-badge">${label}</span>`;
 }
 
+// M2: incoming letters (upstream P1) carry a topic in their subject
+// (`incoming_<topic>`); render it as a localized badge reusing the same
+// styling as the npcltr category badge. The topic labels live in
+// public/locales (letters.incoming_topic_<topic>), never hardcoded.
+function renderIncomingTopicBadge(letter: Letter): string {
+    if (!letter.subject || !letter.subject.startsWith('incoming_')) return '';
+    const topic = letter.subject.slice('incoming_'.length);
+    const key = `letters.incoming_topic_${topic}`;
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, topic);
+    return `<span class="npc-category-badge">${label}</span>`;
+}
+
 function renderChainLetterHtml(letter: Letter, listItem: HTMLElement): string {
     const isPlayerSender = letter.sender.id === Number(selectedPlayerId);
     const itemClass = isPlayerSender ? 'sent' : 'received';
@@ -215,7 +228,7 @@ function renderChainLetterHtml(letter: Letter, listItem: HTMLElement): string {
                 ${renderNpcCategoryBadge(letter)}
                 <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
             </div>
-            <div class="letter-item-subject">${letter.subject}</div>
+            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}</div>
             ${statusHtml}
             ${triggeredActionsHtml}
         </div>
@@ -927,7 +940,7 @@ function renderLetterContent(letter: Letter) {
     // This eliminates the second innerHTML rewrite that previously wiped event listeners.
     let viewHtml = `
         <div class="letter-view-header">
-            <h3>${letter.subject}</h3>
+            <h3>${letter.subject}${renderIncomingTopicBadge(letter)}</h3>
             ${statusHtml}
             <div class="letter-view-meta">
                 ${metaHtml}

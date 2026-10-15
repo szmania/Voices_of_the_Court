@@ -382,9 +382,9 @@ export class LetterManager {
         // player reply on letters.txt (and vice versa). The idle gate for each
         // channel is enforced by the caller (checkAndDeliverLetters).
         const isNpcLetter = letterId === 'npcltr';
-        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "npcltr.txt" : "letters.txt");
+        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "votc_ce_npcltr.txt" : "letters.txt");
 
-        // Single-channel note: each of letters.txt / npcltr.txt is one shared, whole-file-overwrite
+        // Single-channel note: each of letters.txt / votc_ce_npcltr.txt is one shared, whole-file-overwrite
         // channel polled by the mod-side letters_runner (~2s). A delivery and
         // a generation-failure fallback written inside the same window clobber
         // each other; per-slot runner files would need mod-side changes
@@ -465,7 +465,7 @@ trigger_event = message_event.362`}`;
             fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         } catch (writeError: any) {
             if (!isNpcLetter) throw writeError;
-            console.error(`Could not write npcltr.txt (${writeError?.message}); falling back to the letters.txt channel.`, writeError);
+            console.error(`Could not write votc_ce_npcltr.txt (${writeError?.message}); falling back to the letters.txt channel.`, writeError);
             fs.writeFileSync(path.join(runFolderPath, "letters.txt"), '\uFEFF' + gameCommand, 'utf8');
         }
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
@@ -561,9 +561,9 @@ trigger_event = message_event.362`}`;
         }
 
         const runFolder = path.join(ck3Folder, "run");
-        const npcltrFilePath = path.join(runFolder, "npcltr.txt");
+        const npcltrFilePath = path.join(runFolder, "votc_ce_npcltr.txt");
         fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
-        console.log("Reset npcltr.txt to the blank placeholder");
+        console.log("Reset votc_ce_npcltr.txt to the blank placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {

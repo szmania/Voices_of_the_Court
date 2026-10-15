@@ -75,7 +75,7 @@ describe('incoming letter delivery ownership', () => {
     }
 
     function readRunFile(): string {
-        return fs.readFileSync(path.join(root, 'run', 'incomingletter_v2_1.txt'), 'utf8');
+        return fs.readFileSync(path.join(root, 'run', 'votc_ce_incomingletter_v2_1.txt'), 'utf8');
     }
 
     it('keeps the final reply when a notification repeats during generation', async () => {

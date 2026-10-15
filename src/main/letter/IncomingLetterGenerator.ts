@@ -4,7 +4,7 @@ import { GameData } from "../../shared/gameData/GameData";
 import { parseLog, removeTooltip } from "../../shared/gameData/parseLog.js";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { randomUUID } from "crypto";
@@ -27,6 +27,9 @@ import { reportCorruptTimelineRegistry, reportUnsupportedTimelineSchema, reportC
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 import { runIncomingLetterTimelineTransition } from '../timelineBusinessWire.js';
+import { Letter } from './Letter.js';
+import { LetterType } from './letterInterfaces.js';
+import { LetterManager } from './LetterManager.js';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -914,7 +917,7 @@ ${indent}}
         }
 
         const timelineSetBlock = this.buildTimelineSetBlock(timeline, '\t');
-        const filePath = path.join(runFolderPath, `incomingletter_v2_${slotNumber}.txt`);
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
         const content = `if = {
 \tlimit = {
 \t\texists = global_var:votc_incoming_letter_${slotNumber}
@@ -957,7 +960,7 @@ else = {
         }
 
         const timelineSetBlock = this.buildTimelineSetBlock(timeline, '\t');
-        const filePath = path.join(runFolderPath, `incomingletter_v2_${slotNumber}.txt`);
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
         const content = `if = {
 \tlimit = {
 \t\texists = global_var:votc_incoming_letter_${slotNumber}
@@ -1031,6 +1034,33 @@ else = {
             receiverCharacter: player
         });
         await saveIncomingLetterHistory(record, identity);
+
+        // M1 (Letters-tab projection): upsert a display-only ILetter into the
+        // legacy LetterManager store so incoming letters appear in the Letters
+        // tab, which reads only that store. The projection is display-only:
+        // delivered:true and a non-letter_N subject guarantee it never
+        // re-enters delivery logic; the campaign history record above stays
+        // authoritative. Idempotency comes from saveLetter's built-in
+        // duplicate check (subject + totalDays + sender + recipient).
+        // Same UTC convention as Letter.fromLog (month is 0-indexed in JS Date).
+        const writtenTimestamp = new Date(Date.UTC(gameDate.year, gameDate.month - 1, gameDate.day, 12, 0, 0));
+        const projection = new Letter(
+            signature,
+            sender,
+            player,
+            `incoming_${context.type}`,
+            normalizedText,
+            LetterType.PERSONAL,
+            writtenTimestamp,
+            true, // isRead: incoming letters arrive read
+            0, // delay: no journey — delivered instantly by the guarded run file
+            gameDate.totalDays,
+            undefined, // replyToId
+            'read',
+            true // delivered: never re-enters delivery logic
+        );
+        LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
+        BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
     }
 
     private async saveSummary(gameData: GameData, context: IncomingLetterContext, normalizedText: string, timeline: CreateChildNodeResult, sourceRecordId: string, gameDate?: import("../../shared/gameData/gameDate").Ck3GameDate): Promise<void> {
