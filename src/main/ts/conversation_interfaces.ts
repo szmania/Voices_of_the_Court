@@ -41,7 +41,19 @@ export interface Summary{
     /** Timeline v2 protocol: checkpoint epoch / node id stamped on summaries written after a close. */
     votcCheckpointEpoch?: number,
     votcTimelineNodeId?: string,
-    characterId?: string;
+    /** Timeline v2 protocol: parent node id of the branch the summary belongs to. */
+    votcTimelineParentId?: string,
+    /** Campaign lineage stamp for campaign-scoped summary stores. */
+    votcCampaignId?: string,
+    characterId?: string,
+    /** Stable summary id (also the merge key for timeline-aware saves). */
+    id?: string,
+    /** Display name of the character the summary belongs to. */
+    characterName?: string,
+    /** Source flow that produced the summary (incoming letters stamp their topic in sourceRecordId's record). */
+    sourceType?: 'conversation' | 'letter' | 'incoming_letter' | 'battle_report',
+    sourceRecordId?: string,
+    gameDate?: import("../../shared/gameData/gameDate").Ck3GameDate
 }
 
 export interface ActionArgument{

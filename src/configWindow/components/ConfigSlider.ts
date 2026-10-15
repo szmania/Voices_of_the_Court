@@ -22,6 +22,15 @@ function defineTemplate(label: string, min: number, max: number, step: number){
 
 
 class ConfigSlider extends HTMLElement{
+    private providerChanged = () => { void this.updateSubscriptionLimit(); };
+    private async updateSubscriptionLimit(): Promise<void> {
+        if (this.confID !== 'maxTokens') return;
+        const config = await ipcRenderer.invoke('get-config');
+        const disabled = config.textGenerationApiConnectionConfig?.connection?.type === 'openai_chatgpt';
+        this.slider.disabled = this.number.disabled = this.button.disabled = disabled;
+        this.title = disabled ? ((window as any).LocalizationManager?.getNestedTranslation('chatgpt.limitations') ||
+            'The output-token limit is unavailable for ChatGPT subscription requests.') : '';
+    }
     label: string;
     confID: string;
     shadow: any;
@@ -60,6 +69,7 @@ class ConfigSlider extends HTMLElement{
     private languageUpdateHandler: (() => void) | null = null;
 
     async connectedCallback(){
+        if (this.confID === 'maxTokens') ipcRenderer.on('votc-provider-config-changed', this.providerChanged);
         const confID: string = this.confID;
 
         this.updateTranslation();
@@ -102,9 +112,11 @@ class ConfigSlider extends HTMLElement{
         this.button.addEventListener("click", (e: any) => {
             this.changeValue(this.default)
         });
+        await this.updateSubscriptionLimit();
     }
 
     disconnectedCallback() {
+        ipcRenderer.removeListener('votc-provider-config-changed', this.providerChanged);
         if (this.languageUpdateHandler) {
             ipcRenderer.removeListener('update-language', this.languageUpdateHandler);
         }

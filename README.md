@@ -10,6 +10,8 @@ An AI-powered companion for Crusader Kings III that helps you keep track of char
 
 Documentation: https://docs.voicesofthecourt.app
 
+ChatGPT subscription sign-in: [setup and preview limitations](docs/chatgpt-subscription.md).
+
 [Steam page](https://steamcommunity.com/sharedfiles/filedetails/?id=3654567139)
 
 Join our Discord:

@@ -4,7 +4,8 @@ export const promptKeys = [
     'mainPrompt', 'selfTalkPrompt', 'summarizePrompt', 'selfTalkSummarizePrompt',
     'memoriesPrompt', 'suffixPrompt', 'narrativePrompt', 'sceneDescriptionPrompt',
     'actionPrompt', 'actionTriggeredPrompt', 'letterPrompt', 'letterSummaryPrompt',
-    'diaryPrompt', 'diarySummarizePrompt', 'diaryForLetterPrompt', 'suggestionPrompt'
+    'diaryPrompt', 'diarySummarizePrompt', 'diaryForLetterPrompt', 'suggestionPrompt',
+    'incomingLetterPrompt'
 ] as const;
 
 export function isPromptKey(key: string): boolean {
