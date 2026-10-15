@@ -70,10 +70,10 @@ describe('PR15 fourth review', () => {
         // once the channel is idle.
         expect(LetterManager.getInstance().hasPendingLetterFallbacks()).toBe(true);
         LetterManager.getInstance().flushNextLetterFallback(config);
-        expect(fs.existsSync(path.join(config.userFolderPath, 'run', 'letters.txt'))).toBe(true);
+        expect(fs.existsSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'))).toBe(true);
     });
 
-    // Round 7 reversed the round-4 "accepted limitation": letters.txt is one
+    // Round 7 reversed the round-4 "accepted limitation": votc_ce_letters.txt is one
     // shared whole-file-overwrite channel polled every ~2s, so a
     // generation-failure fallback must not clobber a success delivery that is
     // still awaiting game consumption — that reply has already left the
@@ -85,18 +85,18 @@ describe('PR15 fourth review', () => {
         const reply = await generator.generateLetterReply(gameData, original);
         LetterManager.getInstance().deliverLetter(
             {letter: reply, originalLetter: original, expectedDeliveryDay: 389009}, config, '1066.1.10');
-        const delivered = fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8');
+        const delivered = fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8');
         expect(delivered).toContain('create_artifact');
         // A second letter's generation failure queues its fallback instead of
         // overwriting the file that still holds the unconfirmed reply.
         const other: any = {...original, id: 'other', subject: 'letter_2'};
         generator.apiConnection.complete.mockRejectedValue(new Error('API request failed'));
         expect(await generator.generateLetterReply(gameData, other)).toBeNull();
-        expect(fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8')).toContain('create_artifact');
+        expect(fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8')).toContain('create_artifact');
         expect(LetterManager.getInstance().hasPendingLetterFallbacks()).toBe(true);
         // Once the channel is idle, the next delivery pass writes the fallback.
         LetterManager.getInstance().flushNextLetterFallback(config);
-        const flushed = fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8');
+        const flushed = fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8');
         expect(flushed).not.toContain('create_artifact');
         expect(flushed).toContain('votc_letter_2');
     });

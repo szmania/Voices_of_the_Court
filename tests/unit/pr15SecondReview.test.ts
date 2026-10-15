@@ -86,7 +86,7 @@ describe('PR15 second review integration reproductions', () => {
             expect(transition.context.checkpointEpoch).toBe(epoch + 1);
         }
         LetterManager.getInstance().deliverLetter({letter: reply, originalLetter: original, expectedDeliveryDay: 389009}, config, '1066.1.10');
-        const delivered = fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8');
+        const delivered = fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8');
         const appendedTimeline = delivered.slice(delivered.lastIndexOf('global_var:message_first_scope = {'));
         // CK3 is now on the second conversation's epoch 8. Inspect the emitted script:
         // its unconditional top-level scope must not restore sending-time epoch 6.

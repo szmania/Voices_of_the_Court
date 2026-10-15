@@ -9,7 +9,7 @@ const UTF8_BOM = '\uFEFF';
 export class RunFileManager {
     private path: string;
 
-    constructor(userFolderPath: string, filename: string = 'votc.txt') {
+    constructor(userFolderPath: string, filename: string = 'votc_ce.txt') {
         if (!userFolderPath) {
             console.error("RunFileManager error: userFolderPath is not provided. Run file operations will be disabled.");
             this.path = '';

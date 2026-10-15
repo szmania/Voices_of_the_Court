@@ -2,7 +2,7 @@
  * Unit tests for the VOTC:LETTER_EFFECT_ACCEPTED clipboard keyword dispatch.
  *
  * The CK3 mod copies "VOTC:LETTER_EFFECT_ACCEPTED" to the clipboard (message_event.363)
- * after it executes run/votc_letter_actions.txt. ClipboardListener must recognize the
+ * after it executes run/votc_ce_letter_actions.txt. ClipboardListener must recognize the
  * command and emit the event so main.ts can clear the run file deterministically
  * (mirroring VOTC:EFFECT_ACCEPTED for the conversation run file).
  */

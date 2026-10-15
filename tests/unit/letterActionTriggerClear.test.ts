@@ -1,7 +1,7 @@
 /**
  * Unit tests for LetterActionTrigger.clearLetterRunFile — the app-side handler for
  * VOTC:LETTER_EFFECT_ACCEPTED. The game fires that keyword (message_event.363) after
- * executing run/votc_letter_actions.txt; the handler must empty the file so a stale
+ * executing run/votc_ce_letter_actions.txt; the handler must empty the file so a stale
  * effect cannot re-fire on the next write-letter interaction.
  */
 import * as fs from 'fs';
@@ -18,7 +18,7 @@ describe('LetterActionTrigger.clearLetterRunFile', () => {
 
     beforeEach(() => {
         tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'votc-letter-clear-'));
-        runFilePath = path.join(tmpDir, 'run', 'votc_letter_actions.txt');
+        runFilePath = path.join(tmpDir, 'run', 'votc_ce_letter_actions.txt');
         // Reset the lazily-created static manager so each test exercises the
         // "no letter action ran yet this session" state the keyword can arrive in.
         (LetterActionTrigger as any).letterRunFileManager = null;
