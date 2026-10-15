@@ -129,6 +129,8 @@
     "letter_tooltip": "用于生成信件回复的提示词。",
     "letter_summary_prompt": "信件总结提示词",
     "letter_summary_tooltip": "用于总结信件往来的提示词。",
+    "incoming_letter_prompt": "来信提示词",
+    "incoming_letter_tooltip": "NPC 主动写来书信时使用的提示词。",
     "suggestion_prompt": "建议提示词",
     "suggestion_prompt_tooltip": "此提示词用于为玩家生成回应建议。",
     "restore_defaults": "恢复默认提示词",

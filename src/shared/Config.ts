@@ -19,6 +19,13 @@ export class Config{
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
 
+    // F13 (source-line P1-L1): token budget for the chronological summary
+    // block the incoming-letter generator injects. Optional so pre-existing
+    // configs keep loading; IncomingLetterGenerator falls back to 2000.
+    // Delivered to upgraded users via default_config.json + the userDataCheck
+    // strict deep merge. (Settings UI toggle is handled in a later pass.)
+    maxSummaryTokens?: number;
+
     selectedDescScript!: string;
     selectedExMsgScript!: string;
     selectedBookmarkScript!: string;

@@ -2,7 +2,18 @@ import { GameData, Memory, Trait, OpinionModifier, Secret, Relative, KnownSecret
 import { Character } from "./Character";
 const fs = require('fs');
 
-export async function parseLog(debugLogPath: string): Promise<GameData | undefined>{
+/**
+ * Half-open window into debug.log, in whole-file JavaScript string space
+ * (UTF-8 decoded), NOT byte offsets. Incoming-letter callers locate their
+ * snapshot with indexOf/readFileSync on the decoded string and hand the same
+ * indexes back here, so multibyte (CJK) content cannot shift the range.
+ */
+export interface LogSnapshotRange {
+    startOffset: number;
+    endOffset: number;
+}
+
+export async function parseLog(debugLogPath: string, snapshotRange?: LogSnapshotRange): Promise<GameData | undefined>{
 async function readLastRelevantBlock(filePath: string): Promise<string | undefined> {
     const CHUNK_SIZE = 512 * 1024; // 512KB chunks
     const SEARCH_STRING = 'VOTC:IN/;/init';
@@ -64,7 +75,13 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
     // Efficiently find the last block by reading from the end of the file
     let relevantLogBlock: string | undefined;
-    for (let i = 0; i < 3; i++) {
+    if (snapshotRange) {
+        // Snapshot callers pass an explicit window; slice the SAME decoded
+        // whole-file string their offsets were computed from. The single-
+        // parameter tail-search path below is untouched.
+        relevantLogBlock = (await fs.promises.readFile(debugLogPath, 'utf8')).slice(snapshotRange.startOffset, snapshotRange.endOffset);
+    }
+    for (let i = 0; !snapshotRange && !relevantLogBlock && i < 3; i++) {
         relevantLogBlock = await readLastRelevantBlock(debugLogPath);
         if (relevantLogBlock) {
             break;
@@ -73,7 +90,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    if (!relevantLogBlock) {
+    if (!snapshotRange && !relevantLogBlock) {
         console.log("Chunked search failed. Attempting to read last 2MB of the log file as a fallback.");
         let handle;
         try {

@@ -16,6 +16,7 @@ import { GameData } from "../shared/gameData/GameData";
 import { Letter } from "./letter/Letter";
 import { Letter as ILetter, StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
+import { IncomingLetterGenerator } from "./letter/IncomingLetterGenerator";
 import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
@@ -899,6 +900,7 @@ function processLogLine(line: string) {
     // Save-load identity from the mod's load relay: the earliest identity signal
     // of a session, and the only one available before the first conversation.
     observeCampaignLoadLine(line);
+    clipboardListener?.readIncomingLetterLogLine(line);
 
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
@@ -2429,6 +2431,36 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
     } catch (error) {
         console.error('Error processing VOTC:LETTER event:', error);
+    }
+})
+
+// P1 port of the source-line VOTC:INCOMING_LETTER wiring. Payloads come from
+// the mod-side clipboard_codes bridge keys in the fixed order
+// slotId/type/deliveryId; the generator re-validates all of them.
+clipboardListener.on('VOTC:INCOMING_LETTER', async (slotId?: string, type?: string, deliveryIdRaw?: string) => {
+    console.log(`ClipboardListener: VOTC:INCOMING_LETTER event detected (slot=${slotId}, type=${type}, deliveryId=${deliveryIdRaw}).`);
+    try {
+        if (!slotId || !/^incoming_letter_([1-8])$/.test(slotId)) {
+            console.error(`Invalid or missing incoming letter slotId: ${slotId}`);
+            return;
+        }
+        if (!type) {
+            console.error('Invalid or missing incoming letter type.');
+            return;
+        }
+        const deliveryId = Number(deliveryIdRaw);
+        if (!Number.isSafeInteger(deliveryId) || deliveryId < 0) {
+            console.error(`Invalid incoming letter deliveryId: ${deliveryIdRaw}`);
+            return;
+        }
+
+        const debugLogPath = path.join(config.userFolderPath, 'logs', 'debug.log');
+        await sleep(250);
+
+        const incomingLetterGenerator = new IncomingLetterGenerator(config, votcDataPath, tiktokenEncoder);
+        await incomingLetterGenerator.generateIncomingLetter(debugLogPath, config.userFolderPath, slotId, type, deliveryId);
+    } catch (error) {
+        console.error('Error processing VOTC:INCOMING_LETTER event:', error);
     }
 })
 

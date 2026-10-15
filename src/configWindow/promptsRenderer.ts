@@ -41,7 +41,7 @@ const conversationPromptKeys = [
     "actionPrompt", "actionTriggeredPrompt",
     "diaryPrompt", "diarySummarizePrompt", "diaryForLetterPrompt", "suggestionPrompt"
 ];
-const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt"];
+const letterPromptKeys = ["letterPrompt", "letterSummaryPrompt", "incomingLetterPrompt"];
 
 async function updateTotalTokenCounts() {
     const totalConversationTokensSpan = document.getElementById('total-conversation-tokens');
