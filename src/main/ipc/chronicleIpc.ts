@@ -160,7 +160,7 @@ export function registerChronicleHandlers(deps: {
         try {
             const parseResult = parseChronicleClipboardPayload(payloads);
             if (parseResult.status !== 'valid') {
-                console.error(`[Chronicle] Invalid tick payload: ${parseResult.status}`);
+                console.error('[Chronicle] Invalid tick payload:', parseResult);
                 return;
             }
             const payload = parseResult.payload;
@@ -194,7 +194,7 @@ export function registerChronicleHandlers(deps: {
         try {
             const parseResult = parseChronicleClipboardPayload(payloads);
             if (parseResult.status !== 'valid') {
-                console.error(`[Chronicle] Invalid manager payload: ${parseResult.status}`);
+                console.error('[Chronicle] Invalid manager payload:', parseResult);
                 return;
             }
             const payload = parseResult.payload;

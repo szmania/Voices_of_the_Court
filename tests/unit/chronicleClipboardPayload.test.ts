@@ -40,6 +40,17 @@ function makeValidFields(overrides: Partial<Record<number, string>> = {}): strin
 }
 
 describe('parseChronicleClipboardPayload - valid payloads', () => {
+    it('removes CK3 tooltip controls from player and title text on the log transport', () => {
+        const result = parseChronicleClipboardPayload(makeValidFields({
+            2: '\u0015ONCLICK:CHARACTER,123 \u0015TOOLTIP:CHARACTER,123 \u0015L Ruler Name\u0015!\u0015!\u0015!',
+            23: '\u0015ONCLICK:TITLE,456 \u0015TOOLTIP:LANDED_TITLE,456 \u0015L; Court Title\u0015!\u0015!\u0015!'
+        }));
+        expect(result.status).toBe('valid');
+        if (result.status !== 'valid') return;
+        expect(result.payload.playerName).toBe('Ruler Name');
+        expect(result.payload.playerPrimaryTitle).toBe('Court Title');
+    });
+
     it('builds the game date from the explicit CK3 date fields', () => {
         const result = parseChronicleClipboardPayload(makeValidFields());
         expect(result.status).toBe('valid');

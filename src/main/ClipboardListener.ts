@@ -1,10 +1,12 @@
 import {clipboard} from "electron";
 import {EventEmitter} from 'events';
+import { parseChronicleClipboardPayload } from './chronicle/chronicleClipboardPayload.js';
 
 export class ClipboardListener extends EventEmitter{
     previousClipboard: string;
     isListening: boolean;
     interval: any;
+    private chronicleRequests = new Map<string, number>();
 
     constructor(){
         super();
@@ -57,9 +59,29 @@ export class ClipboardListener extends EventEmitter{
     }
 
     readChronicleLogLine(line: string): void {
-        if (this.isListening) return;
         const match = /VOTC:(CHRONICLE_TICK|CHRONICLE_MANAGER)\/;\/(.*)/.exec(line.replace(/\r$/, ''));
-        if (match) this.emit(`VOTC:${match[1]}`, match[2].split('/;/'));
+        if (match) this.dispatchChronicle(`VOTC:${match[1]}`, match[2].split('/;/'));
+    }
+
+    private dispatchChronicle(command: string, payloads: string[]): void {
+        const parsed = parseChronicleClipboardPayload(payloads);
+        if (parsed.status === 'valid') {
+            // Clipboard copies can arrive after the log, with display text
+            // stripped of CK3 tooltip markup. Deduplicate by request identity.
+            const key = JSON.stringify([command, {
+                ...parsed.payload, playerName: undefined, playerPrimaryTitle: undefined
+            }]);
+            const now = Date.now();
+            for (const [request, receivedAt] of this.chronicleRequests) {
+                if (now - receivedAt >= 30000) this.chronicleRequests.delete(request);
+            }
+            if (this.chronicleRequests.has(key)) return;
+            this.chronicleRequests.set(key, now);
+            if (this.chronicleRequests.size > 256) {
+                this.chronicleRequests.delete(this.chronicleRequests.keys().next().value!);
+            }
+        }
+        this.emit(command, payloads);
     }
 
     readClipboard(){
@@ -93,7 +115,7 @@ export class ClipboardListener extends EventEmitter{
                 break;
                 case "CHRONICLE_TICK":
                 case "CHRONICLE_MANAGER":
-                    this.emit(`VOTC:${command}`, payloads);
+                    this.dispatchChronicle(`VOTC:${command}`, payloads);
                 break;
                 case "LETTER":
                     this.emit('VOTC:LETTER');

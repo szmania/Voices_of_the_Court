@@ -6,6 +6,7 @@ import {
     formatCk3GameDate,
     type Ck3GameDate
 } from '../../shared/gameData/gameDate.js';
+import { removeTooltip } from '../../shared/gameData/ck3Text.js';
 
 export const CHRONICLE_CLIPBOARD_FIELD_COUNT = 25;
 const MANAGER_CORE_FIELD_COUNT = 9;
@@ -115,7 +116,7 @@ export function parseChronicleClipboardPayload(
         return { status: 'invalid', reason: `pulse quarter must be between 1 and 4: ${pulseQuarter}` };
     }
 
-    const playerPrimaryTitle = at(CHRONICLE_FIELD_START + 6) ?? '';
+    const playerPrimaryTitle = removeTooltip(at(CHRONICLE_FIELD_START + 6) ?? '');
 
     const memoryRequestId = parseStrictInt(at(CHRONICLE_FIELD_START + 7), 'memory request id');
     if (typeof memoryRequestId !== 'number') return { status: 'invalid', reason: memoryRequestId };
@@ -127,7 +128,7 @@ export function parseChronicleClipboardPayload(
         status: 'valid',
         payload: {
             playerId: snapshot.playerId,
-            playerName: snapshot.playerName,
+            playerName: snapshot.playerName === undefined ? undefined : removeTooltip(snapshot.playerName),
             checkpointEpoch: snapshot.epoch,
             timelineNodeA: snapshot.nodeA,
             timelineNodeB: snapshot.nodeB,
