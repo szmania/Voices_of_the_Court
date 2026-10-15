@@ -251,6 +251,7 @@
   <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
   <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
   <script>require("../../dist/configWindow/components/ConfigText.js")</script>
+  <script>require("../../dist/configWindow/components/configTextarea.js")</script>
   <script>require("../../dist/configWindow/components/ConfigNumber.js")</script>
   <script>require("../../dist/configWindow/components/ConfigSlider.js")</script>
     <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
@@ -406,6 +407,14 @@
         }
       });
 
+      // Initialize the historian settings once when this page loads.
+      const chronicleFreqSelect = document.getElementById('chronicle-frequency-select');
+      if (chronicleFreqSelect) {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.invoke('get-config').then(config => { chronicleFreqSelect.value = config.chronicleFrequency || 'yearly'; });
+        chronicleFreqSelect.addEventListener('change', () => ipcRenderer.send('config-change', 'chronicleFrequency', chronicleFreqSelect.value));
+      }
+
       // Start polling when page is visible, stop when hidden
       function startCompactionPolling() {
         updateCompactionStatus();
@@ -421,13 +430,7 @@
         if (document.hidden) {
           stopCompactionPolling();
         } else {
-          const chronicleFreqSelect = document.getElementById('chronicle-frequency-select');
-      if (chronicleFreqSelect) {
-        const { ipcRenderer } = require('electron');
-        ipcRenderer.invoke('get-config').then(config => { chronicleFreqSelect.value = config.chronicleFrequency || 'yearly'; });
-        chronicleFreqSelect.addEventListener('change', () => ipcRenderer.send('config-change', 'chronicleFrequency', chronicleFreqSelect.value));
-      }
-      startCompactionPolling();
+          startCompactionPolling();
         }
       });
       startCompactionPolling();
