@@ -105,8 +105,8 @@
     "parameters": "パラメーター"
   },
   "prompts": {
-    "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt": "年代記の指示文",
+    "chroniclePrompt_tooltip": "宮廷史官の文体を設定します。史料は自動で挿入されます。空欄にすると、画面の言語に対応した標準の指示文を使います。",
 
     "header": "プロンプト",
     "main_prompt": "メインプロンプト",

@@ -4,6 +4,7 @@ import type { Tiktoken } from 'js-tiktoken';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 import type { Ck3GameDate } from '../../shared/gameData/gameDate.js';
 import { formatCk3GameDate } from '../../shared/gameData/gameDate.js';
+import { resolveChroniclePrompt } from '../../shared/chroniclePrompt.js';
 import type { Parameters } from '../../shared/apiConnection.js';
 import {
     CHRONICLE_CONTEXT_SAFETY_RATIO,
@@ -479,7 +480,7 @@ export class ChronicleCoordinator {
                         identity,
                         modelCategory: 'default',
                         digestPromptVersion: DIGEST_PROMPT_VERSION,
-                        promptOverheadText: config.chroniclePrompt
+                        promptOverheadText: resolveChroniclePrompt(config.chroniclePrompt, config.language)
                     }
                 );
             } catch (error) {
@@ -794,6 +795,7 @@ function buildGeneratorConfig(config: ChronicleCoordinatorConfig): ChronicleGene
     const parameters: Parameters = config.summarizationApiConnectionConfig.parameters;
     return {
         chroniclePrompt: config.chroniclePrompt,
+        language: config.language,
         chronicleOutputMaxTokens: config.outputMaxTokens,
         summarizationUseTextGenApi: config.summarizationUseTextGenApi,
         summarizationParameters: parameters,

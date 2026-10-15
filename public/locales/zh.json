@@ -112,7 +112,7 @@
   },
   "prompts": {
     "chroniclePrompt": "史书提示词",
-    "chroniclePrompt_tooltip": "该提示词用于控制宫廷史官的写作风格。素材会自动注入。",
+    "chroniclePrompt_tooltip": "控制宫廷史官的写作风格，素材会自动注入。留空使用当前界面语言的默认提示词。",
 
     "header": "提示词",
     "main_prompt": "主提示词",

@@ -5,21 +5,7 @@ import type {
     ChronicleSourceRecord
 } from './chronicleTypes.js';
 
-export const DEFAULT_CHRONICLE_PROMPT =
-    '你是宫廷史官，正在为{{playerName}}撰写{{periodStart}}至{{periodEnd}}的编年史。\n' +
-    '\n' +
-    '请严格依据下方起居来源，将本期发生的事情整理为连贯、克制的史书正文。\n' +
-    '\n' +
-    '要求：\n' +
-    '1. 使用第三人称，以编年体或本纪风格书写。\n' +
-    '2. 优先记录重要会谈、角色记忆所确认的经历、政令、承诺、冲突、信件、战争与明确后果。\n' +
-    '3. 角色记忆是背景事实，不代表该角色在本期对话中亲口讲述；不得把他人的私密记忆写成宫廷公认事实，除非其他来源也予以证实。\n' +
-    '4. 可压缩寒暄和重复内容，但不得改变人物立场。\n' +
-    '5. 不得编造来源中没有出现的动机、秘密、行动、数字、胜负或后果。\n' +
-    '6. 来源互相矛盾时，用"据某人所言""双方各执一词"等方式保留不确定性。\n' +
-    '7. 不提及 VOTC、后端、模型、prompt、数据、对话记录、角色记忆字段或摘要。\n' +
-    '8. 不逐条罗列来源，不使用 Markdown 标题或项目符号。\n' +
-    '9. 输出二至六段正文，不要前言、解释或写作说明。\n';
+export { DEFAULT_CHRONICLE_PROMPT } from '../../shared/chroniclePrompt.js';
 
 const RECENT_CHRONICLES_MAX_CHARS = 3000;
 const RECENT_CHRONICLES_MAX_ENTRIES = 5;

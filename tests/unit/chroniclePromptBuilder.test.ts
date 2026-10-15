@@ -320,7 +320,7 @@ describe('buildChroniclePrompt', () => {
 
     test('includes private memory rule from default template', () => {
         const prompt = buildChroniclePrompt(makeParams());
-        expect(prompt).toContain('私密记忆');
+        expect(prompt).toContain('private memories');
     });
 
     test('escapes pseudo-XML tags in source content', () => {
@@ -371,8 +371,9 @@ describe('buildChroniclePrompt', () => {
                 }
             ]
         }));
-        const xCount = (prompt.match(/X/g) || []).length;
-        const yCount = (prompt.match(/Y/g) || []).length;
+        const recentSection = prompt.split('<recent_chronicles>')[1].split('</recent_chronicles>')[0];
+        const xCount = (recentSection.match(/X/g) || []).length;
+        const yCount = (recentSection.match(/Y/g) || []).length;
         expect(xCount).toBeLessThanOrEqual(3000);
         expect(yCount).toBe(0);
     });

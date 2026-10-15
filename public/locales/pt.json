@@ -105,8 +105,8 @@
     "parameters": "Parâmetros"
   },
   "prompts": {
-    "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt": "Instruções da crônica",
+    "chroniclePrompt_tooltip": "Define o estilo do cronista. As fontes são inseridas automaticamente. Deixe vazio para usar as instruções padrão no idioma da interface.",
 
     "header": "Prompts",
     "main_prompt": "Prompt principal",

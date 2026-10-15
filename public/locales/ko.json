@@ -105,8 +105,8 @@
     "parameters": "매개변수"
   },
   "prompts": {
-    "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt": "연대기 프롬프트",
+    "chroniclePrompt_tooltip": "궁정 사관의 문체를 설정합니다. 자료는 자동으로 추가됩니다. 비워 두면 인터페이스 언어에 맞는 기본 프롬프트를 사용합니다.",
 
     "header": "프롬프트",
     "main_prompt": "메인 프롬프트",

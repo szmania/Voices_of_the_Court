@@ -105,8 +105,8 @@
     "parameters": "Parameter"
   },
   "prompts": {
-    "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt": "Chronik-Anweisung",
+    "chroniclePrompt_tooltip": "Bestimmt den Schreibstil des Hofchronisten. Quellen werden automatisch eingefügt. Leer lassen, um die Standardanweisung in der Sprache der Oberfläche zu verwenden.",
 
     "header": "Prompts",
     "main_prompt": "Haupt-Prompt",

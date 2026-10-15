@@ -3769,6 +3769,10 @@ ipcMain.on('language-changed', (event, lang: string) => {
     loadTranslations(lang);
     createTray();
 
+    if (mainConfigWindow && !mainConfigWindow.isDestroyed()) {
+        mainConfigWindow.webContents.send('update-language', lang);
+    }
+
     const windows = [
         configWindow,
         chatWindow,

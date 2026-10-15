@@ -85,7 +85,7 @@
   },
   "prompts": {
     "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt_tooltip": "Controls the historian's writing style. Source material is inserted automatically. Leave blank to use the default prompt for the interface language.",
 
     "header": "Prompts",
     "main_prompt": "Main prompt",

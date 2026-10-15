@@ -7,5 +7,5 @@ it('loads, edits, saves and reloads prompt presets without the retired config.pr
         encoding: 'utf8', timeout: 30000
     });
     if (result.status !== 0) throw new Error(result.stdout + result.stderr + (result.error?.message || ''));
-    expect(result.stdout).toContain('# pass 4');
+    expect(result.stdout).toContain('# pass 6');
 }, 35000);

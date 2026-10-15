@@ -7,15 +7,16 @@ import type { Message } from '../ts/conversation_interfaces.js';
 import type { Ck3GameDate } from '../../shared/gameData/gameDate.js';
 import {
     buildChroniclePrompt,
-    DEFAULT_CHRONICLE_PROMPT,
     type PreviousChronicleRef
 } from './ChroniclePromptBuilder.js';
+import { resolveChroniclePrompt } from '../../shared/chroniclePrompt.js';
 import type {
     ChronicleSelectedSource
 } from './chronicleTypes.js';
 
 export interface ChronicleGeneratorConfig {
     chroniclePrompt: string;
+    language?: string;
     chronicleOutputMaxTokens: number;
     summarizationUseTextGenApi?: boolean;
     summarizationParameters: Parameters;
@@ -224,7 +225,7 @@ export async function generateChronicle(
     const { sources, generatorConfig, api, requestKey } = params;
 
     const prompt = buildChroniclePrompt({
-        promptTemplate: generatorConfig.chroniclePrompt || DEFAULT_CHRONICLE_PROMPT,
+        promptTemplate: resolveChroniclePrompt(generatorConfig.chroniclePrompt, generatorConfig.language),
         playerName: params.playerName,
         periodStart: params.periodStart,
         periodEnd: params.periodEnd,

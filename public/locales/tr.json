@@ -105,8 +105,8 @@
     "parameters": "Parametreler"
   },
   "prompts": {
-    "chroniclePrompt": "Chronicle prompt",
-    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+    "chroniclePrompt": "Kronik istemi",
+    "chroniclePrompt_tooltip": "Saray tarihçisinin yazım tarzını belirler. Kaynaklar otomatik eklenir. Arayüz dilindeki varsayılan istemi kullanmak için boş bırakın.",
 
     "header": "İstemler",
     "main_prompt": "Ana istem",

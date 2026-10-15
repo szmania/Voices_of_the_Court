@@ -62,6 +62,14 @@ function page(presets = {}, activePreset = 'Default') {
             return { ipcRenderer: ipc };
         if (name.endsWith('/promptKeys'))
             return { promptKeys, isPromptKey };
+        if (name.endsWith('/chroniclePrompt')) {
+            const file = path.join(root, 'src/shared/chroniclePrompt.ts');
+            const module = { exports: {} };
+            vm.runInNewContext(compile(fs.readFileSync(file, 'utf8')), {
+                exports: module.exports, require: require('node:module').createRequire(file)
+            });
+            return module.exports;
+        }
         if (name === 'path')
             return path;
         if (name === 'fs')
@@ -137,6 +145,32 @@ describe('prompt preset editor', () => {
         textarea.dispatchEvent(new current.dom.window.Event('change'));
         assert.ok(current.ipc.send.mock.calls.some(call => JSON.stringify(call.arguments) === JSON.stringify(['config-change', 'inputSequence', 'Player:'])));
     });
+    for (const initial of ['', 'You are a court historian. Based on the following source materials, write a concise chronicle entry in a historical narrative style. Requirements: 1. Stay faithful to the sources; 2. Highlight important figures and events; 3. Keep it concise.']) {
+        it(`localizes the global chronicle default and preserves pending/saved edits (${initial ? 'legacy' : 'empty'})`, async () => {
+            const current = open();
+            await current.api.ready;
+            current.config.chroniclePrompt = initial;
+            current.config.language = 'zh';
+            // The constructor reads attributes, so instantiate from HTML.
+            const host = current.dom.window.document.createElement('div');
+            host.innerHTML = '<config-textarea confID="chroniclePrompt"></config-textarea>';
+            current.dom.window.document.body.append(host);
+            await new Promise(resolve => setImmediate(resolve));
+            const textarea = host.firstElementChild.textarea;
+            assert.match(textarea.value, /请用简体中文书写/);
+            await current.language('en');
+            assert.match(textarea.value, /Write in English/);
+            assert.equal(current.config.chroniclePrompt, initial);
+            textarea.value = 'My custom chronicle draft';
+            textarea.dispatchEvent(new current.dom.window.Event('input'));
+            await current.language('zh');
+            assert.equal(textarea.value, 'My custom chronicle draft');
+            textarea.dispatchEvent(new current.dom.window.Event('change'));
+            await current.language('en');
+            assert.equal(textarea.value, 'My custom chronicle draft');
+            assert.equal(current.config.chroniclePrompt, 'My custom chronicle draft');
+        });
+    }
     it('ignores obsolete prompt config-change messages without touching user configuration', () => {
         const source = fs.readFileSync(path.join(root, 'src/main/main.ts'), 'utf8');
         const ast = ts.createSourceFile('main.ts', source, ts.ScriptTarget.Latest, true);
