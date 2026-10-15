@@ -413,7 +413,12 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let apiConfig = config[confID].connection;
-        if (confID === 'embeddingApiConnectionConfig') this.typeSelector.querySelector('option[value="openai_chatgpt"]')?.remove();
+        // ChatGPT subscriptions cannot produce embeddings, so a saved subscription type is
+        // not valid for the embedding config. Fall back to OpenAI and persist the change.
+        if (confID === 'embeddingApiConnectionConfig' && apiConfig.type === 'openai_chatgpt') {
+            apiConfig.type = 'openai';
+            ipcRenderer.send('config-change-nested-nested', confID, 'connection', 'type', 'openai');
+        }
 
 
         this.typeSelector.value = apiConfig.type;
@@ -694,6 +699,16 @@ class ApiSelector extends HTMLElement{
 
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
+            // ChatGPT subscriptions cannot produce embeddings; report it instead of
+            // calling the chat-only subscription test endpoint.
+            if (this.confID === 'embeddingApiConnectionConfig' && this.typeSelector.value === 'openai_chatgpt') {
+                // @ts-ignore
+                const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+                this.testConnectionSpan.style.color = "red";
+                this.testConnectionSpan.innerText = t('memory_constellation.embedding_chatgpt_unsupported',
+                    'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.');
+                return;
+            }
             if (this.typeSelector.value === 'openai_chatgpt') {
                 const response = await ipcRenderer.invoke('openai-chatgpt:test-connection', this.confID);
                 const result = response.ok ? response.value : { success: false, errorMessage: response.error };

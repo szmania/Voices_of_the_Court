@@ -62,7 +62,8 @@
     "search_placeholder": "Поиск воспоминаний...",
     "search_prev_tooltip": "Предыдущее совпадение",
     "search_next_tooltip": "Следующее совпадение",
-    "search_hint": "Поиск воспоминаний (наведите здесь)"
+    "search_hint": "Поиск воспоминаний (наведите здесь)",
+    "embedding_chatgpt_unsupported": "OpenAI (подписка ChatGPT) не поддерживает эмбеддинги. Выберите отдельного поставщика эмбеддингов."
   },
   "connection": {
     "ck3_path": "Путь к папке пользователя CK3",

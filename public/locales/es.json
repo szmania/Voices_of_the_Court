@@ -50,7 +50,8 @@
     "search_placeholder": "Buscar recuerdos...",
     "search_prev_tooltip": "Coincidencia anterior",
     "search_next_tooltip": "Coincidencia siguiente",
-    "search_hint": "Buscar recuerdos (pase el cursor aquí)"
+    "search_hint": "Buscar recuerdos (pase el cursor aquí)",
+    "embedding_chatgpt_unsupported": "OpenAI (suscripción ChatGPT) no admite embeddings. Seleccione un proveedor de embeddings independiente."
   },
   "connection": {
     "ck3_path": "Ruta de la carpeta de usuario de CK3",

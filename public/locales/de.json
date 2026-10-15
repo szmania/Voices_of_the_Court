@@ -50,7 +50,8 @@
     "search_placeholder": "Erinnerungen durchsuchen...",
     "search_prev_tooltip": "Vorheriger Treffer",
     "search_next_tooltip": "Nächster Treffer",
-    "search_hint": "Erinnerungen durchsuchen (hier hovern)"
+    "search_hint": "Erinnerungen durchsuchen (hier hovern)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT-Abonnement) unterstützt keine Embeddings. Bitte wählen Sie einen separaten Embedding-Anbieter."
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",

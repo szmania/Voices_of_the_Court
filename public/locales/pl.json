@@ -50,7 +50,8 @@
     "search_placeholder": "Szukaj wspomnień...",
     "search_prev_tooltip": "Poprzednie dopasowanie",
     "search_next_tooltip": "Następne dopasowanie",
-    "search_hint": "Szukaj wspomnień (najedź tutaj)"
+    "search_hint": "Szukaj wspomnień (najedź tutaj)",
+    "embedding_chatgpt_unsupported": "OpenAI (subskrypcja ChatGPT) nie obsługuje osadzeń. Wybierz osobnego dostawcę osadzeń."
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",

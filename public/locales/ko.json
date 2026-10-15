@@ -50,7 +50,8 @@
     "search_placeholder": "기억 검색...",
     "search_prev_tooltip": "이전 일치",
     "search_next_tooltip": "다음 일치",
-    "search_hint": "기억 검색(여기에 호버)"
+    "search_hint": "기억 검색(여기에 호버)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT 구독)는 임베딩을 지원하지 않습니다. 별도의 임베딩 제공자를 선택하세요."
   },
   "connection": {
     "ck3_path": "CK3 사용자 폴더 경로",

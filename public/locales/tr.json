@@ -62,7 +62,8 @@
     "search_placeholder": "Anıları ara...",
     "search_prev_tooltip": "Önceki eşleşme",
     "search_next_tooltip": "Sonraki eşleşme",
-    "search_hint": "Anıları ara (imleci buraya getir)"
+    "search_hint": "Anıları ara (imleci buraya getir)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT aboneliği) gömmeleri desteklemez. Lütfen ayrı bir gömme sağlayıcısı seçin."
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",

@@ -84,7 +84,8 @@
     "search_placeholder": "Pesquisar memórias...",
     "search_prev_tooltip": "Correspondência anterior",
     "search_next_tooltip": "Correspondência seguinte",
-    "search_hint": "Pesquisar memórias (passe o cursor aqui)"
+    "search_hint": "Pesquisar memórias (passe o cursor aqui)",
+    "embedding_chatgpt_unsupported": "OpenAI (assinatura ChatGPT) não oferece suporte a embeddings. Selecione um provedor de embeddings separado."
   },
   "connection": {
     "ck3_path": "Caminho da pasta de usuário do CK3",
