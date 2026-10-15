@@ -17,6 +17,7 @@ import {
     classifyLetterHistoryArray,
     type ClassifiedHistoryArray
 } from './history/HistoryRecordReaders.js';
+import type { IncomingLetterHistoryRecordV1 } from './history/historyRecordTypes.js';
 
 export type ArchiveHistoryEntry = {
     id: string;
@@ -1013,4 +1014,39 @@ export async function getArchiveHistoryEntries(
         return getBattleReportHistoryEntries(playerId, checkpointEpoch, registry, currentNodeId, identity);
     }
     return [];
+}
+
+/**
+ * Persists a schema v1 incoming letter record (P1 port of the source-line
+ * writer) using the shared atomic array update. Fail-closed: an existing
+ * corrupt file aborts the write instead of being replaced. Idempotent on the
+ * stable business `id`. Errors propagate to the caller, which owns
+ * user-facing feedback and must not create duplicate letters on retry.
+ * Letter records for a sender share one file, matching the reader in
+ * getLetterHistoryEntries.
+ */
+export async function saveIncomingLetterHistory(record: IncomingLetterHistoryRecordV1, identity: CampaignPlayerIdentity): Promise<void> {
+    // Route to the campaign-scoped directory using the identity captured at
+    // operation start by the caller. Do NOT re-resolve here.
+    const historyDir = campaignLetterHistoryDir(app.getPath('userData'), identity);
+    fs.mkdirSync(historyDir, { recursive: true });
+
+    const historyFilePath = path.join(historyDir, `character_${record.senderId}.json`);
+    await updateJsonArrayAtomic<unknown>(
+        historyFilePath,
+        (value) => {
+            if (!Array.isArray(value)) {
+                throw new Error('existing incoming letter history file is not an array');
+            }
+            return value;
+        },
+        (records) => {
+            if (records.some(existing => (existing as { id?: unknown } | null)?.id === record.id)) {
+                console.log(`Incoming letter history already present, skipping write: ${record.id}`);
+                return records;
+            }
+            return [...records, record];
+        }
+    );
+    console.log(`Incoming letter history saved: ${historyFilePath}`);
 }

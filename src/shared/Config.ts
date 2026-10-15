@@ -2,6 +2,7 @@ import fs from 'fs';
 import { Parameters, Connection} from './apiConnection';
 import path from 'path';
 import {app} from 'electron';
+import { sanitizeSubscriptionConnection } from './chatgptSubscription';
 
 export interface ApiConnectionConfig{
     connection: Connection;
@@ -17,6 +18,13 @@ export class Config{
     maxTokens!: number;
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
+
+    // F13 (source-line P1-L1): token budget for the chronological summary
+    // block the incoming-letter generator injects. Optional so pre-existing
+    // configs keep loading; IncomingLetterGenerator falls back to 2000.
+    // Delivered to upgraded users via default_config.json + the userDataCheck
+    // strict deep merge. (Settings UI toggle is handled in a later pass.)
+    maxSummaryTokens?: number;
 
     selectedDescScript!: string;
     selectedExMsgScript!: string;
@@ -90,6 +98,7 @@ export class Config{
     constructor(configPath: string){
         const obj = JSON.parse(fs.readFileSync(configPath).toString());
         Object.assign(this, obj);
+        this.sanitizeSubscriptions();
 
         // Ensure embedding API config exists (used by the Memories tab)
         if (!this.embeddingApiConnectionConfig) {
@@ -110,7 +119,15 @@ export class Config{
         }
     }
 
+    private sanitizeSubscriptions(): void {
+        for (const key of ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig',
+            'actionsApiConnectionConfig', 'compactionApiConnectionConfig', 'embeddingApiConnectionConfig']) {
+            sanitizeSubscriptionConnection((this as any)[key]?.connection);
+        }
+    }
+
     export(){
+        this.sanitizeSubscriptions();
         // 在保存配置前，确保apiKeys字段被正确保留
         const configData = JSON.parse(JSON.stringify(this));
 
@@ -128,6 +145,7 @@ export class Config{
     }
 
     toSafeConfig(): Config {
+        this.sanitizeSubscriptions();
         //pass by value
         let output: Config = JSON.parse(JSON.stringify(this));
 

@@ -1,5 +1,6 @@
 
 import { app } from 'electron';
+import { ChatGPTError } from '../auth/chatgptErrors';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
@@ -1030,7 +1031,7 @@ export class Conversation{
                 // The UI notification is handled in cancelGeneration(), so we do nothing here.
             } else {
                 console.error('An error occurred during AI message generation:', error);
-                this.chatWindow.window.webContents.send('error-message', 'An unexpected error occurred during generation.');
+                this.chatWindow.window.webContents.send('error-message', error instanceof ChatGPTError ? error.message : 'An unexpected error occurred during generation.');
             }
         }
         finally {
@@ -1528,7 +1529,7 @@ export class Conversation{
                 // The stream is over, send the final, cleaned, and formatted message
                 // to replace the streaming content in the UI.
                 streamMessage.content = responseMessage.content;
-                this.chatWindow.window.webContents.send('stream-message', streamMessage);
+                this.chatWindow.window.webContents.send('stream-message', streamMessage, true);
                 console.log('Sent final stream message to chat window.');
             } else {
                 this.chatWindow.window.webContents.send('message-receive', responseMessage, this.config.actionsEnableAll);
@@ -1643,7 +1644,7 @@ ${validationTranslations.instruction}`
         }
 
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = this.textGenApiConnection.type === 'openai_chatgpt' ? 1 : 3;
         let validMessageGenerated = false;
         let validMessage: Message | null = null;
 
@@ -1678,8 +1679,8 @@ ${validationTranslations.instruction}`
                 }
             } catch (error) {
                 console.error(`Error generating message for ${character.fullName} on attempt ${attempts}: ${error}`);
-                if (isAbortError(error)) {
-                    throw error; // Re-throw cancellation error
+                if (isAbortError(error) || this.textGenApiConnection.type === 'openai_chatgpt') {
+                    throw error; // Subscription failures must not replay a consumed response.
                 }
             }
         }

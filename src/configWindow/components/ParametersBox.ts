@@ -36,6 +36,8 @@ function defineTemplate(tempDefault: number, freqPenDefault: number, presPenDefa
     
 
 class ParametersBox extends HTMLElement{
+    private subscription = false;
+    private providerChanged = () => { void this.updateProvider(); };
     confID: string;
     shadow: any;
 
@@ -91,6 +93,8 @@ class ParametersBox extends HTMLElement{
     }
 
     async connectedCallback(){
+        document.addEventListener('votc-provider-changed', this.providerChanged);
+        ipcRenderer.on('votc-provider-config-changed', this.providerChanged);
         const confID: string = this.confID;
 
         let config = await ipcRenderer.invoke('get-config');
@@ -136,6 +140,27 @@ class ParametersBox extends HTMLElement{
             this.toggleSlider(this.topPSlider, this.topPEnabledCheckbox.checked);
             this.saveParameters();
         });
+        await this.updateProvider();
+    }
+
+    disconnectedCallback(): void {
+        document.removeEventListener('votc-provider-changed', this.providerChanged);
+        ipcRenderer.removeListener('votc-provider-config-changed', this.providerChanged);
+    }
+
+    private async updateProvider(): Promise<void> {
+        const config = await ipcRenderer.invoke('get-config');
+        let id = this.confID;
+        if ((id === 'summarizationApiConnectionConfig' && config.summarizationUseTextGenApi) ||
+            (id === 'actionsApiConnectionConfig' && config.actionsUseTextGenApi)) id = 'textGenerationApiConnectionConfig';
+        this.subscription = config[id]?.connection?.type === 'openai_chatgpt';
+        const sliders = [this.tempSlider, this.freqPenSlider, this.presPenSlider, this.topPSlider];
+        const checkboxes = [this.tempEnabledCheckbox, this.freqPenEnabledCheckbox, this.presPenEnabledCheckbox, this.topPEnabledCheckbox];
+        checkboxes.forEach((checkbox, index) => {
+            checkbox.disabled = this.subscription;
+            this.toggleSlider(sliders[index], checkbox.checked && !this.subscription);
+            sliders[index].button.disabled = this.subscription;
+        });
     }
 
     toggleSlider(sliderElement: any, isEnabled: boolean) {
@@ -145,6 +170,7 @@ class ParametersBox extends HTMLElement{
     }
 
     saveParameters() {
+        if (this.subscription) return;
         const newParameters = {
             temperature: parseFloat(this.tempSlider.slider.value),
             enableTemperature: this.tempEnabledCheckbox.checked,

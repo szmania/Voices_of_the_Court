@@ -1,4 +1,5 @@
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+import { CHATGPT_USAGE_URL } from '../shared/chatgptSubscription';
 import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
@@ -643,7 +644,10 @@ chatInput.addEventListener('keydown', async function(e) {
 });
 
 async function replaceLastMessage(message: Message){
-    chatMessages.lastElementChild!.innerHTML = DOMPurify.sanitize((await marked.parseInline(`**${message.name}:** ${message.content}*`)).replace(/\*/g, ''), sanitizeConfig);
+    const target = chatMessages.lastElementChild;
+    const content = await marked.parseInline(`**${message.name}:** ${message.content}*`);
+    if (!target?.isConnected) return;
+    target.innerHTML = DOMPurify.sanitize(content.replace(/\*/g, ''), sanitizeConfig);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -2101,27 +2105,54 @@ ipcRenderer.on('update-base-tokens', (e, count: number) => {
     updateTokenCount(chatInput.value); // Refresh the display with the new base
 });
 
+function discardProvisionalMessages(): void {
+    chatMessages.querySelectorAll('[data-provisional]').forEach(element => element.remove());
+}
+
+async function updateChatGPTBadge(): Promise<void> {
+    const config = await ipcRenderer.invoke('get-config');
+    let badge = document.getElementById('chatgpt-plan-badge');
+    if (!badge) {
+        badge = document.createElement('p'); badge.id = 'chatgpt-plan-badge';
+        chatInput.parentElement?.append(badge);
+    }
+    badge.hidden = config.textGenerationApiConnectionConfig?.connection?.type !== 'openai_chatgpt';
+    badge.replaceChildren();
+    const lm = (window as any).LocalizationManager;
+    badge.append(document.createTextNode((lm?.getNestedTranslation('chatgpt.using_plan') || 'Using ChatGPT plan') + ' · '));
+    const link = document.createElement('a'); link.href = CHATGPT_USAGE_URL;
+    link.textContent = lm?.getNestedTranslation('chatgpt.manage_usage') || 'Manage usage';
+    link.addEventListener('click', event => { event.preventDefault(); ipcRenderer.send('open-external-link', CHATGPT_USAGE_URL); });
+    badge.append(link);
+}
+ipcRenderer.on('votc-provider-config-changed', () => { void updateChatGPTBadge(); });
+ipcRenderer.on('chat-show', () => { void updateChatGPTBadge(); });
+
 ipcRenderer.on('stream-start', async (e, gameData)=>{
     let streamMessage = document.createElement('div');
     streamMessage.classList.add('message');
     streamMessage.classList.add('ai-message');
+    streamMessage.dataset.provisional = 'true';
     chatMessages.append(streamMessage);
 })
 
-ipcRenderer.on('stream-message', (e, message: Message)=>{
+ipcRenderer.on('stream-message', (e, message: Message, completed = false)=>{
     removeLoadingDots();
     replaceLastMessage(message);
+    if (completed) chatMessages.lastElementChild?.removeAttribute('data-provisional');
     showLoadingDots();
     //@ts-ignore
 })
 
 ipcRenderer.on('stream-end', (e, actions: ActionResponse[], narrativeMessage: Message | null) =>{
+    chatMessages.querySelectorAll('[data-provisional]').forEach(element => element.removeAttribute('data-provisional'));
     displayActions(actions);
     displayNarrative(narrativeMessage);
     removeLoadingDots();
 })
 
 ipcRenderer.on('error-message', (e, errorMessage: string) =>{
+    discardProvisionalMessages();
     // AI-initiated conversation gate: never leave the input locked on failure.
     if (aiInitiatorId) {
         aiInitiatorId = undefined;
@@ -2132,6 +2163,7 @@ ipcRenderer.on('error-message', (e, errorMessage: string) =>{
 })
 
 ipcRenderer.on('generation-cancelled', () => {
+    discardProvisionalMessages();
     // AI-initiated conversation gate: never leave the input locked on cancel.
     if (aiInitiatorId) {
         aiInitiatorId = undefined;
