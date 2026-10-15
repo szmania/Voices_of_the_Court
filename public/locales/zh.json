@@ -107,6 +107,9 @@
     "parameters": "参数"
   },
   "prompts": {
+    "chroniclePrompt": "史书提示词",
+    "chroniclePrompt_tooltip": "该提示词用于控制宫廷史官的写作风格。素材会自动注入。",
+
     "header": "提示词",
     "main_prompt": "主提示词",
     "self_talk_prompt": "自言自语提示词",
@@ -184,6 +187,17 @@
     "char_desc_save_error": "保存角色描述失败。"
   },
   "settings": {
+    "chronicleTitle": "宫廷史官",
+    "chronicleFrequency": "史书生成频率",
+    "chronicleFrequency_tooltip": "宫廷史官撰写史书条目的频率。禁用则关闭自动生成。",
+    "chronicleFrequency_disabled": "禁用",
+    "chronicleFrequency_quarterly": "每季度",
+    "chronicleFrequency_yearly": "每年",
+    "chronicleRawSourceCharLimit": "原始素材字符上限",
+    "chronicleRawSourceCharLimit_tooltip": "发送给模型的原始素材总字符数上限。超出此限制的素材将被摘要化。",
+    "chronicleOutputMaxTokens": "史书输出最大 token 数",
+    "chronicleOutputMaxTokens_tooltip": "生成的史书条目的最大 token 数。",
+
     "header": "设置",
     "max_tokens": "最大新 Token 数",
     "max_tokens_tooltip": "AI在单次响应中可以生成的最大令牌（单词/字符）数。较高的值允许更长的回复。",
@@ -1018,5 +1032,77 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "chronicle": {
+    "windowTitle": "宫廷史官 - Voices of the Court",
+    "title": "宫廷史官",
+    "periodList": "史书期间",
+    "entryContent": "史书条目",
+    "sourceDrawer": "史料",
+    "noEntries": "暂无史书条目",
+    "noSources": "本条史书没有史料",
+    "selectPeriod": "请从左侧列表选择一个期间查看史书条目",
+    "generate": "生成到当前日期",
+    "generating": "正在生成...",
+    "generateSuccess": "史书生成成功。",
+    "generateEmpty": "该期间没有可用史料。",
+    "generateFailed": "生成失败：{{code}}",
+    "generateError": "生成出错：{{error}}",
+    "generateResult": "生成结果：{{outcome}}",
+    "revisionAvailable": "发现迟到史料，已选中受影响的条目。请先点击“修订条目”，完成后再生成到当前日期。",
+    "retry": "重试",
+    "retryFailed": "重试失败的生成",
+    "revise": "修订",
+    "regenerate": "修订条目",
+    "backfill": "补写",
+    "catchUp": "追赶",
+    "attempt": {
+      "running": "正在生成...",
+      "failed": "生成失败: {{code}}",
+      "committed": "已提交",
+      "pending": "等待中"
+    },
+    "source": {
+      "kind": "类型",
+      "date": "日期",
+      "representation": "表示形式",
+      "chars": "字符数",
+      "timelineNode": "时间线节点",
+      "frozenOwner": "冻结记忆所有者",
+      "untitled": "未命名素材",
+      "contentUnavailable": "这篇旧条目未保存来源正文，请重新编纂后查看。"
+    },
+    "memory": {
+      "frozen": "已冻结",
+      "changed": "捕获后已变更",
+      "ambiguous": "身份存在歧义"
+    },
+    "storageCorrupt": "史书存储已损坏。请查看日志了解详情。",
+    "initFailed": "初始化失败: {{error}}",
+    "loadSuccess": "史书数据加载成功",
+    "loadFailed": "加载史书数据失败: {{error}}",
+    "refresh": "刷新",
+    "player": "玩家",
+    "currentTimeline": "当前时间线",
+    "epoch": "检查点 {{epoch}}",
+    "noContext": "暂无编年史上下文",
+    "entryNotFound": "未找到条目",
+    "entryLoadFailed": "加载条目失败：{{error}}",
+    "emptyContent": "此期间没有内容",
+    "noContent": "暂无内容",
+    "quarterly": "季度",
+    "yearly": "年度",
+    "manual": "手动",
+    "unknown": "未知",
+    "meta": {
+      "period": "期间",
+      "reason": "原因",
+      "revision": "修订",
+      "generated": "生成时间"
+    },
+    "status": {
+      "ready": "就绪",
+      "empty": "空白"
+    }
   }
 }

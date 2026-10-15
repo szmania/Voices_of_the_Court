@@ -179,5 +179,9 @@
       "enablePresencePenalty": true,
       "enableTopP": true
     }
-  }
+  },
+  "chronicleFrequency": "yearly",
+  "chronicleRawSourceCharLimit": 30000,
+  "chronicleOutputMaxTokens": 1000,
+  "chroniclePrompt": "You are a court historian. Based on the following source materials, write a concise chronicle entry in a historical narrative style. Requirements: 1. Stay faithful to the sources; 2. Highlight important figures and events; 3. Keep it concise."
 }

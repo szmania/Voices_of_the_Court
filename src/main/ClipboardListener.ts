@@ -56,6 +56,12 @@ export class ClipboardListener extends EventEmitter{
         this.emit('VOTC:INCOMING_LETTER', slotId, type, deliveryId);
     }
 
+    readChronicleLogLine(line: string): void {
+        if (this.isListening) return;
+        const match = /VOTC:(CHRONICLE_TICK|CHRONICLE_MANAGER)\/;\/(.*)/.exec(line.replace(/\r$/, ''));
+        if (match) this.emit(`VOTC:${match[1]}`, match[2].split('/;/'));
+    }
+
     readClipboard(){
         let currentClipboard = clipboard.readText();
         if(this.previousClipboard == currentClipboard) return;
@@ -84,6 +90,10 @@ export class ClipboardListener extends EventEmitter{
                 break;
                 case "CONVERSATION_HISTORY":
                     this.emit('VOTC:CONVERSATION_HISTORY', payloads);
+                break;
+                case "CHRONICLE_TICK":
+                case "CHRONICLE_MANAGER":
+                    this.emit(`VOTC:${command}`, payloads);
                 break;
                 case "LETTER":
                     this.emit('VOTC:LETTER');

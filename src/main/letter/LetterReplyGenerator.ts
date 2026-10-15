@@ -1,3 +1,6 @@
+import { saveChronicleLetterSource } from '../chronicle/chronicleLetterSource.js';
+import { observeParsedGameDataForChronicle } from '../chronicle/chronicleObservation.js';
+import { reportChronicleObservationFailure } from '../chronicle/chronicleObservationFailure.js';
 import { app, BrowserWindow } from "electron";
 import { ApiConnection } from "../../shared/apiConnection";
 import { Tiktoken } from "js-tiktoken";
@@ -579,6 +582,12 @@ export class LetterReplyGenerator {
                 writeLetterReplyFallbackRunFile(userFolderPath, snapshot.slotId, snapshot.deliveryId, timeline);
             }
 
+            try {
+                await observeParsedGameDataForChronicle(app.getPath('userData'), gameData, 'letter', this.config.language);
+            } catch (error) {
+                reportChronicleObservationFailure(gameData, error);
+            }
+
             // Build prompt
             const promptText = await this.buildLetterPrompt(gameData, latestLetter);
             console.log(`[LetterReplyGenerator] Generated letter prompt: ${promptText.substring(0, 200)}...`);
@@ -638,6 +647,15 @@ export class LetterReplyGenerator {
                 return null;
             }
             console.log('[LetterReplyGenerator] Letter history saved.');
+            if (timeline && transitionIdentity) {
+                try {
+                    await saveChronicleLetterSource({ userDataDir: app.getPath('userData'), gameData,
+                        identity: transitionIdentity, timeline, original: latestLetter, reply: escapedResponse });
+                } catch (error) {
+                    reportChronicleObservationFailure(gameData, error);
+                }
+            }
+
 
             // Re-assert the timeline payload on the returned object: it rides
             // into the pending-delivery queue, and this also covers callers

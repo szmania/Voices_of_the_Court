@@ -105,6 +105,9 @@
     "parameters": "パラメーター"
   },
   "prompts": {
+    "chroniclePrompt": "Chronicle prompt",
+    "chroniclePrompt_tooltip": "This prompt controls the court historian's writing style. Source materials are injected automatically.",
+
     "header": "プロンプト",
     "main_prompt": "メインプロンプト",
     "self_talk_prompt": "独り言プロンプト",
@@ -178,6 +181,17 @@
     "char_desc_save_error": "キャラクター説明の保存に失敗しました。"
   },
   "settings": {
+    "chronicleTitle": "Court Historian",
+    "chronicleFrequency": "Chronicle frequency",
+    "chronicleFrequency_tooltip": "How often the court historian writes a chronicle entry. Disabled turns off automatic generation.",
+    "chronicleFrequency_disabled": "Disabled",
+    "chronicleFrequency_quarterly": "Quarterly",
+    "chronicleFrequency_yearly": "Yearly",
+    "chronicleRawSourceCharLimit": "Raw source char limit",
+    "chronicleRawSourceCharLimit_tooltip": "Maximum total characters of raw source material sent to the model. Sources exceeding this limit are summarized.",
+    "chronicleOutputMaxTokens": "Chronicle output max tokens",
+    "chronicleOutputMaxTokens_tooltip": "Maximum tokens for the generated chronicle entry.",
+
     "header": "設定",
     "max_tokens": "最大新規トークン数",
     "max_tokens_tooltip": "AIが1回の応答で生成できるトークン（単語/文字）の最大数。値が大きいほど、より長い返信が可能になります。",
@@ -1003,5 +1017,77 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "chronicle": {
+    "windowTitle": "Court Historian - Voices of the Court",
+    "title": "Court Historian",
+    "periodList": "Chronicle periods",
+    "entryContent": "Chronicle entry",
+    "sourceDrawer": "Sources",
+    "noEntries": "No chronicle entries yet",
+    "noSources": "This chronicle entry has no sources",
+    "selectPeriod": "Select a period from the list to view its chronicle entry",
+    "generate": "Generate to current date",
+    "generating": "Generating...",
+    "generateSuccess": "Chronicle generated successfully.",
+    "generateEmpty": "No source material was found for this period.",
+    "generateFailed": "Generation failed: {{code}}",
+    "generateError": "Generation error: {{error}}",
+    "generateResult": "Generation result: {{outcome}}",
+    "revisionAvailable": "Late source material was found. The affected entry is selected; regenerate it, then generate to the current date again.",
+    "retry": "Retry",
+    "retryFailed": "Retry failed generation",
+    "revise": "Revise",
+    "regenerate": "Regenerate entry",
+    "backfill": "Backfill",
+    "catchUp": "Catch up",
+    "attempt": {
+      "running": "Generation in progress...",
+      "failed": "Generation failed: {{code}}",
+      "committed": "Committed",
+      "pending": "Pending"
+    },
+    "source": {
+      "kind": "Kind",
+      "date": "Date",
+      "representation": "Representation",
+      "chars": "Characters",
+      "timelineNode": "Timeline node",
+      "frozenOwner": "Frozen memory owner",
+      "untitled": "Untitled source",
+      "contentUnavailable": "This older entry did not save its source text. Regenerate it to view the content."
+    },
+    "memory": {
+      "frozen": "Frozen",
+      "changed": "Changed since capture",
+      "ambiguous": "Identity ambiguous"
+    },
+    "storageCorrupt": "Chronicle storage is corrupt. Check logs for details.",
+    "initFailed": "Initialization failed: {{error}}",
+    "loadSuccess": "Chronicle data loaded",
+    "loadFailed": "Failed to load chronicle data: {{error}}",
+    "refresh": "Refresh",
+    "player": "Player",
+    "currentTimeline": "Current timeline",
+    "epoch": "Epoch {{epoch}}",
+    "noContext": "No chronicle context available",
+    "entryNotFound": "Entry not found",
+    "entryLoadFailed": "Failed to load entry: {{error}}",
+    "emptyContent": "No content (empty period)",
+    "noContent": "No content available",
+    "quarterly": "Quarterly",
+    "yearly": "Yearly",
+    "manual": "Manual",
+    "unknown": "unknown",
+    "meta": {
+      "period": "Period",
+      "reason": "Reason",
+      "revision": "Revision",
+      "generated": "Generated"
+    },
+    "status": {
+      "ready": "Ready",
+      "empty": "Empty"
+    }
   }
 }
