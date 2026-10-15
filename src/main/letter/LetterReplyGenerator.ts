@@ -116,7 +116,7 @@ export function writeLetterReplyFallbackRunFile(
 
     const runFolderPath = path.join(userFolderPath, 'run');
     fs.mkdirSync(runFolderPath, { recursive: true });
-    const filePath = path.join(runFolderPath, `letter${letterNumber}.txt`);
+    const filePath = path.join(runFolderPath, `votc_ce_letter${letterNumber}.txt`);
     writeRunFileAtomically(
         filePath,
         buildLetterReplyRunFile(letterNumber, deliveryId, 'votc_letter_reply_fallback_desc', timeline)
@@ -649,7 +649,7 @@ export class LetterReplyGenerator {
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
-            
+
 
             // Generate and save a summary of the letter asynchronously, AFTER the actions have
             // been generated, so the summary can include the triggered actions. The summary is
@@ -898,7 +898,7 @@ export class LetterReplyGenerator {
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
-    
+
             replyLetter.triggeredActions = triggeredActions;
 
             // Atomically update the history file

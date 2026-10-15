@@ -914,7 +914,7 @@ ${indent}}
         }
 
         const timelineSetBlock = this.buildTimelineSetBlock(timeline, '\t');
-        const filePath = path.join(runFolderPath, `incomingletter_v2_${slotNumber}.txt`);
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
         const content = `if = {
 \tlimit = {
 \t\texists = global_var:votc_incoming_letter_${slotNumber}
@@ -957,7 +957,7 @@ else = {
         }
 
         const timelineSetBlock = this.buildTimelineSetBlock(timeline, '\t');
-        const filePath = path.join(runFolderPath, `incomingletter_v2_${slotNumber}.txt`);
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
         const content = `if = {
 \tlimit = {
 \t\texists = global_var:votc_incoming_letter_${slotNumber}
