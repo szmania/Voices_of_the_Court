@@ -57,7 +57,7 @@ describe('PR15 third review', () => {
 
     function deliver(config: any, original: any, reply: any): string {
         LetterManager.getInstance().deliverLetter({letter: reply, originalLetter: original, expectedDeliveryDay: 389009}, config, '1066.1.10');
-        return fs.readFileSync(path.join(config.userFolderPath, 'run', 'letters.txt'), 'utf8');
+        return fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8');
     }
 
     // The round-7 fallback gate re-parses the freshest init from debug.log and
@@ -100,11 +100,11 @@ describe('PR15 third review', () => {
         generator.apiConnection.complete.mockRejectedValue(new Error('API request failed'));
         expect(await generator.generateLetterReply(gameData, original)).toBeNull();
         expect(fs.existsSync(path.join(root, 'votc_data', 'run', 'letter1.txt'))).toBe(true);
-        // Round 7: the fallback queues for the shared letters.txt channel and
+        // Round 7: the fallback queues for the shared votc_ce_letters.txt channel and
         // is flushed once the channel is idle, instead of writing immediately.
         expect(LetterManager.getInstance().hasPendingLetterFallbacks()).toBe(true);
         LetterManager.getInstance().flushNextLetterFallback(config);
-        expect(fs.existsSync(path.join(config.userFolderPath, 'run', 'letters.txt'))).toBe(true);
+        expect(fs.existsSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'))).toBe(true);
     });
 
     it('respects the independent history-window limit of 15 with prompt history limited to 5', async () => {

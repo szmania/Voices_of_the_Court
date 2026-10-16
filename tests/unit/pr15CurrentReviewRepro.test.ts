@@ -106,7 +106,7 @@ test('reloading an existing sibling branch must prevent applying the latest allo
         expectedDeliveryDay: 389001
     });
     await checkAndDeliverLetters();
-    const file = path.join(root, 'run', 'letters.txt');
+    const file = path.join(root, 'run', 'votc_ce_letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     expect(payload).not.toContain(pending.script);
 });
@@ -140,7 +140,7 @@ test('a due reply still applies its checkpoint script when the save sits on the 
         expectedDeliveryDay: 389001
     });
     await checkAndDeliverLetters();
-    const file = path.join(root, 'run', 'letters.txt');
+    const file = path.join(root, 'run', 'votc_ce_letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     expect(payload).toContain(pending.script);
 });
@@ -166,7 +166,7 @@ test('a generation failure after campaign switch must not clear the new campaign
         throw new Error('LLM timed out after the player loaded campaign B');
     }};
     expect(await generator.generateLetterReply(gameData, original)).toBeNull();
-    const file = path.join(root, 'run', 'letters.txt');
+    const file = path.join(root, 'run', 'votc_ce_letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     expect(payload).not.toContain('remove_global_variable ?= votc_letter_1');
 });

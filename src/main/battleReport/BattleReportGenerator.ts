@@ -578,7 +578,7 @@ ${getEffectivePrompts(this.config, this.userDataPath, gameData!)?.battleReportPr
         }
 
         const slotNumber = this.getSlotNumber(battleData.slotId);
-        const battleReportFilePath = path.join(runFolderPath, `battle_report${slotNumber}.txt`);
+        const battleReportFilePath = path.join(runFolderPath, `votc_ce_battle_report${slotNumber}.txt`);
         const escapedReport = this.escapeForCk3Script(reportContent);
         const gameCommand = `send_interface_message = {
 	type = votc_message_popup
@@ -603,7 +603,7 @@ remove_global_variable ?= votc_battle_report_pending_valid`;
         console.log(`Battle report written to: ${battleReportFilePath}`);
 
         if (battleData.legacySingleSlot) {
-            const legacyBattleReportFilePath = path.join(runFolderPath, "battle_report.txt");
+            const legacyBattleReportFilePath = path.join(runFolderPath, "votc_ce_battle_report.txt");
             fs.writeFileSync(legacyBattleReportFilePath, gameCommand, "utf8");
             console.log(`Legacy battle report written to: ${legacyBattleReportFilePath}`);
         }

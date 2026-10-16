@@ -1,4 +1,5 @@
 import { isPromptKey } from '../shared/promptKeys';
+import { CHATGPT_PROVIDER } from '../shared/chatgptSubscription';
 import { initializeChatGPT } from './auth/chatgptRuntime';
 import { app, ipcMain, dialog, autoUpdater, Tray, Menu, BrowserWindow, screen } from "electron";
 app.commandLine.appendSwitch('disable-gpu');
@@ -461,7 +462,7 @@ export async function checkAndDeliverLetters() {
     }
 
     // Queued generation-failure fallback blocks share the single whole-file
-    // letters.txt channel with normal deliveries. Flush at most one per pass
+    // votc_ce_letters.txt channel with normal deliveries. Flush at most one per pass
     // and only when the channel is idle (no delivery awaiting
     // VOTC:LETTER_ACCEPTED, no open conversation pausing the mod-side
     // letters_runner): a fallback written over a pending reply would destroy
@@ -519,7 +520,7 @@ export async function checkAndDeliverLetters() {
     // Defer scheduled deliveries while a conversation is open. The mod-side
     // letters_runner pauses while the conversation holds talk_scene, so a
     // reply written now cannot be executed or confirmed until the
-    // conversation ends — it would sit in run/letters.txt until the
+    // conversation ends — it would sit in run/votc_ce_letters.txt until the
     // delivery timeout and leave stale content behind that the next
     // write-letter interaction re-fires.
     if (conversationOpenChecker()) {
@@ -530,7 +531,7 @@ export async function checkAndDeliverLetters() {
     if (lastLetterSentToGame && Date.now() - lastLetterSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
         console.warn(`Letter delivery timed out for letter ${lastLetterSentToGame.originalLetter.id} Ã¢â‚¬â€ no VOTC:LETTER_ACCEPTED received. Clearing to allow future deliveries.`);
         lastLetterSentToGame = null;
-        // The timed-out reply is still sitting in run/letters.txt and the
+        // The timed-out reply is still sitting in run/votc_ce_letters.txt and the
         // mod-side letters_runner executes that file unconditionally on the
         // next write-letter interaction — without this the old reply fires
         // again in game. The letter itself stays pending and is re-delivered
@@ -722,7 +723,7 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
             return false;
         }
 
-        const letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
+        const letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_ce_letter_actions.txt');
         let effectBody = "";
         action.run(gameData, (text: string) => { effectBody += text; }, args, sourceId, targetId);
 
@@ -957,7 +958,7 @@ function processLogLine(line: string) {
     }
 
     // Letter fallback receipt: the fallback block cannot trigger
-    // message_event.362, so nothing else clears run/letters.txt after the
+    // message_event.362, so nothing else clears run/votc_ce_letters.txt after the
     // mod-side letters_runner executes it - without this receipt the runner
     // re-runs the file on every poll and spams the debug log.
     if (line.includes('VOTC:FALLBACK/;/applied') || line.includes('VOTC:FALLBACK/;/skipped')) {
@@ -1108,26 +1109,26 @@ app.on('ready',  async () => {
         }
     }
 
-    // Initialize blank run files (letters.txt and votc.txt) if they don't exist
+    // Initialize blank run files (votc_ce_letters.txt and votc_ce.txt) if they don't exist
     if (config.userFolderPath) {
         const runFolderPath = path.join(config.userFolderPath, 'run');
         if (!fs.existsSync(runFolderPath)) {
             fs.mkdirSync(runFolderPath, { recursive: true });
             console.log(`Created CK3 run folder at: ${runFolderPath}`);
         }
-        const lettersFilePath = path.join(runFolderPath, 'letters.txt');
-        // Always (re)initialize letters.txt to the blank placeholder. The
+        const lettersFilePath = path.join(runFolderPath, 'votc_ce_letters.txt');
+        // Always (re)initialize votc_ce_letters.txt to the blank placeholder. The
         // mod-side letters_runner executes this file unconditionally on
         // every write-letter interaction, so a stale reply left over from
         // an earlier session or a timed-out delivery would re-fire the
-        // moment the player writes a new letter in game. votc.txt keeps
+        // moment the player writes a new letter in game. votc_ce.txt keeps
         // the create-if-missing behaviour - it is executed only on demand.
         fs.writeFileSync(lettersFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
-        console.log(`Initialized blank letters.txt at: ${lettersFilePath}`);
-        const votcFilePath = path.join(runFolderPath, 'votc.txt');
+        console.log(`Initialized blank votc_ce_letters.txt at: ${lettersFilePath}`);
+        const votcFilePath = path.join(runFolderPath, 'votc_ce.txt');
         if (!fs.existsSync(votcFilePath)) {
             fs.writeFileSync(votcFilePath, '', 'utf-8');
-            console.log(`Created blank votc.txt at: ${votcFilePath}`);
+            console.log(`Created blank votc_ce.txt at: ${votcFilePath}`);
         }
     } else {
         console.warn('Cannot initialize run files: userFolderPath is not configured.');
@@ -1366,6 +1367,14 @@ app.on('ready',  async () => {
         embeddingInputType?: string;
     }) => {
         console.log('IPC: Received test-embedding-connection event.');
+        // ChatGPT subscriptions expose only the Responses API; there is no embeddings endpoint.
+        if (providerConfig.provider === CHATGPT_PROVIDER) {
+            return {
+                success: false,
+                message: 'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.',
+                provider: providerConfig.provider
+            };
+        }
         try {
             const provider = new EmbeddingProvider(
                 providerConfig.provider as any,
@@ -1610,6 +1619,10 @@ app.on('ready',  async () => {
             const conn = config?.embeddingApiConnectionConfig?.connection;
             if (!conn || !conn.type || !conn.model || !conn.baseUrl) {
                 return { success: false, error: 'Embedding API connection is not configured.' };
+            }
+            // ChatGPT subscriptions expose only the Responses API; there is no embeddings endpoint.
+            if (conn.type === CHATGPT_PROVIDER) {
+                return { success: false, error: 'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.' };
             }
 
             const targetDimension = getEffectiveEmbeddingDimension(conn);
@@ -1937,7 +1950,7 @@ app.on('ready',  async () => {
     // Live date tracking: tail debug.log for VOTC:DATE lines. The merged
     // upstream flow only refreshes currentTotalDays at parse points guarded
     // on the init line's date fields, which mods without the date 5-tuple
-    // never satisfy — the letters.txt heartbeat written above would then
+    // never satisfy — the votc_ce_letters.txt heartbeat written above would then
     // have no consumer and letter delivery would stall forever. The tailer
     // is what the heartbeat design assumes; keep it alongside the parse
     // points (updateCurrentDate is idempotent for repeated same-day ticks).

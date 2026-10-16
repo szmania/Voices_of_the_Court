@@ -1,6 +1,7 @@
 
 import { app } from 'electron';
 import { ChatGPTError } from '../auth/chatgptErrors';
+import { CHATGPT_PROVIDER } from '../../shared/chatgptSubscription';
 import { GameData } from '../../shared/gameData/GameData.js';
 import { Character } from '../../shared/gameData/Character.js';
 import { ChatWindow } from '../windows/ChatWindow.js';
@@ -1987,6 +1988,12 @@ Statement by ${character.fullName}:`
             return;
         }
         const { connection } = this.config.embeddingApiConnectionConfig;
+        // ChatGPT subscriptions expose only the Responses API; there is no embeddings endpoint.
+        // Return quietly so fire-and-forget callers never hit an unhandled rejection.
+        if (connection.type === CHATGPT_PROVIDER) {
+            console.warn('ChatGPT subscriptions do not support embeddings. Please select a separate embedding provider.');
+            return;
+        }
         const embeddingProvider = new EmbeddingProvider(connection.type as any, connection.model, connection.baseUrl, connection.key, getEffectiveEmbeddingDimension(connection), connection.embeddingInputType);
 
         const memoriesToInsert: Memory[] = [];

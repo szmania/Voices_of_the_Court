@@ -382,9 +382,9 @@ export class LetterManager {
         // player reply on letters.txt (and vice versa). The idle gate for each
         // channel is enforced by the caller (checkAndDeliverLetters).
         const isNpcLetter = letterId === 'npcltr';
-        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "votc_ce_npcltr.txt" : "letters.txt");
+        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "votc_ce_npcltr.txt" : "votc_ce_letters.txt");
 
-        // Single-channel note: each of letters.txt / votc_ce_npcltr.txt is one shared, whole-file-overwrite
+        // Single-channel note: each of votc_ce_letters.txt / votc_ce_npcltr.txt is one shared, whole-file-overwrite
         // channel polled by the mod-side letters_runner (~2s). A delivery and
         // a generation-failure fallback written inside the same window clobber
         // each other; per-slot runner files would need mod-side changes
@@ -473,7 +473,7 @@ trigger_event = message_event.362`}`;
 
     /**
      * Generation-failure handoff: the fallback block clears the letter thread
-     * and applies the journal-created node through the same letters.txt
+     * and applies the journal-created node through the same votc_ce_letters.txt
      * channel the mod-side letters_runner polls.
      */
     public deliverLetterFallback(letterNumber: string, deliveryId: number, runBlock: string, config: Config): void {
@@ -488,7 +488,7 @@ trigger_event = message_event.362`}`;
             fs.mkdirSync(runFolderPath, { recursive: true });
         }
 
-        const letterFilePath = path.join(runFolderPath, "letters.txt");
+        const letterFilePath = path.join(runFolderPath, "votc_ce_letters.txt");
         // Shares the whole-file-overwrite channel with deliverLetter - see
         // the single-channel note there.
         fs.writeFileSync(letterFilePath, '\uFEFF' + runBlock, 'utf8');
@@ -496,7 +496,7 @@ trigger_event = message_event.362`}`;
     }
 
     /**
-     * Fallback blocks waiting for the shared letters.txt channel. A fallback
+     * Fallback blocks waiting for the shared votc_ce_letters.txt channel. A fallback
      * must never be written while a normal delivery is still awaiting
      * VOTC:LETTER_ACCEPTED: the whole-file overwrite would destroy that
      * reply, which has already left the pending queue and would not be
@@ -507,14 +507,14 @@ trigger_event = message_event.362`}`;
 
     public queueLetterFallback(letterNumber: string, deliveryId: number, runBlock: string): void {
         this.pendingLetterFallbacks.push({letterNumber, deliveryId, runBlock});
-        console.log(`Queued letter fallback (letter_${letterNumber}/${deliveryId}); ${this.pendingLetterFallbacks.length} fallback(s) pending an idle letters.txt channel.`);
+        console.log(`Queued letter fallback (letter_${letterNumber}/${deliveryId}); ${this.pendingLetterFallbacks.length} fallback(s) pending an idle votc_ce_letters.txt channel.`);
     }
 
     public hasPendingLetterFallbacks(): boolean {
         return this.pendingLetterFallbacks.length > 0;
     }
 
-    /** Write the oldest queued fallback into letters.txt. Caller must hold the channel. */
+    /** Write the oldest queued fallback into votc_ce_letters.txt. Caller must hold the channel. */
     public flushNextLetterFallback(config: Config): boolean {
         const next = this.pendingLetterFallbacks.shift();
         if (!next) return false;
@@ -532,11 +532,11 @@ trigger_event = message_event.362`}`;
         }
 
         const runFolder = path.join(ck3Folder, "run");
-        const letterFilePath = path.join(runFolder, "letters.txt");
+        const letterFilePath = path.join(runFolder, "votc_ce_letters.txt");
         console.log(`LetterManager.clearLettersFile: Letter file path: ${letterFilePath}`);
 
         // Never empty this file: line 1 is the date heartbeat. The mod-side
-        // letters_runner executes run/letters.txt every ~2s and the app reads
+        // letters_runner executes run/votc_ce_letters.txt every ~2s and the app reads
         // the current game date from the VOTC:DATE line the placeholder logs
         // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Writing ''
         // here freezes the app's date tracking — pending letter deliveries
@@ -544,7 +544,7 @@ trigger_event = message_event.362`}`;
         // silent. "Clearing" means restoring the placeholder.
         const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         fs.writeFileSync(letterFilePath, placeholder, "utf-8");
-        console.log("Reset letters.txt to the blank heartbeat pt letters.txt to the blank heartbeat placeholder");
+        console.log("Reset votc_ce_letters.txt to the blank heartbeat pt votc_ce_letters.txt to the blank heartbeat placeholder");
     }
 
     /**

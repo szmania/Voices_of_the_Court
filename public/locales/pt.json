@@ -16,14 +16,48 @@
     "discord_tooltip": "Junte-se ao nosso Discord",
     "steam_tooltip": "Ver na Steam Workshop",
     "website_tooltip": "Visite nosso site",
-    "memory_constellation": "Constelação de Memórias",
-    "memory_constellation_tooltip": "Visualizar memórias de personagens em 3D",
-    "memory_constellation.empty_title": "Nenhuma memória encontrada",
-    "memory_constellation.empty_subtitle": "As memórias aparecerão aqui conforme seu personagem vivenciar eventos no jogo."
+    "close": "Fechar",
+    "connection_tooltip": "Configurar as definições de conexão da API e do jogo",
+    "actions_tooltip": "Ativar e configurar ações no jogo",
+    "summarization_tooltip": "Gerenciar as definições de sumarização de conversa",
+    "prompts_tooltip": "Personalizar os prompts e comportamentos da IA",
+    "letters_tooltip": "Visualizar e gerenciar cartas no jogo",
+    "diaries_tooltip": "Gerenciar diários de personagens",
+    "settings_tooltip": "Ajustar as definições da aplicação e da geração de IA",
+    "system_tooltip": "Gerenciar definições do sistema, atualizações e dados",
+    "help_tooltip": "Abrir a janela de ajuda e documentação",
+    "memories": "Memórias",
+    "memories_tooltip": "Visualizar memórias e gerenciar compactação"
   },
   "diaries": {
     "header": "Diários",
-    "description": "Gerenciar as entradas de diário dos personagens."
+    "memories": "Memórias",
+    "memories_tooltip": "Visualizar memórias e gerenciar compactação"
+  },
+  "connection": {
+    "ck3_path": "Caminho da pasta de usuário do CK3",
+    "select_folder": "Selecionar pasta",
+    "path_tooltip": "Aqui você deve selecionar a pasta do CK3 onde seus dados de usuário são salvos, não onde os arquivos do jogo estão! Por padrão, é salvo em seus documentos de usuário, dentro da pasta Paradox Interactive",
+    "api_label": "API",
+    "api_key": "Chave da API",
+    "model": "Modelo",
+    "server_url": "URL do servidor",
+    "force_instruct": "Forçar modo Instruct",
+    "browse_models": "Procurar modelos..",
+    "overwrite_context": "Sobrescrever tamanho do contexto",
+    "test_connection": "Testar conexão",
+    "connection_valid": "Conexão válida!",
+    "connection_valid_warning": "Conexão válida! Aviso: não foi possível detectar o tamanho do contexto, o tamanho do contexto sobrescrito será usado! (mesmo se desativado!)",
+    "path_placeholder": "Digite o caminho da pasta de usuário do CK3...",
+    "player2_info": "Dica: Se ainda não o fez, baixe o Player2 e execute-o em segundo plano.",
+    "player2_download_button": "Baixar Player2",
+    "player2_download_tooltip": "Baixar o aplicativo Player2",
+    "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária.",
+    "email": "Email",
+    "password": "Senha",
+    "novelai_password": "Senha",
+    "novelai_model": "Modelo",
+    "novelai_password_tooltip": "Sua senha de conta NovelAI (não é chave de API)"
   },
   "memory_constellation": {
     "refresh_button": "Refresh",
@@ -50,7 +84,8 @@
     "search_placeholder": "Pesquisar memórias...",
     "search_prev_tooltip": "Correspondência anterior",
     "search_next_tooltip": "Correspondência seguinte",
-    "search_hint": "Pesquisar memórias (passe o cursor aqui)"
+    "search_hint": "Pesquisar memórias (passe o cursor aqui)",
+    "embedding_chatgpt_unsupported": "OpenAI (assinatura ChatGPT) não oferece suporte a embeddings. Selecione um provedor de embeddings separado."
   },
   "connection": {
     "ck3_path": "Caminho da pasta de usuário do CK3",
@@ -72,6 +107,8 @@
     "player2_download_tooltip": "Baixar o aplicativo Player2",
     "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária.",
     "novelai_password": "Senha",
+    "email": "Email",
+    "password": "Senha",
     "novelai_model": "Modelo",
     "novelai_password_tooltip": "Sua senha de conta NovelAI (não é chave de API)"
   },
@@ -79,6 +116,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Text Gen WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (assinatura ChatGPT)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -102,7 +140,14 @@
   },
   "summarization": {
     "use_same_api": "Usar a mesma API da aba de conexão",
-    "parameters": "Parâmetros"
+    "scripts_header": "Scripts",
+    "action_prompt": "Prompt de ação",
+    "action_prompt_tooltip": "Este prompt instrui a IA sobre como detectar e formatar ações de jogo com base na conversa.",
+    "action_triggered_prompt": "Prompt de ação acionada",
+    "action_triggered_tooltip": "Este prompt é usado para formatar a mensagem exibida no chat quando uma ação é acionada.",
+    "all_characters": "Todos os personagens",
+    "filter_by_player": "Filtrar por jogador:",
+    "preset_updated_with_defaults": "Predefinição \\\"{{presetName}}\\\" foi atualizada com novos campos de prompt padrão."
   },
   "prompts": {
     "header": "Prompts",
@@ -131,6 +176,7 @@
     "diary_for_letter_tooltip": "Este prompt é usado para gerar uma entrada de diário com base em uma carta enviada ou recebida.",
     "suggestion_prompt": "Prompt de Sugestão",
     "suggestion_prompt_tooltip": "Este prompt é usado para gerar sugestões de resposta para o jogador.",
+    "action_prompt": "Prompt de ação",
     "restore_defaults": "Restaurar prompts padrão",
     "restore_tooltip": "Clique neste botão para restaurar todos os prompts para seus valores padrão",
     "presets_header": "Predefinições de prompts",
@@ -365,7 +411,10 @@
     "edit_tooltip": "Pressione Enter ou clique fora da caixa de edição para salvar, Escape para cancelar. Ctrl+Z/Cmd+Z padrão para desfazer é suportado.",
     "cancel_button": "CANCELAR",
     "cancel_response_tooltip": "Cancelar a geração de resposta da IA atual.",
-    "generation_cancelled": "Geração cancelada pelo usuário."
+    "generation_cancelled": "Geração cancelada pelo usuário.",
+    "config_tooltip": "Abrir Painel de Configuração",
+    "restore_config_tooltip": "Restaurar Painel de Configuração",
+    "loading_placeholder": "Conectando à conversa..."
   },
   "narrative": {
     "fallback_prompt": "Por favor, gere uma breve narrativa baseada na seguinte conversa, descrevendo a atmosfera da cena ou os sentimentos internos do personagem. A narrativa deve ser concisa e vívida, com um comprimento de 50-100 palavras.",
@@ -1022,7 +1071,6 @@
   },
 
   "chatgpt": {
-    "provider": "OpenAI (assinatura ChatGPT)",
     "continue": "Continuar com ChatGPT",
     "different": "Usar outra conta ou espaço de trabalho",
     "cancel": "Cancelar login",

@@ -53,14 +53,14 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const manifest = readManifest(tmpDir, attemptId);
         expect(manifest.attemptId).toBe(attemptId);
         expect(manifest.targetNode).toBe('101-202');
         expect(manifest.recordIds).toEqual(['rec-a', 'rec-b']);
-        expect(manifest.artifactPath).toBe(path.join(tmpDir, 'run', 'votc.txt'));
+        expect(manifest.artifactPath).toBe(path.join(tmpDir, 'run', 'votc_ce.txt'));
         expect(manifest.status).toBe('in_progress');
         expect(manifest.completedSteps).toEqual([]);
         expect(manifest.stagedRecords).toEqual({});
@@ -72,7 +72,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'first' });
         store.markStepCompleted(attemptId, 'stage_records');
@@ -97,14 +97,14 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.commitTransaction(attemptId);
 
         expect(() => store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         })).toThrow(/committed|terminal/);
     });
 
@@ -114,7 +114,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const payloadA = { text: 'hello', n: 1 };
@@ -132,7 +132,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         const payload = { text: 'same' };
         store.stageRecordPayload(attemptId, 'rec-a', payload);
@@ -150,7 +150,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'first' });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'second' });
@@ -166,7 +166,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.markStepCompleted(attemptId, 'stage_records');
         store.markStepCompleted(attemptId, 'write_artifact');
@@ -181,7 +181,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.markStepCompleted(attemptId, 'stage_records');
         const mtimeAfterFirst = fs.statSync(manifestPathOf(tmpDir, attemptId)).mtimeMs;
@@ -199,7 +199,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'x' });
         store.markStepCompleted(attemptId, 'stage_records');
@@ -216,7 +216,7 @@ describe('TimelineTransactionStore begin/stage/commit (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.abortTransaction(attemptId, 'test abort');
 
@@ -238,7 +238,7 @@ describe('TimelineTransactionStore artifact atomic write (§7.4 P3.3)', () => {
     it('writeArtifactAtomic writes the artifact via tmp+rename and records path + SHA-256', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-100';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -262,7 +262,7 @@ describe('TimelineTransactionStore artifact atomic write (§7.4 P3.3)', () => {
     it('writeArtifactAtomic is idempotent: same path + same content is a no-op', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-101';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -282,7 +282,7 @@ describe('TimelineTransactionStore artifact atomic write (§7.4 P3.3)', () => {
     it('writeArtifactAtomic overwrites when content differs (at-least-once)', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-102';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -300,7 +300,7 @@ describe('TimelineTransactionStore artifact atomic write (§7.4 P3.3)', () => {
     it('writeArtifactAtomic records a tmp path in the manifest for crash recovery', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-103';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -333,7 +333,7 @@ describe('TimelineTransactionStore upsertRecord idempotent business writes (§7.
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const payload = { text: 'summary content' };
@@ -353,7 +353,7 @@ describe('TimelineTransactionStore upsertRecord idempotent business writes (§7.
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const payload = { text: 'same' };
@@ -376,7 +376,7 @@ describe('TimelineTransactionStore upsertRecord idempotent business writes (§7.
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         store.upsertRecord(attemptId, 'rec-a', recordPath, { text: 'first' });
@@ -392,7 +392,7 @@ describe('TimelineTransactionStore upsertRecord idempotent business writes (§7.
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const payload = { text: 'persisted' };
@@ -426,12 +426,12 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction('att-300', {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.beginTransaction('att-301', {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.commitTransaction('att-301');
 
@@ -446,7 +446,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction('att-310', {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.markStepCompleted('att-310', 'stage_records');
         store.markStepCompleted('att-310', 'record:rec-a');
@@ -466,7 +466,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.upsertRecord(attemptId, 'rec-a', path.join(tmpDir, 'summaries', 'rec-a.json'), { text: 'A' });
         // Crash before writing rec-b.
@@ -492,7 +492,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.abortTransaction(attemptId, 'business validation failed');
 
@@ -506,7 +506,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction('att-340', {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.abortTransaction('att-340', 'rollback');
 
@@ -520,7 +520,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'x' });
         const before = fs.statSync(manifestPathOf(tmpDir, attemptId)).mtimeMs;
@@ -551,7 +551,7 @@ describe('TimelineTransactionStore crash recovery (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.upsertRecord(attemptId, 'rec-a', recPath, { text: 'A' });
         // Delete the business file (simulate a partial cleanup or external removal).
@@ -665,7 +665,7 @@ describe('TimelineTransactionStore diagnostic logging (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: secretPayload });
 
@@ -684,7 +684,7 @@ describe('TimelineTransactionStore diagnostic logging (§7.4 P3.3)', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-501';
         const secretArtifact = 'SECRET-ARTIFACT-RUN-SCRIPT';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -706,7 +706,7 @@ describe('TimelineTransactionStore diagnostic logging (§7.4 P3.3)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.upsertRecord(attemptId, 'rec-a', path.join(tmpDir, 's', 'a.json'), { text: 'A' });
         store.abortTransaction(attemptId, 'test');
@@ -740,7 +740,7 @@ describe('TimelineTransactionStore manifest journal placeholder (§7.4 P3.3 scop
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const manifest = readManifest(tmpDir, attemptId);
@@ -777,7 +777,7 @@ describe('TimelineTransactionStore stage/upsert cross-use rejection (I-1)', () =
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.upsertRecord(attemptId, 'rec-a', recordPath, { text: 'on-disk' });
 
@@ -799,7 +799,7 @@ describe('TimelineTransactionStore stage/upsert cross-use rejection (I-1)', () =
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.stageRecordPayload(attemptId, 'rec-a', { text: 'staged' });
 
@@ -816,7 +816,7 @@ describe('TimelineTransactionStore stage/upsert cross-use rejection (I-1)', () =
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         const payload = { text: 'same payload' };
         store.stageRecordPayload(attemptId, 'rec-a', payload);
@@ -837,7 +837,7 @@ describe('TimelineTransactionStore stage/upsert cross-use rejection (I-1)', () =
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         const payload = { text: 'same payload' };
         store.upsertRecord(attemptId, 'rec-a', recordPath, payload);
@@ -871,7 +871,7 @@ describe('TimelineTransactionStore fsync durability (I-2)', () => {
         store.beginTransaction('att-fsync-1', {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         expect(fsyncSpy.mock.calls.length).toBeGreaterThan(0);
@@ -884,7 +884,7 @@ describe('TimelineTransactionStore fsync durability (I-2)', () => {
         store.beginTransaction('att-fsync-2', {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const fsyncSpy = jest.spyOn(fs, 'fsyncSync');
@@ -896,7 +896,7 @@ describe('TimelineTransactionStore fsync durability (I-2)', () => {
 
     it('writeArtifactAtomic calls fsyncSync on the tmp file before rename', () => {
         const store = new TimelineTransactionStore(tmpDir);
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction('att-fsync-3', {
             targetNode: '101-202',
             recordIds: [],
@@ -913,7 +913,7 @@ describe('TimelineTransactionStore fsync durability (I-2)', () => {
     it('atomic write still produces correct content after fsync path', () => {
         const store = new TimelineTransactionStore(tmpDir);
         const attemptId = 'att-fsync-4';
-        const artifactPath = path.join(tmpDir, 'run', 'votc.txt');
+        const artifactPath = path.join(tmpDir, 'run', 'votc_ce.txt');
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
@@ -1026,7 +1026,7 @@ describe('TimelineTransactionStore recovery edge cases (M-2)', () => {
         store.beginTransaction('att-valid', {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const pending = store.recoverPendingTransactions();
@@ -1097,14 +1097,14 @@ describe('TimelineTransactionStore recovery edge cases (M-2)', () => {
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.abortTransaction(attemptId, 'test abort');
 
         expect(() => store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: [],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         })).toThrow(/aborted|terminal/);
     });
 
@@ -1137,7 +1137,7 @@ describe('TimelineTransactionStore crash injection mid-writeManifest (M-6)', () 
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         const manifestDir = path.join(transactionsRoot(tmpDir), attemptId);
@@ -1206,7 +1206,7 @@ describe('TimelineTransactionStore crash injection mid-writeManifest (M-6)', () 
             expect(() => store.beginTransaction('att-crash-begin', {
                 targetNode: '101-202',
                 recordIds: [],
-                artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+                artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
             })).toThrow();
         } finally {
             renameSpy.mockRestore();
@@ -1246,7 +1246,7 @@ describe('TimelineTransactionStore PendingTransaction includes staged record pat
         store.beginTransaction(attemptId, {
             targetNode: '101-202',
             recordIds: ['rec-a', 'rec-b'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
         store.upsertRecord(attemptId, 'rec-a', recAPath, { text: 'A' });
         store.stageRecordPayload(attemptId, 'rec-b', { text: 'B' });

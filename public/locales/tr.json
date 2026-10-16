@@ -19,7 +19,19 @@
     "memory_constellation": "Anı Takımyıldızı",
     "memory_constellation_tooltip": "Karakter anılarını 3D olarak görselleştir",
     "memory_constellation.empty_title": "Anı bulunamadı",
-    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
+    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek.",
+    "close": "Kapat",
+    "connection_tooltip": "API ve oyun bağlantı ayarlarını yapılandırın",
+    "actions_tooltip": "Oyun içi eylemleri etkinleştirin ve yapılandırın",
+    "summarization_tooltip": "Konuşma özetleme ayarlarını yönetin",
+    "prompts_tooltip": "AI istemlerini ve davranışlarını özelleştirin",
+    "letters_tooltip": "Oyun içi mektupları görüntüleyin ve yönetin",
+    "diaries_tooltip": "Karakter günlüklerini yönetin",
+    "settings_tooltip": "Uygulama ve AI üretim ayarlarını ayarlayın",
+    "system_tooltip": "Sistem ayarlarını, güncellemeleri ve verileri yönetin",
+    "help_tooltip": "Yardım ve belge penceresi açın",
+    "memories": "Anılar",
+    "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin"
   },
   "diaries": {
     "header": "Günlükler",
@@ -50,7 +62,8 @@
     "search_placeholder": "Anıları ara...",
     "search_prev_tooltip": "Önceki eşleşme",
     "search_next_tooltip": "Sonraki eşleşme",
-    "search_hint": "Anıları ara (imleci buraya getir)"
+    "search_hint": "Anıları ara (imleci buraya getir)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT aboneliği) gömmeleri desteklemez. Lütfen ayrı bir gömme sağlayıcısı seçin."
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",
@@ -79,6 +92,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Metin Üretim WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (ChatGPT aboneliği)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -1020,7 +1034,6 @@
   },
 
   "chatgpt": {
-    "provider": "OpenAI (ChatGPT aboneliği)",
     "continue": "ChatGPT ile devam et",
     "different": "Farklı hesap veya çalışma alanı kullan",
     "cancel": "Girişi iptal et",
