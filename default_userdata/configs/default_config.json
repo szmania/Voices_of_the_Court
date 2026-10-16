@@ -8,6 +8,7 @@
   "maxTokens": 5000,
   "whisperMaxTokens": 1500,
   "maxMemoryTokens": 600,
+  "maxSummaryTokens": 2000,
   "maxSummaries": 5,
   "percentOfContextToSummarize": 40,
   "selectedDescScript": "standard/pList.js",

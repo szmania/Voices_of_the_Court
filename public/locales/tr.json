@@ -19,7 +19,19 @@
     "memory_constellation": "Anı Takımyıldızı",
     "memory_constellation_tooltip": "Karakter anılarını 3D olarak görselleştir",
     "memory_constellation.empty_title": "Anı bulunamadı",
-    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek."
+    "memory_constellation.empty_subtitle": "Karakteriniz oyunda olaylar yaşadıkça anılar burada görünecek.",
+    "close": "Kapat",
+    "connection_tooltip": "API ve oyun bağlantı ayarlarını yapılandırın",
+    "actions_tooltip": "Oyun içi eylemleri etkinleştirin ve yapılandırın",
+    "summarization_tooltip": "Konuşma özetleme ayarlarını yönetin",
+    "prompts_tooltip": "AI istemlerini ve davranışlarını özelleştirin",
+    "letters_tooltip": "Oyun içi mektupları görüntüleyin ve yönetin",
+    "diaries_tooltip": "Karakter günlüklerini yönetin",
+    "settings_tooltip": "Uygulama ve AI üretim ayarlarını ayarlayın",
+    "system_tooltip": "Sistem ayarlarını, güncellemeleri ve verileri yönetin",
+    "help_tooltip": "Yardım ve belge penceresi açın",
+    "memories": "Anılar",
+    "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin"
   },
   "diaries": {
     "header": "Günlükler",
@@ -50,7 +62,8 @@
     "search_placeholder": "Anıları ara...",
     "search_prev_tooltip": "Önceki eşleşme",
     "search_next_tooltip": "Sonraki eşleşme",
-    "search_hint": "Anıları ara (imleci buraya getir)"
+    "search_hint": "Anıları ara (imleci buraya getir)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT aboneliği) gömmeleri desteklemez. Lütfen ayrı bir gömme sağlayıcısı seçin."
   },
   "connection": {
     "ck3_path": "CK3 kullanıcı klasörü yolu",
@@ -79,6 +92,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Metin Üretim WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (ChatGPT aboneliği)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -125,6 +139,8 @@
     "letter_tooltip": "Mektup yanıtları oluşturmak için istem.",
     "letter_summary_prompt": "Mektup Özeti İstemi",
     "letter_summary_tooltip": "Bir mektup alışverişini özetlemek için istem.",
+    "incoming_letter_prompt": "Gelen mektup istemi",
+    "incoming_letter_tooltip": "Bir NPC sana önce mektup yazdığında kullanılan istem.",
     "diary_prompt": "Günlük İstemi",
     "diary_tooltip": "Bu istem, konuşmalardan sonra karakterler için günlük girişleri oluşturmak için kullanılır. Karakter tutarlılığını ve derinliğini korumaya yardımcı olur.",
     "diary_summary_prompt": "Günlük Özeti İstemi",
@@ -982,5 +998,25 @@
     "description_label": "Mevcut konuşma bilgileri:",
     "system_prompt": "Sen, rol yapma oyunları için canlı sahne atmosferi açıklamaları oluşturmaktan sorumlu bir sahne açıklaması üretim asistanısın.",
     "fallback_description": "{{date}} tarihinde, {{playerName}} ve {{aiName}} {{location}} konumunda bir konuşma başlattı."
+  },
+
+  "chatgpt": {
+    "continue": "ChatGPT ile devam et",
+    "different": "Farklı hesap veya çalışma alanı kullan",
+    "cancel": "Girişi iptal et",
+    "sign_out": "Çıkış yap",
+    "refresh": "Modelleri yenile",
+    "manage_usage": "Kullanımı yönet",
+    "using_plan": "ChatGPT planı kullanılıyor",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

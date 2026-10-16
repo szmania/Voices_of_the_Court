@@ -19,7 +19,19 @@
     "memory_constellation": "記憶の星座",
     "memory_constellation_tooltip": "キャラクターの記憶を3Dで視覚化",
     "memory_constellation.empty_title": "記憶が見つかりません",
-    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。"
+    "memory_constellation.empty_subtitle": "キャラクターがゲーム内でイベントを経験すると、ここに記憶が表示されます。",
+    "actions_tooltip": "ゲーム内のアクションを有効にして設定します",
+    "close": "閉じる",
+    "connection_tooltip": "APIとゲームの接続設定を構成します",
+    "diaries_tooltip": "キャラクターの日記を管理します",
+    "help_tooltip": "ヘルプとドキュメントウィンドウを開きます",
+    "letters_tooltip": "ゲーム内の手紙を表示および管理します",
+    "memories": "記憶",
+    "memories_tooltip": "記憶を視覚化し、圧縮を管理します",
+    "prompts_tooltip": "AIのプロンプトと動作をカスタマイズします",
+    "settings_tooltip": "アプリケーションとAI生成の設定を調整します",
+    "summarization_tooltip": "会話の要約設定を管理します",
+    "system_tooltip": "システム設定、更新、データを管理します"
   },
   "diaries": {
     "header": "日記",
@@ -50,7 +62,8 @@
     "search_placeholder": "記憶を検索...",
     "search_prev_tooltip": "前の一致",
     "search_next_tooltip": "次の一致",
-    "search_hint": "記憶を検索（ここにホバー）"
+    "search_hint": "記憶を検索（ここにホバー）",
+    "embedding_chatgpt_unsupported": "OpenAI（ChatGPT サブスクリプション）は埋め込みをサポートしていません。別の埋め込みプロバイダーを選択してください。"
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
@@ -79,6 +92,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Text Gen WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI（ChatGPT サブスクリプション）",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -123,6 +137,8 @@
     "diary_summary_tooltip": "このプロンプトは、キャラクターのすべての日記エントリを単一の要約にまとめるために使用されます。",
     "diary_for_letter_prompt": "このプロンプトは、送信または受信した手紙に基づいて日記のエントリを生成するために使用されます。",
     "diary_for_letter_tooltip": "このプロンプトは、送信または受信した手紙に基づいて日記のエントリを生成するために使用されます。",
+    "incoming_letter_prompt": "NPCからの手紙プロンプト",
+    "incoming_letter_tooltip": "NPCが先にあなたへ手紙を書いてきたときに使用されるプロンプト。",
     "suggestion_prompt": "提案プロンプト",
     "suggestion_prompt_tooltip": "このプロンプトは、プレイヤーの応答提案を生成するために使用されます。",
     "restore_defaults": "デフォルトのプロンプトを復元",
@@ -315,6 +331,22 @@
     "ai_initiated_narrator_prompt": "さて、{sourceCharacterName}は{playerName}に何と話しかけてこの会話を始めますか？",
     "start_writing_reply": "では、{characterName}の返信を書き始めてください："
   },
+  "compaction": {
+    "cooldown_label": "クールダウン",
+    "desc_1": "メモリ圧縮は、長い会話履歴を自動的に圧縮し、主要な物語の詳細を保持しながらコンテキストスペースを節約します。",
+    "desc_2": "以下で圧縮のタイミングと方法を設定できます。",
+    "enable": "メモリ圧縮を有効にする",
+    "enable_tooltip": "古い会話の自動圧縮をオンにします",
+    "export_data": "プレイヤーデータのエクスポート",
+    "header": "メモリ管理",
+    "import_data": "プレイヤーデータのインポート",
+    "manual_trigger": "今すぐ圧縮を実行",
+    "phase1_threshold": "フェーズ1のしきい値 (%)",
+    "phase2_threshold": "フェーズ2のしきい値 (要約)",
+    "phase2_threshold_tooltip": "この数のフェーズ1の要約が存在する場合、フェーズ2の圧縮がそれらを長期的な知識グラフに統合します。",
+    "status_idle": "アイドル",
+    "status_running": "圧縮中..."
+  },
   "chat": {
     "target_label": "ターゲットキャラクター：",
     "target_auto": "自動検出",
@@ -359,7 +391,10 @@
     "edit_tooltip": "エンターキーを押すか、編集ボックスの外側をクリックして保存し、エスケープキーでキャンセルします。標準のCtrl+Z/Cmd+Zでの元に戻す操作がサポートされています。",
     "cancel_button": "キャンセル",
     "cancel_response_tooltip": "現在のAI応答生成をキャンセルします。",
-    "generation_cancelled": "ユーザーによって生成がキャンセルされました。"
+    "generation_cancelled": "ユーザーによって生成がキャンセルされました。",
+    "config_tooltip": "設定パネルを開く",
+    "restore_config_tooltip": "設定パネルを復元",
+    "loading_placeholder": "会話に接続中..."
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",
@@ -980,5 +1015,25 @@
     "description_label": "現在の会話情報：",
     "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
     "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
+  },
+
+  "chatgpt": {
+    "continue": "ChatGPT で続行",
+    "different": "別のアカウントまたはワークスペースを使用",
+    "cancel": "ログインをキャンセル",
+    "sign_out": "ログアウト",
+    "refresh": "モデルを更新",
+    "manage_usage": "使用量を管理",
+    "using_plan": "ChatGPT プランを使用中",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

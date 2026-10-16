@@ -91,7 +91,7 @@ test('a checkpoint receipt after the last init prevents a pending letter from re
         + conversation.targetNodeId.split('-').join('/;/') + '/;/' + parent.targetNodeId.split('-').join('/;/') + '/;/1066.1.2');
     queue(pending);
     await checkAndDeliverLetters();
-    const payload = fs.readFileSync(path.join(root, 'run', 'letters.txt'), 'utf8');
+    const payload = fs.readFileSync(path.join(root, 'run', 'votc_ce_letters.txt'), 'utf8');
     expect(payload).toContain('create_artifact');
     expect(payload).not.toContain(pending.script);
 });

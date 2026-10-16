@@ -571,7 +571,7 @@ describe('withTimelineLock with recoverPendingTransactions (§7.5 P3.4 recovery-
         store.beginTransaction(attemptId, {
             targetNode: '1-1',
             recordIds: ['r1'],
-            artifactPath: path.join(tmpDir, 'run', 'votc.txt')
+            artifactPath: path.join(tmpDir, 'run', 'votc_ce.txt')
         });
 
         // First caller: recovers inside the lock and commits.

@@ -81,7 +81,7 @@ test('generation failure after another campaign emits its own init must not clea
         throw new Error('LLM failed after B started a conversation');
     }};
     expect(await generator.generateLetterReply(gameData, original)).toBeNull();
-    const file = path.join(root, 'run', 'letters.txt');
+    const file = path.join(root, 'run', 'votc_ce_letters.txt');
     const payload = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
     expect(payload).not.toContain('remove_global_variable ?= votc_letter_1');
 });
@@ -103,9 +103,9 @@ test('generation failure must not overwrite another reply awaiting game consumpt
             expectedDeliveryDay: 389001
         });
         await checkAndDeliverLetters();
-        expect(fs.readFileSync(path.join(root, 'run', 'letters.txt'), 'utf8')).toContain('SUCCESSFUL_REPLY');
+        expect(fs.readFileSync(path.join(root, 'run', 'votc_ce_letters.txt'), 'utf8')).toContain('SUCCESSFUL_REPLY');
         throw new Error('Another request failed before the game consumed the successful reply');
     }};
     expect(await generator.generateLetterReply(gameData, original)).toBeNull();
-    expect(fs.readFileSync(path.join(root, 'run', 'letters.txt'), 'utf8')).toContain('SUCCESSFUL_REPLY');
+    expect(fs.readFileSync(path.join(root, 'run', 'votc_ce_letters.txt'), 'utf8')).toContain('SUCCESSFUL_REPLY');
 });

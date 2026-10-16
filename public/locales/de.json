@@ -50,7 +50,8 @@
     "search_placeholder": "Erinnerungen durchsuchen...",
     "search_prev_tooltip": "Vorheriger Treffer",
     "search_next_tooltip": "Nächster Treffer",
-    "search_hint": "Erinnerungen durchsuchen (hier hovern)"
+    "search_hint": "Erinnerungen durchsuchen (hier hovern)",
+    "embedding_chatgpt_unsupported": "OpenAI (ChatGPT-Abonnement) unterstützt keine Embeddings. Bitte wählen Sie einen separaten Embedding-Anbieter."
   },
   "connection": {
     "ck3_path": "CK3-Benutzerordnerpfad",
@@ -79,6 +80,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Text Gen WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (ChatGPT-Abonnement)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -121,6 +123,8 @@
     "letter_tooltip": "Prompt zur Generierung von Briefantworten.",
     "letter_summary_prompt": "Briefzusammenfassungs-Prompt",
     "letter_summary_tooltip": "Prompt zur Zusammenfassung eines Briefwechsels.",
+    "incoming_letter_prompt": "Eingehender Brief-Prompt",
+    "incoming_letter_tooltip": "Prompt für Briefe, die ein NPC von sich aus an dich schreibt.",
     "diary_prompt": "Tagebuch-Prompt",
     "diary_tooltip": "Dieser Prompt wird verwendet, um nach Gesprächen Tagebucheinträge für Charaktere zu generieren. Er hilft, die Konsistenz und Tiefe der Charaktere zu erhalten.",
     "diary_summary_prompt": "Tagebuch-Zusammenfassungs-Prompt",
@@ -984,5 +988,25 @@
     "description_label": "Aktuelle Gesprächsinformationen:",
     "system_prompt": "Sie sind ein Assistent zur Generierung von Szenenbeschreibungen, der für die Erstellung lebendiger Szenenatmosphärenbeschreibungen für Rollenspiele verantwortlich ist.",
     "fallback_description": "Am {{date}} begannen {{playerName}} und {{aiName}} ein Gespräch in {{location}}."
+  },
+
+  "chatgpt": {
+    "continue": "Mit ChatGPT fortfahren",
+    "different": "Anderes Konto oder anderen Arbeitsbereich verwenden",
+    "cancel": "Anmeldung abbrechen",
+    "sign_out": "Abmelden",
+    "refresh": "Modelle aktualisieren",
+    "manage_usage": "Nutzung verwalten",
+    "using_plan": "ChatGPT-Abo wird verwendet",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

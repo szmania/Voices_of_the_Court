@@ -50,7 +50,8 @@
     "search_placeholder": "Szukaj wspomnień...",
     "search_prev_tooltip": "Poprzednie dopasowanie",
     "search_next_tooltip": "Następne dopasowanie",
-    "search_hint": "Szukaj wspomnień (najedź tutaj)"
+    "search_hint": "Szukaj wspomnień (najedź tutaj)",
+    "embedding_chatgpt_unsupported": "OpenAI (subskrypcja ChatGPT) nie obsługuje osadzeń. Wybierz osobnego dostawcę osadzeń."
   },
   "connection": {
     "ck3_path": "Ścieżka folderu użytkownika CK3",
@@ -79,6 +80,7 @@
     "openrouter": "OpenRouter",
     "ooba": "Text Gen WebUI (ooba)",
     "openai": "OpenAI",
+    "openai_chatgpt": "OpenAI (subskrypcja ChatGPT)",
     "gemini": "Google Gemini",
     "glm": "GLM",
     "deepseek": "DeepSeek",
@@ -123,6 +125,8 @@
     "diary_summary_tooltip": "Ten prompt służy do podsumowania wszystkich wpisów do dziennika postaci w jedno streszczenie.",
     "diary_for_letter_prompt": "Ten prompt służy do generowania wpisu do dziennika na podstawie wysłanego lub otrzymanego listu.",
     "diary_for_letter_tooltip": "Ten prompt służy do generowania wpisu do dziennika na podstawie wysłanego lub otrzymanego listu.",
+    "incoming_letter_prompt": "Prompt listu przychodzącego",
+    "incoming_letter_tooltip": "Prompt używany, gdy NPC pierwszy pisze list do ciebie.",
     "suggestion_prompt": "Prompt sugestii",
     "suggestion_prompt_tooltip": "Ten prompt służy do generowania sugestii odpowiedzi dla gracza.",
     "restore_defaults": "Przywróć domyślne prompty",
@@ -980,5 +984,25 @@
     "description_label": "Aktualne informacje o rozmowie:",
     "system_prompt": "Jesteś asystentem generowania opisów scen, odpowiedzialnym za tworzenie żywych opisów atmosfery scen do gier fabularnych.",
     "fallback_description": "Dnia {{date}}, {{playerName}} i {{aiName}} rozpoczęli rozmowę w {{location}}."
+  },
+
+  "chatgpt": {
+    "continue": "Kontynuuj z ChatGPT",
+    "different": "Użyj innego konta lub obszaru roboczego",
+    "cancel": "Anuluj logowanie",
+    "sign_out": "Wyloguj",
+    "refresh": "Odśwież modele",
+    "manage_usage": "Zarządzaj użyciem",
+    "using_plan": "Korzystasz z planu ChatGPT",
+    "waiting": "Complete sign-in in your browser.",
+    "signed_out": "Sign in to use your ChatGPT plan.",
+    "memory_only": "Secure storage is unavailable. Sign-in lasts until VOTC closes.",
+    "limitations": "Your ChatGPT plan controls usage. Sampling settings and the output-token limit are unavailable for this provider. Embeddings use a separate provider.",
+    "plan_disabled": "Signed in; ChatGPT plan permission is disabled. Continue with ChatGPT to enable it.",
+    "usage_limit": "ChatGPT usage limit reached. Manage usage, then use Test Connection to retry.",
+    "connection_failed": "ChatGPT connection failed. Try again.",
+    "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
+    "model_changed": "The saved model is unavailable. The first available model is now selected.",
+    "no_models": "No models are available for this account."
   }
 }

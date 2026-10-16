@@ -1,4 +1,5 @@
 import {ipcRenderer } from 'electron';
+import './ChatGPTSettings';
 import { Config } from '../../shared/Config';
 import { ApiConnection, player2BaseUrl, Connection } from '../../shared/apiConnection';
 
@@ -16,6 +17,7 @@ function defineTemplate(label: string){
             <option value="openrouter" data-i18n="api.openrouter">OpenRouter</option>
             <option value="ooba" data-i18n="api.ooba">Text Gen WebUI (ooba)</option>
             <option value="openai" data-i18n="api.openai">OpenAI</option>
+            <option value="openai_chatgpt" data-i18n="api.openai_chatgpt">OpenAI (ChatGPT subscription)</option>
             <option value="gemini" data-i18n="api.gemini">Google Gemini</option>
             <option value="glm" data-i18n="api.glm">GLM</option>
             <option value="deepseek" data-i18n="api.deepseek">DeepSeek</option>
@@ -78,6 +80,8 @@ function defineTemplate(label: string){
             </select>
             </div>
         </div>
+
+        <div id="chatgpt-menu" style="display:none"><chatgpt-settings></chatgpt-settings></div>
 
         <div id="gemini-menu">
             <h2 data-i18n="api.gemini">Google Gemini</h2>
@@ -409,6 +413,12 @@ class ApiSelector extends HTMLElement{
         ipcRenderer.on('update-language', this.languageUpdateHandler);
 
         let apiConfig = config[confID].connection;
+        // ChatGPT subscriptions cannot produce embeddings, so a saved subscription type is
+        // not valid for the embedding config. Fall back to OpenAI and persist the change.
+        if (confID === 'embeddingApiConnectionConfig' && apiConfig.type === 'openai_chatgpt') {
+            apiConfig.type = 'openai';
+            ipcRenderer.send('config-change-nested-nested', confID, 'connection', 'type', 'openai');
+        }
 
 
         this.typeSelector.value = apiConfig.type;
@@ -579,6 +589,15 @@ class ApiSelector extends HTMLElement{
             }
 
             switch(this.typeSelector.value){
+                case 'openai_chatgpt':
+                    ipcRenderer.send('config-change-nested', this.confID, 'connection', {
+                        type: 'openai_chatgpt', baseUrl: 'https://api.openai.com/v1', key: '',
+                        model: (this.shadow.querySelector('chatgpt-settings') as any).model || '',
+                        forceInstruct: false, overwriteContext: this.overwriteContextCheckbox.checked,
+                        customContext: Number(this.customContextNumber.value)
+                    });
+                    void (this.shadow.querySelector('chatgpt-settings') as any).refreshModels();
+                    break;
                 case 'novelai':
                     this.saveNovelaiConfig();
                     break;
@@ -680,6 +699,23 @@ class ApiSelector extends HTMLElement{
 
             this.testConnectionSpan.innerText = "...";
             this.testConnectionSpan.style.color = "white";
+            // ChatGPT subscriptions cannot produce embeddings; report it instead of
+            // calling the chat-only subscription test endpoint.
+            if (this.confID === 'embeddingApiConnectionConfig' && this.typeSelector.value === 'openai_chatgpt') {
+                // @ts-ignore
+                const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
+                this.testConnectionSpan.style.color = "red";
+                this.testConnectionSpan.innerText = t('memory_constellation.embedding_chatgpt_unsupported',
+                    'OpenAI (ChatGPT subscription) does not support embeddings. Please select a separate embedding provider.');
+                return;
+            }
+            if (this.typeSelector.value === 'openai_chatgpt') {
+                const response = await ipcRenderer.invoke('openai-chatgpt:test-connection', this.confID);
+                const result = response.ok ? response.value : { success: false, errorMessage: response.error };
+                this.testConnectionSpan.textContent = result.success ? 'Connection valid!' : result.errorMessage;
+                this.testConnectionSpan.style.color = result.success ? 'green' : 'red';
+                return;
+            }
 
             // The embedding config tests the embedding endpoint, not chat completions.
             if (this.confID === 'embeddingApiConnectionConfig') {
@@ -803,6 +839,9 @@ class ApiSelector extends HTMLElement{
     }
 
     displaySelectedApiBox(){
+        const subscription = this.typeSelector.value === 'openai_chatgpt';
+        (this.shadow.querySelector('#chatgpt-menu') as HTMLElement).style.display = subscription ? 'block' : 'none';
+        document.dispatchEvent(new CustomEvent('votc-provider-changed', { detail: { confID: this.confID, subscription } }));
         // Hide all divs first for simplicity and to prevent bugs
         this.openaiDiv.style.display = "none";
         this.oobaDiv.style.display = "none";

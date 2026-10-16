@@ -68,10 +68,10 @@ function buildLetterReplyRunFile(
         : '';
 
     // The first line doubles as the app's date heartbeat: the mod-side
-    // letters_runner executes run/letters.txt every ~2s and the app reads
+    // letters_runner executes run/votc_ce_letters.txt every ~2s and the app reads
     // the current game date from the VOTC:DATE line this debug_log emits
     // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Every
-    // payload written into letters.txt must keep it as line 1.
+    // payload written into votc_ce_letters.txt must keep it as line 1.
     return `debug_log = "[Localize('talk_event.9999.desc')]"
 if = {
 \tlimit = {
@@ -94,7 +94,7 @@ else = {
 
 /**
  * Receipt markers: the block logs VOTC:FALLBACK/;/applied or /skipped on
- * execution; the desktop app tails both and clears run/letters.txt so the
+ * execution; the desktop app tails both and clears run/votc_ce_letters.txt so the
  * mod-side letters_runner stops re-executing it every poll. The prefix
  * avoids the VOTC:LETTER substring on purpose - the import scanner in
  * parseLogForLetters treats any VOTC:LETTER line as an incoming letter.
@@ -116,7 +116,7 @@ export function writeLetterReplyFallbackRunFile(
 
     const runFolderPath = path.join(userFolderPath, 'run');
     fs.mkdirSync(runFolderPath, { recursive: true });
-    const filePath = path.join(runFolderPath, `letter${letterNumber}.txt`);
+    const filePath = path.join(runFolderPath, `votc_ce_letter${letterNumber}.txt`);
     writeRunFileAtomically(
         filePath,
         buildLetterReplyRunFile(letterNumber, deliveryId, 'votc_letter_reply_fallback_desc', timeline)
@@ -649,7 +649,7 @@ export class LetterReplyGenerator {
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
-            
+
 
             // Generate and save a summary of the letter asynchronously, AFTER the actions have
             // been generated, so the summary can include the triggered actions. The summary is
@@ -706,7 +706,7 @@ export class LetterReplyGenerator {
 
     /**
      * On generation failure the letter thread would dangle in the save: the
-     * mod-side letters_runner only executes `run/letters.txt` in the CK3 user
+     * mod-side letters_runner only executes `run/votc_ce_letters.txt` in the CK3 user
      * folder, so the fallback block (thread cleanup + journal-created node)
      * must be delivered through that channel as well. The app-data
      * `votc_data/run/letterN.txt` copy stays as a diagnostic handoff.
@@ -715,7 +715,7 @@ export class LetterReplyGenerator {
      * shared across campaigns — and carries the reply branch's checkpoint
      * script, so it must pass the same delivery gate as a normal reply:
      * when generation outlives a campaign/player switch, writing it into the
-     * newly loaded game's letters.txt would clear THAT game's letter slot
+     * newly loaded game's votc_ce_letters.txt would clear THAT game's letter slot
      * and re-point ITS timeline. When the current context cannot be verified
      * at all, fail closed: the thread stays dangling in its own campaign
      * instead of corrupting another one.
@@ -734,7 +734,7 @@ export class LetterReplyGenerator {
             return;
         }
         const fallbackRunBlock = buildLetterReplyRunFile(letterNumber, snapshot.deliveryId, 'votc_letter_reply_fallback_desc', gate.timeline);
-        // Queue instead of writing directly: letters.txt is a single
+        // Queue instead of writing directly: votc_ce_letters.txt is a single
         // whole-file-overwrite channel, and a direct write here could clobber
         // a successful reply that is still awaiting VOTC:LETTER_ACCEPTED (that
         // reply has already left the pending queue, so the loss would be
@@ -745,7 +745,7 @@ export class LetterReplyGenerator {
 
     /**
      * Decide whether the fallback block may be written into the loaded game's
-     * letters.txt, and with which timeline script. The block clears
+     * votc_ce_letters.txt, and with which timeline script. The block clears
      * `votc_letter_N` — a global variable shared across campaigns — and carries
      * the reply branch's checkpoint script, so it needs the same delivery gate
      * as a normal reply: when generation outlives a campaign/player switch,
@@ -898,7 +898,7 @@ export class LetterReplyGenerator {
                 replyLetter.timelineCampaignId = timelineInfo.campaignId;
                 replyLetter.timelinePlayerId = timelineInfo.playerId;
             }
-    
+
             replyLetter.triggeredActions = triggeredActions;
 
             // Atomically update the history file

@@ -60,13 +60,13 @@ export class LetterActionTrigger {
   }
 
   /**
-   * Clears the letter actions run file (run/votc_letter_actions.txt). Called when the
+   * Clears the letter actions run file (run/votc_ce_letter_actions.txt). Called when the
    * game confirms execution via VOTC:LETTER_EFFECT_ACCEPTED (message_event.363).
    * Safe to call before any letter action ran this session: creates the manager on demand.
    */
   public static clearLetterRunFile(config: Config): void {
       if (!this.letterRunFileManager) {
-          this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
+          this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_ce_letter_actions.txt');
       }
       this.letterRunFileManager.clear();
   }
@@ -79,7 +79,7 @@ export class LetterActionTrigger {
     console.log(`[LetterActionTrigger] Executing action '${actionSpec.signature}' for letter ${letter.id}`);
 
     if (!this.letterRunFileManager) {
-      this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_letter_actions.txt');
+      this.letterRunFileManager = new RunFileManager(config.userFolderPath, 'votc_ce_letter_actions.txt');
     }
     const userDataPath = app.getPath('userData');
 
