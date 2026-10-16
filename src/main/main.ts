@@ -17,11 +17,8 @@ import { GameData } from "../shared/gameData/GameData";
 import { Letter } from "./letter/Letter";
 import { Letter as ILetter, StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
-<<<<<<< HEAD
 import { WhisperReplyGenerator, parseWhisperRequestLine, clearWhisperRunFile, type WhisperRequestInfo } from "./whisper/WhisperReplyGenerator";
-=======
 import { IncomingLetterGenerator } from "./letter/IncomingLetterGenerator";
->>>>>>> v2.2.0-rc.1
 import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
