@@ -24,6 +24,7 @@ import {
     type CreateChildNodeResult,
     type GameDataLike
 } from '../timelineManager.js';
+import { resolveSummaryTimelineContext } from './summaryTimelineContext.js';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import { parseLog } from '../../shared/gameData/parseLog.js';
@@ -46,6 +47,16 @@ function indentCk3Block(block: string, indent: string): string {
         .map(line => line ? `${indent}${line}` : line)
         .join('\n');
 }
+
+/**
+ * KV-cache-stable letter policy prefix (M6 of the VOTC-194 merge plan).
+ * Fixed rules only — no names, dates or letter content — so it stays
+ * byte-identical across requests and prefix-caching providers (e.g. DeepSeek)
+ * reuse it across letters. English by design: the localized letterPrompt
+ * templates (default_userdata/configs/prompts/*.json) carry the per-language
+ * instructions in the request message that follows this prefix.
+ */
+const STABLE_LETTER_POLICY_PREFIX = 'You are role-playing a character in a historical strategy game who corresponds with others by letter. Later messages provide the character description, summaries of prior conversations and letters, relevant memories, and the letter to respond to. Stay strictly in character as the letter author, rely only on the information provided, and output the letter content only.';
 
 function writeRunFileAtomically(filePath: string, content: string): void {
     const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
@@ -398,18 +409,22 @@ export class LetterReplyGenerator {
         }
 
         const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
-        let prompt = effectivePrompts.letterPrompt;
 
-        prompt = prompt.replace('{{aiName}}', ai?.fullName || '')
-                       .replace('{{characterDescription}}', characterDescription || '')
-                       .replace('{{conversationSummary}}', conversationSummary || '')
-                       .replace('{{letterSummaryContent}}', letterSummaryContent || '')
-                       .replace('{{memoryContent}}', memoryContent || '')
-                       .replace('{{playerName}}', player?.fullName || '')
-                       .replace('{{letterContent}}', threadContext + (latestLetter?.content || ''))
-                       .replace(/{{language}}/g, this.config.language || 'en');
+        // M6: KV-cache-friendly structure — the localized letterPrompt template
+        // already orders fixed rules before dynamic context before the request;
+        // the byte-stable English policy prefix rides along as a leading system
+        // line so prefix-caching providers (e.g. DeepSeek) reuse it across letters.
+        const prompt = effectivePrompts.letterPrompt
+            .replace('{{aiName}}', ai?.fullName || '')
+            .replace('{{characterDescription}}', characterDescription || '')
+            .replace('{{conversationSummary}}', conversationSummary || '')
+            .replace('{{letterSummaryContent}}', letterSummaryContent || '')
+            .replace('{{memoryContent}}', memoryContent || '')
+            .replace('{{playerName}}', player?.fullName || '')
+            .replace('{{letterContent}}', threadContext + (latestLetter?.content || ''))
+            .replace(/{{language}}/g, this.config.language || 'en');
 
-        return prompt;
+        return `${STABLE_LETTER_POLICY_PREFIX}\n${prompt}`;
     }
 
     /**
@@ -457,7 +472,10 @@ export class LetterReplyGenerator {
 
         prompt += `\n\n${this.buildCategoryToneGuidance(category)} Write 200-500 words as a single letter. Write the letter content directly, without any explanation or description.`;
 
-        return prompt;
+        // M6: same byte-stable policy prefix as the reply path so both letter
+        // prompts share one cacheable prefix.
+        return `${STABLE_LETTER_POLICY_PREFIX}\n${prompt}`;
+
     }
 
     /**
@@ -932,7 +950,7 @@ export class LetterReplyGenerator {
             // not needed for the reply to be displayed or for actions to run, so we fire-and-forget
             // it to avoid delaying the letter delivery.
             console.log('[LetterReplyGenerator] Generating and saving letter summary (async)...');
-            this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId, [...playerActions, ...aiActions]).catch(err => {
+            this.generateAndSaveLetterSummary(gameData, latestLetter, escapedResponse, replyLetterId, [...playerActions, ...aiActions], timelineInfo?.nodeId).catch(err => {
                 console.error('[LetterReplyGenerator] Background letter summary generation failed:', err);
             });
 
@@ -1226,7 +1244,7 @@ export class LetterReplyGenerator {
      * @param letterContent Player's letter content
      * @param replyContent AI's reply content
      */
-    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string, triggeredActions: LetterAssociatedAction[] = []): Promise<void> {
+    private async generateAndSaveLetterSummary(gameData: GameData, originalLetter: ILetter, replyContent: string, replyLetterId: string, triggeredActions: LetterAssociatedAction[] = [], timelineNodeId?: string): Promise<void> {
         try {
             const player = gameData.characters.get(originalLetter.sender.id);
             const ai = gameData.characters.get(originalLetter.recipient.id);
@@ -1236,25 +1254,43 @@ export class LetterReplyGenerator {
                 return;
             }
 
+            // Resolve campaign-scoped summary timeline context for branch-aware merge saves (M4)
+            const summaryTimeline = resolveSummaryTimelineContext(gameData);
+            const identity = summaryTimeline.identity;
+            const registry = summaryTimeline.registry;
+            const currentNodeId = summaryTimeline.currentNodeId;
+
+            // Read existing summaries with the timeline context so node-tagged summaries
+            // from the current branch stay visible; without a registry the fail-closed
+            // filter would drop them and the save below would lose them (the pre-merge bug this guards against).
+            const existingSummaries = await readSummaryFile(
+                this.votcDataPath,
+                String(gameData.playerID),
+                gameData.votcCheckpointEpoch,
+                registry,
+                currentNodeId,
+                identity
+            );
+
             // Build summary generation prompt
             const effectivePrompts = getEffectivePrompts(this.config, this.votcDataPath, gameData);
             let summaryPrompt = effectivePrompts.letterSummaryPrompt;
 
             summaryPrompt = summaryPrompt.replace('{{playerName}}', player.fullName)
-                                         .replace('{{playerLetterContent}}', originalLetter.content)
-                                         .replace('{{aiName}}', ai.fullName)
-                                         .replace('{{aiReplyContent}}', replyContent);
+                                                .replace('{{playerLetterContent}}', originalLetter.content)
+                                                .replace('{{aiName}}', ai.fullName)
+                                                .replace('{{aiReplyContent}}', replyContent);
 
             // Include the triggered actions in the summary so the summary captures this important context.
             if (triggeredActions && triggeredActions.length > 0) {
                 const actionsText = triggeredActions.map(a => a.signature).join(', ');
-                summaryPrompt += `\n\nActions triggered in this exchange: ${actionsText}`;
+                summaryPrompt += '\n\nActions triggered in this exchange: ' + actionsText;
             }
 
             // Use LLM to generate summary
             const summaryMessages: Message[] = [
                 {
-                    role: "user",
+                    role: 'user',
                     content: summaryPrompt
                 }
             ];
@@ -1265,35 +1301,63 @@ export class LetterReplyGenerator {
             });
 
             const summaryContent = typeof summaryResult === 'string' ? summaryResult : (summaryResult?.content ?? '');
-        if (!summaryContent || (summaryContent as any)?.trim?.() === '') {
+            if (!summaryContent || (summaryContent as any)?.trim?.() === '') {
                 console.warn('Empty summary content generated');
                 return;
             }
 
-            console.log(`Generated letter summary: ${(summaryContent as any)?.trim() ?? ''}`);
+            console.log('Generated letter summary: ' + ((summaryContent as any)?.trim() ?? ''));
 
             const letterDate = gameData.date;
             const playerId = String(originalLetter.sender.id);
             const aiId = String(originalLetter.recipient.id);
 
-            const newSummary: LetterSummary = {
+            const trimmedSummary = (summaryContent as any)?.trim?.() ?? '';
+
+            // M4: campaign-scoped branch-aware copy of the letter summary
+            // (Summary shape in the conversation_summaries store, stamped with
+            // the reply's timeline node so a rollback to a sibling branch
+            // hides it, like conversations and incoming letters).
+            const campaignSummary: Summary = {
                 id: randomUUID(),
                 date: letterDate,
-        summary: (summaryContent as any)?.trim?.() ?? '',
-                letterIds: [originalLetter.id, replyLetterId]
+                content: trimmedSummary,
+                characterId: aiId,
+                characterName: ai.shortName || ai.fullName,
+                sourceType: 'letter',
+                sourceRecordId: replyLetterId,
+                votcCheckpointEpoch: (gameData.votcCheckpointEpoch ?? 0) + 1,
+                ...(timelineNodeId ? { votcTimelineNodeId: timelineNodeId } : {}),
+                ...(identity ? { votcCampaignId: identity.campaignId } : {})
             };
 
+            // Merge-save: the incoming set (context read + new summary) is
+            // merged with the on-disk store by saveSummaryFile, so hidden
+            // sibling-branch records survive and other senders' files are
+            // never deleted (replaces the overwrite-risk write path).
+            await saveSummaryFile(this.votcDataPath, String(gameData.playerID), [campaignSummary, ...existingSummaries], (gameData.votcCheckpointEpoch ?? 0) + 1, {
+                registry: registry,
+                currentNodeId: currentNodeId,
+                identity: identity
+            });
+
+            // Legacy LetterManager store keeps the LetterSummary shape for the
+            // existing readers (letter prompts, summarization UI) — same
+            // dual-write pattern as the M1 letters projection; the campaign
+            // copy above is authoritative for branch-aware surfaces.
+            const legacySummary: LetterSummary = {
+                id: randomUUID(),
+                date: letterDate,
+                summary: trimmedSummary,
+                letterIds: [originalLetter.id, replyLetterId]
+            };
             const letterManager = LetterManager.getInstance();
-            const existingSummaries = letterManager.getLetterSummaries(playerId, aiId);
-
-            // Add new summary to the beginning of the list
-            existingSummaries.unshift(newSummary);
-
-            letterManager.saveLetterSummaries(playerId, aiId, existingSummaries);
-            console.log(`Letter summary saved for AI ID ${aiId}`);
-
+            const existingLegacySummaries = letterManager.getLetterSummaries(playerId, aiId);
+            existingLegacySummaries.unshift(legacySummary);
+            letterManager.saveLetterSummaries(playerId, aiId, existingLegacySummaries);
+            console.log('Letter summary saved for AI ID ' + aiId + (identity ? ' (campaign ' + identity.campaignId + ')' : ' (legacy store)'));
         } catch (error) {
-            console.error(`Error generating and saving letter summary: ${error}`);
+            console.error('Error generating and saving letter summary: ' + error);
         }
     }
 

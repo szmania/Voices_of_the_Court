@@ -22,6 +22,7 @@ import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
 import { evaluateReplyDeliveryGate } from "./letter/letterDeliveryGate.js";
+import { runNpcLetterSession, type NpcLetterSessionContext } from "./letter/npcLetterSession";
 import { parseLog, readLastLogLineContaining } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
@@ -545,7 +546,7 @@ export async function checkAndDeliverLetters() {
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
-        // Each channel has its own in-flight gate so letters.txt and votc_ce_npcltr.txt
+        // Each channel has its own in-flight gate so votc_ce_letters.txt and votc_ce_npcltr.txt
         // whole-file overwrites never interleave.
         const isNpcLetter = storedLetter?.originalLetter.subject === 'npcltr';
         const channelBusy = isNpcLetter ? !!lastNpcltrSentToGame : !!lastLetterSentToGame;
@@ -2342,36 +2343,56 @@ async function handleNpcLetterInitiation(gameData: GameData, request: ILetter): 
             configWindow.window.webContents.send('letter-status-changed');
         }
 
-        // The request payload's category rides on the parsed letter; its flavor
-        // text is the prompt seed. Rebuild both from the raw content if the
-        // parse stripped the signature.
-        let category = request.npcLetterCategory;
-        let flavor = request.content;
-        if (!category && flavor.startsWith('VOTC_CE_LETTER|')) {
-            const sigParts = flavor.split('|');
-            category = sigParts[1]?.trim() || undefined;
-            flavor = sigParts.slice(2).join('|').trim();
-        }
+        // Use shared NPC-letter session skeleton (M7): refreshes date/UI and
+        // contains work failures so a failed session never leaves the UI stale.
+        const sessionContext: NpcLetterSessionContext = {
+            updateDateFromSnapshot: (g) => updateCurrentDate(g.gameDate?.totalDays ?? g.totalDays),
+            refreshLettersUi: () => {
+                if (configWindow && !configWindow.window.isDestroyed()) {
+                    configWindow.window.webContents.send('letter-status-changed');
+                }
+            }
+        };
 
-        const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
-        const openingLetter = await letterReplyGenerator.generateNpcInitiationLetter(gameData, request, category, flavor);
+        const result = await runNpcLetterSession(gameData, sessionContext, async () => {
+            // The request payload's category rides on the parsed letter; its flavor
+            // text is the prompt seed. Rebuild both from the raw content if the
+            // parse stripped the signature.
+            let category = request.npcLetterCategory;
+            let flavor = request.content;
+            if (!category && flavor.startsWith('VOTC_CE_LETTER|')) {
+                const sigParts = flavor.split('|');
+                category = sigParts[1]?.trim() || undefined;
+                flavor = sigParts.slice(2).join('|').trim();
+            }
 
-        if (!openingLetter) {
-            console.error(`Failed to generate the NPC opening letter for request ${request.id}.`);
+            const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
+            const openingLetter = await letterReplyGenerator.generateNpcInitiationLetter(gameData, request, category, flavor);
+
+            if (!openingLetter) {
+                console.error('Failed to generate the NPC opening letter for request ' + request.id + '.');
+                return;
+            }
+
+            // Queue for delivery on the npcltr channel. The request letter itself is
+            // the channel marker (subject 'npcltr' -> deliverLetter routes to
+            // run/votc_ce_npcltr.txt); expected delivery is the request day + delay.
+            const expectedDeliveryDay = (request.totalDays > 0 ? request.totalDays : gameData.totalDays) + (request.delay || 0);
+            const storedLetter: StoredLetter = {
+                letter: openingLetter,
+                originalLetter: request,
+                expectedDeliveryDay
+            };
+            storedLetters.set(request.id, storedLetter);
+            console.log('NPC opening letter for request ' + request.id + ' generated and queued. Will deliver on day ' + expectedDeliveryDay + ' (current day: ' + currentTotalDays + ').');
+
+            return openingLetter;
+        });
+
+        if (result === null) {
+            console.error('NPC letter session failed; see console for details.');
             return;
         }
-
-        // Queue for delivery on the npcltr channel. The request letter itself is
-        // the channel marker (subject 'npcltr' -> deliverLetter routes to
-        // run/votc_ce_npcltr.txt); expected delivery is the request day + delay.
-        const expectedDeliveryDay = (request.totalDays > 0 ? request.totalDays : gameData.totalDays) + (request.delay || 0);
-        const storedLetter: StoredLetter = {
-            letter: openingLetter,
-            originalLetter: request,
-            expectedDeliveryDay
-        };
-        storedLetters.set(request.id, storedLetter);
-        console.log(`NPC opening letter for request ${request.id} generated and queued. Will deliver on day ${expectedDeliveryDay} (current day: ${currentTotalDays}).`);
 
         checkAndDeliverLetters();
 
@@ -2388,7 +2409,7 @@ clipboardListener.on('VOTC:LETTER', async () => {
 
     // npcltr routing (VOTC-194): a peek at the newest VOTC:LETTER payload first.
     // An AI-initiated request (content signature VOTC_CE_LETTER|... or letterId
-    // npcltr) must NOT clear letters.txt - a whole-file reset here would destroy
+    // npcltr) must NOT clear votc_ce_letters.txt - a whole-file reset here would destroy
     // an in-flight player reply awaiting VOTC:LETTER_ACCEPTED. The request is
     // instead handed to the NPC-letter initiation flow below.
     try {
