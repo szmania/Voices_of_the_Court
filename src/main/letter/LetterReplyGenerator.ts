@@ -7,7 +7,7 @@ import { Config } from "../../shared/Config";
 import { Message, Summary, Action } from "../ts/conversation_interfaces";
 import * as fs from "fs";
 import * as path from "path";
-import { readSummaryFile, saveSummaryFile } from '../summaryManager.js';
+import { archiveFutureSummaryFilesForPlayer, readSummaryFile, saveSummaryFile } from '../summaryManager.js';
 import { createMemoryString } from '../conversation/promptBuilder.js';
 import { LetterManager } from "./LetterManager.js";
 import { Letter } from "./Letter.js";
@@ -29,7 +29,16 @@ import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../ca
 import { parseLog } from '../../shared/gameData/parseLog.js';
 import { reportCampaignIdentityUnavailable, reportCorruptTimelineRegistry, reportTimelineParentNotFound, reportUnsupportedTimelineSchema } from '../timelineRegistryRecovery.js';
 import { runLetterReplyTimelineTransition } from '../timelineBusinessWire.js';
+import {
+    FsTimelinePersistence,
+    TimelineRegistry,
+    buildContextFromGameData,
+    resolveTimelineContext
+} from '../timelineManager.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
+import type { Ck3GameDate } from '../../shared/gameData/gameDate.js';
+import { buildIncomingLetterHistoryRecord, buildLetterHistoryRecord } from './letterHistoryRecord.js';
+import { saveIncomingLetterHistory, saveLetterHistoryRecord } from '../conversationHistory.js';
 
 function indentCk3Block(block: string, indent: string): string {
     return block
@@ -245,6 +254,118 @@ export class LetterReplyGenerator {
         return { characterDescription, conversationSummary, letterSummaryContent, memoryContent };
     }
 
+    /**
+     * Resolves the campaign identity + structured game date needed for a
+     * campaign-scoped history record. Returns undefined when either is
+     * unavailable (legacy mod without the v2 protocol): the record is then
+     * skipped and only the legacy LetterManager store is written.
+     */
+    private resolveCampaignRecordContext(gameData: GameData): { identity: CampaignPlayerIdentity; gameDate: Ck3GameDate } | undefined {
+        try {
+            const identity = requireCampaignIdentity({
+                playerID: gameData.playerID,
+                timelineSnapshotResult: gameData.timelineSnapshotResult
+            });
+            if (!gameData.gameDate) return undefined;
+            return { identity, gameDate: gameData.gameDate };
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * M3: writes the campaign-scoped history record for an AI-initiated
+     * (npcltr) opening letter. The opening is semantically an incoming letter
+     * (AI -> player), so it reuses the incoming builder/saver with topic
+     * 'npcltr[_category]'. npcltr allocates no timeline node (the guarded
+     * per-slot channel is the M5 upgrade path), so the record anchors at the
+     * save's CURRENT node and epoch; without one it is treated as a legacy
+     * record by the visibility filter and stays visible.
+     * Additive surface: failures are logged and never break letter delivery.
+     */
+    private async saveNpcOpeningHistoryRecord(
+        gameData: GameData,
+        npc: Character,
+        player: Character,
+        category: string | undefined,
+        opening: ILetter
+    ): Promise<void> {
+        try {
+            const context = this.resolveCampaignRecordContext(gameData);
+            if (!context) {
+                console.log('[LetterReplyGenerator] Campaign record for the npcltr opening skipped: no campaign identity or structured game date.');
+                return;
+            }
+            const nodeA = gameData.votcTimelineNodeA;
+            const nodeB = gameData.votcTimelineNodeB;
+            const timeline = nodeA && nodeB
+                ? { nodeId: `${nodeA}-${nodeB}`, parentId: null }
+                : { nodeId: '0-0', parentId: null };
+            const record = buildIncomingLetterHistoryRecord({
+                id: `npcltr|${player.id}|${npc.id}|${opening.totalDays}`,
+                topic: category ? `npcltr_${category.toLowerCase()}` : 'npcltr',
+                senderId: String(npc.id),
+                receiverId: String(player.id),
+                content: opening.content,
+                checkpointEpoch: gameData.votcCheckpointEpoch,
+                timeline,
+                identity: context.identity,
+                sourceRecordId: opening.id,
+                gameDate: context.gameDate,
+                senderCharacter: npc,
+                receiverCharacter: player
+            });
+            await saveIncomingLetterHistory(record, context.identity);
+        } catch (error) {
+            console.warn('[LetterReplyGenerator] Failed to save the npcltr opening campaign history record:', error);
+        }
+    }
+
+    /**
+     * M3: writes the campaign-scoped round-trip record for a player letter and
+     * the AI reply it produced (kind 'outgoing_letter'). Anchored on the reply's
+     * allocated timeline node so the history surfaces scope it per branch.
+     * Additive surface: failures are logged and never break letter delivery.
+     */
+    private async saveRoundTripHistoryRecord(
+        gameData: GameData,
+        player: Character,
+        ai: Character,
+        latestLetter: ILetter,
+        replyContent: string,
+        timelineInfo?: { epoch: number; nodeId: string; parentId?: string | null }
+    ): Promise<void> {
+        try {
+            const context = this.resolveCampaignRecordContext(gameData);
+            if (!context) {
+                console.log('[LetterReplyGenerator] Campaign record for the letter round-trip skipped: no campaign identity or structured game date.');
+                return;
+            }
+            const record = buildLetterHistoryRecord({
+                id: `letter|${player.id}|${ai.id}|${latestLetter.subject}|${latestLetter.totalDays}`,
+                letterId: latestLetter.subject,
+                deliveryId: latestLetter.totalDays,
+                senderId: String(player.id),
+                receiverId: String(ai.id),
+                outgoingBody: latestLetter.content,
+                replyBody: replyContent,
+                checkpointEpoch: timelineInfo?.epoch ?? gameData.votcCheckpointEpoch,
+                timeline: {
+                    nodeId: timelineInfo?.nodeId ?? '0-0',
+                    parentId: timelineInfo?.parentId ?? null
+                },
+                identity: context.identity,
+                sourceRecordId: `letter:${player.id}:${ai.id}:${latestLetter.subject}:${latestLetter.totalDays}`,
+                gameDate: context.gameDate,
+                senderCharacter: player,
+                receiverCharacter: ai
+            });
+            await saveLetterHistoryRecord(record, context.identity);
+        } catch (error) {
+            console.warn('[LetterReplyGenerator] Failed to save the letter round-trip campaign history record:', error);
+        }
+    }
+
     private async buildLetterPrompt(gameData: GameData, latestLetter: ILetter): Promise<string> {
         // Ensure sender and recipient from the letter are in the gameData context
         if (!gameData.characters.has(latestLetter.sender.id)) {
@@ -401,7 +522,11 @@ export class LetterReplyGenerator {
             const letterManager = LetterManager.getInstance();
             letterManager.saveLetter(opening, String(player.id));
 
+            // M3: campaign-scoped record for the opening letter (additive).
+            await this.saveNpcOpeningHistoryRecord(gameData, npc, player, category, opening);
+
             console.log(`[LetterReplyGenerator] NPC opening letter generated (${opening.id}) from ${npc.fullName} to ${player.fullName}.`);
+
             return opening;
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -997,7 +1122,7 @@ export class LetterReplyGenerator {
      * @param userFolderPath User folder path
      * @param gameData Game data (for character names)
      */
-    private async saveLetterHistory(playerId: string, aiId: string, latestLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, timelineInfo?: { script: string; epoch: number; nodeId: string; campaignId: string; playerId: string }, triggeredActions: LetterAssociatedAction[] = []): Promise<ILetter | null> {
+    private async saveLetterHistory(playerId: string, aiId: string, latestLetter: ILetter, replyContent: string, gameData: GameData, replyLetterId: string, timelineInfo?: { script: string; epoch: number; nodeId: string; parentId?: string | null; campaignId: string; playerId: string }, triggeredActions: LetterAssociatedAction[] = []): Promise<ILetter | null> {
         try {
             const letterManager = LetterManager.getInstance();
 
@@ -1083,7 +1208,12 @@ export class LetterReplyGenerator {
 
             console.log(`Saved original letter and AI reply to letter history for player ${playerId} and character ${aiId}`);
 
+            // M3: campaign-scoped round-trip record for the timeline/history
+            // surfaces. Additive: a failure here never blocks the reply.
+            await this.saveRoundTripHistoryRecord(gameData, player, ai, latestLetter, replyContent, timelineInfo);
+
             return replyLetter;
+
         } catch (error) {
             console.error(`Error saving letter history: ${error}`);
             return null;
