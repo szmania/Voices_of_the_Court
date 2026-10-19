@@ -223,6 +223,8 @@ export class WhisperReplyGenerator {
         }
 
         // 6. Deliver through the dedicated whisper channel.
+        this.deliverWhisperReply(reply.trim());
+        return true;
     }
 
     /** One line per windowed memory, prefixed with the remembering character. */
