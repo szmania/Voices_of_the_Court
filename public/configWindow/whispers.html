@@ -71,6 +71,23 @@
         color: #f88a8a;
         border: 1px solid #8c2a2a;
       }
+
+      #whisper-manager-refresh-btn.refreshing {
+        animation: refresh-spin 1s linear infinite;
+      }
+
+      @keyframes refresh-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(-360deg); }
+      }
+
+      .refresh-status {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 10px;
+        font-family: 'Gitan', sans-serif;
+        color: #a18c61;
+      }
     </style>
   </head>
   <body>
@@ -127,6 +144,9 @@
 
         <div class="list-controls">
           <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
+          <div id="whisper-refresh-status" class="refresh-status">
+            <span id="whisper-refresh-countdown"></span>
+          </div>
           <button id="whisper-manager-deleteItemBtn" class="btn btn-danger" data-i18n="whispers.delete" disabled>Delete</button>
         </div>
 

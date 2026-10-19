@@ -17,6 +17,9 @@ let whisperList: HTMLElement;
 let deleteItemBtn: HTMLButtonElement;
 let statusMessage: HTMLElement;
 let sortOrderSelect: HTMLSelectElement;
+let refreshCountdownEl: HTMLElement;
+let refreshInterval: ReturnType<typeof setInterval> | null = null;
+let countdown = 20;
 
 // State
 let allWhispers: any[] = [];
@@ -92,6 +95,7 @@ async function init() {
     deleteItemBtn = document.getElementById('whisper-manager-deleteItemBtn') as HTMLButtonElement;
     statusMessage = document.getElementById('whisper-manager-statusMessage') as HTMLElement;
     sortOrderSelect = document.getElementById('whisper-sort-order') as HTMLSelectElement;
+    refreshCountdownEl = document.getElementById('whisper-refresh-countdown') as HTMLElement;
 
     const savedTheme = localStorage.getItem('selectedTheme') || 'original';
     applyTheme(savedTheme);
@@ -103,15 +107,11 @@ async function init() {
     }
 
     setupEventListeners();
-    await loadPlayerIds();
+    startRefreshInterval();
 }
 
 function setupEventListeners() {
-    refreshBtn.addEventListener('click', () => {
-        const currentPlayerId = playerIdSelect.value;
-        const currentCharacterId = characterSelect.value;
-        loadPlayerIds(currentPlayerId, currentCharacterId);
-    });
+    refreshBtn.addEventListener('click', () => refreshWhispers(false));
     deleteItemBtn.addEventListener('click', deleteSelectedWhisper);
     playerIdSelect.addEventListener('change', () => {
         currentPlayerId = playerIdSelect.value;
@@ -128,6 +128,54 @@ function setupEventListeners() {
         currentSortOrder = sortOrderSelect.value as 'gameDate' | 'realDate';
         filterAndRenderWhispers();
     });
+}
+
+// Manual refresh resets the countdown; auto refresh (interval tick) does not.
+// Mirrors the letters tab: spin animation on the button, silent for auto ticks.
+async function refreshWhispers(isAuto = false) {
+    if (!isAuto) {
+        if (refreshInterval) clearInterval(refreshInterval);
+        countdown = 20;
+        startRefreshInterval();
+    }
+
+    refreshBtn.classList.add('refreshing');
+    if (!isAuto) {
+        loader.style.display = 'block';
+    }
+
+    try {
+        const currentPlayerId = playerIdSelect.value;
+        const currentCharacterId = characterSelect.value;
+        await loadPlayerIds(currentPlayerId, currentCharacterId);
+    } catch (error) {
+        console.error('Error during whisper refresh:', error);
+    } finally {
+        if (!isAuto) {
+            loader.style.display = 'none';
+        }
+        // Give the spin animation time to be seen
+        setTimeout(() => {
+            refreshBtn.classList.remove('refreshing');
+        }, 500);
+    }
+}
+
+function startRefreshInterval() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        countdown--;
+        if (refreshCountdownEl) {
+            const refreshText = window.LocalizationManager
+                ? window.LocalizationManager.getNestedTranslation('whispers.refreshing_in', { seconds: String(countdown) }, `Refreshing in ${countdown}s...`).replace('{seconds}', String(countdown))
+                : `Refreshing in ${countdown}s...`;
+            refreshCountdownEl.textContent = refreshText;
+        }
+        if (countdown <= 0) {
+            countdown = 20;
+            refreshWhispers(true);
+        }
+    }, 1000);
 }
 
 async function loadPlayerIds(preferPlayerId?: string, preferCharacterId?: string) {
@@ -288,3 +336,9 @@ async function deleteSelectedWhisper() {
         showStatusMessage('Failed to delete whisper', 'error');
     }
 }
+
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
