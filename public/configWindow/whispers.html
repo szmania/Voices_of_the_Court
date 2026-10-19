@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title data-i18n="app.title">Voices of the Court 2.0 - Community Edition</title>
+    <link rel="stylesheet" href="config.css" />
+    <link rel="stylesheet" href="../chatWindow/theme.css" />
+    <style>
+      .loader {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid #5a4a35;
+        border-top: 4px solid #cca43b;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 1000;
+      }
+
+      @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+      }
+
+      #whisper-manager-loader {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border: 4px solid #5a4a35;
+        border-top: 4px solid #cca43b;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 1000;
+        display: none;
+      }
+
+      #whisper-manager-statusMessage {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 16px;
+        border-radius: 4px;
+        z-index: 1000;
+        display: none;
+      }
+
+      #whisper-manager-statusMessage.show {
+        display: block;
+      }
+
+      #whisper-manager-statusMessage.info {
+        background-color: #1a3a5c;
+        color: #8ab4f8;
+        border: 1px solid #2a5a8c;
+      }
+
+      #whisper-manager-statusMessage.success {
+        background-color: #1a5c1a;
+        color: #8af88a;
+        border: 1px solid #2a8c2a;
+      }
+
+      #whisper-manager-statusMessage.error {
+        background-color: #5c1a1a;
+        color: #f88a8a;
+        border: 1px solid #8c2a2a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <ul>
+        <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
+        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
+        <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
+        <li><a href="memories.html" data-i18n="nav.memories">Memories</a></li>
+        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
+        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
+        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
+        <li class="active"><a href="whispers.html" data-i18n="nav.whispers">Whispers</a></li>
+        <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
+        <li><a href="system.html" data-i18n="nav.system">System</a></li>
+        <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
+        <language-selector></language-selector>
+      </ul>
+    </div>
+
+    <div class="container" id="container">
+      <div id="whisper-manager-loader" class="loader" style="display: none;"></div>
+
+      <div id="whisper-manager-container" class="border" style="margin-bottom: 20px; padding-top: 15px;">
+        <h2 data-i18n="whispers.header">Whisper Ledger</h2>
+
+        <div class="info-panel" style="margin-bottom: 15px;">
+          <div class="info-item">
+            <label for="whisper-manager-playerIdSelect" data-i18n="whispers.player_id">Player ID:</label>
+            <tooltip-text side="top" data-i18n="whispers.tooltip_player_id">Select the player profile whose whispers to display.</tooltip-text>
+            <select id="whisper-manager-playerIdSelect"></select>
+          </div>
+          <div class="info-item">
+            <label for="whisper-manager-characterSelect" data-i18n="whispers.select_character">Select Character:</label>
+            <tooltip-text side="top" data-i18n="whispers.tooltip_character">Filter whispers by a specific material character or view all.</tooltip-text>
+            <select id="whisper-manager-characterSelect">
+              <option value="all" data-i18n="whispers.all_characters">All Characters</option>
+            </select>
+          </div>
+          <div class="info-item">
+            <label for="whisper-sort-order" data-i18n="whispers.sort_by">Sort by:</label>
+            <tooltip-text side="top" data-i18n="whispers.tooltip_sort">Order whispers by game date or real date.</tooltip-text>
+            <select id="whisper-sort-order">
+              <option value="gameDate" data-i18n="whispers.sort_game_date">Game Date</option>
+              <option value="realDate" data-i18n="whispers.sort_real_date" selected>Real Date</option>
+            </select>
+          </div>
+          <div class="info-item" style="display: flex; align-items: center; gap: 8px;">
+            <input type="search" id="whisper-manager-search" data-i18n-placeholder="whispers.search_placeholder" placeholder="Search whispers..." data-i18n-title="whispers.tooltip_search">
+          </div>
+        </div>
+
+        <div id="whisper-manager-diaryList" class="summary-list"></div>
+
+        <div class="list-controls">
+          <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
+          <button id="whisper-manager-deleteItemBtn" class="btn btn-danger" data-i18n="whispers.delete" disabled>Delete</button>
+        </div>
+
+        <div id="whisper-manager-statusMessage" class="status-message"></div>
+      </div>
+    </div>
+
+    <script>require("../../dist/shared/LocalizationManager.js")</script>
+    <script>
+      const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
+      window.LocalizationManager = LocalizationManager;
+    </script>
+    <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/whispersRenderer.js")</script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const openReadmeBtn = document.getElementById('open-readme');
+        if (openReadmeBtn) {
+          openReadmeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-readme-window');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

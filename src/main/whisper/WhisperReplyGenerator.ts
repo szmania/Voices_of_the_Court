@@ -5,16 +5,24 @@ import { Character } from "../../shared/gameData/Character.js";
 import { Config } from "../../shared/Config.js";
 import { getEffectivePrompts, getPromptsConfig } from "../conversation/promptBuilder.js";
 import { RunFileManager } from "../RunFileManager.js";
+import * as fs from "fs";
+import { randomUUID } from "crypto";
+import { saveWhisperSection, type WhisperRecord } from "./whisperManager.js";
 
 /**
  * Whisper Ledger ("The Whisper Ledger", VOTC-195) app-side support.
  *
- * The mod sends one request per report section through the ordinary VOTC:LETTER
- * clipboard token, with letterId `whisper`:
+ * The mod sends one request per report section through the dedicated whisper
+ * channel (protocol v2, 2026-10-16) — every separator is the 3-char "/;/":
+ *
+ *   VOTC:WHISPER/;<n>|<SECTION>/;<dateAsTotalDays>/;/
+ *
+ * Older mods (protocol v1) masqueraded the request as an ordinary VOTC:LETTER
+ * line with letterId `whisper`:
  *
  *   VOTC:LETTER/;/VOTC_WHISPER_REQUEST_<3|6|12>|<WORLD|REALM|COURT|CIRCLE>/;/whisper/;/<dateAsTotalDays>/;/0/;/
  *
- * Replies are written to run/votc_whisper.txt (NOT run/letters.txt) as an
+ * Both shapes are accepted (see parseWhisperRequestLine). Replies are written
  * artifact-creation script that fires votc_whisper.30. See .cecli.plans.md §2
  * for the frozen mod-side contract.
  */
@@ -67,6 +75,27 @@ const SECTION_METADATA: Record<WhisperSection, { label: string; focus: string }>
  * ordinary letter lines and malformed whisper lines.
  */
 export function parseWhisperRequestLine(line: string): WhisperRequestInfo | undefined {
+    // Protocol v2: the dedicated VOTC:WHISPER channel. Line shape (every
+    // separator is the 3-char "/;/"):
+    //   VOTC:WHISPER/;<n>|<SECTION>/;<dateAsTotalDays>/;/
+    // Receipt lines (VOTC:WHISPER/;/took_section|request_written|no_artifact)
+    // never match the request regex, so they parse as undefined.
+    const whisperIndex = line.indexOf('VOTC:WHISPER');
+    if (whisperIndex !== -1) {
+        const parts = line.substring(whisperIndex + 'VOTC:WHISPER'.length).split('/;/').slice(1);
+        const match = /^(3|6|12)\|(WORLD|REALM|COURT|CIRCLE)$/.exec((parts[0] ?? '').trim());
+        if (!match) return undefined;
+        const cadenceCode = Number(match[1]) as 3 | 6 | 12;
+        const requestTotalDays = Number((parts[1] ?? '').trim());
+        return {
+            cadenceCode,
+            cadenceDays: CADENCE_DAYS[cadenceCode],
+            section: match[2] as WhisperSection,
+            requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0
+        };
+    }
+    // Legacy (protocol v1): whisper requests masqueraded as VOTC:LETTER lines
+    // with letterId "whisper". Kept so older mods keep working (plan step 14).
     const markerIndex = line.indexOf('VOTC:LETTER');
     if (markerIndex === -1) return undefined;
     const parts = line.substring(markerIndex + 'VOTC:LETTER'.length).split('/;/').slice(1);
@@ -85,13 +114,43 @@ export function parseWhisperRequestLine(line: string): WhisperRequestInfo | unde
 }
 
 /**
- * Clears run/votc_whisper.txt. The mod's runner re-executes the file every ~2s
+ * Scans the newest ~1MB of the game log newest-first and returns the first
+ * line that parses as a whisper request (either protocol shape). Receipts
+ * never parse as requests, and the mod logs VOTC:WHISPER/;/request_written
+ * AFTER the payload line, so a single "newest prefixed line" read would
+ * return a receipt and miss the request (plan step 14).
+ */
+export async function detectWhisperRequestFromLog(debugLogPath: string): Promise<WhisperRequestInfo | undefined> {
+    const CHUNK_SIZE = 1024 * 1024; // 1MB — enough for the re-logged whisper material
+    let handle;
+    try {
+        handle = await fs.promises.open(debugLogPath, 'r');
+        const { size } = await handle.stat();
+        const position = Math.max(0, size - CHUNK_SIZE);
+        const buffer = Buffer.alloc(size - position);
+        await handle.read(buffer, 0, buffer.length, position);
+        const lines = buffer.toString('utf8').split(/\r?\n/);
+        for (let i = lines.length - 1; i >= 0; i--) {
+            const request = parseWhisperRequestLine(lines[i]);
+            if (request) return request;
+        }
+        return undefined;
+    } catch (error) {
+        console.warn(`[WhisperReplyGenerator] Could not scan the game log for a whisper request: ${error}`);
+        return undefined;
+    } finally {
+        if (handle) await handle.close();
+    }
+}
+
+/**
+ * Clears run/votc_ce_whisper.txt. The mod's runner re-executes the file every ~2s
  * indefinitely, so the file must be emptied once a section has been taken or
  * every pass would create a fresh artifact and re-fire votc_whisper.30.
  */
 export function clearWhisperRunFile(config: Config): void {
     if (!config || !config.userFolderPath) return;
-    new RunFileManager(config.userFolderPath, 'votc_whisper.txt').clear();
+    new RunFileManager(config.userFolderPath, 'votc_ce_whisper.txt').clear();
 }
 
 export class WhisperReplyGenerator {
@@ -111,7 +170,7 @@ export class WhisperReplyGenerator {
 
     /**
      * Generates the section report for the given whisper request and writes the
-     * reply script to run/votc_whisper.txt. Returns true when a reply was written.
+     * reply script to run/votc_ce_whisper.txt. Returns true when a reply was written.
      * On empty/failed generation nothing is written (the mod self-heals).
      */
     public async generateAndDeliverWhisperReply(gameData: GameData, request: WhisperRequestInfo): Promise<boolean> {
@@ -143,9 +202,27 @@ export class WhisperReplyGenerator {
             return false;
         }
 
-        // 5. Deliver through the dedicated whisper channel.
-        this.deliverWhisperReply(reply.trim());
-        return true;
+        // 5. Persist the generated section for the Whispers tab. Never block
+        // delivery on a save failure — the reply must reach the game regardless.
+        try {
+            const record: WhisperRecord = {
+                id: randomUUID(),
+                playerId: String(gameData.playerID),
+                section: request.section,
+                sectionLabel: sectionMeta.label,
+                cadenceDays: request.cadenceDays,
+                gameDateTotalDays: request.requestTotalDays,
+                gameDate: gameData.date,
+                realDate: new Date().toISOString(),
+                text: reply.trim(),
+                materialCharacters: characters.map(c => ({ id: c.id, name: c.fullName }))
+            };
+            saveWhisperSection(record.playerId, record);
+        } catch (error) {
+            console.error('[WhisperReplyGenerator] Failed to persist whisper section (delivery continues):', error);
+        }
+
+        // 6. Deliver through the dedicated whisper channel.
     }
 
     /** One line per windowed memory, prefixed with the remembering character. */
@@ -202,7 +279,7 @@ export class WhisperReplyGenerator {
     }
 
     /**
-     * Composes and writes the whisper reply script to run/votc_whisper.txt,
+     * Composes and writes the whisper reply script to run/votc_ce_whisper.txt,
      * mirroring the gameCommand built in LetterManager.deliverLetter but with
      * the whisper-specific guard, artifact name and intake event (plan §2.2):
      * no letter-thread variables, no timeline block, no message_event.362.
@@ -239,8 +316,8 @@ if = {
 }
 trigger_event = votc_whisper.30`;
 
-        const runFileManager = new RunFileManager(this.config.userFolderPath, 'votc_whisper.txt');
+        const runFileManager = new RunFileManager(this.config.userFolderPath, 'votc_ce_whisper.txt');
         runFileManager.write(gameCommand);
-        console.log('[WhisperReplyGenerator] Whisper reply written to run/votc_whisper.txt.');
+        console.log('[WhisperReplyGenerator] Whisper reply written to run/votc_ce_whisper.txt.');
     }
 }
