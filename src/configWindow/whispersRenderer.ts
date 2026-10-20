@@ -14,7 +14,6 @@ let playerIdSelect: HTMLSelectElement;
 let characterSelect: HTMLSelectElement;
 let searchInput: HTMLInputElement;
 let whisperList: HTMLElement;
-let deleteItemBtn: HTMLButtonElement;
 let statusMessage: HTMLElement;
 let sortOrderSelect: HTMLSelectElement;
 let refreshCountdownEl: HTMLElement;
@@ -92,7 +91,6 @@ async function init() {
     characterSelect = document.getElementById('whisper-manager-characterSelect') as HTMLSelectElement;
     searchInput = document.getElementById('whisper-manager-search') as HTMLInputElement;
     whisperList = document.getElementById('whisper-manager-diaryList') as HTMLElement;
-    deleteItemBtn = document.getElementById('whisper-manager-deleteItemBtn') as HTMLButtonElement;
     statusMessage = document.getElementById('whisper-manager-statusMessage') as HTMLElement;
     sortOrderSelect = document.getElementById('whisper-sort-order') as HTMLSelectElement;
     refreshCountdownEl = document.getElementById('whisper-refresh-countdown') as HTMLElement;
@@ -112,7 +110,6 @@ async function init() {
 
 function setupEventListeners() {
     refreshBtn.addEventListener('click', () => refreshWhispers(false));
-    deleteItemBtn.addEventListener('click', deleteSelectedWhisper);
     playerIdSelect.addEventListener('change', () => {
         currentPlayerId = playerIdSelect.value;
         loadWhispers();
@@ -225,7 +222,6 @@ async function loadPlayerIds(preferPlayerId?: string, preferCharacterId?: string
 async function loadWhispers() {
     if (!currentPlayerId) return;
     whisperList.innerHTML = '';
-    deleteItemBtn.disabled = true;
 
     try {
         const records: any[] = await ipcRenderer.invoke('get-all-whispers-for-player', currentPlayerId);
@@ -248,10 +244,6 @@ async function loadWhispers() {
                 option.textContent = `${name} (${id})`;
                 characterSelect.appendChild(option);
             }
-        }
-
-        if (records.length > 0) {
-            deleteItemBtn.disabled = false;
         }
     } catch (error) {
         console.error('Failed to load whispers:', error);
@@ -279,54 +271,82 @@ function filterAndRenderWhispers() {
     });
 
     whisperList.innerHTML = '';
-    for (const [index, rec] of filtered.entries()) {
-        const item = document.createElement('div');
-        item.className = 'summary-item';
-        if (index === 0) {
-            item.classList.add('selected');
-            item.dataset.selected = 'true';
+
+    if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'whisper-empty';
+        empty.setAttribute('data-i18n', 'whispers.no_whispers');
+        empty.textContent = 'No whispers found.';
+        whisperList.appendChild(empty);
+        if (window.LocalizationManager) {
+            window.LocalizationManager.applyTranslations(whisperList);
         }
-        item.dataset.id = rec.id;
-        item.dataset.playerId = rec.playerId;
+        return;
+    }
+
+    for (const rec of filtered) {
+        const card = document.createElement('div');
+        card.className = 'whisper-card';
+        card.dataset.id = rec.id;
+        card.dataset.playerId = rec.playerId;
 
         const charNames = (rec.materialCharacters || []).map((c: any) => c.name).join(', ') || '—';
         const sectionLabel = sectionLabels[rec.section] || rec.section;
         const gameDate = formatGameDate(rec.gameDateTotalDays);
         const realDate = formatRealDate(rec.realDate);
 
-        item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; gap: 8px;">
-                <div style="font-weight: 600;">${sectionLabel}</div>
-                <div style="font-size: 0.85em; color: #8ab4f8;">${realDate}</div>
+        card.innerHTML = `
+            <div class="whisper-card-header">
+                <div class="whisper-card-title">
+                    <span class="whisper-section-badge">${sectionLabel}</span>
+                    <span class="whisper-card-dates">${gameDate} &middot; ${realDate}</span>
+                </div>
+                <button type="button" class="whisper-card-delete" data-i18n-title="whispers.delete" title="Delete">&#128465;</button>
             </div>
-            <div style="margin-top: 4px; font-size: 0.9em;">
-                ${gameDate} · ${rec.section} · ${rec.cadenceDays}d · characters: ${charNames}
+            <div class="whisper-card-meta">
+                <span>${rec.section}</span>
+                <span>&middot;</span>
+                <span>${rec.cadenceDays}d</span>
+                <span>&middot;</span>
+                <span>${charNames}</span>
             </div>
+            <div class="whisper-card-text"></div>
         `;
 
-        item.addEventListener('click', () => {
-            document.querySelectorAll('.summary-item').forEach(el => el.classList.remove('selected'));
-            item.classList.add('selected');
-            deleteItemBtn.disabled = false;
+        // Text is assigned via textContent so generated report content can never
+        // inject markup into the ledger.
+        const textEl = card.querySelector('.whisper-card-text') as HTMLElement;
+        textEl.textContent = rec.text || '';
+
+        const deleteBtn = card.querySelector('.whisper-card-delete') as HTMLButtonElement;
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteWhisperById(rec.id, rec.playerId || currentPlayerId);
         });
 
-        whisperList.appendChild(item);
+        whisperList.appendChild(card);
+    }
+
+    if (window.LocalizationManager) {
+        window.LocalizationManager.applyTranslations(whisperList);
     }
 }
 
-async function deleteSelectedWhisper() {
-    const selected = whisperList.querySelector('.summary-item.selected') as HTMLElement;
-    if (!selected) return;
-    const id = selected.dataset.id;
-    const playerId = selected.dataset.playerId || currentPlayerId;
-    if (!id) return;
+async function deleteWhisperById(id: string, playerId: string | null) {
+    if (!id || !playerId) return;
 
-    if (!confirm('Delete this whisper entry?')) return;
+    const confirmText = window.LocalizationManager
+        ? window.LocalizationManager.getNestedTranslation('whispers.delete_confirm', null, 'Are you sure you want to delete this whisper?')
+        : 'Are you sure you want to delete this whisper?';
+    if (!confirm(confirmText)) return;
 
     try {
         const result = await ipcRenderer.invoke('delete-whisper', playerId, id);
         if (result.success) {
-            showStatusMessage('Whisper deleted', 'success');
+            const successText = window.LocalizationManager
+                ? window.LocalizationManager.getNestedTranslation('whispers.delete_success', null, 'Whisper deleted')
+                : 'Whisper deleted';
+            showStatusMessage(successText, 'success');
             loadWhispers();
         } else {
             showStatusMessage('Failed to delete whisper', 'error');

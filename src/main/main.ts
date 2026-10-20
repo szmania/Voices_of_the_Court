@@ -3811,7 +3811,13 @@ ipcMain.handle('get-all-whispers-for-player', async (event, playerId: string) =>
 ipcMain.handle('delete-whisper', async (event, playerId: string, whisperId: string) => {
     console.log(`IPC: Received delete-whisper event for player: ${playerId}, whisper: ${whisperId}`);
     try {
-        const result = deleteWhisper(playerId, whisperId);
+        const result = deleteWhisper(playerId, whisperId, config.userFolderPath);
+        // The destroy script bypasses votc_whisper.30, so no took_section receipt
+        // fires to clear the run file. The runner re-executes it every ~2s, so
+        // wait 3s (guaranteeing one execution) before emptying the file.
+        if (result) {
+            setTimeout(() => clearWhisperRunFile(config), 3000);
+        }
         return { success: result };
     } catch (error) {
         console.error('Error deleting whisper:', error);
