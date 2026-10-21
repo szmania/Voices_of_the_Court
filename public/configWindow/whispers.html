@@ -84,9 +84,17 @@
       .refresh-status {
         display: inline-flex;
         align-items: center;
-        margin-left: 10px;
+        margin-left: 0;
         font-family: 'Gitan', sans-serif;
         color: #a18c61;
+      }
+
+      /* Refresh button + countdown sit together directly below the player dropdown. */
+      .whisper-refresh-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
       }
 
       /* Segregated ledger cards: one bordered card per whisper. */
@@ -197,13 +205,19 @@
       <div id="whisper-manager-loader" class="loader" style="display: none;"></div>
 
       <div id="whisper-manager-container" class="border" style="margin-bottom: 20px; padding-top: 15px;">
-        <h2 data-i18n="whispers.header">Whisper Ledger</h2>
+        <h2 data-i18n="whispers.header" style="text-align: center;">Whisper Ledger</h2>
 
         <div class="info-panel" style="margin-bottom: 15px;">
           <div class="info-item">
             <label for="whisper-manager-playerIdSelect" data-i18n="whispers.player_id">Player ID:</label>
             <tooltip-text side="top" data-i18n="whispers.tooltip_player_id">Select the player profile whose whispers to display.</tooltip-text>
             <select id="whisper-manager-playerIdSelect"></select>
+            <div class="whisper-refresh-row">
+              <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
+              <div id="whisper-refresh-status" class="refresh-status">
+                <span id="whisper-refresh-countdown"></span>
+              </div>
+            </div>
           </div>
           <div class="info-item">
             <label for="whisper-sort-order" data-i18n="whispers.sort_by">Sort by:</label>
@@ -219,13 +233,6 @@
         </div>
 
         <div id="whisper-manager-diaryList" class="summary-list"></div>
-
-        <div class="list-controls">
-          <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
-          <div id="whisper-refresh-status" class="refresh-status">
-            <span id="whisper-refresh-countdown"></span>
-          </div>
-        </div>
 
         <div id="whisper-manager-statusMessage" class="status-message"></div>
       </div>
