@@ -19,7 +19,9 @@
     "memory_constellation": "Konstelacja Wspomnień",
     "memory_constellation_tooltip": "Wizualizuj wspomnienia postaci w 3D",
     "memory_constellation.empty_title": "Nie znaleziono wspomnień",
-    "memory_constellation.empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze."
+    "memory_constellation.empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze.",
+    "whispers": "Szepty",
+    "whispers_tooltip": "Przeglądaj i zarządzaj wygenerowanymi sekcjami Księgi Szeptów"
   },
   "diaries": {
     "header": "Dzienniki",
@@ -177,7 +179,9 @@
     "char_desc_placeholder": "Opisz wygląd, historię, cechy osobowości i ważne wydarzenia postaci...",
     "char_desc_none": "Nie ustawiono opisu.",
     "char_desc_select_alert": "Najpierw wybierz gracza i postać.",
-    "char_desc_save_error": "Nie udało się zapisać opisu postaci."
+    "char_desc_save_error": "Nie udało się zapisać opisu postaci.",
+    "whisper_prompt": "Prompt Szeptów",
+    "whisper_tooltip": "Prompt używany przez Strażnika Księgi do pisania sekcji Księgi Szeptów."
   },
   "settings": {
     "header": "Ustawienia",
@@ -1018,7 +1022,6 @@
     "system_prompt": "Jesteś asystentem generowania opisów scen, odpowiedzialnym za tworzenie żywych opisów atmosfery scen do gier fabularnych.",
     "fallback_description": "Dnia {{date}}, {{playerName}} i {{aiName}} rozpoczęli rozmowę w {{location}}."
   },
-
   "chatgpt": {
     "continue": "Kontynuuj z ChatGPT",
     "different": "Użyj innego konta lub obszaru roboczego",
@@ -1037,5 +1040,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Księga Szeptów",
+    "player_id": "ID gracza:",
+    "select_character": "Wybierz postać:",
+    "all_characters": "Wszystkie postacie",
+    "sort_by": "Sortuj według:",
+    "sort_game_date": "Data w grze",
+    "sort_real_date": "Data rzeczywista",
+    "no_player": "Wybierz gracza, aby wyświetlić szepty.",
+    "no_whispers": "Nie znaleziono szeptów.",
+    "refresh": "Odśwież",
+    "refreshing_in": "Odświeżanie za {seconds}s...",
+    "delete": "Usuń",
+    "delete_confirm": "Czy na pewno usunąć ten szept?",
+    "delete_success": "Szept usunięty"
   }
 }

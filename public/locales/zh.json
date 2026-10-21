@@ -19,7 +19,9 @@
     "memory_constellation": "记忆星座",
     "memory_constellation_tooltip": "以3D方式可视化角色记忆",
     "memory_constellation.empty_title": "未找到记忆",
-    "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。"
+    "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。",
+    "whispers": "密语",
+    "whispers_tooltip": "查看和管理生成的密语录章节"
   },
   "diaries": {
     "header": "日记",
@@ -183,7 +185,9 @@
     "char_desc_placeholder": "描述角色的外貌、背景、性格特质和重要事件...",
     "char_desc_none": "未设置描述。",
     "char_desc_select_alert": "请先选择玩家和角色。",
-    "char_desc_save_error": "保存角色描述失败。"
+    "char_desc_save_error": "保存角色描述失败。",
+    "whisper_prompt": "密语提示词",
+    "whisper_tooltip": "「账簿守护者」用于撰写密语录章节的提示词。"
   },
   "settings": {
     "header": "设置",
@@ -1033,7 +1037,6 @@
     "system_prompt": "你是一个场景描述生成助手，负责为角色扮演游戏创建生动的场景氛围描述。",
     "fallback_description": "在{{date}}，{{playerName}}和{{aiName}}在{{location}}开始了一段对话。"
   },
-
   "chatgpt": {
     "continue": "使用 ChatGPT 继续",
     "different": "使用其他账户或工作区",
@@ -1052,5 +1055,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "密语录",
+    "player_id": "玩家 ID：",
+    "select_character": "选择角色：",
+    "all_characters": "所有角色",
+    "sort_by": "排序方式：",
+    "sort_game_date": "游戏日期",
+    "sort_real_date": "真实日期",
+    "no_player": "请选择一个玩家以查看密语。",
+    "no_whispers": "未找到密语。",
+    "refresh": "刷新",
+    "refreshing_in": "{seconds}秒后刷新...",
+    "delete": "删除",
+    "delete_confirm": "确定要删除这条密语吗？",
+    "delete_success": "密语已删除"
   }
 }

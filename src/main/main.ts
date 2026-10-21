@@ -17,6 +17,8 @@ import { GameData } from "../shared/gameData/GameData";
 import { Letter } from "./letter/Letter";
 import { Letter as ILetter, StoredLetter } from "./letter/letterInterfaces";
 import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
+import { WhisperReplyGenerator, detectWhisperRequestFromLog, clearWhisperRunFile, type WhisperRequestInfo } from "./whisper/WhisperReplyGenerator";
+import { getWhisperPlayerIds, getWhispersForPlayer, deleteWhisper } from "./whisper/whisperManager";
 import { IncomingLetterGenerator } from "./letter/IncomingLetterGenerator";
 import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
@@ -920,6 +922,7 @@ const TRIGGER_KEYWORDS = new Set([
     'VOTC:SUMMARY_MANAGER',
     'VOTC:CONVERSATION_HISTORY',
     'VOTC:LETTER',
+    'VOTC:WHISPER',
 ]);
 const TRIGGER_COOLDOWN_MS = 1000;
 const triggerCooldowns: Map<string, number> = new Map();
@@ -964,6 +967,15 @@ function processLogLine(line: string) {
     // re-runs the file on every poll and spams the debug log.
     if (line.includes('VOTC:FALLBACK/;/applied') || line.includes('VOTC:FALLBACK/;/skipped')) {
         LetterManager.getInstance().clearLettersFile(config);
+    }
+
+    // Whisper receipt: the mod logs this when it takes a section from
+    // run/votc_ce_whisper.txt. The whisper runner re-executes the file every ~2s
+    // indefinitely, so the file must be cleared here or every pass would
+    // create a fresh artifact and re-fire votc_whisper.30.
+    if (line.includes('VOTC_WHISPER: took section') || line.includes('VOTC:WHISPER/;/took_section')) {
+        console.log('Whisper section receipt received; clearing run/votc_ce_whisper.txt.');
+        clearWhisperRunFile(config);
     }
 }
 
@@ -2322,6 +2334,61 @@ clipboardListener.on('VOTC:CONVERSATION_HISTORY', async (payloads?: string[]) =>
 })
 
 /**
+ * Scans the newest game-log lines for a whisper request and returns it.
+ * Accepts both protocol shapes: v2 dedicated VOTC:WHISPER lines and legacy
+ * VOTC:LETTER lines with letterId 'whisper' (older mods). The mod re-logs the
+ * full material before every request, so the newest parseable line is always
+ * the live request. Returns undefined for ordinary letters.
+ */
+async function detectWhisperRequest(): Promise<WhisperRequestInfo | undefined> {
+    // Protocol v2: scan the log tail newest-first and return the first line
+    // that parses as a whisper request (either protocol shape). Receipts never
+    // parse as requests — VOTC:WHISPER/;/request_written is logged AFTER the
+    // payload line, so a single newest-line read would return a receipt and
+    // miss the request.
+    return detectWhisperRequestFromLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+}
+
+/**
+ * Runs the whisper chain for one section request: clears any stale reply from
+ * run/votc_ce_whisper.txt (self-heal for a missed receipt — by contract a new
+ * request only exists after the previous section was taken), parses the
+ * re-logged material, and generates + delivers the section report. On empty or
+ * failed generation nothing is written; the mod self-heals.
+ */
+async function handleWhisperRequest(request: WhisperRequestInfo): Promise<void> {
+    // Self-heal: a new request implies the previous section was taken, so any
+    // leftover reply script must go before the new one is written.
+    clearWhisperRunFile(config);
+
+    const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+    if (!gameData) {
+        console.error('Whisper request received, but the game log could not be parsed; no reply will be written.');
+        return;
+    }
+
+    const generator = new WhisperReplyGenerator(config, votcDataPath, tiktokenEncoder);
+    const delivered = await generator.generateAndDeliverWhisperReply(gameData, request);
+    console.log(delivered
+        ? `Whisper reply for section ${request.section} delivered via run/votc_ce_whisper.txt.`
+        : `Whisper reply for section ${request.section} was NOT written (generation empty or failed).`);
+}
+
+clipboardListener.on('VOTC:WHISPER', async () => {
+    console.log('ClipboardListener: VOTC:WHISPER event detected (protocol v2).');
+    try {
+        await sleep(250); // Wait for log to flush
+        const whisperRequest = await detectWhisperRequest();
+        if (whisperRequest) {
+            console.log(`Whisper request detected: section ${whisperRequest.section}, cadence ${whisperRequest.cadenceDays}d. Running whisper chain.`);
+            await handleWhisperRequest(whisperRequest);
+        }
+    } catch (error) {
+        console.error(`Failed to handle VOTC:WHISPER event: ${error}`);
+    }
+});
+
+/**
  * NPC-letter initiation flow (VOTC-194). Runs when the mod emits the
  * letter-session init (scene 'letter') and the npcltr request payload. The
  * NPC's opening letter is generated with the sender = NPC and recipient =
@@ -2435,6 +2502,22 @@ clipboardListener.on('VOTC:LETTER', async () => {
     try {
         LetterManager.getInstance().clearLettersFile(config);
         await sleep(250); // Wait for log to flush
+
+        // --- Whisper Ledger branch (VOTC-195) ---
+        // The mod fires the SAME VOTC:LETTER clipboard token for whisper section
+        // requests; the request line is distinguishable only by its letterId
+        // field ('whisper'). Detect it here and route to the dedicated whisper
+        // channel BEFORE any letter import / reply generation, otherwise the
+        // request would be answered with letter-quality prompts or misfire a
+        // reply to an old ordinary letter (the whisper init block parses as
+        // gameData, so latestLetter resolution must not run).
+        const whisperRequest = await detectWhisperRequest();
+        if (whisperRequest) {
+            console.log(`Whisper request detected: section ${whisperRequest.section}, cadence ${whisperRequest.cadenceDays}d. Running whisper chain.`);
+            await handleWhisperRequest(whisperRequest);
+            return;
+        }
+        // --- end whisper branch ---
 
         const gameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
         if (!gameData) {
@@ -3865,6 +3948,58 @@ ipcMain.handle('delete-letter', async (event, { playerId, characterId, letterId 
     console.log(`Received delete-letter request for player ${playerId}, char ${characterId}, letter ${letterId}`);
     const letterManager = LetterManager.getInstance();
     return letterManager.deleteLetter(playerId, characterId, letterId);
+});
+
+// Whisper Ledger IPC handlers (VOTC-195 Section 8.3)
+ipcMain.handle('get-whisper-players', async () => {
+    console.log('IPC: Received get-whisper-players event.');
+    try {
+        const playerIds = getWhisperPlayerIds();
+        // Resolve player names from the character map, falling back to "Player <id>".
+        const players = await Promise.all(playerIds.map(async ({ id }) => {
+            let name = `Player ${id}`;
+            try {
+                const map = await readCharacterMap(votcDataPath, id);
+                const playerName = map.get(id);
+                if (playerName) name = playerName;
+            } catch (e) {
+                console.warn(`Could not read character map for whisper player ${id}:`, e);
+            }
+            return { id, name };
+        }));
+        return players;
+    } catch (error) {
+        console.error('Error getting whisper players:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('get-all-whispers-for-player', async (event, playerId: string) => {
+    console.log(`IPC: Received get-all-whispers-for-player event for player: ${playerId}`);
+    if (!playerId) return [];
+    try {
+        return getWhispersForPlayer(playerId);
+    } catch (error) {
+        console.error('Error getting whispers for player:', error);
+        return [];
+    }
+});
+
+ipcMain.handle('delete-whisper', async (event, playerId: string, whisperId: string) => {
+    console.log(`IPC: Received delete-whisper event for player: ${playerId}, whisper: ${whisperId}`);
+    try {
+        const result = deleteWhisper(playerId, whisperId, config.userFolderPath);
+        // The destroy script bypasses votc_whisper.30, so no took_section receipt
+        // fires to clear the run file. The runner re-executes it every ~2s, so
+        // wait 3s (guaranteeing one execution) before emptying the file.
+        if (result) {
+            setTimeout(() => clearWhisperRunFile(config), 3000);
+        }
+        return { success: result };
+    } catch (error) {
+        console.error('Error deleting whisper:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
 });
 
 

@@ -16,6 +16,8 @@ export class Config{
 
     stream!: boolean;
     maxTokens!: number;
+    /** Optional token budget for Whisper Ledger section reports; falls back to maxTokens. */
+    whisperMaxTokens?: number;
     maxMemoryTokens!: number;
     percentOfContextToSummarize!: number;
 

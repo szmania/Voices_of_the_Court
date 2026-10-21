@@ -677,11 +677,19 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     }
 
     function parseMemory(data: string[]): Memory{
+        // The mod's whisper memory lines carry the memory's creation date as
+        // total days in the trailing field (8-field format). Captured so the
+        // whisper chain can narrow memories to the cadence window; absent on
+        // ordinary memory lines, where it stays undefined.
+        const creationTotalDays = Number(data[5]);
         return {
             type: data[1],
             creationDate: data[2],
             desc: data[3],
-            relevanceWeight: Number(data[4])
+            relevanceWeight: Number(data[4]),
+            ...(Number.isFinite(creationTotalDays) && creationTotalDays > 0
+                ? { creationTotalDays }
+                : {})
         }
     }
 

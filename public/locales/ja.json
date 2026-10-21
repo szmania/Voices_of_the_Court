@@ -31,7 +31,9 @@
     "prompts_tooltip": "AIのプロンプトと動作をカスタマイズします",
     "settings_tooltip": "アプリケーションとAI生成の設定を調整します",
     "summarization_tooltip": "会話の要約設定を管理します",
-    "system_tooltip": "システム設定、更新、データを管理します"
+    "system_tooltip": "システム設定、更新、データを管理します",
+    "whispers": "ささやき",
+    "whispers_tooltip": "生成されたささやき帳のセクションを表示・管理"
   },
   "diaries": {
     "header": "日記",
@@ -189,7 +191,9 @@
     "char_desc_placeholder": "外見・過去・性格・重要な出来事を記述...",
     "char_desc_none": "説明は設定されていません。",
     "char_desc_select_alert": "最初にプレイヤーとキャラクターを選択してください。",
-    "char_desc_save_error": "キャラクター説明の保存に失敗しました。"
+    "char_desc_save_error": "キャラクター説明の保存に失敗しました。",
+    "whisper_prompt": "ささやきプロンプト",
+    "whisper_tooltip": "「記録の番人」がささやき帳のセクションを執筆するために使用するプロンプト。"
   },
   "settings": {
     "header": "設定",
@@ -1049,7 +1053,6 @@
     "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
     "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
   },
-
   "chatgpt": {
     "continue": "ChatGPT で続行",
     "different": "別のアカウントまたはワークスペースを使用",
@@ -1068,5 +1071,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "ささやき帳",
+    "player_id": "プレイヤーID:",
+    "select_character": "キャラクターを選択:",
+    "all_characters": "全キャラクター",
+    "sort_by": "並べ替え:",
+    "sort_game_date": "ゲーム日付",
+    "sort_real_date": "実日付",
+    "no_player": "ささやきを表示するプレイヤーを選択してください。",
+    "no_whispers": "ささやきが見つかりません。",
+    "refresh": "更新",
+    "refreshing_in": "{seconds}秒後に更新...",
+    "delete": "削除",
+    "delete_confirm": "このささやきを削除してもよろしいですか？",
+    "delete_success": "ささやきを削除しました"
   }
 }

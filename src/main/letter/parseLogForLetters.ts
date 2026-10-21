@@ -74,6 +74,11 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 // VOTC:LETTER/;/run_skipped) are not letters.
                 if (content === 'run_skipped') continue;
                 const letterId = parts[1].trim(); // This is letterId, using as subject
+                // Whisper Ledger requests share the VOTC:LETTER line shape but are
+                // routed by the dedicated whisper channel (letterId === 'whisper').
+                // They must never enter the letter store: no fake self-addressed
+                // letters, threads, or summaries in the Letters UI/history.
+                if (letterId === 'whisper') continue;
                 let writtenDateInDays = parseInt(parts[2].trim());
                 if (isNaN(writtenDateInDays) || writtenDateInDays <= 0) {
                     writtenDateInDays = gameData.totalDays; // Fallback only if missing or invalid

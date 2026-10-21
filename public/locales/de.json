@@ -19,7 +19,9 @@
     "memory_constellation": "Erinnerungskonstellation",
     "memory_constellation_tooltip": "Charaktererinnerungen in 3D visualisieren",
     "memory_constellation.empty_title": "Keine Erinnerungen gefunden",
-    "memory_constellation.empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt."
+    "memory_constellation.empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt.",
+    "whispers": "Flüstern",
+    "whispers_tooltip": "Erzeugte Flüstern-Register-Berichte anzeigen und verwalten"
   },
   "diaries": {
     "header": "Tagebücher",
@@ -181,7 +183,9 @@
     "char_desc_placeholder": "Beschreiben Sie Aussehen, Vorgeschichte, Persönlichkeitsmerkmale und wichtige Ereignisse des Charakters...",
     "char_desc_none": "Keine Beschreibung festgelegt.",
     "char_desc_select_alert": "Bitte wählen Sie zuerst Spieler und Charakter.",
-    "char_desc_save_error": "Charakterbeschreibung konnte nicht gespeichert werden."
+    "char_desc_save_error": "Charakterbeschreibung konnte nicht gespeichert werden.",
+    "whisper_prompt": "Flüster-Prompt",
+    "whisper_tooltip": "Prompt, der vom Hüter des Registers zum Verfassen der Flüstern-Register-Abschnitte verwendet wird."
   },
   "settings": {
     "header": "Einstellungen",
@@ -1022,7 +1026,6 @@
     "system_prompt": "Sie sind ein Assistent zur Generierung von Szenenbeschreibungen, der für die Erstellung lebendiger Szenenatmosphärenbeschreibungen für Rollenspiele verantwortlich ist.",
     "fallback_description": "Am {{date}} begannen {{playerName}} und {{aiName}} ein Gespräch in {{location}}."
   },
-
   "chatgpt": {
     "continue": "Mit ChatGPT fortfahren",
     "different": "Anderes Konto oder anderen Arbeitsbereich verwenden",
@@ -1041,5 +1044,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Flüsterregister",
+    "player_id": "Spieler-ID:",
+    "select_character": "Charakter auswählen:",
+    "all_characters": "Alle Charaktere",
+    "sort_by": "Sortieren nach:",
+    "sort_game_date": "Spieldatum",
+    "sort_real_date": "Reales Datum",
+    "no_player": "Wählen Sie einen Spieler aus, um Flüstern anzuzeigen.",
+    "no_whispers": "Keine Flüstern gefunden.",
+    "refresh": "Aktualisieren",
+    "refreshing_in": "Aktualisierung in {seconds}s...",
+    "delete": "Löschen",
+    "delete_confirm": "Sind Sie sicher, dass Sie dieses Flüstern löschen möchten?",
+    "delete_success": "Flüstern gelöscht"
   }
 }
