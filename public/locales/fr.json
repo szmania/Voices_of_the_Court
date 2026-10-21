@@ -19,7 +19,9 @@
     "memory_constellation": "Constellation de Souvenirs",
     "memory_constellation_tooltip": "Visualiser les souvenirs des personnages en 3D",
     "memory_constellation.empty_title": "Aucun souvenir trouvé",
-    "memory_constellation.empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu."
+    "memory_constellation.empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu.",
+    "whispers": "Murmures",
+    "whispers_tooltip": "Consulter et gérer les sections générées du Registre des Murmures"
   },
   "diaries": {
     "header": "Journaux",
@@ -181,7 +183,9 @@
     "char_desc_placeholder": "Décrivez l'apparence, l'histoire, les traits de personnalité et les événements marquants du personnage...",
     "char_desc_none": "Aucune description définie.",
     "char_desc_select_alert": "Veuillez d'abord sélectionner un joueur et un personnage.",
-    "char_desc_save_error": "Échec de l'enregistrement de la description du personnage."
+    "char_desc_save_error": "Échec de l'enregistrement de la description du personnage.",
+    "whisper_prompt": "Prompt des Murmures",
+    "whisper_tooltip": "Prompt utilisé par le Gardien du Registre pour rédiger les sections du Registre des Murmures."
   },
   "settings": {
     "header": "Paramètres",
@@ -989,7 +993,6 @@
     "system_prompt": "Vous êtes un assistant de génération de descriptions de scènes chargé de créer des descriptions d'ambiance de scènes vives pour les jeux de rôle.",
     "fallback_description": "Le {{date}}, {{playerName}} et {{aiName}} ont entamé une conversation à {{location}}."
   },
-
   "chatgpt": {
     "continue": "Continuer avec ChatGPT",
     "different": "Utiliser un autre compte ou espace de travail",
@@ -1008,5 +1011,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Registre des Murmures",
+    "player_id": "ID du joueur :",
+    "select_character": "Sélectionner un personnage :",
+    "all_characters": "Tous les personnages",
+    "sort_by": "Trier par :",
+    "sort_game_date": "Date du jeu",
+    "sort_real_date": "Date réelle",
+    "no_player": "Sélectionnez un joueur pour voir les murmures.",
+    "no_whispers": "Aucun murmure trouvé.",
+    "refresh": "Actualiser",
+    "refreshing_in": "Actualisation dans {seconds}s...",
+    "delete": "Supprimer",
+    "delete_confirm": "Voulez-vous vraiment supprimer ce murmure ?",
+    "delete_success": "Murmure supprimé"
   }
 }

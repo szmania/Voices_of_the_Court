@@ -19,7 +19,9 @@
     "memory_constellation": "기억 별자리",
     "memory_constellation_tooltip": "캐릭터 기억을 3D로 시각화",
     "memory_constellation.empty_title": "기억을 찾을 수 없습니다",
-    "memory_constellation.empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다."
+    "memory_constellation.empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다.",
+    "whispers": "속삭임",
+    "whispers_tooltip": "생성된 속삭임 장부 섹션 보기 및 관리"
   },
   "diaries": {
     "header": "일기",
@@ -177,7 +179,9 @@
     "char_desc_placeholder": "캐릭터의 외모, 과거, 성격, 중요 사건을 설명하세요...",
     "char_desc_none": "설명이 설정되지 않았습니다.",
     "char_desc_select_alert": "먼저 플레이어와 캐릭터를 선택하세요.",
-    "char_desc_save_error": "캐릭터 설명 저장에 실패했습니다."
+    "char_desc_save_error": "캐릭터 설명 저장에 실패했습니다.",
+    "whisper_prompt": "속삭임 프롬프트",
+    "whisper_tooltip": "'기록의 수호자'가 속삭임 장부 섹션을 작성하는 데 사용하는 프롬프트입니다."
   },
   "settings": {
     "header": "설정",
@@ -985,7 +989,6 @@
     "system_prompt": "당신은 롤플레잉 게임을 위한 생생한 장면 분위기 설명을 만드는 장면 설명 생성 도우미입니다.",
     "fallback_description": "{{date}}에 {{playerName}}와(과) {{aiName}}이(가) {{location}}에서 대화를 시작했습니다."
   },
-
   "chatgpt": {
     "continue": "ChatGPT로 계속",
     "different": "다른 계정 또는 작업 공간 사용",
@@ -1004,5 +1007,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "속삭임 장부",
+    "player_id": "플레이어 ID:",
+    "select_character": "캐릭터 선택:",
+    "all_characters": "모든 캐릭터",
+    "sort_by": "정렬 기준:",
+    "sort_game_date": "게임 날짜",
+    "sort_real_date": "실제 날짜",
+    "no_player": "속삭임을 보려면 플레이어를 선택하세요.",
+    "no_whispers": "속삭임을 찾을 수 없습니다.",
+    "refresh": "새로고침",
+    "refreshing_in": "{seconds}초 후 새로고침...",
+    "delete": "삭제",
+    "delete_confirm": "이 속삭임을 삭제하시겠습니까?",
+    "delete_success": "속삭임이 삭제되었습니다"
   }
 }

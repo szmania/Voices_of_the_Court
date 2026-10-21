@@ -19,7 +19,9 @@
     "memory_constellation": "Constelación de Recuerdos",
     "memory_constellation_tooltip": "Visualizar recuerdos de personajes en 3D",
     "memory_constellation.empty_title": "No se encontraron recuerdos",
-    "memory_constellation.empty_subtitle": "Los recuerdos aparecerán aquí a medida que tu personaje experimente eventos en el juego."
+    "memory_constellation.empty_subtitle": "Los recuerdos aparecerán aquí a medida que tu personaje experimente eventos en el juego.",
+    "whispers": "Susurros",
+    "whispers_tooltip": "Ver y gestionar las secciones generadas del Registro de Susurros"
   },
   "diaries": {
     "header": "Diarios",
@@ -181,7 +183,9 @@
     "char_desc_placeholder": "Describa la apariencia, historia, rasgos de personalidad y eventos significativos del personaje...",
     "char_desc_none": "No se ha establecido ninguna descripción.",
     "char_desc_select_alert": "Seleccione primero un jugador y un personaje.",
-    "char_desc_save_error": "No se pudo guardar la descripción del personaje."
+    "char_desc_save_error": "No se pudo guardar la descripción del personaje.",
+    "whisper_prompt": "Prompt de Susurros",
+    "whisper_tooltip": "Prompt utilizado por el Guardián del Registro para escribir las secciones del Registro de Susurros."
   },
   "settings": {
     "header": "Ajustes",
@@ -989,7 +993,6 @@
     "system_prompt": "Eres un asistente de generación de descripciones de escena responsable de crear descripciones vívidas de la atmósfera de la escena para juegos de rol.",
     "fallback_description": "El {{date}}, {{playerName}} y {{aiName}} iniciaron una conversación en {{location}}."
   },
-
   "chatgpt": {
     "continue": "Continuar con ChatGPT",
     "different": "Usar otra cuenta o espacio de trabajo",
@@ -1008,5 +1011,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Registro de Susurros",
+    "player_id": "ID del jugador:",
+    "select_character": "Seleccionar personaje:",
+    "all_characters": "Todos los personajes",
+    "sort_by": "Ordenar por:",
+    "sort_game_date": "Fecha del juego",
+    "sort_real_date": "Fecha real",
+    "no_player": "Selecciona un jugador para ver los susurros.",
+    "no_whispers": "No se encontraron susurros.",
+    "refresh": "Actualizar",
+    "refreshing_in": "Actualizando en {seconds}s...",
+    "delete": "Eliminar",
+    "delete_confirm": "¿Seguro que quieres eliminar este susurro?",
+    "delete_success": "Susurro eliminado"
   }
 }

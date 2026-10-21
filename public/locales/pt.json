@@ -27,7 +27,9 @@
     "system_tooltip": "Gerenciar definições do sistema, atualizações e dados",
     "help_tooltip": "Abrir a janela de ajuda e documentação",
     "memories": "Memórias",
-    "memories_tooltip": "Visualizar memórias e gerenciar compactação"
+    "memories_tooltip": "Visualizar memórias e gerenciar compactação",
+    "whispers": "Sussurros",
+    "whispers_tooltip": "Ver e gerenciar as seções geradas do Registro de Sussurros"
   },
   "diaries": {
     "header": "Diários",
@@ -53,9 +55,9 @@
     "player2_download_button": "Baixar Player2",
     "player2_download_tooltip": "Baixar o aplicativo Player2",
     "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária.",
+    "novelai_password": "Senha",
     "email": "Email",
     "password": "Senha",
-    "novelai_password": "Senha",
     "novelai_model": "Modelo",
     "novelai_password_tooltip": "Sua senha de conta NovelAI (não é chave de API)"
   },
@@ -86,31 +88,6 @@
     "search_next_tooltip": "Correspondência seguinte",
     "search_hint": "Pesquisar memórias (passe o cursor aqui)",
     "embedding_chatgpt_unsupported": "OpenAI (assinatura ChatGPT) não oferece suporte a embeddings. Selecione um provedor de embeddings separado."
-  },
-  "connection": {
-    "ck3_path": "Caminho da pasta de usuário do CK3",
-    "select_folder": "Selecionar pasta",
-    "path_tooltip": "Aqui você deve selecionar a pasta do CK3 onde seus dados de usuário são salvos, não onde os arquivos do jogo estão! Por padrão, é salvo em seus documentos de usuário, dentro da pasta Paradox Interactive",
-    "api_label": "API",
-    "api_key": "Chave da API",
-    "model": "Modelo",
-    "server_url": "URL do servidor",
-    "force_instruct": "Forçar modo Instruct",
-    "browse_models": "Procurar modelos..",
-    "overwrite_context": "Sobrescrever tamanho do contexto",
-    "test_connection": "Testar conexão",
-    "connection_valid": "Conexão válida!",
-    "connection_valid_warning": "Conexão válida! Aviso: não foi possível detectar o tamanho do contexto, o tamanho do contexto sobrescrito será usado! (mesmo se desativado!)",
-    "path_placeholder": "Digite o caminho da pasta de usuário do CK3...",
-    "player2_info": "Dica: Se ainda não o fez, baixe o Player2 e execute-o em segundo plano.",
-    "player2_download_button": "Baixar Player2",
-    "player2_download_tooltip": "Baixar o aplicativo Player2",
-    "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária.",
-    "novelai_password": "Senha",
-    "email": "Email",
-    "password": "Senha",
-    "novelai_model": "Modelo",
-    "novelai_password_tooltip": "Sua senha de conta NovelAI (não é chave de API)"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -225,7 +202,9 @@
     "char_desc_placeholder": "Descreva aparência, história, traços de personalidade e eventos importantes do personagem...",
     "char_desc_none": "Nenhuma descrição definida.",
     "char_desc_select_alert": "Selecione primeiro um jogador e um personagem.",
-    "char_desc_save_error": "Falha ao salvar a descrição do personagem."
+    "char_desc_save_error": "Falha ao salvar a descrição do personagem.",
+    "whisper_prompt": "Prompt de Sussurros",
+    "whisper_tooltip": "Prompt usado pelo Guardião do Registro para escrever as seções do Registro de Sussurros."
   },
   "settings": {
     "header": "Configurações",
@@ -1036,7 +1015,6 @@
     "system_prompt": "Você é um assistente de geração de descrições de cena responsável por criar descrições vívidas da atmosfera da cena para jogos de RPG.",
     "fallback_description": "Em {{date}}, {{playerName}} e {{aiName}} iniciaram uma conversa em {{location}}."
   },
-
   "chatgpt": {
     "continue": "Continuar com ChatGPT",
     "different": "Usar outra conta ou espaço de trabalho",
@@ -1055,5 +1033,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Registro de Sussurros",
+    "player_id": "ID do jogador:",
+    "select_character": "Selecionar personagem:",
+    "all_characters": "Todos os personagens",
+    "sort_by": "Ordenar por:",
+    "sort_game_date": "Data do jogo",
+    "sort_real_date": "Data real",
+    "no_player": "Selecione um jogador para ver os sussurros.",
+    "no_whispers": "Nenhum sussurro encontrado.",
+    "refresh": "Atualizar",
+    "refreshing_in": "Atualizando em {seconds}s...",
+    "delete": "Excluir",
+    "delete_confirm": "Tem certeza de que deseja excluir este sussurro?",
+    "delete_success": "Sussurro excluído"
   }
 }

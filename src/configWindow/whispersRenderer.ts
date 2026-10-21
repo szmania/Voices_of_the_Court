@@ -11,8 +11,8 @@ let container: HTMLElement;
 let loader: HTMLElement;
 let refreshBtn: HTMLButtonElement;
 let playerIdSelect: HTMLSelectElement;
-let characterSelect: HTMLSelectElement;
 let searchInput: HTMLInputElement;
+let typeFilterSelect: HTMLSelectElement;
 let whisperList: HTMLElement;
 let statusMessage: HTMLElement;
 let sortOrderSelect: HTMLSelectElement;
@@ -23,7 +23,7 @@ let countdown = 20;
 // State
 let allWhispers: any[] = [];
 let currentPlayerId: string | null = null;
-let selectedCharacterId: string = 'all';
+let selectedType: string = 'all';
 let currentSortOrder: 'gameDate' | 'realDate' = 'realDate';
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -88,8 +88,8 @@ async function init() {
     loader = document.getElementById('whisper-manager-loader') as HTMLElement;
     refreshBtn = document.getElementById('whisper-manager-refresh-btn') as HTMLButtonElement;
     playerIdSelect = document.getElementById('whisper-manager-playerIdSelect') as HTMLSelectElement;
-    characterSelect = document.getElementById('whisper-manager-characterSelect') as HTMLSelectElement;
     searchInput = document.getElementById('whisper-manager-search') as HTMLInputElement;
+    typeFilterSelect = document.getElementById('whisper-type-filter') as HTMLSelectElement;
     whisperList = document.getElementById('whisper-manager-diaryList') as HTMLElement;
     statusMessage = document.getElementById('whisper-manager-statusMessage') as HTMLElement;
     sortOrderSelect = document.getElementById('whisper-sort-order') as HTMLSelectElement;
@@ -114,11 +114,11 @@ function setupEventListeners() {
         currentPlayerId = playerIdSelect.value;
         loadWhispers();
     });
-    characterSelect.addEventListener('change', () => {
-        selectedCharacterId = characterSelect.value;
+    searchInput.addEventListener('input', () => {
         filterAndRenderWhispers();
     });
-    searchInput.addEventListener('input', () => {
+    typeFilterSelect.addEventListener('change', () => {
+        selectedType = typeFilterSelect.value;
         filterAndRenderWhispers();
     });
     sortOrderSelect.addEventListener('change', () => {
@@ -143,8 +143,7 @@ async function refreshWhispers(isAuto = false) {
 
     try {
         const currentPlayerId = playerIdSelect.value;
-        const currentCharacterId = characterSelect.value;
-        await loadPlayerIds(currentPlayerId, currentCharacterId);
+        await loadPlayerIds(currentPlayerId);
     } catch (error) {
         console.error('Error during whisper refresh:', error);
     } finally {
@@ -175,7 +174,7 @@ function startRefreshInterval() {
     }, 1000);
 }
 
-async function loadPlayerIds(preferPlayerId?: string, preferCharacterId?: string) {
+async function loadPlayerIds(preferPlayerId?: string) {
     try {
         const result = await ipcRenderer.invoke('get-whisper-players');
         playerIdSelect.innerHTML = '';
@@ -196,23 +195,7 @@ async function loadPlayerIds(preferPlayerId?: string, preferCharacterId?: string
 
         currentPlayerId = playerIdSelect.value;
 
-        // Rebuild character dropdown from whispers after loading player ids
-        characterSelect.innerHTML = '';
-        const allOption = document.createElement('option');
-        allOption.value = 'all';
-        allOption.textContent = window.LocalizationManager
-            ? window.LocalizationManager.getNestedTranslation('whispers.all_characters', null, 'All Characters')
-            : 'All Characters';
-        characterSelect.appendChild(allOption);
-
         loadWhispers();
-
-        if (preferCharacterId && characterSelect.querySelector(`option[value="${preferCharacterId}"]`)) {
-            characterSelect.value = preferCharacterId;
-        } else {
-            characterSelect.value = 'all';
-        }
-        selectedCharacterId = characterSelect.value;
     } catch (error) {
         console.error('Failed to load whisper players:', error);
         showStatusMessage('Failed to load player IDs', 'error');
@@ -228,23 +211,6 @@ async function loadWhispers() {
         allWhispers = records;
         filterAndRenderWhispers();
 
-        // Repopulate character dropdown with distinct material characters across this player's whispers
-        const characters = new Map<number, string>();
-        for (const rec of records) {
-            for (const c of (rec.materialCharacters || [])) {
-                if (!characters.has(c.id)) characters.set(c.id, c.name);
-            }
-        }
-        // Keep existing options beyond index 0 (the 'all' option), rebuild if needed
-        const existingCharValues = Array.from(characterSelect.options).map(o => o.value);
-        for (const [id, name] of characters) {
-            if (!existingCharValues.includes(String(id))) {
-                const option = document.createElement('option');
-                option.value = String(id);
-                option.textContent = `${name} (${id})`;
-                characterSelect.appendChild(option);
-            }
-        }
     } catch (error) {
         console.error('Failed to load whispers:', error);
         showStatusMessage('Failed to load whispers', 'error');
@@ -254,12 +220,8 @@ async function loadWhispers() {
 function filterAndRenderWhispers() {
     const search = searchInput?.value.toLowerCase() || '';
     const sortKey = currentSortOrder;
-
     let filtered = allWhispers.filter(rec => {
-        if (selectedCharacterId !== 'all') {
-            const ids = (rec.materialCharacters || []).map((c: any) => c.id);
-            if (!ids.includes(Number(selectedCharacterId))) return false;
-        }
+        if (selectedType !== 'all' && rec.section !== selectedType) return false;
         const text = `${rec.section} ${rec.sectionLabel} ${rec.text}`.toLowerCase();
         return text.includes(search);
     });

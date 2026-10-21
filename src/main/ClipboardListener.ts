@@ -87,7 +87,14 @@ export class ClipboardListener extends EventEmitter{
                 break;
                 case "LETTER":
                     this.emit('VOTC:LETTER');
-                break;
+                    break;
+                case "WHISPER":
+                    // Whisper Ledger (VOTC-195, protocol v2): the mod's token
+                    // window copies the literal 'VOTC:WHISPER' (loc key
+                    // votc_whisper_token_letter) — a DEDICATED token, no longer
+                    // the letter token. Routed to its own handler in main.ts.
+                    this.emit('VOTC:WHISPER');
+                    break;
                 case "LETTER_ACCEPTED":
                     this.emit('VOTC:LETTER_ACCEPTED');
                     break;

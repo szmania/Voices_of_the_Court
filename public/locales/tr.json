@@ -31,7 +31,9 @@
     "system_tooltip": "Sistem ayarlarını, güncellemeleri ve verileri yönetin",
     "help_tooltip": "Yardım ve belge penceresi açın",
     "memories": "Anılar",
-    "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin"
+    "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin",
+    "whispers": "Fısıltılar",
+    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet"
   },
   "diaries": {
     "header": "Günlükler",
@@ -200,7 +202,9 @@
     "char_desc_placeholder": "Karakterin görünümünü, geçmişini, kişilik özelliklerini ve önemli olayları anlatın...",
     "char_desc_none": "Açıklama ayarlanmadı.",
     "char_desc_select_alert": "Lütfen önce bir oyuncu ve karakter seçin.",
-    "char_desc_save_error": "Karakter açıklaması kaydedilemedi."
+    "char_desc_save_error": "Karakter açıklaması kaydedilemedi.",
+    "whisper_prompt": "Fısıltı İstemi",
+    "whisper_tooltip": "Kaydın Bekçisi'nin Fısıltı Defteri bölümlerini yazmak için kullandığı istem."
   },
   "settings": {
     "header": "Ayarlar",
@@ -999,7 +1003,6 @@
     "system_prompt": "Sen, rol yapma oyunları için canlı sahne atmosferi açıklamaları oluşturmaktan sorumlu bir sahne açıklaması üretim asistanısın.",
     "fallback_description": "{{date}} tarihinde, {{playerName}} ve {{aiName}} {{location}} konumunda bir konuşma başlattı."
   },
-
   "chatgpt": {
     "continue": "ChatGPT ile devam et",
     "different": "Farklı hesap veya çalışma alanı kullan",
@@ -1018,5 +1021,21 @@
     "revocation_unconfirmed": "Signed out locally. Remote revocation was not confirmed; disconnect VOTC in ChatGPT settings.",
     "model_changed": "The saved model is unavailable. The first available model is now selected.",
     "no_models": "No models are available for this account."
+  },
+  "whispers": {
+    "header": "Fısıltı Defteri",
+    "player_id": "Oyuncu Kimliği:",
+    "select_character": "Karakter Seç:",
+    "all_characters": "Tüm Karakterler",
+    "sort_by": "Sırala:",
+    "sort_game_date": "Oyun Tarihi",
+    "sort_real_date": "Gerçek Tarih",
+    "no_player": "Fısıltıları görüntülemek için bir oyuncu seçin.",
+    "no_whispers": "Fısıltı bulunamadı.",
+    "refresh": "Yenile",
+    "refreshing_in": "{seconds}sn içinde yenileniyor...",
+    "delete": "Sil",
+    "delete_confirm": "Bu fısıltıyı silmek istediğinizden emin misiniz?",
+    "delete_success": "Fısıltı silindi"
   }
 }

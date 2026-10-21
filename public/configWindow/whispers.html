@@ -227,6 +227,17 @@
               <option value="realDate" data-i18n="whispers.sort_real_date" selected>Real Date</option>
             </select>
           </div>
+          <div class="info-item">
+            <label for="whisper-type-filter" data-i18n="whispers.filter_type">Whisper Type:</label>
+            <tooltip-text side="top" data-i18n="whispers.tooltip_filter_type">Filter whispers by section type.</tooltip-text>
+            <select id="whisper-type-filter">
+              <option value="all" data-i18n="whispers.filter_type_all" selected>All Types</option>
+              <option value="WORLD" data-i18n="whispers.section_world">Distant Lands</option>
+              <option value="REALM" data-i18n="whispers.section_realm">The Realm</option>
+              <option value="COURT" data-i18n="whispers.section_court">Your Court</option>
+              <option value="CIRCLE" data-i18n="whispers.section_circle">Inner Circle</option>
+            </select>
+          </div>
           <div class="info-item" style="display: flex; align-items: center; gap: 8px;">
             <input type="search" id="whisper-manager-search" data-i18n-placeholder="whispers.search_placeholder" placeholder="Search whispers..." data-i18n-title="whispers.tooltip_search">
           </div>
