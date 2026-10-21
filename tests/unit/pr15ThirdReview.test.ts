@@ -99,7 +99,7 @@ describe('PR15 third review', () => {
         writeIdentityLog(config);
         generator.apiConnection.complete.mockRejectedValue(new Error('API request failed'));
         expect(await generator.generateLetterReply(gameData, original)).toBeNull();
-        expect(fs.existsSync(path.join(root, 'votc_data', 'run', 'letter1.txt'))).toBe(true);
+        expect(fs.existsSync(path.join(root, 'votc_data', 'run', 'votc_ce_letter1.txt'))).toBe(true);
         // Round 7: the fallback queues for the shared votc_ce_letters.txt channel and
         // is flushed once the channel is idle, instead of writing immediately.
         expect(LetterManager.getInstance().hasPendingLetterFallbacks()).toBe(true);

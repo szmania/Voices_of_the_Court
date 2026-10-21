@@ -12,16 +12,13 @@ import { archiveFutureSummaryFilesForPlayer, readSummaryFile, saveSummaryFile } 
 import { Summary } from '../ts/conversation_interfaces';
 import { archiveFutureLetterHistoryForPlayer, saveIncomingLetterHistory } from '../conversationHistory.js';
 import { buildIncomingLetterHistoryRecord } from './letterHistoryRecord.js';
-import { createMemoryString, getEffectivePrompts } from '../conversation/promptBuilder';
 import {
     TimelineRegistryCorruptError,
-    FsTimelinePersistence,
-    TimelineRegistry,
-    resolveTimelineContext,
-    buildContextFromGameData,
     type CreateChildNodeResult,
     type GameDataLike
 } from '../timelineManager.js';
+import { resolveSummaryTimelineContext, type SummaryTimelineContext } from './summaryTimelineContext.js';
+import { createMemoryString, getEffectivePrompts } from '../conversation/promptBuilder';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
 import { reportCorruptTimelineRegistry, reportUnsupportedTimelineSchema, reportCampaignIdentityUnavailable } from '../timelineRegistryRecovery.js';
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
@@ -285,37 +282,11 @@ export class IncomingLetterGenerator {
         return this.votcDataPath;
     }
 
-    // 1.x IncomingLetterGenerator.getSummaryTimeline parity: load the timeline
-    // registry (campaign-scoped when the snapshot carries a v2 identity,
-    // player-only legacy fallback otherwise) so summary reads filter
-    // node-tagged records by branch and summary saves merge instead of
-    // overwriting hidden sibling-branch records. F21 also exposes the
-    // resolved campaign identity so summary reads/writes route into the
-    // campaign namespace via summaryManager's identity parameter.
-    private getSummaryTimeline(gameData: GameData): { registry: TimelineRegistry | undefined; currentNodeId: string | undefined; identity?: CampaignPlayerIdentity } {
-        const persistence = new FsTimelinePersistence(app.getPath('userData'));
-        let registry: TimelineRegistry | undefined;
-        let identity: CampaignPlayerIdentity | undefined;
-        try {
-            identity = requireCampaignIdentity({
-                playerID: gameData.playerID,
-                timelineSnapshotResult: gameData.timelineSnapshotResult
-            });
-            const result = persistence.loadStoreWithIdentity(identity);
-            registry = result.status === 'found' ? result.store : undefined;
-        } catch {
-            // Legacy snapshot: fall back to player-only display load.
-            identity = undefined;
-            registry = persistence.loadRegistry(String(gameData.playerID)) ?? undefined;
-        }
-        const context = registry
-            ? resolveTimelineContext(registry, buildContextFromGameData(gameData))
-            : buildContextFromGameData(gameData);
-        return {
-            registry,
-            currentNodeId: context.timelineNodeId,
-            identity
-        };
+    // F21/M7: the shared summary-timeline resolver (summaryTimelineContext.ts)
+    // now owns the registry load + context resolution, so letter summaries and
+    // conversation summaries resolve the exact same branch context.
+    private getSummaryTimeline(gameData: GameData): SummaryTimelineContext {
+        return resolveSummaryTimelineContext(gameData);
     }
 
     public async generateIncomingLetter(

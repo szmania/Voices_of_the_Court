@@ -379,7 +379,7 @@ export class LetterManager {
 
         // Channel routing (VOTC-194): an AI-initiated (npcltr) reply travels on
         // its own whole-file-overwrite channel so it never clobbers an in-flight
-        // player reply on letters.txt (and vice versa). The idle gate for each
+        // player reply on votc_ce_letters.txt (and vice versa). The idle gate for each
         // channel is enforced by the caller (checkAndDeliverLetters).
         const isNpcLetter = letterId === 'npcltr';
         const letterFilePath = path.join(runFolderPath, isNpcLetter ? "votc_ce_npcltr.txt" : "votc_ce_letters.txt");
@@ -458,15 +458,15 @@ trigger_event = message_event.362`}`;
         }
 
         // Fallback contract (VOTC-194): if the dedicated npcltr channel cannot
-        // be written, degrade to the letters.txt normal flow — the game side
+        // be written, degrade to the votc_ce_letters.txt normal flow — the game side
         // handles the reply arriving via the standard mailbox path and cleans
         // its own marker, so the feature degrades, never jams.
         try {
             fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         } catch (writeError: any) {
             if (!isNpcLetter) throw writeError;
-            console.error(`Could not write votc_ce_npcltr.txt (${writeError?.message}); falling back to the letters.txt channel.`, writeError);
-            fs.writeFileSync(path.join(runFolderPath, "letters.txt"), '\uFEFF' + gameCommand, 'utf8');
+            console.error(`Could not write votc_ce_npcltr.txt (${writeError?.message}); falling back to the votc_ce_letters.txt channel.`, writeError);
+            fs.writeFileSync(path.join(runFolderPath, "votc_ce_letters.txt"), '\uFEFF' + gameCommand, 'utf8');
         }
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
     }
@@ -544,12 +544,12 @@ trigger_event = message_event.362`}`;
         // silent. "Clearing" means restoring the placeholder.
         const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         fs.writeFileSync(letterFilePath, placeholder, "utf-8");
-        console.log("Reset votc_ce_letters.txt to the blank heartbeat pt votc_ce_letters.txt to the blank heartbeat placeholder");
+        console.log("Reset votc_ce_letters.txt to the blank heartbeat placeholder");
     }
 
     /**
      * Reset the AI-initiated (npcltr) run channel to its blank placeholder.
-     * Unlike letters.txt the npcltr runner does not carry the date heartbeat,
+     * Unlike votc_ce_letters.txt the npcltr runner does not carry the date heartbeat,
      * but the blank guard keeps the mod-side runner from re-executing a stale
      * block on every poll after a timed-out delivery.
      */
