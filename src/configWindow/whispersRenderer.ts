@@ -260,7 +260,7 @@ function filterAndRenderWhispers() {
         card.innerHTML = `
             <div class="whisper-card-header">
                 <div class="whisper-card-title">
-                    <span class="whisper-section-badge">${sectionLabel}</span>
+                    <span class="whisper-section-badge" data-i18n="whispers.section_${rec.section.toLowerCase()}">${sectionLabel}</span>
                     <span class="whisper-card-dates">${gameDate} &middot; ${realDate}</span>
                 </div>
                 <button type="button" class="whisper-card-delete" data-i18n-title="whispers.delete" title="Delete">&#128465;</button>
