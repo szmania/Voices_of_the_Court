@@ -33,7 +33,18 @@
     "memories": "Anılar",
     "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin",
     "whispers": "Fısıltılar",
-    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet"
+    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet",
+    "tooltip_player_id": "Görüntülenecek fısıltıların oyuncu profilini seçin.",
+    "tooltip_sort": "Fısıltıları oyun tarihine veya gerçek tarihe göre sıralayın.",
+    "tooltip_search": "Fısıltıları bölüme, karakterlere veya içeriğe göre arayın.",
+    "search_placeholder": "Fısıltıları ara...",
+    "filter_type": "Fısıltı Türü:",
+    "tooltip_filter_type": "Fısıltıları bölüm türüne göre filtreleyin.",
+    "filter_type_all": "Tüm Türler",
+    "section_world": "Uzak Diyarlar",
+    "section_realm": "Krallık",
+    "section_court": "Sarayınız",
+    "section_circle": "İç Çember"
   },
   "diaries": {
     "header": "Günlükler",
@@ -1069,6 +1080,17 @@
     "refreshing_in": "{seconds}sn içinde yenileniyor...",
     "delete": "Sil",
     "delete_confirm": "Bu fısıltıyı silmek istediğinizden emin misiniz?",
-    "delete_success": "Fısıltı silindi"
+    "delete_success": "Fısıltı silindi",
+    "tooltip_player_id": "Fısıltıların görüntüleneceği oyuncu profilini seçin.",
+    "tooltip_sort": "Fısıltıları oyun tarihi veya gerçek tarihe göre sıralayın.",
+    "filter_type": "Fısıltı Türü:",
+    "tooltip_filter_type": "Fısıltıları bölüm türüne göre filtreleyin.",
+    "filter_type_all": "Tüm Türler",
+    "section_world": "Uzak Topraklar",
+    "section_realm": "Devlet",
+    "section_court": "Sarayınız",
+    "section_circle": "İç Çevre",
+    "search_placeholder": "Fısıltıları ara...",
+    "tooltip_search": "Fısıltıları bölüm, karakter veya içerik olarak arayın."
   }
 }

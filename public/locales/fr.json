@@ -1059,6 +1059,17 @@
     "refreshing_in": "Actualisation dans {seconds}s...",
     "delete": "Supprimer",
     "delete_confirm": "Voulez-vous vraiment supprimer ce murmure ?",
-    "delete_success": "Murmure supprimé"
+    "delete_success": "Murmure supprimé",
+    "tooltip_player_id": "Sélectionnez le profil de joueur dont vous souhaitez afficher les murmures.",
+    "tooltip_sort": "Trier les murmures par date de jeu ou par date réelle.",
+    "filter_type": "Type de murmure :",
+    "tooltip_filter_type": "Filtrer les murmures par type de section.",
+    "filter_type_all": "Tous les types",
+    "section_world": "Terres lointaines",
+    "section_realm": "Le royaume",
+    "section_court": "Votre cour",
+    "section_circle": "Cercle intérieur",
+    "search_placeholder": "Rechercher des murmures...",
+    "tooltip_search": "Rechercher des murmures par section, personnages ou contenu."
   }
 }

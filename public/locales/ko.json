@@ -1055,6 +1055,17 @@
     "refreshing_in": "{seconds}초 후 새로고침...",
     "delete": "삭제",
     "delete_confirm": "이 속삭임을 삭제하시겠습니까?",
-    "delete_success": "속삭임이 삭제되었습니다"
+    "delete_success": "속삭임이 삭제되었습니다",
+    "tooltip_player_id": "플레이어를 선택하여 속삭임을 표시합니다.",
+    "tooltip_sort": "게임 날짜 또는 실제 날짜에 따라 속삭임을 정렬합니다.",
+    "filter_type": "속삭기 유형:",
+    "tooltip_filter_type": "섹션별로 속삭기를 필터링합니다.",
+    "filter_type_all": "모든 유형",
+    "section_world": "원거리 지역",
+    "section_realm": "영지",
+    "section_court": "당신의 궁정",
+    "section_circle": "내원",
+    "search_placeholder": "속삭기 검색...",
+    "tooltip_search": "섹션, 캐릭터, 또는 콘텐츠에 따라 속삭기를 검색합니다."
   }
 }

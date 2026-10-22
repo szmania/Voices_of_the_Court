@@ -1086,6 +1086,17 @@
     "refreshing_in": "{seconds}秒後に更新...",
     "delete": "削除",
     "delete_confirm": "このささやきを削除してもよろしいですか？",
-    "delete_success": "ささやきを削除しました"
+    "delete_success": "ささやきを削除しました",
+    "tooltip_player_id": "キャラクターを選択してささやきを表示してください。",
+    "tooltip_sort": "ゲーム日付または実日付でささやきを並べ替えます。",
+    "filter_type": "ささやきの種類:",
+    "tooltip_filter_type": "セクション別にささやきをフィルタリングします。",
+    "filter_type_all": "すべての種類",
+    "section_world": "遠い土地",
+    "section_realm": "領土",
+    "section_court": "あなたの宮廷",
+    "section_circle": "内輪",
+    "search_placeholder": "ささやきを検索...",
+    "tooltip_search": "セクション、キャラクター、またはコンテンツによってささやきを検索します。"
   }
 }

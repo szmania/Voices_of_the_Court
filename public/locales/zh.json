@@ -21,7 +21,18 @@
     "memory_constellation.empty_title": "未找到记忆",
     "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。",
     "whispers": "密语",
-    "whispers_tooltip": "查看和管理生成的密语录章节"
+    "whispers_tooltip": "查看和管理生成的密语录章节",
+    "tooltip_player_id": "选择要显示密语的玩家档案。",
+    "tooltip_sort": "按游戏日期或实际日期对密语进行排序。",
+    "tooltip_search": "按章节、角色或内容搜索密语。",
+    "search_placeholder": "搜索密语...",
+    "filter_type": "密语类型：",
+    "tooltip_filter_type": "按章节类型过滤密语。",
+    "filter_type_all": "所有类型",
+    "section_world": "遥远之地",
+    "section_realm": "王国",
+    "section_court": "你的宫廷",
+    "section_circle": "核心圈子"
   },
   "diaries": {
     "header": "日记",
@@ -1070,6 +1081,17 @@
     "refreshing_in": "{seconds}秒后刷新...",
     "delete": "删除",
     "delete_confirm": "确定要删除这条密语吗？",
-    "delete_success": "密语已删除"
+    "delete_success": "密语已删除",
+    "tooltip_player_id": "选择要显示其密语的玩家配置文件。",
+    "tooltip_sort": "按游戏日期或真实日期对密语进行排序。",
+    "filter_type": "密语类型：",
+    "tooltip_filter_type": "按章节类型筛选密语。",
+    "filter_type_all": "所有类型",
+    "section_world": "遥远的领土",
+    "section_realm": "领土",
+    "section_court": "你的宫廷",
+    "section_circle": "核心圈子",
+    "search_placeholder": "搜索密语...",
+    "tooltip_search": "按章节、角色或内容搜索密语。"
   }
 }
