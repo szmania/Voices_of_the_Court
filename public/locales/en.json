@@ -1130,6 +1130,17 @@
     "refreshing_in": "Refreshing in {seconds}s...",
     "delete": "Delete",
     "delete_confirm": "Are you sure you want to delete this whisper?",
-    "delete_success": "Whisper deleted"
+    "delete_success": "Whisper deleted",
+    "tooltip_player_id": "Select the player profile whose whispers to display.",
+    "tooltip_sort": "Order whispers by game date or real date.",
+    "filter_type": "Whisper Type:",
+    "tooltip_filter_type": "Filter whispers by section type.",
+    "filter_type_all": "All Types",
+    "section_world": "Distant Lands",
+    "section_realm": "The Realm",
+    "section_court": "Your Court",
+    "section_circle": "Inner Circle",
+    "search_placeholder": "Search whispers...",
+    "tooltip_search": "Search whispers by section, characters, or content."
   }
 }

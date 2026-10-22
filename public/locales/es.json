@@ -1059,6 +1059,17 @@
     "refreshing_in": "Actualizando en {seconds}s...",
     "delete": "Eliminar",
     "delete_confirm": "¿Seguro que quieres eliminar este susurro?",
-    "delete_success": "Susurro eliminado"
+    "delete_success": "Susurro eliminado",
+    "tooltip_player_id": "Selecciona el perfil del jugador cuyos susurros quieres ver.",
+    "tooltip_sort": "Ordenar susurros por fecha del juego o fecha real.",
+    "filter_type": "Tipo de susurro:",
+    "tooltip_filter_type": "Filtrar susurros por tipo de sección.",
+    "filter_type_all": "Todos los tipos",
+    "section_world": "Tierras lejanas",
+    "section_realm": "El reino",
+    "section_court": "Tu corte",
+    "section_circle": "Círculo íntimo",
+    "search_placeholder": "Buscar susurros...",
+    "tooltip_search": "Buscar susurros por sección, personajes o contenido."
   }
 }

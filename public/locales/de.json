@@ -1059,6 +1059,17 @@
     "refreshing_in": "Aktualisierung in {seconds}s...",
     "delete": "Löschen",
     "delete_confirm": "Sind Sie sicher, dass Sie dieses Flüstern löschen möchten?",
-    "delete_success": "Flüstern gelöscht"
+    "delete_success": "Flüstern gelöscht",
+    "tooltip_player_id": "Wählen Sie das Spielerprofil aus, dessen Flüstern angezeigt werden soll.",
+    "tooltip_sort": "Flüstern nach Spieldatum oder echtem Datum sortieren.",
+    "filter_type": "Flüstertyp:",
+    "tooltip_filter_type": "Flüstern nach Abschnittstyp filtern.",
+    "filter_type_all": "Alle Typen",
+    "section_world": "Ferne Länder",
+    "section_realm": "Das Reich",
+    "section_court": "Ihr Hof",
+    "section_circle": "Innerer Kreis",
+    "search_placeholder": "Flüstern suchen...",
+    "tooltip_search": "Flüstern nach Abschnitt, Charakteren oder Inhalt suchen."
   }
 }
