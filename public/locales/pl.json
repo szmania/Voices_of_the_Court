@@ -1055,6 +1055,17 @@
     "refreshing_in": "Odświeżanie za {seconds}s...",
     "delete": "Usuń",
     "delete_confirm": "Czy na pewno usunąć ten szept?",
-    "delete_success": "Szept usunięty"
+    "delete_success": "Szept usunięty",
+    "tooltip_player_id": "Wybierz profil gracza, których szepty mają być wyświetlone.",
+    "tooltip_sort": "Sortuj szepty według daty w grze lub daty rzeczywistej.",
+    "filter_type": "Typ Szeptu:",
+    "tooltip_filter_type": "Filtruj szepty według typu sekcji.",
+    "filter_type_all": "Wszystkie Typy",
+    "section_world": "Odległe Krainy",
+    "section_realm": "Królestwo",
+    "section_court": "Twój Dwór",
+    "section_circle": "Wewnętrzny Krąg",
+    "search_placeholder": "Szukaj szeptów...",
+    "tooltip_search": "Szukaj szeptów według sekcji, postaci lub treści."
   }
 }

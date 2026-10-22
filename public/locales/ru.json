@@ -1071,6 +1071,17 @@
     "refreshing_in": "Обновление через {seconds}с...",
     "delete": "Удалить",
     "delete_confirm": "Вы уверены, что хотите удалить этот шёпот?",
-    "delete_success": "Шёпот удалён"
+    "delete_success": "Шёпот удалён",
+    "tooltip_player_id": "Выберите профиль игрока, чей шёпот нужно отобразить.",
+    "tooltip_sort": "Сортировать шёпот по игровой или реальной дате.",
+    "filter_type": "Тип шёпота:",
+    "tooltip_filter_type": "Фильтровать шёпот по типу раздела.",
+    "filter_type_all": "Все типы",
+    "section_world": "Дальние земли",
+    "section_realm": "Королевство",
+    "section_court": "Ваш двор",
+    "section_circle": "Внутренний круг",
+    "search_placeholder": "Поиск шёпота...",
+    "tooltip_search": "Поиск шёпота по разделу, персонажам или содержимому."
   }
 }

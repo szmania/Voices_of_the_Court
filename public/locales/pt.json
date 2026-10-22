@@ -36,31 +36,6 @@
     "memories": "Memórias",
     "memories_tooltip": "Visualizar memórias e gerenciar compactação"
   },
-  "connection": {
-    "ck3_path": "Caminho da pasta de usuário do CK3",
-    "select_folder": "Selecionar pasta",
-    "path_tooltip": "Aqui você deve selecionar a pasta do CK3 onde seus dados de usuário são salvos, não onde os arquivos do jogo estão! Por padrão, é salvo em seus documentos de usuário, dentro da pasta Paradox Interactive",
-    "api_label": "API",
-    "api_key": "Chave da API",
-    "model": "Modelo",
-    "server_url": "URL do servidor",
-    "force_instruct": "Forçar modo Instruct",
-    "browse_models": "Procurar modelos..",
-    "overwrite_context": "Sobrescrever tamanho do contexto",
-    "test_connection": "Testar conexão",
-    "connection_valid": "Conexão válida!",
-    "connection_valid_warning": "Conexão válida! Aviso: não foi possível detectar o tamanho do contexto, o tamanho do contexto sobrescrito será usado! (mesmo se desativado!)",
-    "path_placeholder": "Digite o caminho da pasta de usuário do CK3...",
-    "player2_info": "Dica: Se ainda não o fez, baixe o Player2 e execute-o em segundo plano.",
-    "player2_download_button": "Baixar Player2",
-    "player2_download_tooltip": "Baixar o aplicativo Player2",
-    "player2_connection_failed": "Falha na conexão com o Player2. Por favor, baixe o aplicativo Player2 em https://player2.game, certifique-se de que ele está rodando em segundo plano e tente novamente. Nenhuma conta é necessária.",
-    "novelai_password": "Senha",
-    "email": "Email",
-    "password": "Senha",
-    "novelai_model": "Modelo",
-    "novelai_password_tooltip": "Sua senha de conta NovelAI (não é chave de API)"
-  },
   "memory_constellation": {
     "refresh_button": "Refresh",
     "refresh_button_tooltip": "Reload memories from the database to refresh the view.",
@@ -1081,6 +1056,17 @@
     "refreshing_in": "Atualizando em {seconds}s...",
     "delete": "Excluir",
     "delete_confirm": "Tem certeza de que deseja excluir este sussurro?",
-    "delete_success": "Sussurro excluído"
+    "delete_success": "Sussurro excluído",
+    "tooltip_player_id": "Selecione o perfil do jogador cujos sussurros serão exibidos.",
+    "tooltip_sort": "Ordenar sussurros por data do jogo ou data real.",
+    "filter_type": "Tipo de Sussurro:",
+    "tooltip_filter_type": "Filtrar sussurros por tipo de seção.",
+    "filter_type_all": "Todos os Tipos",
+    "section_world": "Terras Distantes",
+    "section_realm": "O Reino",
+    "section_court": "Sua Corte",
+    "section_circle": "Círculo Íntimo",
+    "search_placeholder": "Pesquisar sussurros...",
+    "tooltip_search": "Pesquisar sussurros por seção, personagens ou conteúdo."
   }
 }
