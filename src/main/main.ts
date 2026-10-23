@@ -48,6 +48,7 @@ import { setCachedGameData, getCachedGameData, clearCachedGameData } from './gam
 import { compactedMemoryStore } from './compactedMemoryStore';
 import { MemoryManager, Memory } from './memoryManager';
 import { ApiConnection, EmbeddingProvider, getEffectiveEmbeddingDimension } from '../shared/apiConnection';
+import { isSafeExternalUrl } from '../shared/externalUrl';
 import { getConfig } from "./configManager";
 const shell = require('electron').shell;
 const packagejson = require('../../package.json');
@@ -1898,13 +1899,19 @@ app.on('ready',  async () => {
     startLogTailing();
 
     configWindow.window.webContents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        if (isSafeExternalUrl(url)) {
+            void shell.openExternal(url);
+        }
         return { action: 'deny' };
     });
 
 ipcMain.on('open-external-link', (event, url: string) => {
     console.log('IPC: Ã¦â€°â€œÃ¥Â¼â‚¬Ã¥Â¤â€“Ã©Æ’Â¨Ã©â€œÂ¾Ã¦Å½Â¥:', url);
-    shell.openExternal(url);
+    if (!isSafeExternalUrl(url)) {
+        console.warn('IPC: blocked external URL with unsupported scheme');
+        return;
+    }
+    void shell.openExternal(url);
 });
 
 ipcMain.on('update-app', ()=>{
