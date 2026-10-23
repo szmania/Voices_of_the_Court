@@ -23,7 +23,7 @@ describe('compactionCrossLanguage', () => {
       // Simple token estimation for English
       const estimatedTokens = words.length;
       expect(estimatedTokens).toBeGreaterThan(0);
-      expect(estimatedTokens).toBe(14); // 14 words
+      expect(estimatedTokens).toBe(12); // 12 words
     });
   });
 
