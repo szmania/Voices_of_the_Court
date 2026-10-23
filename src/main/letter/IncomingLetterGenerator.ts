@@ -979,6 +979,41 @@ else = {
             throw new Error('Structured gameDate unavailable for incoming letter history save');
         }
 
+        // M1 (Letters-tab projection): upsert a display-only ILetter into the
+        // legacy LetterManager store so incoming letters appear in the Letters
+        // tab, which reads only that store. The projection is display-only:
+        // delivered:true and a non-letter_N subject guarantee it never
+        // re-enters delivery logic; the campaign history record below stays
+        // authoritative. Idempotency comes from saveLetter's built-in
+        // duplicate check (subject + totalDays + sender + recipient).
+        // Same UTC convention as Letter.fromLog (month is 0-indexed in JS Date).
+        //
+        // Fix B (VOTC-194 hotfix): this block runs BEFORE the campaign history
+        // work and swallows its own errors, so a history-side failure (e.g. a
+        // snapshot validation error) can never hide the letter from the tab.
+        try {
+            const writtenTimestamp = new Date(Date.UTC(gameDate.year, gameDate.month - 1, gameDate.day, 12, 0, 0));
+            const projection = new Letter(
+                `${context.slotId}|${gameData.playerID}|${context.senderId}|${context.sentDate}|${context.type}|${context.deliveryId}`,
+                sender,
+                player,
+                `incoming_${context.type}`,
+                normalizedText,
+                LetterType.PERSONAL,
+                writtenTimestamp,
+                true, // isRead: incoming letters arrive read
+                0, // delay: no journey — delivered instantly by the guarded run file
+                gameDate.totalDays,
+                undefined, // replyToId
+                'read',
+                true // delivered: never re-enters delivery logic
+            );
+            LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
+            BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
+        } catch (projectionError) {
+            console.error(`[IncomingLetterGenerator] Letters-tab projection failed for ${context.slotId}/${context.type}/${context.deliveryId}:`, projectionError);
+        }
+
         // 2CE made this async (1.x was synchronous); awaiting keeps the
         // archive pass strictly ordered before the record write below, since
         // both read-modify-write the same campaign history file.
@@ -1005,33 +1040,6 @@ else = {
             receiverCharacter: player
         });
         await saveIncomingLetterHistory(record, identity);
-
-        // M1 (Letters-tab projection): upsert a display-only ILetter into the
-        // legacy LetterManager store so incoming letters appear in the Letters
-        // tab, which reads only that store. The projection is display-only:
-        // delivered:true and a non-letter_N subject guarantee it never
-        // re-enters delivery logic; the campaign history record above stays
-        // authoritative. Idempotency comes from saveLetter's built-in
-        // duplicate check (subject + totalDays + sender + recipient).
-        // Same UTC convention as Letter.fromLog (month is 0-indexed in JS Date).
-        const writtenTimestamp = new Date(Date.UTC(gameDate.year, gameDate.month - 1, gameDate.day, 12, 0, 0));
-        const projection = new Letter(
-            signature,
-            sender,
-            player,
-            `incoming_${context.type}`,
-            normalizedText,
-            LetterType.PERSONAL,
-            writtenTimestamp,
-            true, // isRead: incoming letters arrive read
-            0, // delay: no journey — delivered instantly by the guarded run file
-            gameDate.totalDays,
-            undefined, // replyToId
-            'read',
-            true // delivered: never re-enters delivery logic
-        );
-        LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
-        BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
     }
 
     private async saveSummary(gameData: GameData, context: IncomingLetterContext, normalizedText: string, timeline: CreateChildNodeResult, sourceRecordId: string, gameDate?: import("../../shared/gameData/gameDate").Ck3GameDate): Promise<void> {
