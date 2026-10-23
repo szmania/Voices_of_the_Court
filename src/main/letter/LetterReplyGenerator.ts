@@ -39,6 +39,7 @@ import {
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 import type { Ck3GameDate } from '../../shared/gameData/gameDate.js';
 import { buildIncomingLetterHistoryRecord, buildLetterHistoryRecord } from './letterHistoryRecord.js';
+import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
 import { saveIncomingLetterHistory, saveLetterHistoryRecord } from '../conversationHistory.js';
 
 function indentCk3Block(block: string, indent: string): string {
@@ -199,9 +200,12 @@ export class LetterReplyGenerator {
      * stay grounded identically.
      */
     private async buildLetterGrounding(gameData: GameData, player: Character, ai: Character): Promise<{ characterDescription: string; conversationSummary: string; letterSummaryContent: string; memoryContent: string }> {
-        // Use pListLetter.js to build character description
+        // Use pListLetter.js to build character description. The script resolves its
+        // labels through gameData.localize(key, lang, vars), which the conversation
+        // flow injects in promptBuilder.ts; attach it here too so letter prompts get
+        // localized descriptions instead of raw loc keys.
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
-        let characterDescription = pListLetter(gameData);
+        let characterDescription = withGameDataLocalize(gameData, this.config.language || 'en', () => pListLetter(gameData)) as string;
 
         // Inject the user-authored character description for the AI character writing the reply.
         const userCharacterDescription = getEffectiveCharacterDescription(this.votcDataPath, String(player.id), String(ai.id));

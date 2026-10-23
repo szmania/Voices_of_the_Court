@@ -27,6 +27,7 @@ import { runIncomingLetterTimelineTransition } from '../timelineBusinessWire.js'
 import { Letter } from './Letter.js';
 import { LetterType } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
+import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -575,8 +576,11 @@ export class IncomingLetterGenerator {
             throw new Error('Player or sender character data not found in gameData');
         }
 
+        // The script resolves its labels through gameData.localize(key, lang, vars),
+        // which the conversation flow injects in promptBuilder.ts; attach it here too
+        // so incoming-letter prompts get localized descriptions instead of raw loc keys.
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
-        const characterDescription = pListLetter(gameData);
+        const characterDescription = withGameDataLocalize(gameData, this.config.language || 'en', () => pListLetter(gameData)) as string;
 
         const topicLabel = TOPIC_LABELS[context.type];
 
