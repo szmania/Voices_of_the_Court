@@ -4,6 +4,7 @@ import {ActionResponse, Message} from '../main/ts/conversation_interfaces.js';
 import { marked } from 'marked';
 import { GameData } from '../shared/gameData/GameData.js';
 import { Character } from '../shared/gameData/Character.js';
+import { escapeRegExp } from '../shared/stringUtils.js';
 import { randomUUID } from "crypto";
 const DOMPurify = require('dompurify');
 
@@ -31,10 +32,6 @@ function getCharacterColor(characterId: number): string {
         nextColorIndex++;
     }
     return characterColorMap.get(characterId)!;
-}
-
-function escapeRegExp(string: string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
@@ -1010,7 +1007,7 @@ function updateStatusText(textKey: string, vars?: any) {
 leaveButton.addEventListener("click", ()=>{
     hideChat();
     chatMessages.innerHTML = '';
-    chatInput.innerHTML = '';
+    chatInput.value = '';
     // 关闭建议选项框
     if (suggestionsContainer) {
         suggestionsContainer.style.display = 'none';
@@ -1160,7 +1157,7 @@ window.addEventListener('beforeunload', () => {
 
         if (searchTerm === '') return;
 
-        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
         let firstMatch: HTMLElement | null = null;
 
         messages.forEach((msg: any) => {

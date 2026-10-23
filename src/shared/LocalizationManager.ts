@@ -2,11 +2,13 @@ import { ipcRenderer } from 'electron';
 
 export class LocalizationManager {
     private static translations: any = {};
+    static language: string = 'en';
 
     static async loadTranslations(lang: string) {
         try {
             // Use require for local JSON files to avoid fetch/file protocol issues
             this.translations = require(`../../public/locales/${lang}.json`);
+            this.language = lang;
             this.applyTranslations();
         } catch (error) {
             console.error('Failed to load translations:', error);

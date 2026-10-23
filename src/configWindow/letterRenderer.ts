@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { Letter } from '../main/letter/letterInterfaces.js';
+import { escapeRegExp } from '../shared/stringUtils.js';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -346,7 +347,7 @@ function clearHighlights() {
 function highlightText(element: HTMLElement, term: string) {
     if (!term) return;
     const innerHTML = element.innerHTML;
-    const regex = new RegExp(`(${term})`, 'gi');
+    const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
     const newHTML = innerHTML.replace(regex, '<mark>$1</mark>');
     element.innerHTML = newHTML;
 }
@@ -956,7 +957,7 @@ function renderLetterContent(letter: Letter) {
     `;
 
     if (currentSearchTerm) {
-        const regex = new RegExp(`(${currentSearchTerm})`, 'gi');
+        const regex = new RegExp(`(${escapeRegExp(currentSearchTerm)})`, 'gi');
         viewHtml = viewHtml.replace(regex, '<mark>$1</mark>');
     }
 

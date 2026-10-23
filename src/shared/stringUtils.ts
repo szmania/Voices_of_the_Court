@@ -53,3 +53,12 @@ export function getSimilarity(a: string, b: string): number {
     }
     return 1 - (dist / maxLen);
 }
+
+/**
+ * Escapes regular expression metacharacters in a user-provided string.
+ * @param value The string to escape.
+ * @returns A string that matches the input literally when used in a RegExp.
+ */
+export function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
