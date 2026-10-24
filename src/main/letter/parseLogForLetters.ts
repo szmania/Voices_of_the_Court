@@ -145,23 +145,30 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                             if (npcLetterCategory) {
                                 letter.npcLetterCategory = npcLetterCategory;
                             }
-                            // Thread continuity (VOTC-194): a player response
-                            // written after an NPC opening letter is linked to
-                            // that opening so the letters tab can render the
-                            // full chain (AI opening -> player -> AI reply).
+                            // Thread continuity (VOTC-194 / app plan §12.1): a player
+                            // response written after an NPC-initiated letter is linked
+                            // to that letter so the letters tab can render the full
+                            // chain (NPC letter -> player -> AI reply). Two root kinds
+                            // qualify: an npcltr opening (VOTC-194) and an incoming
+                            // letter projection (subject 'incoming_<topic>', P1) — both
+                            // are NPC -> player letters with no reply yet.
+                            // ponytail: sender-pair heuristic with no per-occurrence
+                            // disambiguator — if two unlinked roots from the SAME sender
+                            // exist, the newest wins (usually right, occasionally not).
+                            // Upgrade path: mod-side reply-source marker (mod plan §24.2).
                             if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
                                 const playerNumericId = Number(finalSenderId);
                                 const npcNumericId = Number(finalRecipientId);
                                 const priorLetters = LetterManager.getInstance().getAllLetters(finalSenderId);
                                 const opening = priorLetters.find(l =>
-                                    l.subject === 'npcltr' &&
+                                    (l.subject === 'npcltr' || l.subject.startsWith('incoming_')) &&
                                     l.sender.id === npcNumericId &&
                                     l.recipient.id === playerNumericId &&
                                     !priorLetters.some(r => r.replyToId === l.id)
                                 );
                                 if (opening) {
                                     letter.replyToId = opening.id;
-                                    console.log(`Linked player letter ${letterId} to NPC opening letter ${opening.id}.`);
+                                    console.log(`Linked player letter ${letterId} to NPC letter ${opening.id} (${opening.subject}).`);
                                 }
                             }
                             // Guard: never auto-execute letter actions when manual approval is enabled.
