@@ -33,18 +33,7 @@
     "memories": "Anılar",
     "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin",
     "whispers": "Fısıltılar",
-    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet",
-    "tooltip_player_id": "Görüntülenecek fısıltıların oyuncu profilini seçin.",
-    "tooltip_sort": "Fısıltıları oyun tarihine veya gerçek tarihe göre sıralayın.",
-    "tooltip_search": "Fısıltıları bölüme, karakterlere veya içeriğe göre arayın.",
-    "search_placeholder": "Fısıltıları ara...",
-    "filter_type": "Fısıltı Türü:",
-    "tooltip_filter_type": "Fısıltıları bölüm türüne göre filtreleyin.",
-    "filter_type_all": "Tüm Türler",
-    "section_world": "Uzak Diyarlar",
-    "section_realm": "Krallık",
-    "section_court": "Sarayınız",
-    "section_circle": "İç Çember"
+    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet"
   },
   "diaries": {
     "header": "Günlükler",
@@ -838,6 +827,8 @@
     "status_reply_overdue": "Cevap Gecikti",
     "status_failed": "Başarısız",
     "status_completed": "Tamamlandı",
+    "reply_state_awaiting": "Cevabınızı bekliyor",
+    "reply_state_replied": "Yanıtlandı",
     "refresh": "Yenile",
     "no_reply": "Henüz cevap yok.",
     "outbound_not_found": "Giden mektup bulunamadı.",

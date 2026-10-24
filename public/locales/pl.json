@@ -808,6 +808,8 @@
     "status_reply_overdue": "Odpowiedź opóźniona",
     "status_failed": "Niepowodzenie",
     "status_completed": "Ukończono",
+    "reply_state_awaiting": "Oczekuje na Twoją odpowiedź",
+    "reply_state_replied": "Odpowiedziano",
     "load_success": "Dane listów załadowane pomyślnie",
     "thread_status": "Wątek listów",
     "tooltip_thread_status": "Wskazuje aktualną liczbę listów użytych w wątku listów w grze. Wątek musi zostać zresetowany w grze poprzez decyzję, gdy osiągnie 9/9.",

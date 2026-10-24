@@ -812,6 +812,8 @@
     "status_reply_overdue": "Respuesta atrasada",
     "status_failed": "Fallido",
     "status_completed": "Completado",
+    "reply_state_awaiting": "Esperando tu respuesta",
+    "reply_state_replied": "Respondido",
     "load_success": "Datos de cartas cargados con éxito",
     "thread_status": "Hilo de Cartas",
     "tooltip_thread_status": "Indica el número actual de cartas utilizadas en el hilo de cartas del juego. El hilo debe restablecerse en el juego mediante una decisión una vez que llega a 9/9.",

@@ -812,6 +812,8 @@
     "status_reply_overdue": "Réponse en retard",
     "status_failed": "Échoué",
     "status_completed": "Terminé",
+    "reply_state_awaiting": "En attente de votre réponse",
+    "reply_state_replied": "Répondu",
     "load_success": "Données des lettres chargées avec succès",
     "thread_status": "Fil de Lettres",
     "tooltip_thread_status": "Indique le nombre actuel de lettres utilisées dans le fil de lettres du jeu. Le fil doit être réinitialisé dans le jeu via une décision une fois qu'il atteint 9/9.",

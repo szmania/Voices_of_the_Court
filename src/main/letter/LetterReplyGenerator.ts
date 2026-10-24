@@ -218,7 +218,34 @@ export class LetterReplyGenerator {
         try {
             // @ts-ignore
             const depth = this.config.summaries_insert_depth || 3;
-            const summaries: Summary[] = await readSummaryFile(this.votcDataPath, String(player.id));
+            // §12.3: union read across the campaign-scoped summary store (when an
+            // identity is available) and the legacy player store, mirroring
+            // IncomingLetterGenerator.buildMessages — campaign-scoped summaries
+            // (incoming letters F21, npcltr M4) must reach the letter reply prompt.
+            // Dedup by summary id keeps the campaign copy authoritative.
+            const summaryTimeline = resolveSummaryTimelineContext(gameData);
+            const campaignSummaries = summaryTimeline.identity
+                ? await readSummaryFile(
+                    this.votcDataPath,
+                    String(player.id),
+                    gameData.votcCheckpointEpoch,
+                    summaryTimeline.registry,
+                    summaryTimeline.currentNodeId,
+                    summaryTimeline.identity
+                )
+                : [];
+            const legacySummaries = await readSummaryFile(
+                this.votcDataPath,
+                String(player.id),
+                gameData.votcCheckpointEpoch,
+                summaryTimeline.registry,
+                summaryTimeline.currentNodeId
+            );
+            const seenSummaryIds = new Set(campaignSummaries.map(s => s.id));
+            const summaries: Summary[] = [
+                ...campaignSummaries,
+                ...legacySummaries.filter(s => !s.id || !seenSummaryIds.has(s.id))
+            ];
             const aiSummaries = summaries.filter(summary => summary.characterId === String(ai.id)).slice(0, depth);
 
             if (aiSummaries.length > 0) {

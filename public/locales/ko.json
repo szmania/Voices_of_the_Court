@@ -808,6 +808,8 @@
     "status_reply_overdue": "답장 지연",
     "status_failed": "실패",
     "status_completed": "완료",
+    "reply_state_awaiting": "답장을 기다리는 중",
+    "reply_state_replied": "답장함",
     "load_success": "편지 데이터가 성공적으로 로드되었습니다.",
     "thread_status": "편지 스레드",
     "tooltip_thread_status": "게임의 편지 스레드에서 사용된 현재 편지 수를 나타냅니다. 9/9에 도달하면 게임 내 결정을 통해 스레드를 재설정해야 합니다.",

@@ -202,6 +202,20 @@ function renderIncomingTopicBadge(letter: Letter): string {
     return `<span class="npc-category-badge">${label}</span>`;
 }
 
+// §12.2: reply-state chip for NPC-initiated ROOT letters (npcltr openings and
+// incoming-letter projections). Awaiting reply = received letter with no
+// replyToId of its own and no listed letter replying to it; replied otherwise.
+// Player-sent letters and replies (which carry replyToId) never get the chip.
+// The state is fully derived from the in-memory list — no new data fields.
+function renderReplyStateBadge(letter: Letter): string {
+    if (letter.isPlayerSender || letter.replyToId) return '';
+    const hasReply = allLetters.some(l => l && l.replyToId === letter.id);
+    const key = hasReply ? 'letters.reply_state_replied' : 'letters.reply_state_awaiting';
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, hasReply ? 'Replied' : 'Awaiting your reply');
+    return `<span class="npc-category-badge reply-state-badge">${label}</span>`;
+}
+
 function renderChainLetterHtml(letter: Letter, listItem: HTMLElement): string {
     const isPlayerSender = letter.sender.id === Number(selectedPlayerId);
     const itemClass = isPlayerSender ? 'sent' : 'received';
@@ -228,7 +242,7 @@ function renderChainLetterHtml(letter: Letter, listItem: HTMLElement): string {
                 ${renderNpcCategoryBadge(letter)}
                 <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
             </div>
-            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}</div>
+            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}${renderReplyStateBadge(letter)}</div>
             ${statusHtml}
             ${triggeredActionsHtml}
         </div>
@@ -1095,8 +1109,6 @@ async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string
         await loadCharacters(selectedPlayerId, currentCharacterId);
         await loadLetters(selectedPlayerId);
         updatePlayerMismatchWarning();
-        await loadCharacters(selectedPlayerId, currentCharacterId);
-        await loadLetters(selectedPlayerId);
     } catch (error) {
         console.error("Error loading players:", error);
     } finally {
@@ -1133,8 +1145,10 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
         characterSelect.value = 'all';
     }
     selectedCharacterId = characterSelect.value;
-
-    await loadLetters(playerId);
+    // NOTE: no loadLetters() here. loadCharacters() is called from loadPlayers()
+    // (which loads letters itself) and from the playerSelect change handler
+    // (which loads letters explicitly). Calling it here too doubled every
+    // full letter-store read per refresh.
 }
 
 async function loadLetters(playerId: string) {
@@ -1290,17 +1304,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    refreshBtn.addEventListener('click', () => refreshLetters(false));
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
         // When player changes, reset character to 'all'
         await loadCharacters(selectedPlayerId, 'all');
+        // loadCharacters no longer loads letters itself (see the note there);
+        // the player switch is the one call site that needs it explicitly.
+        await loadLetters(selectedPlayerId);
         updatePlayerMismatchWarning();
-    });
-    playerSelect.addEventListener('change', async () => {
-        selectedPlayerId = playerSelect.value;
-        // When player changes, reset character to 'all'
-        await loadCharacters(selectedPlayerId, 'all');
     });
 
     characterSelect.addEventListener('change', () => {
@@ -1349,28 +1360,44 @@ ipcRenderer.on('current-session-player-changed', (event, playerId: string | null
     updatePlayerMismatchWarning();
 });
 
+// Debounced reload for letter-status-changed: generation flows broadcast this
+// repeatedly in bursts (import, generation, delivery, projection saves), and an
+// un-debounced handler turned each broadcast into a full letter-store read +
+// DOM re-render. A 400ms trailing debounce coalesces a burst into one reload.
+// Skipped entirely while the tab is hidden — the next visible reload catches up.
+let letterStatusReloadTimer: NodeJS.Timeout | null = null;
 ipcRenderer.on('letter-status-changed', () => {
-    console.log('Received letter-status-changed, reloading letters.');
-    if (selectedPlayerId) {
-        loadLetters(selectedPlayerId);
-    }
+    if (document.hidden) return;
+    if (letterStatusReloadTimer) clearTimeout(letterStatusReloadTimer);
+    letterStatusReloadTimer = setTimeout(() => {
+        letterStatusReloadTimer = null;
+        if (selectedPlayerId) {
+            loadLetters(selectedPlayerId);
+        }
+    }, 400);
 });
 
 ipcRenderer.on('letter-thread-status-update', (event, count: number) => {
     updateLetterThreadStatus(count);
 });
 
+// Throttled re-render for game-date-updated: the main process broadcasts every
+// new game day (~1-3s during play), and each tick used to trigger a full DOM
+// re-render. Coalesced to at most one re-render per 2s; the latest day always
+// lands because the timer fires with the freshest currentGameDay.
+let gameDateRenderTimer: NodeJS.Timeout | null = null;
 ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
-    console.log(`Received game-date-updated event: ${newTotalDays}`);
-    if (newTotalDays > currentGameDay) {
-        currentGameDay = newTotalDays;
-        // Re-render to update statuses
+    if (newTotalDays <= currentGameDay) return;
+    currentGameDay = newTotalDays;
+    if (gameDateRenderTimer) return; // a render is already scheduled
+    gameDateRenderTimer = setTimeout(() => {
+        gameDateRenderTimer = null;
         renderLetters();
         renderStatusSummary();
         if (selectedLetter) {
             renderLetterContent(selectedLetter);
         }
-    }
+    }, 2000);
 });
 
 window.addEventListener('beforeunload', () => {

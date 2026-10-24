@@ -799,6 +799,8 @@
     "status_reply_overdue": "Reply Overdue",
     "status_failed": "Failed",
     "status_completed": "Completed",
+    "reply_state_awaiting": "Awaiting your reply",
+    "reply_state_replied": "Replied",
     "refresh": "Refresh",
     "no_reply": "No reply yet.",
     "outbound_not_found": "Outbound letter not found.",

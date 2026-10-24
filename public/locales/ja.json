@@ -839,6 +839,8 @@
     "status_reply_overdue": "返信遅延",
     "status_failed": "失敗",
     "status_completed": "完了",
+    "reply_state_awaiting": "返信待ち",
+    "reply_state_replied": "返信済み",
     "load_success": "手紙のデータが正常に読み込まれました",
     "thread_status": "手紙スレッド",
     "tooltip_thread_status": "ゲームの手紙スレッドで使用されている現在の手紙の数を示します。9/9に達すると、ゲーム内で決断を通じてスレッドをリセットする必要があります。",

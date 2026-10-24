@@ -809,6 +809,8 @@
     "status_reply_overdue": "Resposta atrasada",
     "status_failed": "Falhou",
     "status_completed": "Concluído",
+    "reply_state_awaiting": "Aguardando sua resposta",
+    "reply_state_replied": "Respondido",
     "load_success": "Dados de cartas carregados com sucesso",
     "thread_status": "Fio de Cartas",
     "tooltip_thread_status": "Indica o número atual de cartas usadas no fio de cartas do jogo. O fio precisa ser redefinido no jogo por meio de uma decisão assim que atingir 9/9.",

@@ -809,6 +809,8 @@
     "status_reply_overdue": "Antwort überfällig",
     "status_failed": "Fehlgeschlagen",
     "status_completed": "Abgeschlossen",
+    "reply_state_awaiting": "Wartet auf Ihre Antwort",
+    "reply_state_replied": "Beantwortet",
     "refresh": "Aktualisieren",
     "no_reply": "Noch keine Antwort.",
     "outbound_not_found": "Ausgehender Brief nicht gefunden.",
