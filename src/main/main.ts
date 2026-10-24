@@ -1143,6 +1143,20 @@ app.on('ready',  async () => {
             fs.writeFileSync(votcFilePath, '', 'utf-8');
             console.log(`Created blank votc_ce.txt at: ${votcFilePath}`);
         }
+        // Create-if-missing seed for the NPC-initiative (npcltr) channel: the
+        // mod-side pollers (letters_runner _show_npcltr + the backstop runner)
+        // execute `run votc_ce_npcltr.txt` on a ~2s beat unconditionally, so
+        // until the first NPC letter delivery the missing file spams CK3's
+        // debug.log with `console_failure: No such file in run/`. The blank
+        // heartbeat placeholder is byte-identical to what
+        // LetterManager.clearNpcltrFile writes; unlike votc_ce_letters.txt this
+        // is NOT re-written on every startup - an in-flight delivery's content
+        // must survive an app restart.
+        const npcltrFilePath = path.join(runFolderPath, 'votc_ce_npcltr.txt');
+        if (!fs.existsSync(npcltrFilePath)) {
+            fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_npcltr.txt at: ${npcltrFilePath}`);
+        }
     } else {
         console.warn('Cannot initialize run files: userFolderPath is not configured.');
     }
