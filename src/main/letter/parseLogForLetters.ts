@@ -29,6 +29,46 @@ function totalDaysToDateString(totalDays: number): string {
     return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
+/**
+ * App plan §12.4.1a: the mod appends a conditional trailing payload field
+ * `incoming_reply=<slot>|<type>|<deliveryId>` to a player write-back reply
+ * (VOTC:LETTER line), so the app can deterministically link the reply to the
+ * exact incoming-letter projection instead of guessing by sender pair. The
+ * projection id built by IncomingLetterGenerator.saveHistory is
+ * `${slotId}|${playerId}|${senderId}|${sentDate}|${type}|${deliveryId}` — six
+ * '|'-separated segments — so slot/type/deliveryId identify the root exactly.
+ * Defensive: a malformed marker is treated as absent (heuristic fallback).
+ * The marker stays parse-local; replyToId (set by the caller) is the persisted
+ * link — no ILetter schema change, no persistence.
+ */
+function parseReplyMarker(parts: string[]): { slot: number; type: string; deliveryId: number; fieldIndex: number } | undefined {
+    for (let i = 4; i < parts.length; i++) {
+        const field = (parts[i] ?? '').trim();
+        if (!field.startsWith('incoming_reply=')) continue;
+        const segs = field.slice('incoming_reply='.length).split('|');
+        // slot/deliveryId must be finite non-negative integers; type non-empty.
+        if (segs.length === 3 && segs[1].length > 0 && /^\d+$/.test(segs[0]) && /^\d+$/.test(segs[2])) {
+            return { slot: Number(segs[0]), type: segs[1], deliveryId: Number(segs[2]), fieldIndex: i };
+        }
+        console.log(`Ignoring malformed incoming_reply marker: "${field}"`);
+        return undefined;
+    }
+    return undefined;
+}
+
+/**
+ * True when a stored letter's id is the incoming-letter projection the reply
+ * marker points at (see parseReplyMarker).
+ */
+function projectionMatchesReplyMarker(id: string, npcNumericId: number, marker: { slot: number; type: string; deliveryId: number }): boolean {
+    const segs = id.split('|');
+    return segs.length === 6
+        && segs[0] === `incoming_letter_${marker.slot}`
+        && segs[2] === String(npcNumericId)
+        && segs[4] === marker.type
+        && segs[5] === String(marker.deliveryId);
+}
+
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
@@ -85,7 +125,14 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 }
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
-                const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
+                // §12.4.1a: the mod may append a trailing incoming_reply marker
+                // (normally at parts[5], where the recipient id would sit). Scan
+                // for it first and never let a marker-shaped field become the
+                // recipient id.
+                const replyMarker = parseReplyMarker(parts);
+                const recipientIdFromLog = (parts[5] && !parts[5].trim().startsWith('incoming_reply='))
+                    ? parts[5].trim()
+                    : undefined;
 
                 // AI-initiated letter request (VOTC-194): the payload carries no
                 // sender/recipient fields; both ids come from the letter-session
@@ -155,20 +202,31 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                             // ponytail: sender-pair heuristic with no per-occurrence
                             // disambiguator — if two unlinked roots from the SAME sender
                             // exist, the newest wins (usually right, occasionally not).
-                            // Upgrade path: mod-side reply-source marker (mod plan §24.2).
+                            // §12.4.1a: the mod's reply marker now disambiguates when
+                            // present; the heuristic remains the fallback.
                             if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
                                 const playerNumericId = Number(finalSenderId);
                                 const npcNumericId = Number(finalRecipientId);
                                 const priorLetters = LetterManager.getInstance().getAllLetters(finalSenderId);
-                                const opening = priorLetters.find(l =>
+                                // §12.4.1a: a reply marker identifies the exact root;
+                                // try it first, then fall back to the sender-pair
+                                // heuristic below (unchanged when no marker exists).
+                                const isUnlinkedRoot = (l: Letter) =>
                                     (l.subject === 'npcltr' || l.subject.startsWith('incoming_')) &&
                                     l.sender.id === npcNumericId &&
                                     l.recipient.id === playerNumericId &&
-                                    !priorLetters.some(r => r.replyToId === l.id)
+                                    !priorLetters.some(r => r.replyToId === l.id);
+                                const deterministicOpening = replyMarker
+                                    ? priorLetters.find(l => isUnlinkedRoot(l) && projectionMatchesReplyMarker(l.id, npcNumericId, replyMarker))
+                                    : undefined;
+                                const opening = deterministicOpening ?? priorLetters.find(l =>
+                                    isUnlinkedRoot(l)
                                 );
                                 if (opening) {
                                     letter.replyToId = opening.id;
-                                    console.log(`Linked player letter ${letterId} to NPC letter ${opening.id} (${opening.subject}).`);
+                                    console.log(deterministicOpening
+                                        ? `Linked player letter ${letterId} to incoming letter ${opening.id} via reply marker (slot ${replyMarker!.slot}, ${replyMarker!.type}, delivery ${replyMarker!.deliveryId}).`
+                                        : `Linked player letter ${letterId} to NPC letter ${opening.id} (${opening.subject}).`);
                                 }
                             }
                             // Guard: never auto-execute letter actions when manual approval is enabled.

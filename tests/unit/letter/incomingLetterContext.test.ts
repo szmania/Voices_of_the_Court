@@ -109,6 +109,13 @@ describe('IncomingLetterGenerator fallback pipeline', () => {
         expect(content).toContain('var:votc_incoming_letter_2_delivery_id = 11');
         expect(content).toContain('global_var:votc_incoming_letter_type_2 = flag:vassal_memorial');
         expect(content).toContain('votc_incoming_letter_fallback_desc');
+        // §13.1 artifact exposure: the run file must expose the created artifact
+        // to the global the mod's arrival-window widget reads to open the
+        // parchment (mirrors LetterManager.deliverLetter's exposure block).
+        expect(content).toContain('save_scope_as = votc_latest_letter');
+        expect(content).toContain('set_variable = { name = votc_letter_artifact value = yes }');
+        expect(content).toContain('name = votc_latest_letter');
+        expect(content).toContain('value = scope:votc_latest_letter');
         expect(content).toContain('VOTC:INCOMING_LETTER/;/run_skipped/;/incoming_letter_2/;/11');
     }
 

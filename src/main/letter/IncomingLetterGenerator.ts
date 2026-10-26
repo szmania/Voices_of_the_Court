@@ -486,6 +486,42 @@ export class IncomingLetterGenerator {
         }
     }
 
+    /**
+     * Byte offset of the last occurrence of `marker` at or before `beforeOffset`,
+     * found by scanning backward in 512KB chunks (1KB overlap so a marker
+     * straddling a chunk edge is still complete). Returns -1 when the marker is
+     * not present above `floorOffset`. Byte offsets, not string indexes, so
+     * multibyte (CJK) content cannot shift the result.
+     */
+    private findLastMarkerOffset(fd: number, size: number, marker: string, beforeOffset: number, floorOffset: number): number {
+        const CHUNK = 512 * 1024;
+        const OVERLAP = 1024;
+        let end = Math.min(size, beforeOffset);
+        while (end > floorOffset) {
+            const start = Math.max(floorOffset, end - CHUNK);
+            const readEnd = Math.min(size, end + OVERLAP);
+            const buffer = Buffer.alloc(readEnd - start);
+            fs.readSync(fd, buffer, 0, buffer.length, start);
+            const text = buffer.toString('utf8');
+            // Only consider markers starting inside [start, end); the overlap
+            // exists so a marker straddling the chunk edge is still complete.
+            const own = text.slice(0, end - start);
+            const idx = own.lastIndexOf(marker);
+            if (idx >= 0) {
+                const absolute = start + Buffer.byteLength(text.slice(0, idx), 'utf8');
+                if (absolute <= beforeOffset) return absolute;
+            }
+            end = start;
+        }
+        return -1;
+    }
+
+    /**
+     * Locates the newest matching incoming-letter context line by scanning the
+     * log tail backward in chunks, instead of decoding the whole (unbounded)
+     * debug.log into one string. Returns absolute BYTE offsets for the snapshot
+     * window, or null when no match is found inside the bounded tail.
+     */
     private parseContext(
         debugLogPath: string,
         expectedSlotId: string,
@@ -498,74 +534,184 @@ export class IncomingLetterGenerator {
                 return null;
             }
 
-            const content = fs.readFileSync(debugLogPath, 'utf8');
             const initMarker = 'VOTC:IN/;/init/';
             const contextMarker = 'VOTC:INCOMING_LETTER/;/context/';
-            let searchFrom = content.length;
 
-            while (searchFrom >= 0) {
-                const contextStart = content.lastIndexOf(contextMarker, searchFrom);
-                if (contextStart === -1) break;
+            const size = fs.statSync(debugLogPath).size;
+            const CHUNK = 512 * 1024;
+            const OVERLAP = 1024; // markers are short; a 1KB overlap covers straddles
+            // The request is always written just before the clipboard trigger, so
+            // it sits at the tail. A 16MB window is generous; beyond it the
+            // whole-file fallback below preserves the old (correct, slow) path.
+            const MAX_TAIL = 16 * 1024 * 1024;
+            const floor = Math.max(0, size - MAX_TAIL);
 
-                const rawLineEnd = content.indexOf('\n', contextStart);
-                const contextLineEnd = rawLineEnd === -1 ? content.length : rawLineEnd;
-                const contextLine = content.slice(contextStart, contextLineEnd).replace(/\r$/, '');
-                const parts = contextLine.split('/;/').map(part => part.trim());
-                const slot = parts[2];
-                const type = parts[3];
-                const sentDate = parts[4];
-                const senderId = Number(parts[5]);
-                const deliveryId = Number(parts[6]);
+            const fd = fs.openSync(debugLogPath, 'r');
+            try {
+                let end = size;
+                while (end > floor) {
+                    const start = Math.max(floor, end - CHUNK);
+                    const readEnd = Math.min(size, end + OVERLAP);
+                    const buffer = Buffer.alloc(readEnd - start);
+                    fs.readSync(fd, buffer, 0, buffer.length, start);
+                    const text = buffer.toString('utf8');
+                    // Only consider markers starting inside [start, end); the
+                    // overlap exists so a marker straddling the chunk edge is
+                    // still complete.
+                    const own = text.slice(0, end - start);
 
-                if (
-                    parts.length >= 7
-                    && parts[0] === 'VOTC:INCOMING_LETTER'
-                    && parts[1] === 'context'
-                    && slot === expectedSlotId
-                    && type === expectedType
-                    && deliveryId === expectedDeliveryId
-                    && sentDate
-                    && Number.isFinite(senderId)
-                ) {
-                    const initStart = content.lastIndexOf(initMarker, contextStart);
-                    if (initStart === -1) {
-                        console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
-                        searchFrom = contextStart - 1;
-                        continue;
-                    }
+                    let searchFrom = own.length;
+                    while (searchFrom > 0) {
+                        const idx = own.lastIndexOf(contextMarker, searchFrom);
+                        if (idx < 0) break;
 
-                    const facts: Record<string, string> = {};
-                    for (let i = 7; i < parts.length; i++) {
-                        const separatorIndex = parts[i].indexOf('=');
-                        if (separatorIndex <= 0) continue;
-                        const key = parts[i].slice(0, separatorIndex).trim();
-                        const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
-                        if (/^[a-z0-9_]+$/i.test(key) && value) {
-                            facts[key] = value;
+                        // Full line containing the marker (may extend into the overlap).
+                        const lineStart = text.lastIndexOf('\n', idx) + 1;
+                        const eol = text.indexOf('\n', idx);
+                        const contextLine = text.slice(lineStart, eol >= 0 ? eol : text.length).replace(/\r$/, '');
+                        const parts = contextLine.split('/;/').map(part => part.trim());
+                        const slot = parts[2];
+                        const type = parts[3];
+                        const sentDate = parts[4];
+                        const senderId = Number(parts[5]);
+                        const deliveryId = Number(parts[6]);
+
+                        if (
+                            parts.length >= 7
+                            && parts[0] === 'VOTC:INCOMING_LETTER'
+                            && parts[1] === 'context'
+                            && slot === expectedSlotId
+                            && type === expectedType
+                            && deliveryId === expectedDeliveryId
+                            && sentDate
+                            && Number.isFinite(senderId)
+                        ) {
+                            const contextStart = start + Buffer.byteLength(text.slice(0, idx), 'utf8');
+                            const contextLineEnd = start + Buffer.byteLength(text.slice(0, eol >= 0 ? eol : text.length), 'utf8');
+                            const initStart = this.findLastMarkerOffset(fd, size, initMarker, contextStart, floor);
+                            if (initStart < 0) {
+                                console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
+                                searchFrom = idx - 1;
+                                continue;
+                            }
+
+                            const facts: Record<string, string> = {};
+                            for (let i = 7; i < parts.length; i++) {
+                                const separatorIndex = parts[i].indexOf('=');
+                                if (separatorIndex <= 0) continue;
+                                const key = parts[i].slice(0, separatorIndex).trim();
+                                const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
+                                if (/^[a-z0-9_]+$/i.test(key) && value) {
+                                    facts[key] = value;
+                                }
+                            }
+
+                            return {
+                                slotId: slot as IncomingLetterContext['slotId'],
+                                type: type as IncomingLetterType,
+                                sentDate,
+                                senderId,
+                                deliveryId,
+                                facts,
+                                snapshotStartOffset: initStart,
+                                snapshotEndOffset: contextLineEnd
+                            };
                         }
+
+                        searchFrom = idx - 1;
                     }
 
-                    return {
-                        slotId: slot as IncomingLetterContext['slotId'],
-                        type: type as IncomingLetterType,
-                        sentDate,
-                        senderId,
-                        deliveryId,
-                        facts,
-                        snapshotStartOffset: initStart,
-                        snapshotEndOffset: contextLineEnd
-                    };
+                    end = start;
                 }
-
-                searchFrom = contextStart - 1;
+            } finally {
+                fs.closeSync(fd);
             }
 
-            console.log(`[IncomingLetterGenerator] No matching context found for ${expectedSlotId}/${expectedType}/${expectedDeliveryId}`);
-            return null;
+            // Markers not found inside the bounded tail: fall back to the
+            // original whole-file scan so correctness never depends on the
+            // window size (only the common case is fast).
+            return this.parseContextWholeFile(debugLogPath, expectedSlotId, expectedType, expectedDeliveryId);
         } catch (error) {
             console.error(`[IncomingLetterGenerator] Error parsing incoming letter context:`, error);
             return null;
         }
+    }
+
+    /**
+     * Whole-file fallback for `parseContext` (the pre-chunking implementation).
+     * Only reached when the bounded tail scan finds no match; offsets are byte
+     * offsets, matching the chunked path and `parseLog`'s range contract.
+     */
+    private parseContextWholeFile(
+        debugLogPath: string,
+        expectedSlotId: string,
+        expectedType: IncomingLetterType,
+        expectedDeliveryId: number
+    ): IncomingLetterContext | null {
+        const content = fs.readFileSync(debugLogPath, 'utf8');
+        const initMarker = 'VOTC:IN/;/init/';
+        const contextMarker = 'VOTC:INCOMING_LETTER/;/context/';
+        let searchFrom = content.length;
+
+        while (searchFrom >= 0) {
+            const contextStart = content.lastIndexOf(contextMarker, searchFrom);
+            if (contextStart === -1) break;
+
+            const rawLineEnd = content.indexOf('\n', contextStart);
+            const contextLineEnd = rawLineEnd === -1 ? content.length : rawLineEnd;
+            const contextLine = content.slice(contextStart, contextLineEnd).replace(/\r$/, '');
+            const parts = contextLine.split('/;/').map(part => part.trim());
+            const slot = parts[2];
+            const type = parts[3];
+            const sentDate = parts[4];
+            const senderId = Number(parts[5]);
+            const deliveryId = Number(parts[6]);
+
+            if (
+                parts.length >= 7
+                && parts[0] === 'VOTC:INCOMING_LETTER'
+                && parts[1] === 'context'
+                && slot === expectedSlotId
+                && type === expectedType
+                && deliveryId === expectedDeliveryId
+                && sentDate
+                && Number.isFinite(senderId)
+            ) {
+                const initStart = content.lastIndexOf(initMarker, contextStart);
+                if (initStart === -1) {
+                    console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
+                    searchFrom = contextStart - 1;
+                    continue;
+                }
+
+                const facts: Record<string, string> = {};
+                for (let i = 7; i < parts.length; i++) {
+                    const separatorIndex = parts[i].indexOf('=');
+                    if (separatorIndex <= 0) continue;
+                    const key = parts[i].slice(0, separatorIndex).trim();
+                    const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
+                    if (/^[a-z0-9_]+$/i.test(key) && value) {
+                        facts[key] = value;
+                    }
+                }
+
+                return {
+                    slotId: slot as IncomingLetterContext['slotId'],
+                    type: type as IncomingLetterType,
+                    sentDate,
+                    senderId,
+                    deliveryId,
+                    facts,
+                    snapshotStartOffset: Buffer.byteLength(content.slice(0, initStart), 'utf8'),
+                    snapshotEndOffset: Buffer.byteLength(content.slice(0, contextLineEnd), 'utf8')
+                };
+            }
+
+            searchFrom = contextStart - 1;
+        }
+
+        console.log(`[IncomingLetterGenerator] No matching context found for ${expectedSlotId}/${expectedType}/${expectedDeliveryId}`);
+        return null;
     }
 
     private async buildMessages(gameData: GameData, context: IncomingLetterContext): Promise<Message[]> {
@@ -906,6 +1052,25 @@ ${timelineSetBlock}\tsend_interface_message = {
 \t\tdesc = votc_incoming_letter_fallback_desc
 \t\tleft_icon = global_var:votc_incoming_letter_sender_${slotNumber}
 \t}
+\tcreate_artifact = {
+\t\tname = votc_incoming_letter_title${slotNumber}
+\t\tdescription = votc_incoming_letter_fallback_desc
+\t\ttype = journal
+\t\tvisuals = scroll
+\t\tcreator = global_var:votc_incoming_letter_sender_${slotNumber}
+\t\tmodifier = artifact_monthly_minor_prestige_1_modifier
+\t\tsave_scope_as = votc_latest_letter
+\t}
+\tif = {
+\t\tlimit = { exists = scope:votc_latest_letter }
+\t\tscope:votc_latest_letter = {
+\t\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\t}
+\t\tset_global_variable = {
+\t\t\tname = votc_latest_letter
+\t\t\tvalue = scope:votc_latest_letter
+\t\t}
+\t}
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_type_${slotNumber}
@@ -956,6 +1121,17 @@ ${timelineSetBlock}\tsend_interface_message = {
 \t\tvisuals = scroll
 \t\tcreator = global_var:votc_incoming_letter_sender_${slotNumber}
 \t\tmodifier = artifact_monthly_minor_prestige_1_modifier
+\t\tsave_scope_as = votc_latest_letter
+\t}
+\tif = {
+\t\tlimit = { exists = scope:votc_latest_letter }
+\t\tscope:votc_latest_letter = {
+\t\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\t}
+\t\tset_global_variable = {
+\t\t\tname = votc_latest_letter
+\t\t\tvalue = scope:votc_latest_letter
+\t\t}
 \t}
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}

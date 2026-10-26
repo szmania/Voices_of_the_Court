@@ -141,4 +141,82 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
         expect(letters).toHaveLength(1);
         expect(letters[0].replyToId).toBeUndefined();
     });
+
+    // §12.4.1a — deterministic reply-source marker. The mod appends
+    // incoming_reply=<slot>|<type>|<deliveryId> to the VOTC:LETTER line; the
+    // projection id built by IncomingLetterGenerator.saveHistory is
+    // `${slotId}|${playerId}|${senderId}|${sentDate}|${type}|${deliveryId}`.
+    function seedProjectionWithId(id: string): string {
+        const gameData = makeGameData();
+        const player = gameData.characters.get(PLAYER_ID)!;
+        const npc = gameData.characters.get(NPC_ID)!;
+        const projection = new LetterClass(
+            id,
+            npc,
+            player,
+            `incoming_${TOPIC}`,
+            'A notice from the NPC.',
+            LetterType.PERSONAL,
+            new Date(Date.UTC(1179, 8, 5, 12, 0, 0)),
+            true,
+            0,
+            430583,
+            undefined,
+            'read',
+            true
+        );
+        LetterManager.getInstance().saveLetter(projection, String(PLAYER_ID));
+        return projection.id;
+    }
+
+    function writeBackLogWithMarker(marker: string): string {
+        return [
+            'noise line',
+            `VOTC:LETTER/;/I write back to your letter./;/letter_1/;/430583/;/0/;/${marker}/;/`
+        ].join('\r\n') + '\r\n';
+    }
+
+    async function parseLogContent(logContent: string) {
+        const logPath = path.join(USER_DATA_ROOT, 'debug.log');
+        fs.writeFileSync(logPath, logContent, 'utf8');
+        return parseLettersFromLog(
+            logPath, makeGameData(), '1179.9.5', makeConfig(),
+            String(PLAYER_ID), String(NPC_ID)
+        );
+    }
+
+    it('links via the reply marker to the OLDER projection when two unlinked roots share a sender', async () => {
+        // Two unlinked incoming projections from the SAME sender, different
+        // deliveryIds. The heuristic would pick the newest; the marker must
+        // pick the exact (older) one — this proves determinism wins.
+        const olderId = `incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`;
+        const newerId = `incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|9`;
+        seedProjectionWithId(olderId);
+        seedProjectionWithId(newerId);
+
+        const letters = await parseLogContent(writeBackLogWithMarker(`incoming_reply=3|${TOPIC}|7`));
+
+        expect(letters).toHaveLength(1);
+        expect(letters[0].replyToId).toBe(olderId);
+    });
+
+    it('falls back to the heuristic when the marker is malformed', async () => {
+        const projectionId = seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`);
+
+        const letters = await parseLogContent(writeBackLogWithMarker('incoming_reply=x|y'));
+
+        expect(letters).toHaveLength(1);
+        // Heuristic fallback: the only unlinked root is linked.
+        expect(letters[0].replyToId).toBe(projectionId);
+    });
+
+    it('falls back to the heuristic when the marker matches no root', async () => {
+        const projectionId = seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`);
+
+        // Marker points at deliveryId 99 — no projection carries it.
+        const letters = await parseLogContent(writeBackLogWithMarker(`incoming_reply=3|${TOPIC}|99`));
+
+        expect(letters).toHaveLength(1);
+        expect(letters[0].replyToId).toBe(projectionId);
+    });
 });
