@@ -144,8 +144,10 @@ async function loadactions(){
     actionsDiv.replaceChildren();
 
     await sleep(250)
-    let standardFileNames = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === '.js');
-    let customFileNames = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === '.js');
+    const standardDir = path.join(actionsPath, 'standard');
+    const customDir = path.join(actionsPath, 'custom');
+    let standardFileNames = fs.existsSync(standardDir) ? fs.readdirSync(standardDir).filter(file => path.extname(file) === '.js') : [];
+    let customFileNames = fs.existsSync(customDir) ? fs.readdirSync(customDir).filter(file => path.extname(file) === '.js') : [];
 
     for(const fileName of standardFileNames){
         let file  = require(path.join(actionsPath, 'standard', fileName));

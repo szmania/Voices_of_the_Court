@@ -655,8 +655,10 @@ async function executeLetterActionEffect(actionSignature: string, args: any[], s
     try {
         const allActions: any[] = [];
         const actionsPath = path.join(votcDataPath, 'scripts', 'actions');
-        const standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
-        const customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
+        const standardActionsDir = path.join(actionsPath, 'standard');
+        const customActionsDir = path.join(actionsPath, 'custom');
+        const standardActionFiles = fs.existsSync(standardActionsDir) ? fs.readdirSync(standardActionsDir).filter(file => path.extname(file) === ".js") : [];
+        const customActionFiles = fs.existsSync(customActionsDir) ? fs.readdirSync(customActionsDir).filter(file => path.extname(file) === ".js") : [];
 
         for (const file of standardActionFiles) {
             delete require.cache[require.resolve(path.join(actionsPath, 'standard', file))];

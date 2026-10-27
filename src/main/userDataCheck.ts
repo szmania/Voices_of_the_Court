@@ -249,6 +249,13 @@ export async function checkUserData(){
         synchronizeDirectory(sourceActionsPath, standardActionsPath);
     }
 
+    // Check and create custom actions folder
+    const customActionsPath = path.join(userDataScriptsPath, 'actions', 'custom');
+    if (!fs.existsSync(customActionsPath)) {
+        fs.mkdirSync(customActionsPath, { recursive: true });
+        console.log(`Created custom actions directory: ${customActionsPath}`);
+    }
+
     //description
     console.log('Validating standard description scripts...');
     const standardDescriptionPath = path.join(userDataScriptsPath, 'prompts', 'description', 'standard');
