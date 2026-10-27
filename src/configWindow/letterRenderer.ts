@@ -1273,6 +1273,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         refreshBtn.classList.add('refreshing');
+        // Manual refresh only: block double-clicks while the refresh is running.
+        // The auto path never disables the button (it fires from the 20s timer).
+        if (!isAuto) {
+            refreshBtn.disabled = true;
+        }
         if (!isAuto) {
             loader.style.display = 'block';
         }
@@ -1296,6 +1301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } finally {
             if (!isAuto) {
                 loader.style.display = 'none';
+                refreshBtn.disabled = false;
             }
             // Give animation time to be seen
             setTimeout(() => {
@@ -1319,6 +1325,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         cachedLetterChains = null;
         renderLetters();
         renderStatusSummary(); // Update status counts to reflect character filter
+    });
+
+    // Manual refresh button (was never wired up — the button only appeared to
+    // work when a click coincided with the 20s auto-refresh timer, which spins
+    // the same button). Mirrors diariesRenderer/summarizationRenderer.
+    refreshBtn.addEventListener('click', () => {
+        refreshLetters(false);
     });
 
     const startInterval = () => {

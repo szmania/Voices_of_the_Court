@@ -40,6 +40,22 @@ export class ClipboardListener extends EventEmitter{
         console.log('ClipboardListener stopped.');
     }
 
+    /**
+     * Validates the three incoming-letter bridge fields shared by the clipboard
+     * and log transports: slotId, type and deliveryId. Returns the trimmed
+     * triple when every field is well-formed, undefined otherwise, so a
+     * malformed or payload-less token never reaches the main.ts handler as
+     * undefined arguments.
+     */
+    private parseIncomingLetterPayload(payloads: string[]): { slotId: string; type: string; deliveryId: string } | undefined {
+        const [slotId, type, deliveryId] = payloads;
+        if (!/^incoming_letter_[1-8]$/.test(slotId ?? '')
+            || !/^[a-z_]+$/.test(type ?? '')
+            || !/^\d+$/.test(deliveryId ?? '')
+            || !Number.isSafeInteger(Number(deliveryId))) return undefined;
+        return { slotId, type, deliveryId };
+    }
+
     // The upstream settings can stop clipboard polling. Route this bridge
     // through the same event handler while that transport is disabled.
     readIncomingLetterLogLine(line: string): void {
@@ -47,13 +63,11 @@ export class ClipboardListener extends EventEmitter{
         const marker = 'VOTC:INCOMING_LETTER/;/clipboard/;/';
         const offset = line.indexOf(marker);
         if (offset === -1) return;
-        const [slotId, type, deliveryId] = line.slice(offset + marker.length)
-            .split('/;/').map(segment => segment.trim());
-        if (!/^incoming_letter_[1-8]$/.test(slotId ?? '')
-            || !/^[a-z_]+$/.test(type ?? '')
-            || !/^\d+$/.test(deliveryId ?? '')
-            || !Number.isSafeInteger(Number(deliveryId))) return;
-        this.emit('VOTC:INCOMING_LETTER', slotId, type, deliveryId);
+        const payload = this.parseIncomingLetterPayload(
+            line.slice(offset + marker.length).split('/;/').map(segment => segment.trim())
+        );
+        if (!payload) return;
+        this.emit('VOTC:INCOMING_LETTER', payload.slotId, payload.type, payload.deliveryId);
     }
 
     readClipboard(){
@@ -101,18 +115,21 @@ export class ClipboardListener extends EventEmitter{
                 case "LETTER_EFFECT_ACCEPTED":
                     this.emit('VOTC:LETTER_EFFECT_ACCEPTED');
                     break;
-                case "INCOMING_LETTER":
+                case "INCOMING_LETTER": {
                     // Payload order matches the mod-side clipboard_codes bridge
                     // keys: slotId, type, deliveryId. The trailing campaign
-                    // identity segments of the wire payload are ignored here;
-                    // the main.ts handler re-validates all three arguments.
-                    this.emit(
-                        'VOTC:INCOMING_LETTER',
-                        payloads[0],
-                        payloads[1],
-                        payloads[2]
-                    );
-                break;
+                    // identity segments of the wire payload are ignored here.
+                    // A bare 'VOTC:INCOMING_LETTER' token carries no payload at
+                    // all, so validate before emitting: undefined arguments
+                    // would only surface as an error log in the main.ts handler.
+                    const payload = this.parseIncomingLetterPayload(payloads);
+                    if (!payload) {
+                        console.warn(`Ignoring malformed VOTC:INCOMING_LETTER clipboard content: ${currentClipboard.replace(/[\r\n]+/g, ' ').slice(0, 200)}`);
+                        break;
+                    }
+                    this.emit('VOTC:INCOMING_LETTER', payload.slotId, payload.type, payload.deliveryId);
+                    break;
+                }
             }
 
 

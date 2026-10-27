@@ -1046,13 +1046,7 @@ ${indent}}
 \t\tvar:votc_incoming_letter_${slotNumber}_delivery_id = ${deliveryId}
 \t\tglobal_var:votc_incoming_letter_type_${slotNumber} = flag:${type}
 \t}
-${timelineSetBlock}\tsend_interface_message = {
-\t\ttype = votc_message_popup
-\t\ttitle = votc_incoming_letter_title${slotNumber}
-\t\tdesc = votc_incoming_letter_fallback_desc
-\t\tleft_icon = global_var:votc_incoming_letter_sender_${slotNumber}
-\t}
-\tcreate_artifact = {
+${timelineSetBlock}\tcreate_artifact = {
 \t\tname = votc_incoming_letter_title${slotNumber}
 \t\tdescription = votc_incoming_letter_fallback_desc
 \t\ttype = journal
@@ -1108,13 +1102,7 @@ else = {
 \t\tvar:votc_incoming_letter_${slotNumber}_delivery_id = ${deliveryId}
 \t\tglobal_var:votc_incoming_letter_type_${slotNumber} = flag:${type}
 \t}
-${timelineSetBlock}\tsend_interface_message = {
-\t\ttype = votc_message_popup
-\t\ttitle = votc_incoming_letter_title${slotNumber}
-\t\tdesc = "${normalizedText}"
-\t\tleft_icon = global_var:votc_incoming_letter_sender_${slotNumber}
-\t}
-\tcreate_artifact = {
+${timelineSetBlock}\tcreate_artifact = {
 \t\tname = votc_incoming_letter_title${slotNumber}
 \t\tdescription = "${normalizedText}"
 \t\ttype = journal

@@ -47,8 +47,14 @@ function parseReplyMarker(parts: string[]): { slot: number; type: string; delive
         if (!field.startsWith('incoming_reply=')) continue;
         const segs = field.slice('incoming_reply='.length).split('|');
         // slot/deliveryId must be finite non-negative integers; type non-empty.
-        if (segs.length === 3 && segs[1].length > 0 && /^\d+$/.test(segs[0]) && /^\d+$/.test(segs[2])) {
-            return { slot: Number(segs[0]), type: segs[1], deliveryId: Number(segs[2]), fieldIndex: i };
+        // CK3 renders CFixedPoint GetValue through loc possibly with a decimal
+        // tail (e.g. "3.00"), so tolerate an optional .<digits> suffix and floor.
+        const numeric = (raw: string): number | undefined =>
+            /^\d+(?:\.\d+)?$/.test(raw) ? Math.floor(Number(raw)) : undefined;
+        const slot = numeric(segs[0]);
+        const deliveryId = numeric(segs[2]);
+        if (segs.length === 3 && segs[1].length > 0 && slot !== undefined && deliveryId !== undefined) {
+            return { slot, type: segs[1], deliveryId, fieldIndex: i };
         }
         console.log(`Ignoring malformed incoming_reply marker: "${field}"`);
         return undefined;

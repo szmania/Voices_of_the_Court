@@ -3,10 +3,10 @@ import { Character } from "./Character";
 const fs = require('fs');
 
 /**
- * Half-open window into debug.log, in whole-file JavaScript string space
- * (UTF-8 decoded), NOT byte offsets. Incoming-letter callers locate their
- * snapshot with indexOf/readFileSync on the decoded string and hand the same
- * indexes back here, so multibyte (CJK) content cannot shift the range.
+ * Half-open window into debug.log, in whole-file BYTE offsets (UTF-8), NOT
+ * decoded-string indexes. Incoming-letter callers locate their snapshot with a
+ * chunked byte scan and hand the same byte offsets back here, so multibyte
+ * (CJK) content cannot shift the range.
  */
 export interface LogSnapshotRange {
     startOffset: number;
@@ -76,10 +76,23 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     // Efficiently find the last block by reading from the end of the file
     let relevantLogBlock: string | undefined;
     if (snapshotRange) {
-        // Snapshot callers pass an explicit window; slice the SAME decoded
-        // whole-file string their offsets were computed from. The single-
-        // parameter tail-search path below is untouched.
-        relevantLogBlock = (await fs.promises.readFile(debugLogPath, 'utf8')).slice(snapshotRange.startOffset, snapshotRange.endOffset);
+        // Snapshot callers pass an explicit BYTE window; read only those bytes
+        // so a huge debug.log is never decoded in full just to slice a tiny
+        // window out of it (the arrival-time stall this replaces). The
+        // single-parameter tail-search path below is untouched.
+        const rangeHandle = await fs.promises.open(debugLogPath, 'r');
+        try {
+            const { size } = await rangeHandle.stat();
+            const rangeStart = Math.max(0, Math.min(snapshotRange.startOffset, size));
+            const rangeEnd = Math.max(rangeStart, Math.min(snapshotRange.endOffset, size));
+            const rangeBuffer = Buffer.alloc(rangeEnd - rangeStart);
+            if (rangeBuffer.length > 0) {
+                await rangeHandle.read(rangeBuffer, 0, rangeBuffer.length, rangeStart);
+            }
+            relevantLogBlock = rangeBuffer.toString('utf8');
+        } finally {
+            await rangeHandle.close();
+        }
     }
     for (let i = 0; !snapshotRange && !relevantLogBlock && i < 3; i++) {
         relevantLogBlock = await readLastRelevantBlock(debugLogPath);
@@ -175,13 +188,10 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
             let data = splittableLine.split("/;/")
 
             const dataType = data[1];
-            console.log(`Parsing data type: ${dataType}`);
 
             data.splice(0,2)
 
             const rootID = Number(data[0]);
-
-            console.log(`Processing data for rootID: ${rootID}`);
 
             for(let i=0;i<data.length;i++){
                 data[i] = removeTooltip(data[i])

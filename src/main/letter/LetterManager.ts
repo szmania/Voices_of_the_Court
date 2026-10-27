@@ -168,11 +168,21 @@ export class LetterManager {
                     }
                 }
 
-                const allLetters = this.getAllLetters(playerId);
+                // Recency from file mtimes, not from parsing every letter file:
+                // this runs for EVERY player on each Letters-tab refresh just to
+                // sort a dropdown, and letter JSONs embed full deep-copied
+                // Character snapshots (large). statSync is orders of magnitude
+                // cheaper than readFileSync + JSON.parse per file.
                 let latestTimestamp = 0;
-                if (allLetters.length > 0) {
-                    const timestamps = allLetters.map(l => l.creationTimestamp ? new Date(l.creationTimestamp).getTime() : 0);
-                    latestTimestamp = Math.max(0, ...timestamps.filter(t => !isNaN(t)));
+                try {
+                    const playerDirPath = path.join(playerFolderPath, playerId);
+                    for (const file of fs.readdirSync(playerDirPath)) {
+                        if (!file.endsWith('.json')) continue;
+                        const mtime = fs.statSync(path.join(playerDirPath, file)).mtime.getTime();
+                        if (mtime > latestTimestamp) latestTimestamp = mtime;
+                    }
+                } catch (e) {
+                    console.error(`Error reading letter file times for player ${playerId}:`, e);
                 }
 
                 return { id: playerId, name: playerName, latestTimestamp };
