@@ -2543,8 +2543,10 @@ ${timelineLines}
         this.actions = [];
 
         const actionsPath = path.join(this.votcDataPath, 'scripts', 'actions');
-        let standardActionFiles = fs.readdirSync(path.join(actionsPath, 'standard')).filter(file => path.extname(file) === ".js");
-        let customActionFiles = fs.readdirSync(path.join(actionsPath, 'custom')).filter(file => path.extname(file) === ".js");
+        const standardActionsDir = path.join(actionsPath, 'standard');
+        const customActionsDir = path.join(actionsPath, 'custom');
+        let standardActionFiles = fs.existsSync(standardActionsDir) ? fs.readdirSync(standardActionsDir).filter(file => path.extname(file) === ".js") : [];
+        let customActionFiles = fs.existsSync(customActionsDir) ? fs.readdirSync(customActionsDir).filter(file => path.extname(file) === ".js") : [];
 
         for(const file of standardActionFiles) {
             const actionName = path.basename(file).split(".")[0];
