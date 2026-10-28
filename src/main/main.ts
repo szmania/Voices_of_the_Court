@@ -1159,6 +1159,24 @@ app.on('ready',  async () => {
             fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
             console.log(`Initialized blank votc_ce_npcltr.txt at: ${npcltrFilePath}`);
         }
+        // Create-if-missing + emptiness seed for the whisper (VOTC-195) channel:
+        // the mod-side whisper runner executes `run votc_ce_whisper.txt` on a
+        // ~2s beat unconditionally, so a missing, empty, or BOM-only file spams
+        // CK3's debug.log with `console_failure: No such file in run/` or
+        // `console_failure: Effect is empty` on every beat. The blank heartbeat
+        // placeholder is byte-identical to what clearWhisperRunFile writes; a
+        // file that already holds real content (an in-flight whisper reply) is
+        // left untouched so it survives an app restart.
+        const whisperFilePath = path.join(runFolderPath, 'votc_ce_whisper.txt');
+        let whisperFileNeedsSeed = !fs.existsSync(whisperFilePath);
+        if (!whisperFileNeedsSeed) {
+            // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+            whisperFileNeedsSeed = fs.statSync(whisperFilePath).size <= 3;
+        }
+        if (whisperFileNeedsSeed) {
+            fs.writeFileSync(whisperFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_whisper.txt at: ${whisperFilePath}`);
+        }
     } else {
         console.warn('Cannot initialize run files: userFolderPath is not configured.');
     }
@@ -4007,7 +4025,8 @@ ipcMain.handle('delete-whisper', async (event, playerId: string, whisperId: stri
         const result = deleteWhisper(playerId, whisperId, config.userFolderPath);
         // The destroy script bypasses votc_whisper.30, so no took_section receipt
         // fires to clear the run file. The runner re-executes it every ~2s, so
-        // wait 3s (guaranteeing one execution) before emptying the file.
+        // wait 3s (guaranteeing one execution) before resetting the file to the
+        // heartbeat placeholder (clearWhisperRunFile).
         if (result) {
             setTimeout(() => clearWhisperRunFile(config), 3000);
         }

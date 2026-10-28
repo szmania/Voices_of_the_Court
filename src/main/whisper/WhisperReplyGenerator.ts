@@ -144,13 +144,19 @@ export async function detectWhisperRequestFromLog(debugLogPath: string): Promise
 }
 
 /**
- * Clears run/votc_ce_whisper.txt. The mod's runner re-executes the file every ~2s
- * indefinitely, so the file must be emptied once a section has been taken or
- * every pass would create a fresh artifact and re-fire votc_whisper.30.
+ * Resets run/votc_ce_whisper.txt to the blank heartbeat placeholder. The mod's
+ * runner re-executes the file every ~2s indefinitely, so once a section has been
+ * taken the file must be reset or every pass would create a fresh artifact and
+ * re-fire votc_whisper.30. It is reset to the placeholder rather than emptied:
+ * an empty (or BOM-only) file makes the CK3 lexer log
+ * `console_failure: Effect is empty` on every beat, spamming debug.log for the
+ * whole round trip. The placeholder is a harmless effect the runner can
+ * re-execute safely, and is byte-identical to the startup seed in main.ts.
  */
 export function clearWhisperRunFile(config: Config): void {
     if (!config || !config.userFolderPath) return;
-    new RunFileManager(config.userFolderPath, 'votc_ce_whisper.txt').clear();
+    new RunFileManager(config.userFolderPath, 'votc_ce_whisper.txt')
+        .write("debug_log = \"[Localize('talk_event.9999.desc')]\"");
 }
 
 export class WhisperReplyGenerator {
