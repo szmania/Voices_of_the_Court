@@ -71,7 +71,7 @@ const inFlight = new Set<string>();
 const completed = new Set<string>();
 const latestSignatureBySlot = new Map<string, string>();
 
-const DEFAULT_INCOMING_LETTER_PROMPT = `请根据你的角色性格、背景、与收信人的关系、相关记忆内容，以及当前的游戏情境，用{{letterLanguage}}写一段由{{senderName}}主动寄给{{playerName}}的简短书信正文。只输出一段纯文本，不要换行、不要引号、不要Markdown格式，总长度控制在200字以内。`;
+const DEFAULT_INCOMING_LETTER_PROMPT = `请根据你的角色性格、背景、与收信人的关系、相关记忆内容，以及当前的游戏情境，用{{letterLanguage}}写一段由{{senderName}}主动寄给{{playerName}}的简短书信正文。只输出一段纯文本，不要换行、不要引号、不要Markdown格式，总长度控制在200字以内。并在信件末尾署名，包含你角色的名字和头衔，让收信人明确知道信件来自谁。`;
 
 // F13 (1.x P1-L1): fallback for configs without the maxSummaryTokens key
 // (see Config.ts / default_config.json). The generator reads
