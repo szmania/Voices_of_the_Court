@@ -151,10 +151,75 @@
             border-color: #2E7D32;
             color: #7fbf82;
         }
-        /* §15: collapse/expand chip for a letter thread root. */
-        .chain-toggle-badge {
+        /* §15: collapse/expand control for a letter thread. Prominent on
+           purpose: it must read as a button, not a passive chip like the
+           badges above. */
+        .chain-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             cursor: pointer;
             user-select: none;
+            padding: 3px 10px;
+            border: 1px solid #cca43b;
+            border-radius: 4px;
+            background-color: rgba(204, 164, 59, 0.15);
+            color: #cca43b;
+            font-weight: bold;
+            font-family: 'Gitan', sans-serif;
+            font-size: 0.8em;
+        }
+        .chain-toggle:hover,
+        .chain-toggle:focus {
+            background-color: rgba(204, 164, 59, 0.35);
+            box-shadow: 0 0 8px rgba(204, 164, 59, 0.4);
+            outline: none;
+        }
+        .chain-toggle .chain-toggle-chevron {
+            font-weight: bold;
+        }
+        /* §15: multi-letter thread container gets a left accent rail so the
+           group reads as one thread; collapsed vs expanded differ. */
+        .letter-pair-item.has-chain {
+            border-left: 3px solid #5a4a35;
+            padding-left: 8px;
+            margin-left: 2px;
+        }
+        .letter-pair-item.has-chain.collapsed {
+            border-left-color: #cca43b;
+        }
+        .letter-pair-item.has-chain.expanded {
+            border-left-color: #3d2e1e;
+        }
+        /* §15: thread header row hosting the toggle control. */
+        .chain-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 4px 6px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #5a4a35;
+            color: #cca43b;
+            font-family: 'Paradox', serif;
+            font-size: 0.85em;
+        }
+        /* §15: root marker on the chain root letter (the one replies collapse
+           behind). */
+        .letter-item.chain-root {
+            border-left: 3px solid #cca43b;
+        }
+        .chain-root-label {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 1px 8px;
+            border: 1px solid #cca43b;
+            border-radius: 10px;
+            color: #cca43b;
+            font-size: 0.72em;
+            font-family: 'Gitan', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>

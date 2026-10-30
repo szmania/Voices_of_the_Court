@@ -216,24 +216,43 @@ function renderReplyStateBadge(letter: Letter): string {
     return `<span class="npc-category-badge reply-state-badge">${label}</span>`;
 }
 
-// §15: collapse/expand chip for a thread root that has replies. Rendered only
-// on the chain root; the count is the number of hidden replies (chain length
-// minus the root). The text is set directly (not data-i18n) so
-// applyTranslations(letterList) cannot clobber the substituted {count}.
-function renderChainToggleBadge(letter: Letter, chainMeta?: { rootId: string; count: number; collapsed: boolean }): string {
-    if (!chainMeta || chainMeta.count <= 1 || letter.id !== chainMeta.rootId) return '';
+// §15: prominent collapse/expand control for a letter thread, hosted in the
+// thread header row (renderChainHeader). Rendered only for multi-letter
+// chains; single-letter items never show it. The text is set directly (not
+// data-i18n) so applyTranslations(letterList) cannot clobber the substituted
+// {count}. data-root-id lets the click handler resolve the chain without
+// scanning the letter list.
+function renderChainToggle(chainMeta: { rootId: string; count: number; collapsed: boolean }): string {
     const hidden = chainMeta.count - 1;
     const key = chainMeta.collapsed ? 'letters.chain_show_replies' : 'letters.chain_hide_replies';
     const fallback = chainMeta.collapsed ? `Show ${hidden} replies` : `Hide ${hidden} replies`;
     // @ts-ignore
     const label = window.LocalizationManager.getTranslation(key, fallback).replace('{count}', String(hidden));
     const arrow = chainMeta.collapsed ? '▲' : '▼';
-    return `<span class="npc-category-badge chain-toggle-badge">${arrow} ${label}</span>`;
+    // @ts-ignore
+    const tooltip = window.LocalizationManager.getTranslation('letters.chain_toggle_tooltip', 'Expand or collapse this letter thread');
+    return `<span class="chain-toggle" role="button" tabindex="0" data-root-id="${chainMeta.rootId}" title="${tooltip}"><span class="chain-toggle-chevron">${arrow}</span> ${label}</span>`;
+}
+
+// §15: thread header row shown above a multi-letter chain. Associates the
+// toggle control with the whole group and labels it as a thread.
+function renderChainHeader(chainMeta: { rootId: string; count: number; collapsed: boolean }): string {
+    // @ts-ignore
+    const title = window.LocalizationManager.getTranslation('letters.chain_header', 'Letter Thread ({count} letters)').replace('{count}', String(chainMeta.count));
+    return `<div class="chain-header"><span class="chain-header-title">${title}</span>${renderChainToggle(chainMeta)}</div>`;
+}
+
+// §15: root marker on the chain root letter (the one replies collapse behind).
+function renderChainRootLabel(): string {
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation('letters.chain_root_label', 'Thread start');
+    return `<span class="chain-root-label">${label}</span>`;
 }
 
 function renderChainLetterHtml(letter: Letter, listItem: HTMLElement, chainMeta?: { rootId: string; count: number; collapsed: boolean }): string {
     const isPlayerSender = letter.sender.id === Number(selectedPlayerId);
     const itemClass = isPlayerSender ? 'sent' : 'received';
+    const isChainRoot = !!chainMeta && chainMeta.count > 1 && letter.id === chainMeta.rootId;
 
     if (!isPlayerSender) {
         const isUnread = !letter.isRead;
@@ -251,13 +270,13 @@ function renderChainLetterHtml(letter: Letter, listItem: HTMLElement, chainMeta?
     }
     const triggeredActionsHtml = renderTriggeredActionsListForListItem(letter);
     return `
-        <div class="letter-item ${itemClass}" data-letter-id="${letter.id}">
+        <div class="letter-item ${itemClass}${isChainRoot ? ' chain-root' : ''}" data-letter-id="${letter.id}">
             <div class="letter-item-header">
                 <span class="letter-item-party">From: ${letter.sender.shortName}<br>To: ${letter.recipient.shortName}</span>
                 ${renderNpcCategoryBadge(letter)}
                 <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
             </div>
-            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}${renderReplyStateBadge(letter)}${renderChainToggleBadge(letter, chainMeta)}</div>
+            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}${renderReplyStateBadge(letter)}${isChainRoot ? renderChainRootLabel() : ''}</div>
             ${statusHtml}
             ${triggeredActionsHtml}
         </div>
@@ -277,11 +296,10 @@ let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
 let cachedLetterChains: Letter[][] | null = null;
 // §15: session-only collapse state for letter threads, keyed by the chain root
-// (initial letter) id. Not persisted — a reload starts expanded.
+// (initial letter) id. Not persisted. New multi-letter threads start collapsed
+// (seenChainIds tracks which roots have been rendered at least once).
 const collapsedChainIds = new Set<string>();
-// Rebuilt every render (cache hits included) so the click handler can map any
-// letter id to its chain root and reply count.
-let chainInfoByLetterId = new Map<string, { rootId: string; count: number }>();
+const seenChainIds = new Set<string>();
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
@@ -661,16 +679,6 @@ function renderLetters() {
         cachedLetterChains = letterChains;
     }
 
-    // §15: rebuild the id -> chain map on every render (cache hits included) so
-    // the click handler can resolve a letter's chain root and reply count.
-    chainInfoByLetterId = new Map();
-    for (const chain of letterChains) {
-        if (chain.length === 0) continue;
-        const rootId = chain[0].id;
-        for (const letter of chain) {
-            chainInfoByLetterId.set(letter.id, { rootId, count: chain.length });
-        }
-    }
 
 
 
@@ -691,10 +699,23 @@ function renderLetters() {
         li.classList.add('letter-pair-item');
 
         const rootId = chain[0].id;
+        // §15: multi-letter threads start collapsed on first render; the toggle
+        // in the header is the only collapse control.
+        if (chain.length > 1 && !seenChainIds.has(rootId)) {
+            seenChainIds.add(rootId);
+            collapsedChainIds.add(rootId);
+        }
         const collapsed = chain.length > 1 && collapsedChainIds.has(rootId);
         const chainMeta = { rootId, count: chain.length, collapsed };
+        if (chain.length > 1) {
+            li.classList.add('has-chain');
+            li.classList.add(collapsed ? 'collapsed' : 'expanded');
+        }
 
         const parts: string[] = [];
+        if (chain.length > 1) {
+            parts.push(renderChainHeader(chainMeta));
+        }
         // §15: render newest-first so replies sit ABOVE the letter they replied
         // to, matching the list's global descending order. The stored chain
         // stays root-first — the placeholder rule and sort below depend on it.
@@ -748,30 +769,6 @@ function renderLetters() {
             target.classList.add('selected');
             selectedLetterItemEl = target;
 
-            // §15: clicking any letter in a multi-letter thread toggles the whole
-            // chain collapsed/expanded behind its root. Single-letter chains
-            // never toggle.
-            const chainMeta = chainInfoByLetterId.get(letterId);
-            if (chainMeta && chainMeta.count > 1) {
-                if (collapsedChainIds.has(chainMeta.rootId)) {
-                    collapsedChainIds.delete(chainMeta.rootId);
-                } else {
-                    collapsedChainIds.add(chainMeta.rootId);
-                }
-                renderLetters();
-                // Re-apply selection: the clicked item may no longer exist (e.g.
-                // collapsing from a reply click); the right pane keeps showing it.
-                const letterListEl = document.getElementById('letter-list');
-                const newItem = letterListEl
-                    ? letterListEl.querySelector(`.letter-item[data-letter-id="${letterId}"]`) as HTMLElement | null
-                    : null;
-                if (newItem) {
-                    newItem.classList.add('selected');
-                    selectedLetterItemEl = newItem;
-                } else {
-                    selectedLetterItemEl = null;
-                }
-            }
         });
     });
     // @ts-ignore
@@ -784,6 +781,31 @@ function renderLetters() {
     if (currentSearchTerm) {
         performSearch(currentSearchTerm);
     }
+
+    // §15: the thread toggle is its own click target (stopPropagation) so
+    // clicking it expands/collapses the thread without also selecting/reading
+    // a letter. Attached after the search pass because clearHighlights()
+    // rewrites innerHTML and would wipe listeners attached earlier.
+    document.querySelectorAll<HTMLElement>('.chain-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rootId = toggle.dataset.rootId;
+            if (!rootId) return;
+            if (collapsedChainIds.has(rootId)) {
+                collapsedChainIds.delete(rootId);
+            } else {
+                collapsedChainIds.add(rootId);
+            }
+            renderLetters();
+        });
+        toggle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle.click();
+            }
+        });
+    });
 }
 // Session-level caches so per-letter rendering doesn't hit the disk repeatedly:
 // action modules loaded lazily once per signature, and resolved localized descriptions
