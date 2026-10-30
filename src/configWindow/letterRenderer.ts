@@ -566,6 +566,11 @@ function renderLetters() {
                 console.log(`Hiding undelivered reply letter: ${l.id}`);
                 return false;
             }
+            // Hide incoming (NPC-initiated) letter projections until the player
+            // has actually received them, so the arrival stays a surprise.
+            if (!l.isPlayerSender && l.subject.startsWith('incoming_') && l.delivered !== true) {
+                return false;
+            }
             return true;
         });
 

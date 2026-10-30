@@ -1169,12 +1169,12 @@ else = {
                 normalizedText,
                 LetterType.PERSONAL,
                 writtenTimestamp,
-                true, // isRead: incoming letters arrive read
+                false, // isRead: hidden until the player actually receives it
                 0, // delay: no journey — delivered instantly by the guarded run file
                 gameDate.totalDays,
                 undefined, // replyToId
-                'read',
-                true // delivered: never re-enters delivery logic
+                'pending', // pending until the game marks the letter delivered
+                false // delivered: hidden in the Letters tab until delivery is confirmed
             );
             LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
             BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
