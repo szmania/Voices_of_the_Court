@@ -145,7 +145,6 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         // console.log(`[parseLog] Processing line: ${line}`);
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
-            console.log(`Parsing multi-line data of type "${multiLineType}": ${line}`);
             let value = line.split('#')[0]
             switch (multiLineType){
                 case "new_relations": {
@@ -165,17 +164,14 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 case "relations":
                     const relation = removeTooltip(value);
                     multiLineTempStorage.push(relation);
-                    console.log(`Parsed multi-line relation: "${relation}"`);
                 break;
                 case "opinionBreakdown":
                         const opinionModifier = parseOpinionModifier(value);
                         multiLineTempStorage.push(opinionModifier);
-                        console.log(`Parsed multi-line opinion breakdown: ${opinionModifier.reason}: ${opinionModifier.value}`);
                 break;
             }
 
             if(line.includes('#ENDMULTILINE')){
-                console.log(`Finished parsing multi-line data of type "${multiLineType}".`);
                 isWaitingForMultiLine = false;
             }
            continue;
@@ -405,19 +401,16 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     if (!gameData) continue;
                     let char = new Character(data);
                     gameData!.addCharacter(char.id, char);
-                    console.log(`[parseLog] ADDED character to map: ID=${char.id}, Name=${char.fullName}`);
                 break;
                 case "memory":
                     if (!gameData) continue;
                     let memory = parseMemory(data)
                     gameData!.characters.get(rootID)!.memories.push(memory);
-                    console.log(`Parsed memory for character ID ${rootID}: ${memory.desc}`);
                 break;
                 case "secret":
                     if (!gameData) continue;
                     let secret = parseSecret(data)
                     gameData!.characters.get(rootID)!.secrets.push(secret);
-                    console.log(`Parsed secret for character ID ${rootID}: ${secret.name}`);
                 break;
                 case "trait":
                     if (!gameData) continue;
@@ -428,26 +421,22 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     }
                     let trait = parseTrait(data);
                     characterWithTrait.traits.push(trait);
-                    console.log(`Parsed trait for character ID ${rootID}: ${trait.name}`);
                 break;
                 case "opinions":
                     if (!gameData) continue;
                     gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinion: Number(data[2])});
-                    console.log(`Parsed opinion for character ID ${rootID}: targetID=${data[1]}, value=${data[2]}`);
                 break;
                 case "relations":
                     if (!gameData) continue;
                     if(line.split('#')[1] !== ''){
                         const relation = removeTooltip(line.split('#')[1]);
                         gameData!.characters.get(rootID)!.relationsToPlayer = [relation];
-                        console.debug(`Parsed relation for character ID ${rootID} to player: "${relation}"`);
                     }
 
                     if(!line.includes("#ENDMULTILINE")){
                         multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "relations";
-                        console.debug(`Starting multi-line parse for "relations" for character ID ${rootID}.`);
                     }
                 break;
                 case "new_relations":
@@ -477,7 +466,6 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         multiLineTempStorage = gameData!.characters.get(rootID)!.opinionBreakdownToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
-                        console.debug(`Starting multi-line parse for "opinionBreakdown" for character ID ${rootID}.`);
                     }
                     break;
 
@@ -676,12 +664,10 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         }
         if (!charA.relatives.some(m => m.id === charBID)) {
             charA.relatives.push({ id: charBID, name: charB.fullName, relationship, isDeceased: false, traits: [], partners: [] });
-            console.log(`Parsed family for character ${charAID} (${charA.fullName}): ${relationship} ${charB.fullName} (ID: ${charBID})`);
         }
         if (charBID === gameData.playerID) {
             if (!charA.relationsToPlayer.includes(relationship)) {
                 charA.relationsToPlayer.push(relationship);
-                console.log(`Parsed relationsToPlayer for character ${charAID} (${charA.fullName}): "${relationship}"`);
             }
         }
     }
@@ -747,7 +733,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         console.log(`[parseLog] Final gameData or characters map is null/undefined.`);
     }
 
-    // 初始化角色名称属性，供parseVariables使用
+    // Initialize character name properties for parseVariables.
     if (gameData) {
         gameData.setCharacterNames();
     }
