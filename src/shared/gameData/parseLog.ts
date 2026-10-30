@@ -142,7 +142,6 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
     // console.log(`--- Relevant Log Block End ---`);
 
     for (const line of lines) {
-        // console.log(`[parseLog] Processing line: ${line}`);
         if(isWaitingForMultiLine){
             if (!gameData) continue; // Should not happen if logic is correct, but good for safety
             let value = line.split('#')[0]
