@@ -151,6 +151,17 @@
             border-color: #2E7D32;
             color: #7fbf82;
         }
+        /* §15: collapse/expand chip for a letter thread root. */
+        .chain-toggle-badge {
+            cursor: pointer;
+            user-select: none;
+        }
+        /* §15: thread connectors now point UP — replies render above the letter
+           they replied to. Scoped override so the base .letter-pair-connector
+           definition (config.css) is left untouched. */
+        #letter-list .letter-pair-connector {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
