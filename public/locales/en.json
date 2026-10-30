@@ -113,7 +113,7 @@
     "diary_tooltip": "This prompt is used to generate diary entries for characters after conversations. It helps maintain character consistency and depth.",
     "diary_summary_prompt": "Diary Summary Prompt",
     "diary_summary_tooltip": "This prompt is used to summarize all diary entries for a character into a single summary.",
-    "diary_for_letter_prompt": "This prompt is used to generate a diary entry based on a sent or received letter.",
+    "diary_for_letter_prompt": "Diary for Letter Prompt",
     "diary_for_letter_tooltip": "This prompt is used to generate a diary entry based on a sent or received letter.",
     "suggestion_prompt": "Suggestion Prompt",
     "suggestion_prompt_tooltip": "This prompt is used to generate response suggestions for the player.",
