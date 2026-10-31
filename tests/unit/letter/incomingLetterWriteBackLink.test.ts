@@ -89,26 +89,7 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
     });
 
     function seedProjection(): string {
-        const gameData = makeGameData();
-        const player = gameData.characters.get(PLAYER_ID)!;
-        const npc = gameData.characters.get(NPC_ID)!;
-        const projection = new LetterClass(
-            'projection-test-id',
-            npc,
-            player,
-            `incoming_${TOPIC}`,
-            'A notice from the NPC.',
-            LetterType.PERSONAL,
-            new Date(Date.UTC(1179, 8, 5, 12, 0, 0)),
-            true,
-            0,
-            430583,
-            undefined,
-            'read',
-            true
-        );
-        LetterManager.getInstance().saveLetter(projection, String(PLAYER_ID));
-        return projection.id;
+        return seedProjectionWithId('projection-test-id');
     }
 
     async function parseWriteBack() {
@@ -146,10 +127,14 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
     // incoming_reply=<slot>|<type>|<deliveryId> to the VOTC:LETTER line; the
     // projection id built by IncomingLetterGenerator.saveHistory is
     // `${slotId}|${playerId}|${senderId}|${sentDate}|${type}|${deliveryId}`.
-    function seedProjectionWithId(id: string): string {
+    function seedProjectionWithId(id: string, totalDays = 430583): string {
         const gameData = makeGameData();
         const player = gameData.characters.get(PLAYER_ID)!;
         const npc = gameData.characters.get(NPC_ID)!;
+        // The base timestamp corresponds to totalDays 430583; shift it by the same
+        // day-count so the stored letter's date stays consistent with its day.
+        const timestamp = new Date(Date.UTC(1179, 8, 5, 12, 0, 0));
+        timestamp.setUTCDate(timestamp.getUTCDate() + (totalDays - 430583));
         const projection = new LetterClass(
             id,
             npc,
@@ -157,10 +142,10 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
             `incoming_${TOPIC}`,
             'A notice from the NPC.',
             LetterType.PERSONAL,
-            new Date(Date.UTC(1179, 8, 5, 12, 0, 0)),
+            timestamp,
             true,
             0,
-            430583,
+            totalDays,
             undefined,
             'read',
             true
@@ -218,5 +203,39 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
 
         expect(letters).toHaveLength(1);
         expect(letters[0].replyToId).toBe(projectionId);
+    });
+
+    it('leaves a spontaneous player letter unlinked when the only root is outside the reply window', async () => {
+        // Regression (user report): an unlinked incoming root from 30 days ago must
+        // not absorb a brand-new spontaneous letter — the player letter starts its
+        // own thread in the sidebar instead of rendering as a reply.
+        seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 30);
+
+        const letters = await parseWriteBack();
+
+        expect(letters).toHaveLength(1);
+        expect(letters[0].replyToId).toBeUndefined();
+    });
+
+    it('still links a write-back sent exactly at the reply-window boundary', async () => {
+        // Inclusive boundary: 7 days after the root is still inside the window.
+        const projectionId = seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 7);
+
+        const letters = await parseWriteBack();
+
+        expect(letters).toHaveLength(1);
+        expect(letters[0].replyToId).toBe(projectionId);
+    });
+
+    it('links via the reply marker even when the root is far outside the reply window', async () => {
+        // The marker is authoritative: a matching root links regardless of age, so
+        // the heuristic window must never gate the deterministic path.
+        const olderId = `incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`;
+        seedProjectionWithId(olderId, 430583 - 60);
+
+        const letters = await parseLogContent(writeBackLogWithMarker(`incoming_reply=3|${TOPIC}|7`));
+
+        expect(letters).toHaveLength(1);
+        expect(letters[0].replyToId).toBe(olderId);
     });
 });

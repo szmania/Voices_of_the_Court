@@ -75,6 +75,16 @@ function projectionMatchesReplyMarker(id: string, npcNumericId: number, marker: 
         && segs[5] === String(marker.deliveryId);
 }
 
+/**
+ * How many days after a root's day a player letter may still be treated as its
+ * write-back by the sender-pair HEURISTIC only. Unlinked roots accumulate
+ * forever (an unreplied incoming letter stays unlinked), so without this bound
+ * every spontaneous letter the player later writes to that NPC would be sucked
+ * into the newest root's thread. The deterministic reply marker (§12.4.1a) is
+ * authoritative and is deliberately NOT gated by this window.
+ */
+const HEURISTIC_REPLY_WINDOW_DAYS = 7;
+
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
@@ -209,7 +219,10 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                             // disambiguator — if two unlinked roots from the SAME sender
                             // exist, the newest wins (usually right, occasionally not).
                             // §12.4.1a: the mod's reply marker now disambiguates when
-                            // present; the heuristic remains the fallback.
+                            // present; the heuristic remains the fallback. The heuristic
+                            // is additionally bounded by HEURISTIC_REPLY_WINDOW_DAYS, so
+                            // a spontaneous letter written long after a root starts its
+                            // own thread instead of being absorbed into the old one.
                             if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
                                 const playerNumericId = Number(finalSenderId);
                                 const npcNumericId = Number(finalRecipientId);
@@ -222,11 +235,22 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                                     l.sender.id === npcNumericId &&
                                     l.recipient.id === playerNumericId &&
                                     !priorLetters.some(r => r.replyToId === l.id);
+                                // Heuristic-only temporal bound: a write-back is written
+                                // shortly after the root it answers, so a spontaneous
+                                // letter must not be absorbed into an older unlinked
+                                // root's thread. Directional (a reply cannot precede its
+                                // root, so an out-of-order letter after a save rollback
+                                // fails safe to unlinked) and delay-aware (the root's own
+                                // travel time counts toward the window). The deterministic
+                                // marker path above is NOT gated by this.
+                                const isWithinReplyWindow = (l: Letter) =>
+                                    letter.totalDays >= l.totalDays &&
+                                    letter.totalDays - l.totalDays <= (l.delay ?? 0) + HEURISTIC_REPLY_WINDOW_DAYS;
                                 const deterministicOpening = replyMarker
                                     ? priorLetters.find(l => isUnlinkedRoot(l) && projectionMatchesReplyMarker(l.id, npcNumericId, replyMarker))
                                     : undefined;
                                 const opening = deterministicOpening ?? priorLetters.find(l =>
-                                    isUnlinkedRoot(l)
+                                    isUnlinkedRoot(l) && isWithinReplyWindow(l)
                                 );
                                 if (opening) {
                                     letter.replyToId = opening.id;
