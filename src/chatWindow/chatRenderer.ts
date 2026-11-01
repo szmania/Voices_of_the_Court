@@ -70,6 +70,25 @@ document.addEventListener('click', (event) => {
     }
 });
 
+function getSelectedTargetCharacterIds(): number[] {
+    const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+    if (!hiddenInput || hiddenInput.value === 'auto') {
+        return [];
+    }
+    return hiddenInput.value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+}
+
+function clearTargetSelection(): void {
+    const valueDiv = document.getElementById('character-target-value') as HTMLDivElement;
+    const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+    if (valueDiv) {
+        valueDiv.textContent = window.LocalizationManager?.getNestedTranslation('chat.target_auto') || 'Auto-detect';
+    }
+    if (hiddenInput) {
+        hiddenInput.value = 'auto';
+    }
+}
+
 // Initialize theme and localization on script load
 async function init() {
     // Apply initial theme
@@ -638,6 +657,10 @@ chatInput.addEventListener('keydown', async function(e) {
         if (messageDiv) {
             currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
         }
+        const targetCharacterIds = getSelectedTargetCharacterIds();
+        if (targetCharacterIds.length > 0) {
+            message.targetCharacterIds = targetCharacterIds;
+        }
         showLoadingDots();
         ipcRenderer.send('message-send', message);
     }
@@ -842,6 +865,21 @@ function displaySuggestions(suggestions: string[]) {
                     console.log('Auto-sending suggestion:', processedText);
                     const messageText = processedText;
                     chatInput.value = ''
+
+                    let message: Message = {
+                        role: "user",
+                        name: playerName,
+                        content: messageText
+                    }
+
+                    const targetCharacterIds = getSelectedTargetCharacterIds();
+                    if (targetCharacterIds.length > 0) {
+                        message.targetCharacterIds = targetCharacterIds;
+                    }
+
+                    await displayMessage(message);
+                    showLoadingDots();
+                    ipcRenderer.send('message-send', message);
 
                     let message: Message = {
                         role: "user",

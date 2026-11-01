@@ -281,7 +281,13 @@
     "instruct_header": "Instruct settings",
     "input_seq": "Input sequence",
     "output_seq": "output sequence",
-    "text_gen_params": "Text-generation parameters"
+    "text_gen_params": "Text-generation parameters",
+    "quick_model_connection": "Quick Model Connection",
+    "quick_model_connection_desc": "Optional low-latency LLM for quick decisions (character targeting, etc.). Uses the text generation connection by default.",
+    "quick_model_use_text_gen": "Use Text Generation Connection",
+    "quick_model_use_text_gen_tooltip": "When enabled, the Quick Model will share the text generation API connection.",
+    "enable_quick_model_targeting": "Enable Quick Model Targeting",
+    "enable_quick_model_targeting_tooltip": "When enabled, the Quick Model will be used to automatically detect which character is being addressed. Requires a configured Quick Model connection."
   },
   "system": {
     "update": "Update",
@@ -314,10 +320,12 @@
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[System instruction: You are {characterName}. You approached {playerName} and are opening this conversation yourself. Come up with a reason or topic to talk about (a request, news, a concern, a rumor, or a personal matter fitting your character, traits, and current situation) and open with it. Do not wait for a reply. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
-    "ai_initiated_narrator_prompt": "Now, what does {sourceCharacterName} say to {playerName} to start this conversation?"
+    "ai_initiated_narrator_prompt": "Now, what does {sourceCharacterName} say to {playerName} to start this conversation?",
+    "targeting_stopwords": ["the", "of", "a", "an", "in", "on", "at", "for", "to", "and", "my", "your", "lord", "lady", "duke", "duchess", "count", "countess", "baron", "baroness", "king", "queen", "emperor", "empress", "prince", "princess", "sir", "ser", "master", "mister", "miss", "madam", "dame"]
   },
   "chat": {
     "target_label": "Target Character:",
+    "target_auto": "Auto-detect",
     "target_auto": "Automatically Detected",
     "leave_button": "END CONVERSATION",
     "input_placeholder": "Write a message...",
