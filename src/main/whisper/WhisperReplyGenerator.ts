@@ -36,7 +36,14 @@ export interface WhisperRequestInfo {
     cadenceDays: number;
     section: WhisperSection;
     /** The request line's game date as total days; 0 when missing/invalid. */
+
     requestTotalDays: number;
+    /**
+     * Per-request nonce (votc_whisper_req_id) from the payload line's trailing
+     * field. 0 when absent (older mods). The reply script consumes it so a
+     * stale run file re-executed by the ~2s poller is a no-op.
+     */
+    requestId: number;
 }
 
 const CADENCE_DAYS: Record<number, number> = { 3: 91, 6: 182, 12: 365 };
@@ -87,11 +94,14 @@ export function parseWhisperRequestLine(line: string): WhisperRequestInfo | unde
         if (!match) return undefined;
         const cadenceCode = Number(match[1]) as 3 | 6 | 12;
         const requestTotalDays = Number((parts[1] ?? '').trim());
+        // Trailing nonce field (parts[2]); absent on older mods -> 0.
+        const requestId = Number((parts[2] ?? '').trim());
         return {
             cadenceCode,
             cadenceDays: CADENCE_DAYS[cadenceCode],
             section: match[2] as WhisperSection,
-            requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0
+            requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0,
+            requestId: Number.isInteger(requestId) && requestId > 0 ? requestId : 0
         };
     }
     // Legacy (protocol v1): whisper requests masqueraded as VOTC:LETTER lines
@@ -109,7 +119,9 @@ export function parseWhisperRequestLine(line: string): WhisperRequestInfo | unde
         cadenceCode,
         cadenceDays: CADENCE_DAYS[cadenceCode],
         section: match[2] as WhisperSection,
-        requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0
+        requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0,
+        // Legacy v1 lines carry no nonce; the guard degrades to unguarded.
+        requestId: 0
     };
 }
 
@@ -229,7 +241,7 @@ export class WhisperReplyGenerator {
         }
 
         // 6. Deliver through the dedicated whisper channel.
-        this.deliverWhisperReply(reply.trim());
+        this.deliverWhisperReply(reply.trim(), request.requestId);
         return true;
     }
 
@@ -291,8 +303,14 @@ export class WhisperReplyGenerator {
      * mirroring the gameCommand built in LetterManager.deliverLetter but with
      * the whisper-specific guard, artifact name and intake event (plan §2.2):
      * no letter-thread variables, no timeline block, no message_event.362.
+     *
+     * When the request carries a nonce (requestId > 0, protocol v2) the whole
+     * body is wrapped in a votc_whisper_consumed_id guard: the first execution
+     * consumes the nonce and every re-execution by the ~2s runner is a no-op,
+     * race-proof even if the receipt-driven clear loses the race. Legacy v1
+     * requests (requestId 0) keep the unguarded body.
      */
-    private deliverWhisperReply(replyText: string): void {
+    private deliverWhisperReply(replyText: string, requestId: number): void {
         if (!this.config.userFolderPath) {
             console.error('[WhisperReplyGenerator] Cannot deliver whisper reply, user folder path is not set.');
             return;
@@ -324,8 +342,19 @@ if = {
 }
 trigger_event = votc_whisper.30`;
 
+        // Nonce guard (protocol v2): consume-once. requestId 0 (legacy v1)
+        // degrades to the unguarded body - a shared 0 value would block the
+        // NEXT legacy request after the first consume.
+        const guardedCommand = requestId > 0
+            ? `if = {
+\tlimit = { NOT = { global_var:votc_whisper_consumed_id = ${requestId} } }
+${gameCommand.replace(/^/gm, '\t')}
+\tset_global_variable = { name = votc_whisper_consumed_id value = ${requestId} }
+}`
+            : gameCommand;
+
         const runFileManager = new RunFileManager(this.config.userFolderPath, 'votc_ce_whisper.txt');
-        runFileManager.write(gameCommand);
+        runFileManager.write(guardedCommand);
         console.log('[WhisperReplyGenerator] Whisper reply written to run/votc_ce_whisper.txt.');
     }
 }
