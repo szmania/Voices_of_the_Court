@@ -132,7 +132,7 @@
   },
   "quickModelUseTextGenApi": true,
   "enableQuickModelTargeting": false,
-  "clearTargetAfterSend": true,
+  "clearTargetAfterSend": false,
   "actionsEnableAll": true,
   "manualActionApproval": true,
   "manualLetterActionApproval": true,

@@ -307,8 +307,8 @@
     "quick_model_use_text_gen_tooltip": "有効にすると、クイックモデルはテキスト生成API接続を共有します。",
     "enable_quick_model_targeting": "クイックモデル指定を有効化",
     "enable_quick_model_targeting_tooltip": "有効にすると、クイックモデルがどのキャラクターに話しかけているかを自動判定します。クイックモデル接続の設定が必要です。",
-    "clear_target_after_send": "送信後に指定を解除",
-    "clear_target_after_send_tooltip": "メッセージ送信後、対象キャラクターの選択を自動的にリセットします"
+    "cleartargetaftersend": "送信後に指定を解除",
+    "cleartargetaftersend_tooltip": "メッセージ送信後、対象キャラクターの選択を自動的にリセットします"
   },
   "system": {
     "update": "アップデート",

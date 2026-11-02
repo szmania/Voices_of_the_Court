@@ -299,8 +299,8 @@
     "quick_model_use_text_gen_tooltip": "Lorsque cette option est activée, le modèle rapide partage la connexion API de génération de texte.",
     "enable_quick_model_targeting": "Activer le ciblage par modèle rapide",
     "enable_quick_model_targeting_tooltip": "Lorsque cette option est activée, le modèle rapide est utilisé pour détecter automatiquement le personnage interpellé. Nécessite une connexion de modèle rapide configurée.",
-    "clear_target_after_send": "Effacer la cible après envoi",
-    "clear_target_after_send_tooltip": "Réinitialiser automatiquement le menu du personnage cible après l'envoi d'un message"
+    "cleartargetaftersend": "Effacer la cible après envoi",
+    "cleartargetaftersend_tooltip": "Réinitialiser automatiquement le menu du personnage cible après l'envoi d'un message"
   },
   "system": {
     "update": "Mise à jour",

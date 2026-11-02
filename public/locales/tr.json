@@ -318,8 +318,8 @@
     "quick_model_use_text_gen_tooltip": "Etkinleştirildiğinde, hızlı model metin üretim API bağlantısını paylaşır.",
     "enable_quick_model_targeting": "Hızlı model hedeflemeyi etkinleştir",
     "enable_quick_model_targeting_tooltip": "Etkinleştirildiğinde, oyuncunun hangi karaktere hitap ettiğini otomatik algılamak için hızlı model kullanılır. Yapılandırılmış bir hızlı model bağlantısı gerektirir.",
-    "clear_target_after_send": "Gönderdikten sonra hedefi temizle",
-    "clear_target_after_send_tooltip": "Mesaj gönderdikten sonra hedef karakter seçimini otomatik olarak sıfırla"
+    "cleartargetaftersend": "Gönderdikten sonra hedefi temizle",
+    "cleartargetaftersend_tooltip": "Mesaj gönderdikten sonra hedef karakter seçimini otomatik olarak sıfırla"
   },
   "system": {
     "update": "Güncelle",

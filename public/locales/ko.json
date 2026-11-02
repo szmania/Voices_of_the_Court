@@ -295,8 +295,8 @@
     "quick_model_use_text_gen_tooltip": "활성화하면 퀵 모델이 텍스트 생성 API 연결을 공유합니다.",
     "enable_quick_model_targeting": "퀵 모델 지정 활성화",
     "enable_quick_model_targeting_tooltip": "활성화하면 퀵 모델이 플레이어가 어느 캐릭터에게 말하는지 자동으로 판단합니다. 퀵 모델 연결 설정이 필요합니다.",
-    "clear_target_after_send": "전송 후 대상 지우기",
-    "clear_target_after_send_tooltip": "메시지 전송 후 대상 캐릭터 선택을 자동으로 초기화합니다"
+    "cleartargetaftersend": "전송 후 대상 지우기",
+    "cleartargetaftersend_tooltip": "메시지 전송 후 대상 캐릭터 선택을 자동으로 초기화합니다"
   },
   "system": {
     "update": "업데이트",

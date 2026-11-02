@@ -295,8 +295,8 @@
     "quick_model_use_text_gen_tooltip": "Gdy włączone, model szybki współdzieli połączenie API generowania tekstu.",
     "enable_quick_model_targeting": "Włącz wybór celu modelem szybkim",
     "enable_quick_model_targeting_tooltip": "Gdy włączone, model szybki automatycznie rozpoznaje, do której postaci zwraca się gracz. Wymaga skonfigurowanego połączenia modelu szybkiego.",
-    "clear_target_after_send": "Wyczyść cel po wysłaniu",
-    "clear_target_after_send_tooltip": "Automatycznie resetuj wybór postaci docelowej po wysłaniu wiadomości"
+    "cleartargetaftersend": "Wyczyść cel po wysłaniu",
+    "cleartargetaftersend_tooltip": "Automatycznie resetuj wybór postaci docelowej po wysłaniu wiadomości"
   },
   "system": {
     "update": "Aktualizacja",

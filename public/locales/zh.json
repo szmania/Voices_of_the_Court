@@ -301,8 +301,8 @@
     "quick_model_use_text_gen_tooltip": "启用后，快速模型将共享文本生成 API 连接。",
     "enable_quick_model_targeting": "启用快速模型指定",
     "enable_quick_model_targeting_tooltip": "启用后，将使用快速模型自动判断玩家正在对哪个角色说话。需要配置快速模型连接。",
-    "clear_target_after_send": "发送后清除指定",
-    "clear_target_after_send_tooltip": "发送消息后自动重置目标角色下拉菜单"
+    "cleartargetaftersend": "发送后清除指定",
+    "cleartargetaftersend_tooltip": "发送消息后自动重置目标角色下拉菜单"
   },
   "system": {
     "update": "更新",

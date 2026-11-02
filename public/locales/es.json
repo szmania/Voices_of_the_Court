@@ -299,8 +299,8 @@
     "quick_model_use_text_gen_tooltip": "Cuando está activado, el modelo rápido comparte la conexión API de generación de texto.",
     "enable_quick_model_targeting": "Activar selección de destino con modelo rápido",
     "enable_quick_model_targeting_tooltip": "Cuando está activado, el modelo rápido se usa para detectar automáticamente a qué personaje se dirige el jugador. Requiere una conexión de modelo rápido configurada.",
-    "clear_target_after_send": "Borrar destino tras enviar",
-    "clear_target_after_send_tooltip": "Restablecer automáticamente el menú de personaje destino después de enviar un mensaje"
+    "cleartargetaftersend": "Borrar destino tras enviar",
+    "cleartargetaftersend_tooltip": "Restablecer automáticamente el menú de personaje destino después de enviar un mensaje"
   },
   "system": {
     "update": "Actualización",

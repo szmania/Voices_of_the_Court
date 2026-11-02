@@ -318,8 +318,8 @@
     "quick_model_use_text_gen_tooltip": "Quando ativado, o modelo rápido compartilha a conexão de API de geração de texto.",
     "enable_quick_model_targeting": "Ativar seleção de destino com modelo rápido",
     "enable_quick_model_targeting_tooltip": "Quando ativado, o modelo rápido é usado para detectar automaticamente qual personagem está sendo endereçado. Requer uma conexão de modelo rápido configurada.",
-    "clear_target_after_send": "Limpar destino após enviar",
-    "clear_target_after_send_tooltip": "Redefinir automaticamente o menu de personagem destino após enviar uma mensagem"
+    "cleartargetaftersend": "Limpar destino após enviar",
+    "cleartargetaftersend_tooltip": "Redefinir automaticamente o menu de personagem destino após enviar uma mensagem"
   },
   "system": {
     "update": "Atualização",
