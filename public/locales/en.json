@@ -289,8 +289,8 @@
     "quick_model_use_text_gen_tooltip": "When enabled, the Quick Model will share the text generation API connection.",
     "enable_quick_model_targeting": "Enable Quick Model Targeting",
     "enable_quick_model_targeting_tooltip": "When enabled, the Quick Model will be used to automatically detect which character is being addressed. Requires a configured Quick Model connection.",
-    "clear_target_after_send": "Clear Target After Send",
-    "clear_target_after_send_tooltip": "Automatically clear the target character dropdown after sending a message"
+    "cleartargetaftersend": "clear target after send",
+    "cleartargetaftersend_tooltip": "Automatically clear the target character dropdown after sending a message"
   },
   "system": {
     "update": "Update",
