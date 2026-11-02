@@ -134,6 +134,10 @@ export class Conversation{
     // logged, so the visibility message appears once per conversation.
     private branchFilterLogged: Set<number> = new Set();
 
+    // §9.5 async resource loading: initializeResources() memoizes its run so the
+    // loadHistory()/initialize() entry points share one pass instead of racing.
+    private resourcesInitPromise: Promise<void> | null = null;
+
     // §9.3 P5.4 fix C1: requestKey UUID reused across retries of the same
     // close attempt; cleared when the close reaches terminal state.
     private currentCloseRequestKey: string | undefined;
@@ -171,9 +175,8 @@ export class Conversation{
         this.translations = getTranslations(lang);
         this.notSpokenYetText = this.translations.chat.not_spoken || "Has not spoken yet";
 
-        this.runFileManager = new RunFileManager(this.config.userFolderPath);
-        this.description = "";
-        this.actions = [];
+        // Run-file manager is cheap (no blocking I/O beyond a mkdir guard) and is
+        // used by loadConfig() below, so it stays in the constructor.
 
         this.runFileManager = new RunFileManager(this.config.userFolderPath);
         this.description = "";
@@ -217,14 +220,6 @@ export class Conversation{
         this.isGeneratingScene = false;
         this.pendingPlayerRequest = false;
 
-        const diariesBasePath = path.join(this.votcDataPath, 'diary_history');
-        if (!fs.existsSync(diariesBasePath)) {
-            fs.mkdirSync(diariesBasePath, { recursive: true });
-        }
-        const playerDiariesPath = path.join(diariesBasePath, this.gameData.playerID.toString());
-        if (!fs.existsSync(playerDiariesPath)) {
-            fs.mkdirSync(playerDiariesPath, { recursive: true });
-        }
 
         // §4.1, §9: capture immutable identity at conversation start. If the
         // snapshot has a v2 campaign id, timeline writes at close time are
@@ -245,91 +240,7 @@ export class Conversation{
             }
         }
 
-        // Create/Update character map for the current player in the conversation_summaries folder
-        // This is the critical fix for the history loading on first run.
-        const summaryMapPath = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
-        let characterMap: { [key: string]: string } = {};
-        if (fs.existsSync(summaryMapPath)) {
-            try {
-                characterMap = JSON.parse(fs.readFileSync(summaryMapPath, 'utf8'));
-            } catch (e) {
-                console.error(`Error parsing summary character map file, it will be overwritten: ${e}`);
-            }
-        }
-        // Add/update all characters from current gameData, but do not overwrite existing entries.
-        // This preserves the original names from when characters were first encountered, which is
-        // crucial for parsing historical logs where names/titles may have been different.
-        this.gameData.characters.forEach((character) => {
-            if (!characterMap[character.id.toString()]) {
-                characterMap[character.id.toString()] = character.fullName;
-            }
-        });
-        // Ensure the directory exists before writing
-        const summaryDir = path.dirname(summaryMapPath);
-        if (!fs.existsSync(summaryDir)) {
-            fs.mkdirSync(summaryDir, { recursive: true });
-        }
-        fs.writeFileSync(summaryMapPath, JSON.stringify(characterMap, null, '\t'));
-        console.log(`Character map for summaries updated at ${summaryMapPath}`);
 
-        // Also update the diary character map for consistency
-        const diaryMapPath = path.join(playerDiariesPath, '_character_map.json');
-        fs.writeFileSync(diaryMapPath, JSON.stringify(characterMap, null, '\t'));
-        console.log(`Character map for diaries updated at ${diaryMapPath}`);
-
-        const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
-        if (!fs.existsSync(summariesBasePath)){
-            fs.mkdirSync(summariesBasePath);
-            console.log('Created conversation_summaries directory.');
-        }
-
-        const playerSummaryPath = path.join(summariesBasePath, this.gameData.playerID.toString());
-        if (!fs.existsSync(playerSummaryPath)){
-            fs.mkdirSync(playerSummaryPath);
-            console.log(`Created player-specific summary directory for player ID: ${this.gameData.playerID}`);
-        }
-
-        // Load summaries for all non-player characters. The full set is kept
-        // in memory (and rewritten verbatim when new summaries are appended):
-        // this.summaries is the persistence source of truth, so filtering
-        // other-branch records out of it would silently erase them from disk
-        // on the next save. Branch filtering happens at prompt-consumption
-        // time instead — see getBranchVisibleSummaries().
-        this.gameData.characters.forEach((character) => {
-            if (character.id !== this.gameData.playerID) {
-                const summaryFilePath = path.join(playerSummaryPath, `${character.id.toString()}.json`);
-                let characterSummaries: Summary[] = [];
-                if (fs.existsSync(summaryFilePath)) {
-                    try {
-                        characterSummaries = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
-                        characterSummaries.sort((a: any, b: any) => {
-                            const dateA = parseGameDate(a.date)?.getTime() ?? 0;
-                            const dateB = parseGameDate(b.date)?.getTime() ?? 0;
-                            return dateB - dateA;
-                        });
-                        console.log(`Loaded and sorted ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
-                    } catch (e) {
-                        console.error(`Error parsing summary file for AI ID ${character.id}: ${e}`);
-                    }
-                } else {
-                    fs.writeFileSync(summaryFilePath, JSON.stringify([], null, '\t'));
-                    console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
-                }
-                this.summaries.set(character.id, characterSummaries);
-
-                // Set up file watching to automatically reload when the file changes.
-                this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries: Summary[]) => {
-                    this.summaries.set(character.id, updatedSummaries);
-                    console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
-                });
-
-                const characterLetters = this.letterManager.getLetters(String(this.gameData.playerID), String(character.id));
-                this.letters.set(character.id, characterLetters);
-                console.log(`Loaded ${characterLetters.length} letters for AI ID ${character.id}.`);
-            }
-        });
-
-        this.config = config;
 
         this.messages.forEach(msg => {
             if (msg.content === "Has not spoken yet") {
@@ -341,8 +252,6 @@ export class Conversation{
             }
         });
 
-        this.runFileManager = new RunFileManager(config.userFolderPath);
-        this.actions = [];
 
         // Assign API connections directly to class properties
         if (!this.config.textGenerationApiConnectionConfig) {
@@ -422,7 +331,9 @@ export class Conversation{
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.quickModelApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder);
 
-        this.loadConfig();
+        // §9.5: loadConfig (API connections + actions) is deferred to
+        // initializeResources(), which loadHistory()/initialize() await before the
+        // chat payload is built. Keeps the constructor free of blocking file I/O.
 
         // Sanitize messages to remove any historical placeholders that may have leaked in.
         const currentCharacterIds = new Set(Array.from(this.gameData.characters.keys()));
@@ -432,8 +343,6 @@ export class Conversation{
             return !msgCharId || currentCharacterIds.has(msgCharId);
         });
         console.log(`Sanitized messages array. Kept ${this.messages.length} messages for current conversation characters.`);
-
-        this.checkForSummariesFromOtherPlayers();
 
         // Initialize diary generator
         this.diaryGenerator = new DiaryGenerator(this.config, this.votcDataPath, this.encoder);
@@ -448,7 +357,125 @@ export class Conversation{
 
 
 
+    /**
+     * §9.5 UI loading optimization: all blocking file I/O that used to run in
+     * the constructor (diary/summary directories, character maps, per-character
+     * summary files, other-player summary import) moved here so the chat window
+     * can open sooner. Memoized via resourcesInitPromise: main.ts awaits this
+     * through loadHistory() before reading conversation.actions, while
+     * initialize() awaits it too for direct-construction callers; both share a
+     * single run. Fails soft: errors are logged and the conversation continues.
+     */
+    async initializeResources(): Promise<void> {
+        if (this.resourcesInitPromise) {
+            return this.resourcesInitPromise;
+        }
+        this.resourcesInitPromise = (async () => {
+            try {
+                const t0 = Date.now();
+
+                // Ensure diary + summary directories exist for this player.
+                const diariesBasePath = path.join(this.votcDataPath, 'diary_history');
+                await fs.promises.mkdir(diariesBasePath, { recursive: true });
+                const playerDiariesPath = path.join(diariesBasePath, this.gameData.playerID.toString());
+                await fs.promises.mkdir(playerDiariesPath, { recursive: true });
+
+                // Create/Update character map for the current player in the
+                // conversation_summaries folder — critical for history loading on first run.
+                const summaryMapPath = path.join(this.votcDataPath, 'conversation_summaries', this.gameData.playerID.toString(), '_character_map.json');
+                let characterMap: { [key: string]: string } = {};
+                try {
+                    characterMap = JSON.parse(await fs.promises.readFile(summaryMapPath, 'utf8'));
+                } catch (e: any) {
+                    if (e?.code !== 'ENOENT') {
+                        console.error(`Error parsing summary character map file, it will be overwritten: ${e}`);
+                    }
+                }
+                // Add/update all characters from current gameData, but do not overwrite
+                // existing entries: original names from when characters were first
+                // encountered are crucial for parsing historical logs where
+                // names/titles may have been different.
+                this.gameData.characters.forEach((character) => {
+                    if (!characterMap[character.id.toString()]) {
+                        characterMap[character.id.toString()] = character.fullName;
+                    }
+                });
+                await fs.promises.mkdir(path.dirname(summaryMapPath), { recursive: true });
+                await fs.promises.writeFile(summaryMapPath, JSON.stringify(characterMap, null, '\t'));
+                console.log(`Character map for summaries updated at ${summaryMapPath}`);
+
+                // Also update the diary character map for consistency
+                const diaryMapPath = path.join(playerDiariesPath, '_character_map.json');
+                await fs.promises.writeFile(diaryMapPath, JSON.stringify(characterMap, null, '\t'));
+                console.log(`Character map for diaries updated at ${diaryMapPath}`);
+
+                const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
+                await fs.promises.mkdir(summariesBasePath, { recursive: true });
+                const playerSummaryPath = path.join(summariesBasePath, this.gameData.playerID.toString());
+                await fs.promises.mkdir(playerSummaryPath, { recursive: true });
+
+                // Load summaries for all non-player characters. The full set is kept
+                // in memory (and rewritten verbatim when new summaries are appended):
+                // this.summaries is the persistence source of truth, so filtering
+                // other-branch records out of it would silently erase them from disk
+                // on the next save. Branch filtering happens at prompt-consumption
+                // time instead — see getBranchVisibleSummaries().
+                for (const character of this.gameData.characters.values()) {
+                    if (character.id === this.gameData.playerID) continue;
+                    const summaryFilePath = path.join(playerSummaryPath, `${character.id.toString()}.json`);
+                    let characterSummaries: Summary[] = [];
+                    let missingSummaryFile = false;
+                    try {
+                        characterSummaries = JSON.parse(await fs.promises.readFile(summaryFilePath, 'utf8'));
+                        characterSummaries.sort((a: any, b: any) => {
+                            const dateA = parseGameDate(a.date)?.getTime() ?? 0;
+                            const dateB = parseGameDate(b.date)?.getTime() ?? 0;
+                            return dateB - dateA;
+                        });
+                        console.log(`Loaded and sorted ${characterSummaries.length} prior summaries for AI ID ${character.id} from ${summaryFilePath}.`);
+                    } catch (e: any) {
+                        if (e?.code === 'ENOENT') {
+                            missingSummaryFile = true;
+                        } else {
+                            console.error(`Error parsing summary file for AI ID ${character.id}: ${e}`);
+                        }
+                    }
+                    if (missingSummaryFile) {
+                        await fs.promises.writeFile(summaryFilePath, JSON.stringify([], null, '\t'));
+                        console.log(`No prior summaries found for AI ID ${character.id}. Initialized empty summaries file at ${summaryFilePath}.`);
+                    }
+                    this.summaries.set(character.id, characterSummaries);
+
+                    // Set up file watching to automatically reload when the file changes.
+                    this.summaryFileWatcher.watchFile(summaryFilePath, (updatedSummaries: Summary[]) => {
+                        this.summaries.set(character.id, updatedSummaries);
+                        console.log(`Automatically reloaded summaries for character ID ${character.id} due to file change`);
+                    });
+
+                    const characterLetters = this.letterManager.getLetters(String(this.gameData.playerID), String(character.id));
+                    this.letters.set(character.id, characterLetters);
+                    console.log(`Loaded ${characterLetters.length} letters for AI ID ${character.id}.`);
+                }
+
+                await this.checkForSummariesFromOtherPlayers();
+                // loadConfig initializes the API connections and then loads actions;
+                // it is the single owner of both, so no dedupe guard is needed.
+                await this.loadConfig();
+
+                console.log(`Conversation resources initialized in ${Date.now() - t0}ms.`);
+            } catch (error) {
+                // Fail soft: the conversation still opens; prompt context may be
+                // thinner than ideal but the UI is not blocked on disk errors.
+                console.error('Failed to initialize conversation resources:', error);
+            }
+        })();
+        return this.resourcesInitPromise;
+    }
+
     public async initialize(): Promise<void> {
+        // §9.5: ensure file-backed resources are ready before generation starts.
+        // No-op when loadHistory() already ran initializeResources().
+        await this.initializeResources();
         // Load compacted memories from disk to restore state
         if (this.config.enableMemoryCompaction) {
             await this.memoryCompactor.loadFromDisk(String(this.gameData.playerID), this.gameData.date);
@@ -544,6 +571,10 @@ export class Conversation{
     }
 
     public async loadHistory(): Promise<void> {
+        // §9.5: load file-backed resources even when history display is disabled —
+        // main.ts reads conversation.actions right after this call to build the
+        // chat payload.
+        await this.initializeResources();
         if (!this.config.showPreviousConversations || this.config.disableHistoricalConversations) {
             console.log('Historical conversation loading is disabled.');
             return;
@@ -1213,6 +1244,15 @@ export class Conversation{
         const potentialTargets = new Map<Character, number>(); // Map of Character to confidence score
         const FUZZY_MATCH_THRESHOLD = 0.75; // Lowered threshold slightly to catch more matches
         const SUBSTRING_CONFIDENCE = 0.9;
+        // Weighted scoring: a character's own name is the strongest signal that
+        // the player is addressing them, relationship terms are next, and
+        // titles/ranks are the weakest because many characters share them.
+        const NAME_TOKEN_WEIGHT = 2.0;
+        const RELATIONSHIP_TOKEN_WEIGHT = 1.5;
+        const TITLE_TOKEN_WEIGHT = 1.0;
+        // At or above this confidence a single match is precise enough to stand
+        // alone, so the 0.05 tie-band below is skipped for it.
+        const HIGH_CONFIDENCE_EXACT_MATCH = 0.9;
         // Title/rank words cause false positives across characters sharing a rank
         // ("Duke", "Lord") and are excluded from matching.
         const STOPWORDS = new Set([
@@ -1239,34 +1279,41 @@ export class Conversation{
             const tokenize = (value: string): string[] =>
                 value.toLowerCase().split(/[\s_-]+/).filter(Boolean);
 
-            const checkables = [
+            // Weighted checkables: name tokens carry the strongest signal,
+            // relationship terms next, titles/ranks last (shared by many).
+            const checkables: { token: string, weight: number }[] = [
                 character.fullName,
                 character.shortName,
-                character.firstName,
+                character.firstName
+            ].filter(Boolean).flatMap(tokenize).map(token => ({ token, weight: NAME_TOKEN_WEIGHT }));
+
+            [
                 character.primaryTitle,
                 character.titleRankConcept
-            ].filter(Boolean).flatMap(tokenize);
+            ].filter(Boolean).flatMap(tokenize).forEach(token => {
+                checkables.push({ token, weight: TITLE_TOKEN_WEIGHT });
+            });
 
             const player = this.gameData.getPlayer();
             if (player && player.relatives) {
                 const relationshipToPlayer = player.relatives.find(m => m.id === character.id);
                 if (relationshipToPlayer && relationshipToPlayer.relationship) {
-                    checkables.push(relationshipToPlayer.relationship.toLowerCase());
+                    checkables.push({ token: relationshipToPlayer.relationship.toLowerCase(), weight: RELATIONSHIP_TOKEN_WEIGHT });
                     if (relationshipToPlayer.relationship.toLowerCase() === 'child') {
                         // Use the character's own gender marker; no string assumptions.
                         if (character.sheHe.toLowerCase() === 'he') {
-                            checkables.push('son');
+                            checkables.push({ token: 'son', weight: RELATIONSHIP_TOKEN_WEIGHT });
                         } else if (character.sheHe.toLowerCase() === 'she') {
-                            checkables.push('daughter');
+                            checkables.push({ token: 'daughter', weight: RELATIONSHIP_TOKEN_WEIGHT });
                         }
                     }
                 }
             }
 
-            console.log(`... against checkables: [${checkables.join(', ')}]`);
+            console.log(`... against checkables: [${checkables.map(c => c.token).join(', ')}]`);
 
-            for (const checkable of checkables) {
-                const cleanPart = checkable.replace(/[.,!?;:]/g, '');
+            for (const { token, weight } of checkables) {
+                const cleanPart = token.replace(/[.,!?;:]/g, '');
                 if (cleanPart.length < 3 || STOPWORDS.has(cleanPart)) continue;
 
                 for (const word of words) {
@@ -1274,17 +1321,18 @@ export class Conversation{
 
                     // Substring match (high confidence)
                     if (cleanPart.includes(word)) {
-                        if (SUBSTRING_CONFIDENCE > highestConfidence) {
-                            highestConfidence = SUBSTRING_CONFIDENCE;
-                            console.log(`... new highest confidence ${SUBSTRING_CONFIDENCE} from substring match: "${cleanPart}" includes "${word}"`);
+                        const weighted = SUBSTRING_CONFIDENCE * weight;
+                        if (weighted > highestConfidence) {
+                            highestConfidence = weighted;
+                            console.log(`... new highest confidence ${weighted.toFixed(2)} from substring match: "${cleanPart}" includes "${word}" (weight ${weight})`);
                         }
                     }
 
                     // Fuzzy match (lower confidence)
-                    const confidence = getSimilarity(cleanPart, word);
+                    const confidence = getSimilarity(cleanPart, word) * weight;
                     if (confidence > highestConfidence) {
                         highestConfidence = confidence;
-                        console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${cleanPart}" vs "${word}"`);
+                        console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${cleanPart}" vs "${word}" (weight ${weight})`);
                     }
                 }
             }
@@ -1301,6 +1349,15 @@ export class Conversation{
         if (potentialTargets.size > 0) {
             const sortedTargets = [...potentialTargets.entries()].sort((a, b) => b[1] - a[1]);
             const topConfidence = sortedTargets[0][1];
+
+            // A very high-confidence match is precise on its own: return only the
+            // single best character and skip the tie-band, which would otherwise
+            // let a near-tied sibling (e.g. one sharing a title) join the reply.
+            if (topConfidence >= HIGH_CONFIDENCE_EXACT_MATCH) {
+                const [bestCharacter] = sortedTargets[0];
+                console.log(`\nHigh-confidence match (${topConfidence.toFixed(2)}) for ${bestCharacter.shortName}; returning it as the sole target.`);
+                return [bestCharacter];
+            }
 
             // Return all targets with a confidence score close to the top score
             const highConfidenceTargets = sortedTargets
@@ -2558,14 +2615,15 @@ ${timelineLines}
     updateConfig(config: Config){
         console.log("Config updated! Reloading conversation configuration.");
         this.config = config;
-        this.loadConfig();
         if (this.memoryCompactor) {
             this.memoryCompactor.initialize(this.config);
         }
-        this.loadConfig();
+        // §9.5: loadConfig is async now (actions load via fs.promises) — fire and
+        // forget with logged failures. The old duplicate second call is gone.
+        void this.loadConfig().catch(err => console.error('Failed to reload conversation config:', err));
     }
 
-    loadConfig(){
+    async loadConfig(): Promise<void> {
         console.log('Loading conversation configuration.');
         console.log('Current config (safe version):', this.config.toSafeConfig());
 
@@ -2651,7 +2709,7 @@ ${timelineLines}
             this.embeddingApiConnection = this.textGenApiConnection;
         }
 
-        this.loadActions();
+        await this.loadActions();
     }
 
     getApiConnections() {
@@ -2677,15 +2735,23 @@ ${timelineLines}
         console.log('Compaction API connection configured.');
     }
 
-    loadActions(){
+    async loadActions(): Promise<void> {
         console.log('Loading actions from scripts.');
         this.actions = [];
 
         const actionsPath = path.join(this.votcDataPath, 'scripts', 'actions');
         const standardActionsDir = path.join(actionsPath, 'standard');
         const customActionsDir = path.join(actionsPath, 'custom');
-        let standardActionFiles = fs.existsSync(standardActionsDir) ? fs.readdirSync(standardActionsDir).filter(file => path.extname(file) === ".js") : [];
-        let customActionFiles = fs.existsSync(customActionsDir) ? fs.readdirSync(customActionsDir).filter(file => path.extname(file) === ".js") : [];
+        // fs.promises.readdir; a missing directory simply yields no files.
+        const listJsFiles = async (dir: string): Promise<string[]> => {
+            try {
+                return (await fs.promises.readdir(dir)).filter(file => path.extname(file) === ".js");
+            } catch {
+                return [];
+            }
+        };
+        const standardActionFiles = await listJsFiles(standardActionsDir);
+        const customActionFiles = await listJsFiles(customActionsDir);
 
         for(const file of standardActionFiles) {
             const actionName = path.basename(file).split(".")[0];
@@ -3012,11 +3078,14 @@ ${timelineLines}
     private async checkForSummariesFromOtherPlayers(): Promise<void> {
         console.log('Checking for summaries from other players...');
         const summariesBasePath = path.join(this.votcDataPath, 'conversation_summaries');
-        if (!fs.existsSync(summariesBasePath)) return;
-
-        const playerDirs = fs.readdirSync(summariesBasePath, { withFileTypes: true })
-            .filter(dirent => dirent.isDirectory())
-            .map(dirent => dirent.name);
+        let playerDirs: string[] = [];
+        try {
+            playerDirs = (await fs.promises.readdir(summariesBasePath, { withFileTypes: true }))
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name);
+        } catch {
+            return; // No summaries directory yet: nothing to import.
+        }
 
         const otherPlayerIds = playerDirs.filter(id => id !== this.gameData.playerID.toString());
 
@@ -3034,16 +3103,17 @@ ${timelineLines}
 
             for (const playerId of otherPlayerIds) {
                 const summaryFilePath = path.join(summariesBasePath, playerId, `${character.id.toString()}.json`);
-                if (fs.existsSync(summaryFilePath)) {
-                    try {
-                        const foreignSummaries: Summary[] = JSON.parse(fs.readFileSync(summaryFilePath, 'utf8'));
-                        const summariesToImport = foreignSummaries.map(s => ({
-                            ...s,
-                            fromPlayerId: playerId // Add the player ID
-                        }));
-                        characterSummaries.push(...summariesToImport);
-                        console.log(`Imported ${summariesToImport.length} summaries for character ${character.id} from player ${playerId}.`);
-                    } catch (e) {
+                try {
+                    const foreignSummaries: Summary[] = JSON.parse(await fs.promises.readFile(summaryFilePath, 'utf8'));
+                    const summariesToImport = foreignSummaries.map(s => ({
+                        ...s,
+                        fromPlayerId: playerId // Add the player ID
+                    }));
+                    characterSummaries.push(...summariesToImport);
+                    console.log(`Imported ${summariesToImport.length} summaries for character ${character.id} from player ${playerId}.`);
+                } catch (e: any) {
+                    // ENOENT is normal: the other player never spoke to this character.
+                    if (e?.code !== 'ENOENT') {
                         console.error(`Error reading or parsing summary file ${summaryFilePath}:`, e);
                     }
                 }

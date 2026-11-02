@@ -213,6 +213,11 @@ async function initChat(){
     updateRegenerateButtonState();
 }
 
+// §9.5 batch rendering: while true, displayMessage() skips its per-message
+// auto-scroll timer so batched history rendering performs one layout pass at
+// the end instead of one forced reflow per message.
+let isBatchRendering = false;
+
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
     if (message.name === 'Narrator' || message.role === 'system') {
         return; // Do not display narrator or system messages directly
@@ -371,10 +376,13 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     }
 
     chatMessages.append(messageDiv);
-    // Auto-scroll to bottom after adding message
-    setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 10);
+    // Auto-scroll to bottom after adding message. Skipped during batch rendering:
+    // the batch caller performs a single scroll after attaching the fragment.
+    if (!isBatchRendering) {
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 10);
+    }
 
     updateRegenerateButtonState();
 
@@ -1311,8 +1319,15 @@ ipcRenderer.on('historical-conversations-update', async (e, conversations: any[]
     console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
     const fragment = document.createDocumentFragment();
     // Reverse the incoming batch of older conversations so the oldest is first.
-    for (const conv of conversations.reverse()) {
-        await appendConversationToFragment(conv, fragment);
+    // §9.5: render as one batch — suppress per-message scroll timers; the
+    // existing scroll position is preserved for prepended older history.
+    isBatchRendering = true;
+    try {
+        for (const conv of conversations.reverse()) {
+            await appendConversationToFragment(conv, fragment);
+        }
+    } finally {
+        isBatchRendering = false;
     }
 
     const historicalHeader = chatMessages.querySelector('.historical-header');
@@ -1954,8 +1969,15 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         const fragment = document.createDocumentFragment();
         // Reverse the initial batch to display the oldest conversations at the top.
-        for (const conv of historicalMetadata.reverse()) {
-            await appendConversationToFragment(conv, fragment);
+        // §9.5: render as one batch — suppress per-message scroll timers; the
+        // final scroll below runs once after the fragment is attached.
+        isBatchRendering = true;
+        try {
+            for (const conv of historicalMetadata.reverse()) {
+                await appendConversationToFragment(conv, fragment);
+            }
+        } finally {
+            isBatchRendering = false;
         }
         chatMessages.appendChild(fragment);
     }
