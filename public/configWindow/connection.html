@@ -32,7 +32,24 @@
 
     <div class="container" id="container">
 
+      <h2 data-i18n="config.text_gen_connection">Text Generation Connection</h2>
       <config-api-selector confID="textGenerationApiConnectionConfig"></config-api-selector>
+
+      <h2 data-i18n="settings.quick_model_connection" style="margin-top: 30px;">Quick Model Connection</h2>
+      <p data-i18n="settings.quick_model_connection_desc" style="color: #a0a0a0; font-size: 0.9em; margin-bottom: 15px;">Optional low-latency LLM for quick decisions (character targeting, etc.). Uses the text generation connection by default.</p>
+      <config-api-selector confID="quickModelApiConnectionConfig"></config-api-selector>
+
+      <div class="row" style="margin-top: 15px;">
+        <div class="column">
+          <config-checkbox confID="quickModelUseTextGenApi" data-i18n="settings.quick_model_use_text_gen"></config-checkbox> <tooltip-text side="top" data-i18n="settings.quick_model_use_text_gen_tooltip"></tooltip-text>
+        </div>
+        <div class="column">
+          <config-checkbox confID="enableQuickModelTargeting" data-i18n="settings.enable_quick_model_targeting"></config-checkbox> <tooltip-text side="top" data-i18n="settings.enable_quick_model_targeting_tooltip"></tooltip-text>
+        </div>
+      </div>
+
+      <h2 data-i18n="settings.text_gen_params" style="margin-top: 20px;">Text-generation parameters</h2>
+      <parameters-box confID="quickModelApiConnectionConfig" tempDefault="0.1" freqPenDefault="0" presPenDefault="0" topPDefault="0.9"></parameters-box>
 
       <div class="context-limit-description" style="margin-top: 15px; padding: 10px; background-color: rgba(0,0,0,0.2); border: 1px solid #5a4a35; border-radius: 4px; font-size: 0.9em; color: #c0c0c0;">
         <p data-i18n="config.context_limit_desc_1" style="margin: 0 0 8px 0;">The context limit is the maximum number of tokens the model can handle. The application attempts to auto-detect this limit from the API.</p>
@@ -49,6 +66,7 @@
     <script>require("../../dist/configWindow/components/configCheckbox.js")</script>
     <script>require("../../dist/configWindow/components/ConfigNumber.js")</script>
     <script>require("../../dist/configWindow/components/apiSelector.js")</script>
+    <script>require("../../dist/configWindow/components/ParametersBox.js")</script>
     <script>require("../../dist/configWindow/components/tooltip.js")</script>
     <script>require("../../dist/configWindow/connectionRenderer.js")</script>
 

@@ -21,7 +21,8 @@
     "memory_constellation.empty_title": "Nie znaleziono wspomnień",
     "memory_constellation.empty_subtitle": "Wspomnienia pojawią się tutaj, gdy twoja postać będzie doświadczać wydarzeń w grze.",
     "whispers": "Szepty",
-    "whispers_tooltip": "Przeglądaj i zarządzaj wygenerowanymi sekcjami Księgi Szeptów"
+    "whispers_tooltip": "Przeglądaj i zarządzaj wygenerowanymi sekcjami Księgi Szeptów",
+    "quick_model": "Model szybki"
   },
   "diaries": {
     "header": "Dzienniki",
@@ -287,7 +288,15 @@
     "compaction_phase1_summaries": "Podsumowania Fazy 1:",
     "compaction_phase1_threshold_label": "(wyzwala Fazę 2 przy",
     "compaction_never_run": "Nigdy nie uruchomiono",
-    "text_gen_params": "Parametry generowania tekstu"
+    "text_gen_params": "Parametry generowania tekstu",
+    "quick_model_connection": "Połączenie modelu szybkiego",
+    "quick_model_connection_desc": "Opcjonalny LLM o niskim opóźnieniu do szybkich decyzji (wybór postaci itp.). Domyślnie używa połączenia generowania tekstu.",
+    "quick_model_use_text_gen": "Użyj połączenia generowania tekstu",
+    "quick_model_use_text_gen_tooltip": "Gdy włączone, model szybki współdzieli połączenie API generowania tekstu.",
+    "enable_quick_model_targeting": "Włącz wybór celu modelem szybkim",
+    "enable_quick_model_targeting_tooltip": "Gdy włączone, model szybki automatycznie rozpoznaje, do której postaci zwraca się gracz. Wymaga skonfigurowanego połączenia modelu szybkiego.",
+    "clear_target_after_send": "Wyczyść cel po wysłaniu",
+    "clear_target_after_send_tooltip": "Automatycznie resetuj wybór postaci docelowej po wysłaniu wiadomości"
   },
   "system": {
     "update": "Aktualizacja",
@@ -321,7 +330,41 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[Instrukcja systemowa: Jesteś {characterName}. Podszedłeś do {playerName} i sam rozpoczynasz tę rozmowę. Wymyśl powód lub temat do rozmowy (prośbę, wiadomość, troskę, plotkę lub osobistą sprawę pasującą do twojej postaci, jej cech i obecnej sytuacji) i zacznij od niego. Nie czekaj na odpowiedź. Napisz wiadomość tylko dla swojej postaci. Nie pisz jako inne postacie. Użyj markdownu dla akcji, jak *to*.]",
     "ai_initiated_narrator_prompt": "Co teraz {sourceCharacterName} mówi do {playerName}, aby rozpocząć tę rozmowę?",
-    "start_writing_reply": "Teraz zacznij pisać odpowiedź {characterName}:"
+    "start_writing_reply": "Teraz zacznij pisać odpowiedź {characterName}:",
+    "targeting_stopwords": [
+      "the",
+      "of",
+      "a",
+      "an",
+      "in",
+      "on",
+      "at",
+      "for",
+      "to",
+      "and",
+      "my",
+      "your",
+      "pan",
+      "pani",
+      "książę",
+      "księżna",
+      "hrabia",
+      "hrabina",
+      "baron",
+      "baronowa",
+      "król",
+      "królowa",
+      "cesarz",
+      "cesarzowa",
+      "książę",
+      "księżniczka",
+      "sir",
+      "ser",
+      "mistrz",
+      "panna",
+      "madame",
+      "dama"
+    ]
   },
   "chat": {
     "target_label": "Postać docelowa:",

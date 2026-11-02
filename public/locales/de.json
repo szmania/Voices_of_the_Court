@@ -21,7 +21,8 @@
     "memory_constellation.empty_title": "Keine Erinnerungen gefunden",
     "memory_constellation.empty_subtitle": "Erinnerungen erscheinen hier, wenn dein Charakter Ereignisse im Spiel erlebt.",
     "whispers": "Flüstern",
-    "whispers_tooltip": "Erzeugte Flüstern-Register-Berichte anzeigen und verwalten"
+    "whispers_tooltip": "Erzeugte Flüstern-Register-Berichte anzeigen und verwalten",
+    "quick_model": "Schnellmodell"
   },
   "diaries": {
     "header": "Tagebücher",
@@ -291,7 +292,15 @@
     "compaction_phase1_summaries": "Phase 1 Zusammenfassungen:",
     "compaction_phase1_threshold_label": "(löst Phase 2 aus bei",
     "compaction_never_run": "Nie ausgeführt",
-    "text_gen_params": "Textgenerierungsparameter"
+    "text_gen_params": "Textgenerierungsparameter",
+    "quick_model_connection": "Schnellmodell-Verbindung",
+    "quick_model_connection_desc": "Optionales LLM mit niedriger Latenz für schnelle Entscheidungen (Charakter-Zielauswahl usw.). Verwendet standardmäßig die Textgenerierungs-Verbindung.",
+    "quick_model_use_text_gen": "Textgenerierungs-Verbindung verwenden",
+    "quick_model_use_text_gen_tooltip": "Wenn aktiviert, teilt das Schnellmodell die Textgenerierungs-API-Verbindung.",
+    "enable_quick_model_targeting": "Schnellmodell-Zielauswahl aktivieren",
+    "enable_quick_model_targeting_tooltip": "Wenn aktiviert, wird das Schnellmodell verwendet, um automatisch zu erkennen, welcher Charakter angesprochen wird. Erfordert eine konfigurierte Schnellmodell-Verbindung.",
+    "clear_target_after_send": "Ziel nach dem Senden löschen",
+    "clear_target_after_send_tooltip": "Zielcharakter-Auswahl nach dem Senden einer Nachricht automatisch zurücksetzen"
   },
   "system": {
     "update": "Update",
@@ -325,7 +334,43 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[Systemanweisung: Du bist {characterName}. Du bist zu {playerName} gekommen und eröffnest dieses Gespräch selbst. Überlege dir einen Grund oder ein Thema (eine Bitte, Neuigkeiten, eine Sorge, ein Gerücht oder eine persönliche Angelegenheit, die zu deinem Charakter, seinen Eigenschaften und deiner aktuellen Situation passt) und beginne damit. Warte nicht auf eine Antwort. Schreibe eine Nachricht nur für deinen Charakter. Schreibe nicht als andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.]",
     "ai_initiated_narrator_prompt": "Was sagt {sourceCharacterName} zu {playerName}, um dieses Gespräch zu beginnen?",
-    "start_writing_reply": "Beginnen Sie jetzt mit dem Schreiben der Antwort von {characterName}:"
+    "start_writing_reply": "Beginnen Sie jetzt mit dem Schreiben der Antwort von {characterName}:",
+    "targeting_stopwords": [
+      "der",
+      "die",
+      "das",
+      "ein",
+      "eine",
+      "und",
+      "in",
+      "auf",
+      "an",
+      "zu",
+      "von",
+      "mein",
+      "dein",
+      "herr",
+      "frau",
+      "herzog",
+      "herzogin",
+      "graf",
+      "gräfin",
+      "baron",
+      "baronin",
+      "könig",
+      "königin",
+      "kaiser",
+      "kaiserin",
+      "prinz",
+      "prinzessin",
+      "sir",
+      "ser",
+      "meister",
+      "meisterin",
+      "fräulein",
+      "madam",
+      "dame"
+    ]
   },
   "chat": {
     "target_label": "Zielcharakter:",

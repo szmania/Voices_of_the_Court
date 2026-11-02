@@ -33,7 +33,8 @@
     "memories": "Anılar",
     "memories_tooltip": "Anıları görselleştirin ve sıkıştırmayı yönetin",
     "whispers": "Fısıltılar",
-    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet"
+    "whispers_tooltip": "Oluşturulan Fısıltı Defteri bölümlerini görüntüle ve yönet",
+    "quick_model": "Hızlı model"
   },
   "diaries": {
     "header": "Günlükler",
@@ -310,7 +311,15 @@
     "compaction_phase1_summaries": "Aşama 1 Özetleri:",
     "compaction_phase1_threshold_label": "(Aşama 2'yi tetikler",
     "compaction_never_run": "Hiç çalıştırılmadı",
-    "text_gen_params": "Metin üretim parametreleri"
+    "text_gen_params": "Metin üretim parametreleri",
+    "quick_model_connection": "Hızlı model bağlantısı",
+    "quick_model_connection_desc": "Hızlı kararlar (karakter hedefleme vb.) için isteğe bağlı düşük gecikmeli LLM. Varsayılan olarak metin üretim bağlantısını kullanır.",
+    "quick_model_use_text_gen": "Metin üretim bağlantısını kullan",
+    "quick_model_use_text_gen_tooltip": "Etkinleştirildiğinde, hızlı model metin üretim API bağlantısını paylaşır.",
+    "enable_quick_model_targeting": "Hızlı model hedeflemeyi etkinleştir",
+    "enable_quick_model_targeting_tooltip": "Etkinleştirildiğinde, oyuncunun hangi karaktere hitap ettiğini otomatik algılamak için hızlı model kullanılır. Yapılandırılmış bir hızlı model bağlantısı gerektirir.",
+    "clear_target_after_send": "Gönderdikten sonra hedefi temizle",
+    "clear_target_after_send_tooltip": "Mesaj gönderdikten sonra hedef karakter seçimini otomatik olarak sıfırla"
   },
   "system": {
     "update": "Güncelle",
@@ -343,7 +352,41 @@
     "ai_to_ai_narrator_reply_prompt": "Şimdi, {sourceCharacterName} karakterinin {targetCharacterName} karakterine cevabı nedir?",
     "ai_to_ai_narrator_non_targeted_prompt": "Şimdi, {sourceCharacterName} karakterinin devam eden konuşmadaki tepkisi nedir?",
     "roleplay_instruction_ai_initiated": "[Sistem talimatı: Sen {characterName}'sın. {playerName}'e yaklaştın ve bu konuşmayı kendin başlatıyorsun. Karakterine, özelliklerine ve mevcut durumuna uygun bir neden veya konu bul (bir rica, haber, endişe, söylenti veya kişisel bir mesele) ve ona göre başla. Cevap bekleme. Sadece kendi karakterin için bir mesaj yaz. Başka karakterler olarak yazma. Eylemler için *böyle* markdown kullan.]",
-    "ai_initiated_narrator_prompt": "Şimdi, {sourceCharacterName} bu konuşmayı başlatmak için {playerName}'e ne diyor?"
+    "ai_initiated_narrator_prompt": "Şimdi, {sourceCharacterName} bu konuşmayı başlatmak için {playerName}'e ne diyor?",
+    "targeting_stopwords": [
+      "the",
+      "of",
+      "a",
+      "an",
+      "in",
+      "on",
+      "at",
+      "for",
+      "to",
+      "and",
+      "my",
+      "your",
+      "bey",
+      "hanım",
+      "dük",
+      "düşes",
+      "kont",
+      "kontes",
+      "baron",
+      "barones",
+      "kral",
+      "kraliçe",
+      "imparator",
+      "imparatoriçe",
+      "prens",
+      "prenses",
+      "sir",
+      "ser",
+      "usta",
+      "bay",
+      "madam",
+      "dame"
+    ]
   },
   "chat": {
     "target_label": "Hedef Karakter:",

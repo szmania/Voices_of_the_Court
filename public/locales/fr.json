@@ -21,7 +21,8 @@
     "memory_constellation.empty_title": "Aucun souvenir trouvé",
     "memory_constellation.empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu.",
     "whispers": "Murmures",
-    "whispers_tooltip": "Consulter et gérer les sections générées du Registre des Murmures"
+    "whispers_tooltip": "Consulter et gérer les sections générées du Registre des Murmures",
+    "quick_model": "Modèle rapide"
   },
   "diaries": {
     "header": "Journaux",
@@ -291,7 +292,15 @@
     "compaction_phase1_summaries": "Résumés Phase 1 :",
     "compaction_phase1_threshold_label": "(déclenche la Phase 2 à",
     "compaction_never_run": "Jamais exécuté",
-    "text_gen_params": "Paramètres de génération de texte"
+    "text_gen_params": "Paramètres de génération de texte",
+    "quick_model_connection": "Connexion du modèle rapide",
+    "quick_model_connection_desc": "LLM optionnel à faible latence pour les décisions rapides (ciblage de personnage, etc.). Utilise par défaut la connexion de génération de texte.",
+    "quick_model_use_text_gen": "Utiliser la connexion de génération de texte",
+    "quick_model_use_text_gen_tooltip": "Lorsque cette option est activée, le modèle rapide partage la connexion API de génération de texte.",
+    "enable_quick_model_targeting": "Activer le ciblage par modèle rapide",
+    "enable_quick_model_targeting_tooltip": "Lorsque cette option est activée, le modèle rapide est utilisé pour détecter automatiquement le personnage interpellé. Nécessite une connexion de modèle rapide configurée.",
+    "clear_target_after_send": "Effacer la cible après envoi",
+    "clear_target_after_send_tooltip": "Réinitialiser automatiquement le menu du personnage cible après l'envoi d'un message"
   },
   "system": {
     "update": "Mise à jour",
@@ -325,7 +334,44 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[Instruction système : Tu es {characterName}. Tu t'es approché de {playerName} et tu ouvres toi-même cette conversation. Trouve une raison ou un sujet de discussion (une demande, une nouvelle, une préoccupation, une rumeur ou une affaire personnelle correspondant à ton personnage, ses traits et ta situation actuelle) et commence par cela. N'attends pas de réponse. Écris un message pour ton personnage uniquement. N'écris pas comme d'autres personnages. Utilise le markdown pour les actions, comme *ceci*.]",
     "ai_initiated_narrator_prompt": "Que dit {sourceCharacterName} à {playerName} pour commencer cette conversation ?",
-    "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:"
+    "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:",
+    "targeting_stopwords": [
+      "le",
+      "la",
+      "les",
+      "un",
+      "une",
+      "de",
+      "du",
+      "et",
+      "dans",
+      "sur",
+      "pour",
+      "par",
+      "mon",
+      "ton",
+      "seigneur",
+      "dame",
+      "duc",
+      "duchesse",
+      "comte",
+      "comtesse",
+      "baron",
+      "baronne",
+      "roi",
+      "reine",
+      "empereur",
+      "impératrice",
+      "prince",
+      "princesse",
+      "sir",
+      "ser",
+      "maître",
+      "maîtresse",
+      "messire",
+      "madame",
+      "dame"
+    ]
   },
   "chat": {
     "target_label": "Personnage cible :",

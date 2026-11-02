@@ -21,7 +21,8 @@
     "memory_constellation.empty_title": "기억을 찾을 수 없습니다",
     "memory_constellation.empty_subtitle": "캐릭터가 게임에서 이벤트를 경험하면 여기에 기억이 표시됩니다.",
     "whispers": "속삭임",
-    "whispers_tooltip": "생성된 속삭임 장부 섹션 보기 및 관리"
+    "whispers_tooltip": "생성된 속삭임 장부 섹션 보기 및 관리",
+    "quick_model": "퀵 모델"
   },
   "diaries": {
     "header": "일기",
@@ -287,7 +288,15 @@
     "compaction_phase1_summaries": "1단계 요약:",
     "compaction_phase1_threshold_label": "(2단계를 트리거",
     "compaction_never_run": "실행된 적 없음",
-    "text_gen_params": "텍스트 생성 매개변수"
+    "text_gen_params": "텍스트 생성 매개변수",
+    "quick_model_connection": "퀵 모델 연결",
+    "quick_model_connection_desc": "빠른 판단(캐릭터 지정 등)을 위한 선택적 저지연 LLM입니다. 기본적으로 텍스트 생성 연결을 사용합니다.",
+    "quick_model_use_text_gen": "텍스트 생성 연결 사용",
+    "quick_model_use_text_gen_tooltip": "활성화하면 퀵 모델이 텍스트 생성 API 연결을 공유합니다.",
+    "enable_quick_model_targeting": "퀵 모델 지정 활성화",
+    "enable_quick_model_targeting_tooltip": "활성화하면 퀵 모델이 플레이어가 어느 캐릭터에게 말하는지 자동으로 판단합니다. 퀵 모델 연결 설정이 필요합니다.",
+    "clear_target_after_send": "전송 후 대상 지우기",
+    "clear_target_after_send_tooltip": "메시지 전송 후 대상 캐릭터 선택을 자동으로 초기화합니다"
   },
   "system": {
     "update": "업데이트",
@@ -321,7 +330,44 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[시스템 지시: 당신은 {characterName}입니다. 당신은 {playerName}에게 다가가 이 대화를 직접 시작합니다. 당신의 캐릭터, 성격, 현재 상황에 어울리는 이유나 주제(부탁, 소식, 걱정, 소문, 개인적인 일)를 정해 그것으로 대화를 시작하세요. 답장을 기다리지 마세요. 자신의 캐릭터의 메시지만 쓰세요. 다른 캐릭터로 쓰지 마세요. 동작에는 *이렇게* 마크다운을 사용하세요.]",
     "ai_initiated_narrator_prompt": "이제 {sourceCharacterName}이(가) {playerName}에게 무엇이라 말하며 이 대화를 시작할까요?",
-    "start_writing_reply": "이제 {characterName}의 답장을 작성하기 시작하세요:"
+    "start_writing_reply": "이제 {characterName}의 답장을 작성하기 시작하세요:",
+    "targeting_stopwords": [
+      "의",
+      "은",
+      "는",
+      "을",
+      "를",
+      "이",
+      "가",
+      "과",
+      "와",
+      "에서",
+      "에게",
+      "께",
+      "도",
+      "만",
+      "부터",
+      "까지",
+      "공",
+      "여공",
+      "후",
+      "후처",
+      "백",
+      "백부인",
+      "남작",
+      "남작부인",
+      "왕",
+      "여왕",
+      "황제",
+      "황후",
+      "왕자",
+      "공주",
+      "경",
+      "스승",
+      "아가씨",
+      "마담",
+      "귀부인"
+    ]
   },
   "chat": {
     "target_label": "대상 캐릭터:",

@@ -29,7 +29,8 @@
     "memories": "Memórias",
     "memories_tooltip": "Visualizar memórias e gerenciar compactação",
     "whispers": "Sussurros",
-    "whispers_tooltip": "Ver e gerenciar as seções geradas do Registro de Sussurros"
+    "whispers_tooltip": "Ver e gerenciar as seções geradas do Registro de Sussurros",
+    "quick_model": "Modelo rápido"
   },
   "diaries": {
     "header": "Diários",
@@ -310,7 +311,15 @@
     "compaction_phase1_summaries": "Resumos da Fase 1:",
     "compaction_phase1_threshold_label": "(aciona a Fase 2 em",
     "compaction_never_run": "Nunca executado",
-    "text_gen_params": "Parâmetros de geração de texto"
+    "text_gen_params": "Parâmetros de geração de texto",
+    "quick_model_connection": "Conexão do modelo rápido",
+    "quick_model_connection_desc": "LLM opcional de baixa latência para decisões rápidas (seleção de personagem, etc.). Usa a conexão de geração de texto por padrão.",
+    "quick_model_use_text_gen": "Usar a conexão de geração de texto",
+    "quick_model_use_text_gen_tooltip": "Quando ativado, o modelo rápido compartilha a conexão de API de geração de texto.",
+    "enable_quick_model_targeting": "Ativar seleção de destino com modelo rápido",
+    "enable_quick_model_targeting_tooltip": "Quando ativado, o modelo rápido é usado para detectar automaticamente qual personagem está sendo endereçado. Requer uma conexão de modelo rápido configurada.",
+    "clear_target_after_send": "Limpar destino após enviar",
+    "clear_target_after_send_tooltip": "Redefinir automaticamente o menu de personagem destino após enviar uma mensagem"
   },
   "system": {
     "update": "Atualização",
@@ -344,7 +353,45 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Agora, qual é a resposta de {sourceCharacterName} na conversa em andamento?",
     "roleplay_instruction_ai_initiated": "[Instrução do sistema: Você é {characterName}. Você se aproximou de {playerName} e está abrindo esta conversação você mesmo. Pense em um motivo ou assunto para conversar (um pedido, uma notícia, uma preocupação, um rumor ou um assunto pessoal que combine com o seu personagem, seus traços e sua situação atual) e comece com ele. Não espere uma resposta. Escreva uma mensagem apenas para o seu personagem. Não escreva como outros personagens. Use markdown para ações, como *isto*.]",
     "ai_initiated_narrator_prompt": "O que {sourceCharacterName} diz a {playerName} para começar esta conversação?",
-    "start_writing_reply": "Agora comece a escrever a resposta de {characterName}:"
+    "start_writing_reply": "Agora comece a escrever a resposta de {characterName}:",
+    "targeting_stopwords": [
+      "o",
+      "a",
+      "os",
+      "as",
+      "um",
+      "uma",
+      "de",
+      "do",
+      "da",
+      "e",
+      "em",
+      "sobre",
+      "para",
+      "por",
+      "meu",
+      "teu",
+      "senhor",
+      "senhora",
+      "duque",
+      "duquesa",
+      "conde",
+      "condessa",
+      "barão",
+      "baronesa",
+      "rei",
+      "rainha",
+      "imperador",
+      "imperatriz",
+      "príncipe",
+      "princesa",
+      "sir",
+      "ser",
+      "mestre",
+      "senhorita",
+      "madame",
+      "dama"
+    ]
   },
   "chat": {
     "target_label": "Personagem alvo:",

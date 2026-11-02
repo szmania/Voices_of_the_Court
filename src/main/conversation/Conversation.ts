@@ -115,6 +115,7 @@ export class Conversation{
     isGeneratingScene: boolean;
     pendingPlayerRequest: boolean;
     encoder: Tiktoken | null;
+    quickModelApiConnection!: ApiConnection;
 
     // §4.1: immutable campaign/player identity captured at conversation start.
     // Undefined when the mod snapshot carries no v2 campaign id (legacy Mod);
@@ -400,6 +401,26 @@ export class Conversation{
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
 
+        // Quick Model connection for low-latency targeting decisions (Section 5.3).
+        // Optional: missing config is tolerated; the call-site guard checks the model is set.
+        if (!this.config.quickModelApiConnectionConfig) {
+            this.config.quickModelApiConnectionConfig = {
+                connection: {
+                    type: 'custom',
+                    baseUrl: '',
+                    key: '',
+                    model: '',
+                    apiKeys: {},
+                    forceInstruct: false,
+                    overwriteContext: false,
+                    customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
+        this.quickModelApiConnection = (this.config as any).quickModelUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.quickModelApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder);
 
         this.loadConfig();
 
@@ -979,8 +1000,15 @@ export class Conversation{
             const nonTargetedCharacters = this.npcQueue.filter(c => !respondedCharacterIds.has(c.id));
             const respondingCharacters: Character[] = [];
 
-            // Decide if ANY non-targeted character should respond
-            const willAnyRespond = Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
+            // Decide if ANY non-targeted character should respond.
+            // When the player explicitly targeted a character, that target owns
+            // the turn: the random non-targeted chance is bypassed entirely so
+            // the reply comes from the selected character only.
+            // Find the last user message to check for explicit targeting
+            const lastUserMessage = [...this.messages].reverse().find(m => m.role === 'user');
+            const hasExplicitTarget = Boolean((lastUserMessage as any)?.targetCharacterIds);
+            const willAnyRespond = !hasExplicitTarget &&
+                Math.random() < (this.config.nonTargetedCharacterResponseChance / 100);
 
             if (willAnyRespond && nonTargetedCharacters.length > 0) {
                 console.log(`A non-targeted character will respond based on chance.`);
@@ -1066,6 +1094,45 @@ export class Conversation{
         console.log(`NPC queue filled with ${this.npcQueue.length} characters.`);
     }
 
+    /**
+     * Builds the user payload for the Quick Model targeting prompt (Section 5.2):
+     * the player's message plus the candidate character list.
+     */
+    private buildTargetingPrompt(lastMessage: Message): string {
+        const candidateLines = this.npcQueue
+            .map(c => `- ID ${c.id}: ${c.fullName} (short: ${c.shortName})`)
+            .join('\n');
+        return `Player message: "${lastMessage.content}"\nCandidates:\n${candidateLines}`;
+    }
+
+    /**
+     * Parses the Quick Model targeting response. Fence-strip -> first-JSON-object
+     * extract -> npcQueue ID validation -> confidence gate. Never throws: returns
+     * the matched Character or null, keeping determineTargetedCharacters total.
+     */
+    private parseQuickModelTarget(raw: string): Character | null {
+        const MIN_CONFIDENCE = 0.7;
+        try {
+            // Strip markdown fences and extract the first {...} block.
+            const cleaned = raw.replace(/```(?:json)?/gi, '');
+            const start = cleaned.indexOf('{');
+            const end = cleaned.lastIndexOf('}');
+            if (start === -1 || end <= start) return null;
+            const parsed = JSON.parse(cleaned.substring(start, end + 1));
+
+            const id = Number(parsed?.targetCharacterId);
+            const confidence = Number(parsed?.confidence);
+            if (!Number.isFinite(id)) return null;
+            if (!Number.isFinite(confidence) || confidence < MIN_CONFIDENCE) return null;
+
+            const character = this.npcQueue.find(c => c.id === id);
+            if (!character) return null;
+            return character;
+        } catch {
+            return null;
+        }
+    }
+
     async determineTargetedCharacters(): Promise<Character[]> {
         console.log('Determining targeted characters...');
         // Find the last message sent by the user to ensure we don't analyze a system message.
@@ -1082,20 +1149,63 @@ export class Conversation{
         const targetIds = (lastMessage as any).targetCharacterIds as number[] | undefined;
         if (targetIds && targetIds.length > 0 && targetIds.some(id => !isNaN(id))) { // Check if there are actual numbers
             const explicitTargets = new Set<Character>();
+            const droppedIds: number[] = [];
             targetIds.forEach(id => {
                 const char = this.npcQueue.find(c => c.id === id);
                 if (char) {
                     explicitTargets.add(char);
+                } else {
+                    droppedIds.push(id);
                 }
             });
+            if (droppedIds.length > 0) {
+                // Bug A: selected characters may have left/died/been silenced; fail visibly.
+                const msg = `Selected target character(s) ${droppedIds.join(', ')} are not available in this conversation.`;
+                console.warn(`[Targeting] ${msg}`);
+                this.chatWindow.window.webContents.send('error-message', msg);
+            }
             if (explicitTargets.size > 0) {
-                console.log(`UI targeted characters identified: ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
+                console.log(`[Targeting] Explicit UI target(s): ${Array.from(explicitTargets).map(c => c.shortName).join(', ')}`);
                 return Array.from(explicitTargets);
+            }
+            console.log('[Targeting] No explicit UI targets resolved; falling back to detection.');
+        }
+
+        // 2. Quick Model LLM targeting (opt-in). One small completion per untargeted
+        // turn; any failure falls through to fuzzy matching (Section 5.4).
+        const quickModelEnabled = (this.config as any).enableQuickModelTargeting === true;
+        const quickModelConfigured = Boolean(this.quickModelApiConnection &&
+            (this.quickModelApiConnection as any).model &&
+            (this.quickModelApiConnection as any).model !== '');
+        if (quickModelEnabled && quickModelConfigured) {
+            try {
+                const prompt: Message[] = [{
+                    role: 'system',
+                    content: 'You decide which character a player is addressing in a conversation.\nGiven the player\'s message and the candidate list, pick the single most likely addressee.\nRules:\n- Judge by names, titles, relationship terms, and context - not by generic rank words alone.\n- If the message does not clearly address one candidate, return null.\nRespond with ONLY minified JSON, no markdown:\n{"targetCharacterId": <candidate id or null>, "confidence": <0.0-1.0>}'
+                }, {
+                    role: 'user',
+                    content: this.buildTargetingPrompt(lastMessage)
+                }];
+                // 5s timeout: the feature exists to be faster than the main generation.
+                const result = await this.quickModelApiConnection.complete(
+                    prompt, false, { max_tokens: 64 },
+                    undefined, this.abortController?.signal, 5000
+                );
+                const raw = typeof result === 'string' ? result : ((result as any)?.content ?? '');
+                const target = this.parseQuickModelTarget(raw);
+                if (target) {
+                    console.log(`[Targeting] Quick Model selected ${target.shortName} (ID: ${target.id}).`);
+                    return [target];
+                }
+                console.log('[Targeting] Quick Model returned no valid target; falling back to fuzzy matching.');
+            } catch (error) {
+                if (isAbortError(error)) throw error;
+                console.error('[Targeting] Quick Model call failed; falling back to fuzzy matching:', error);
             }
         }
 
-        // 2. If no UI target, perform automatic detection
-        console.log('No UI target found. Performing automatic detection...');
+        // 3. Improved fuzzy matching fallback.
+        console.log('No target resolved yet. Performing fuzzy matching...');
         const messageContent = lastMessage.content.toLowerCase();
         const words = messageContent.replace(/[.,!?;:]/g, '').split(/\s+/).filter(w => w.length > 2); // Clean punctuation and split into words
         console.log(`Words from message to check: [${words.join(', ')}]`);
@@ -1103,11 +1213,31 @@ export class Conversation{
         const potentialTargets = new Map<Character, number>(); // Map of Character to confidence score
         const FUZZY_MATCH_THRESHOLD = 0.75; // Lowered threshold slightly to catch more matches
         const SUBSTRING_CONFIDENCE = 0.9;
-        const STOPWORDS = new Set(['the', 'of', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'and', 'le', 'la', 'de', 'my', 'your']);
+        // Title/rank words cause false positives across characters sharing a rank
+        // ("Duke", "Lord") and are excluded from matching.
+        const STOPWORDS = new Set([
+            'the', 'of', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'and', 'le', 'la', 'de', 'my', 'your',
+            'lord', 'lady', 'duke', 'duchess', 'count', 'countess', 'baron', 'baroness',
+            'king', 'queen', 'emperor', 'empress', 'prince', 'princess',
+            'sir', 'ser', 'master', 'mister', 'miss', 'madam', 'dame'
+        ]);
+        // Locale-aware stopwords (merged over the English base).
+        const localeStopwords = this.translations?.system?.targeting_stopwords;
+        if (Array.isArray(localeStopwords)) {
+            localeStopwords.forEach((w: any) => {
+                if (typeof w === 'string' && w.length > 0) STOPWORDS.add(w.toLowerCase());
+            });
+        }
 
         for (const character of this.npcQueue) {
             let highestConfidence = 0;
             console.log(`\nChecking character: ${character.shortName} (ID: ${character.id})`);
+
+            // Titles/ranks like "feudal_count" are compound identifiers; split them
+            // so individual meaningful tokens can match (rank words themselves are
+            // filtered by STOPWORDS).
+            const tokenize = (value: string): string[] =>
+                value.toLowerCase().split(/[\s_-]+/).filter(Boolean);
 
             const checkables = [
                 character.fullName,
@@ -1115,17 +1245,15 @@ export class Conversation{
                 character.firstName,
                 character.primaryTitle,
                 character.titleRankConcept
-            ].filter(Boolean).map(n => n.toLowerCase());
+            ].filter(Boolean).flatMap(tokenize);
 
             const player = this.gameData.getPlayer();
             if (player && player.relatives) {
                 const relationshipToPlayer = player.relatives.find(m => m.id === character.id);
                 if (relationshipToPlayer && relationshipToPlayer.relationship) {
-                    const relationship = relationshipToPlayer.relationship.toLowerCase();
-                    checkables.push(relationship);
-                    if (relationship === 'child') {
-                        // The character object from gameData should have gender info.
-                        // We assume 'sheHe' property exists based on its usage elsewhere.
+                    checkables.push(relationshipToPlayer.relationship.toLowerCase());
+                    if (relationshipToPlayer.relationship.toLowerCase() === 'child') {
+                        // Use the character's own gender marker; no string assumptions.
                         if (character.sheHe.toLowerCase() === 'he') {
                             checkables.push('son');
                         } else if (character.sheHe.toLowerCase() === 'she') {
@@ -1138,28 +1266,25 @@ export class Conversation{
             console.log(`... against checkables: [${checkables.join(', ')}]`);
 
             for (const checkable of checkables) {
-                const parts = checkable.split(/\s+/);
-                for (const part of parts) {
-                    const cleanPart = part.replace(/[.,!?;:]/g, '');
-                    if (cleanPart.length < 3 || STOPWORDS.has(cleanPart)) continue;
+                const cleanPart = checkable.replace(/[.,!?;:]/g, '');
+                if (cleanPart.length < 3 || STOPWORDS.has(cleanPart)) continue;
 
-                    for (const word of words) {
-                        if (STOPWORDS.has(word)) continue;
+                for (const word of words) {
+                    if (STOPWORDS.has(word)) continue;
 
-                        // Substring match (high confidence)
-                        if (cleanPart.includes(word)) {
-                            if (SUBSTRING_CONFIDENCE > highestConfidence) {
-                                highestConfidence = SUBSTRING_CONFIDENCE;
-                                console.log(`... new highest confidence ${SUBSTRING_CONFIDENCE} from substring match: "${cleanPart}" includes "${word}"`);
-                            }
+                    // Substring match (high confidence)
+                    if (cleanPart.includes(word)) {
+                        if (SUBSTRING_CONFIDENCE > highestConfidence) {
+                            highestConfidence = SUBSTRING_CONFIDENCE;
+                            console.log(`... new highest confidence ${SUBSTRING_CONFIDENCE} from substring match: "${cleanPart}" includes "${word}"`);
                         }
+                    }
 
-                        // Fuzzy match (lower confidence)
-                        const confidence = getSimilarity(cleanPart, word);
-                        if (confidence > highestConfidence) {
-                            highestConfidence = confidence;
-                            console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${cleanPart}" vs "${word}"`);
-                        }
+                    // Fuzzy match (lower confidence)
+                    const confidence = getSimilarity(cleanPart, word);
+                    if (confidence > highestConfidence) {
+                        highestConfidence = confidence;
+                        console.log(`... new highest confidence ${confidence.toFixed(2)} from fuzzy match: "${cleanPart}" vs "${word}"`);
                     }
                 }
             }
@@ -2503,6 +2628,20 @@ ${timelineLines}
         this.actionsApiConnection = this.config.actionsUseTextGenApi
             ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder)
             : new ApiConnection(this.config.actionsApiConnectionConfig.connection, this.config.actionsApiConnectionConfig.parameters, this.encoder);
+
+        // Re-initialize Quick Model connection with the new config (Section 5.3).
+        if (!this.config.quickModelApiConnectionConfig) {
+            this.config.quickModelApiConnectionConfig = {
+                connection: {
+                    type: 'custom', baseUrl: '', key: '', model: '',
+                    apiKeys: {}, forceInstruct: false, overwriteContext: false, customContext: 0,
+                } as any,
+                parameters: {}
+            };
+        }
+        this.quickModelApiConnection = this.config.quickModelUseTextGenApi
+            ? new ApiConnection(this.config.textGenerationApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder)
+            : new ApiConnection(this.config.quickModelApiConnectionConfig.connection, this.config.quickModelApiConnectionConfig.parameters, this.encoder);
 
         // Safely initialize embedding connection
         if (this.config.embeddingApiConnectionConfig) {

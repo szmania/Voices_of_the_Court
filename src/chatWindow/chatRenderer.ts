@@ -107,6 +107,7 @@ async function init() {
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
         autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
         showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
+        clearTargetAfterSend = config.clearTargetAfterSend !== undefined ? config.clearTargetAfterSend : true;
     } catch (error) {
         console.error('Renderer: Failed to initialize config and localization:', error);
     }
@@ -152,6 +153,7 @@ let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
+let clearTargetAfterSend: boolean = true; // 默认发送后清除目标选择
 let messageHistory: string[] = [];
 let historyIndex: number = -1;
 let allHighlightMarks: HTMLElement[] = [];
@@ -647,22 +649,21 @@ chatInput.addEventListener('keydown', async function(e) {
         };
 
         // Add multiple target character IDs if selected
-        const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
-        const wrapper = document.getElementById('character-target-wrapper') as HTMLDivElement;
-        if (wrapper.style.display === 'flex' && hiddenInput.value) {
-            (message as any).targetCharacterIds = hiddenInput.value.split(',').filter(Boolean).map(Number);
+        const targetCharacterIds = getSelectedTargetCharacterIds();
+        if (targetCharacterIds.length > 0) {
+            (message as any).targetCharacterIds = targetCharacterIds;
         }
 
         const messageDiv = await displayMessage(message);
         if (messageDiv) {
             currentConversationMessageDivs.push(messageDiv as HTMLDivElement);
         }
-        const targetCharacterIds = getSelectedTargetCharacterIds();
-        if (targetCharacterIds.length > 0) {
-            message.targetCharacterIds = targetCharacterIds;
-        }
         showLoadingDots();
         ipcRenderer.send('message-send', message);
+
+        if (clearTargetAfterSend) {
+            clearTargetSelection();
+        }
     }
 });
 
@@ -874,22 +875,16 @@ function displaySuggestions(suggestions: string[]) {
 
                     const targetCharacterIds = getSelectedTargetCharacterIds();
                     if (targetCharacterIds.length > 0) {
-                        message.targetCharacterIds = targetCharacterIds;
+                        (message as any).targetCharacterIds = targetCharacterIds;
                     }
 
                     await displayMessage(message);
                     showLoadingDots();
                     ipcRenderer.send('message-send', message);
 
-                    let message: Message = {
-                        role: "user",
-                        name: playerName,
-                        content: messageText
+                    if (clearTargetAfterSend) {
+                        clearTargetSelection();
                     }
-
-                    await displayMessage(message);
-                    showLoadingDots();
-                    ipcRenderer.send('message-send', message);
                 } else {
                     console.log('Not auto-sending suggestion, autoSendSuggestion is:', autoSendSuggestion);
                     chatInput.focus()
