@@ -361,14 +361,18 @@ export class IncomingLetterGenerator {
         inFlight.add(signature);
         latestSignatureBySlot.set(slotId, signature);
 
+        // §43: the run file must exist during generation (the mod's poller
+        // executes it every ~1-2s and logs `console_failure: No such file in
+        // run/` otherwise), but it must NOT be the executable guarded fallback:
+        // the poller would execute that fallback before the LLM responds and
+        // consume the slot globals, so the final run file would hit its `else`
+        // branch and the fallback body would be what the player sees. Write an
+        // inert heartbeat placeholder instead — harmless on every beat, creates
+        // no artifact, consumes nothing. The real guarded fallback is written
+        // only on definitive failure paths below.
+        let finalWritten = false;
         try {
-            // Write the identity-independent gated fallback FIRST so a letter
-            // degrades to fallback text even when the timeline transition
-            // fails (e.g. campaign id not yet bootstrapped); the final run
-            // file overwrites it on success. Audit fix: previously an
-            // identity failure returned before any run file existed and the
-            // delivery stalled until the slot cleanup.
-            this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
+            this.writePlaceholderRunFile(userFolderPath, slotNumber);
 
             // Create a timeline child node for this incoming letter delivery. The
             // parent is the pre-delivery save node from GameData; the child becomes
@@ -411,14 +415,19 @@ export class IncomingLetterGenerator {
             } catch (error) {
                 if (error instanceof CampaignIdentityUnavailableError) {
                     reportCampaignIdentityUnavailable(error);
+                    // §43: definitive failure — replace the inert placeholder with
+                    // the real guarded fallback so the letter still delivers.
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 if (error instanceof TimelineRegistryCorruptError) {
                     reportCorruptTimelineRegistry(error);
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 if (error instanceof UnsupportedTimelineSchemaError) {
                     reportUnsupportedTimelineSchema(error.schema);
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 throw error;
@@ -449,7 +458,9 @@ export class IncomingLetterGenerator {
             const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
 
             if (!response || response.trim() === '') {
-                console.warn(`[IncomingLetterGenerator] Empty LLM response for ${signature}; fallback remains.`);
+                console.warn(`[IncomingLetterGenerator] Empty LLM response for ${signature}; writing fallback.`);
+                // §43: definitive failure — the placeholder must not stay inert.
+                this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, timeline);
                 return;
             }
 
@@ -460,6 +471,9 @@ export class IncomingLetterGenerator {
 
             const normalizedText = normalizeCk3String(response);
             this.writeFinalRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, normalizedText, timeline);
+            // §43: the final run file is on disk; a later throw (history/summary
+            // save) must not clobber it with the fallback.
+            finalWritten = true;
 
             try {
                 await this.saveHistory(gameData, context, normalizedText, timeline, identity, sourceRecordId, sourceGameDate);
@@ -481,6 +495,12 @@ export class IncomingLetterGenerator {
                 reportUnsupportedTimelineSchema(error.schema);
             }
             console.error(`[IncomingLetterGenerator] Error generating incoming letter for ${signature}:`, error);
+            // §43: definitive failure — write the real guarded fallback unless the
+            // final run file already landed (a post-final throw must not clobber
+            // a good final).
+            if (!finalWritten) {
+                this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
+            }
         } finally {
             inFlight.delete(signature);
         }
@@ -1025,6 +1045,21 @@ ${indent}}
 `;
     }
 
+    // §43: Inert heartbeat placeholder written immediately when generation starts,
+    // so the mod's poller finds an existing file (no `console_failure` spam) but
+    // the placeholder cannot create an artifact or consume the slot globals.
+    // Byte-identical to the §10/§11/§42.3 startup seeds.
+    private writePlaceholderRunFile(userFolderPath: string, slotNumber: number): void {
+        const runFolderPath = path.join(userFolderPath, "run");
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+        }
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
+        const content = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
+        writeIncomingRunFileAtomically(filePath, content);
+        console.log(`[IncomingLetterGenerator] Placeholder run file written: ${filePath}`);
+    }
+
     private writeFallbackRunFile(
         userFolderPath: string,
         slotNumber: number,
@@ -1055,6 +1090,8 @@ ${timelineSetBlock}\tcreate_artifact = {
 \t\tmodifier = artifact_monthly_minor_prestige_1_modifier
 \t\tsave_scope_as = votc_latest_letter
 \t}
+\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
+\ttrigger_event = message_event.362
 \tif = {
 \t\tlimit = { exists = scope:votc_latest_letter }
 \t\tscope:votc_latest_letter = {
@@ -1121,6 +1158,8 @@ ${timelineSetBlock}\tcreate_artifact = {
 \t\t\tvalue = scope:votc_latest_letter
 \t\t}
 \t}
+\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
+\ttrigger_event = message_event.362
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_type_${slotNumber}
@@ -1173,8 +1212,8 @@ else = {
                 0, // delay: no journey — delivered instantly by the guarded run file
                 gameDate.totalDays,
                 undefined, // replyToId
-                'pending', // pending until the game marks the letter delivered
-                false // delivered: hidden in the Letters tab until delivery is confirmed
+                'read', // read
+                true // delivered: incoming letters arrive instantly, no journey needed
             );
             LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
             BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
