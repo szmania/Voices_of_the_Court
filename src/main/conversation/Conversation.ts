@@ -1249,20 +1249,22 @@ export class Conversation{
         // titles/ranks are the weakest because many characters share them.
         const NAME_TOKEN_WEIGHT = 2.0;
         const RELATIONSHIP_TOKEN_WEIGHT = 1.5;
-        const TITLE_TOKEN_WEIGHT = 1.0;
+        const TITLE_TOKEN_WEIGHT = 0.5;
         // At or above this confidence a single match is precise enough to stand
         // alone, so the 0.05 tie-band below is skipped for it.
         const HIGH_CONFIDENCE_EXACT_MATCH = 0.9;
-        // Title/rank words cause false positives across characters sharing a rank
-        // ("Duke", "Lord") and are excluded from matching.
+        // Stopwords are now loaded from localization files (system.targeting_stopwords).
+        // This allows per-language tuning and avoids hardcoded English-only lists.
         const STOPWORDS = new Set([
-            'the', 'of', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'and', 'le', 'la', 'de', 'my', 'your',
-            'lord', 'lady', 'duke', 'duchess', 'count', 'countess', 'baron', 'baroness',
-            'king', 'queen', 'emperor', 'empress', 'prince', 'princess',
-            'sir', 'ser', 'master', 'mister', 'miss', 'madam', 'dame'
+            'the', 'of', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'and', 'le', 'la', 'de', 'my', 'your'
         ]);
         // Locale-aware stopwords (merged over the English base).
         const localeStopwords = this.translations?.system?.targeting_stopwords;
+        if (Array.isArray(localeStopwords)) {
+            localeStopwords.forEach((w: any) => {
+                if (typeof w === 'string' && w.length > 0) STOPWORDS.add(w.toLowerCase());
+            });
+        }
         if (Array.isArray(localeStopwords)) {
             localeStopwords.forEach((w: any) => {
                 if (typeof w === 'string' && w.length > 0) STOPWORDS.add(w.toLowerCase());
@@ -1382,26 +1384,105 @@ export class Conversation{
         }
 
         const content = messageContent.toLowerCase();
-        const words = content.replace(/[.,!?;:]/g, '').split(/\s+/);
+        const words = content.replace(/[.,!?;:]/g, '').split(/\s+/).filter(w => w.length > 2);
+
+        // Use the same weighted logic as determineTargetedCharacters
+        const NAME_TOKEN_WEIGHT = 2.0;
+        const RELATIONSHIP_TOKEN_WEIGHT = 1.5;
+        const TITLE_TOKEN_WEIGHT = 0.5;
+        const FUZZY_MATCH_THRESHOLD = 0.75;
+        const HIGH_CONFIDENCE_EXACT_MATCH = 0.9;
+        const SUBSTRING_CONFIDENCE = 0.9;
+
+        // Stopwords from localization
+        const STOPWORDS = new Set([
+            'the', 'of', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'and', 'le', 'la', 'de', 'my', 'your'
+        ]);
+        const localeStopwords = this.translations?.system?.targeting_stopwords;
+        if (Array.isArray(localeStopwords)) {
+            localeStopwords.forEach((w: any) => {
+                if (typeof w === 'string' && w.length > 0) STOPWORDS.add(w.toLowerCase());
+            });
+        }
+
+        const tokenize = (value: string): string[] =>
+            value.toLowerCase().split(/[\s_-]+/).filter(Boolean);
 
         let bestMatch: Character | null = null;
-        let highestConfidence = 0.75; // Start with a threshold
+        let highestConfidence = 0;
 
-        for (const char of otherCharacters) {
-            const checkables = [char.fullName, char.shortName, char.firstName].filter(Boolean).map(n => n.toLowerCase());
-            for (const checkable of checkables) {
-                for (const word of words) {
-                    const confidence = getSimilarity(checkable, word);
-                    if (confidence > highestConfidence) {
-                        highestConfidence = confidence;
-                        bestMatch = char;
+        for (const character of otherCharacters) {
+            let charHighestConfidence = 0;
+
+            // Build weighted checkables
+            const checkables: { token: string, weight: number }[] = [
+                character.fullName,
+                character.shortName,
+                character.firstName
+            ].filter(Boolean).flatMap(tokenize).map(token => ({ token, weight: NAME_TOKEN_WEIGHT }));
+
+            [
+                character.primaryTitle,
+                character.titleRankConcept
+            ].filter(Boolean).flatMap(tokenize).forEach(token => {
+                checkables.push({ token, weight: TITLE_TOKEN_WEIGHT });
+            });
+
+            // Relationship tokens
+            const player = this.gameData.getPlayer();
+            if (player && player.relatives) {
+                const relationshipToPlayer = player.relatives.find(m => m.id === character.id);
+                if (relationshipToPlayer && relationshipToPlayer.relationship) {
+                    checkables.push({ token: relationshipToPlayer.relationship.toLowerCase(), weight: RELATIONSHIP_TOKEN_WEIGHT });
+                    if (relationshipToPlayer.relationship.toLowerCase() === 'child') {
+                        if (character.sheHe.toLowerCase() === 'he') {
+                            checkables.push({ token: 'son', weight: RELATIONSHIP_TOKEN_WEIGHT });
+                        } else if (character.sheHe.toLowerCase() === 'she') {
+                            checkables.push({ token: 'daughter', weight: RELATIONSHIP_TOKEN_WEIGHT });
+                        }
                     }
+                }
+            }
+
+            for (const { token, weight } of checkables) {
+                const cleanPart = token.replace(/[.,!?;:]/g, '');
+                if (cleanPart.length < 3 || STOPWORDS.has(cleanPart)) continue;
+
+                for (const word of words) {
+                    if (STOPWORDS.has(word)) continue;
+
+                    // Substring match (high confidence)
+                    if (cleanPart.includes(word)) {
+                        const weighted = SUBSTRING_CONFIDENCE * weight;
+                        if (weighted > charHighestConfidence) {
+                            charHighestConfidence = weighted;
+                        }
+                    }
+
+                    // Fuzzy match (lower confidence)
+                    const confidence = getSimilarity(cleanPart, word) * weight;
+                    if (confidence > charHighestConfidence) {
+                        charHighestConfidence = confidence;
+                    }
+                }
+            }
+
+            if (charHighestConfidence > FUZZY_MATCH_THRESHOLD) {
+                if (charHighestConfidence > highestConfidence) {
+                    highestConfidence = charHighestConfidence;
+                    bestMatch = character;
                 }
             }
         }
 
+        // Apply tie-break: if top confidence >= 0.9, return single match
+        if (bestMatch && highestConfidence >= HIGH_CONFIDENCE_EXACT_MATCH) {
+            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence.toFixed(2)} (high confidence, sole target)`);
+            return bestMatch;
+        }
+
         if (bestMatch) {
-            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence}`);
+            console.log(`Inferred action target: ${bestMatch.shortName} with confidence ${highestConfidence.toFixed(2)}`);
         } else {
             console.log('No specific AI action target inferred. Defaulting to player.');
         }
