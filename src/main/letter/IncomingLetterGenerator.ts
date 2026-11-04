@@ -28,6 +28,7 @@ import { Letter } from './Letter.js';
 import { LetterType } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
 import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
+import { INCOMING_LETTER_TOPICS, type IncomingLetterTopic } from '../../../shared/incomingLetterTopics';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -1055,7 +1056,10 @@ ${indent}}
             fs.mkdirSync(runFolderPath, { recursive: true });
         }
         const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
-        const content = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
+        // writeIncomingRunFileAtomically prepends the BOM itself; do NOT add
+        // another one here or the file would carry a double BOM (the second
+        // BOM becomes a stray character the run-file lexer chokes on).
+        const content = "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         writeIncomingRunFileAtomically(filePath, content);
         console.log(`[IncomingLetterGenerator] Placeholder run file written: ${filePath}`);
     }
