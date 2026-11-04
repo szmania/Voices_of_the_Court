@@ -114,6 +114,8 @@
       "apiKeys": {},
       "forceInstruct": false,
       "overwriteContext": false,
+      "customContext": 8192
+    },
     "parameters": {
       "temperature": 0.1,
       "frequency_penalty": 0.0,
@@ -126,13 +128,8 @@
     }
   },
   "quickModelUseTextGenApi": true,
-    "parameters": {
-      "temperature": 0.1
-    }
-  },
-  "quickModelUseTextGenApi": true,
   "enableQuickModelTargeting": false,
-  "clearTargetAfterSend": false,
+  "clearTargetAfterSend": true,
   "actionsEnableAll": true,
   "manualActionApproval": true,
   "manualLetterActionApproval": true,
