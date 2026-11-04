@@ -28,7 +28,7 @@ import { Letter } from './Letter.js';
 import { LetterType } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
 import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
-import { INCOMING_LETTER_TOPICS, type IncomingLetterTopic } from '../../../shared/incomingLetterTopics';
+import { INCOMING_LETTER_TOPICS, type IncomingLetterTopic } from '../../shared/incomingLetterTopics.js';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -1094,8 +1094,6 @@ ${timelineSetBlock}\tcreate_artifact = {
 \t\tmodifier = artifact_monthly_minor_prestige_1_modifier
 \t\tsave_scope_as = votc_latest_letter
 \t}
-\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
-\ttrigger_event = message_event.362
 \tif = {
 \t\tlimit = { exists = scope:votc_latest_letter }
 \t\tscope:votc_latest_letter = {
@@ -1106,12 +1104,15 @@ ${timelineSetBlock}\tcreate_artifact = {
 \t\t\tvalue = scope:votc_latest_letter
 \t\t}
 \t}
+\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
+\ttrigger_event = message_event.362
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_type_${slotNumber}
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_timer
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_sent_day
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_delivery_id
+\tdebug_log = "VOTC:INCOMING_LETTER/;/run_applied/;/incoming_letter_${slotNumber}/;/${deliveryId}"
 }
 else = {
 \tdebug_log = "VOTC:INCOMING_LETTER/;/run_skipped/;/incoming_letter_${slotNumber}/;/${deliveryId}"
@@ -1170,6 +1171,7 @@ ${timelineSetBlock}\tcreate_artifact = {
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_timer
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_sent_day
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_delivery_id
+\tdebug_log = "VOTC:INCOMING_LETTER/;/run_applied/;/incoming_letter_${slotNumber}/;/${deliveryId}"
 }
 else = {
 \tdebug_log = "VOTC:INCOMING_LETTER/;/run_skipped/;/incoming_letter_${slotNumber}/;/${deliveryId}"

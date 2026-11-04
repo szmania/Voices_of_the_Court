@@ -1,6 +1,32 @@
-import { IncomingLetterType } from '../main/letter/letterInterfaces';
-
 // 25 letter topic types (matching VALID_TYPES in IncomingLetterGenerator)
+export type IncomingLetterType = 
+  | 'vassal_memorial' 
+  | 'siege_report' 
+  | 'lost_holding' 
+  | 'family_letter' 
+  | 'poetry_letter' 
+  | 'courtier_petition' 
+  | 'rival_taunt' 
+  | 'dear_friend_greeting' 
+  | 'letter_to_travelling_player' 
+  | 'ally_call_for_aid' 
+  | 'revolt_urgent' 
+  | 'deathbed_letter' 
+  | 'pilgrimage_tales' 
+  | 'tour_tales' 
+  | 'wedding_tales' 
+  | 'hunt_tales' 
+  | 'tournament_tales' 
+  | 'travel_tales' 
+  | 'faction_warning' 
+  | 'scheme_exposed' 
+  | 'natural_disaster' 
+  | 'tributary_letter' 
+  | 'liege_overlord_letter' 
+  | 'great_work_notice' 
+  | 'great_project_report';
+
+// 25 letter topic types array
 export const INCOMING_LETTER_TOPICS = [
   'vassal_memorial',
   'siege_report',
