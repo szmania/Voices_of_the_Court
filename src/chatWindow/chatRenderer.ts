@@ -924,15 +924,6 @@ function setupCharacterTargeting(gameData: GameData) {
     if (aiCharacters.length > 1) {
         optionsDiv.innerHTML = '';
 
-        const updateSelection = () => {
-            const selectedCheckboxes = Array.from(optionsDiv.querySelectorAll('input[type="checkbox"]:checked')) as HTMLInputElement[];
-            const selectedIds = selectedCheckboxes.map(cb => cb.dataset.id);
-            const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
-
-            hiddenInput.value = selectedIds.join(',');
-            valueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
-        };
-
         aiCharacters.forEach(char => {
             const charOption = document.createElement('div');
             charOption.className = 'custom-select-option';
@@ -950,20 +941,39 @@ function setupCharacterTargeting(gameData: GameData) {
             charOption.appendChild(checkbox);
             charOption.appendChild(label);
 
-            checkbox.addEventListener('change', updateSelection);
-
             optionsDiv.appendChild(charOption);
         });
 
-        // Set default value
+        // Set default value ('auto' sentinel, matching getSelectedTargetCharacterIds/clearTargetSelection)
         valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
-        hiddenInput.value = '';
+        hiddenInput.value = 'auto';
 
         // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
         const freshValueDiv = valueDiv.cloneNode(true) as HTMLDivElement;
         valueDiv.replaceWith(freshValueDiv);
         const freshOptionsDiv = optionsDiv.cloneNode(true) as HTMLDivElement;
         optionsDiv.replaceWith(freshOptionsDiv);
+
+        // Re-resolve the LIVE nodes: cloneNode(true) copies child nodes and attribute
+        // values but NOT event listeners, so selection tracking must be bound to the
+        // cloned (in-DOM) nodes, never to the pre-clone closure captures.
+        const liveValueDiv = document.getElementById('character-target-value') as HTMLDivElement;
+        const liveOptionsDiv = document.getElementById('character-target-options') as HTMLDivElement;
+        const liveHiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+
+        // Delegated change listener: change events bubble from the checkboxes, so one
+        // listener on the live container covers every option without per-checkbox
+        // handlers that would be stripped by the next clone+replace cycle.
+        const updateLiveSelection = () => {
+            const selectedCheckboxes = Array.from(liveOptionsDiv.querySelectorAll('input[type="checkbox"]:checked')) as HTMLInputElement[];
+            const selectedIds = selectedCheckboxes.map(cb => cb.dataset.id);
+            const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
+
+            liveHiddenInput.value = selectedIds.length > 0 ? selectedIds.join(',') : 'auto';
+            liveValueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
+        };
+
+        liveOptionsDiv.addEventListener('change', updateLiveSelection);
 
         // Toggle dropdown
         freshValueDiv.addEventListener('click', (e) => {
