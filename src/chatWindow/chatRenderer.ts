@@ -945,7 +945,7 @@ function setupCharacterTargeting(gameData: GameData) {
         });
 
         // Set default value ('auto' sentinel, matching getSelectedTargetCharacterIds/clearTargetSelection)
-        valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
+        valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto') || 'Auto-detect';
         hiddenInput.value = 'auto';
 
         // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
@@ -970,7 +970,7 @@ function setupCharacterTargeting(gameData: GameData) {
             const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
 
             liveHiddenInput.value = selectedIds.length > 0 ? selectedIds.join(',') : 'auto';
-            liveValueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
+            liveValueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto') || 'Auto-detect';
         };
 
         liveOptionsDiv.addEventListener('change', updateLiveSelection);
