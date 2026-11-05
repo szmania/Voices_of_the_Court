@@ -36,6 +36,11 @@ function totalDaysToDateString(totalDays: number): string {
  * exact incoming-letter projection instead of guessing by sender pair. The
  * projection id built by IncomingLetterGenerator.saveHistory is
  * `${slotId}|${playerId}|${senderId}|${sentDate}|${type}|${deliveryId}` — six
+ * Fix C (coordination note): this deterministic path only fires when the
+ * MOD side ships §12.4.1b (trailing `incoming_reply=` field appended to
+ * `message_text` in all 9 locales + `votc_incoming_reply_type/_delivery`
+ * captures in the 8 `.010N` arrival immediates). Until then the sender-pair
+ * heuristic below is the only live linker.
  * '|'-separated segments — so slot/type/deliveryId identify the root exactly.
  * Defensive: a malformed marker is treated as absent (heuristic fallback).
  * The marker stays parse-local; replyToId (set by the caller) is the persisted
@@ -83,7 +88,12 @@ function projectionMatchesReplyMarker(id: string, npcNumericId: number, marker: 
  * into the newest root's thread. The deterministic reply marker (§12.4.1a) is
  * authoritative and is deliberately NOT gated by this window.
  */
-const HEURISTIC_REPLY_WINDOW_DAYS = 7;
+// §15 Fix A: the heuristic window is FLOORED at 30 in-game days (incoming
+// letters carry delay=0, so without the floor their write-backs would only
+// link within 7 days). Normal letters with a longer travel delay keep their
+// own delay as the window. The deterministic reply marker (§12.4.1a) is
+// authoritative and is deliberately NOT gated by this window.
+const HEURISTIC_REPLY_WINDOW_MIN_DAYS = 30;
 
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
@@ -220,7 +230,8 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                             // exist, the newest wins (usually right, occasionally not).
                             // §12.4.1a: the mod's reply marker now disambiguates when
                             // present; the heuristic remains the fallback. The heuristic
-                            // is additionally bounded by HEURISTIC_REPLY_WINDOW_DAYS, so
+                            // is additionally bounded by the reply window (floored at
+                            // HEURISTIC_REPLY_WINDOW_MIN_DAYS), so
                             // a spontaneous letter written long after a root starts its
                             // own thread instead of being absorbed into the old one.
                             if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
@@ -245,7 +256,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                                 // marker path above is NOT gated by this.
                                 const isWithinReplyWindow = (l: Letter) =>
                                     letter.totalDays >= l.totalDays &&
-                                    letter.totalDays - l.totalDays <= (l.delay ?? 0) + HEURISTIC_REPLY_WINDOW_DAYS;
+                                    letter.totalDays - l.totalDays <= Math.max(l.delay ?? 0, HEURISTIC_REPLY_WINDOW_MIN_DAYS);
                                 const deterministicOpening = replyMarker
                                     ? priorLetters.find(l => isUnlinkedRoot(l) && projectionMatchesReplyMarker(l.id, npcNumericId, replyMarker))
                                     : undefined;

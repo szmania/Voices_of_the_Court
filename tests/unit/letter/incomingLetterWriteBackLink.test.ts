@@ -206,10 +206,12 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
     });
 
     it('leaves a spontaneous player letter unlinked when the only root is outside the reply window', async () => {
-        // Regression (user report): an unlinked incoming root from 30 days ago must
-        // not absorb a brand-new spontaneous letter — the player letter starts its
-        // own thread in the sidebar instead of rendering as a reply.
-        seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 30);
+        // Regression (user report): an unlinked incoming root older than the
+        // reply window must not absorb a brand-new spontaneous letter — the
+        // player letter starts its own thread in the sidebar instead of
+        // rendering as a reply. §15 Fix A floors the window at 30 days, so the
+        // root must be older than 30 to fall outside it.
+        seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 45);
 
         const letters = await parseWriteBack();
 
@@ -218,8 +220,9 @@ describe('incoming letter write-back thread linking (app plan §12.1)', () => {
     });
 
     it('still links a write-back sent exactly at the reply-window boundary', async () => {
-        // Inclusive boundary: 7 days after the root is still inside the window.
-        const projectionId = seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 7);
+        // Inclusive boundary: §15 Fix A floors the window at 30 days, so a
+        // write-back exactly 30 days after the root is still inside it.
+        const projectionId = seedProjectionWithId(`incoming_letter_3|${PLAYER_ID}|${NPC_ID}|1100.2.1|${TOPIC}|7`, 430583 - 30);
 
         const letters = await parseWriteBack();
 

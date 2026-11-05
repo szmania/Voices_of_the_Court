@@ -227,18 +227,29 @@ export class LetterManager {
 
         // Avoid duplicates by checking for a letter with the same subject (e.g., letter_5),
         // sent on the same day, between the same two characters.
-        const isDuplicate = history.some(l =>
+        // §15 Fix B: a duplicate match must not silently discard the incoming
+        // letter — a re-parse of the log rebuilds the letter and re-runs the
+        // replyToId linking, so the stored copy needs the fresh mutable fields.
+        const duplicateIndex = history.findIndex(l =>
             l.subject === letter.subject &&
             l.totalDays === letter.totalDays &&
             l.sender.id === letter.sender.id &&
             l.recipient.id === letter.recipient.id
         );
 
-        if (!isDuplicate) {
+        if (duplicateIndex === -1) {
             history.push(letter);
             // Sort by date
             history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             console.log(`Saved new unique letter: ${letter.subject} from day ${letter.totalDays}`);
+        } else {
+            const stored = history[duplicateIndex];
+            if (letter.replyToId && !stored.replyToId) stored.replyToId = letter.replyToId;
+            if (letter.triggeredActions?.length && !stored.triggeredActions?.length) stored.triggeredActions = letter.triggeredActions;
+            // Only fill in a missing status — never regress a stored 'read'/'sent'
+            // back to the freshly parsed 'sent'.
+            if (letter.status && !stored.status) stored.status = letter.status;
+            console.log(`Merged duplicate letter: ${letter.subject} from day ${letter.totalDays} (replyToId=${stored.replyToId ?? 'none'})`);
         }
 
         try {
