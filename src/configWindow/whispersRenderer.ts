@@ -49,7 +49,7 @@ function formatGameDate(totalDays?: number): string {
         }
         day -= monthDays[i];
     }
-    return `${year}.${String(month).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
+    return `${String(day).padStart(2, '0')} ${monthNames[month - 1]} ${year}`;
 }
 
 function formatRealDate(iso?: string): string {
