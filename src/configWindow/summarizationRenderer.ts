@@ -371,7 +371,24 @@ function populateCharacterSelect(currentCharacterId?: string) {
         }
     });
 
-    const sortedCharacters = [...characterNameMap.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    // Sort by most recent activity first (recency across summaries/letters/diaries), tie-break by name.
+    const latestByCharacter = new Map<string, number>();
+    const track = (item: any) => {
+        if (!item || !item.characterId) return;
+        const raw = item.creationTimestamp ?? item.date;
+        const ts = raw ? new Date(raw).getTime() : NaN;
+        const t = isNaN(ts) ? 0 : ts;
+        const cur = latestByCharacter.get(item.characterId) || 0;
+        if (t > cur) latestByCharacter.set(item.characterId, t);
+    };
+    allSummaries.forEach(track);
+    allLetters.forEach(track);
+    allDiaries.forEach(track);
+    const sortedCharacters = [...characterNameMap.entries()].sort((a, b) => {
+        const diff = (latestByCharacter.get(b[0]) || 0) - (latestByCharacter.get(a[0]) || 0);
+        if (diff !== 0) return diff;
+        return a[1].localeCompare(b[1]);
+    });
     sortedCharacters.forEach(([characterId, characterName]) => {
         const option = document.createElement('option');
         option.value = characterId;
