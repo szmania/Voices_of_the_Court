@@ -22,6 +22,8 @@ export class Letter implements ILetter {
     isPlayerSender?: boolean;
     associatedAction?: import('./letterInterfaces.js').LetterAssociatedAction;
     triggeredActions: import('./letterInterfaces.js').LetterAssociatedAction[];
+    /** Relation category of an AI-initiated (npcltr) letter request; undefined for player letters. */
+    npcLetterCategory?: string;
 
     /** Timeline v2 payload allocated for this reply's thread (see LetterReplyGenerator). */
     timelineScript?: string;

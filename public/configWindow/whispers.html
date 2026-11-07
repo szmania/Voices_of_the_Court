@@ -181,19 +181,63 @@
         color: #a18c61;
         font-style: italic;
       }
+
+      /* Horizontal control row: player, refresh, sort, type on one line, search pinned right. */
+      #whisper-manager-container .info-panel {
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      #whisper-manager-container .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      #whisper-manager-container .info-item label {
+        font-family: 'Gitan', sans-serif;
+        color: #cca43b;
+      }
+
+      #whisper-manager-container .info-item select,
+      #whisper-manager-container .info-item input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #5a4a35;
+        border-radius: 2px;
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+      }
+
+      #whisper-manager-container .info-item select:focus,
+      #whisper-manager-container .info-item input:focus {
+        outline: none;
+        border-color: #cca43b;
+        box-shadow: 0 0 5px rgba(204, 164, 59, 0.3);
+      }
+
+      #whisper-manager-container .whisper-refresh-item {
+        flex: 0 0 auto;
+      }
+
+      #whisper-manager-container .whisper-refresh-row {
+        margin-top: 0;
+      }
+
+      #whisper-manager-container .whisper-search-item {
+        flex: 0 0 240px;
+        margin-left: auto;
+      }
     </style>
   </head>
   <body>
     <div class="navbar">
       <ul>
         <li><a href="connection.html" data-i18n="nav.connection">Connection</a></li>
-        <li><a href="actions.html" data-i18n="nav.actions">Actions</a></li>
-        <li><a href="summarization.html" data-i18n="nav.summarization">Summarization</a></li>
-        <li><a href="memories.html" data-i18n="nav.memories">Memories</a></li>
-        <li><a href="prompts.html" data-i18n="nav.prompts">Prompts</a></li>
-        <li><a href="letters.html" data-i18n="nav.letters">Letters</a></li>
-        <li><a href="diaries.html" data-i18n="nav.diaries">Diaries</a></li>
-        <li class="active"><a href="whispers.html" data-i18n="nav.whispers">Whispers</a></li>
         <li><a href="settings.html" data-i18n="nav.settings">Settings</a></li>
         <li><a href="system.html" data-i18n="nav.system">System</a></li>
         <li class="help-menu"><a href="#" id="open-readme" data-i18n="nav.help">Help</a></li>
@@ -212,12 +256,6 @@
             <label for="whisper-manager-playerIdSelect" data-i18n="whispers.player_id">Player ID:</label>
             <tooltip-text side="top" data-i18n="whispers.tooltip_player_id">Select the player profile whose whispers to display.</tooltip-text>
             <select id="whisper-manager-playerIdSelect"></select>
-            <div class="whisper-refresh-row">
-              <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
-              <div id="whisper-refresh-status" class="refresh-status">
-                <span id="whisper-refresh-countdown"></span>
-              </div>
-            </div>
           </div>
           <div class="info-item">
             <label for="whisper-sort-order" data-i18n="whispers.sort_by">Sort by:</label>
@@ -238,8 +276,14 @@
               <option value="CIRCLE" data-i18n="whispers.section_circle">Inner Circle</option>
             </select>
           </div>
-          <div class="info-item" style="display: flex; align-items: center; gap: 8px;">
+          <div class="info-item whisper-search-item">
             <input type="search" id="whisper-manager-search" data-i18n-placeholder="whispers.search_placeholder" placeholder="Search whispers..." data-i18n-title="whispers.tooltip_search">
+          </div>
+        </div>
+        <div class="whisper-refresh-row">
+          <button id="whisper-manager-refresh-btn" class="btn" data-i18n="whispers.refresh">Refresh</button>
+          <div id="whisper-refresh-status" class="refresh-status">
+            <span id="whisper-refresh-countdown"></span>
           </div>
         </div>
 
@@ -248,13 +292,13 @@
         <div id="whisper-manager-statusMessage" class="status-message"></div>
       </div>
     </div>
-
     <script>require("../../dist/shared/LocalizationManager.js")</script>
     <script>
       const { LocalizationManager } = require("../../dist/shared/LocalizationManager.js");
       window.LocalizationManager = LocalizationManager;
     </script>
     <script>require("../../dist/configWindow/components/LanguageSelector.js")</script>
+    <script>require("../../dist/configWindow/components/tooltip.js")</script>
     <script>require("../../dist/configWindow/whispersRenderer.js")</script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {

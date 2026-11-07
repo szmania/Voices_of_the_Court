@@ -24,6 +24,7 @@ import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
 import { evaluateReplyDeliveryGate } from "./letter/letterDeliveryGate.js";
+import { runNpcLetterSession, type NpcLetterSessionContext } from "./letter/npcLetterSession";
 import { parseLog, readLastLogLineContaining } from "../shared/gameData/parseLog";
 import { parseLettersFromLog } from "./letter/parseLogForLetters";
 import { parseLogForBookmarks } from "./parseLogforbookmarks";
@@ -300,6 +301,14 @@ let currentTotalDays: number = 0;
 const storedLetters: Map<string, StoredLetter> = new Map();
 let lastLetterSentToGame: StoredLetter | null = null;
 let lastLetterSentToGameTime: number = 0;
+
+// Dedicated channel for AI-initiated (npcltr) letters (VOTC-194). The mod has
+// no acceptance receipt for run/votc_ce_npcltr.txt yet, so its in-flight gate expires
+// purely on the timeout — the file is cleared once the gate trips regardless of
+// game confirmation. Upgrade path: add a VOTC:NPCLTR_ACCEPTED trigger keyword.
+let lastNpcltrSentToGame: StoredLetter | null = null;
+let lastNpcltrSentToGameTime: number = 0;
+
 // Replies rejected by the campaign delivery gate remember the campaign they
 // were rejected under, so a foreign-campaign reply is not re-evaluated (and
 // does not trigger a full game-log parse) on every date heartbeat tick.
@@ -360,13 +369,37 @@ function rehydratePendingReplyLetters(playerId: string): void {
         rehydratedCount++;
         console.log(`rehydratePendingReplyLetters: Re-queued reply for letter ${original.id}, expectedDeliveryDay: ${expectedDeliveryDay}`);
     }
-
     if (rehydratedCount > 0) {
         if (currentTotalDays > 0) {
             checkAndDeliverLetters();
         } else {
             console.log('rehydratePendingReplyLetters: Skipping immediate delivery check as currentTotalDays is not yet initialized.');
         }
+    }
+
+    // Rehydrate undelivered NPC opening letters (VOTC-194) the same way: an
+    // opening generated just before an app restart is still status 'pending'
+    // with delivered=false; its own totalDays/delay recompute the npcltr due day.
+    const openings = allLetters.filter(l =>
+        !l.isPlayerSender &&
+        l.subject === 'npcltr' &&
+        l.status === 'pending' &&
+        l.delivered === false
+    );
+    for (const opening of openings) {
+        if (storedLetters.has(opening.id)) continue;
+        // The original request letter is the channel marker; reconstruct a
+        // minimal stored entry from the opening itself (same subject).
+        const expectedDeliveryDay = opening.totalDays + (opening.delay || 0);
+        storedLetters.set(opening.id, {
+            letter: opening,
+            originalLetter: opening,
+            expectedDeliveryDay
+        });
+        console.log('rehydratePendingReplyLetters: Re-queued NPC opening letter ' + opening.id);
+    }
+    if (openings.length > 0 && currentTotalDays > 0) {
+        checkAndDeliverLetters();
     }
 }
 
@@ -437,6 +470,15 @@ export async function checkAndDeliverLetters() {
     // VOTC:LETTER_ACCEPTED, no open conversation pausing the mod-side
     // letters_runner): a fallback written over a pending reply would destroy
     // it permanently, since that reply has already left the pending queue.
+    // The npcltr channel has no acceptance receipt; its in-flight gate expires
+    // on the timeout alone. Once tripped, the file is cleared so a stale opening
+    // is not re-executed by the mod-side npcltr runner on the next poll.
+    if (lastNpcltrSentToGame && Date.now() - lastNpcltrSentToGameTime > LETTER_DELIVERY_TIMEOUT_MS) {
+        console.warn(`npcltr delivery timed out for letter ${lastNpcltrSentToGame.originalLetter.id} — no acceptance receipt exists on this channel. Clearing to unblock future deliveries.`);
+        lastNpcltrSentToGame = null;
+        LetterManager.getInstance().clearNpcltrFile(config);
+    }
+
     if (!lastLetterSentToGame && !conversationOpenChecker() && LetterManager.getInstance().hasPendingLetterFallbacks()) {
         LetterManager.getInstance().flushNextLetterFallback(config);
         return;
@@ -506,11 +548,11 @@ export async function checkAndDeliverLetters() {
     for (const letterId of letterIds) {
         const storedLetter = storedLetters.get(letterId);
         // Only deliver one letter at a time, and only if another isn't already waiting for game confirmation
-        if (storedLetter && !lastLetterSentToGame && currentTotalDays >= storedLetter.expectedDeliveryDay) {
-            // A reply already rejected under the currently observed campaign
-            // stays skipped inside the loop too: the pre-scan only guards
-            // function entry, and another due letter would otherwise pull the
-            // mismatch back in and re-log its deferral on every such pass.
+        // Each channel has its own in-flight gate so votc_ce_letters.txt and votc_ce_npcltr.txt
+        // whole-file overwrites never interleave.
+        const isNpcLetter = storedLetter?.originalLetter.subject === 'npcltr';
+        const channelBusy = isNpcLetter ? !!lastNpcltrSentToGame : !!lastLetterSentToGame;
+        if (storedLetter && !channelBusy && currentTotalDays >= storedLetter.expectedDeliveryDay) {
             if (campaignMismatchSkips.has(letterId) && campaignMismatchSkips.get(letterId) === observedNow) {
                 continue;
             }
@@ -578,8 +620,13 @@ export async function checkAndDeliverLetters() {
             const currentTimelineNodeId = resolveCurrentTimelineNodeId(gameData);
             // The letter is being sent to the game, but not yet confirmed as delivered.
             letterManager.deliverLetter(storedLetter, config, currentDateString, currentTimelineNodeId);
-            lastLetterSentToGame = storedLetter; // Track the letter sent
-            lastLetterSentToGameTime = Date.now();
+            if (isNpcLetter) {
+                lastNpcltrSentToGame = storedLetter;
+                lastNpcltrSentToGameTime = Date.now();
+            } else {
+                lastLetterSentToGame = storedLetter; // Track the letter sent
+                lastLetterSentToGameTime = Date.now();
+            }
             storedLetters.delete(letterId); // Remove from pending queue
             campaignMismatchSkips.delete(letterId); // Delivered: drop any stale skip marker
 
@@ -932,6 +979,19 @@ function processLogLine(line: string) {
         console.log('Whisper section receipt received; clearing run/votc_ce_whisper.txt.');
         clearWhisperRunFile(config);
     }
+
+    // VOTC-195 re-fire guard (app half): unconditional execution receipt.
+    // votc_whisper.30 logs this as its FIRST line, before
+    // votc_whisper_take_section runs, so it fires even when the take-section
+    // guard bails (done-flag already set, or an empty artifact) and
+    // took_section never logs. Without this handler that dead-loop path leaves
+    // the stale reply script in run/votc_ce_whisper.txt and the ~2s runner
+    // re-executes it forever - re-creating the artifact and re-firing .30.
+    // Clearing here makes the channel self-healing on every execution path.
+    if (line.includes('VOTC:WHISPER/;/reply_executed')) {
+        console.log('Whisper reply_executed receipt received; clearing run/votc_ce_whisper.txt.');
+        clearWhisperRunFile(config);
+    }
 }
 
 async function initCurrentDateFromLog(): Promise<void> {
@@ -1097,6 +1157,78 @@ app.on('ready',  async () => {
         if (!fs.existsSync(votcFilePath)) {
             fs.writeFileSync(votcFilePath, '', 'utf-8');
             console.log(`Created blank votc_ce.txt at: ${votcFilePath}`);
+        }
+        // Create-if-missing seed for the NPC-initiative (npcltr) channel: the
+        // mod-side pollers (letters_runner _show_npcltr + the backstop runner)
+        // execute `run votc_ce_npcltr.txt` on a ~2s beat unconditionally, so
+        // until the first NPC letter delivery the missing file spams CK3's
+        // debug.log with `console_failure: No such file in run/`. The blank
+        // heartbeat placeholder is byte-identical to what
+        // LetterManager.clearNpcltrFile writes; unlike votc_ce_letters.txt this
+        // is NOT re-written on every startup - an in-flight delivery's content
+        // must survive an app restart.
+        const npcltrFilePath = path.join(runFolderPath, 'votc_ce_npcltr.txt');
+        if (!fs.existsSync(npcltrFilePath)) {
+            fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_npcltr.txt at: ${npcltrFilePath}`);
+        }
+        // Create-if-missing + emptiness seed for the whisper (VOTC-195) channel:
+        // the mod-side whisper runner executes `run votc_ce_whisper.txt` on a
+        // ~2s beat unconditionally, so a missing, empty, or BOM-only file spams
+        // CK3's debug.log with `console_failure: No such file in run/` or
+        // `console_failure: Effect is empty` on every beat. The blank heartbeat
+        // placeholder is byte-identical to what clearWhisperRunFile writes; a
+        // file that already holds real content (an in-flight whisper reply) is
+        // left untouched so it survives an app restart.
+        const whisperFilePath = path.join(runFolderPath, 'votc_ce_whisper.txt');
+        let whisperFileNeedsSeed = !fs.existsSync(whisperFilePath);
+        if (!whisperFileNeedsSeed) {
+            // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+            whisperFileNeedsSeed = fs.statSync(whisperFilePath).size <= 3;
+        }
+        if (whisperFileNeedsSeed) {
+            fs.writeFileSync(whisperFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_whisper.txt at: ${whisperFilePath}`);
+        }
+        // Create-if-missing + emptiness seed for the letter actions channel (VOTC-194 §42.3):
+        // the mod-side letters_runner executes `run votc_ce_letter_actions.txt` on a
+        // ~2s beat (via _show3) when votc_pending_letter_action is set, so a missing,
+        // empty, or BOM-only file spams CK3's debug.log with `console_failure:
+        // No such file in run/` or `console_failure: Effect is empty` on every beat.
+        // The blank heartbeat placeholder matches the heartbeat used for the
+        // votc_ce_letters.txt / votc_ce_whisper.txt channels; a file that
+        // already holds real content (a pending letter action) is left untouched
+        // so it survives an app restart.
+        const letterActionsFilePath = path.join(runFolderPath, 'votc_ce_letter_actions.txt');
+        let letterActionsFileNeedsSeed = !fs.existsSync(letterActionsFilePath);
+        if (!letterActionsFileNeedsSeed) {
+            // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+            letterActionsFileNeedsSeed = fs.statSync(letterActionsFilePath).size <= 3;
+        }
+        if (letterActionsFileNeedsSeed) {
+            fs.writeFileSync(letterActionsFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_letter_actions.txt at: ${letterActionsFilePath}`);
+        }
+        // Create-if-missing + emptiness seed for the 8 incoming-letter channels
+        // (VOTC-194 §37.2.5): the mod-side letters_runner states _show_incoming_1..8
+        // execute `run votc_ce_incomingletter_v2_N.txt` on a ~1-2s beat while
+        // votc_incoming_letter_N is set, so a missing, empty, or BOM-only file spams
+        // CK3's debug.log with `console_failure: No such file in run/` during the
+        // whole pre-write window (slot occupied, the app has not written the file
+        // yet). The blank heartbeat placeholder is byte-identical to the other
+        // channel seeds; a file that already holds real content (an in-flight
+        // delivery) is left untouched so it survives an app restart.
+        for (let slot = 1; slot <= 8; slot++) {
+            const incomingFilePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slot}.txt`);
+            let incomingFileNeedsSeed = !fs.existsSync(incomingFilePath);
+            if (!incomingFileNeedsSeed) {
+                // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+                incomingFileNeedsSeed = fs.statSync(incomingFilePath).size <= 3;
+            }
+            if (incomingFileNeedsSeed) {
+                fs.writeFileSync(incomingFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+                console.log(`Initialized blank votc_ce_incomingletter_v2_${slot}.txt at: ${incomingFilePath}`);
+            }
         }
     } else {
         console.warn('Cannot initialize run files: userFolderPath is not configured.');
@@ -1998,7 +2130,28 @@ let conversationLock: Promise<void> | null = null;
 conversationOpenChecker = () => Boolean(conversation && conversation.isOpen);
 
 clipboardListener.on('VOTC:IN', async () =>{
-    console.log('ClipboardListener: VOTC:IN event detected. Showing chat window.');
+    console.log('ClipboardListener: VOTC:IN event detected. Determining session type (talk vs letter).');
+
+    // Scene branch (VOTC-194): a letter-session init (flag:talk_letter ->
+    // scene 'letter') requests an NPC-initiated letter, not a conversation.
+    // Intercept it here so the chat window never opens; the following
+    // VOTC:LETTER trigger carries the npcltr payload and does the work.
+    try {
+        const initGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (initGameData && initGameData.scene === 'letter') {
+            console.log('VOTC:IN letter-session init detected (scene=letter); skipping chat window and running the NPC-letter initiation flow.');
+            currentSessionPlayerId = String(initGameData.playerID);
+            broadcastCurrentSessionPlayer();
+            if (initGameData.gameDate?.totalDays ?? initGameData.totalDays) {
+                updateCurrentDate(initGameData.gameDate?.totalDays ?? initGameData.totalDays);
+            }
+            return;
+        }
+    } catch (err) {
+        console.warn('VOTC:IN scene detection failed; falling through to the conversation flow:', err);
+    }
+
+    console.log('ClipboardListener: showing chat window.');
 
     // Reset state for the new conversation session
     isConversationReady = false;
@@ -2322,8 +2475,117 @@ clipboardListener.on('VOTC:WHISPER', async () => {
     }
 });
 
+/**
+ * NPC-letter initiation flow (VOTC-194). Runs when the mod emits the
+ * letter-session init (scene 'letter') and the npcltr request payload. The
+ * NPC's opening letter is generated with the sender = NPC and recipient =
+ * player, saved to letter history, and queued for delivery on the dedicated
+ * run/votc_ce_npcltr.txt channel. The player's eventual response goes through the
+ * normal letter_N flow and is linked to this opening via replyToId.
+ */
+async function handleNpcLetterInitiation(gameData: GameData, request: ILetter): Promise<void> {
+    try {
+        const playerId = String(gameData.playerID);
+        const recipientId = String(gameData.aiID);
+
+        if (gameData.gameDate?.totalDays ?? gameData.totalDays) {
+            updateCurrentDate(gameData.gameDate?.totalDays ?? gameData.totalDays);
+        }
+
+        // Refresh letters UI before generation starts
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
+
+        // Use shared NPC-letter session skeleton (M7): refreshes date/UI and
+        // contains work failures so a failed session never leaves the UI stale.
+        const sessionContext: NpcLetterSessionContext = {
+            updateDateFromSnapshot: (g) => updateCurrentDate(g.gameDate?.totalDays ?? g.totalDays),
+            refreshLettersUi: () => {
+                if (configWindow && !configWindow.window.isDestroyed()) {
+                    configWindow.window.webContents.send('letter-status-changed');
+                }
+            }
+        };
+
+        const result = await runNpcLetterSession(gameData, sessionContext, async () => {
+            // The request payload's category rides on the parsed letter; its flavor
+            // text is the prompt seed. Rebuild both from the raw content if the
+            // parse stripped the signature.
+            let category = request.npcLetterCategory;
+            let flavor = request.content;
+            if (!category && flavor.startsWith('VOTC_CE_LETTER|')) {
+                const sigParts = flavor.split('|');
+                category = sigParts[1]?.trim() || undefined;
+                flavor = sigParts.slice(2).join('|').trim();
+            }
+
+            const letterReplyGenerator = new LetterReplyGenerator(config, votcDataPath, tiktokenEncoder);
+            const openingLetter = await letterReplyGenerator.generateNpcInitiationLetter(gameData, request, category, flavor);
+
+            if (!openingLetter) {
+                console.error('Failed to generate the NPC opening letter for request ' + request.id + '.');
+                return;
+            }
+
+            // Queue for delivery on the npcltr channel. The request letter itself is
+            // the channel marker (subject 'npcltr' -> deliverLetter routes to
+            // run/votc_ce_npcltr.txt); expected delivery is the request day + delay.
+            const expectedDeliveryDay = (request.totalDays > 0 ? request.totalDays : gameData.totalDays) + (request.delay || 0);
+            const storedLetter: StoredLetter = {
+                letter: openingLetter,
+                originalLetter: request,
+                expectedDeliveryDay
+            };
+            storedLetters.set(request.id, storedLetter);
+            console.log('NPC opening letter for request ' + request.id + ' generated and queued. Will deliver on day ' + expectedDeliveryDay + ' (current day: ' + currentTotalDays + ').');
+
+            return openingLetter;
+        });
+
+        if (result === null) {
+            console.error('NPC letter session failed; see console for details.');
+            return;
+        }
+
+        checkAndDeliverLetters();
+
+        if (configWindow && !configWindow.window.isDestroyed()) {
+            configWindow.window.webContents.send('letter-status-changed');
+        }
+    } catch (error) {
+        console.error('Error processing NPC letter initiation:', error);
+    }
+}
+
 clipboardListener.on('VOTC:LETTER', async () => {
     console.log('ClipboardListener: VOTC:LETTER event detected.');
+
+    // npcltr routing (VOTC-194): a peek at the newest VOTC:LETTER payload first.
+    // An AI-initiated request (content signature VOTC_CE_LETTER|... or letterId
+    // npcltr) must NOT clear votc_ce_letters.txt - a whole-file reset here would destroy
+    // an in-flight player reply awaiting VOTC:LETTER_ACCEPTED. The request is
+    // instead handed to the NPC-letter initiation flow below.
+    try {
+        await sleep(250); // Wait for log to flush
+        const peekGameData = await parseLog(path.join(config.userFolderPath, 'logs', 'debug.log'));
+        if (peekGameData) {
+            const freshLetters = await LetterManager.getInstance().importLettersFromLog(
+                config, peekGameData, String(peekGameData.playerID), peekGameData.date, String(peekGameData.aiID)
+            );
+            const npcRequest = [...freshLetters].reverse().find(l =>
+                l.subject === 'npcltr' || (l.content && l.content.startsWith('VOTC_CE_LETTER|'))
+            );
+            if (npcRequest) {
+                console.log(`VOTC:LETTER npcltr request detected (${npcRequest.id}); routing to NPC-letter initiation.`);
+                await handleNpcLetterInitiation(peekGameData, npcRequest);
+                return;
+            }
+        }
+    } catch (peekError) {
+        console.warn('npcltr peek failed; falling through to the player-letter flow:', peekError);
+    }
+
     try {
         LetterManager.getInstance().clearLettersFile(config);
         await sleep(250); // Wait for log to flush
@@ -3816,7 +4078,8 @@ ipcMain.handle('delete-whisper', async (event, playerId: string, whisperId: stri
         const result = deleteWhisper(playerId, whisperId, config.userFolderPath);
         // The destroy script bypasses votc_whisper.30, so no took_section receipt
         // fires to clear the run file. The runner re-executes it every ~2s, so
-        // wait 3s (guaranteeing one execution) before emptying the file.
+        // wait 3s (guaranteeing one execution) before resetting the file to the
+        // heartbeat placeholder (clearWhisperRunFile).
         if (result) {
             setTimeout(() => clearWhisperRunFile(config), 3000);
         }

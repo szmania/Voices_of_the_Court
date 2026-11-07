@@ -47,6 +47,33 @@ describe('ClipboardListener INCOMING_LETTER command', () => {
 
         expect(handler).not.toHaveBeenCalled();
     });
+
+    it('does not emit when the clipboard holds the bare token without payloads', () => {
+        const listener = new ClipboardListener();
+        const handler = jest.fn();
+        listener.on('VOTC:INCOMING_LETTER', handler);
+
+        clipboardPayload('');
+        listener.readClipboard();
+        clipboardPayload('INCOMING_LETTER');
+        listener.readClipboard();
+
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('does not emit for a malformed slot id', () => {
+        const listener = new ClipboardListener();
+        const handler = jest.fn();
+        listener.on('VOTC:INCOMING_LETTER', handler);
+
+        clipboardPayload('');
+        listener.readClipboard();
+        clipboardPayload('INCOMING_LETTER', 'incoming_letter_9', 'family_letter', '11');
+        listener.readClipboard();
+
+        expect(handler).not.toHaveBeenCalled();
+    });
+
 });
 
 describe('incoming-letter log transport', () => {

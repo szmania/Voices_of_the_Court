@@ -181,6 +181,108 @@ function getLetterStatus(letter: Letter): { text: string, overdue: boolean, jour
     return null;
 }
 
+function renderNpcCategoryBadge(letter: Letter): string {
+    if (!letter.npcLetterCategory) return '';
+    const key = `letters.category_${letter.npcLetterCategory.toLowerCase()}`;
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, letter.npcLetterCategory);
+    return `<span class="npc-category-badge">${label}</span>`;
+}
+
+// M2: incoming letters (upstream P1) carry a topic in their subject
+// (`incoming_<topic>`); render it as a localized badge reusing the same
+// styling as the npcltr category badge. The topic labels live in
+// public/locales (letters.incoming_topic_<topic>), never hardcoded.
+function renderIncomingTopicBadge(letter: Letter): string {
+    if (!letter.subject || !letter.subject.startsWith('incoming_')) return '';
+    const topic = letter.subject.slice('incoming_'.length);
+    const key = `letters.incoming_topic_${topic}`;
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, topic);
+    return `<span class="npc-category-badge">${label}</span>`;
+}
+
+// §12.2: reply-state chip for NPC-initiated ROOT letters (npcltr openings and
+// incoming-letter projections). Awaiting reply = received letter with no
+// replyToId of its own and no listed letter replying to it; replied otherwise.
+// Player-sent letters and replies (which carry replyToId) never get the chip.
+// The state is fully derived from the in-memory list — no new data fields.
+function renderReplyStateBadge(letter: Letter): string {
+    if (letter.isPlayerSender || letter.replyToId) return '';
+    const hasReply = allLetters.some(l => l && l.replyToId === letter.id);
+    const key = hasReply ? 'letters.reply_state_replied' : 'letters.reply_state_awaiting';
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, hasReply ? 'Replied' : 'Awaiting your reply');
+    return `<span class="npc-category-badge reply-state-badge">${label}</span>`;
+}
+
+// §15: prominent collapse/expand control for a letter thread, hosted in the
+// thread header row (renderChainHeader). Rendered only for multi-letter
+// chains; single-letter items never show it. The text is set directly (not
+// data-i18n) so applyTranslations(letterList) cannot clobber the substituted
+// {count}. data-root-id lets the click handler resolve the chain without
+// scanning the letter list.
+function renderChainToggle(chainMeta: { rootId: string; count: number; collapsed: boolean }): string {
+    const hidden = chainMeta.count - 1;
+    const key = chainMeta.collapsed ? 'letters.chain_show_replies' : 'letters.chain_hide_replies';
+    const fallback = chainMeta.collapsed ? `Show ${hidden} replies` : `Hide ${hidden} replies`;
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation(key, fallback).replace('{count}', String(hidden));
+    const arrow = chainMeta.collapsed ? '▲' : '▼';
+    // @ts-ignore
+    const tooltip = window.LocalizationManager.getTranslation('letters.chain_toggle_tooltip', 'Expand or collapse this letter thread');
+    return `<span class="chain-toggle" role="button" tabindex="0" data-root-id="${chainMeta.rootId}" title="${tooltip}"><span class="chain-toggle-chevron">${arrow}</span> ${label}</span>`;
+}
+
+// §15: thread header row shown above a multi-letter chain. Associates the
+// toggle control with the whole group and labels it as a thread.
+function renderChainHeader(chainMeta: { rootId: string; count: number; collapsed: boolean }): string {
+    // @ts-ignore
+    const title = window.LocalizationManager.getTranslation('letters.chain_header', 'Letter Thread ({count} letters)').replace('{count}', String(chainMeta.count));
+    return `<div class="chain-header"><span class="chain-header-title">${title}</span>${renderChainToggle(chainMeta)}</div>`;
+}
+
+// §15: root marker on the chain root letter (the one replies collapse behind).
+function renderChainRootLabel(): string {
+    // @ts-ignore
+    const label = window.LocalizationManager.getTranslation('letters.chain_root_label', 'Thread start');
+    return `<span class="chain-root-label">${label}</span>`;
+}
+
+function renderChainLetterHtml(letter: Letter, listItem: HTMLElement, chainMeta?: { rootId: string; count: number; collapsed: boolean }): string {
+    const isPlayerSender = letter.sender.id === Number(selectedPlayerId);
+    const itemClass = isPlayerSender ? 'sent' : 'received';
+    const isChainRoot = !!chainMeta && chainMeta.count > 1 && letter.id === chainMeta.rootId;
+
+    if (!isPlayerSender) {
+        const isUnread = !letter.isRead;
+        listItem.classList.toggle('unread', isUnread && !listItem.classList.contains('unread') ? true : listItem.classList.contains('unread'));
+    }
+
+    const status = getLetterStatus(letter);
+    let statusHtml = '';
+    if (status) {
+        const journeyHtml = renderJourneyTimeline(status);
+        statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
+        if (!isPlayerSender && status.journey && status.journey.currentStage === undefined) {
+            // received letters get the plain status without a journey timeline
+        }
+    }
+    const triggeredActionsHtml = renderTriggeredActionsListForListItem(letter);
+    return `
+        <div class="letter-item ${itemClass}${isChainRoot ? ' chain-root' : ''}" data-letter-id="${letter.id}">
+            <div class="letter-item-header">
+                <span class="letter-item-party">From: ${letter.sender.shortName}<br>To: ${letter.recipient.shortName}</span>
+                ${renderNpcCategoryBadge(letter)}
+                <span class="letter-item-date">${formatDate(new Date(letter.timestamp))}</span>
+            </div>
+            <div class="letter-item-subject">${letter.subject}${renderIncomingTopicBadge(letter)}${renderReplyStateBadge(letter)}${isChainRoot ? renderChainRootLabel() : ''}</div>
+            ${statusHtml}
+            ${triggeredActionsHtml}
+        </div>
+    `;
+}
+
 // State
 let allLetters: Letter[] = [];
 let selectedPlayerId: string | null = null;
@@ -192,7 +294,12 @@ let matches: HTMLElement[] = [];
 let selectedLetter: Letter | null = null;
 let currentGameDay = 0;
 let statusFilter: 'total' | 'generating' | 'pending' | 'reply_overdue' | 'failed' | 'completed' = 'total';
-let cachedLetterPairs: { sent?: Letter, received?: Letter }[] | null = null;
+let cachedLetterChains: Letter[][] | null = null;
+// §15: session-only collapse state for letter threads, keyed by the chain root
+// (initial letter) id. Not persisted. New multi-letter threads start collapsed
+// (seenChainIds tracks which roots have been rendered at least once).
+const collapsedChainIds = new Set<string>();
+const seenChainIds = new Set<string>();
 let showFutureLetters = false;
 let manualLetterActionApproval = false;
 // Tracks the currently filtered letter set (post-character-filter and post-status-filter).
@@ -318,7 +425,7 @@ function renderStatusSummary() {
 
         statusItem.addEventListener('click', () => {
             statusFilter = status as any;
-            cachedLetterPairs = null;
+            cachedLetterChains = null;
             renderStatusSummary(); // Re-render summary to update selection
             renderLetters(); // Re-render letters with new filter
         });
@@ -463,10 +570,10 @@ function renderLetters() {
         return;
     }
 
-    let letterPairs: { sent?: Letter, received?: Letter }[] = [];
+    let letterChains: Letter[][] = [];
 
-if (cachedLetterPairs) {
-letterPairs = cachedLetterPairs;
+    if (cachedLetterChains) {
+        letterChains = cachedLetterChains;
     } else {
         const cleanLetters = allLetters.filter(l => {
             if (!l || !l.sender || !l.recipient || l.sender.id == null || l.recipient.id == null) {
@@ -475,6 +582,11 @@ letterPairs = cachedLetterPairs;
             }
             if (l.replyToId && !l.isPlayerSender && l.delivered !== true) {
                 console.log(`Hiding undelivered reply letter: ${l.id}`);
+                return false;
+            }
+            // Hide incoming (NPC-initiated) letter projections until the player
+            // has actually received them, so the arrival stays a surprise.
+            if (!l.isPlayerSender && l.subject.startsWith('incoming_') && l.delivered !== true) {
                 return false;
             }
             return true;
@@ -524,65 +636,53 @@ letterPairs = cachedLetterPairs;
             }
         }
 
-const lettersToDisplay = characterFilteredLetters;
+        const lettersToDisplay = characterFilteredLetters;
 
-    // Store the filtered letters so renderStatusSummary() can use them for accurate counts.
-    // This ensures the status summary reflects the same filtered set as the displayed letter list.
-    currentFilteredLetters = characterFilteredLetters;
+        // Store the filtered letters so renderStatusSummary() can use them for accurate counts.
+        // This ensures the status summary reflects the same filtered set as the displayed letter list.
+        currentFilteredLetters = characterFilteredLetters;
 
-    const repliesMap = new Map<string, Letter>();
-    const rootLetters: Letter[] = [];
-
+        // Thread the letters through replyToId. A root is a letter whose parent
+        // is outside the filtered set (or has none); walking replyToId from a
+        // root yields the whole chain (AI opening -> player -> AI reply).
+        const repliesMap = new Map<string, Letter>();
         lettersToDisplay.forEach(l => {
-            if (l.replyToId) {
-                repliesMap.set(l.replyToId, l);
-            } else {
-                rootLetters.push(l);
-            }
+            if (l.replyToId) repliesMap.set(l.replyToId, l);
         });
+        const displayIds = new Set(lettersToDisplay.map(l => l.id));
+        const rootLetters = lettersToDisplay.filter(l => !l.replyToId || !displayIds.has(l.replyToId));
 
         rootLetters.forEach(root => {
-            const reply = repliesMap.get(root.id);
-            if (root.sender.id === Number(selectedPlayerId)) {
-                letterPairs.push({ sent: root, received: reply });
-            } else {
-                letterPairs.push({ received: root, sent: reply });
+            const chain: Letter[] = [root];
+            const seen = new Set<string>([root.id]);
+            let current = root;
+            while (repliesMap.has(current.id)) {
+                const next = repliesMap.get(current.id)!;
+                if (seen.has(next.id)) break; // cycle guard
+                chain.push(next);
+                seen.add(next.id);
+                current = next;
             }
+            letterChains.push(chain);
         });
 
-        repliesMap.forEach((reply, rootId) => {
-            if (!rootLetters.some(root => root.id === rootId)) {
-                if (reply.sender.id === Number(selectedPlayerId)) {
-                    letterPairs.push({ sent: reply });
-                } else {
-                    letterPairs.push({ received: reply });
-                }
-            }
-        });
-
-        letterPairs.sort((a, b) => {
-            const getTimestamp = (letter: Letter | undefined) => {
-                if (!letter) return 0;
+        letterChains.sort((a, b) => {
+            const getTimestamp = (letter: Letter) => {
                 const ts = sortMode === 'gameDate'
                     ? new Date(letter.timestamp)
                     : new Date(letter.creationTimestamp || letter.timestamp);
-                // Return 0 for invalid dates to avoid sorting errors
                 return isNaN(ts.getTime()) ? 0 : ts.getTime();
             };
-
-            // Get the latest timestamp from each pair to sort by the most recent activity
-            const timeA = Math.max(getTimestamp(a.sent), getTimestamp(a.received));
-            const timeB = Math.max(getTimestamp(b.sent), getTimestamp(b.received));
-
-            return timeB - timeA; // Sort descending
+            return Math.max(...b.map(getTimestamp)) - Math.max(...a.map(getTimestamp));
         });
 
-cachedLetterPairs = letterPairs;
+        cachedLetterChains = letterChains;
     }
 
 
 
-    if (letterPairs.length === 0) {
+
+    if (letterChains.length === 0) {
         const noLettersItem = document.createElement('li');
         noLettersItem.setAttribute('data-i18n', 'letters.no_letters');
         noLettersItem.textContent = 'No letters found.'; // Fallback text
@@ -594,68 +694,48 @@ cachedLetterPairs = letterPairs;
         return;
     }
 
-    letterPairs.forEach(pair => {
+    letterChains.forEach(chain => {
         const li = document.createElement('li');
         li.classList.add('letter-pair-item');
 
-        let receivedHtml = '';
-        if (pair.received) {
-            const isUnread = !pair.received.isRead;
-            li.classList.toggle('unread', isUnread);
-            const status = getLetterStatus(pair.received);
-            let statusHtml = '';
-            if (status) {
-                statusHtml = `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
-            }
-            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.received);
-            receivedHtml = `
-                <div class="letter-item received" data-letter-id="${pair.received.id}">
-                    <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.received.sender.shortName}<br>To: ${pair.received.recipient.shortName}</span>
-                        <span class="letter-item-date">${formatDate(new Date(pair.received.timestamp))}</span>
-                    </div>
-                    <div class="letter-item-subject">${pair.received.subject}</div>
-                    ${statusHtml}
-                    ${triggeredActionsHtml}
-                </div>
-            `;
+        const rootId = chain[0].id;
+        // §15: multi-letter threads start collapsed on first render; the toggle
+        // in the header is the only collapse control.
+        if (chain.length > 1 && !seenChainIds.has(rootId)) {
+            seenChainIds.add(rootId);
+            collapsedChainIds.add(rootId);
+        }
+        const collapsed = chain.length > 1 && collapsedChainIds.has(rootId);
+        const chainMeta = { rootId, count: chain.length, collapsed };
+        if (chain.length > 1) {
+            li.classList.add('has-chain');
+            li.classList.add(collapsed ? 'collapsed' : 'expanded');
         }
 
-        let sentHtml = '';
-        if (pair.sent) {
-            const status = getLetterStatus(pair.sent);
-            let statusHtml = '';
-            if (status) {
-                const journeyHtml = renderJourneyTimeline(status);
-                statusHtml = journeyHtml + `<div class="letter-item-reply-status ${status.overdue ? 'overdue' : ''}">${status.text}</div>`;
-            }
-            const triggeredActionsHtml = renderTriggeredActionsListForListItem(pair.sent);
-            sentHtml = `
-                <div class="letter-item sent" data-letter-id="${pair.sent.id}">
-                    <div class="letter-item-header">
-                        <span class="letter-item-party">From: ${pair.sent.sender.shortName}<br>To: ${pair.sent.recipient.shortName}</span>
-                        <span class="letter-item-date">${formatDate(new Date(pair.sent.timestamp))}</span>
-                    </div>
-                    <div class="letter-item-subject">${pair.sent.subject}</div>
-                    ${statusHtml}
-                    ${triggeredActionsHtml}
-                </div>
-            `;
-        } else {
-            if (pair.received && pair.received.replyToId) {
-                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.outbound_not_found">Outbound letter not found.</div>`;
-            } else {
-                // Case where we have a received letter but no reply from the player yet
-                sentHtml = `<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>`;
-            }
+        const parts: string[] = [];
+        if (chain.length > 1) {
+            parts.push(renderChainHeader(chainMeta));
+        }
+        // §15: render newest-first so replies sit ABOVE the letter they replied
+        // to, matching the list's global descending order. The stored chain
+        // stays root-first — the placeholder rule and sort below depend on it.
+        const renderOrder = collapsed ? [chain[0]] : [...chain].reverse();
+        renderOrder.forEach((letter, index) => {
+            if (index > 0) parts.push('<div class="letter-pair-connector"></div>');
+            parts.push(renderChainLetterHtml(letter, li, chainMeta));
+        });
+
+        // Trailing placeholder only for a thread root that expects a reply it has
+        // not received yet (an NPC opening letter, or a plain AI letter). A
+        // letter that is itself a reply (replyToId set) never gets one, so the
+        // AI's closing reply in a 3-letter chain is not flagged as unanswered.
+        const last = chain[chain.length - 1];
+        const lastIsPlayer = last.sender.id === Number(selectedPlayerId);
+        if (!lastIsPlayer && !last.replyToId) {
+            parts.push('<div class="letter-item-placeholder" data-i18n="letters.no_reply">No reply yet.</div>');
         }
 
-        let connectorHtml = '';
-        if (pair.sent && pair.received) {
-            connectorHtml = '<div class="letter-pair-connector"></div>';
-        }
-
-        li.innerHTML = receivedHtml + connectorHtml + sentHtml;
+        li.innerHTML = parts.join('');
         fragment.appendChild(li);
     });
 
@@ -688,6 +768,7 @@ cachedLetterPairs = letterPairs;
             }
             target.classList.add('selected');
             selectedLetterItemEl = target;
+
         });
     });
     // @ts-ignore
@@ -700,6 +781,31 @@ cachedLetterPairs = letterPairs;
     if (currentSearchTerm) {
         performSearch(currentSearchTerm);
     }
+
+    // §15: the thread toggle is its own click target (stopPropagation) so
+    // clicking it expands/collapses the thread without also selecting/reading
+    // a letter. Attached after the search pass because clearHighlights()
+    // rewrites innerHTML and would wipe listeners attached earlier.
+    document.querySelectorAll<HTMLElement>('.chain-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rootId = toggle.dataset.rootId;
+            if (!rootId) return;
+            if (collapsedChainIds.has(rootId)) {
+                collapsedChainIds.delete(rootId);
+            } else {
+                collapsedChainIds.add(rootId);
+            }
+            renderLetters();
+        });
+        toggle.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle.click();
+            }
+        });
+    });
 }
 // Session-level caches so per-letter rendering doesn't hit the disk repeatedly:
 // action modules loaded lazily once per signature, and resolved localized descriptions
@@ -940,7 +1046,7 @@ function renderLetterContent(letter: Letter) {
     // This eliminates the second innerHTML rewrite that previously wiped event listeners.
     let viewHtml = `
         <div class="letter-view-header">
-            <h3>${letter.subject}</h3>
+            <h3>${letter.subject}${renderIncomingTopicBadge(letter)}</h3>
             ${statusHtml}
             <div class="letter-view-meta">
                 ${metaHtml}
@@ -1095,8 +1201,6 @@ async function loadPlayers(currentPlayerId?: string, currentCharacterId?: string
         await loadCharacters(selectedPlayerId, currentCharacterId);
         await loadLetters(selectedPlayerId);
         updatePlayerMismatchWarning();
-        await loadCharacters(selectedPlayerId, currentCharacterId);
-        await loadLetters(selectedPlayerId);
     } catch (error) {
         console.error("Error loading players:", error);
     } finally {
@@ -1133,8 +1237,10 @@ async function loadCharacters(playerId: string, currentCharacterId?: string) {
         characterSelect.value = 'all';
     }
     selectedCharacterId = characterSelect.value;
-
-    await loadLetters(playerId);
+    // NOTE: no loadLetters() here. loadCharacters() is called from loadPlayers()
+    // (which loads letters itself) and from the playerSelect change handler
+    // (which loads letters explicitly). Calling it here too doubled every
+    // full letter-store read per refresh.
 }
 
 async function loadLetters(playerId: string) {
@@ -1161,7 +1267,7 @@ async function loadLetters(playerId: string) {
     }
     // Invalidate the cached letter pairs whenever fresh data arrives, so newly attached
     // triggered actions (e.g. player actions on a sent letter) are shown on refresh.
-    cachedLetterPairs = null;
+    cachedLetterChains = null;
     // currentGameDay is now managed by IPC events ('get-current-game-day' and 'game-date-updated')
     // and should not be derived from letter data here, as it causes bugs with date calculations.
     // Reset filtered letters to allLetters on load since no filter is active yet.
@@ -1247,18 +1353,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     sortSelect.addEventListener('change', () => {
         sortMode = sortSelect.value as 'gameDate' | 'realDate';
-        cachedLetterPairs = null;
+        cachedLetterChains = null;
         renderLetters();
     });
 
     const refreshLetters = async (isAuto = false) => {
         if (!isAuto) { // Manual refresh resets the timer
             clearInterval(refreshInterval);
-            countdown = 20;
+            countdown = 10;
             startInterval();
         }
 
         refreshBtn.classList.add('refreshing');
+        // Manual refresh only: block double-clicks while the refresh is running.
+        // The auto path never disables the button (it fires from the 10s timer).
+        if (!isAuto) {
+            refreshBtn.disabled = true;
+        }
         if (!isAuto) {
             loader.style.display = 'block';
         }
@@ -1282,6 +1393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } finally {
             if (!isAuto) {
                 loader.style.display = 'none';
+                refreshBtn.disabled = false;
             }
             // Give animation time to be seen
             setTimeout(() => {
@@ -1290,24 +1402,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    refreshBtn.addEventListener('click', () => refreshLetters(false));
     playerSelect.addEventListener('change', async () => {
         selectedPlayerId = playerSelect.value;
         // When player changes, reset character to 'all'
         await loadCharacters(selectedPlayerId, 'all');
+        // loadCharacters no longer loads letters itself (see the note there);
+        // the player switch is the one call site that needs it explicitly.
+        await loadLetters(selectedPlayerId);
         updatePlayerMismatchWarning();
-    });
-    playerSelect.addEventListener('change', async () => {
-        selectedPlayerId = playerSelect.value;
-        // When player changes, reset character to 'all'
-        await loadCharacters(selectedPlayerId, 'all');
     });
 
     characterSelect.addEventListener('change', () => {
         selectedCharacterId = characterSelect.value;
-        cachedLetterPairs = null;
+        cachedLetterChains = null;
         renderLetters();
         renderStatusSummary(); // Update status counts to reflect character filter
+    });
+
+    // Manual refresh button (was never wired up — the button only appeared to
+    // work when a click coincided with the 10s auto-refresh timer, which spins
+    // the same button). Mirrors diariesRenderer/summarizationRenderer.
+    refreshBtn.addEventListener('click', () => {
+        refreshLetters(false);
     });
 
     const startInterval = () => {
@@ -1320,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 refreshCountdownEl.textContent = refreshText;
             }
             if (countdown <= 0) {
-                countdown = 20;
+                countdown = 10;
                 refreshLetters(true);
             }
         }, 1000);
@@ -1349,28 +1465,44 @@ ipcRenderer.on('current-session-player-changed', (event, playerId: string | null
     updatePlayerMismatchWarning();
 });
 
+// Debounced reload for letter-status-changed: generation flows broadcast this
+// repeatedly in bursts (import, generation, delivery, projection saves), and an
+// un-debounced handler turned each broadcast into a full letter-store read +
+// DOM re-render. A 400ms trailing debounce coalesces a burst into one reload.
+// Skipped entirely while the tab is hidden — the next visible reload catches up.
+let letterStatusReloadTimer: NodeJS.Timeout | null = null;
 ipcRenderer.on('letter-status-changed', () => {
-    console.log('Received letter-status-changed, reloading letters.');
-    if (selectedPlayerId) {
-        loadLetters(selectedPlayerId);
-    }
+    if (document.hidden) return;
+    if (letterStatusReloadTimer) clearTimeout(letterStatusReloadTimer);
+    letterStatusReloadTimer = setTimeout(() => {
+        letterStatusReloadTimer = null;
+        if (selectedPlayerId) {
+            loadLetters(selectedPlayerId);
+        }
+    }, 400);
 });
 
 ipcRenderer.on('letter-thread-status-update', (event, count: number) => {
     updateLetterThreadStatus(count);
 });
 
+// Throttled re-render for game-date-updated: the main process broadcasts every
+// new game day (~1-3s during play), and each tick used to trigger a full DOM
+// re-render. Coalesced to at most one re-render per 2s; the latest day always
+// lands because the timer fires with the freshest currentGameDay.
+let gameDateRenderTimer: NodeJS.Timeout | null = null;
 ipcRenderer.on('game-date-updated', (event, newTotalDays: number) => {
-    console.log(`Received game-date-updated event: ${newTotalDays}`);
-    if (newTotalDays > currentGameDay) {
-        currentGameDay = newTotalDays;
-        // Re-render to update statuses
+    if (newTotalDays <= currentGameDay) return;
+    currentGameDay = newTotalDays;
+    if (gameDateRenderTimer) return; // a render is already scheduled
+    gameDateRenderTimer = setTimeout(() => {
+        gameDateRenderTimer = null;
         renderLetters();
         renderStatusSummary();
         if (selectedLetter) {
             renderLetterContent(selectedLetter);
         }
-    }
+    }, 2000);
 });
 
 window.addEventListener('beforeunload', () => {

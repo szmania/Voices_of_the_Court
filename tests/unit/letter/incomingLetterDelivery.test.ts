@@ -75,7 +75,7 @@ describe('incoming letter delivery ownership', () => {
     }
 
     function readRunFile(): string {
-        return fs.readFileSync(path.join(root, 'run', 'incomingletter_v2_1.txt'), 'utf8');
+        return fs.readFileSync(path.join(root, 'run', 'votc_ce_incomingletter_v2_1.txt'), 'utf8');
     }
 
     it('keeps the final reply when a notification repeats during generation', async () => {
@@ -110,6 +110,75 @@ describe('incoming letter delivery ownership', () => {
         expect(readRunFile()).toBe(fallback);
         expect((generator as any).saveHistory).not.toHaveBeenCalled();
     });
+
+    // §43: the pre-LLM write must be an INERT heartbeat placeholder, not the
+    // executable guarded fallback. The mod's poller executes the run file every
+    // ~1-2s while the slot globals are set, so an executable fallback would run
+    // before the LLM responds, consume the slot globals and leave the player
+    // reading fallback text instead of the AI body.
+    it('writes an inert heartbeat placeholder before the LLM responds', async () => {
+        fs.writeFileSync(path.join(root, 'debug.log'), letterLog(10005), 'utf8');
+        const first = run(10005);
+        await requestStarted;
+        const placeholder = readRunFile();
+        expect(placeholder.charCodeAt(0)).toBe(0xFEFF);
+        expect(placeholder).toContain("debug_log = \"[Localize('talk_event.9999.desc')]\"");
+        // The placeholder must not be able to create an artifact or consume the
+        // slot globals - that is what makes it inert.
+        expect(placeholder).not.toContain('create_artifact');
+        expect(placeholder).not.toContain('remove_global_variable');
+        expect(placeholder).not.toContain('votc_incoming_letter_fallback_desc');
+        resolveReply('The real AI body.');
+        await first;
+    }, 15000);
+
+    // §43: on success the final run file overwrites the placeholder and its
+    // guard passes because nothing consumed the slot globals in between.
+    it('overwrites the placeholder with the final run file on success', async () => {
+        fs.writeFileSync(path.join(root, 'debug.log'), letterLog(10006), 'utf8');
+        const first = run(10006);
+        await requestStarted;
+        expect(readRunFile()).not.toContain('create_artifact');
+        resolveReply('The real AI body.');
+        await first;
+        const final = readRunFile();
+        expect(final).toContain('The real AI body.');
+        expect(final).toContain('var:votc_incoming_letter_1_delivery_id = 10006');
+        expect(final).toContain('flag:vassal_memorial');
+        expect(final).not.toContain('votc_incoming_letter_fallback_desc');
+    }, 15000);
+
+    // §43: an empty LLM response is a definitive failure - the inert
+    // placeholder must be replaced by the real guarded fallback so the letter
+    // still delivers (with fallback text) instead of never appearing.
+    it('writes the guarded fallback when the LLM response is empty', async () => {
+        fs.writeFileSync(path.join(root, 'debug.log'), letterLog(10007), 'utf8');
+        const first = run(10007);
+        await requestStarted;
+        resolveReply('   ');
+        await first;
+        const fallback = readRunFile();
+        expect(fallback).toContain('create_artifact');
+        expect(fallback).toContain('votc_incoming_letter_fallback_desc');
+        expect(fallback).toContain('var:votc_incoming_letter_1_delivery_id = 10007');
+        expect(fallback).toContain('flag:vassal_memorial');
+        expect(fallback).toContain('save_scope_as = votc_latest_letter');
+    }, 15000);
+
+    // §43: a failure AFTER the final run file landed must not clobber the good
+    // final with the fallback (save errors are swallowed per-call; the
+    // finalWritten flag additionally guards the outer catch).
+    it('keeps the final run file when a history save fails', async () => {
+        fs.writeFileSync(path.join(root, 'debug.log'), letterLog(10008), 'utf8');
+        (generator as any).saveHistory.mockRejectedValue(new Error('history exploded'));
+        const first = run(10008);
+        await requestStarted;
+        resolveReply('The real AI body.');
+        await first;
+        const final = readRunFile();
+        expect(final).toContain('The real AI body.');
+        expect(final).not.toContain('votc_incoming_letter_fallback_desc');
+    }, 15000);
 
     it('parses the selected CRLF snapshot before a newer AI-initiated conversation', async () => {
         const logPath = path.join(root, 'debug.log');

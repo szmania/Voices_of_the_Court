@@ -168,11 +168,21 @@ export class LetterManager {
                     }
                 }
 
-                const allLetters = this.getAllLetters(playerId);
+                // Recency from file mtimes, not from parsing every letter file:
+                // this runs for EVERY player on each Letters-tab refresh just to
+                // sort a dropdown, and letter JSONs embed full deep-copied
+                // Character snapshots (large). statSync is orders of magnitude
+                // cheaper than readFileSync + JSON.parse per file.
                 let latestTimestamp = 0;
-                if (allLetters.length > 0) {
-                    const timestamps = allLetters.map(l => l.creationTimestamp ? new Date(l.creationTimestamp).getTime() : 0);
-                    latestTimestamp = Math.max(0, ...timestamps.filter(t => !isNaN(t)));
+                try {
+                    const playerDirPath = path.join(playerFolderPath, playerId);
+                    for (const file of fs.readdirSync(playerDirPath)) {
+                        if (!file.endsWith('.json')) continue;
+                        const mtime = fs.statSync(path.join(playerDirPath, file)).mtime.getTime();
+                        if (mtime > latestTimestamp) latestTimestamp = mtime;
+                    }
+                } catch (e) {
+                    console.error(`Error reading letter file times for player ${playerId}:`, e);
                 }
 
                 return { id: playerId, name: playerName, latestTimestamp };
@@ -217,18 +227,29 @@ export class LetterManager {
 
         // Avoid duplicates by checking for a letter with the same subject (e.g., letter_5),
         // sent on the same day, between the same two characters.
-        const isDuplicate = history.some(l =>
+        // §15 Fix B: a duplicate match must not silently discard the incoming
+        // letter — a re-parse of the log rebuilds the letter and re-runs the
+        // replyToId linking, so the stored copy needs the fresh mutable fields.
+        const duplicateIndex = history.findIndex(l =>
             l.subject === letter.subject &&
             l.totalDays === letter.totalDays &&
             l.sender.id === letter.sender.id &&
             l.recipient.id === letter.recipient.id
         );
 
-        if (!isDuplicate) {
+        if (duplicateIndex === -1) {
             history.push(letter);
             // Sort by date
             history.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             console.log(`Saved new unique letter: ${letter.subject} from day ${letter.totalDays}`);
+        } else {
+            const stored = history[duplicateIndex];
+            if (letter.replyToId && !stored.replyToId) stored.replyToId = letter.replyToId;
+            if (letter.triggeredActions?.length && !stored.triggeredActions?.length) stored.triggeredActions = letter.triggeredActions;
+            // Only fill in a missing status — never regress a stored 'read'/'sent'
+            // back to the freshly parsed 'sent'.
+            if (letter.status && !stored.status) stored.status = letter.status;
+            console.log(`Merged duplicate letter: ${letter.subject} from day ${letter.totalDays} (replyToId=${stored.replyToId ?? 'none'})`);
         }
 
         try {
@@ -377,9 +398,14 @@ export class LetterManager {
             fs.mkdirSync(runFolderPath, { recursive: true });
         }
 
-        const letterFilePath = path.join(runFolderPath, "votc_ce_letters.txt");
+        // Channel routing (VOTC-194): an AI-initiated (npcltr) reply travels on
+        // its own whole-file-overwrite channel so it never clobbers an in-flight
+        // player reply on votc_ce_letters.txt (and vice versa). The idle gate for each
+        // channel is enforced by the caller (checkAndDeliverLetters).
+        const isNpcLetter = letterId === 'npcltr';
+        const letterFilePath = path.join(runFolderPath, isNpcLetter ? "votc_ce_npcltr.txt" : "votc_ce_letters.txt");
 
-        // Single-channel note: votc_ce_letters.txt is one shared, whole-file-overwrite
+        // Single-channel note: each of votc_ce_letters.txt / votc_ce_npcltr.txt is one shared, whole-file-overwrite
         // channel polled by the mod-side letters_runner (~2s). A delivery and
         // a generation-failure fallback written inside the same window clobber
         // each other; per-slot runner files would need mod-side changes
@@ -408,8 +434,14 @@ if = {
 \t\tname = votc_latest_letter
 \t\tvalue = scope:votc_latest_letter
 \t}
-}
-trigger_event = message_event.362`;
+${isNpcLetter ? `\tset_global_variable = {
+\t\tname = votc_ce_letter_latest
+\t\tvalue = scope:votc_latest_letter
+\t}
+` : ''}
+}${isNpcLetter ? `
+trigger_event = votc_ce_initiative.152` : `
+trigger_event = message_event.362`}`;
 
         // Re-validate at delivery time: the reply may travel several in-game
         // days and conversations can advance the checkpoint meanwhile. The
@@ -446,7 +478,17 @@ trigger_event = message_event.362`;
             gameCommand += '\n' + appliedTimelineScript;
         }
 
-        fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
+        // Fallback contract (VOTC-194): if the dedicated npcltr channel cannot
+        // be written, degrade to the votc_ce_letters.txt normal flow — the game side
+        // handles the reply arriving via the standard mailbox path and cleans
+        // its own marker, so the feature degrades, never jams.
+        try {
+            fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
+        } catch (writeError: any) {
+            if (!isNpcLetter) throw writeError;
+            console.error(`Could not write votc_ce_npcltr.txt (${writeError?.message}); falling back to the votc_ce_letters.txt channel.`, writeError);
+            fs.writeFileSync(path.join(runFolderPath, "votc_ce_letters.txt"), '\uFEFF' + gameCommand, 'utf8');
+        }
         console.log(`Delivered letter ${letter.id} by writing to: ${letterFilePath}`);
     }
 
@@ -523,7 +565,26 @@ trigger_event = message_event.362`;
         // silent. "Clearing" means restoring the placeholder.
         const placeholder = '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"";
         fs.writeFileSync(letterFilePath, placeholder, "utf-8");
-        console.log("Reset votc_ce_letters.txt to the blank heartbeat pt votc_ce_letters.txt to the blank heartbeat placeholder");
+        console.log("Reset votc_ce_letters.txt to the blank heartbeat placeholder");
+    }
+
+    /**
+     * Reset the AI-initiated (npcltr) run channel to its blank placeholder.
+     * Unlike votc_ce_letters.txt the npcltr runner does not carry the date heartbeat,
+     * but the blank guard keeps the mod-side runner from re-executing a stale
+     * block on every poll after a timed-out delivery.
+     */
+    public clearNpcltrFile(config: Config): void {
+        const ck3Folder = config.userFolderPath;
+        if (!ck3Folder) {
+          console.warn("LetterManager.clearNpcltrFile: CK3 user folder is not configured; cannot clear npcltr file.");
+          return;
+        }
+
+        const runFolder = path.join(ck3Folder, "run");
+        const npcltrFilePath = path.join(runFolder, "votc_ce_npcltr.txt");
+        fs.writeFileSync(npcltrFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", "utf-8");
+        console.log("Reset votc_ce_npcltr.txt to the blank placeholder");
     }
 
     public async importLettersFromLog(config: Config, gameData: GameData, playerId: string, gameDate: string, recipientId?: string): Promise<ILetter[]> {

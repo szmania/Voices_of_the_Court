@@ -72,7 +72,7 @@ describe('PR 15 business integration reproductions', () => {
 
     it('the actual reply delivery script applies the allocated timeline node', async () => {
         const {config, original, reply} = await generate();
-        const fallback = fs.readFileSync(path.join(root, 'votc_data', 'run', 'letter1.txt'), 'utf8');
+        const fallback = fs.readFileSync(path.join(root, 'votc_data', 'run', 'votc_ce_letter1.txt'), 'utf8');
         expect(fallback).toContain('votc_timeline_node_a');
         LetterManager.getInstance().deliverLetter({letter: reply, originalLetter: original, expectedDeliveryDay: 389001}, config, '1066.1.2');
         const delivered = fs.readFileSync(path.join(config.userFolderPath, 'run', 'votc_ce_letters.txt'), 'utf8');

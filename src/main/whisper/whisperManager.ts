@@ -92,7 +92,33 @@ export function getWhisperPlayerIds(): { id: string }[] {
     const playerDirs = fs.readdirSync(whispersDir, { withFileTypes: true })
         .filter(dirent => dirent.isDirectory())
         .map(dirent => ({ id: dirent.name }));
-    return playerDirs.sort((a, b) => a.id.localeCompare(b.id));
+    // Sort by each player's most recent whisper realDate (newest first).
+    // realDate is an ISO string, so lexicographic order == chronological.
+    // Players with no readable whisper record sink to the bottom, alphabetical.
+    const lastRealDate = new Map<string, string>();
+    for (const { id } of playerDirs) {
+        const filePath = getWhisperFilePath(id);
+        if (!fs.existsSync(filePath)) continue;
+        try {
+            const parsed = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            if (Array.isArray(parsed)) {
+                const latest = parsed
+                    .map((r: any) => (r && typeof r === 'object' && typeof r.realDate === 'string') ? r.realDate : '')
+                    .filter((d: string) => d)
+                    .sort()
+                    .pop();
+                if (latest) lastRealDate.set(id, latest);
+            }
+        } catch {
+            // Unreadable/corrupt file: treat as no whispers for this player.
+        }
+    }
+    return playerDirs.sort((a, b) => {
+        const da = lastRealDate.get(a.id) || '';
+        const db = lastRealDate.get(b.id) || '';
+        if (da !== db) return db.localeCompare(da);
+        return a.id.localeCompare(b.id);
+    });
 }
 
 /**

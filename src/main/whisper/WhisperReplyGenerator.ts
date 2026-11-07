@@ -36,7 +36,14 @@ export interface WhisperRequestInfo {
     cadenceDays: number;
     section: WhisperSection;
     /** The request line's game date as total days; 0 when missing/invalid. */
+
     requestTotalDays: number;
+    /**
+     * Per-request nonce (votc_whisper_req_id) from the payload line's trailing
+     * field. 0 when absent (older mods). The reply script consumes it so a
+     * stale run file re-executed by the ~2s poller is a no-op.
+     */
+    requestId: number;
 }
 
 const CADENCE_DAYS: Record<number, number> = { 3: 91, 6: 182, 12: 365 };
@@ -87,11 +94,14 @@ export function parseWhisperRequestLine(line: string): WhisperRequestInfo | unde
         if (!match) return undefined;
         const cadenceCode = Number(match[1]) as 3 | 6 | 12;
         const requestTotalDays = Number((parts[1] ?? '').trim());
+        // Trailing nonce field (parts[2]); absent on older mods -> 0.
+        const requestId = Number((parts[2] ?? '').trim());
         return {
             cadenceCode,
             cadenceDays: CADENCE_DAYS[cadenceCode],
             section: match[2] as WhisperSection,
-            requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0
+            requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0,
+            requestId: Number.isInteger(requestId) && requestId > 0 ? requestId : 0
         };
     }
     // Legacy (protocol v1): whisper requests masqueraded as VOTC:LETTER lines
@@ -109,7 +119,9 @@ export function parseWhisperRequestLine(line: string): WhisperRequestInfo | unde
         cadenceCode,
         cadenceDays: CADENCE_DAYS[cadenceCode],
         section: match[2] as WhisperSection,
-        requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0
+        requestTotalDays: Number.isFinite(requestTotalDays) && requestTotalDays > 0 ? requestTotalDays : 0,
+        // Legacy v1 lines carry no nonce; the guard degrades to unguarded.
+        requestId: 0
     };
 }
 
@@ -144,13 +156,19 @@ export async function detectWhisperRequestFromLog(debugLogPath: string): Promise
 }
 
 /**
- * Clears run/votc_ce_whisper.txt. The mod's runner re-executes the file every ~2s
- * indefinitely, so the file must be emptied once a section has been taken or
- * every pass would create a fresh artifact and re-fire votc_whisper.30.
+ * Resets run/votc_ce_whisper.txt to the blank heartbeat placeholder. The mod's
+ * runner re-executes the file every ~2s indefinitely, so once a section has been
+ * taken the file must be reset or every pass would create a fresh artifact and
+ * re-fire votc_whisper.30. It is reset to the placeholder rather than emptied:
+ * an empty (or BOM-only) file makes the CK3 lexer log
+ * `console_failure: Effect is empty` on every beat, spamming debug.log for the
+ * whole round trip. The placeholder is a harmless effect the runner can
+ * re-execute safely, and is byte-identical to the startup seed in main.ts.
  */
 export function clearWhisperRunFile(config: Config): void {
     if (!config || !config.userFolderPath) return;
-    new RunFileManager(config.userFolderPath, 'votc_ce_whisper.txt').clear();
+    new RunFileManager(config.userFolderPath, 'votc_ce_whisper.txt')
+        .write("debug_log = \"[Localize('talk_event.9999.desc')]\"");
 }
 
 export class WhisperReplyGenerator {
@@ -223,7 +241,7 @@ export class WhisperReplyGenerator {
         }
 
         // 6. Deliver through the dedicated whisper channel.
-        this.deliverWhisperReply(reply.trim());
+        this.deliverWhisperReply(reply.trim(), request.requestId);
         return true;
     }
 
@@ -285,8 +303,14 @@ export class WhisperReplyGenerator {
      * mirroring the gameCommand built in LetterManager.deliverLetter but with
      * the whisper-specific guard, artifact name and intake event (plan §2.2):
      * no letter-thread variables, no timeline block, no message_event.362.
+     *
+     * When the request carries a nonce (requestId > 0, protocol v2) the whole
+     * body is wrapped in a votc_whisper_consumed_id guard: the first execution
+     * consumes the nonce and every re-execution by the ~2s runner is a no-op,
+     * race-proof even if the receipt-driven clear loses the race. Legacy v1
+     * requests (requestId 0) keep the unguarded body.
      */
-    private deliverWhisperReply(replyText: string): void {
+    private deliverWhisperReply(replyText: string, requestId: number): void {
         if (!this.config.userFolderPath) {
             console.error('[WhisperReplyGenerator] Cannot deliver whisper reply, user folder path is not set.');
             return;
@@ -309,7 +333,10 @@ create_artifact = {
 if = {
 \tlimit = { exists = scope:votc_latest_whisper }
 \tscope:votc_latest_whisper = {
-\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\tset_variable = { 
+\t\t\tname = votc_letter_artifact 
+\t\t\tvalue = yes 
+\t\t}
 \t}
 \tset_global_variable = {
 \t\tname = votc_whisper_latest
@@ -318,8 +345,26 @@ if = {
 }
 trigger_event = votc_whisper.30`;
 
+        // Nonce guard (protocol v2): consume-once. requestId 0 (legacy v1)
+        // degrades to the unguarded body - a shared 0 value would block the
+        // NEXT legacy request after the first consume.
+        const guardedCommand = requestId > 0
+            ? `if = {
+\tlimit = { 
+\t\tNOT = { 
+\t\t\tglobal_var:votc_whisper_consumed_id = ${requestId} 
+\t\t} 
+\t}
+${gameCommand.replace(/^/gm, '\t')}
+\tset_global_variable = { 
+\t\tname = votc_whisper_consumed_id 
+\t\tvalue = ${requestId} 
+\t}
+}`
+            : gameCommand;
+
         const runFileManager = new RunFileManager(this.config.userFolderPath, 'votc_ce_whisper.txt');
-        runFileManager.write(gameCommand);
+        runFileManager.write(guardedCommand);
         console.log('[WhisperReplyGenerator] Whisper reply written to run/votc_ce_whisper.txt.');
     }
 }

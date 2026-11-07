@@ -4,7 +4,7 @@ import { GameData } from "../../shared/gameData/GameData";
 import { parseLog, removeTooltip } from "../../shared/gameData/parseLog.js";
 import { Config } from "../../shared/Config";
 import { Message } from "../ts/conversation_interfaces";
-import { app } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import * as fs from "fs";
 import * as path from "path";
 import { randomUUID } from "crypto";
@@ -12,21 +12,23 @@ import { archiveFutureSummaryFilesForPlayer, readSummaryFile, saveSummaryFile } 
 import { Summary } from '../ts/conversation_interfaces';
 import { archiveFutureLetterHistoryForPlayer, saveIncomingLetterHistory } from '../conversationHistory.js';
 import { buildIncomingLetterHistoryRecord } from './letterHistoryRecord.js';
-import { createMemoryString, getEffectivePrompts } from '../conversation/promptBuilder';
 import {
     TimelineRegistryCorruptError,
-    FsTimelinePersistence,
-    TimelineRegistry,
-    resolveTimelineContext,
-    buildContextFromGameData,
     type CreateChildNodeResult,
     type GameDataLike
 } from '../timelineManager.js';
+import { resolveSummaryTimelineContext, type SummaryTimelineContext } from './summaryTimelineContext.js';
+import { createMemoryString, getEffectivePrompts } from '../conversation/promptBuilder';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
 import { reportCorruptTimelineRegistry, reportUnsupportedTimelineSchema, reportCampaignIdentityUnavailable } from '../timelineRegistryRecovery.js';
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 import { runIncomingLetterTimelineTransition } from '../timelineBusinessWire.js';
+import { Letter } from './Letter.js';
+import { LetterType } from './letterInterfaces.js';
+import { LetterManager } from './LetterManager.js';
+import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
+import { INCOMING_LETTER_TOPICS, type IncomingLetterTopic } from '../../shared/incomingLetterTopics.js';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -70,7 +72,7 @@ const inFlight = new Set<string>();
 const completed = new Set<string>();
 const latestSignatureBySlot = new Map<string, string>();
 
-const DEFAULT_INCOMING_LETTER_PROMPT = `请根据你的角色性格、背景、与收信人的关系、相关记忆内容，以及当前的游戏情境，用{{letterLanguage}}写一段由{{senderName}}主动寄给{{playerName}}的简短书信正文。只输出一段纯文本，不要换行、不要引号、不要Markdown格式，总长度控制在200字以内。`;
+const DEFAULT_INCOMING_LETTER_PROMPT = `请根据你的角色性格、背景、与收信人的关系、相关记忆内容，以及当前的游戏情境，用{{letterLanguage}}写一段由{{senderName}}主动寄给{{playerName}}的简短书信正文。只输出一段纯文本，不要换行、不要引号、不要Markdown格式，总长度控制在200字以内。并在信件末尾署名，包含你角色的名字和头衔，让收信人明确知道信件来自谁。`;
 
 // F13 (1.x P1-L1): fallback for configs without the maxSummaryTokens key
 // (see Config.ts / default_config.json). The generator reads
@@ -282,37 +284,11 @@ export class IncomingLetterGenerator {
         return this.votcDataPath;
     }
 
-    // 1.x IncomingLetterGenerator.getSummaryTimeline parity: load the timeline
-    // registry (campaign-scoped when the snapshot carries a v2 identity,
-    // player-only legacy fallback otherwise) so summary reads filter
-    // node-tagged records by branch and summary saves merge instead of
-    // overwriting hidden sibling-branch records. F21 also exposes the
-    // resolved campaign identity so summary reads/writes route into the
-    // campaign namespace via summaryManager's identity parameter.
-    private getSummaryTimeline(gameData: GameData): { registry: TimelineRegistry | undefined; currentNodeId: string | undefined; identity?: CampaignPlayerIdentity } {
-        const persistence = new FsTimelinePersistence(app.getPath('userData'));
-        let registry: TimelineRegistry | undefined;
-        let identity: CampaignPlayerIdentity | undefined;
-        try {
-            identity = requireCampaignIdentity({
-                playerID: gameData.playerID,
-                timelineSnapshotResult: gameData.timelineSnapshotResult
-            });
-            const result = persistence.loadStoreWithIdentity(identity);
-            registry = result.status === 'found' ? result.store : undefined;
-        } catch {
-            // Legacy snapshot: fall back to player-only display load.
-            identity = undefined;
-            registry = persistence.loadRegistry(String(gameData.playerID)) ?? undefined;
-        }
-        const context = registry
-            ? resolveTimelineContext(registry, buildContextFromGameData(gameData))
-            : buildContextFromGameData(gameData);
-        return {
-            registry,
-            currentNodeId: context.timelineNodeId,
-            identity
-        };
+    // F21/M7: the shared summary-timeline resolver (summaryTimelineContext.ts)
+    // now owns the registry load + context resolution, so letter summaries and
+    // conversation summaries resolve the exact same branch context.
+    private getSummaryTimeline(gameData: GameData): SummaryTimelineContext {
+        return resolveSummaryTimelineContext(gameData);
     }
 
     public async generateIncomingLetter(
@@ -386,14 +362,18 @@ export class IncomingLetterGenerator {
         inFlight.add(signature);
         latestSignatureBySlot.set(slotId, signature);
 
+        // §43: the run file must exist during generation (the mod's poller
+        // executes it every ~1-2s and logs `console_failure: No such file in
+        // run/` otherwise), but it must NOT be the executable guarded fallback:
+        // the poller would execute that fallback before the LLM responds and
+        // consume the slot globals, so the final run file would hit its `else`
+        // branch and the fallback body would be what the player sees. Write an
+        // inert heartbeat placeholder instead — harmless on every beat, creates
+        // no artifact, consumes nothing. The real guarded fallback is written
+        // only on definitive failure paths below.
+        let finalWritten = false;
         try {
-            // Write the identity-independent gated fallback FIRST so a letter
-            // degrades to fallback text even when the timeline transition
-            // fails (e.g. campaign id not yet bootstrapped); the final run
-            // file overwrites it on success. Audit fix: previously an
-            // identity failure returned before any run file existed and the
-            // delivery stalled until the slot cleanup.
-            this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
+            this.writePlaceholderRunFile(userFolderPath, slotNumber);
 
             // Create a timeline child node for this incoming letter delivery. The
             // parent is the pre-delivery save node from GameData; the child becomes
@@ -436,14 +416,19 @@ export class IncomingLetterGenerator {
             } catch (error) {
                 if (error instanceof CampaignIdentityUnavailableError) {
                     reportCampaignIdentityUnavailable(error);
+                    // §43: definitive failure — replace the inert placeholder with
+                    // the real guarded fallback so the letter still delivers.
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 if (error instanceof TimelineRegistryCorruptError) {
                     reportCorruptTimelineRegistry(error);
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 if (error instanceof UnsupportedTimelineSchemaError) {
                     reportUnsupportedTimelineSchema(error.schema);
+                    this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
                     return;
                 }
                 throw error;
@@ -474,7 +459,9 @@ export class IncomingLetterGenerator {
             const response = typeof apiResult === 'string' ? apiResult : (apiResult?.content ?? '');
 
             if (!response || response.trim() === '') {
-                console.warn(`[IncomingLetterGenerator] Empty LLM response for ${signature}; fallback remains.`);
+                console.warn(`[IncomingLetterGenerator] Empty LLM response for ${signature}; writing fallback.`);
+                // §43: definitive failure — the placeholder must not stay inert.
+                this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, timeline);
                 return;
             }
 
@@ -485,6 +472,9 @@ export class IncomingLetterGenerator {
 
             const normalizedText = normalizeCk3String(response);
             this.writeFinalRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, normalizedText, timeline);
+            // §43: the final run file is on disk; a later throw (history/summary
+            // save) must not clobber it with the fallback.
+            finalWritten = true;
 
             try {
                 await this.saveHistory(gameData, context, normalizedText, timeline, identity, sourceRecordId, sourceGameDate);
@@ -506,11 +496,53 @@ export class IncomingLetterGenerator {
                 reportUnsupportedTimelineSchema(error.schema);
             }
             console.error(`[IncomingLetterGenerator] Error generating incoming letter for ${signature}:`, error);
+            // §43: definitive failure — write the real guarded fallback unless the
+            // final run file already landed (a post-final throw must not clobber
+            // a good final).
+            if (!finalWritten) {
+                this.writeFallbackRunFile(userFolderPath, slotNumber, context.type, context.deliveryId, null);
+            }
         } finally {
             inFlight.delete(signature);
         }
     }
 
+    /**
+     * Byte offset of the last occurrence of `marker` at or before `beforeOffset`,
+     * found by scanning backward in 512KB chunks (1KB overlap so a marker
+     * straddling a chunk edge is still complete). Returns -1 when the marker is
+     * not present above `floorOffset`. Byte offsets, not string indexes, so
+     * multibyte (CJK) content cannot shift the result.
+     */
+    private findLastMarkerOffset(fd: number, size: number, marker: string, beforeOffset: number, floorOffset: number): number {
+        const CHUNK = 512 * 1024;
+        const OVERLAP = 1024;
+        let end = Math.min(size, beforeOffset);
+        while (end > floorOffset) {
+            const start = Math.max(floorOffset, end - CHUNK);
+            const readEnd = Math.min(size, end + OVERLAP);
+            const buffer = Buffer.alloc(readEnd - start);
+            fs.readSync(fd, buffer, 0, buffer.length, start);
+            const text = buffer.toString('utf8');
+            // Only consider markers starting inside [start, end); the overlap
+            // exists so a marker straddling the chunk edge is still complete.
+            const own = text.slice(0, end - start);
+            const idx = own.lastIndexOf(marker);
+            if (idx >= 0) {
+                const absolute = start + Buffer.byteLength(text.slice(0, idx), 'utf8');
+                if (absolute <= beforeOffset) return absolute;
+            }
+            end = start;
+        }
+        return -1;
+    }
+
+    /**
+     * Locates the newest matching incoming-letter context line by scanning the
+     * log tail backward in chunks, instead of decoding the whole (unbounded)
+     * debug.log into one string. Returns absolute BYTE offsets for the snapshot
+     * window, or null when no match is found inside the bounded tail.
+     */
     private parseContext(
         debugLogPath: string,
         expectedSlotId: string,
@@ -523,74 +555,184 @@ export class IncomingLetterGenerator {
                 return null;
             }
 
-            const content = fs.readFileSync(debugLogPath, 'utf8');
             const initMarker = 'VOTC:IN/;/init/';
             const contextMarker = 'VOTC:INCOMING_LETTER/;/context/';
-            let searchFrom = content.length;
 
-            while (searchFrom >= 0) {
-                const contextStart = content.lastIndexOf(contextMarker, searchFrom);
-                if (contextStart === -1) break;
+            const size = fs.statSync(debugLogPath).size;
+            const CHUNK = 512 * 1024;
+            const OVERLAP = 1024; // markers are short; a 1KB overlap covers straddles
+            // The request is always written just before the clipboard trigger, so
+            // it sits at the tail. A 16MB window is generous; beyond it the
+            // whole-file fallback below preserves the old (correct, slow) path.
+            const MAX_TAIL = 16 * 1024 * 1024;
+            const floor = Math.max(0, size - MAX_TAIL);
 
-                const rawLineEnd = content.indexOf('\n', contextStart);
-                const contextLineEnd = rawLineEnd === -1 ? content.length : rawLineEnd;
-                const contextLine = content.slice(contextStart, contextLineEnd).replace(/\r$/, '');
-                const parts = contextLine.split('/;/').map(part => part.trim());
-                const slot = parts[2];
-                const type = parts[3];
-                const sentDate = parts[4];
-                const senderId = Number(parts[5]);
-                const deliveryId = Number(parts[6]);
+            const fd = fs.openSync(debugLogPath, 'r');
+            try {
+                let end = size;
+                while (end > floor) {
+                    const start = Math.max(floor, end - CHUNK);
+                    const readEnd = Math.min(size, end + OVERLAP);
+                    const buffer = Buffer.alloc(readEnd - start);
+                    fs.readSync(fd, buffer, 0, buffer.length, start);
+                    const text = buffer.toString('utf8');
+                    // Only consider markers starting inside [start, end); the
+                    // overlap exists so a marker straddling the chunk edge is
+                    // still complete.
+                    const own = text.slice(0, end - start);
 
-                if (
-                    parts.length >= 7
-                    && parts[0] === 'VOTC:INCOMING_LETTER'
-                    && parts[1] === 'context'
-                    && slot === expectedSlotId
-                    && type === expectedType
-                    && deliveryId === expectedDeliveryId
-                    && sentDate
-                    && Number.isFinite(senderId)
-                ) {
-                    const initStart = content.lastIndexOf(initMarker, contextStart);
-                    if (initStart === -1) {
-                        console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
-                        searchFrom = contextStart - 1;
-                        continue;
-                    }
+                    let searchFrom = own.length;
+                    while (searchFrom > 0) {
+                        const idx = own.lastIndexOf(contextMarker, searchFrom);
+                        if (idx < 0) break;
 
-                    const facts: Record<string, string> = {};
-                    for (let i = 7; i < parts.length; i++) {
-                        const separatorIndex = parts[i].indexOf('=');
-                        if (separatorIndex <= 0) continue;
-                        const key = parts[i].slice(0, separatorIndex).trim();
-                        const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
-                        if (/^[a-z0-9_]+$/i.test(key) && value) {
-                            facts[key] = value;
+                        // Full line containing the marker (may extend into the overlap).
+                        const lineStart = text.lastIndexOf('\n', idx) + 1;
+                        const eol = text.indexOf('\n', idx);
+                        const contextLine = text.slice(lineStart, eol >= 0 ? eol : text.length).replace(/\r$/, '');
+                        const parts = contextLine.split('/;/').map(part => part.trim());
+                        const slot = parts[2];
+                        const type = parts[3];
+                        const sentDate = parts[4];
+                        const senderId = Number(parts[5]);
+                        const deliveryId = Number(parts[6]);
+
+                        if (
+                            parts.length >= 7
+                            && parts[0] === 'VOTC:INCOMING_LETTER'
+                            && parts[1] === 'context'
+                            && slot === expectedSlotId
+                            && type === expectedType
+                            && deliveryId === expectedDeliveryId
+                            && sentDate
+                            && Number.isFinite(senderId)
+                        ) {
+                            const contextStart = start + Buffer.byteLength(text.slice(0, idx), 'utf8');
+                            const contextLineEnd = start + Buffer.byteLength(text.slice(0, eol >= 0 ? eol : text.length), 'utf8');
+                            const initStart = this.findLastMarkerOffset(fd, size, initMarker, contextStart, floor);
+                            if (initStart < 0) {
+                                console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
+                                searchFrom = idx - 1;
+                                continue;
+                            }
+
+                            const facts: Record<string, string> = {};
+                            for (let i = 7; i < parts.length; i++) {
+                                const separatorIndex = parts[i].indexOf('=');
+                                if (separatorIndex <= 0) continue;
+                                const key = parts[i].slice(0, separatorIndex).trim();
+                                const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
+                                if (/^[a-z0-9_]+$/i.test(key) && value) {
+                                    facts[key] = value;
+                                }
+                            }
+
+                            return {
+                                slotId: slot as IncomingLetterContext['slotId'],
+                                type: type as IncomingLetterType,
+                                sentDate,
+                                senderId,
+                                deliveryId,
+                                facts,
+                                snapshotStartOffset: initStart,
+                                snapshotEndOffset: contextLineEnd
+                            };
                         }
+
+                        searchFrom = idx - 1;
                     }
 
-                    return {
-                        slotId: slot as IncomingLetterContext['slotId'],
-                        type: type as IncomingLetterType,
-                        sentDate,
-                        senderId,
-                        deliveryId,
-                        facts,
-                        snapshotStartOffset: initStart,
-                        snapshotEndOffset: contextLineEnd
-                    };
+                    end = start;
                 }
-
-                searchFrom = contextStart - 1;
+            } finally {
+                fs.closeSync(fd);
             }
 
-            console.log(`[IncomingLetterGenerator] No matching context found for ${expectedSlotId}/${expectedType}/${expectedDeliveryId}`);
-            return null;
+            // Markers not found inside the bounded tail: fall back to the
+            // original whole-file scan so correctness never depends on the
+            // window size (only the common case is fast).
+            return this.parseContextWholeFile(debugLogPath, expectedSlotId, expectedType, expectedDeliveryId);
         } catch (error) {
             console.error(`[IncomingLetterGenerator] Error parsing incoming letter context:`, error);
             return null;
         }
+    }
+
+    /**
+     * Whole-file fallback for `parseContext` (the pre-chunking implementation).
+     * Only reached when the bounded tail scan finds no match; offsets are byte
+     * offsets, matching the chunked path and `parseLog`'s range contract.
+     */
+    private parseContextWholeFile(
+        debugLogPath: string,
+        expectedSlotId: string,
+        expectedType: IncomingLetterType,
+        expectedDeliveryId: number
+    ): IncomingLetterContext | null {
+        const content = fs.readFileSync(debugLogPath, 'utf8');
+        const initMarker = 'VOTC:IN/;/init/';
+        const contextMarker = 'VOTC:INCOMING_LETTER/;/context/';
+        let searchFrom = content.length;
+
+        while (searchFrom >= 0) {
+            const contextStart = content.lastIndexOf(contextMarker, searchFrom);
+            if (contextStart === -1) break;
+
+            const rawLineEnd = content.indexOf('\n', contextStart);
+            const contextLineEnd = rawLineEnd === -1 ? content.length : rawLineEnd;
+            const contextLine = content.slice(contextStart, contextLineEnd).replace(/\r$/, '');
+            const parts = contextLine.split('/;/').map(part => part.trim());
+            const slot = parts[2];
+            const type = parts[3];
+            const sentDate = parts[4];
+            const senderId = Number(parts[5]);
+            const deliveryId = Number(parts[6]);
+
+            if (
+                parts.length >= 7
+                && parts[0] === 'VOTC:INCOMING_LETTER'
+                && parts[1] === 'context'
+                && slot === expectedSlotId
+                && type === expectedType
+                && deliveryId === expectedDeliveryId
+                && sentDate
+                && Number.isFinite(senderId)
+            ) {
+                const initStart = content.lastIndexOf(initMarker, contextStart);
+                if (initStart === -1) {
+                    console.log(`[IncomingLetterGenerator] Matching context has no preceding init marker: ${contextLine}`);
+                    searchFrom = contextStart - 1;
+                    continue;
+                }
+
+                const facts: Record<string, string> = {};
+                for (let i = 7; i < parts.length; i++) {
+                    const separatorIndex = parts[i].indexOf('=');
+                    if (separatorIndex <= 0) continue;
+                    const key = parts[i].slice(0, separatorIndex).trim();
+                    const value = removeTooltip(parts[i].slice(separatorIndex + 1).trim());
+                    if (/^[a-z0-9_]+$/i.test(key) && value) {
+                        facts[key] = value;
+                    }
+                }
+
+                return {
+                    slotId: slot as IncomingLetterContext['slotId'],
+                    type: type as IncomingLetterType,
+                    sentDate,
+                    senderId,
+                    deliveryId,
+                    facts,
+                    snapshotStartOffset: Buffer.byteLength(content.slice(0, initStart), 'utf8'),
+                    snapshotEndOffset: Buffer.byteLength(content.slice(0, contextLineEnd), 'utf8')
+                };
+            }
+
+            searchFrom = contextStart - 1;
+        }
+
+        console.log(`[IncomingLetterGenerator] No matching context found for ${expectedSlotId}/${expectedType}/${expectedDeliveryId}`);
+        return null;
     }
 
     private async buildMessages(gameData: GameData, context: IncomingLetterContext): Promise<Message[]> {
@@ -601,8 +743,11 @@ export class IncomingLetterGenerator {
             throw new Error('Player or sender character data not found in gameData');
         }
 
+        // The script resolves its labels through gameData.localize(key, lang, vars),
+        // which the conversation flow injects in promptBuilder.ts; attach it here too
+        // so incoming-letter prompts get localized descriptions instead of raw loc keys.
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
-        const characterDescription = pListLetter(gameData);
+        const characterDescription = withGameDataLocalize(gameData, this.config.language || 'en', () => pListLetter(gameData)) as string;
 
         const topicLabel = TOPIC_LABELS[context.type];
 
@@ -901,6 +1046,24 @@ ${indent}}
 `;
     }
 
+    // §43: Inert heartbeat placeholder written immediately when generation starts,
+    // so the mod's poller finds an existing file (no `console_failure` spam) but
+    // the placeholder cannot create an artifact or consume the slot globals.
+    // Byte-identical to the §10/§11/§42.3 startup seeds.
+    private writePlaceholderRunFile(userFolderPath: string, slotNumber: number): void {
+        const runFolderPath = path.join(userFolderPath, "run");
+        if (!fs.existsSync(runFolderPath)) {
+            fs.mkdirSync(runFolderPath, { recursive: true });
+        }
+        const filePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slotNumber}.txt`);
+        // writeIncomingRunFileAtomically prepends the BOM itself; do NOT add
+        // another one here or the file would carry a double BOM (the second
+        // BOM becomes a stray character the run-file lexer chokes on).
+        const content = "debug_log = \"[Localize('talk_event.9999.desc')]\"";
+        writeIncomingRunFileAtomically(filePath, content);
+        console.log(`[IncomingLetterGenerator] Placeholder run file written: ${filePath}`);
+    }
+
     private writeFallbackRunFile(
         userFolderPath: string,
         slotNumber: number,
@@ -922,18 +1085,45 @@ ${indent}}
 \t\tvar:votc_incoming_letter_${slotNumber}_delivery_id = ${deliveryId}
 \t\tglobal_var:votc_incoming_letter_type_${slotNumber} = flag:${type}
 \t}
-${timelineSetBlock}\tsend_interface_message = {
-\t\ttype = votc_message_popup
-\t\ttitle = votc_incoming_letter_title${slotNumber}
-\t\tdesc = votc_incoming_letter_fallback_desc
-\t\tleft_icon = global_var:votc_incoming_letter_sender_${slotNumber}
+${timelineSetBlock}\tcreate_artifact = {
+\t\tname = votc_incoming_letter_title${slotNumber}
+\t\tdescription = votc_incoming_letter_fallback_desc
+\t\ttype = journal
+\t\tvisuals = scroll
+\t\tcreator = global_var:votc_incoming_letter_sender_${slotNumber}
+\t\tmodifier = artifact_monthly_minor_prestige_1_modifier
+\t\tsave_scope_as = votc_latest_letter
 \t}
+\tif = {
+\t\tlimit = { exists = scope:votc_latest_letter }
+\t\tscope:votc_latest_letter = {
+\t\t\tset_variable = { 
+\t\t\t\tname = votc_letter_artifact 
+\t\t\t\tvalue = yes 
+\t\t\t}
+\t\t}
+\t\tset_global_variable = {
+\t\t\tname = votc_latest_letter
+\t\t\tvalue = scope:votc_latest_letter
+\t\t}
+\t}
+\tif = { 
+\t\tlimit = { 
+\t\t\texists = global_var:votc_incoming_letter_sender_${slotNumber} 
+\t\t} 
+\t\tset_global_variable = { 
+\t\t\tname = message_second_scope 
+\t\t\tvalue = global_var:votc_incoming_letter_sender_${slotNumber} 
+\t\t} 
+\t}
+\ttrigger_event = message_event.362
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_type_${slotNumber}
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_timer
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_sent_day
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_delivery_id
+\tdebug_log = "VOTC:INCOMING_LETTER/;/run_applied/;/incoming_letter_${slotNumber}/;/${deliveryId}"
 }
 else = {
 \tdebug_log = "VOTC:INCOMING_LETTER/;/run_skipped/;/incoming_letter_${slotNumber}/;/${deliveryId}"
@@ -965,26 +1155,34 @@ else = {
 \t\tvar:votc_incoming_letter_${slotNumber}_delivery_id = ${deliveryId}
 \t\tglobal_var:votc_incoming_letter_type_${slotNumber} = flag:${type}
 \t}
-${timelineSetBlock}\tsend_interface_message = {
-\t\ttype = votc_message_popup
-\t\ttitle = votc_incoming_letter_title${slotNumber}
-\t\tdesc = "${normalizedText}"
-\t\tleft_icon = global_var:votc_incoming_letter_sender_${slotNumber}
-\t}
-\tcreate_artifact = {
+${timelineSetBlock}\tcreate_artifact = {
 \t\tname = votc_incoming_letter_title${slotNumber}
 \t\tdescription = "${normalizedText}"
 \t\ttype = journal
 \t\tvisuals = scroll
 \t\tcreator = global_var:votc_incoming_letter_sender_${slotNumber}
 \t\tmodifier = artifact_monthly_minor_prestige_1_modifier
+\t\tsave_scope_as = votc_latest_letter
 \t}
+\tif = {
+\t\tlimit = { exists = scope:votc_latest_letter }
+\t\tscope:votc_latest_letter = {
+\t\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\t}
+\t\tset_global_variable = {
+\t\t\tname = votc_latest_letter
+\t\t\tvalue = scope:votc_latest_letter
+\t\t}
+\t}
+\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
+\ttrigger_event = message_event.362
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_type_${slotNumber}
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_timer
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_sent_day
 \tremove_variable ?= votc_incoming_letter_${slotNumber}_delivery_id
+\tdebug_log = "VOTC:INCOMING_LETTER/;/run_applied/;/incoming_letter_${slotNumber}/;/${deliveryId}"
 }
 else = {
 \tdebug_log = "VOTC:INCOMING_LETTER/;/run_skipped/;/incoming_letter_${slotNumber}/;/${deliveryId}"
@@ -1003,6 +1201,41 @@ else = {
         if (!gameDate) {
             // Fail closed: a canonical record requires the structured date.
             throw new Error('Structured gameDate unavailable for incoming letter history save');
+        }
+
+        // M1 (Letters-tab projection): upsert a display-only ILetter into the
+        // legacy LetterManager store so incoming letters appear in the Letters
+        // tab, which reads only that store. The projection is display-only:
+        // delivered:true and a non-letter_N subject guarantee it never
+        // re-enters delivery logic; the campaign history record below stays
+        // authoritative. Idempotency comes from saveLetter's built-in
+        // duplicate check (subject + totalDays + sender + recipient).
+        // Same UTC convention as Letter.fromLog (month is 0-indexed in JS Date).
+        //
+        // Fix B (VOTC-194 hotfix): this block runs BEFORE the campaign history
+        // work and swallows its own errors, so a history-side failure (e.g. a
+        // snapshot validation error) can never hide the letter from the tab.
+        try {
+            const writtenTimestamp = new Date(Date.UTC(gameDate.year, gameDate.month - 1, gameDate.day, 12, 0, 0));
+            const projection = new Letter(
+                `${context.slotId}|${gameData.playerID}|${context.senderId}|${context.sentDate}|${context.type}|${context.deliveryId}`,
+                sender,
+                player,
+                `incoming_${context.type}`,
+                normalizedText,
+                LetterType.PERSONAL,
+                writtenTimestamp,
+                false, // isRead: hidden until the player actually receives it
+                0, // delay: no journey — delivered instantly by the guarded run file
+                gameDate.totalDays,
+                undefined, // replyToId
+                'read', // read
+                true // delivered: incoming letters arrive instantly, no journey needed
+            );
+            LetterManager.getInstance().saveLetter(projection, String(gameData.playerID));
+            BrowserWindow.getAllWindows().forEach(win => win.webContents.send('letter-status-changed'));
+        } catch (projectionError) {
+            console.error(`[IncomingLetterGenerator] Letters-tab projection failed for ${context.slotId}/${context.type}/${context.deliveryId}:`, projectionError);
         }
 
         // 2CE made this async (1.x was synchronous); awaiting keeps the

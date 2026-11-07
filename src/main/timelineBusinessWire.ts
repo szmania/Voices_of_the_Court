@@ -199,6 +199,17 @@ async function runSourceTransition(args: {
     guard: (input: CommitGuardInput) => { ok: boolean; reason?: string };
     observedState?: MigrationStageOptions['observedState'];
 }): Promise<SourceTransitionResult> {
+    // §44 write-entry gate: a partial identity salvaged from a degraded
+    // snapshot (Changes A/B) is for READ/delivery paths only. A journal write
+    // needs a complete identity AND a trustworthy observed state; a degraded
+    // snapshot makes both unreliable, so fail closed here rather than create a
+    // bad node. Legacy mods (no snapshot) never reach here with an identity.
+    const snapshotStatus = args.gameData.timelineSnapshotResult?.status;
+    if (snapshotStatus === 'invalid' || snapshotStatus === 'truncated') {
+        throw new Error(
+            `timelineBusinessWire: refusing to write a timeline record from a ${snapshotStatus} snapshot (partial identity is read-only)`
+        );
+    }
     return withTimelineLock(
         args.userDataDir,
         { campaignId: args.identity.campaignId, playerId: args.identity.playerId },
