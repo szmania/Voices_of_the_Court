@@ -29,6 +29,72 @@ function totalDaysToDateString(totalDays: number): string {
     return `${year}.${month.toString().padStart(2, '0')}.${day.toString().padStart(2, '0')}`;
 }
 
+/**
+ * App plan §12.4.1a: the mod appends a conditional trailing payload field
+ * `incoming_reply=<slot>|<type>|<deliveryId>` to a player write-back reply
+ * (VOTC:LETTER line), so the app can deterministically link the reply to the
+ * exact incoming-letter projection instead of guessing by sender pair. The
+ * projection id built by IncomingLetterGenerator.saveHistory is
+ * `${slotId}|${playerId}|${senderId}|${sentDate}|${type}|${deliveryId}` — six
+ * Fix C (coordination note): this deterministic path only fires when the
+ * MOD side ships §12.4.1b (trailing `incoming_reply=` field appended to
+ * `message_text` in all 9 locales + `votc_incoming_reply_type/_delivery`
+ * captures in the 8 `.010N` arrival immediates). Until then the sender-pair
+ * heuristic below is the only live linker.
+ * '|'-separated segments — so slot/type/deliveryId identify the root exactly.
+ * Defensive: a malformed marker is treated as absent (heuristic fallback).
+ * The marker stays parse-local; replyToId (set by the caller) is the persisted
+ * link — no ILetter schema change, no persistence.
+ */
+function parseReplyMarker(parts: string[]): { slot: number; type: string; deliveryId: number; fieldIndex: number } | undefined {
+    for (let i = 4; i < parts.length; i++) {
+        const field = (parts[i] ?? '').trim();
+        if (!field.startsWith('incoming_reply=')) continue;
+        const segs = field.slice('incoming_reply='.length).split('|');
+        // slot/deliveryId must be finite non-negative integers; type non-empty.
+        // CK3 renders CFixedPoint GetValue through loc possibly with a decimal
+        // tail (e.g. "3.00"), so tolerate an optional .<digits> suffix and floor.
+        const numeric = (raw: string): number | undefined =>
+            /^\d+(?:\.\d+)?$/.test(raw) ? Math.floor(Number(raw)) : undefined;
+        const slot = numeric(segs[0]);
+        const deliveryId = numeric(segs[2]);
+        if (segs.length === 3 && segs[1].length > 0 && slot !== undefined && deliveryId !== undefined) {
+            return { slot, type: segs[1], deliveryId, fieldIndex: i };
+        }
+        console.log(`Ignoring malformed incoming_reply marker: "${field}"`);
+        return undefined;
+    }
+    return undefined;
+}
+
+/**
+ * True when a stored letter's id is the incoming-letter projection the reply
+ * marker points at (see parseReplyMarker).
+ */
+function projectionMatchesReplyMarker(id: string, npcNumericId: number, marker: { slot: number; type: string; deliveryId: number }): boolean {
+    const segs = id.split('|');
+    return segs.length === 6
+        && segs[0] === `incoming_letter_${marker.slot}`
+        && segs[2] === String(npcNumericId)
+        && segs[4] === marker.type
+        && segs[5] === String(marker.deliveryId);
+}
+
+/**
+ * How many days after a root's day a player letter may still be treated as its
+ * write-back by the sender-pair HEURISTIC only. Unlinked roots accumulate
+ * forever (an unreplied incoming letter stays unlinked), so without this bound
+ * every spontaneous letter the player later writes to that NPC would be sucked
+ * into the newest root's thread. The deterministic reply marker (§12.4.1a) is
+ * authoritative and is deliberately NOT gated by this window.
+ */
+// §15 Fix A: the heuristic window is FLOORED at 30 in-game days (incoming
+// letters carry delay=0, so without the floor their write-backs would only
+// link within 7 days). Normal letters with a longer travel delay keep their
+// own delay as the window. The deterministic reply marker (§12.4.1a) is
+// authoritative and is deliberately NOT gated by this window.
+const HEURISTIC_REPLY_WINDOW_MIN_DAYS = 30;
+
 export async function parseLettersFromLog(debugLogPath: string, gameData: GameData, gameDate: string, config: Config, playerId?: string, recipientId?: string): Promise<Letter[]> {
     console.log(`Starting to parse log file for letters at: ${debugLogPath}`);
 
@@ -85,13 +151,39 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                 }
                 const delay = parseInt(parts[3].trim(), 10) || 0;
                 const senderIdFromLog = parts[4] ? parts[4].trim() : undefined;
-                const recipientIdFromLog = parts[5] ? parts[5].trim() : undefined;
+                // §12.4.1a: the mod may append a trailing incoming_reply marker
+                // (normally at parts[5], where the recipient id would sit). Scan
+                // for it first and never let a marker-shaped field become the
+                // recipient id.
+                const replyMarker = parseReplyMarker(parts);
+                const recipientIdFromLog = (parts[5] && !parts[5].trim().startsWith('incoming_reply='))
+                    ? parts[5].trim()
+                    : undefined;
+
+                // AI-initiated letter request (VOTC-194): the payload carries no
+                // sender/recipient fields; both ids come from the letter-session
+                // init block (gameData). The NPC is the sender, the player the
+                // recipient. Content signature: VOTC_CE_LETTER|<CATEGORY>|<flavor>.
+                const isNpcInitiated = letterId === 'npcltr' || content.startsWith('VOTC_CE_LETTER|');
+                let npcLetterCategory: string | undefined;
+                let letterContent = content;
+                if (isNpcInitiated) {
+                    const sigParts = content.split('|');
+                    if (sigParts.length >= 3 && sigParts[0] === 'VOTC_CE_LETTER') {
+                        npcLetterCategory = sigParts[1].trim() || undefined;
+                        letterContent = sigParts.slice(2).join('|').trim();
+                    }
+                }
 
                 // Use the playerId and recipientId from the function arguments if they exist,
                 // as they are more reliable than the potentially swapped log values.
-                const finalSenderId = playerId || senderIdFromLog;
-                const finalRecipientId = recipientId || recipientIdFromLog;
-
+                // For npcltr payloads the init block is the only id source.
+                const finalSenderId = isNpcInitiated
+                    ? String(gameData.aiID)
+                    : (playerId || senderIdFromLog);
+                const finalRecipientId = isNpcInitiated
+                    ? String(gameData.playerID)
+                    : (recipientId || recipientIdFromLog);
                 // Parse triggered actions from remaining parts (parts[6+])
                 // Format: signature:arg1,arg2,...:triggerOn
                 const triggeredActions: any[] = [];
@@ -112,7 +204,7 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                     }
                 }
 
-                if (content && letterId && finalSenderId && finalRecipientId) {
+                if (letterContent && letterId && finalSenderId && finalRecipientId) {
                     const sender = gameData.characters.get(Number(finalSenderId));
                     const recipient = gameData.characters.get(Number(finalRecipientId));
 
@@ -120,9 +212,64 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                         const correctedGameDate = totalDaysToDateString(writtenDateInDays);
                         const creationTimestamp = new Date(Date.now() + parseTimeOffset);
                         parseTimeOffset++;
-                        const letter = LetterClass.fromLog(sender, recipient, letterId, content, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
+                        const letter = LetterClass.fromLog(sender, recipient, letterId, letterContent, correctedGameDate, delay, writtenDateInDays, creationTimestamp);
                         if (letter) {
                             letter.triggeredActions = triggeredActions;
+                            if (npcLetterCategory) {
+                                letter.npcLetterCategory = npcLetterCategory;
+                            }
+                            // Thread continuity (VOTC-194 / app plan §12.1): a player
+                            // response written after an NPC-initiated letter is linked
+                            // to that letter so the letters tab can render the full
+                            // chain (NPC letter -> player -> AI reply). Two root kinds
+                            // qualify: an npcltr opening (VOTC-194) and an incoming
+                            // letter projection (subject 'incoming_<topic>', P1) — both
+                            // are NPC -> player letters with no reply yet.
+                            // ponytail: sender-pair heuristic with no per-occurrence
+                            // disambiguator — if two unlinked roots from the SAME sender
+                            // exist, the newest wins (usually right, occasionally not).
+                            // §12.4.1a: the mod's reply marker now disambiguates when
+                            // present; the heuristic remains the fallback. The heuristic
+                            // is additionally bounded by the reply window (floored at
+                            // HEURISTIC_REPLY_WINDOW_MIN_DAYS), so
+                            // a spontaneous letter written long after a root starts its
+                            // own thread instead of being absorbed into the old one.
+                            if (!isNpcInitiated && /^letter_\d+$/.test(letterId)) {
+                                const playerNumericId = Number(finalSenderId);
+                                const npcNumericId = Number(finalRecipientId);
+                                const priorLetters = LetterManager.getInstance().getAllLetters(finalSenderId);
+                                // §12.4.1a: a reply marker identifies the exact root;
+                                // try it first, then fall back to the sender-pair
+                                // heuristic below (unchanged when no marker exists).
+                                const isUnlinkedRoot = (l: Letter) =>
+                                    (l.subject === 'npcltr' || l.subject.startsWith('incoming_')) &&
+                                    l.sender.id === npcNumericId &&
+                                    l.recipient.id === playerNumericId &&
+                                    !priorLetters.some(r => r.replyToId === l.id);
+                                // Heuristic-only temporal bound: a write-back is written
+                                // shortly after the root it answers, so a spontaneous
+                                // letter must not be absorbed into an older unlinked
+                                // root's thread. Directional (a reply cannot precede its
+                                // root, so an out-of-order letter after a save rollback
+                                // fails safe to unlinked) and delay-aware (the root's own
+                                // travel time counts toward the window). The deterministic
+                                // marker path above is NOT gated by this.
+                                const isWithinReplyWindow = (l: Letter) =>
+                                    letter.totalDays >= l.totalDays &&
+                                    letter.totalDays - l.totalDays <= Math.max(l.delay ?? 0, HEURISTIC_REPLY_WINDOW_MIN_DAYS);
+                                const deterministicOpening = replyMarker
+                                    ? priorLetters.find(l => isUnlinkedRoot(l) && projectionMatchesReplyMarker(l.id, npcNumericId, replyMarker))
+                                    : undefined;
+                                const opening = deterministicOpening ?? priorLetters.find(l =>
+                                    isUnlinkedRoot(l) && isWithinReplyWindow(l)
+                                );
+                                if (opening) {
+                                    letter.replyToId = opening.id;
+                                    console.log(deterministicOpening
+                                        ? `Linked player letter ${letterId} to incoming letter ${opening.id} via reply marker (slot ${replyMarker!.slot}, ${replyMarker!.type}, delivery ${replyMarker!.deliveryId}).`
+                                        : `Linked player letter ${letterId} to NPC letter ${opening.id} (${opening.subject}).`);
+                                }
+                            }
                             // Guard: never auto-execute letter actions when manual approval is enabled.
                             // This branch is currently dead (associatedAction is never assigned), but if it
                             // is ever enabled, it must still respect manualLetterActionApproval.
@@ -130,8 +277,13 @@ export async function parseLettersFromLog(debugLogPath: string, gameData: GameDa
                                 LetterActionTrigger.executeLetterAction(letter, letter.associatedAction, config);
                             }
                             letters.push(letter);
-                            // The player is the sender of the letter being imported from the log
-                            LetterManager.getInstance().saveLetter(letter, finalSenderId);
+                            // Letters are stored under the player's folder. For a
+                            // player-sent letter the sender IS the player; for an
+                            // npcltr request the sender is the NPC, so the player
+                            // id must be used explicitly or the opening letter
+                            // would land in the NPC's folder and never show in the
+                            // Letters tab.
+                            LetterManager.getInstance().saveLetter(letter, isNpcInitiated ? String(gameData.playerID) : finalSenderId);
                         }
                     } else {
                         console.error(`Could not find sender (${finalSenderId}) or recipient (${finalRecipientId}) in gameData for letter.`);

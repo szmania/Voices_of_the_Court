@@ -697,3 +697,64 @@ describe('createChildNodeAndScript', () => {
         expect(reg.getAncestorSet(c.nodeId).has(b.nodeId)).toBe(false);
     });
 });
+
+describe('buildContextFromGameData - §44 Change A partial identity salvage', () => {
+    it('salvages a partial identity from a truncated snapshot when the raw campaign-id components are present', () => {
+        const ctx = buildContextFromGameData({
+            playerID: 123,
+            votcCheckpointEpoch: 5,
+            votcCampaignIdA: 7,
+            votcCampaignIdB: 8,
+            votcCampaignIdC: 9,
+            votcCampaignIdD: 10,
+            timelineSnapshotResult: { status: 'truncated', expected: 23, actual: 19 }
+        });
+        expect(ctx.identity?.campaignId).toBe('7-8-9-10');
+        expect(ctx.identity?.playerId).toBe('123');
+        // Node/token fields stay unavailable — the salvage is partial.
+        expect(ctx.timelineNodeId).toBeUndefined();
+        expect(ctx.identityUnavailableReason).toContain('truncated');
+    });
+
+    it('attaches only the diagnostic reason when the salvage fails (no raw components)', () => {
+        const ctx = buildContextFromGameData({
+            playerID: 123,
+            votcCheckpointEpoch: 5,
+            timelineSnapshotResult: { status: 'invalid', reason: 'protocol schema is not an integer: "x"' }
+        });
+        expect(ctx.identity).toBeUndefined();
+        expect(ctx.identityUnavailableReason).toContain('invalid');
+        expect(ctx.identityUnavailableReason).toContain('protocol schema is not an integer');
+    });
+
+    it('does not set the diagnostic on a valid snapshot', () => {
+        const ctx = buildContextFromGameData({
+            playerID: 123,
+            votcCheckpointEpoch: 5,
+            votcCampaignIdA: 7,
+            votcCampaignIdB: 8,
+            votcCampaignIdC: 9,
+            votcCampaignIdD: 10,
+            timelineSnapshotResult: {
+                status: 'valid',
+                snapshot: {
+                    playerId: '123',
+                    source: 'init',
+                    epoch: 5,
+                    protocol: {
+                        protocolSchema: 2,
+                        campaignSchema: 1,
+                        campaignIdA: 7,
+                        campaignIdB: 8,
+                        campaignIdC: 9,
+                        campaignIdD: 10,
+                        campaignBootstrapKind: 1,
+                        playerTimelineSchema: 1
+                    }
+                }
+            }
+        });
+        expect(ctx.identity?.campaignId).toBe('7-8-9-10');
+        expect(ctx.identityUnavailableReason).toBeUndefined();
+    });
+});

@@ -291,7 +291,7 @@ export class ApiConnection{
         // Merged with the caller's abort signal so either one can cancel the request.
         // Background fire-and-forget callers (e.g. post-conversation summarization)
         // can pass a larger timeoutMs so slow providers don't abort mid-request.
-        const REQUEST_TIMEOUT_MS = timeoutMs ?? 120_000;
+        const REQUEST_TIMEOUT_MS = timeoutMs ?? 240_000;
         const MAX_RETRIES = 5; // Maximum number of retries
         const RETRY_DELAY = 750; // Initial delay in milliseconds (will increase)
 

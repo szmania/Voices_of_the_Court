@@ -17,7 +17,7 @@ import {
     classifyLetterHistoryArray,
     type ClassifiedHistoryArray
 } from './history/HistoryRecordReaders.js';
-import type { IncomingLetterHistoryRecordV1 } from './history/historyRecordTypes.js';
+import type { IncomingLetterHistoryRecordV1, LetterHistoryRecordV1 } from './history/historyRecordTypes.js';
 
 export type ArchiveHistoryEntry = {
     id: string;
@@ -1049,4 +1049,44 @@ export async function saveIncomingLetterHistory(record: IncomingLetterHistoryRec
         }
     );
     console.log(`Incoming letter history saved: ${historyFilePath}`);
+}
+
+/**
+ * Persists a schema v1 outgoing letter record (M3 twin of
+ * saveIncomingLetterHistory) using the shared atomic array update. Fail-closed:
+ * an existing corrupt file aborts the write instead of being replaced.
+ * Idempotent on the letter occurrence (letterId + deliveryId + sender), since
+ * the outgoing schema carries no generic record id. Errors propagate to the
+ * caller, which owns user-facing feedback.
+ */
+export async function saveLetterHistoryRecord(record: LetterHistoryRecordV1, identity: CampaignPlayerIdentity): Promise<void> {
+    // Route to the campaign-scoped directory using the identity captured at
+    // operation start by the caller. Do NOT re-resolve here.
+    const historyDir = campaignLetterHistoryDir(app.getPath('userData'), identity);
+    fs.mkdirSync(historyDir, { recursive: true });
+
+    const historyFilePath = path.join(historyDir, `character_${record.senderId}.json`);
+    await updateJsonArrayAtomic<unknown>(
+        historyFilePath,
+        (value) => {
+            if (!Array.isArray(value)) {
+                throw new Error('existing outgoing letter history file is not an array');
+            }
+            return value;
+        },
+        (records) => {
+            const isSameOccurrence = (existing: unknown): boolean => {
+                const candidate = existing as { letterId?: unknown; deliveryId?: unknown; senderId?: unknown } | null;
+                return candidate?.letterId === record.letterId
+                    && candidate?.deliveryId === record.deliveryId
+                    && candidate?.senderId === record.senderId;
+            };
+            if (records.some(isSameOccurrence)) {
+                console.log(`Outgoing letter history already present, skipping write: ${record.letterId}/${record.deliveryId}`);
+                return records;
+            }
+            return [...records, record];
+        }
+    );
+    console.log(`Outgoing letter history saved: ${historyFilePath}`);
 }

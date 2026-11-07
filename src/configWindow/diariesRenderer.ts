@@ -234,17 +234,18 @@ async function loadCharacters(persistedCharacterId?: string) {
     const allCharsText = window.LocalizationManager.getTranslation('diary_manager.all_characters', 'All Characters');
     characterSelect.innerHTML = `<option value="all">${allCharsText}</option>`;
     
+    // Sort by most recent diary entry first (recency), tie-break by name.
+    const latestByCharacter = new Map<string, number>();
+    for (const entry of allDiaryEntries) {
+        const raw = entry.creationTimestamp ?? entry.date;
+        const ts = raw ? new Date(raw).getTime() : NaN;
+        const t = isNaN(ts) ? 0 : ts;
+        const cur = latestByCharacter.get(entry.character_id) || 0;
+        if (t > cur) latestByCharacter.set(entry.character_id, t);
+    }
     characterIds.sort((a, b) => {
-        const nameA = characterNameMap[a] || `Character ${a}`;
-        const nameB = characterNameMap[b] || `Character ${b}`;
-        return nameA.localeCompare(nameB);
-    });
-    characterIds.sort((a, b) => {
-        const nameA = characterNameMap[a] || `Character ${a}`;
-        const nameB = characterNameMap[b] || `Character ${b}`;
-        return nameA.localeCompare(nameB);
-    });
-    characterIds.sort((a, b) => {
+        const diff = (latestByCharacter.get(b) || 0) - (latestByCharacter.get(a) || 0);
+        if (diff !== 0) return diff;
         const nameA = characterNameMap[a] || `Character ${a}`;
         const nameB = characterNameMap[b] || `Character ${b}`;
         return nameA.localeCompare(nameB);

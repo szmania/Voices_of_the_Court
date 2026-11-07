@@ -107,12 +107,27 @@ describe('pending reply delivery gate', () => {
             )).toEqual({deliverable: true});
         });
 
+        it('§44 Change E: non-deliverable verdicts carry diagnostics naming which side was unknown', () => {
+            const verdict = evaluateReplyDeliveryGate(
+                {recipientId: '9999', campaignId: OTHER_CAMPAIGN_ID},
+                undefined,
+                PLAYER_ID
+            );
+            expect(verdict.deliverable).toBe(false);
+            expect(verdict.reason).toBe('current_campaign_unknown');
+            expect(verdict.diagnostics).toEqual({
+                replyCampaignIdPresent: true,
+                currentCampaignIdPresent: false,
+                currentPlayerId: PLAYER_ID
+            });
+        });
+
         it('keeps a reply stamped for another campaign pending', () => {
             expect(evaluateReplyDeliveryGate(
                 {recipientId: PLAYER_ID, campaignId: OTHER_CAMPAIGN_ID},
                 {campaignId: IDENTITY.campaignId},
                 PLAYER_ID
-            )).toEqual({deliverable: false, reason: 'campaign_mismatch'});
+            )).toMatchObject({deliverable: false, reason: 'campaign_mismatch'});
         });
 
         it('fails closed on an unstamped reply unless the legacy exemption is requested', () => {
@@ -120,7 +135,7 @@ describe('pending reply delivery gate', () => {
                 {recipientId: PLAYER_ID},
                 {campaignId: IDENTITY.campaignId},
                 PLAYER_ID
-            )).toEqual({deliverable: false, reason: 'reply_campaign_unknown'});
+            )).toMatchObject({deliverable: false, reason: 'reply_campaign_unknown'});
 
             expect(evaluateReplyDeliveryGate(
                 {recipientId: PLAYER_ID},
@@ -136,7 +151,7 @@ describe('pending reply delivery gate', () => {
                 {campaignId: IDENTITY.campaignId},
                 PLAYER_ID,
                 {allowUnstampedLegacyReplies: true}
-            )).toEqual({deliverable: false, reason: 'player_mismatch'});
+            )).toMatchObject({deliverable: false, reason: 'player_mismatch'});
         });
 
         it('keeps a stamped reply pending while the loaded save exposes no campaign', () => {
@@ -144,7 +159,7 @@ describe('pending reply delivery gate', () => {
                 {recipientId: PLAYER_ID, campaignId: IDENTITY.campaignId},
                 undefined,
                 PLAYER_ID
-            )).toEqual({deliverable: false, reason: 'current_campaign_unknown'});
+            )).toMatchObject({deliverable: false, reason: 'current_campaign_unknown'});
         });
     });
 

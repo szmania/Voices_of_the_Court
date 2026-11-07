@@ -16,6 +16,21 @@ export type ReplyDeliveryGateCode =
     | 'player_mismatch'
     | 'legacy_reply_unstamped';
 
+/**
+ * §44 Change E: observability-only enrichment of the verdict. Comparison
+ * logic is unchanged (fail-closed stays); this just records WHICH side was
+ * unknown so a player_mismatch / campaign_mismatch verdict is diagnosable
+ * from the log without re-deriving the evidence chain.
+ */
+export interface ReplyDeliveryGateDiagnostics {
+    /** Whether the reply record carried a campaign stamp. */
+    replyCampaignIdPresent: boolean;
+    /** Whether the current game context exposed a campaign id. */
+    currentCampaignIdPresent: boolean;
+    /** The current player id the gate compared the reply's recipient against. */
+    currentPlayerId: string;
+}
+
 export interface ReplyDeliveryGateVerdict {
     deliverable: boolean;
     /**
@@ -24,6 +39,18 @@ export interface ReplyDeliveryGateVerdict {
      * callers can log the exemption instead of hiding it.
      */
     reason?: ReplyDeliveryGateCode;
+    /**
+     * §44 Change E (observability only — never changes the verdict): which
+     * side of the comparison was unknown, and the player id actually used.
+     * Populated on non-deliverable verdicts so a `player_mismatch` log line
+     * immediately shows whether the reply was generated for a different
+     * player or the log-derived player is stale.
+     */
+    diagnostics?: {
+        replyCampaignIdPresent: boolean;
+        currentCampaignIdPresent: boolean;
+        currentPlayerId: string;
+    };
 }
 
 export interface ReplyDeliveryGateReply {
@@ -53,23 +80,31 @@ export function evaluateReplyDeliveryGate(
     currentPlayerId: string,
     options: ReplyDeliveryGateOptions = {}
 ): ReplyDeliveryGateVerdict {
+    // §44 Change E: every verdict carries the same diagnostics so the log
+    // always shows which side was unknown (reply stamp, current campaign,
+    // or the player id used for the comparison).
+    const diagnostics: ReplyDeliveryGateDiagnostics = {
+        replyCampaignIdPresent: !!reply.campaignId,
+        currentCampaignIdPresent: !!currentCampaign?.campaignId,
+        currentPlayerId
+    };
     if (!reply.campaignId) {
         if (!options.allowUnstampedLegacyReplies) {
-            return { deliverable: false, reason: 'reply_campaign_unknown' };
+            return { deliverable: false, reason: 'reply_campaign_unknown', diagnostics };
         }
         if (reply.recipientId !== currentPlayerId) {
-            return { deliverable: false, reason: 'player_mismatch' };
+            return { deliverable: false, reason: 'player_mismatch', diagnostics };
         }
         return { deliverable: true, reason: 'legacy_reply_unstamped' };
     }
     if (!currentCampaign?.campaignId) {
-        return { deliverable: false, reason: 'current_campaign_unknown' };
+        return { deliverable: false, reason: 'current_campaign_unknown', diagnostics };
     }
     if (reply.campaignId !== currentCampaign.campaignId) {
-        return { deliverable: false, reason: 'campaign_mismatch' };
+        return { deliverable: false, reason: 'campaign_mismatch', diagnostics };
     }
     if (reply.recipientId !== currentPlayerId) {
-        return { deliverable: false, reason: 'player_mismatch' };
+        return { deliverable: false, reason: 'player_mismatch', diagnostics };
     }
     return { deliverable: true };
 }

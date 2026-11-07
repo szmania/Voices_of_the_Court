@@ -12,6 +12,7 @@ import { readDiarySummaries } from "../diaryManager.js";
 import { LocalizationManager } from "../../shared/LocalizationManager.js";
 import { GameData } from "../../shared/gameData/GameData.js";
 import { getEffectiveCharacterDescription } from "../characterDescription";
+import { createGameDataLocalizer } from "./gameDataLocalize.js";
 
 export function getPromptsConfig(votcDataPath: string, lang: string = 'en'): any {
     const promptsDir = path.join(votcDataPath, 'configs', 'prompts');
@@ -250,28 +251,9 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         delete require.cache[require.resolve(descriptionPath)];
 
         // Add a temporary localize function to gameData for the script to use
+        // (shared helper: same attach→call→delete semantics as the letter flows).
         if (conv.translations) {
-            (conv.gameData as any).localize = (key: string, lang: string, vars: any) => {
-                const keys = key.split('.');
-                let result = conv.translations;
-                for (const k of keys) {
-                    if (result === undefined || result === null) {
-                        return key; // fallback to key if path is invalid
-                    }
-                    result = result[k];
-                }
-
-                if (typeof result === 'string') {
-                    if (vars) {
-                        for (const varKey in vars) {
-                            result = result.replace(new RegExp(`{{${varKey}}}`, 'g'), vars[varKey]);
-                        }
-                    }
-                    return result;
-                }
-
-                return key; // fallback to key if not a string
-            };
+            (conv.gameData as any).localize = createGameDataLocalizer(conv.translations);
         }
 
         if (isAiToAi && targetCharacter) {

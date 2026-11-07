@@ -26,7 +26,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 12000
     },
     "parameters": {
       "temperature": 0.8,
@@ -47,7 +47,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 12000
     },
     "parameters": {
       "temperature": 0.5,
@@ -68,7 +68,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 12000
     },
     "parameters": {
       "temperature": 0.5,
@@ -89,7 +89,7 @@
       "model": "text-embedding-3-small",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192,
+      "customContext": 12000,
       "embeddingDimension": 1536,
       "useCustomEmbeddingDimension": false
     },
@@ -194,7 +194,7 @@
       "model": "gpt-oss-120b",
       "forceInstruct": false,
       "overwriteContext": false,
-      "customContext": 8192
+      "customContext": 12000
     },
     "parameters": {
       "temperature": 0.5,
