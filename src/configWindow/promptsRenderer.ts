@@ -55,6 +55,17 @@ let statusMessage: HTMLDivElement;
 // Per-type prompt overrides read from config.categorizedIncomingLetterPrompts.
 let categorizedLetterPrompts: Record<string, string> = {};
 
+// Per-locale incoming-letter prompt data (defaultPrompt, types labels, ...) loaded
+// from the main process via 'get-incoming-letter-prompts' — the same loader the
+// generator uses, so the defaults shown here always match the generator's fallback.
+let incomingLetterPrompts: any = null;
+
+async function ensureIncomingLetterPrompts(): Promise<void> {
+    if (!incomingLetterPrompts) {
+        incomingLetterPrompts = await ipcRenderer.invoke('get-incoming-letter-prompts');
+    }
+}
+
 const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
     "memoriesPrompt", "suffixPrompt", "narrativePrompt", "sceneDescriptionPrompt",
@@ -192,7 +203,8 @@ ipcRenderer.on('update-language', async (event, lang) => {
 
     // Refresh the categorized letter dropdown labels and the current type's
     // default prompt for the new language.
-    populateCategorizedLetterTypes();
+    incomingLetterPrompts = null; // force reload for the new language
+    await populateCategorizedLetterTypes();
     await loadCategorizedLetterPrompt();
 });
 
@@ -441,20 +453,24 @@ async function updateCharDescTokenCount() {
 // Categorized Incoming Letter Prompt functions
 
 function getCategorizedLetterTypeLabel(type: string): string {
+    // Prefer the per-locale prompt file's label (canonical, synced to user data);
+    // fall back to the UI locale key, then the raw type id.
+    const fromData = incomingLetterPrompts?.types?.[type];
+    if (fromData) return fromData;
     // @ts-ignore
     const label = window.LocalizationManager?.getNestedTranslation(`incomingLetters.types.${type}`, null, '');
     return label || type;
 }
 
-// The default shown when a type has no user override: the per-locale default
-// prompt from the incomingLetters locale namespace (same default the generator
-// falls back to).
+// The default shown when a type has no user override: the per-locale
+// defaultPrompt from configs/prompts/incoming_letters/<locale>.json (same
+// default the generator falls back to via resolveInstructionPrompt).
 function getCategorizedDefaultPrompt(): string {
-    // @ts-ignore
-    return window.LocalizationManager?.getNestedTranslation('incomingLetters.default_prompt', null, '') || '';
+    return incomingLetterPrompts?.defaultPrompt || '';
 }
 
-function populateCategorizedLetterTypes(): void {
+async function populateCategorizedLetterTypes(): Promise<void> {
+    await ensureIncomingLetterPrompts();
     categorizedLetterTypeSelect.innerHTML = '';
     for (const type of LETTER_TYPES) {
         const option = document.createElement('option');
@@ -465,6 +481,7 @@ function populateCategorizedLetterTypes(): void {
 }
 
 async function loadCategorizedLetterPrompt() {
+    await ensureIncomingLetterPrompts();
     const type = categorizedLetterTypeSelect.value;
     if (!type) return;
     const config = await ipcRenderer.invoke('get-config');
