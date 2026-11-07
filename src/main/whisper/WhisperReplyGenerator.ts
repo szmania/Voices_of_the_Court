@@ -333,7 +333,10 @@ create_artifact = {
 if = {
 \tlimit = { exists = scope:votc_latest_whisper }
 \tscope:votc_latest_whisper = {
-\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\tset_variable = { 
+\t\t\tname = votc_letter_artifact 
+\t\t\tvalue = yes 
+\t\t}
 \t}
 \tset_global_variable = {
 \t\tname = votc_whisper_latest
@@ -347,9 +350,16 @@ trigger_event = votc_whisper.30`;
         // NEXT legacy request after the first consume.
         const guardedCommand = requestId > 0
             ? `if = {
-\tlimit = { NOT = { global_var:votc_whisper_consumed_id = ${requestId} } }
+\tlimit = { 
+\t\tNOT = { 
+\t\t\tglobal_var:votc_whisper_consumed_id = ${requestId} 
+\t\t} 
+\t}
 ${gameCommand.replace(/^/gm, '\t')}
-\tset_global_variable = { name = votc_whisper_consumed_id value = ${requestId} }
+\tset_global_variable = { 
+\t\tname = votc_whisper_consumed_id 
+\t\tvalue = ${requestId} 
+\t}
 }`
             : gameCommand;
 

@@ -979,6 +979,19 @@ function processLogLine(line: string) {
         console.log('Whisper section receipt received; clearing run/votc_ce_whisper.txt.');
         clearWhisperRunFile(config);
     }
+
+    // VOTC-195 re-fire guard (app half): unconditional execution receipt.
+    // votc_whisper.30 logs this as its FIRST line, before
+    // votc_whisper_take_section runs, so it fires even when the take-section
+    // guard bails (done-flag already set, or an empty artifact) and
+    // took_section never logs. Without this handler that dead-loop path leaves
+    // the stale reply script in run/votc_ce_whisper.txt and the ~2s runner
+    // re-executes it forever - re-creating the artifact and re-firing .30.
+    // Clearing here makes the channel self-healing on every execution path.
+    if (line.includes('VOTC:WHISPER/;/reply_executed')) {
+        console.log('Whisper reply_executed receipt received; clearing run/votc_ce_whisper.txt.');
+        clearWhisperRunFile(config);
+    }
 }
 
 async function initCurrentDateFromLog(): Promise<void> {
@@ -1176,6 +1189,46 @@ app.on('ready',  async () => {
         if (whisperFileNeedsSeed) {
             fs.writeFileSync(whisperFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
             console.log(`Initialized blank votc_ce_whisper.txt at: ${whisperFilePath}`);
+        }
+        // Create-if-missing + emptiness seed for the letter actions channel (VOTC-194 §42.3):
+        // the mod-side letters_runner executes `run votc_ce_letter_actions.txt` on a
+        // ~2s beat (via _show3) when votc_pending_letter_action is set, so a missing,
+        // empty, or BOM-only file spams CK3's debug.log with `console_failure:
+        // No such file in run/` or `console_failure: Effect is empty` on every beat.
+        // The blank heartbeat placeholder matches the heartbeat used for the
+        // votc_ce_letters.txt / votc_ce_whisper.txt channels; a file that
+        // already holds real content (a pending letter action) is left untouched
+        // so it survives an app restart.
+        const letterActionsFilePath = path.join(runFolderPath, 'votc_ce_letter_actions.txt');
+        let letterActionsFileNeedsSeed = !fs.existsSync(letterActionsFilePath);
+        if (!letterActionsFileNeedsSeed) {
+            // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+            letterActionsFileNeedsSeed = fs.statSync(letterActionsFilePath).size <= 3;
+        }
+        if (letterActionsFileNeedsSeed) {
+            fs.writeFileSync(letterActionsFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+            console.log(`Initialized blank votc_ce_letter_actions.txt at: ${letterActionsFilePath}`);
+        }
+        // Create-if-missing + emptiness seed for the 8 incoming-letter channels
+        // (VOTC-194 §37.2.5): the mod-side letters_runner states _show_incoming_1..8
+        // execute `run votc_ce_incomingletter_v2_N.txt` on a ~1-2s beat while
+        // votc_incoming_letter_N is set, so a missing, empty, or BOM-only file spams
+        // CK3's debug.log with `console_failure: No such file in run/` during the
+        // whole pre-write window (slot occupied, the app has not written the file
+        // yet). The blank heartbeat placeholder is byte-identical to the other
+        // channel seeds; a file that already holds real content (an in-flight
+        // delivery) is left untouched so it survives an app restart.
+        for (let slot = 1; slot <= 8; slot++) {
+            const incomingFilePath = path.join(runFolderPath, `votc_ce_incomingletter_v2_${slot}.txt`);
+            let incomingFileNeedsSeed = !fs.existsSync(incomingFilePath);
+            if (!incomingFileNeedsSeed) {
+                // 3 bytes = a bare UTF-8 BOM; anything at or below it is effectively empty.
+                incomingFileNeedsSeed = fs.statSync(incomingFilePath).size <= 3;
+            }
+            if (incomingFileNeedsSeed) {
+                fs.writeFileSync(incomingFilePath, '\uFEFF' + "debug_log = \"[Localize('talk_event.9999.desc')]\"", 'utf-8');
+                console.log(`Initialized blank votc_ce_incomingletter_v2_${slot}.txt at: ${incomingFilePath}`);
+            }
         }
     } else {
         console.warn('Cannot initialize run files: userFolderPath is not configured.');

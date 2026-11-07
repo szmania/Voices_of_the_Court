@@ -81,6 +81,16 @@ export interface TimelineContext {
      * writers to use this field instead of bare `playerId` for pathing.
      */
     identity?: CampaignPlayerIdentity;
+    /**
+     * §44 Change A: set when the snapshot carried a v2 protocol tail but its
+     * parse status was 'invalid'/'truncated' and the partial identity salvage
+     * failed. Read-only diagnostic for delivery/read paths (e.g. the letter
+     * fallback gate) so they can log WHY identity is unknown instead of
+     * silently treating the context as legacy-mod. Never set on write paths:
+     * TransitionJournalApi.beginTransition requires a complete identity and
+     * must keep failing closed on these contexts.
+     */
+    identityUnavailableReason?: string;
 }
 
 export type SourceKind = 'conversation' | 'letter_reply' | 'incoming_letter' | 'battle' | 'summary_manual';
@@ -1987,6 +1997,15 @@ export interface GameDataLike {
     votcTimelineParentB?: number;
     votcCheckpointToken?: number;
     votcPendingCheckpointToken?: number;
+    /**
+     * §44 Change A: raw campaign-id components from the init line. Populated
+     * by the log parser for every status, so a degraded (invalid/truncated)
+     * snapshot can still salvage a partial identity for read/delivery paths.
+     */
+    votcCampaignIdA?: number;
+    votcCampaignIdB?: number;
+    votcCampaignIdC?: number;
+    votcCampaignIdD?: number;
     timelineSnapshotResult?: TimelineParseResult;
 }
 
@@ -2005,6 +2024,41 @@ export function buildContextFromSnapshot(
         snapshot.checkpointToken,
         snapshot.pendingCheckpointToken
     );
+}
+
+/**
+ * §44 Change A helper: best-effort partial identity salvage from a snapshot
+ * whose parse status is 'invalid' or 'truncated'. The raw protocol-tail
+ * fields on GameData (votcCampaignIdA..D) are populated only for a 'valid'
+ * parse, so for the degraded statuses we re-read the raw init fields is not
+ * possible here — instead we accept the raw campaign-id components when the
+ * GameDataLike carries them (callers that re-parsed the log populate them),
+ * and otherwise report the parse reason. Returns undefined identity when no
+ * usable campaign id can be built; the caller then attaches only the
+ * diagnostic reason. The returned identity is complete enough for READ paths
+ * (campaignId + playerId) but is flagged partial by the caller via
+ * identityUnavailableReason so write paths can reject it.
+ */
+function salvagePartialIdentity(
+    gameData: GameDataLike,
+    status: 'invalid' | 'truncated'
+): { identity?: CampaignPlayerIdentity; reason: string } {
+    const reason = status === 'truncated'
+        ? `timeline snapshot truncated (${(gameData.timelineSnapshotResult as { expected?: number; actual?: number }).expected ?? '?'} expected fields)`
+        : `timeline snapshot invalid (${(gameData.timelineSnapshotResult as { reason?: string }).reason ?? 'unknown reason'})`;
+    const a = gameData.votcCampaignIdA;
+    const b = gameData.votcCampaignIdB;
+    const c = gameData.votcCampaignIdC;
+    const d = gameData.votcCampaignIdD;
+    if (typeof a === 'number' && typeof b === 'number' && typeof c === 'number' && typeof d === 'number') {
+        try {
+            const identity = buildIdentityFromParts({ a, b, c, d }, String(gameData.playerID));
+            return { identity, reason };
+        } catch {
+            // fall through to reason-only
+        }
+    }
+    return { reason };
 }
 
 export function buildContextFromGameData(gameData: GameDataLike): TimelineContext {
@@ -2032,8 +2086,24 @@ export function buildContextFromGameData(gameData: GameDataLike): TimelineContex
             }
             return ctx;
         }
-        console.warn(`[timelineManager] Timeline snapshot is ${parsed.status}; falling back to an epoch-only context.`);
-        return { playerId: String(gameData.playerID), checkpointEpoch: gameData.votcCheckpointEpoch };
+        // §44 Change A (root-cause fix): a snapshot whose status is 'invalid'
+        // or 'truncated' still carries whatever protocol-tail fields the mod
+        // emitted before the corruption point. Salvage a best-effort partial
+        // identity from those raw fields so read/delivery paths keep a usable
+        // campaignId instead of silently degrading to legacy-mod. The salvaged
+        // identity is marked partial via identityUnavailableReason and must
+        // NEVER reach TransitionJournalApi.beginTransition — write paths
+        // require a complete identity and keep failing closed on it.
+        const salvage = salvagePartialIdentity(gameData, parsed.status);
+        const fallbackContext: TimelineContext = { playerId: String(gameData.playerID), checkpointEpoch: gameData.votcCheckpointEpoch };
+        if (salvage.identity) {
+            fallbackContext.identity = salvage.identity;
+            fallbackContext.identityUnavailableReason = salvage.reason;
+            console.warn(`[timelineManager] Salvaged partial campaign identity ${salvage.identity.campaignId} from a ${parsed.status} snapshot (${salvage.reason}); node/token fields are unavailable.`);
+        } else {
+            fallbackContext.identityUnavailableReason = salvage.reason;
+        }
+        return fallbackContext;
     }
     const baseContext: TimelineContext = {
         playerId: String(gameData.playerID),

@@ -26,7 +26,7 @@ import {
 } from '../timelineManager.js';
 import { resolveSummaryTimelineContext } from './summaryTimelineContext.js';
 import { UnsupportedTimelineSchemaError } from '../../shared/gameData/timelineProtocol.js';
-import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
+import { requireCampaignIdentity, tryResolveCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import { parseLog } from '../../shared/gameData/parseLog.js';
 import { reportCampaignIdentityUnavailable, reportCorruptTimelineRegistry, reportTimelineParentNotFound, reportUnsupportedTimelineSchema } from '../timelineRegistryRecovery.js';
 import { runLetterReplyTimelineTransition } from '../timelineBusinessWire.js';
@@ -36,7 +36,7 @@ import {
     buildContextFromGameData,
     resolveTimelineContext
 } from '../timelineManager.js';
-import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
+import type { CampaignPlayerIdentity, CampaignIdParts } from '../../shared/gameData/CampaignIdentity.js';
 import type { Ck3GameDate } from '../../shared/gameData/gameDate.js';
 import { buildIncomingLetterHistoryRecord, buildLetterHistoryRecord } from './letterHistoryRecord.js';
 import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
@@ -144,6 +144,61 @@ export function writeLetterReplyFallbackRunFile(
     );
     console.warn(`[LetterReply] Fallback run file written for ${slotId}/${deliveryId}${timeline ? ' with timeline transition.' : ' without timeline transition.'}`);
     return true;
+}
+
+/**
+ * §44 Change B/C: extract the raw campaign-id components from a GameData so a
+ * degraded (invalid/truncated) snapshot can still salvage a partial identity.
+ * Returns undefined when any component is missing or not a positive integer.
+ */
+function campaignIdPartsFromGameData(gameData: GameData): CampaignIdParts | undefined {
+    const a = gameData.votcCampaignIdA;
+    const b = gameData.votcCampaignIdB;
+    const c = gameData.votcCampaignIdC;
+    const d = gameData.votcCampaignIdD;
+    if (typeof a !== 'number' || typeof b !== 'number' || typeof c !== 'number' || typeof d !== 'number') {
+        return undefined;
+    }
+    return { a, b, c, d };
+}
+
+/**
+ * §44 Change F: player id of the newest `VOTC:IN/;/init/` line in the log, read
+ * from the tail so a large debug.log is never loaded in full. Returns undefined
+ * when no init line is present. Used to recover a stale current-player id when
+ * the freshly parsed player disagrees with the reply's recipient.
+ */
+function readNewestInitPlayerId(logPath: string): string | undefined {
+    const INIT_MARKER = 'VOTC:IN/;/init/;/';
+    const CHUNK = 512 * 1024;
+    const OVERLAP = 1024;
+    try {
+        if (!fs.existsSync(logPath)) return undefined;
+        const size = fs.statSync(logPath).size;
+        const fd = fs.openSync(logPath, 'r');
+        try {
+            let end = size;
+            while (end > 0) {
+                const start = Math.max(0, end - CHUNK);
+                const readEnd = Math.min(size, end + OVERLAP);
+                const buffer = Buffer.alloc(readEnd - start);
+                fs.readSync(fd, buffer, 0, buffer.length, start);
+                const text = buffer.toString('utf8');
+                const own = text.slice(0, end - start);
+                const idx = own.lastIndexOf(INIT_MARKER);
+                if (idx >= 0) {
+                    const playerId = text.slice(idx + INIT_MARKER.length).split('/;/')[0].trim();
+                    return playerId || undefined;
+                }
+                end = start;
+            }
+        } finally {
+            fs.closeSync(fd);
+        }
+    } catch (error) {
+        console.warn(`[LetterReply] Could not read the newest init player id from ${logPath}: ${error}`);
+    }
+    return undefined;
 }
 
 export class LetterReplyGenerator {
@@ -1054,7 +1109,16 @@ export class LetterReplyGenerator {
         if (!snapshot) return;
         const letterNumber = snapshot.slotId.match(/^letter_([1-9])$/)?.[1];
         if (!letterNumber) return;
-        const gate = await this.fallbackDeliveryGate(snapshot, timeline, transitionIdentity, gameData);
+        let gate = await this.fallbackDeliveryGate(snapshot, timeline, transitionIdentity, gameData);
+        // §44 Change D: an unknown-campaign verdict is often a timing window —
+        // the mod writes its next init/checkpoint line moments later. Retry ONCE
+        // after a short delay before giving up. Real mismatches
+        // (campaign_mismatch / player_mismatch) are NOT retried.
+        if (!gate.passed && (gate.unknownCampaignReason === 'current_campaign_unknown' || gate.unknownCampaignReason === 'reply_campaign_unknown')) {
+            console.log(`[LetterReply] Fallback for ${snapshot.slotId} hit ${gate.unknownCampaignReason}; retrying once after 3s in case the mod's next init/checkpoint line establishes the campaign.`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            gate = await this.fallbackDeliveryGate(snapshot, timeline, transitionIdentity, gameData);
+        }
         if (!gate.passed) {
             return;
         }
@@ -1091,7 +1155,7 @@ export class LetterReplyGenerator {
         timeline: CreateChildNodeResult | undefined,
         transitionIdentity: CampaignPlayerIdentity | undefined,
         gameData: GameData
-    ): Promise<{ passed: boolean; timeline: CreateChildNodeResult | undefined }> {
+    ): Promise<{ passed: boolean; timeline: CreateChildNodeResult | undefined; unknownCampaignReason?: 'current_campaign_unknown' | 'reply_campaign_unknown' }> {
         const identity = transitionIdentity ?? timeline?.context?.identity;
         // Legacy mod (no timeline identity): no campaign concept exists, so
         // the pre-gate behaviour is kept. The danger scenario requires the v2
@@ -1105,6 +1169,9 @@ export class LetterReplyGenerator {
         let currentCampaignId: string | undefined;
         let currentPlayerId: string | undefined;
         let currentNodeId: string | undefined;
+        // §44 Change A/C: when identity cannot be established, remember WHY so
+        // the fail-closed log below can name the specific reason.
+        let identityUnavailableReason: string | undefined;
 
         if (evidence.source === 'load' || evidence.source === 'observed' || evidence.source === 'checkpoint') {
             currentCampaignId = evidence.campaignId;
@@ -1118,17 +1185,17 @@ export class LetterReplyGenerator {
             // gameData; a parse failure leaves the fields undefined and the
             // gate below refuses (fail closed).
             const freshGameData = await parseLog(logPath);
+            // §44 Change C: third identity source. requireCampaignIdentity fails
+            // closed on a degraded snapshot; tryResolveCampaignIdentity additionally
+            // salvages a partial identity from the raw campaign-id components
+            // (Change B), so a reply generated before a snapshot corruption can
+            // still be re-anchored to the live campaign when possible.
             const freshIdentity = freshGameData
-                ? (() => {
-                    try {
-                        return requireCampaignIdentity({
-                            playerID: freshGameData.playerID,
-                            timelineSnapshotResult: freshGameData.timelineSnapshotResult
-                        });
-                    } catch {
-                        return undefined;
-                    }
-                })()
+                ? tryResolveCampaignIdentity({
+                    playerID: freshGameData.playerID,
+                    timelineSnapshotResult: freshGameData.timelineSnapshotResult,
+                    campaignIdParts: campaignIdPartsFromGameData(freshGameData)
+                })
                 : undefined;
             currentCampaignId = currentCampaignId ?? freshIdentity?.campaignId;
             currentPlayerId = currentPlayerId ?? (freshGameData ? String(freshGameData.playerID) : undefined);
@@ -1137,11 +1204,32 @@ export class LetterReplyGenerator {
                     ? `${freshGameData!.votcTimelineNodeA}-${freshGameData!.votcTimelineNodeB}`
                     : undefined)
                 : currentNodeId);
+            // §44 Change A/C: capture the diagnostic reason from the context
+            // builder so the fail-closed path can log WHY identity is unknown.
+            if (!currentCampaignId && freshGameData) {
+                identityUnavailableReason = buildContextFromGameData(freshGameData).identityUnavailableReason;
+            }
         }
 
         if (!currentCampaignId || !currentPlayerId) {
-            console.warn(`[LetterReply] Fallback for ${snapshot.slotId} skipped: the current game context could not be verified. The reply thread stays pending in its own campaign instead of clearing a foreign letter slot.`);
-            return {passed: false, timeline};
+            // §44 Change C: log the specific identityUnavailableReason (Change A)
+            // when both the reply identity and the current campaign are unknown.
+            const reasonDetail = (!identity && identityUnavailableReason)
+                ? ` Identity unavailable: ${identityUnavailableReason}.`
+                : '';
+            console.warn(`[LetterReply] Fallback for ${snapshot.slotId} skipped: the current game context could not be verified.${reasonDetail} The reply thread stays pending in its own campaign instead of clearing a foreign letter slot.`);
+            return {passed: false, timeline, unknownCampaignReason: !currentCampaignId ? 'current_campaign_unknown' : undefined};
+        }
+        // §44 Change F: when the freshly parsed player disagrees with the reply's
+        // recipient, check whether a NEWER init line in the log shows the reply's
+        // player — the parsed gameData may be a stale block. If so, use that as
+        // the current player rather than deferring on a stale id.
+        if (currentPlayerId !== identity.playerId) {
+            const newestInitPlayerId = readNewestInitPlayerId(logPath);
+            if (newestInitPlayerId === identity.playerId) {
+                console.log(`[LetterReply] Fallback for ${snapshot.slotId}: newest init line shows player ${newestInitPlayerId}, matching the reply's recipient; using it as the current player instead of the stale ${currentPlayerId}.`);
+                currentPlayerId = newestInitPlayerId;
+            }
         }
         const verdict = evaluateReplyDeliveryGate(
             {recipientId: identity.playerId, campaignId: identity.campaignId},
@@ -1150,8 +1238,19 @@ export class LetterReplyGenerator {
             {allowUnstampedLegacyReplies: true}
         );
         if (!verdict.deliverable) {
-            console.warn(`[LetterReply] Fallback for ${snapshot.slotId} skipped (${verdict.reason}): it belongs to campaign ${identity.campaignId}/player ${identity.playerId}, but the loaded game is ${currentCampaignId}/player ${currentPlayerId}. Not clearing the foreign letter slot.`);
-            return {passed: false, timeline};
+            // §44 Change E: surface the diagnostics so a player_mismatch log line
+            // shows which side was unknown / which player id was used.
+            const diag = verdict.diagnostics
+                ? ` [replyCampaignIdPresent=${verdict.diagnostics.replyCampaignIdPresent}, currentCampaignIdPresent=${verdict.diagnostics.currentCampaignIdPresent}, currentPlayerId=${verdict.diagnostics.currentPlayerId}]`
+                : '';
+            console.warn(`[LetterReply] Fallback for ${snapshot.slotId} skipped (${verdict.reason}): it belongs to campaign ${identity.campaignId}/player ${identity.playerId}, but the loaded game is ${currentCampaignId}/player ${currentPlayerId}.${diag} Not clearing the foreign letter slot.`);
+            return {
+                passed: false,
+                timeline,
+                unknownCampaignReason: verdict.reason === 'current_campaign_unknown' || verdict.reason === 'reply_campaign_unknown'
+                    ? verdict.reason
+                    : undefined
+            };
         }
 
         let effectiveTimeline = timeline;

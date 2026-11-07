@@ -1360,13 +1360,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const refreshLetters = async (isAuto = false) => {
         if (!isAuto) { // Manual refresh resets the timer
             clearInterval(refreshInterval);
-            countdown = 20;
+            countdown = 10;
             startInterval();
         }
 
         refreshBtn.classList.add('refreshing');
         // Manual refresh only: block double-clicks while the refresh is running.
-        // The auto path never disables the button (it fires from the 20s timer).
+        // The auto path never disables the button (it fires from the 10s timer).
         if (!isAuto) {
             refreshBtn.disabled = true;
         }
@@ -1420,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Manual refresh button (was never wired up — the button only appeared to
-    // work when a click coincided with the 20s auto-refresh timer, which spins
+    // work when a click coincided with the 10s auto-refresh timer, which spins
     // the same button). Mirrors diariesRenderer/summarizationRenderer.
     refreshBtn.addEventListener('click', () => {
         refreshLetters(false);
@@ -1436,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 refreshCountdownEl.textContent = refreshText;
             }
             if (countdown <= 0) {
-                countdown = 20;
+                countdown = 10;
                 refreshLetters(true);
             }
         }, 1000);

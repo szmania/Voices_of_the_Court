@@ -20,8 +20,8 @@ const legacyMemoryStatus = document.getElementById('legacy-memory-status') as HT
 const LAST_FILTER_KEY = 'mc-lastFilter';
 
 // Periodic auto-refresh: reload the Memory Constellation and the Total Memories
-// count every 20s so memories written in the background appear without user action.
-const AUTO_REFRESH_MS = 20_000;
+// count every 10s so memories written in the background appear without user action.
+const AUTO_REFRESH_MS = 10_000;
 let autoRefreshIntervalId: number | undefined;
 
 function readPersisted(): { playerId?: string; characterId?: string } {
@@ -47,7 +47,7 @@ init();
 async function updateMemoryCount() {
     const memoryCountDisplay = document.getElementById('memory-count-display');
     if (!memoryCountDisplay) return;
-    
+
     // Default fallback UI if no player/data
     if (!selectedPlayerId) {
         memoryCountDisplay.textContent = '';
@@ -73,11 +73,11 @@ async function updateMemoryCount() {
                 count = memResponse.memories.length;
             }
         }
-        
+
         let countText = '';
         // @ts-ignore
         const t = (key: string, def: string) => window.LocalizationManager?.getTranslation(key, def) || def;
-        
+
         countText = t('memory_constellation.total_memories', 'Player Character Total Memories: {count}').replace('{count}', String(count));
         memoryCountDisplay.textContent = countText;
     } catch (err) {
@@ -212,7 +212,7 @@ async function init() {
                 showStatusMessage(window.LocalizationManager?.getTranslation('summary_manager.no_player_selected', 'Please select a player ID first.'), 'error');
                 return;
             }
-            
+
             // @ts-ignore
             showStatusMessage(window.LocalizationManager?.getTranslation('memory_constellation.importing_legacy', 'Importing legacy memories. Please wait...'), 'info');
             try {

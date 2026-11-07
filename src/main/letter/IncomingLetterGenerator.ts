@@ -1097,14 +1097,25 @@ ${timelineSetBlock}\tcreate_artifact = {
 \tif = {
 \t\tlimit = { exists = scope:votc_latest_letter }
 \t\tscope:votc_latest_letter = {
-\t\t\tset_variable = { name = votc_letter_artifact value = yes }
+\t\t\tset_variable = { 
+\t\t\t\tname = votc_letter_artifact 
+\t\t\t\tvalue = yes 
+\t\t\t}
 \t\t}
 \t\tset_global_variable = {
 \t\t\tname = votc_latest_letter
 \t\t\tvalue = scope:votc_latest_letter
 \t\t}
 \t}
-\tif = { limit = { exists = global_var:votc_incoming_letter_sender_${slotNumber} } set_global_variable = { name = message_second_scope value = global_var:votc_incoming_letter_sender_${slotNumber} } }
+\tif = { 
+\t\tlimit = { 
+\t\t\texists = global_var:votc_incoming_letter_sender_${slotNumber} 
+\t\t} 
+\t\tset_global_variable = { 
+\t\t\tname = message_second_scope 
+\t\t\tvalue = global_var:votc_incoming_letter_sender_${slotNumber} 
+\t\t} 
+\t}
 \ttrigger_event = message_event.362
 \tremove_global_variable ?= votc_incoming_letter_${slotNumber}
 \tremove_global_variable ?= votc_incoming_letter_sender_${slotNumber}
