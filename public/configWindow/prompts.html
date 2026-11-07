@@ -186,6 +186,28 @@
                         <config-textarea confID="incomingLetterPrompt" rows="6"></config-textarea>
                     </div>
 
+                    <div class="input-group" id="categorized-letter-group">
+                        <div class="prompt-header">
+                            <div>
+                                <label data-i18n="prompts.categorized_incoming_letter_prompt">Categorized Incoming Letter Prompt</label>
+                                <tooltip-text side="top" data-i18n="prompts.categorized_letter_tooltip">Customize the prompt used for each specific incoming letter type. Overrides the general Incoming Letter Prompt.</tooltip-text>
+                            </div>
+                            <span class="token-count" id="categorizedLetterPrompt-token-count"></span>
+                        </div>
+                        <div class="input-group">
+                            <label for="categorized-letter-type-select" data-i18n="prompts.categorized_letter_type">Letter Type:</label>
+                            <tooltip-text side="top" data-i18n="prompts.categorized_letter_type_tooltip">Select the letter type to edit its prompt.</tooltip-text>
+                            <select id="categorized-letter-type-select" style="max-width: 250px;"></select>
+                        </div>
+                        <config-textarea id="categorized-letter-textarea" rows="6"></config-textarea>
+                        <div class="input-group">
+                            <button type="button" id="save-categorized-letter-btn" data-i18n="prompts.categorized_letter_save">Save</button>
+                            <tooltip-text side="top" data-i18n="prompts.categorized_letter_save_tooltip"></tooltip-text>
+                            <button type="button" id="reset-categorized-letter-btn" class="btn-warning" data-i18n="prompts.categorized_letter_reset">Reset to Default</button>
+                            <tooltip-text side="top" data-i18n="prompts.categorized_letter_reset_tooltip"></tooltip-text>
+                        </div>
+                    </div>
+
                     <div class="input-group">
                         <div class="prompt-header">
                             <div>

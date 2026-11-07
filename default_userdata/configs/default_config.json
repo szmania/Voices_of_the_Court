@@ -3,6 +3,7 @@
   "language": "en",
   "activePromptPreset": "Default",
   "activeModPreset": "Default",
+  "categorizedIncomingLetterPrompts": {},
   "disabledMegamodNotifications": [],
   "stream": false,
   "maxTokens": 5000,

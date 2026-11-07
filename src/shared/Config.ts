@@ -48,6 +48,12 @@ export class Config{
     /** When true, the Quick Model shares the text-generation connection (mirrors actionsUseTextGenApi). */
     quickModelUseTextGenApi: boolean = true;
 
+    // Per-letter-type prompt overrides for incoming letters, keyed by
+    // IncomingLetterType. Optional so pre-existing configs keep loading; the
+    // generator falls back to the general incomingLetterPrompt and then to the
+    // per-locale default when a type has no override.
+    categorizedIncomingLetterPrompts?: Record<string, string>;
+
     summarizationUseTextGenApi!: boolean;
     actionsUseTextGenApi!: boolean;
 

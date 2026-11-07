@@ -38,10 +38,10 @@
       <h2 data-i18n="settings.quick_model_connection" style="margin-top: 30px;">Quick Model Connection</h2>
       <p data-i18n="settings.quick_model_connection_desc" style="color: #a0a0a0; font-size: 0.9em; margin-bottom: 15px;">Optional low-latency LLM for quick decisions (character targeting, etc.). Uses the text generation connection by default.</p>
 
+      <config-checkbox confID="quickModelUseTextGenApi" data-i18n="settings.quick_model_use_text_gen"></config-checkbox> <tooltip-text side="top" data-i18n="settings.quick_model_use_text_gen_tooltip"></tooltip-text>
+
       <div class="border quick-model-box" id="quick-model-box">
         <config-api-selector confID="quickModelApiConnectionConfig"></config-api-selector>
-
-        <config-checkbox confID="quickModelUseTextGenApi" data-i18n="settings.quick_model_use_text_gen"></config-checkbox> <tooltip-text side="top" data-i18n="settings.quick_model_use_text_gen_tooltip"></tooltip-text>
 
         <config-checkbox confID="enableQuickModelTargeting" data-i18n="settings.enable_quick_model_targeting"></config-checkbox> <tooltip-text side="top" data-i18n="settings.enable_quick_model_targeting_tooltip"></tooltip-text>
       </div>

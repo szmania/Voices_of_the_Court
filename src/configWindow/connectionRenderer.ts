@@ -70,6 +70,22 @@ async function init(){
 
     console.log(config)
 
+    // Quick Model box: disable the API selector + parameters when the
+    // Quick Model shares the text generation connection.
+    //@ts-ignore
+    const quickModelUseTextGen: HTMLElement = document.querySelector('config-checkbox[confID="quickModelUseTextGenApi"]')!;
+    const quickModelBox: HTMLElement = document.getElementById('quick-model-box')!;
+    //@ts-ignore
+    const toggleQuickModelBox = () => {
+        //@ts-ignore
+        const useTextGen = quickModelUseTextGen.checkbox.checked;
+        quickModelBox.style.opacity = useTextGen ? "0.5" : "1";
+        quickModelBox.style.pointerEvents = useTextGen ? "none" : "auto";
+    };
+    //@ts-ignore
+    quickModelUseTextGen.checkbox.addEventListener('change', toggleQuickModelBox);
+    toggleQuickModelBox();
+
 
 }
 
@@ -91,7 +107,6 @@ function addExternalLinks() {
         navbarUl.prepend(socialLinksLi);
     }
 }
-
 
 
 

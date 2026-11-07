@@ -33,7 +33,27 @@ let charDescTextarea: HTMLTextAreaElement = document.querySelector("#char-desc-t
 let saveCharDescBtn: HTMLButtonElement = document.querySelector("#save-char-desc-btn")!;
 let charDescTokenCount: HTMLSpanElement = document.querySelector("#char-desc-token-count")!;
 
+// Categorized Incoming Letter Prompt elements
+let categorizedLetterTypeSelect: HTMLSelectElement = document.querySelector("#categorized-letter-type-select")!;
+let categorizedLetterTextarea: any = document.querySelector("#categorized-letter-textarea")!;
+let saveCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#save-categorized-letter-btn")!;
+let resetCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#reset-categorized-letter-btn")!;
+let categorizedLetterTokenCount: HTMLSpanElement = document.querySelector("#categorizedLetterPrompt-token-count")!;
+
+// All incoming letter types, matching IncomingLetterGenerator.ts VALID_TYPES.
+const LETTER_TYPES = [
+    'vassal_memorial', 'siege_report', 'lost_holding', 'family_letter', 'poetry_letter',
+    'courtier_petition', 'rival_taunt', 'dear_friend_greeting', 'letter_to_travelling_player',
+    'ally_call_for_aid', 'revolt_urgent', 'deathbed_letter', 'pilgrimage_tales',
+    'tour_tales', 'wedding_tales', 'hunt_tales', 'tournament_tales', 'travel_tales',
+    'faction_warning', 'scheme_exposed', 'natural_disaster', 'tributary_letter',
+    'liege_overlord_letter', 'great_work_notice', 'great_project_report'
+] as const;
+
 let statusMessage: HTMLDivElement;
+
+// Per-type prompt overrides read from config.categorizedIncomingLetterPrompts.
+let categorizedLetterPrompts: Record<string, string> = {};
 
 const conversationPromptKeys = [
     "mainPrompt", "selfTalkPrompt", "summarizePrompt", "selfTalkSummarizePrompt",
@@ -169,6 +189,11 @@ ipcRenderer.on('update-language', async (event, lang) => {
 
     // Re-apply the currently selected preset logic, which will use the new `defaultPrompts`
     await handlePresetChange();
+
+    // Refresh the categorized letter dropdown labels and the current type's
+    // default prompt for the new language.
+    populateCategorizedLetterTypes();
+    await loadCategorizedLetterPrompt();
 });
 
 async function init(){
@@ -274,6 +299,14 @@ async function init(){
         saveCharDescBtn.addEventListener('click', saveCharDesc);
         charDescTextarea.addEventListener('input', updateCharDescTokenCount);
         await populateCharDescCharacters();
+
+        // Categorized Incoming Letter Prompt events
+        categorizedLetterTypeSelect.addEventListener('change', loadCategorizedLetterPrompt);
+        saveCategorizedLetterBtn.addEventListener('click', saveCategorizedLetterPrompt);
+        resetCategorizedLetterBtn.addEventListener('click', resetCategorizedLetterPrompt);
+        categorizedLetterTextarea.textarea.addEventListener('input', updateCategorizedLetterTokenCount);
+        await populateCategorizedLetterTypes();
+        await loadCategorizedLetterPrompt();
 
         descScriptSelect.addEventListener('change', () =>{
             ipcRenderer.send('config-change', "selectedDescScript", descScriptSelect.value);
@@ -405,7 +438,77 @@ async function updateCharDescTokenCount() {
     }
 }
 
-//functions
+// Categorized Incoming Letter Prompt functions
+
+function getCategorizedLetterTypeLabel(type: string): string {
+    // @ts-ignore
+    const label = window.LocalizationManager?.getNestedTranslation(`incomingLetters.types.${type}`, null, '');
+    return label || type;
+}
+
+// The default shown when a type has no user override: the per-locale default
+// prompt from the incomingLetters locale namespace (same default the generator
+// falls back to).
+function getCategorizedDefaultPrompt(): string {
+    // @ts-ignore
+    return window.LocalizationManager?.getNestedTranslation('incomingLetters.default_prompt', null, '') || '';
+}
+
+function populateCategorizedLetterTypes(): void {
+    categorizedLetterTypeSelect.innerHTML = '';
+    for (const type of LETTER_TYPES) {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = getCategorizedLetterTypeLabel(type);
+        categorizedLetterTypeSelect.appendChild(option);
+    }
+}
+
+async function loadCategorizedLetterPrompt() {
+    const type = categorizedLetterTypeSelect.value;
+    if (!type) return;
+    const config = await ipcRenderer.invoke('get-config');
+    categorizedLetterPrompts = config.categorizedIncomingLetterPrompts || {};
+    categorizedLetterTextarea.textarea.value = categorizedLetterPrompts[type] ?? getCategorizedDefaultPrompt();
+    updateCategorizedLetterTokenCount();
+}
+
+async function saveCategorizedLetterPrompt() {
+    const type = categorizedLetterTypeSelect.value;
+    if (!type) return;
+    categorizedLetterPrompts[type] = categorizedLetterTextarea.textarea.value;
+    ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
+    // @ts-ignore
+    showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.categorized_letter_saved', null, 'Categorized prompt saved.'), 'success');
+}
+
+async function resetCategorizedLetterPrompt() {
+    const type = categorizedLetterTypeSelect.value;
+    if (!type) return;
+    delete categorizedLetterPrompts[type];
+    ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
+    categorizedLetterTextarea.textarea.value = getCategorizedDefaultPrompt();
+    updateCategorizedLetterTokenCount();
+    // @ts-ignore
+    showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.categorized_letter_reset_success', null, 'Categorized prompt reset to default.'), 'success');
+}
+
+async function updateCategorizedLetterTokenCount() {
+    if (!categorizedLetterTokenCount) return;
+    const text = categorizedLetterTextarea.textarea.value;
+    try {
+        const count = await ipcRenderer.invoke('calculate-tokens', text);
+        // @ts-ignore
+        const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+        categorizedLetterTokenCount.textContent = `${tokensLabel} ${count}`;
+    } catch (error) {
+        console.error('Failed to calculate tokens for categorized letter prompt:', error);
+        // @ts-ignore
+        const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+        categorizedLetterTokenCount.textContent = `${tokensLabel} Error`;
+    }
+}
+
 
 function togglePrompt(checkbox: HTMLInputElement, textarea: HTMLTextAreaElement){
     
