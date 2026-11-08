@@ -1198,7 +1198,6 @@
     "section_court": "Your Court",
     "section_circle": "Inner Circle",
     "search_placeholder": "Search whispers...",
-    "tooltip_search": "Search whispers by section, characters, or content."
     "delete_success": "Whisper deleted"
   },
   "incomingLetters": {
