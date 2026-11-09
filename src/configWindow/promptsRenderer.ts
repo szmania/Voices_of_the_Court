@@ -39,6 +39,36 @@ let categorizedLetterTextarea: any = document.querySelector("#categorized-letter
 let saveCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#save-categorized-letter-btn")!;
 let resetCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#reset-categorized-letter-btn")!;
 let categorizedLetterTokenCount: HTMLSpanElement = document.querySelector("#categorizedLetterPrompt-token-count")!;
+let categorizedLetterPlaceholderList: HTMLSpanElement = document.querySelector("#categorized-letter-placeholder-list")!;
+
+// Placeholders every incoming-letter prompt can use (substituted in
+// IncomingLetterGenerator.buildMessages before the LLM call).
+const SHARED_LETTER_PLACEHOLDERS = ['{{senderName}}', '{{playerName}}', '{{letterLanguage}}'];
+
+// Extract {{placeholder}} tokens from a template string, in order of appearance.
+function extractPlaceholders(template: string): string[] {
+    const found = new Set<string>();
+    const re = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(template)) !== null) found.add(`{{${m[1]}}}`);
+    return [...found];
+}
+
+// Valid placeholders for a letter type: the type's reasonTemplate tokens plus
+// the shared prompt placeholders.
+function getValidPlaceholdersForType(type: string): string[] {
+    const reason = incomingLetterPrompts?.reasonTemplates?.[type] || '';
+    const typeSpecific = extractPlaceholders(reason);
+    return [...new Set([...SHARED_LETTER_PLACEHOLDERS, ...typeSpecific])];
+}
+
+// Render the valid-placeholder hint for the currently selected letter type.
+function updateCategorizedLetterPlaceholders(): void {
+    if (!categorizedLetterPlaceholderList) return;
+    const type = categorizedLetterTypeSelect.value;
+    const placeholders = type ? getValidPlaceholdersForType(type) : SHARED_LETTER_PLACEHOLDERS;
+    categorizedLetterPlaceholderList.textContent = placeholders.join('  ');
+}
 
 // All incoming letter types, matching IncomingLetterGenerator.ts VALID_TYPES.
 const LETTER_TYPES = [
@@ -466,7 +496,10 @@ function getCategorizedLetterTypeLabel(type: string): string {
 // defaultPrompt from configs/prompts/incoming_letters/<locale>.json (same
 // default the generator falls back to via resolveInstructionPrompt).
 function getCategorizedDefaultPrompt(): string {
-    return incomingLetterPrompts?.defaultPrompt || '';
+    // Per-type default (9.7.8) when the locale file provides one, else the
+    // shared per-locale defaultPrompt — matches resolveInstructionPrompt.
+    const type = categorizedLetterTypeSelect.value;
+    return (type && incomingLetterPrompts?.defaultPrompts?.[type]) || incomingLetterPrompts?.defaultPrompt || '';
 }
 
 async function populateCategorizedLetterTypes(): Promise<void> {
@@ -483,20 +516,31 @@ async function populateCategorizedLetterTypes(): Promise<void> {
 async function loadCategorizedLetterPrompt() {
     await ensureIncomingLetterPrompts();
     const type = categorizedLetterTypeSelect.value;
-    if (!type) return;
-    const config = await ipcRenderer.invoke('get-config');
-    categorizedLetterPrompts = config.categorizedIncomingLetterPrompts || {};
     categorizedLetterTextarea.textarea.value = categorizedLetterPrompts[type] ?? getCategorizedDefaultPrompt();
     updateCategorizedLetterTokenCount();
+    updateCategorizedLetterPlaceholders();
+    categorizedLetterTextarea.textarea.value = categorizedLetterPrompts[type] ?? getCategorizedDefaultPrompt();
+    updateCategorizedLetterTokenCount();
+    updateCategorizedLetterPlaceholders();
 }
-
 async function saveCategorizedLetterPrompt() {
     const type = categorizedLetterTypeSelect.value;
     if (!type) return;
+    // 9.7.9: warn about placeholders the generator will not substitute for this
+    // type, but allow saving on confirm (custom prompts may use them elsewhere).
+    const valid = new Set(getValidPlaceholdersForType(type));
+    const used = extractPlaceholders(categorizedLetterTextarea.textarea.value)
+        .filter(p => !valid.has(p));
+    if (used.length > 0) {
+        // @ts-ignore
+        const msg = (window.LocalizationManager.getNestedTranslation(
+            'prompts.categorized_letter_invalid_placeholders',
+            null,
+            `Unknown placeholders for this letter type will be left unsubstituted: ${used.join(', ')}. Save anyway?`
+        ) as string).replace('{placeholders}', used.join(', '));
+        if (!window.confirm(msg)) return;
+    }
     categorizedLetterPrompts[type] = categorizedLetterTextarea.textarea.value;
-    ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
-    // @ts-ignore
-    showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.categorized_letter_saved', null, 'Categorized prompt saved.'), 'success');
 }
 
 async function resetCategorizedLetterPrompt() {

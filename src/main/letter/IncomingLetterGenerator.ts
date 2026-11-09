@@ -708,7 +708,7 @@ export class IncomingLetterGenerator {
         } catch (error) {
             console.warn(`[IncomingLetterGenerator] Failed to resolve effective prompts: ${error}`);
         }
-        // Resolution chain: per-type user override -> effectivePrompts.incomingLetterPrompt -> per-locale default.
+        // Resolution chain (9.7.8): per-type user override -> effectivePrompts.incomingLetterPrompt -> per-type locale default -> shared per-locale default.
         const instructionPrompt = substitute(
             resolveInstructionPrompt(prompts, context.type, this.config.categorizedIncomingLetterPrompts, configuredInstruction),
             { senderName: sender.fullName, playerName: player.fullName, letterLanguage }

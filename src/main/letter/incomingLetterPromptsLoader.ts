@@ -24,6 +24,11 @@ export interface IncomingLetterPromptData {
     deceasedCategoryLabels: Record<string, string>;
     misc: Record<string, string>; // fallback strings (enemyFallback, someone, ...)
     poetryCategoryInstruction: string;
+    // Per-type default instruction prompts (9.7.8). Each IncomingLetterType maps to
+    // its own default template so a type's unique placeholders are documented in
+    // the default text itself. Optional: locale files authored before this key
+    // still load, and resolveInstructionPrompt falls back to defaultPrompt.
+    defaultPrompts?: Record<string, string>;
     defaultPrompt: string;
     stablePolicy: string;
     summaryHeader: string;
@@ -48,6 +53,10 @@ const REQUIRED_STRING_KEYS = [
     "factLineTemplate"
 ] as const;
 
+
+// Optional maps: validated only when present, so locale files authored before
+// the key was introduced keep loading (and resolve* falls back gracefully).
+const OPTIONAL_MAP_KEYS = ["defaultPrompts"] as const;
 // All 25 IncomingLetterType values; a locale file must cover every one.
 const REQUIRED_TYPES = [
     'vassal_memorial', 'siege_report', 'lost_holding', 'family_letter', 'poetry_letter',
@@ -74,12 +83,12 @@ function validate(data: any, sourcePath: string): IncomingLetterPromptData {
             throw new Error(`Incoming letter prompts at ${sourcePath} are missing string "${key}"`);
         }
     }
-    for (const t of REQUIRED_TYPES) {
-        if (typeof data.types[t] !== 'string') {
-            throw new Error(`Incoming letter prompts at ${sourcePath} are missing type "${t}"`);
-        }
-        if (typeof data.reasonTemplates[t] !== 'string') {
-            throw new Error(`Incoming letter prompts at ${sourcePath} are missing reasonTemplate "${t}"`);
+    // Optional maps: validated only when present, so locale files authored
+    // before per-type defaults existed still load and resolve* falls back to
+    // the shared defaultPrompt.
+    for (const key of OPTIONAL_MAP_KEYS) {
+        if (data[key] !== undefined && (typeof data[key] !== 'object' || Array.isArray(data[key]))) {
+            throw new Error(`Incoming letter prompts at ${sourcePath} have invalid map "${key}"`);
         }
     }
     return data as IncomingLetterPromptData;
@@ -128,9 +137,9 @@ export function substitute(template: string, vars: Record<string, string>): stri
         Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : match
     );
 }
-
-// Resolve the instruction prompt for a letter type:
-// per-type user override -> effectivePrompts.incomingLetterPrompt -> per-locale defaultPrompt.
+// Resolve the instruction prompt for a letter type (9.7.8 precedence chain):
+// per-type user override -> effectivePrompts.incomingLetterPrompt ->
+// per-type default (defaultPrompts[type]) -> shared per-locale defaultPrompt.
 export function resolveInstructionPrompt(
     data: IncomingLetterPromptData,
     type: string,
@@ -139,6 +148,7 @@ export function resolveInstructionPrompt(
 ): string {
     return categorizedOverrides?.[type]
         || effectiveIncomingLetterPrompt
+        || data.defaultPrompts?.[type]
         || data.defaultPrompt;
 }
 
