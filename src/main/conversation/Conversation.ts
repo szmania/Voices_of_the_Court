@@ -1250,9 +1250,6 @@ export class Conversation{
         const NAME_TOKEN_WEIGHT = 2.0;
         const RELATIONSHIP_TOKEN_WEIGHT = 1.5;
         const TITLE_TOKEN_WEIGHT = 0.5;
-        // At or above this confidence a single match is precise enough to stand
-        // alone, so the 0.05 tie-band below is skipped for it.
-        const HIGH_CONFIDENCE_EXACT_MATCH = 0.9;
         // Stopwords are now loaded from localization files (system.targeting_stopwords).
         // This allows per-language tuning and avoids hardcoded English-only lists.
         const STOPWORDS = new Set([
@@ -1351,15 +1348,6 @@ export class Conversation{
         if (potentialTargets.size > 0) {
             const sortedTargets = [...potentialTargets.entries()].sort((a, b) => b[1] - a[1]);
             const topConfidence = sortedTargets[0][1];
-
-            // A very high-confidence match is precise on its own: return only the
-            // single best character and skip the tie-band, which would otherwise
-            // let a near-tied sibling (e.g. one sharing a title) join the reply.
-            if (topConfidence >= HIGH_CONFIDENCE_EXACT_MATCH) {
-                const [bestCharacter] = sortedTargets[0];
-                console.log(`\nHigh-confidence match (${topConfidence.toFixed(2)}) for ${bestCharacter.shortName}; returning it as the sole target.`);
-                return [bestCharacter];
-            }
 
             // Return all targets with a confidence score close to the top score
             const highConfidenceTargets = sortedTargets
