@@ -197,7 +197,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Modèle de raison",
+    "categorized_letter_reason_tooltip": "La phrase de raison pour ce type de lettre, remplie avec les données de jeu en temps réel. Laisser vide pour utiliser la valeur par défaut de la langue. La variante décédé de deathbed_letter reste pilotée par le fichier de langue.",
+    "categorized_letter_placeholders_label": "Espaces réservés valides :"
   },
   "settings": {
     "header": "Paramètres",

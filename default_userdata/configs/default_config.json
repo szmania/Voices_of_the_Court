@@ -4,6 +4,7 @@
   "activePromptPreset": "Default",
   "activeModPreset": "Default",
   "categorizedIncomingLetterPrompts": {},
+  "categorizedIncomingLetterReasons": {},
   "disabledMegamodNotifications": [],
   "stream": false,
   "maxTokens": 5000,

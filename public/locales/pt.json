@@ -191,7 +191,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Modelo de motivo",
+    "categorized_letter_reason_tooltip": "A frase de motivo para este tipo de carta, preenchida com dados do jogo em tempo de execução. Deixe vazio para usar o padrão do idioma. A variante de falecido de deathbed_letter permanece controlada pelo arquivo de idioma.",
+    "categorized_letter_placeholders_label": "Espaços reservados válidos:"
   },
   "settings": {
     "header": "Configurações",

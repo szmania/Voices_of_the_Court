@@ -205,7 +205,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "理由テンプレート",
+    "categorized_letter_reason_tooltip": "この手紙タイプの理由文。実行時のゲームデータが埋め込まれます。空欄にすると言語の既定値を使用します。deathbed_letter の故人バリアントは言語ファイルのままです。",
+    "categorized_letter_placeholders_label": "有効なプレースホルダー："
   },
   "settings": {
     "header": "設定",

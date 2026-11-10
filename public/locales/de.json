@@ -197,7 +197,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Begründungsvorlage",
+    "categorized_letter_reason_tooltip": "Der Begründungssatz für diesen Brieftyp, gefüllt mit Laufzeit-Spieldaten. Leer lassen, um die Standardeinstellung der Sprache zu verwenden. Die Verstorbenen-Variante von deathbed_letter bleibt sprachdateigesteuert.",
+    "categorized_letter_placeholders_label": "Gültige Platzhalter:"
   },
   "settings": {
     "header": "Einstellungen",

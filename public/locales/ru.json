@@ -209,7 +209,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Шаблон причины",
+    "categorized_letter_reason_tooltip": "Предложение причины для этого типа письма, заполняемое игровыми данными во время выполнения. Оставьте пустым, чтобы использовать значение языка по умолчанию. Вариант «умерший» для deathbed_letter по-прежнему управляется языковым файлом.",
+    "categorized_letter_placeholders_label": "Допустимые заполнители:"
   },
   "settings": {
     "header": "Настройки",

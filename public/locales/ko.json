@@ -193,7 +193,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "이유 템플릿",
+    "categorized_letter_reason_tooltip": "이 편지 유형의 이유 문장으로, 런타임 게임 데이터가 채워집니다. 비워 두면 언어 기본값을 사용합니다. deathbed_letter의 사망자 변형은 언어 파일에서 계속 관리됩니다.",
+    "categorized_letter_placeholders_label": "유효한 자리 표시자:"
   },
   "settings": {
     "header": "설정",

@@ -180,7 +180,10 @@
     "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
     "categorized_letter_saved": "Categorized prompt saved.",
     "categorized_letter_save_error": "Failed to save categorized prompt.",
-    "categorized_letter_reset_success": "Categorized prompt reset to default."
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Reason Template",
+    "categorized_letter_reason_tooltip": "The reason sentence for this letter type, filled with runtime game facts. Leave empty to use the locale default. The deathbed_letter deceased variant stays locale-driven.",
+    "categorized_letter_placeholders_label": "Valid placeholders:"
   },
   "settings": {
     "header": "Settings",
@@ -1197,8 +1200,7 @@
     "section_realm": "The Realm",
     "section_court": "Your Court",
     "section_circle": "Inner Circle",
-    "search_placeholder": "Search whispers...",
-    "delete_success": "Whisper deleted"
+    "search_placeholder": "Search whispers..."
   },
   "incomingLetters": {
     "types": {

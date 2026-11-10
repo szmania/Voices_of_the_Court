@@ -54,6 +54,12 @@ export class Config{
     // per-locale default when a type has no override.
     categorizedIncomingLetterPrompts?: Record<string, string>;
 
+    // Per-letter-type reason-sentence overrides for incoming letters, keyed by
+    // IncomingLetterType. Optional; when a type has no override the generator
+    // uses the per-locale reasonTemplates entry. Must exist in
+    // default_config.json or mergeConfigsStrict() strips it on every start.
+    categorizedIncomingLetterReasons?: Record<string, string>;
+
     summarizationUseTextGenApi!: boolean;
     actionsUseTextGenApi!: boolean;
 

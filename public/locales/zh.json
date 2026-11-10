@@ -199,7 +199,10 @@
     "categorized_letter_reset_tooltip": "将所选来信类型的提示词重置为默认值。",
     "categorized_letter_saved": "分类提示词已保存。",
     "categorized_letter_save_error": "保存分类提示词失败。",
-    "categorized_letter_reset_success": "分类提示词已重置为默认值。"
+    "categorized_letter_reset_success": "分类提示词已重置为默认值。",
+    "categorized_letter_reason_label": "原因模板",
+    "categorized_letter_reason_tooltip": "该信件类型的原因句，会填入运行时游戏事实。留空则使用语言默认值。deathbed_letter 的逝者变体仍由语言文件驱动。",
+    "categorized_letter_placeholders_label": "可用占位符："
   },
   "settings": {
     "header": "设置",

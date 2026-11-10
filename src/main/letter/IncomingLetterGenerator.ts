@@ -789,7 +789,12 @@ export class IncomingLetterGenerator {
     private buildTopicReason(prompts: IncomingLetterPromptData, context: IncomingLetterContext, playerName: string): string {
         const f = context.facts;
         const m = prompts.misc;
-        const t = prompts.reasonTemplates;
+        // Per-type user override (Option C) overlays the locale template; every
+        // branch below reads t.<type>, so all paths pick up the override. The
+        // deathbed_letter_deceased variant stays locale-driven (sender_role split).
+        const t: Record<string, string> = { ...prompts.reasonTemplates };
+        const reasonOverride = this.config.categorizedIncomingLetterReasons?.[context.type];
+        if (reasonOverride && reasonOverride.trim() !== '') t[context.type] = reasonOverride;
 
         switch (context.type) {
             case 'siege_report':

@@ -40,6 +40,8 @@ let saveCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#save-
 let resetCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#reset-categorized-letter-btn")!;
 let categorizedLetterTokenCount: HTMLSpanElement = document.querySelector("#categorizedLetterPrompt-token-count")!;
 let categorizedLetterPlaceholderList: HTMLSpanElement = document.querySelector("#categorized-letter-placeholder-list")!;
+let categorizedLetterReasonTextarea: any = document.querySelector("#categorized-letter-reason-textarea")!;
+let categorizedLetterReasonTokenCount: HTMLSpanElement = document.querySelector("#categorizedLetterReason-token-count")!;
 
 // Placeholders every incoming-letter prompt can use (substituted in
 // IncomingLetterGenerator.buildMessages before the LLM call).
@@ -84,6 +86,9 @@ let statusMessage: HTMLDivElement;
 
 // Per-type prompt overrides read from config.categorizedIncomingLetterPrompts.
 let categorizedLetterPrompts: Record<string, string> = {};
+
+// Per-type reason-sentence overrides read from config.categorizedIncomingLetterReasons.
+let categorizedLetterReasons: Record<string, string> = {};
 
 // Per-locale incoming-letter prompt data (defaultPrompt, types labels, ...) loaded
 // from the main process via 'get-incoming-letter-prompts' — the same loader the
@@ -272,6 +277,10 @@ async function init(){
         applyTheme(savedTheme);
 
         let config = await ipcRenderer.invoke('get-config');
+        // J2: seed the in-memory override maps from config so saved overrides are
+        // visible after restart (and reset sends the full map, not an empty one).
+        categorizedLetterPrompts = { ...(config.categorizedIncomingLetterPrompts || {}) };
+        categorizedLetterReasons = { ...(config.categorizedIncomingLetterReasons || {}) };
         promptPresets = await ipcRenderer.invoke('get-prompt-presets');
 
         // 初始化语言
@@ -347,6 +356,7 @@ async function init(){
         saveCategorizedLetterBtn.addEventListener('click', saveCategorizedLetterPrompt);
         resetCategorizedLetterBtn.addEventListener('click', resetCategorizedLetterPrompt);
         categorizedLetterTextarea.textarea.addEventListener('input', updateCategorizedLetterTokenCount);
+        categorizedLetterReasonTextarea.textarea.addEventListener('input', updateCategorizedLetterReasonTokenCount);
         await populateCategorizedLetterTypes();
         await loadCategorizedLetterPrompt();
 
@@ -519,9 +529,8 @@ async function loadCategorizedLetterPrompt() {
     categorizedLetterTextarea.textarea.value = categorizedLetterPrompts[type] ?? getCategorizedDefaultPrompt();
     updateCategorizedLetterTokenCount();
     updateCategorizedLetterPlaceholders();
-    categorizedLetterTextarea.textarea.value = categorizedLetterPrompts[type] ?? getCategorizedDefaultPrompt();
-    updateCategorizedLetterTokenCount();
-    updateCategorizedLetterPlaceholders();
+    // J4: the set-value/token-count/placeholder block was duplicated; one copy suffices.
+    loadCategorizedLetterReason();
 }
 async function saveCategorizedLetterPrompt() {
     const type = categorizedLetterTypeSelect.value;
@@ -541,6 +550,9 @@ async function saveCategorizedLetterPrompt() {
         if (!window.confirm(msg)) return;
     }
     categorizedLetterPrompts[type] = categorizedLetterTextarea.textarea.value;
+    // J1: persist the whole map — without this the override never reaches config.json.
+    ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
+    saveCategorizedLetterReason();
 }
 
 async function resetCategorizedLetterPrompt() {
@@ -552,6 +564,68 @@ async function resetCategorizedLetterPrompt() {
     updateCategorizedLetterTokenCount();
     // @ts-ignore
     showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.categorized_letter_reset_success', null, 'Categorized prompt reset to default.'), 'success');
+    resetCategorizedLetterReason();
+}
+
+// Default reason template for the selected type: the per-locale reasonTemplates
+// entry, falling back to the shared 'default' template.
+function getCategorizedDefaultReason(): string {
+    const type = categorizedLetterTypeSelect.value;
+    return (type && incomingLetterPrompts?.reasonTemplates?.[type]) || incomingLetterPrompts?.reasonTemplates?.default || '';
+}
+
+function loadCategorizedLetterReason(): void {
+    const type = categorizedLetterTypeSelect.value;
+    categorizedLetterReasonTextarea.textarea.value = categorizedLetterReasons[type] ?? getCategorizedDefaultReason();
+    updateCategorizedLetterReasonTokenCount();
+}
+
+function saveCategorizedLetterReason(): void {
+    const type = categorizedLetterTypeSelect.value;
+    if (!type) return;
+    const value = categorizedLetterReasonTextarea.textarea.value;
+    // Same 9.7.9 placeholder check as the instruction box: the override goes
+    // through the same substitute() calls with the same runtime var maps.
+    const valid = new Set(getValidPlaceholdersForType(type));
+    const used = extractPlaceholders(value).filter(p => !valid.has(p));
+    if (used.length > 0) {
+        // @ts-ignore
+        const msg = (window.LocalizationManager.getNestedTranslation(
+            'prompts.categorized_letter_invalid_placeholders',
+            null,
+            `Unknown placeholders for this letter type will be left unsubstituted: ${used.join(', ')}. Save anyway?`
+        ) as string).replace('{placeholders}', used.join(', '));
+        if (!window.confirm(msg)) return;
+    }
+    // Empty or default-identical means "no override" — delete the entry.
+    if (value.trim() === '' || value === getCategorizedDefaultReason()) {
+        delete categorizedLetterReasons[type];
+    } else {
+        categorizedLetterReasons[type] = value;
+    }
+    ipcRenderer.send('config-change', 'categorizedIncomingLetterReasons', categorizedLetterReasons);
+}
+
+function resetCategorizedLetterReason(): void {
+    const type = categorizedLetterTypeSelect.value;
+    if (!type) return;
+    delete categorizedLetterReasons[type];
+    ipcRenderer.send('config-change', 'categorizedIncomingLetterReasons', categorizedLetterReasons);
+    categorizedLetterReasonTextarea.textarea.value = getCategorizedDefaultReason();
+    updateCategorizedLetterReasonTokenCount();
+}
+
+async function updateCategorizedLetterReasonTokenCount() {
+    if (!categorizedLetterReasonTokenCount) return;
+    const text = categorizedLetterReasonTextarea.textarea.value;
+    try {
+        const count = await ipcRenderer.invoke('calculate-tokens', text);
+        // @ts-ignore
+        const tokensLabel = window.LocalizationManager.getNestedTranslation('chat.tokenizer_tokens', null, 'Tokens:');
+        categorizedLetterReasonTokenCount.textContent = `${tokensLabel} ${count}`;
+    } catch (error) {
+        console.error('Failed to calculate tokens for categorized letter reason:', error);
+    }
 }
 
 async function updateCategorizedLetterTokenCount() {
