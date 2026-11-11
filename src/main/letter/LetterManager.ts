@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { Config } from '../../shared/Config.js';
 import { parseLettersFromLog } from './parseLogForLetters.js';
 import { timelineRegistryPath } from '../campaignDataPaths.js';
+import { guardLetterRunPayload } from './letterRunGuard.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 
 /**
@@ -478,6 +479,15 @@ trigger_event = message_event.362`}`;
             gameCommand += '\n' + appliedTimelineScript;
         }
 
+        if (/^letter_[1-9]$/.test(letterId)) {
+            gameCommand = guardLetterRunPayload(gameCommand, {
+                slotId: letterId,
+                playerId: String(storedLetter.letter.timelinePlayerId ?? storedLetter.letter.recipient.id),
+                campaignId: storedLetter.letter.timelineCampaignId,
+                deliveryId: letter.totalDays
+            });
+        }
+        fs.writeFileSync(letterFilePath, '\uFEFF' + gameCommand, 'utf8');
         // Fallback contract (VOTC-194): if the dedicated npcltr channel cannot
         // be written, degrade to the votc_ce_letters.txt normal flow — the game side
         // handles the reply arriving via the standard mailbox path and cleans

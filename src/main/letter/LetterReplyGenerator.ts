@@ -33,6 +33,7 @@ import { requireCampaignIdentity, tryResolveCampaignIdentity, CampaignIdentityUn
 import { parseLog } from '../../shared/gameData/parseLog.js';
 import { reportCampaignIdentityUnavailable, reportCorruptTimelineRegistry, reportTimelineParentNotFound, reportUnsupportedTimelineSchema } from '../timelineRegistryRecovery.js';
 import { runLetterReplyTimelineTransition } from '../timelineBusinessWire.js';
+import { guardLetterRunPayload } from './letterRunGuard.js';
 import {
     FsTimelinePersistence,
     TimelineRegistry,
@@ -85,7 +86,8 @@ function buildLetterReplyRunFile(
     letterNumber: string,
     deliveryId: number,
     descriptionExpression: string,
-    timeline?: Pick<CreateChildNodeResult, 'script'>
+    timeline?: Pick<CreateChildNodeResult, 'script'>,
+    identity?: CampaignPlayerIdentity
 ): string {
     const timelineScript = timeline?.script
         ? `${indentCk3Block(timeline.script, '\t')}\n`
@@ -96,7 +98,7 @@ function buildLetterReplyRunFile(
     // the current game date from the VOTC:DATE line this debug_log emits
     // (talk_event.9999.desc localizes to VOTC:DATE/<totalDays>). Every
     // payload written into votc_ce_letters.txt must keep it as line 1.
-    return `debug_log = "[Localize('talk_event.9999.desc')]"
+    const payload = `debug_log = "[Localize('talk_event.9999.desc')]"
 if = {
 \tlimit = {
 \t\texists = global_var:votc_letter_${letterNumber}
@@ -114,6 +116,10 @@ else = {
 \tdebug_log = "VOTC:FALLBACK/;/skipped/;/letter_${letterNumber}/;/${deliveryId}"
 }
 `;
+    return identity ? guardLetterRunPayload(payload, {
+        slotId: `letter_${letterNumber}`, playerId: identity.playerId,
+        campaignId: identity.campaignId, deliveryId, fallback: true
+    }) : payload;
 }
 
 /**
@@ -133,7 +139,8 @@ export function writeLetterReplyFallbackRunFile(
     userFolderPath: string,
     slotId: string,
     deliveryId: number,
-    timeline?: Pick<CreateChildNodeResult, 'script'>
+    timeline?: Pick<CreateChildNodeResult, 'script'>,
+    identity?: CampaignPlayerIdentity
 ): boolean {
     const letterNumber = slotId.match(/^letter_([1-9])$/)?.[1];
     if (!letterNumber || !Number.isSafeInteger(deliveryId) || deliveryId < 0) return false;
@@ -143,7 +150,7 @@ export function writeLetterReplyFallbackRunFile(
     const filePath = path.join(runFolderPath, `votc_ce_letter${letterNumber}.txt`);
     writeRunFileAtomically(
         filePath,
-        buildLetterReplyRunFile(letterNumber, deliveryId, 'votc_letter_reply_fallback_desc', timeline)
+        buildLetterReplyRunFile(letterNumber, deliveryId, 'votc_letter_reply_fallback_desc', timeline, identity)
     );
     console.warn(`[LetterReply] Fallback run file written for ${slotId}/${deliveryId}${timeline ? ' with timeline transition.' : ' without timeline transition.'}`);
     return true;
@@ -959,7 +966,7 @@ export class LetterReplyGenerator {
                 // Safe, thread-guarded handoff before any prompt or LLM work:
                 // if generation exhausts retries, CK3 can still clear this
                 // exact thread and apply the journal-created timeline node.
-                writeLetterReplyFallbackRunFile(userFolderPath, snapshot.slotId, snapshot.deliveryId, timeline);
+                writeLetterReplyFallbackRunFile(userFolderPath, snapshot.slotId, snapshot.deliveryId, timeline, transitionIdentity);
             }
 
             try {
@@ -1140,7 +1147,7 @@ export class LetterReplyGenerator {
         if (!gate.passed) {
             return;
         }
-        const fallbackRunBlock = buildLetterReplyRunFile(letterNumber, snapshot.deliveryId, 'votc_letter_reply_fallback_desc', gate.timeline);
+        const fallbackRunBlock = buildLetterReplyRunFile(letterNumber, snapshot.deliveryId, 'votc_letter_reply_fallback_desc', gate.timeline, transitionIdentity ?? timeline?.context?.identity);
         // Queue instead of writing directly: votc_ce_letters.txt is a single
         // whole-file-overwrite channel, and a direct write here could clobber
         // a successful reply that is still awaiting VOTC:LETTER_ACCEPTED (that

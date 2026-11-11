@@ -79,7 +79,7 @@ describe('PR15 third review', () => {
             requestKey: 'different-close', eventSignature: 'different-close', targetEpoch: 6, scopeVar: 'talk_first_scope'});
         expect(current.context.checkpointEpoch).toBe(reply.timelineEpoch);
         expect(reply.timelineScript).not.toContain(`votc_timeline_node_a value = ${current.targetNodeId.split('-')[0]}`);
-        expect(deliver(config, original, reply)).not.toContain(reply.timelineScript);
+        expect(deliver(config, original, reply)).not.toContain(reply.timelineScript.split('\n').map((line: string) => line ? `\t${line}` : '').join('\n'));
     });
 
     it('allows the current branch even when an abandoned future branch has a larger epoch', async () => {
@@ -91,7 +91,7 @@ describe('PR15 third review', () => {
         // Reload epoch 5, then generate a new reply on the current branch.
         const reply = await generator.generateLetterReply(gameData, original);
         expect(reply.timelineEpoch).toBe(6);
-        expect(deliver(config, original, reply)).toContain(reply.timelineScript);
+        expect(deliver(config, original, reply)).toContain(reply.timelineScript.split('\n').map((line: string) => line ? `\t${line}` : '').join('\n'));
     });
 
     it('makes a failure fallback available to the actual CK3 letters runner', async () => {
