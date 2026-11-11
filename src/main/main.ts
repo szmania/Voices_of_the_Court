@@ -1,3 +1,6 @@
+import { observeParsedGameDataForChronicle } from './chronicle/chronicleObservation.js';
+import { reportChronicleObservationFailure } from './chronicle/chronicleObservationFailure.js';
+import { registerChronicleHandlers } from './ipc/chronicleIpc.js';
 import { isPromptKey } from '../shared/promptKeys';
 import { CHATGPT_PROVIDER } from '../shared/chatgptSubscription';
 import { initializeChatGPT } from './auth/chatgptRuntime';
@@ -228,6 +231,8 @@ let mainConfigWindow: BrowserWindow | null = null; // This will be the framed, s
 let summaryManagerWindow: SummaryManagerWindow;
 let readmeWindow: ReadmeWindow;
 let conversationHistoryWindow: ConversationHistoryWindow;
+let chronicleUi: ReturnType<typeof registerChronicleHandlers> | undefined;
+let chronicleTheme = 'chinese';
 
 // Checkpoint evidence captured from the VOTC:CONVERSATION_HISTORY clipboard
 // payload (1.x main.ts conversationHistoryContext). Undefined when the mod
@@ -954,6 +959,7 @@ function processLogLine(line: string) {
     // of a session, and the only one available before the first conversation.
     observeCampaignLoadLine(line);
     clipboardListener?.readIncomingLetterLogLine(line);
+    clipboardListener?.readChronicleLogLine(line);
 
     const dateRegex = /VOTC:DATE\/;\/(\d+)/;
     const match = line.match(dateRegex);
@@ -2035,6 +2041,8 @@ app.on('ready',  async () => {
     clipboardListener.start();
     console.log('ClipboardListener started.');
 
+    chronicleUi = registerChronicleHandlers({ getConfig: () => config, clipboardListener, encoder: tiktokenEncoder, getTheme: () => chronicleTheme });
+
     registerTimelineIpc({
         getWindowContext: () => conversationHistoryContext,
         getDebugLogPath: () => path.join(config.userFolderPath, 'logs', 'debug.log'),
@@ -2203,6 +2211,12 @@ clipboardListener.on('VOTC:IN', async () =>{
                 storedLetters.clear();
                 lastLetterSentToGame = null;
             }
+            try {
+                await observeParsedGameDataForChronicle(app.getPath('userData'), gameData, 'conversation', config.language);
+            } catch (error) {
+                reportChronicleObservationFailure(gameData, error);
+            }
+
             setCachedGameData(gameData);
             currentSessionPlayerId = String(gameData.playerID);
             broadcastCurrentSessionPlayer();
@@ -4142,6 +4156,7 @@ ipcMain.on('close-summary-manager', () => {
 
 // Ã¥Â¤â€žÃ§Ââ€ Ã¤Â¸Â»Ã©Â¢ËœÃ¥Ë†â€¡Ã¦ÂÂ¢Ã¤Âºâ€¹Ã¤Â»Â¶
 ipcMain.on('theme-changed', (event, theme: string) => {
+    chronicleTheme = theme === 'original' || theme === 'west' ? theme : 'chinese';
     console.log(`IPC: Received theme-changed event. Theme: ${theme}`);
 
     const windows = [
@@ -4149,7 +4164,8 @@ ipcMain.on('theme-changed', (event, theme: string) => {
         chatWindow,
         summaryManagerWindow,
         readmeWindow,
-        conversationHistoryWindow
+        conversationHistoryWindow,
+        chronicleUi?.getWindow()
     ];
 
     windows.forEach(win => {
@@ -4166,12 +4182,17 @@ ipcMain.on('language-changed', (event, lang: string) => {
     loadTranslations(lang);
     createTray();
 
+    if (mainConfigWindow && !mainConfigWindow.isDestroyed()) {
+        mainConfigWindow.webContents.send('update-language', lang);
+    }
+
     const windows = [
         configWindow,
         chatWindow,
         summaryManagerWindow,
         readmeWindow,
-        conversationHistoryWindow
+        conversationHistoryWindow,
+        chronicleUi?.getWindow()
     ];
 
     windows.forEach(win => {

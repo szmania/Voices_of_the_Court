@@ -1,5 +1,6 @@
 import {ipcRenderer } from 'electron';
 import { isPromptKey } from '../../shared/promptKeys';
+import { resolveChroniclePrompt } from '../../shared/chroniclePrompt';
 const template = document.createElement("template");
 
 function defineTemplate(rows: number, cols: number, placeholder: string){
@@ -42,6 +43,7 @@ class ConfigTextarea extends HTMLElement{
     cols: number;
     placeholder: string;
     private languageUpdateHandler: (() => void) | null = null;
+    private loadedValue = '';
 
     constructor(){
         super();
@@ -70,16 +72,20 @@ class ConfigTextarea extends HTMLElement{
         // Reading config.prompts here races that editor and uses an obsolete schema.
         if (!isPromptKey(confID)) {
             const config = await ipcRenderer.invoke('get-config');
-            this.textarea.value = config[confID] ?? '';
+            this.loadConfigValue(config);
             this.textarea.addEventListener("change", () => {
                 ipcRenderer.send('config-change', confID, this.textarea.value);
+                this.loadedValue = this.textarea.value;
             });
         }
 
         this.languageUpdateHandler = async () => {
             if (!isPromptKey(confID)) {
                 const config = await ipcRenderer.invoke('get-config');
-                this.textarea.value = config[confID] ?? '';
+                // Keep an edit that has not yet fired its change event.
+                if (confID !== 'chroniclePrompt' || this.textarea.value === this.loadedValue) {
+                    this.loadConfigValue(config);
+                }
             }
             const i18nKey = this.getAttribute('data-i18n');
             if (i18nKey) {
@@ -95,6 +101,13 @@ class ConfigTextarea extends HTMLElement{
         if (i18nKey) {
             this.updateTranslation(i18nKey);
         }
+    }
+
+    private loadConfigValue(config: Record<string, any>): void {
+        this.textarea.value = this.confID === 'chroniclePrompt'
+            ? resolveChroniclePrompt(config.chroniclePrompt, config.language || 'en')
+            : config[this.confID] ?? '';
+        this.loadedValue = this.textarea.value;
     }
 
     public updateTranslation(key: string) {

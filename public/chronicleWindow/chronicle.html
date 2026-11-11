@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="chronicle.windowTitle">Court Historian - Voices of the Court</title>
+    <link rel="stylesheet" href="chronicle.css">
+</head>
+<body class="theme-chinese">
+    <div class="window-shell">
+        <header class="titlebar">
+            <div class="titlebar-brand">
+                <span class="brand-mark" aria-hidden="true">
+                    <span class="mark-east">史</span>
+                    <span class="mark-west">V</span>
+                </span>
+                <span class="brand-copy">
+                    <span class="eyebrow">VOICES OF THE COURT</span>
+                    <h1 data-i18n="chronicle.title">Court Historian</h1>
+                </span>
+            </div>
+            <div class="titlebar-actions">
+                <button id="generateBtn" class="metal-button accent" data-i18n="chronicle.generate">Generate to current date</button>
+                <button id="refreshBtn" class="metal-button" data-i18n="chronicle.refresh">Refresh</button>
+                <button id="closeBtn" class="window-close" aria-label="Close">×</button>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <aside class="period-rail">
+                <div class="identity-block">
+                    <div class="identity-primary">
+                        <span class="section-kicker" data-i18n="chronicle.player">Player</span>
+                        <input type="text" id="playerId" readonly aria-label="Player">
+                    </div>
+                    <div class="timeline-state">
+                        <span class="timeline-label" data-i18n="chronicle.currentTimeline">Current timeline</span>
+                        <strong id="checkpointValue" class="checkpoint-value">—</strong>
+                    </div>
+                </div>
+
+                <div class="rail-heading">
+                    <h2 data-i18n="chronicle.periodList">Chronicle periods</h2>
+                    <span class="heading-ornament" aria-hidden="true"></span>
+                </div>
+                <div id="periodList" class="period-list"></div>
+            </aside>
+
+            <section class="entry-panel" aria-labelledby="entryHeading">
+                <div class="editor-toolbar">
+                    <div class="editor-heading">
+                        <span class="section-kicker">CHRONICLE</span>
+                        <h2 id="entryHeading" data-i18n="chronicle.entryContent">Chronicle entry</h2>
+                    </div>
+                    <div class="entry-actions">
+                        <button id="retryBtn" class="metal-button" data-i18n="chronicle.retryFailed" hidden>Retry failed generation</button>
+                        <button id="regenerateBtn" class="metal-button" data-i18n="chronicle.regenerate" hidden>Regenerate entry</button>
+                    </div>
+                </div>
+                <div id="entryMeta" class="entry-meta"></div>
+                <div id="entryContent" class="entry-content">
+                    <div id="entryScroll" class="entry-scroll">
+                        <p class="placeholder" data-i18n="chronicle.selectPeriod">Select a period from the list to view its chronicle entry</p>
+                    </div>
+                </div>
+                <div id="attemptStatus" class="attempt-status"></div>
+            </section>
+
+            <aside class="source-drawer" id="sourceDrawer">
+                <div class="drawer-heading">
+                    <h2 data-i18n="chronicle.sourceDrawer">Sources</h2>
+                    <button id="toggleDrawerBtn" class="drawer-toggle" aria-label="Toggle sources">◀</button>
+                </div>
+                <div id="sourceList" class="source-list"></div>
+            </aside>
+        </main>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="chronicleRenderer.js"></script>
+</body>
+</html>
