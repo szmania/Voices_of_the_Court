@@ -22,12 +22,12 @@ export async function saveChronicleLetterSource(input: {
     const ai = gameData.characters.get(gameData.aiID);
     const sourceRecordId = `letter_reply:${original.id}:${original.totalDays}:${timeline.nodeId}`;
     const record = buildLetterHistoryRecord({
+        id: sourceRecordId,
         letterId: original.id, deliveryId: original.totalDays,
-        playerLetter: original.content, aiReply: input.reply,
+        outgoingBody: original.content, replyBody: input.reply,
         checkpointEpoch: timeline.context.checkpointEpoch ?? gameData.votcCheckpointEpoch,
         timeline, identity, sourceRecordId, gameDate: gameData.gameDate,
         senderId: String(gameData.playerID), receiverId: String(gameData.aiID),
-        playerName: player?.shortName ?? 'Player', aiName: ai?.shortName ?? 'Recipient',
         senderCharacter: player ?? null, receiverCharacter: ai ?? null
     });
     const file = path.join(letterHistoryDir(input.userDataDir, identity), `character_${gameData.aiID}.json`);
