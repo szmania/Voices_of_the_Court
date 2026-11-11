@@ -125,7 +125,7 @@ export function isSameOutgoingLetterDelivery(existing: unknown, candidate: Lette
     );
 }
 
-export interface BuildOutgoingLetterHistoryRecordInput {
+export interface BuildOutgoingHistoryRecordInput {
     /** Stable business signature; doubles as the delivery idempotency key. */
     id: string;
     /** Letter thread slot (e.g. 'letter_1') or the npcltr channel id. */
@@ -161,7 +161,7 @@ export interface BuildOutgoingLetterHistoryRecordInput {
  * filled from the same values here.
  */
 export function buildLetterHistoryRecord(
-    input: BuildOutgoingLetterHistoryRecordInput
+    input: BuildOutgoingHistoryRecordInput
 ): LetterHistoryRecordV1 {
     if (!input.gameDate) {
         throw new Error('outgoing letter history record requires a structured gameDate');

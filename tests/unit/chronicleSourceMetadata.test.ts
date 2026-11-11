@@ -181,7 +181,7 @@ describe('chronicle source-record metadata (Task 7)', () => {
             const ai = makeLetterCharacter(2002, 'AI');
 
             const record = buildLetterHistoryRecord({
-                id: sourceRecordId,
+                id: 'letter|1001|2002|letter_1|7',
                 letterId: 'letter_1',
                 deliveryId: 7,
                 outgoingBody: 'hello',
@@ -220,7 +220,7 @@ describe('chronicle source-record metadata (Task 7)', () => {
         it('letter reply record rejects a missing structured gameDate (fail closed)', () => {
             expect(() =>
                 buildLetterHistoryRecord({
-                    id: randomUUID(),
+                    id: 'letter|1001|2002|letter_1|7',
                     letterId: 'letter_1',
                     deliveryId: 7,
                     outgoingBody: 'hello',
