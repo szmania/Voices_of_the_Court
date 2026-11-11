@@ -51,12 +51,12 @@ class ParametersBox extends HTMLElement{
     presPenSlider: any;
     topPSlider: any;
 
-    tempEnabledCheckbox: HTMLInputElement;
-    freqPenEnabledCheckbox: HTMLInputElement;
-    presPenEnabledCheckbox: HTMLInputElement;
-    topPEnabledCheckbox: HTMLInputElement;
+    tempEnabledCheckbox!: HTMLInputElement;
+    freqPenEnabledCheckbox!: HTMLInputElement;
+    presPenEnabledCheckbox!: HTMLInputElement;
+    topPEnabledCheckbox!: HTMLInputElement;
 
-    div: HTMLDivElement;
+    div!: HTMLDivElement;
 
     constructor(){
         super();
@@ -68,8 +68,10 @@ class ParametersBox extends HTMLElement{
         this.topPDefault = parseFloat(this.getAttribute("topPDefault")!);
 
         this.shadow = this.attachShadow({mode: "open"});
-        template.innerHTML = defineTemplate(this.tempDefault, this.freqPenDefault, this.presPenDefault, this.topPDefault);
-        this.shadow.append(template.content.cloneNode(true));
+    }
+
+    async connectedCallback(){
+        this.shadow.innerHTML = defineTemplate(this.tempDefault, this.freqPenDefault, this.presPenDefault, this.topPDefault);
 
         this.tempSlider = this.shadow.querySelector("#temp");
         this.freqPenSlider = this.shadow.querySelector("#freqPen");
@@ -92,56 +94,6 @@ class ParametersBox extends HTMLElement{
         return ["confID", "tempDefault", "freqPenDefault", "presPenDefault", "topPDefault"]
     }
 
-    async connectedCallback(){
-        document.addEventListener('votc-provider-changed', this.providerChanged);
-        ipcRenderer.on('votc-provider-config-changed', this.providerChanged);
-        const confID: string = this.confID;
-
-        let config = await ipcRenderer.invoke('get-config');
-
-        //@ts-ignore
-        let values = config[confID]["parameters"];
-
-        this.tempSlider.changeValue(values.temperature);
-        this.freqPenSlider.changeValue(values.frequency_penalty);
-        this.presPenSlider.changeValue(values.presence_penalty);
-        this.topPSlider.changeValue(values.top_p);
-
-        this.tempEnabledCheckbox.checked = values.enableTemperature;
-        this.freqPenEnabledCheckbox.checked = values.enableFrequencyPenalty;
-        this.presPenEnabledCheckbox.checked = values.enablePresencePenalty;
-        this.topPEnabledCheckbox.checked = values.enableTopP;
-
-        this.toggleSlider(this.tempSlider, this.tempEnabledCheckbox.checked);
-        this.toggleSlider(this.freqPenSlider, this.freqPenEnabledCheckbox.checked);
-        this.toggleSlider(this.presPenSlider, this.presPenEnabledCheckbox.checked);
-        this.toggleSlider(this.topPSlider, this.topPEnabledCheckbox.checked);
-
-        const allSliders = [this.tempSlider, this.freqPenSlider, this.presPenSlider, this.topPSlider];
-        allSliders.forEach(slider => {
-            slider.slider.addEventListener("change", () => this.saveParameters());
-            slider.number.addEventListener("change", () => this.saveParameters());
-            slider.button.addEventListener("click", () => this.saveParameters());
-        });
-
-        this.tempEnabledCheckbox.addEventListener('change', () => {
-            this.toggleSlider(this.tempSlider, this.tempEnabledCheckbox.checked);
-            this.saveParameters();
-        });
-        this.freqPenEnabledCheckbox.addEventListener('change', () => {
-            this.toggleSlider(this.freqPenSlider, this.freqPenEnabledCheckbox.checked);
-            this.saveParameters();
-        });
-        this.presPenEnabledCheckbox.addEventListener('change', () => {
-            this.toggleSlider(this.presPenSlider, this.presPenEnabledCheckbox.checked);
-            this.saveParameters();
-        });
-        this.topPEnabledCheckbox.addEventListener('change', () => {
-            this.toggleSlider(this.topPSlider, this.topPEnabledCheckbox.checked);
-            this.saveParameters();
-        });
-        await this.updateProvider();
-    }
 
     disconnectedCallback(): void {
         document.removeEventListener('votc-provider-changed', this.providerChanged);

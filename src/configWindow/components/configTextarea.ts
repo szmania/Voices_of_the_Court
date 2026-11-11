@@ -70,7 +70,10 @@ class ConfigTextarea extends HTMLElement{
         const confID: string = this.confID;
         // The preset editor owns prompt loading, language changes and saving.
         // Reading config.prompts here races that editor and uses an obsolete schema.
-        if (!isPromptKey(confID)) {
+        // An empty confID means the host renderer owns this textarea entirely
+        // (e.g. the categorized letter prompt); loading/saving under a "" key
+        // would pollute config.json.
+        if (confID && !isPromptKey(confID)) {
             const config = await ipcRenderer.invoke('get-config');
             this.loadConfigValue(config);
             this.textarea.addEventListener("change", () => {
@@ -80,7 +83,7 @@ class ConfigTextarea extends HTMLElement{
         }
 
         this.languageUpdateHandler = async () => {
-            if (!isPromptKey(confID)) {
+            if (confID && !isPromptKey(confID)) {
                 const config = await ipcRenderer.invoke('get-config');
                 // Keep an edit that has not yet fired its change event.
                 if (confID !== 'chroniclePrompt' || this.textarea.value === this.loadedValue) {

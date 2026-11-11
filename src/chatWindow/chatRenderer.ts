@@ -70,6 +70,25 @@ document.addEventListener('click', (event) => {
     }
 });
 
+function getSelectedTargetCharacterIds(): number[] {
+    const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+    if (!hiddenInput || hiddenInput.value === 'auto') {
+        return [];
+    }
+    return hiddenInput.value.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+}
+
+function clearTargetSelection(): void {
+    const valueDiv = document.getElementById('character-target-value') as HTMLDivElement;
+    const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+    if (valueDiv) {
+        valueDiv.textContent = window.LocalizationManager?.getNestedTranslation('chat.target_auto') || 'Auto-detect';
+    }
+    if (hiddenInput) {
+        hiddenInput.value = 'auto';
+    }
+}
+
 // Initialize theme and localization on script load
 async function init() {
     // Apply initial theme
@@ -88,6 +107,7 @@ async function init() {
         showSuggestionsButton = config.showSuggestionsButton !== undefined ? config.showSuggestionsButton : true;
         autoSendSuggestion = config.autoSendSuggestion !== undefined ? config.autoSendSuggestion : false;
         showTokenizerDisplay = config.showTokenizerDisplay !== undefined ? config.showTokenizerDisplay : false;
+        clearTargetAfterSend = config.clearTargetAfterSend !== undefined ? config.clearTargetAfterSend : true;
     } catch (error) {
         console.error('Renderer: Failed to initialize config and localization:', error);
     }
@@ -133,6 +153,7 @@ let aiName: string;
 let showSuggestionsButton: boolean = true; // 默认显示建议按钮
 let autoSendSuggestion: boolean = false; // 默认不自动发送建议
 let showTokenizerDisplay: boolean = false; // 默认不显示分词器
+let clearTargetAfterSend: boolean = true; // 默认发送后清除目标选择
 let messageHistory: string[] = [];
 let historyIndex: number = -1;
 let allHighlightMarks: HTMLElement[] = [];
@@ -191,6 +212,11 @@ async function initChat(){
     }
     updateRegenerateButtonState();
 }
+
+// §9.5 batch rendering: while true, displayMessage() skips its per-message
+// auto-scroll timer so batched history rendering performs one layout pass at
+// the end instead of one forced reflow per message.
+let isBatchRendering = false;
 
 async function displayMessage(message: Message, isHistorical: boolean = false): Promise<HTMLDivElement | void> {
     if (message.name === 'Narrator' || message.role === 'system') {
@@ -350,10 +376,13 @@ async function displayMessage(message: Message, isHistorical: boolean = false): 
     }
 
     chatMessages.append(messageDiv);
-    // Auto-scroll to bottom after adding message
-    setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 10);
+    // Auto-scroll to bottom after adding message. Skipped during batch rendering:
+    // the batch caller performs a single scroll after attaching the fragment.
+    if (!isBatchRendering) {
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 10);
+    }
 
     updateRegenerateButtonState();
 
@@ -628,10 +657,9 @@ chatInput.addEventListener('keydown', async function(e) {
         };
 
         // Add multiple target character IDs if selected
-        const hiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
-        const wrapper = document.getElementById('character-target-wrapper') as HTMLDivElement;
-        if (wrapper.style.display === 'flex' && hiddenInput.value) {
-            (message as any).targetCharacterIds = hiddenInput.value.split(',').filter(Boolean).map(Number);
+        const targetCharacterIds = getSelectedTargetCharacterIds();
+        if (targetCharacterIds.length > 0) {
+            (message as any).targetCharacterIds = targetCharacterIds;
         }
 
         const messageDiv = await displayMessage(message);
@@ -640,6 +668,10 @@ chatInput.addEventListener('keydown', async function(e) {
         }
         showLoadingDots();
         ipcRenderer.send('message-send', message);
+
+        if (clearTargetAfterSend) {
+            clearTargetSelection();
+        }
     }
 });
 
@@ -849,9 +881,18 @@ function displaySuggestions(suggestions: string[]) {
                         content: messageText
                     }
 
+                    const targetCharacterIds = getSelectedTargetCharacterIds();
+                    if (targetCharacterIds.length > 0) {
+                        (message as any).targetCharacterIds = targetCharacterIds;
+                    }
+
                     await displayMessage(message);
                     showLoadingDots();
                     ipcRenderer.send('message-send', message);
+
+                    if (clearTargetAfterSend) {
+                        clearTargetSelection();
+                    }
                 } else {
                     console.log('Not auto-sending suggestion, autoSendSuggestion is:', autoSendSuggestion);
                     chatInput.focus()
@@ -883,15 +924,6 @@ function setupCharacterTargeting(gameData: GameData) {
     if (aiCharacters.length > 1) {
         optionsDiv.innerHTML = '';
 
-        const updateSelection = () => {
-            const selectedCheckboxes = Array.from(optionsDiv.querySelectorAll('input[type="checkbox"]:checked')) as HTMLInputElement[];
-            const selectedIds = selectedCheckboxes.map(cb => cb.dataset.id);
-            const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
-
-            hiddenInput.value = selectedIds.join(',');
-            valueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
-        };
-
         aiCharacters.forEach(char => {
             const charOption = document.createElement('div');
             charOption.className = 'custom-select-option';
@@ -909,20 +941,39 @@ function setupCharacterTargeting(gameData: GameData) {
             charOption.appendChild(checkbox);
             charOption.appendChild(label);
 
-            checkbox.addEventListener('change', updateSelection);
-
             optionsDiv.appendChild(charOption);
         });
 
-        // Set default value
-        valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto', 'Automatically Detected');
-        hiddenInput.value = '';
+        // Set default value ('auto' sentinel, matching getSelectedTargetCharacterIds/clearTargetSelection)
+        valueDiv.textContent = window.LocalizationManager.getNestedTranslation('chat.target_auto') || 'Auto-detect';
+        hiddenInput.value = 'auto';
 
         // Clone to remove any previously attached click listeners (setupCharacterTargeting can be called multiple times)
         const freshValueDiv = valueDiv.cloneNode(true) as HTMLDivElement;
         valueDiv.replaceWith(freshValueDiv);
         const freshOptionsDiv = optionsDiv.cloneNode(true) as HTMLDivElement;
         optionsDiv.replaceWith(freshOptionsDiv);
+
+        // Re-resolve the LIVE nodes: cloneNode(true) copies child nodes and attribute
+        // values but NOT event listeners, so selection tracking must be bound to the
+        // cloned (in-DOM) nodes, never to the pre-clone closure captures.
+        const liveValueDiv = document.getElementById('character-target-value') as HTMLDivElement;
+        const liveOptionsDiv = document.getElementById('character-target-options') as HTMLDivElement;
+        const liveHiddenInput = document.getElementById('character-target-hidden-input') as HTMLInputElement;
+
+        // Delegated change listener: change events bubble from the checkboxes, so one
+        // listener on the live container covers every option without per-checkbox
+        // handlers that would be stripped by the next clone+replace cycle.
+        const updateLiveSelection = () => {
+            const selectedCheckboxes = Array.from(liveOptionsDiv.querySelectorAll('input[type="checkbox"]:checked')) as HTMLInputElement[];
+            const selectedIds = selectedCheckboxes.map(cb => cb.dataset.id);
+            const selectedNames = selectedCheckboxes.map(cb => cb.dataset.name);
+
+            liveHiddenInput.value = selectedIds.length > 0 ? selectedIds.join(',') : 'auto';
+            liveValueDiv.textContent = selectedNames.join(', ') || window.LocalizationManager.getNestedTranslation('chat.target_auto') || 'Auto-detect';
+        };
+
+        liveOptionsDiv.addEventListener('change', updateLiveSelection);
 
         // Toggle dropdown
         freshValueDiv.addEventListener('click', (e) => {
@@ -1278,8 +1329,15 @@ ipcRenderer.on('historical-conversations-update', async (e, conversations: any[]
     console.log(`Renderer: Received update with ${conversations.length} more historical conversations.`);
     const fragment = document.createDocumentFragment();
     // Reverse the incoming batch of older conversations so the oldest is first.
-    for (const conv of conversations.reverse()) {
-        await appendConversationToFragment(conv, fragment);
+    // §9.5: render as one batch — suppress per-message scroll timers; the
+    // existing scroll position is preserved for prepended older history.
+    isBatchRendering = true;
+    try {
+        for (const conv of conversations.reverse()) {
+            await appendConversationToFragment(conv, fragment);
+        }
+    } finally {
+        isBatchRendering = false;
     }
 
     const historicalHeader = chatMessages.querySelector('.historical-header');
@@ -1921,8 +1979,15 @@ ipcRenderer.on('chat-start', async (e, payload: { gameData: GameData, messages: 
 
         const fragment = document.createDocumentFragment();
         // Reverse the initial batch to display the oldest conversations at the top.
-        for (const conv of historicalMetadata.reverse()) {
-            await appendConversationToFragment(conv, fragment);
+        // §9.5: render as one batch — suppress per-message scroll timers; the
+        // final scroll below runs once after the fragment is attached.
+        isBatchRendering = true;
+        try {
+            for (const conv of historicalMetadata.reverse()) {
+                await appendConversationToFragment(conv, fragment);
+            }
+        } finally {
+            isBatchRendering = false;
         }
         chatMessages.appendChild(fragment);
     }

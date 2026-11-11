@@ -21,7 +21,8 @@
     "memory_constellation.empty_title": "Aucun souvenir trouvé",
     "memory_constellation.empty_subtitle": "Les souvenirs apparaîtront ici à mesure que votre personnage vivra des événements dans le jeu.",
     "whispers": "Murmures",
-    "whispers_tooltip": "Consulter et gérer les sections générées du Registre des Murmures"
+    "whispers_tooltip": "Consulter et gérer les sections générées du Registre des Murmures",
+    "quick_model": "Modèle rapide"
   },
   "diaries": {
     "header": "Journaux",
@@ -188,7 +189,21 @@
     "char_desc_select_alert": "Veuillez d'abord sélectionner un joueur et un personnage.",
     "char_desc_save_error": "Échec de l'enregistrement de la description du personnage.",
     "whisper_prompt": "Prompt des Murmures",
-    "whisper_tooltip": "Prompt utilisé par le Gardien du Registre pour rédiger les sections du Registre des Murmures."
+    "whisper_tooltip": "Prompt utilisé par le Gardien du Registre pour rédiger les sections du Registre des Murmures.",
+    "categorized_incoming_letter_prompt": "Categorized Incoming Letter Prompt",
+    "categorized_letter_tooltip": "Customize the prompt used for each specific incoming letter type. Overrides the general Incoming Letter Prompt.",
+    "categorized_letter_type": "Letter Type:",
+    "categorized_letter_type_tooltip": "Select the letter type to edit its prompt.",
+    "categorized_letter_save": "Save",
+    "categorized_letter_save_tooltip": "Save the prompt for the selected letter type.",
+    "categorized_letter_reset": "Reset to Default",
+    "categorized_letter_reset_tooltip": "Reset the selected letter type prompt to its default value.",
+    "categorized_letter_saved": "Categorized prompt saved.",
+    "categorized_letter_save_error": "Failed to save categorized prompt.",
+    "categorized_letter_reset_success": "Categorized prompt reset to default.",
+    "categorized_letter_reason_label": "Modèle de raison",
+    "categorized_letter_reason_tooltip": "La phrase de raison pour ce type de lettre, remplie avec les données de jeu en temps réel. Laisser vide pour utiliser la valeur par défaut de la langue. La variante décédé de deathbed_letter reste pilotée par le fichier de langue.",
+    "categorized_letter_placeholders_label": "Espaces réservés valides :"
   },
   "settings": {
     "chronicleTitle": "Court Historian",
@@ -305,7 +320,15 @@
     "compaction_phase1_summaries": "Résumés Phase 1 :",
     "compaction_phase1_threshold_label": "(déclenche la Phase 2 à",
     "compaction_never_run": "Jamais exécuté",
-    "text_gen_params": "Paramètres de génération de texte"
+    "text_gen_params": "Paramètres de génération de texte",
+    "quick_model_connection": "Connexion du modèle rapide",
+    "quick_model_connection_desc": "LLM optionnel à faible latence pour les décisions rapides (ciblage de personnage, etc.). Utilise par défaut la connexion de génération de texte.",
+    "quick_model_use_text_gen": "Utiliser la connexion de génération de texte",
+    "quick_model_use_text_gen_tooltip": "Lorsque cette option est activée, le modèle rapide partage la connexion API de génération de texte.",
+    "enable_quick_model_targeting": "Activer le ciblage par modèle rapide",
+    "enable_quick_model_targeting_tooltip": "Lorsque cette option est activée, le modèle rapide est utilisé pour détecter automatiquement le personnage interpellé. Nécessite une connexion de modèle rapide configurée.",
+    "cleartargetaftersend": "Effacer la cible après envoi",
+    "cleartargetaftersend_tooltip": "Réinitialiser automatiquement le menu du personnage cible après l'envoi d'un message"
   },
   "system": {
     "update": "Mise à jour",
@@ -339,7 +362,44 @@
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[Instruction système : Tu es {characterName}. Tu t'es approché de {playerName} et tu ouvres toi-même cette conversation. Trouve une raison ou un sujet de discussion (une demande, une nouvelle, une préoccupation, une rumeur ou une affaire personnelle correspondant à ton personnage, ses traits et ta situation actuelle) et commence par cela. N'attends pas de réponse. Écris un message pour ton personnage uniquement. N'écris pas comme d'autres personnages. Utilise le markdown pour les actions, comme *ceci*.]",
     "ai_initiated_narrator_prompt": "Que dit {sourceCharacterName} à {playerName} pour commencer cette conversation ?",
-    "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:"
+    "start_writing_reply": "Commencez maintenant à écrire la réponse de {characterName}:",
+    "targeting_stopwords": [
+      "le",
+      "la",
+      "les",
+      "un",
+      "une",
+      "de",
+      "du",
+      "et",
+      "dans",
+      "sur",
+      "pour",
+      "par",
+      "mon",
+      "ton",
+      "seigneur",
+      "dame",
+      "duc",
+      "duchesse",
+      "comte",
+      "comtesse",
+      "baron",
+      "baronne",
+      "roi",
+      "reine",
+      "empereur",
+      "impératrice",
+      "prince",
+      "princesse",
+      "sir",
+      "ser",
+      "maître",
+      "maîtresse",
+      "messire",
+      "madame",
+      "dame"
+    ]
   },
   "chat": {
     "target_label": "Personnage cible :",
@@ -1159,5 +1219,37 @@
     "section_circle": "Cercle intérieur",
     "search_placeholder": "Rechercher des murmures...",
     "tooltip_search": "Rechercher des murmures par section, personnages ou contenu."
+    "delete_success": "Murmure supprimé"
+  },
+  "incomingLetters": {
+    "types": {
+      "vassal_memorial": "Vassal Memorial",
+      "siege_report": "Siege Report",
+      "lost_holding": "Lost Holding",
+      "family_letter": "Family Letter",
+      "poetry_letter": "Poetry Letter",
+      "courtier_petition": "Courtier Petition",
+      "rival_taunt": "Rival Taunt",
+      "dear_friend_greeting": "Dear Friend Greeting",
+      "letter_to_travelling_player": "Letter to Travelling Player",
+      "ally_call_for_aid": "Ally Call for Aid",
+      "revolt_urgent": "Revolt Urgent",
+      "deathbed_letter": "Deathbed Letter",
+      "pilgrimage_tales": "Pilgrimage Tales",
+      "tour_tales": "Tour Tales",
+      "wedding_tales": "Wedding Tales",
+      "hunt_tales": "Hunt Tales",
+      "tournament_tales": "Tournament Tales",
+      "travel_tales": "Travel Tales",
+      "faction_warning": "Faction Warning",
+      "scheme_exposed": "Scheme Exposed",
+      "natural_disaster": "Natural Disaster",
+      "tributary_letter": "Tributary Letter",
+      "liege_overlord_letter": "Liege/Overlord Letter",
+      "great_work_notice": "Great Work Notice",
+      "great_project_report": "Great Project Report"
+    },
+    "default_prompt": "Write a short letter body from {{senderName}} to {{playerName}} in {{letterLanguage}}, based on character personality, background, relationship, memories, and current game context. Output only plain text, no line breaks, no quotes, no Markdown, max 200 characters.",
+    "stable_policy": "You are a letter-writing assistant. Subsequent messages will provide sender and recipient descriptions, relevant summaries and memories, confirmed game facts, and specific writing requirements. Strictly follow this information to write the letter body in the sender's voice."
   }
 }

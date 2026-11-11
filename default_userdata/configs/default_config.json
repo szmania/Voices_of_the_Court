@@ -3,6 +3,8 @@
   "language": "en",
   "activePromptPreset": "Default",
   "activeModPreset": "Default",
+  "categorizedIncomingLetterPrompts": {},
+  "categorizedIncomingLetterReasons": {},
   "disabledMegamodNotifications": [],
   "stream": false,
   "maxTokens": 5000,
@@ -105,6 +107,31 @@
   },
   "summarizationUseTextGenApi": true,
   "actionsUseTextGenApi": true,
+  "quickModelApiConnectionConfig": {
+    "connection": {
+      "type": "player2",
+      "baseUrl": "https://api.player2.game/v1",
+      "key": "",
+      "model": "",
+      "apiKeys": {},
+      "forceInstruct": false,
+      "overwriteContext": false,
+      "customContext": 8192
+    },
+    "parameters": {
+      "temperature": 0.1,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "top_p": 0.9,
+      "enableTemperature": true,
+      "enableFrequencyPenalty": false,
+      "enablePresencePenalty": false,
+      "enableTopP": false
+    }
+  },
+  "quickModelUseTextGenApi": true,
+  "enableQuickModelTargeting": false,
+  "clearTargetAfterSend": true,
   "actionsEnableAll": true,
   "manualActionApproval": true,
   "manualLetterActionApproval": true,

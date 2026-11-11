@@ -25,7 +25,8 @@
     "memory_constellation.empty_title": "未找到记忆",
     "memory_constellation.empty_subtitle": "当您的角色在游戏中经历事件时，记忆将显示在此处。",
     "whispers": "密语",
-    "whispers_tooltip": "查看和管理生成的密语录章节"
+    "whispers_tooltip": "查看和管理生成的密语录章节",
+    "quick_model": "快速模型"
   },
   "diaries": {
     "header": "日记",
@@ -194,7 +195,21 @@
     "char_desc_select_alert": "请先选择玩家和角色。",
     "char_desc_save_error": "保存角色描述失败。",
     "whisper_prompt": "密语提示词",
-    "whisper_tooltip": "「账簿守护者」用于撰写密语录章节的提示词。"
+    "whisper_tooltip": "「账簿守护者」用于撰写密语录章节的提示词。",
+    "categorized_incoming_letter_prompt": "分类主动来信提示词",
+    "categorized_letter_tooltip": "为每种特定主动来信类型自定义提示词。优先于通用主动来信提示词。",
+    "categorized_letter_type": "来信类型：",
+    "categorized_letter_type_tooltip": "选择要编辑提示词的来信类型。",
+    "categorized_letter_save": "保存",
+    "categorized_letter_save_tooltip": "保存所选来信类型的提示词。",
+    "categorized_letter_reset": "重置为默认",
+    "categorized_letter_reset_tooltip": "将所选来信类型的提示词重置为默认值。",
+    "categorized_letter_saved": "分类提示词已保存。",
+    "categorized_letter_save_error": "保存分类提示词失败。",
+    "categorized_letter_reset_success": "分类提示词已重置为默认值。",
+    "categorized_letter_reason_label": "原因模板",
+    "categorized_letter_reason_tooltip": "该信件类型的原因句，会填入运行时游戏事实。留空则使用语言默认值。deathbed_letter 的逝者变体仍由语言文件驱动。",
+    "categorized_letter_placeholders_label": "可用占位符："
   },
   "settings": {
     "chronicleTitle": "宫廷史官",
@@ -315,7 +330,15 @@
     "compaction_phase1_summaries": "第一阶段摘要：",
     "compaction_phase1_threshold_label": "（在...时触发第二阶段",
     "compaction_never_run": "从未运行",
-    "text_gen_params": "文本生成参数"
+    "text_gen_params": "文本生成参数",
+    "quick_model_connection": "快速模型连接",
+    "quick_model_connection_desc": "用于快速决策（角色指定等）的可选低延迟 LLM。默认使用文本生成连接。",
+    "quick_model_use_text_gen": "使用文本生成连接",
+    "quick_model_use_text_gen_tooltip": "启用后，快速模型将共享文本生成 API 连接。",
+    "enable_quick_model_targeting": "启用快速模型指定",
+    "enable_quick_model_targeting_tooltip": "启用后，将使用快速模型自动判断玩家正在对哪个角色说话。需要配置快速模型连接。",
+    "cleartargetaftersend": "发送后清除指定",
+    "cleartargetaftersend_tooltip": "发送消息后自动重置目标角色下拉菜单"
   },
   "system": {
     "update": "更新",
@@ -348,7 +371,46 @@
     "ai_to_ai_narrator_reply_prompt": "Now, what is {sourceCharacterName}'s reply to {targetCharacterName}?",
     "ai_to_ai_narrator_non_targeted_prompt": "Now, what is {sourceCharacterName}'s response in the ongoing conversation?",
     "roleplay_instruction_ai_initiated": "[系统指令：你是{characterName}。你主动找到{playerName}，由你来开启这段对话。想一个聊天的话题或理由（请求、消息、担忧、传闻，或符合你的角色、性格和当前处境的私事），并以此开场。不要等待回复。只为你自己的角色写消息。不要以其他角色的身份书写。动作用markdown表示，如*这样*。]",
-    "ai_initiated_narrator_prompt": "现在，{sourceCharacterName}会对{playerName}说些什么来开始这段对话？"
+    "ai_initiated_narrator_prompt": "现在，{sourceCharacterName}会对{playerName}说些什么来开始这段对话？",
+    "targeting_stopwords": [
+      "的",
+      "了",
+      "是",
+      "在",
+      "和",
+      "与",
+      "对",
+      "向",
+      "从",
+      "到",
+      "我",
+      "你",
+      "他",
+      "她",
+      "它",
+      "我们",
+      "你们",
+      "阁下",
+      "大人",
+      "公爵",
+      "女公爵",
+      "伯爵",
+      "女伯爵",
+      "男爵",
+      "男爵夫人",
+      "国王",
+      "女王",
+      "皇帝",
+      "皇后",
+      "王子",
+      "公主",
+      "爵士",
+      "骑士",
+      "大师",
+      "小姐",
+      "夫人",
+      "女士"
+    ]
   },
   "chat": {
     "target_label": "目标角色：",
@@ -1178,5 +1240,37 @@
     "section_circle": "核心圈子",
     "search_placeholder": "搜索密语...",
     "tooltip_search": "按章节、角色或内容搜索密语。"
+    "delete_success": "密语已删除"
+  },
+  "incomingLetters": {
+    "types": {
+      "vassal_memorial": "下属奏折",
+      "siege_report": "围城军报",
+      "lost_holding": "失城急报",
+      "family_letter": "近亲家书",
+      "poetry_letter": "诗词歌赋",
+      "courtier_petition": "廷臣请愿",
+      "rival_taunt": "宿敌挑衅",
+      "dear_friend_greeting": "挚友问候",
+      "letter_to_travelling_player": "旅途家书",
+      "ally_call_for_aid": "盟友求援",
+      "revolt_urgent": "叛乱告急",
+      "deathbed_letter": "临终遗言",
+      "pilgrimage_tales": "朝圣见闻",
+      "tour_tales": "巡游见闻",
+      "wedding_tales": "婚礼见闻",
+      "hunt_tales": "狩猎见闻",
+      "tournament_tales": "比武见闻",
+      "travel_tales": "旅行见闻",
+      "faction_warning": "叛乱预警",
+      "scheme_exposed": "秘谋揭发",
+      "natural_disaster": "自然灾害",
+      "tributary_letter": "朝贡来信",
+      "liege_overlord_letter": "领主来信",
+      "great_work_notice": "特殊建筑通告",
+      "great_project_report": "国家重大工程"
+    },
+    "default_prompt": "Write a short letter body from {{senderName}} to {{playerName}} in {{letterLanguage}}, based on character personality, background, relationship, memories, and current game context. Output only plain text, no line breaks, no quotes, no Markdown, max 200 characters.",
+    "stable_policy": "You are a letter-writing assistant. Subsequent messages will provide sender and recipient descriptions, relevant summaries and memories, confirmed game facts, and specific writing requirements. Strictly follow this information to write the letter body in the sender's voice."
   }
 }

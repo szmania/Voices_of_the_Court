@@ -23,6 +23,7 @@ import { LetterReplyGenerator } from "./letter/LetterReplyGenerator";
 import { WhisperReplyGenerator, detectWhisperRequestFromLog, clearWhisperRunFile, type WhisperRequestInfo } from "./whisper/WhisperReplyGenerator";
 import { getWhisperPlayerIds, getWhispersForPlayer, deleteWhisper } from "./whisper/whisperManager";
 import { IncomingLetterGenerator } from "./letter/IncomingLetterGenerator";
+import { loadIncomingLetterPrompts } from "./letter/incomingLetterPromptsLoader";
 import { LetterManager } from "./letter/LetterManager";
 import { LetterApprovalQueue } from "./letter/LetterApprovalQueue";
 import { LetterActionTrigger } from "./letter/LetterActionTrigger.js";
@@ -108,6 +109,7 @@ process.on("rejectionHandled", function(err){
     console.log('=== REJECTION HANDLED ===');
     console.error( err )
 });
+
 
 process.on('uncaughtException', function(err) {
     console.log('=== UNCAUGHT EXCEPTION ===');
@@ -2942,6 +2944,13 @@ ipcMain.handle('get-default-prompts', async () => {
         console.error(`Failed to read or parse prompt file ${finalPath}:`, error);
         return null;
     }
+});
+
+// Per-locale incoming-letter prompt data (defaultPrompt, types labels, ...) for
+// the Prompts tab's categorized letter editor. Reuses the same loader the
+// generator uses, so the UI defaults always match the generator's fallback.
+ipcMain.handle('get-incoming-letter-prompts', async () => {
+    return loadIncomingLetterPrompts(votcDataPath, config.language);
 });
 
 ipcMain.handle('save-prompt-presets', async (event, presets) => {

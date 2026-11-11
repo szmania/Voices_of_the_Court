@@ -26,11 +26,11 @@ import { reportCorruptTimelineRegistry, reportUnsupportedTimelineSchema, reportC
 import { requireCampaignIdentity, CampaignIdentityUnavailableError } from '../campaignIdentityResolver.js';
 import type { CampaignPlayerIdentity } from '../../shared/gameData/CampaignIdentity.js';
 import { runIncomingLetterTimelineTransition } from '../timelineBusinessWire.js';
+import { loadIncomingLetterPrompts, substitute, resolveInstructionPrompt, type IncomingLetterPromptData } from './incomingLetterPromptsLoader.js';
 import { Letter } from './Letter.js';
 import { LetterType } from './letterInterfaces.js';
 import { LetterManager } from './LetterManager.js';
 import { withGameDataLocalize } from '../conversation/gameDataLocalize.js';
-import { INCOMING_LETTER_TOPICS, type IncomingLetterTopic } from '../../shared/incomingLetterTopics.js';
 
 // Porting notes (P1): the source line additionally injected Agency
 // projections (P4, out of scope) and fed the parsed snapshot to the court
@@ -74,161 +74,38 @@ const inFlight = new Set<string>();
 const completed = new Set<string>();
 const latestSignatureBySlot = new Map<string, string>();
 
-const DEFAULT_INCOMING_LETTER_PROMPT = `请根据你的角色性格、背景、与收信人的关系、相关记忆内容，以及当前的游戏情境，用{{letterLanguage}}写一段由{{senderName}}主动寄给{{playerName}}的简短书信正文。只输出一段纯文本，不要换行、不要引号、不要Markdown格式，总长度控制在200字以内。并在信件末尾署名，包含你角色的名字和头衔，让收信人明确知道信件来自谁。`;
 
 // F13 (1.x P1-L1): fallback for configs without the maxSummaryTokens key
 // (see Config.ts / default_config.json). The generator reads
 // config.maxSummaryTokens so the budget is user-tunable.
 const INCOMING_LETTER_SUMMARY_TOKEN_BUDGET = 2000;
 
-// KV-cache-friendly stable prefix: fixed rules that never contain names, dates
-// or event facts. Must stay byte-identical across requests so DeepSeek can
-// reuse the cached prefix.
-const STABLE_INCOMING_LETTER_POLICY = `你是一名书信代写助手。后续消息将提供发信人与收信人的角色描述、相关总结与记忆、已确认的游戏事实以及具体的写作要求。请严格按照这些信息，以发信人的身份撰写书信正文。`;
 
-const TOPIC_LABELS: Record<IncomingLetterType, string> = {
-    vassal_memorial: '下属奏折',
-    family_letter: '近亲家书',
-    poetry_letter: '诗词歌赋',
-    siege_report: '围城军报',
-    lost_holding: '失城急报',
-    courtier_petition: '廷臣请愿',
-    rival_taunt: '宿敌挑衅',
-    dear_friend_greeting: '挚友问候',
-    letter_to_travelling_player: '旅途家书',
-    ally_call_for_aid: '盟友求援',
-    revolt_urgent: '叛乱告急',
-    deathbed_letter: '临终遗言',
-    pilgrimage_tales: '朝圣见闻',
-    tour_tales: '巡游见闻',
-    wedding_tales: '婚礼见闻',
-    hunt_tales: '狩猎见闻',
-    tournament_tales: '比武见闻',
-    travel_tales: '旅行见闻',
-    faction_warning: '叛乱预警',
-    scheme_exposed: '秘谋揭发',
-    natural_disaster: '自然灾害',
-    tributary_letter: '朝贡来信',
-    liege_overlord_letter: '领主来信',
-    great_work_notice: '特殊建筑通告',
-    great_project_report: '国家重大工程'
-};
 
-const FACT_LABELS: Record<string, string> = {
-    sender_location: '发信人所在地',
-    poetry_sender_source: '发信人来源',
-    siege_location: '围城地点',
-    army_soldiers: '部队兵力',
-    lost_holding: '失守地产',
-    attacker: '攻占者',
-    siege_progress: '围城进度',
-    attacker_men: '攻城方兵力',
-    defender_men: '守城方兵力',
-    siege_fort_level: '城防等级',
-    siege_phase_progress: '围城阶段进度',
-    siege_blocked: '围城受阻',
-    petition_type: '请愿类型',
-    courtier_years: '入廷年限',
-    courtier_skill: '擅长领域',
-    rival_type: '敌对类型',
-    relation_type: '关系类型',
-    sender_mood: '发信人心情',
-    player_destination: '玩家目的地',
-    player_destination_name: '玩家目的地',
-    enemy: '敌方',
-    war_type: '战争类型',
-    defender: '防守方',
-    deceased: '逝者',
-    relation: '关系',
-    sender_role: '发信人身份',
-    death_category: '死亡类别',
-    death_reason: '具体死因',
-    traveller: '旅行者',
-    travel_stage: '旅行阶段',
-    faction_type: '派系类型',
-    faction_leader: '派系首领',
-    faction_name: '派系名称',
-    faction_power: '派系实力',
-    faction_discontent: '派系不满度',
-    faction_size: '派系规模',
-    faction_target_title: '派系目标头衔',
-    faction_at_war: '派系战争状态',
-    scheme_owner: '阴谋主使',
-    scheme_target: '阴谋目标',
-    scheme_target_title: '阴谋目标头衔',
-    scheme_type: '阴谋类型',
-    disaster_type: '灾害类型',
-    tributary_realm: '朝贡领地',
-    liege_title: '领主头衔',
-    work_location: '工程地点',
-    work_type: '工程类型',
-    work_stage: '工程阶段',
-    project_name: '重大工程名称',
-    project_type: '重大工程类型',
-    project_stage: '重大工程阶段',
-    project_location: '重大工程地点',
-    project_progress: '建设进度',
-    project_days_left: '预计剩余天数',
-    project_required_funded: '已筹足的必要出资',
-    project_required_total: '必要出资总数',
-    project_founder: '工程发起人',
-    project_owner: '工程负责人',
-    reporter_role: '汇报人身份',
-    player_project_role: '收信人与工程的关系'
-};
-
-const POETRY_SENDER_SOURCE_LABELS: Record<string, string> = {
-    friend: '朋友',
-    lover: '情人',
-    soulmate: '灵魂伴侣',
-    spouse: '配偶',
-    close_family: '近亲家人',
-    court_poet: '宫廷诗人',
-    realm_poet: '领地内的诗人',
-    top_liege_realm_poet: '同一最高领主领地内的诗人'
-};
-
-const GREAT_PROJECT_STAGE_LABELS: Record<string, string> = {
-    planned: '规划立项',
-    started: '正式开工',
-    halfway: '建设过半',
-    completed: '竣工'
-};
-
-const GREAT_PROJECT_REPORTER_ROLE_LABELS: Record<string, string> = {
-    founder: '工程发起人',
-    owner: '工程负责人',
-    minister_of_works: '工部尚书',
-    courtier: '宫廷官员',
-    vassal: '封臣'
-};
-
-const GREAT_PROJECT_PLAYER_ROLE_LABELS: Record<string, string> = {
-    owner: '工程负责人',
-    founder: '工程发起人',
-    contributor: '工程出资者'
-};
-
-function describeSiegeFortLevel(value: string): string {
+// Data-driven siege descriptors: numeric fact -> localized label from the
+// per-locale prompt file. Unknown/non-numeric values pass through unchanged.
+function describeSiegeFortLevel(prompts: IncomingLetterPromptData, value: string): string {
     const num = Number(value);
     if (Number.isNaN(num)) return value;
-    if (num <= 0) return '无城防';
-    if (num === 1) return '城防薄弱';
-    if (num === 2) return '城防较低';
-    if (num === 3) return '城防中等';
-    if (num === 4) return '城防较高';
-    if (num === 5) return '城防很高';
-    return '城防极高';
+    const d = prompts.siegeFortLevelDescriptions;
+    if (num <= 0) return d['none'] || value;
+    if (num === 1) return d['very_low'] || value;
+    if (num === 2) return d['low'] || value;
+    if (num === 3) return d['medium'] || value;
+    if (num === 4) return d['high'] || value;
+    if (num === 5) return d['very_high'] || value;
+    return d['extreme'] || value;
 }
 
-function describeSiegePhaseProgress(value: string): string {
+function describeSiegePhaseProgress(prompts: IncomingLetterPromptData, value: string): string {
     const num = Number(value);
     if (Number.isNaN(num)) return value;
-    if (num <= 0) return '刚刚开始';
-    if (num < 30) return '处于初期';
-    if (num < 60) return '处于中期';
-    if (num < 90) return '处于后期';
-    return '接近破城';
+    const d = prompts.siegePhaseProgressDescriptions;
+    if (num <= 0) return d['started'] || value;
+    if (num < 30) return d['early'] || value;
+    if (num < 60) return d['mid'] || value;
+    if (num < 90) return d['late'] || value;
+    return d['near_breach'] || value;
 }
 
 export function normalizeCk3String(text: string): string {
@@ -752,7 +629,8 @@ export class IncomingLetterGenerator {
         const pListLetter = require("../../../default_userdata/scripts/prompts/description/standard/pListLetter.js");
         const characterDescription = withGameDataLocalize(gameData, this.config.language || 'en', () => pListLetter(gameData)) as string;
 
-        const topicLabel = TOPIC_LABELS[context.type];
+        const prompts = loadIncomingLetterPrompts(this.getVotcDataRoot(), this.config.language);
+        const topicLabel = prompts.types[context.type] || context.type;
 
         let summaryContent = '';
         try {
@@ -790,7 +668,7 @@ export class IncomingLetterGenerator {
             const senderSummaries = summaries.filter(summary => summary.characterId === String(context.senderId));
             if (senderSummaries.length > 0) {
                 const boundedSummaries = this.buildBoundedChronologicalBlock(
-                    `以下是之前与${player.fullName}相关的总结（按时间顺序）：`,
+                    substitute(prompts.summaryHeader, { playerName: player.fullName }),
                     senderSummaries.map(summary => `${summary.date}: ${summary.content}`),
                     this.config.maxSummaryTokens ?? INCOMING_LETTER_SUMMARY_TOKEN_BUDGET
                 );
@@ -805,7 +683,7 @@ export class IncomingLetterGenerator {
             const tempConversation = {
                 gameData: gameData,
                 config: {
-                    memoriesPrompt: "相关记忆：",
+                    memoriesPrompt: prompts.memoriesPrompt,
                     maxMemoryTokens: 1000
                 },
                 textGenApiConnection: this.apiConnection
@@ -825,7 +703,7 @@ export class IncomingLetterGenerator {
         // 2CE has no createIntelligenceString equivalent yet; keep the section
         // empty so the prompt layout stays stable.
 
-        const letterLanguage = this.config.language || '中文';
+        const letterLanguage = this.config.language || prompts.misc.letterLanguageFallback;
         let configuredInstruction = '';
         try {
             const effectivePrompts = getEffectivePrompts(this.config, this.getVotcDataRoot(), gameData);
@@ -833,10 +711,11 @@ export class IncomingLetterGenerator {
         } catch (error) {
             console.warn(`[IncomingLetterGenerator] Failed to resolve effective prompts: ${error}`);
         }
-        const instructionPrompt = (configuredInstruction || DEFAULT_INCOMING_LETTER_PROMPT)
-            .replace(/\{\{\s*senderName\s*\}\}/g, sender.fullName)
-            .replace(/\{\{\s*playerName\s*\}\}/g, player.fullName)
-            .replace(/\{\{\s*letterLanguage\s*\}\}/g, letterLanguage);
+        // Resolution chain (9.7.8): per-type user override -> effectivePrompts.incomingLetterPrompt -> per-type locale default -> shared per-locale default.
+        const instructionPrompt = substitute(
+            resolveInstructionPrompt(prompts, context.type, this.config.categorizedIncomingLetterPrompts, configuredInstruction),
+            { senderName: sender.fullName, playerName: player.fullName, letterLanguage }
+        );
 
         const factLines = Object.entries(context.facts)
             .filter(([key, value]) => !(key === 'siege_blocked' && value === 'no'))
@@ -844,133 +723,26 @@ export class IncomingLetterGenerator {
             .map(([key, value]) => {
                 let displayValue = value;
                 if (key === 'siege_fort_level') {
-                    displayValue = describeSiegeFortLevel(value);
+                    displayValue = describeSiegeFortLevel(prompts, value);
                 } else if (key === 'siege_phase_progress') {
-                    displayValue = describeSiegePhaseProgress(value);
+                    displayValue = describeSiegePhaseProgress(prompts, value);
                 } else if (key === 'siege_blocked') {
-                    displayValue = value === 'yes' ? '是' : value;
+                    displayValue = value === 'yes' ? prompts.misc.siegeBlockedYes : value;
                 } else if (key === 'poetry_sender_source') {
-                    displayValue = POETRY_SENDER_SOURCE_LABELS[value] || value;
+                    displayValue = prompts.poetrySenderSourceLabels[value] || value;
                 } else if (key === 'project_stage') {
-                    displayValue = GREAT_PROJECT_STAGE_LABELS[value] || value;
+                    displayValue = prompts.greatProjectStageLabels[value] || value;
                 } else if (key === 'reporter_role') {
-                    displayValue = GREAT_PROJECT_REPORTER_ROLE_LABELS[value] || value;
+                    displayValue = prompts.greatProjectReporterRoleLabels[value] || value;
                 } else if (key === 'player_project_role') {
-                    displayValue = GREAT_PROJECT_PLAYER_ROLE_LABELS[value] || value;
+                    displayValue = prompts.greatProjectPlayerRoleLabels[value] || value;
                 }
-                return `- ${FACT_LABELS[key] || key}：${displayValue}`;
+                return substitute(prompts.factLineTemplate, { label: prompts.factLabels[key] || key, value: displayValue });
             })
             .join('\n');
         const eventFacts = factLines ? `${factLines}\n` : '';
 
-        let topicReason = `因为${topicLabel}事项`;
-        if (context.type === 'siege_report' && context.facts.siege_location) {
-            topicReason = `因为正在围攻${context.facts.siege_location}，需要向${player.fullName}禀报军情`;
-        } else if (context.type === 'lost_holding' && context.facts.lost_holding) {
-            topicReason = `因为${context.facts.lost_holding}已经失守，需要向${player.fullName}告急`;
-        } else if (context.type === 'vassal_memorial') {
-            topicReason = `因为有事务需要向${player.fullName}禀报`;
-        } else if (context.type === 'family_letter') {
-            topicReason = `作为${player.fullName}的配偶或近亲，因为惦念对方或有家事想分享，所以写来家书`;
-        } else if (context.type === 'poetry_letter') {
-            const senderSource = POETRY_SENDER_SOURCE_LABELS[context.facts.poetry_sender_source] || '亲近之人或诗人';
-            topicReason = `作为${player.fullName}的${senderSource}，有感而发，特意写下诗、词、歌、赋或符合自身文化传统的韵文赠予对方`;
-        } else if (context.type === 'courtier_petition') {
-            const petitionType = context.facts.petition_type;
-            const petitionLabel: Record<string, string> = {
-                marriage_request: '希望得到一桩美满的姻缘',
-                land_grant: '希望获封一块土地',
-                office_request: '希望能领一份俸禄官职',
-                council_seat: '希望能进入御前会议',
-                tax_relief: '因为生活困顿，希望减免个人税赋或役务',
-                title_promotion: '希望能晋升自己的爵位',
-                prisoner_release: '希望能释放被囚禁的至亲好友',
-                hook_use: '希望玩家能兑现一个钩子',
-                war_aid: '希望在战时得到军需支持、为领主效力',
-                guardian_request: '希望能担任某位继承人的监护人',
-                gift_request: '希望能得到一份赏赐',
-                alliance_proposal: '希望能促成家族间的联姻'
-            };
-            const subReason = petitionLabel[petitionType] || '有事务想要请愿';
-            topicReason = `因为${subReason}，所以向${player.fullName}写信请愿`;
-        } else if (context.type === 'rival_taunt') {
-            topicReason = `因为与${player.fullName}敌对，所以写信嘲讽或挑衅`;
-        } else if (context.type === 'dear_friend_greeting') {
-            topicReason = `因为思念${player.fullName}，所以写信问候`;
-        } else if (context.type === 'letter_to_travelling_player') {
-            topicReason = `因为${player.fullName}正在旅途中，所以写信关心`;
-        } else if (context.type === 'ally_call_for_aid') {
-            topicReason = `因为${context.facts.enemy || '敌人'}正在进攻，所以向${player.fullName}求援`;
-        } else if (context.type === 'revolt_urgent') {
-            topicReason = `因为${context.facts.defender || '领地'}遭遇叛乱，所以向${player.fullName}告急`;
-        } else if (context.type === 'deathbed_letter') {
-            const deceasedName = context.facts.deceased || '故人';
-            if (context.facts.sender_role === 'deceased') {
-                const categoryDesc = context.facts.death_category === 'disease' ? '因病离世' : '安详离世';
-                topicReason = `因为${deceasedName}${categoryDesc}，留下临终遗言写给${player.fullName}`;
-            } else {
-                const categoryDesc = context.facts.death_category === 'disease' ? '因病离世' : '骤然离世';
-                topicReason = `因为${deceasedName}${categoryDesc}，亲属写信向${player.fullName}报丧`;
-            }
-        } else if (context.type === 'pilgrimage_tales') {
-            topicReason = `因为完成了朝圣，所以写信给${player.fullName}分享朝圣见闻`;
-        } else if (context.type === 'tour_tales') {
-            topicReason = `因为完成了巡游，所以写信给${player.fullName}分享巡游见闻`;
-        } else if (context.type === 'wedding_tales') {
-            topicReason = `因为参加了婚礼归来，所以写信给${player.fullName}分享婚礼见闻`;
-        } else if (context.type === 'hunt_tales') {
-            topicReason = `因为完成了狩猎，所以写信给${player.fullName}分享狩猎见闻`;
-        } else if (context.type === 'tournament_tales') {
-            topicReason = `因为参加了比武大会归来，所以写信给${player.fullName}分享比武见闻`;
-        } else if (context.type === 'travel_tales') {
-            topicReason = `因为完成了旅行，所以写信给${player.fullName}分享旅途见闻`;
-        } else if (context.type === 'faction_warning') {
-            const factionName = context.facts.faction_name || '某个匿名派系';
-            const factionType = context.facts.faction_type;
-            const factionTypeLabel: Record<string, string> = {
-                populist_faction: '平民派系',
-                peasant_faction: '农民派系',
-                claimant_faction: '宣称派系',
-                liberty_faction: '自由派系',
-                independence_faction: '独立派系',
-                nation_fracturing_faction: '裂国派系'
-            };
-            const typeLabel = (factionType && factionTypeLabel[factionType]) || '派系';
-            const factionSize = context.facts.faction_size;
-            const sizeLabel = factionSize === 'large' ? '势力庞大' :
-                factionSize === 'medium' ? '颇具规模' :
-                factionSize === 'small' ? '初具雏形' : '规模不明';
-            const factionPower = context.facts.faction_power;
-            const factionDiscontent = context.facts.faction_discontent;
-            const factionAtWar = context.facts.faction_at_war === 'yes';
-            const targetTitle = context.facts.faction_target_title;
-            const factionLeader = context.facts.faction_leader;
-
-            const parts: string[] = [`${typeLabel}「${factionName}」${sizeLabel}`];
-            if (factionLeader) parts.push(`以${factionLeader}为首`);
-            if (factionPower) parts.push(`实力约 ${factionPower}`);
-            if (factionDiscontent) parts.push(`不满度 ${factionDiscontent}`);
-            if (targetTitle) parts.push(`图谋夺取「${targetTitle}」`);
-            parts.push(factionAtWar ? '已经公开举兵' : '尚未公开举兵');
-            topicReason = `因为${parts.join('，')}，所以向${player.fullName}写信预警`;
-        } else if (context.type === 'scheme_exposed') {
-            const schemeTarget = context.facts.scheme_target || context.facts.scheme_target_title || '某人';
-            topicReason = `因为一个针对${schemeTarget}的阴谋已经暴露，所以写信提醒${player.fullName}`;
-        } else if (context.type === 'natural_disaster') {
-            topicReason = `因为领地发生了${context.facts.disaster_type || '灾害'}，所以向${player.fullName}报告`;
-        } else if (context.type === 'tributary_letter') {
-            topicReason = `作为朝贡者，写信向宗主${player.fullName}致意`;
-        } else if (context.type === 'liege_overlord_letter') {
-            topicReason = `作为${player.fullName}的领主，写信传达旨意或要求`;
-        } else if (context.type === 'great_work_notice') {
-            topicReason = `因为${context.facts.work_location || '某地'}的${context.facts.work_type || '工程'}已经${context.facts.work_stage || '动工'}，所以向${player.fullName}报告`;
-        } else if (context.type === 'great_project_report') {
-            const projectName = context.facts.project_name || '一项国家重大工程';
-            const projectStage = GREAT_PROJECT_STAGE_LABELS[context.facts.project_stage] || context.facts.project_stage || '取得新进展';
-            const projectLocation = context.facts.project_location ? `位于${context.facts.project_location}的` : '';
-            const reporterRole = GREAT_PROJECT_REPORTER_ROLE_LABELS[context.facts.reporter_role] || '工程相关官员';
-            topicReason = `因为${projectLocation}国家重大工程“${projectName}”已经${projectStage}，所以作为${reporterRole}向${player.fullName}呈报工程进展`;
-        }
+        const topicReason = this.buildTopicReason(prompts, context, player.fullName);
 
         // For deathbed_letter with sender_role=mourner, the sender is the
         // mourner but the letter is about the deceased. Append the deceased's
@@ -979,38 +751,119 @@ export class IncomingLetterGenerator {
         if (context.type === 'deathbed_letter' && context.facts.sender_role === 'mourner' && context.facts.deceased_id) {
             const deceasedChar = gameData.characters.get(Number(context.facts.deceased_id));
             if (deceasedChar) {
-                deceasedInfo = `- 逝者基本信息：${deceasedChar.fullName}，${deceasedChar.age}岁，${deceasedChar.culture}人，${deceasedChar.faith}信徒\n`;
+                deceasedInfo = substitute(prompts.deceasedInfoTemplate, {
+                    name: deceasedChar.fullName,
+                    age: String(deceasedChar.age),
+                    culture: deceasedChar.culture,
+                    faith: deceasedChar.faith
+                }) + '\n';
             }
         }
 
         const contextContent = `${characterDescription}\n\n${summaryContent}${memoryContent}`.trim();
 
-        const categoryInstruction = context.type === 'poetry_letter'
-            ? `这是一封“诗词歌赋”来信。正文主体必须是一首原创诗、词、歌、赋或符合发信人文化传统的短篇韵文，而不是普通寒暄书信；题材与语气应体现发信人的性格、文化、经历及其与收信人的关系。必须主动避开此前内容已经使用过的主题、立意、意象、典故、开头、句式和措辞，不得复述、改写或生成与此前作品近似、雷同的内容，每次都要采用新的构思与表达。可以有一句极短的题赠，但不要解释作品、不要标注体裁、不要虚构具体事件。`
-            : '';
+        const categoryInstruction = context.type === 'poetry_letter' ? prompts.poetryCategoryInstruction : '';
 
-        const requestContent = `你正在扮演${sender.fullName}，向${player.fullName}主动写信。
-${topicReason}，你决定提笔向${player.fullName}写信。
-本次主题：${topicLabel}。
-以下是已确认的游戏事实：
-- 发信人：${sender.fullName}
-- 收信人：${player.fullName}
-- 发信日期：${context.sentDate}
-- 主题：${topicLabel}
-${eventFacts}${deceasedInfo}只使用上述已确认事实，不要编造未提供的地点、人物、战况或数字。
-
-${instructionPrompt}
-${categoryInstruction}`;
+        const requestContent = substitute(prompts.requestTemplate, {
+            senderName: sender.fullName,
+            playerName: player.fullName,
+            topicReason,
+            topicLabel,
+            sentDate: context.sentDate,
+            eventFacts,
+            deceasedInfo,
+            instructionPrompt,
+            categoryInstruction
+        });
 
         // Stable rules first, dynamic context second, current request last,
         // so DeepSeek KV cache can reuse the fixed prefix across letters.
         const messages: Message[] = [
-            { role: 'system', content: STABLE_INCOMING_LETTER_POLICY },
+            { role: 'system', content: prompts.stablePolicy },
             { role: 'user', content: contextContent },
             { role: 'user', content: requestContent }
         ];
 
         return messages;
+    }
+
+    // Data-driven replacement for the old 25-branch if/else chain: every
+    // branch is now a reasonTemplates entry in the per-locale prompt file.
+    private buildTopicReason(prompts: IncomingLetterPromptData, context: IncomingLetterContext, playerName: string): string {
+        const f = context.facts;
+        const m = prompts.misc;
+        // Per-type user override (Option C) overlays the locale template; every
+        // branch below reads t.<type>, so all paths pick up the override. The
+        // deathbed_letter_deceased variant stays locale-driven (sender_role split).
+        const t: Record<string, string> = { ...prompts.reasonTemplates };
+        const reasonOverride = this.config.categorizedIncomingLetterReasons?.[context.type];
+        if (reasonOverride && reasonOverride.trim() !== '') t[context.type] = reasonOverride;
+
+        switch (context.type) {
+            case 'siege_report':
+                if (f.siege_location) return substitute(t.siege_report, { siege_location: f.siege_location, playerName });
+                break;
+            case 'lost_holding':
+                if (f.lost_holding) return substitute(t.lost_holding, { lost_holding: f.lost_holding, playerName });
+                break;
+            case 'poetry_letter':
+                return substitute(t.poetry_letter, {
+                    playerName,
+                    senderSource: prompts.poetrySenderSourceLabels[f.poetry_sender_source] || m.poetFallback
+                });
+            case 'courtier_petition':
+                return substitute(t.courtier_petition, {
+                    playerName,
+                    subReason: prompts.petitionLabels[f.petition_type] || m.petitionFallback
+                });
+            case 'ally_call_for_aid':
+                return substitute(t.ally_call_for_aid, { playerName, enemy: f.enemy || m.enemyFallback });
+            case 'revolt_urgent':
+                return substitute(t.revolt_urgent, { playerName, defender: f.defender || m.defenderFallback });
+            case 'deathbed_letter': {
+                const deceasedName = f.deceased || m.deceasedFallback;
+                const isDeceased = f.sender_role === 'deceased';
+                const categoryDesc = f.death_category === 'disease'
+                    ? prompts.deceasedCategoryLabels.disease
+                    : (isDeceased ? prompts.deceasedCategoryLabels.natural : prompts.deceasedCategoryLabels.sudden);
+                return substitute(isDeceased ? t.deathbed_letter_deceased : t.deathbed_letter, { deceasedName, categoryDesc, playerName });
+            }
+            case 'faction_warning': {
+                const factionName = f.faction_name || m.anonymousFaction;
+                const typeLabel = (f.faction_type && prompts.factionTypeLabels[f.faction_type]) || m.defaultFactionType;
+                const sizeLabel = prompts.factionSizeLabels[f.faction_size] || prompts.factionSizeLabels.unknown;
+                const p = prompts.factionWarningParts;
+                const parts: string[] = [substitute(p.header, { typeLabel, factionName, sizeLabel })];
+                if (f.faction_leader) parts.push(substitute(p.leader, { factionLeader: f.faction_leader }));
+                if (f.faction_power) parts.push(substitute(p.power, { factionPower: f.faction_power }));
+                if (f.faction_discontent) parts.push(substitute(p.discontent, { factionDiscontent: f.faction_discontent }));
+                if (f.faction_target_title) parts.push(substitute(p.target, { targetTitle: f.faction_target_title }));
+                parts.push(f.faction_at_war === 'yes' ? p.at_war : p.not_at_war);
+                return substitute(t.faction_warning, { playerName, factionDescription: parts.join(p.joiner) });
+            }
+            case 'scheme_exposed':
+                return substitute(t.scheme_exposed, { playerName, schemeTarget: f.scheme_target || f.scheme_target_title || m.someone });
+            case 'natural_disaster':
+                return substitute(t.natural_disaster, { playerName, disasterType: f.disaster_type || m.disasterFallback });
+            case 'great_work_notice':
+                return substitute(t.great_work_notice, {
+                    playerName,
+                    workLocation: f.work_location || m.somewhere,
+                    workType: f.work_type || m.workFallback,
+                    workStage: f.work_stage || m.startedFallback
+                });
+            case 'great_project_report': {
+                const projectStage = prompts.greatProjectStageLabels[f.project_stage] || f.project_stage || m.projectStageFallback;
+                return substitute(t.great_project_report, {
+                    playerName,
+                    projectName: f.project_name || m.defaultProject,
+                    projectLocation: f.project_location ? substitute(prompts.reasonTemplates.project_location_prefix, { projectLocation: f.project_location }) : '',
+                    projectStage,
+                    reporterRole: prompts.greatProjectReporterRoleLabels[f.reporter_role] || m.reporterRoleFallback
+                });
+            }
+        }
+        return substitute(t[context.type] || t.default, { playerName, topicLabel: prompts.types[context.type] || context.type });
     }
 
     private buildBoundedChronologicalBlock(header: string, lines: string[], maxTokens: number): string | null {
@@ -1306,11 +1159,12 @@ else = {
         const senderSummaries = existingSummaries.filter(summary => summary.characterId === senderCharacterId);
         const otherSummaries = existingSummaries.filter(summary => summary.characterId !== senderCharacterId);
 
-        const topicLabel = TOPIC_LABELS[context.type];
+        const prompts = loadIncomingLetterPrompts(this.getVotcDataRoot(), this.config.language);
+        const topicLabel = prompts.types[context.type] || context.type;
         const newSummary: Summary = {
             characterId: senderCharacterId,
             date: gameData.date,
-            content: `[主动来信·${topicLabel}·${gameData.date}] ${normalizedText.slice(0, 600)}`,
+            content: substitute(prompts.summaryPrefix, { topicLabel, date: gameData.date }) + normalizedText.slice(0, 600),
             votcCheckpointEpoch: gameData.votcCheckpointEpoch + 1,
             votcTimelineNodeId: timeline.nodeId,
             ...(timeline.parentId ? { votcTimelineParentId: timeline.parentId } : {}),

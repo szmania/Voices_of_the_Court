@@ -120,6 +120,7 @@
     pointer-events: none;
 }
 
+
 .button-wrapper:hover::after,
 #character-target-wrapper:hover::after {
     opacity: 1;
@@ -760,6 +761,15 @@ html{
     opacity: 1;
     visibility: visible;
     transition-delay: 0.1s; /* Small delay before hiding */
+}
+
+/* Target Character tooltip opens BELOW the element so it does not cover the
+   character dropdown, which opens upward (bottom: 100%). This rule must come
+   after all other #character-target-wrapper::after definitions to win by
+   source order. */
+#character-target-wrapper::after {
+    top: 130%;
+    bottom: auto;
 }
 
 

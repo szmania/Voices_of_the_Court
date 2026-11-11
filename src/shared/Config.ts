@@ -44,6 +44,26 @@ export class Config{
     summarizationApiConnectionConfig!: ApiConnectionConfig;
     actionsApiConnectionConfig!: ApiConnectionConfig;
     embeddingApiConnectionConfig!: ApiConnectionConfig;
+    /** Optional low-latency LLM connection used for character targeting decisions. */
+    quickModelApiConnectionConfig?: ApiConnectionConfig;
+    /** When true, use quickModelApiConnection for auto-detecting the addressed character. */
+    enableQuickModelTargeting: boolean = false;
+    /** When true, clear the UI target selection after a message is sent. */
+    clearTargetAfterSend: boolean = true;
+    /** When true, the Quick Model shares the text-generation connection (mirrors actionsUseTextGenApi). */
+    quickModelUseTextGenApi: boolean = true;
+
+    // Per-letter-type prompt overrides for incoming letters, keyed by
+    // IncomingLetterType. Optional so pre-existing configs keep loading; the
+    // generator falls back to the general incomingLetterPrompt and then to the
+    // per-locale default when a type has no override.
+    categorizedIncomingLetterPrompts?: Record<string, string>;
+
+    // Per-letter-type reason-sentence overrides for incoming letters, keyed by
+    // IncomingLetterType. Optional; when a type has no override the generator
+    // uses the per-locale reasonTemplates entry. Must exist in
+    // default_config.json or mergeConfigsStrict() strips it on every start.
+    categorizedIncomingLetterReasons?: Record<string, string>;
 
     summarizationUseTextGenApi!: boolean;
     actionsUseTextGenApi!: boolean;
@@ -128,7 +148,7 @@ export class Config{
 
     private sanitizeSubscriptions(): void {
         for (const key of ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig',
-            'actionsApiConnectionConfig', 'compactionApiConnectionConfig', 'embeddingApiConnectionConfig']) {
+            'actionsApiConnectionConfig', 'compactionApiConnectionConfig', 'embeddingApiConnectionConfig', 'quickModelApiConnectionConfig']) {
             sanitizeSubscriptionConnection((this as any)[key]?.connection);
         }
     }
@@ -139,7 +159,7 @@ export class Config{
         const configData = JSON.parse(JSON.stringify(this));
 
         // 检查每个API连接配置中是否有apiKeys字段，如果有则保留
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig',  'compactionApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'embeddingApiConnectionConfig', 'compactionApiConnectionConfig', 'quickModelApiConnectionConfig'];
         configTypes.forEach(configType => {
             if (configData[configType] && configData[configType].connection &&
                 configData[configType].connection.apiKeys) {
@@ -157,7 +177,7 @@ export class Config{
         let output: Config = JSON.parse(JSON.stringify(this));
 
         // Hide sensitive information
-        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig'];
+        const configTypes = ['textGenerationApiConnectionConfig', 'summarizationApiConnectionConfig', 'actionsApiConnectionConfig', 'compactionApiConnectionConfig', 'quickModelApiConnectionConfig'];
 
         configTypes.forEach(configType => {
             const config = output[configType as keyof Config] as ApiConnectionConfig | undefined;
