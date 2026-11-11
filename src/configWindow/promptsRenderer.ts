@@ -36,8 +36,6 @@ let charDescTokenCount: HTMLSpanElement = document.querySelector("#char-desc-tok
 // Categorized Incoming Letter Prompt elements
 let categorizedLetterTypeSelect: HTMLSelectElement = document.querySelector("#categorized-letter-type-select")!;
 let categorizedLetterTextarea: any = document.querySelector("#categorized-letter-textarea")!;
-let saveCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#save-categorized-letter-btn")!;
-let resetCategorizedLetterBtn: HTMLButtonElement = document.querySelector("#reset-categorized-letter-btn")!;
 let categorizedLetterTokenCount: HTMLSpanElement = document.querySelector("#categorizedLetterPrompt-token-count")!;
 let categorizedLetterPlaceholderList: HTMLSpanElement = document.querySelector("#categorized-letter-placeholder-list")!;
 let categorizedLetterReasonTextarea: any = document.querySelector("#categorized-letter-reason-textarea")!;
@@ -353,10 +351,8 @@ async function init(){
 
         // Categorized Incoming Letter Prompt events
         categorizedLetterTypeSelect.addEventListener('change', loadCategorizedLetterPrompt);
-        saveCategorizedLetterBtn.addEventListener('click', saveCategorizedLetterPrompt);
-        resetCategorizedLetterBtn.addEventListener('click', resetCategorizedLetterPrompt);
-        categorizedLetterTextarea.textarea.addEventListener('input', updateCategorizedLetterTokenCount);
-        categorizedLetterReasonTextarea.textarea.addEventListener('input', updateCategorizedLetterReasonTokenCount);
+        categorizedLetterTextarea.textarea.addEventListener('input', () => { updateCategorizedLetterTokenCount(); autoSaveCategorizedLetterPrompt(); });
+        categorizedLetterReasonTextarea.textarea.addEventListener('input', () => { updateCategorizedLetterReasonTokenCount(); autoSaveCategorizedLetterReason(); });
         await populateCategorizedLetterTypes();
         await loadCategorizedLetterPrompt();
 
@@ -532,39 +528,19 @@ async function loadCategorizedLetterPrompt() {
     // J4: the set-value/token-count/placeholder block was duplicated; one copy suffices.
     loadCategorizedLetterReason();
 }
-async function saveCategorizedLetterPrompt() {
+// Auto-save on input (mirrors the other prompt textareas' config-change flow).
+// Empty or default-identical means "no override" — delete the entry so the
+// generator falls through to the per-locale default.
+function autoSaveCategorizedLetterPrompt(): void {
     const type = categorizedLetterTypeSelect.value;
     if (!type) return;
-    // 9.7.9: warn about placeholders the generator will not substitute for this
-    // type, but allow saving on confirm (custom prompts may use them elsewhere).
-    const valid = new Set(getValidPlaceholdersForType(type));
-    const used = extractPlaceholders(categorizedLetterTextarea.textarea.value)
-        .filter(p => !valid.has(p));
-    if (used.length > 0) {
-        // @ts-ignore
-        const msg = (window.LocalizationManager.getNestedTranslation(
-            'prompts.categorized_letter_invalid_placeholders',
-            null,
-            `Unknown placeholders for this letter type will be left unsubstituted: ${used.join(', ')}. Save anyway?`
-        ) as string).replace('{placeholders}', used.join(', '));
-        if (!window.confirm(msg)) return;
+    const value = categorizedLetterTextarea.textarea.value;
+    if (value.trim() === '' || value === getCategorizedDefaultPrompt()) {
+        delete categorizedLetterPrompts[type];
+    } else {
+        categorizedLetterPrompts[type] = value;
     }
-    categorizedLetterPrompts[type] = categorizedLetterTextarea.textarea.value;
-    // J1: persist the whole map — without this the override never reaches config.json.
     ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
-    saveCategorizedLetterReason();
-}
-
-async function resetCategorizedLetterPrompt() {
-    const type = categorizedLetterTypeSelect.value;
-    if (!type) return;
-    delete categorizedLetterPrompts[type];
-    ipcRenderer.send('config-change', 'categorizedIncomingLetterPrompts', categorizedLetterPrompts);
-    categorizedLetterTextarea.textarea.value = getCategorizedDefaultPrompt();
-    updateCategorizedLetterTokenCount();
-    // @ts-ignore
-    showStatusMessage(window.LocalizationManager.getNestedTranslation('prompts.categorized_letter_reset_success', null, 'Categorized prompt reset to default.'), 'success');
-    resetCategorizedLetterReason();
 }
 
 // Default reason template for the selected type: the per-locale reasonTemplates
@@ -580,24 +556,13 @@ function loadCategorizedLetterReason(): void {
     updateCategorizedLetterReasonTokenCount();
 }
 
-function saveCategorizedLetterReason(): void {
+// Auto-save on input (mirrors the other prompt textareas' config-change flow).
+// Empty or default-identical means "no override" — delete the entry so the
+// generator falls through to the per-locale default.
+function autoSaveCategorizedLetterReason(): void {
     const type = categorizedLetterTypeSelect.value;
     if (!type) return;
     const value = categorizedLetterReasonTextarea.textarea.value;
-    // Same 9.7.9 placeholder check as the instruction box: the override goes
-    // through the same substitute() calls with the same runtime var maps.
-    const valid = new Set(getValidPlaceholdersForType(type));
-    const used = extractPlaceholders(value).filter(p => !valid.has(p));
-    if (used.length > 0) {
-        // @ts-ignore
-        const msg = (window.LocalizationManager.getNestedTranslation(
-            'prompts.categorized_letter_invalid_placeholders',
-            null,
-            `Unknown placeholders for this letter type will be left unsubstituted: ${used.join(', ')}. Save anyway?`
-        ) as string).replace('{placeholders}', used.join(', '));
-        if (!window.confirm(msg)) return;
-    }
-    // Empty or default-identical means "no override" — delete the entry.
     if (value.trim() === '' || value === getCategorizedDefaultReason()) {
         delete categorizedLetterReasons[type];
     } else {
@@ -606,14 +571,6 @@ function saveCategorizedLetterReason(): void {
     ipcRenderer.send('config-change', 'categorizedIncomingLetterReasons', categorizedLetterReasons);
 }
 
-function resetCategorizedLetterReason(): void {
-    const type = categorizedLetterTypeSelect.value;
-    if (!type) return;
-    delete categorizedLetterReasons[type];
-    ipcRenderer.send('config-change', 'categorizedIncomingLetterReasons', categorizedLetterReasons);
-    categorizedLetterReasonTextarea.textarea.value = getCategorizedDefaultReason();
-    updateCategorizedLetterReasonTokenCount();
-}
 
 async function updateCategorizedLetterReasonTokenCount() {
     if (!categorizedLetterReasonTokenCount) return;
