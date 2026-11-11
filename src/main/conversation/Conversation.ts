@@ -1130,8 +1130,19 @@ export class Conversation{
      * the player's message plus the candidate character list.
      */
     private buildTargetingPrompt(lastMessage: Message): string {
+        // Include each candidate's title and their relationship to the player so
+        // the model can resolve address-by-title ("my son", "the duke") as well
+        // as address-by-name. The `- ID <n>: <fullName> (short: <shortName>)`
+        // prefix is kept intact; extras are appended after it.
+        const player = this.gameData.getPlayer();
         const candidateLines = this.npcQueue
-            .map(c => `- ID ${c.id}: ${c.fullName} (short: ${c.shortName})`)
+            .map(c => {
+                const parts = [`- ID ${c.id}: ${c.fullName} (short: ${c.shortName})`];
+                if (c.primaryTitle) parts.push(`title: ${c.primaryTitle}`);
+                const relationship = player?.relatives?.find(r => r.id === c.id)?.relationship;
+                if (relationship) parts.push(`relationship to player: ${relationship}`);
+                return parts.join(', ');
+            })
             .join('\n');
         return `Player message: "${lastMessage.content}"\nCandidates:\n${candidateLines}`;
     }
@@ -1176,7 +1187,7 @@ export class Conversation{
         }
         console.log(`Analyzing user message for targets: "${lastMessage.content}"`);
 
-        // 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
+// 1. Prioritize explicit targets from UI (passed as targetCharacterIds)
         const targetIds = (lastMessage as any).targetCharacterIds as number[] | undefined;
         if (targetIds && targetIds.length > 0 && targetIds.some(id => !isNaN(id))) { // Check if there are actual numbers
             const explicitTargets = new Set<Character>();
