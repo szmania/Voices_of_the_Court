@@ -62,8 +62,16 @@ function mergeConfigsStrict(defaultConfig: any, userConfig: any): any {
                     typeof defaultConfig[key] === 'object' && defaultConfig[key] !== null && !Array.isArray(defaultConfig[key]) &&
                     typeof userConfig[key] === 'object' && userConfig[key] !== null && !Array.isArray(userConfig[key])
                 ) {
-                    // Both are objects, perform a deep merge for this nested object
-                    merged[key] = mergeConfigsStrict(defaultConfig[key], userConfig[key]);
+                    // Both are objects. An empty default object can never
+                    // contribute keys, so recursing into it would silently
+                    // drop the user's overrides (e.g. the
+                    // categorizedIncomingLetterPrompts/Reasons maps, which are
+                    // empty in default_config.json); take the user's value directly.
+                    if (Object.keys(defaultConfig[key]).length === 0) {
+                        merged[key] = userConfig[key];
+                    } else {
+                        merged[key] = mergeConfigsStrict(defaultConfig[key], userConfig[key]);
+                    }
                 } else {
                     // Otherwise, the user's value takes precedence
                     merged[key] = userConfig[key];
