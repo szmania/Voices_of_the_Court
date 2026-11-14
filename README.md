@@ -279,8 +279,7 @@ The Summary Manager is an interface for managing and editing game character conv
 1. Download the `.zip` or `.dmg` file from the latest release.
 2. If you downloaded the `.dmg`, open it and drag the application icon to your `/Applications` folder.
 3. If you downloaded the `.zip`, unzip it and drag the application icon to your `/Applications` folder.
-4. **Important First Step**: To run the app, you must bypass Apple's Gatekeeper security. Right-click (or Ctrl-click) the application icon and select **Open** from the menu.
-5. A warning dialog will appear. Click the **Open** button to confirm. You only need to do this the first time you run the application.
+4. **Important First Step**: The app is ad-hoc signed (we do not use a paid Apple Developer ID), so macOS Gatekeeper will block it on first launch. See the "macOS Gatekeeper Warning (Ad-Hoc Signed App)" section below for how to bypass it. You only need to do this once.
 
 **CK3 Mod Setup**
 1. Download the latest version of the VOTC-CE mod files (usually a `.zip` file) from the release page.
@@ -297,6 +296,43 @@ The Summary Manager is an interface for managing and editing game character conv
 ### 🔄 Restore Default Settings
 - Use the "Restore Default Prompt" button to restore all default prompt settings with one click
 - Individual configuration items can be reset in the configuration interface
+
+## ⚠️ macOS Gatekeeper Warning (Ad-Hoc Signed App)
+
+Releases are **ad-hoc signed** — the app has a valid code signature, but it is not notarized by Apple (notarization requires a paid Apple Developer ID, which this project does not use). Because of this, macOS Gatekeeper will block the app on first launch with one of these warnings:
+
+- *"Voices_of_the_Court can't be opened because it is from an unidentified developer."*
+- *"Voices_of_the_Court is damaged and can't be opened. You should move it to the Trash."* (the "damaged" message is Gatekeeper's way of saying the app is not notarized — the file is not actually corrupted)
+
+This is expected. The app is safe to run; you just need to approve it once. Pick either method below:
+
+### Method 1: System Settings → Privacy & Security → Open Anyway (recommended)
+
+1. Double-click the app. When the warning appears, click **Done** (do not move it to the Trash).
+2. Open **System Settings** → **Privacy & Security**.
+3. Scroll down to the **Security** section. You will see: *"Voices_of_the_Court was blocked from use because it is not from an identified developer."* Click **Open Anyway**.
+4. In the confirmation dialog, click **Open**.
+5. The app now launches. macOS remembers this approval — you will not need to repeat these steps.
+
+> **Note (macOS 15 Sequoia and later):** the old right-click → **Open** bypass was removed. The **Open Anyway** button in System Settings is the supported way to approve the app. On macOS 13 Ventura and earlier, right-clicking the app and choosing **Open** from the context menu also works.
+
+### Method 2: Terminal (`xattr`)
+
+If the Open Anyway button does not appear (or you prefer the terminal), remove the Gatekeeper quarantine attribute:
+
+```sh
+xattr -cr /Applications/Voices_of_the_Court.app
+```
+
+Then launch the app normally by double-clicking it.
+
+- `-c` clears all extended attributes, `-r` applies recursively to the app bundle.
+- If you installed the app somewhere other than `/Applications`, adjust the path accordingly.
+- If you downloaded the `.zip` instead of the `.dmg`, you can instead run the command on the zip file *before* extracting it: `xattr -cr ~/Downloads/VOTC-*.zip` — the extracted app will then launch without any warning.
+
+### Why is the app ad-hoc signed?
+
+Apple charges $99/year for a Developer ID used to sign and notarize apps. As a free, open-source community project, VOTC-CE ships ad-hoc signed builds instead: the signature is valid (which macOS requires), but Apple has not vetted it. If you prefer to verify the build yourself, you can build from source — see the "Local Development Setup" section above.
 
 ## 🛠️ Troubleshooting
 
