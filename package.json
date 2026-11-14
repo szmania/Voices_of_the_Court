@@ -17,6 +17,9 @@
   "keywords": [],
   "author": "VOTC Community",
   "license": "GNU GPLv3",
+  "engines": {
+    "node": ">=20.0.0 <26"
+  },
   "dependencies": {
     "@paymoapp/active-window": "^2.1.1",
     "@types/adm-zip": "^0.5.8",
