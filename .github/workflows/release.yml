@@ -64,11 +64,27 @@ jobs:
             }
           }
 
+      # Rebuild native modules for Electron
       - name: Rebuild native modules for Electron
         run: npx electron-rebuild
 
+      # Apple signing/notarization credentials (macOS only; empty on Windows/unset repos,
+      # in which case forge.config.js falls back to ad-hoc signing)
+      - name: Import code-signing certificates (macOS)
+        if: matrix.os != 'windows-2022'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      # Build/package application
       - name: Build/package application
         run: npm run make
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       # Move Windows artifacts from C:\tmp\make to out/make so artifact upload matches macOS
       - name: Normalize Windows Artifact Path
