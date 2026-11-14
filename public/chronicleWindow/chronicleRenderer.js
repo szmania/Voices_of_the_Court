@@ -62,7 +62,43 @@ applyUiTheme(localStorage.getItem('selectedTheme'));
 // Initialize
 async function init() {
     try {
+async function init() {
+    try {
         const config = await ipcRenderer.invoke('get-config');
+        await LocalizationManager.loadTranslations(config.language || 'en');
+        const context = await ipcRenderer.invoke('get-chronicle-context');
+        if (!context || !context.playerId) {
+            showStatus(t('chronicle.noContext'), 'error');
+            return;
+        }
+        currentContext = context;
+        applyUiTheme(context.uiTheme || localStorage.getItem('selectedTheme'));
+        playerIdInput.value = context.playerId || '—';
+        checkpointValue.textContent = context.checkpointEpoch !== undefined
+            ? t('chronicle.epoch', { epoch: context.checkpointEpoch })
+            : '—';
+
+        // Fetch next generation date
+        const nextGenResult = await ipcRenderer.invoke('get-chronicle-next-generation');
+        if (nextGenResult && nextGenResult.nextGenDate !== undefined) {
+            nextGenerationValue.textContent = formatGameDate(nextGenResult.nextGenDate);
+            nextGenerationValue.classList.add('visible');
+        } else {
+            nextGenerationValue.textContent = t('chronicle.nextGeneration_disabled');
+            nextGenerationValue.classList.add('visible');
+        }
+
+        await loadEntries();
+        showStatus(t('chronicle.loadSuccess'), 'success');
+    } catch (error) {
+        showStatus(t('chronicle.initFailed', { error: error.message }), 'error');
+    }
+}
+
+function formatGameDate(date) {
+    if (!date) return '—';
+    return `${date.year}.${date.month.toString().padStart(2, '0')}.${date.day.toString().padStart(2, '0')}`;
+}
         await LocalizationManager.loadTranslations(config.language || 'en');
         const context = await ipcRenderer.invoke('get-chronicle-context');
         if (!context || !context.playerId) {
