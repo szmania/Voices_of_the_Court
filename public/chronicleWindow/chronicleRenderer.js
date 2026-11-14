@@ -26,6 +26,7 @@ const CHRONICLE_SANITIZE_CONFIG = {
 // DOM elements
 const playerIdInput = document.getElementById('playerId');
 const checkpointValue = document.getElementById('checkpointValue');
+const nextGenerationValue = document.getElementById('nextGenerationValue');
 const periodList = document.getElementById('periodList');
 const entryMeta = document.getElementById('entryMeta');
 const entryContent = document.getElementById('entryContent');
@@ -62,8 +63,6 @@ applyUiTheme(localStorage.getItem('selectedTheme'));
 // Initialize
 async function init() {
     try {
-async function init() {
-    try {
         const config = await ipcRenderer.invoke('get-config');
         await LocalizationManager.loadTranslations(config.language || 'en');
         const context = await ipcRenderer.invoke('get-chronicle-context');
@@ -80,12 +79,10 @@ async function init() {
 
         // Fetch next generation date
         const nextGenResult = await ipcRenderer.invoke('get-chronicle-next-generation');
-        if (nextGenResult && nextGenResult.nextGenDate !== undefined) {
+        if (nextGenResult?.nextGenDate) {
             nextGenerationValue.textContent = formatGameDate(nextGenResult.nextGenDate);
-            nextGenerationValue.classList.add('visible');
         } else {
             nextGenerationValue.textContent = t('chronicle.nextGeneration_disabled');
-            nextGenerationValue.classList.add('visible');
         }
 
         await loadEntries();
@@ -99,26 +96,6 @@ function formatGameDate(date) {
     if (!date) return '—';
     return `${date.year}.${date.month.toString().padStart(2, '0')}.${date.day.toString().padStart(2, '0')}`;
 }
-        await LocalizationManager.loadTranslations(config.language || 'en');
-        const context = await ipcRenderer.invoke('get-chronicle-context');
-        if (!context || !context.playerId) {
-            showStatus(t('chronicle.noContext'), 'error');
-            return;
-        }
-        currentContext = context;
-        applyUiTheme(context.uiTheme || localStorage.getItem('selectedTheme'));
-        playerIdInput.value = context.playerId || '—';
-        checkpointValue.textContent = context.checkpointEpoch !== undefined
-            ? t('chronicle.epoch', { epoch: context.checkpointEpoch })
-            : '—';
-
-        await loadEntries();
-        showStatus(t('chronicle.loadSuccess'), 'success');
-    } catch (error) {
-        showStatus(t('chronicle.initFailed', { error: error.message }), 'error');
-    }
-}
-
 async function loadEntries() {
     try {
         const entries = await ipcRenderer.invoke('get-chronicle-entries');

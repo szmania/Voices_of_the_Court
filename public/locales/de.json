@@ -353,6 +353,9 @@
     "roaming_data": "Roaming-Datenordner",
     "roaming_data_desc": "Dieser Ordner enthält Ihre persönliche Konfiguration, Skripte und Zusammenfassungen.",
     "open_roaming_data": "Roaming-Datenordner öffnen",
+    "chronicle": "Hofchronik",
+    "show_chronicle_button": "Chronikfenster anzeigen",
+    "show_chronicle_tooltip": "Das Hofchronik-Fenster öffnen",
     "roleplay_instruction": "[System instruction: Du bist {characterName}. Schreibe eine Antwort an {playerName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.]",
     "roleplay_instruction_ai_to_ai": "[System instruction: Du bist {sourceCharacterName}. Schreibe eine Antwort an {targetCharacterName}. Schreibe nur eine Antwort für deinen Charakter. Schreibe keine Antworten für andere Charaktere. Verwende Markdown für Aktionen, wie *dies*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1171,6 +1174,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1217,7 +1222,7 @@
     "section_court": "Ihr Hof",
     "section_circle": "Innerer Kreis",
     "search_placeholder": "Flüstern suchen...",
-    "tooltip_search": "Flüstern nach Abschnitt, Charakteren oder Inhalt suchen."
+    "tooltip_search": "Flüstern nach Abschnitt, Charakteren oder Inhalt suchen.",
     "delete_success": "Flüstern gelöscht"
   },
   "incomingLetters": {

@@ -349,6 +349,9 @@
     "roaming_data": "Folder danych mobilnych",
     "roaming_data_desc": "Ten folder zawiera Twoją osobistą konfigurację, skrypty i podsumowania.",
     "open_roaming_data": "Otwórz folder danych mobilnych",
+    "chronicle": "Kronika dworu",
+    "show_chronicle_button": "Pokaż okno kroniki",
+    "show_chronicle_tooltip": "Otwórz okno kroniki dworu",
     "roleplay_instruction": "[System instruction: Jesteś {characterName}. Napisz odpowiedź do {playerName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
     "roleplay_instruction_ai_to_ai": "[System instruction: Jesteś {sourceCharacterName}. Napisz odpowiedź do {targetCharacterName}. Napisz odpowiedź tylko dla swojej postaci. Nie pisz odpowiedzi dla żadnej innej postaci. Używaj markdown do opisu akcji, np. *tak*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1165,6 +1168,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1211,7 +1216,7 @@
     "section_court": "Twój Dwór",
     "section_circle": "Wewnętrzny Krąg",
     "search_placeholder": "Szukaj szeptów...",
-    "tooltip_search": "Szukaj szeptów według sekcji, postaci lub treści."
+    "tooltip_search": "Szukaj szeptów według sekcji, postaci lub treści.",
     "delete_success": "Szept usunięty"
   },
   "incomingLetters": {
