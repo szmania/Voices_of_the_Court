@@ -456,7 +456,14 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     }
                     break;
 
-                case "opinionBreakdown":
+                case "opinionBreakdown": {
+                    if (!gameData) continue;
+                    // data[1] (after the splice) = PREV.Char.GetID = the TARGET of the
+                    // breakdown. The mod logs BOTH directions of every pair, so only
+                    // target === player belongs in opinionBreakdownToPlayer; otherwise
+                    // the last-parsed line (a breakdown toward some other character)
+                    // would win and misattribute the opinion.
+                    if (Number(data[1]) !== gameData.playerID) break;
                     if(line.split('#')[1] !== ''){
                         gameData!.characters.get(rootID)!.opinionBreakdownToPlayer = [parseOpinionModifier(line.split('#')[1])]
                     }
@@ -466,7 +473,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
                     }
-                    break;
+                    break; }
 
                 // --- log_relatives: parents ---
                 case "parents":
@@ -664,9 +671,14 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
         if (!charA.relatives.some(m => m.id === charBID)) {
             charA.relatives.push({ id: charBID, name: charB.fullName, relationship, isDeceased: false, traits: [], partners: [] });
         }
-        if (charBID === gameData.playerID) {
-            if (!charA.relationsToPlayer.includes(relationship)) {
-                charA.relationsToPlayer.push(relationship);
+        // relationship = charB's relation TO charA (the mod logs THIS's relation to PREV).
+        // relationsToPlayer must hold the character's relation TO THE PLAYER, so populate
+        // only from pairs where charA IS the player. The old branch stored the player's
+        // relation to charA, rendering "X is the Liege of <player>" for courtiers (the
+        // courtier-as-liege bug).
+        if (charAID === gameData.playerID) {
+            if (!charB.relationsToPlayer.includes(relationship)) {
+                charB.relationsToPlayer.push(relationship);
             }
         }
     }
