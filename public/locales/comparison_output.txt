@@ -1,0 +1,187 @@
+Total keys in en.json: 3333
+Total keys in ru.json: 1192
+Missing keys in ru.json: 2145
+Extra keys in ru.json: 4
+
+Missing keys by section:
+  action: 127 keys
+    - action
+    - action.councilPosition
+    - action.councilPosition.军事统帅
+    - action.councilPosition.司户
+    - action.councilPosition.司马
+    ... and 122 more
+  actions: 15 keys
+    - actions.approvalHelp
+    - actions.approvalMode
+    - actions.approvalModeAll
+    - actions.approvalModeNonDestructive
+    - actions.approvalModeNone
+    ... and 10 more
+  agencyManager: 87 keys
+    - agencyManager
+    - agencyManager.attempt
+    - agencyManager.attempt.buttonRetry
+    - agencyManager.attempt.columnCommitted
+    - agencyManager.attempt.columnError
+    ... and 82 more
+  api: 22 keys
+    - api.apiKey
+    - api.connectionValid
+    - api.connectionValidWithContextWarning
+    - api.customEndpoint
+    - api.forceInstruct
+    ... and 17 more
+  button: 11 keys
+    - button
+    - button.browseModels
+    - button.checkUpdates
+    - button.clearSummaries
+    - button.openFolder
+    ... and 6 more
+  chat: 32 keys
+    - chat.actionApproved
+    - chat.actionFailed
+    - chat.approveAction
+    - chat.closeSuggestions
+    - chat.config_tooltip
+    ... and 27 more
+  chronicle: 18 keys
+    - chronicle.export
+    - chronicle.export.button
+    - chronicle.export.error
+    - chronicle.export.error.export_archive_invalid
+    - chronicle.export.error.export_context_changed
+    ... and 13 more
+  common: 17 keys
+    - common
+    - common.allCharacters
+    - common.anotherPerson
+    - common.character
+    - common.close
+    ... and 12 more
+  compaction: 16 keys
+    - compaction
+    - compaction.cooldown_label
+    - compaction.desc_1
+    - compaction.desc_2
+    - compaction.enable
+    ... and 11 more
+  connection: 4 keys
+    - connection.ck3UserFolderPath
+    - connection.ck3UserFolderTooltip
+    - connection.novelai_model
+    - connection.novelai_password_tooltip
+  dialog: 16 keys
+    - dialog.cancel
+    - dialog.clearSummariesMessage
+    - dialog.clearSummariesTitle
+    - dialog.confirm
+    - dialog.timelineParentMissingDetail
+    ... and 11 more
+  diary_manager: 1 keys
+    - diary_manager.close_btn
+  error: 10 keys
+    - error
+    - error.campaignIdentityInvalid
+    - error.campaignIdentityLegacyMod
+    - error.campaignIdentityUnsupported
+    - error.debugLogNotUpdating
+    ... and 5 more
+  history: 34 keys
+    - history.archiveTitle
+    - history.battleContentTitle
+    - history.battle_content_title
+    - history.checkpoint_label
+    - history.contentLoadFailed
+    ... and 29 more
+  info: 3 keys
+    - info
+    - info.legacySaveAdopted
+    - info.legacySaveAdoptedTitle
+  language: 5 keys
+    - language
+    - language.description
+    - language.en
+    - language.title
+    - language.zh
+  letters: 7 keys
+    - letters.action_approve_tooltip
+    - letters.action_approved
+    - letters.action_denied
+    - letters.action_deny_tooltip
+    - letters.approve_action
+    ... and 2 more
+  memory_constellation: 28 keys
+    - memory_constellation.embedding_api_desc
+    - memory_constellation.embedding_api_header
+    - memory_constellation.embedding_api_header_tooltip
+    - memory_constellation.embedding_api_usage
+    - memory_constellation.embedding_dimension
+    ... and 23 more
+  nav: 2 keys
+    - nav.memory_constellation_empty_subtitle
+    - nav.memory_constellation_empty_title
+  prompts: 32 keys
+    - prompts.action_prompt
+    - prompts.action_prompt_tooltip
+    - prompts.action_triggered_prompt
+    - prompts.action_triggered_tooltip
+    - prompts.all_characters
+    ... and 27 more
+  readme: 18 keys
+    - readme.dontShowAgain
+    - readme.heading
+    - readme.heading.about
+    - readme.heading.config
+    - readme.heading.features
+    ... and 13 more
+  scene_description: 1 keys
+    - scene_description.priority_elements_tooltip
+  settings: 112 keys
+    - settings.agencyDriveCharacterSelection
+    - settings.agencyDriveCharacterSelection_tooltip
+    - settings.agencyEnabled
+    - settings.agencyEnabled_tooltip
+    - settings.agencyIncludeInIncomingLetters
+    ... and 107 more
+  summarization: 1 keys
+    - summarization.useConnectionApi
+  summary: 39 keys
+    - summary
+    - summary.addNew
+    - summary.added
+    - summary.automaticSource
+    - summary.confirmDelete
+    ... and 34 more
+  system: 7 keys
+    - system.checkForUpdatesOnStartup
+    - system.clearSummaries
+    - system.clearSummariesHelp
+    - system.currentVersion
+    - system.currentVersionLoading
+    ... and 2 more
+  theme: 6 keys
+    - theme
+    - theme.chinese
+    - theme.description
+    - theme.original
+    - theme.title
+    ... and 1 more
+  tray: 3 keys
+    - tray.checkUpdates
+    - tray.openAgencyManager
+    - tray.openConfig
+  workbench: 1471 keys
+    - workbench
+    - workbench.actionError
+    - workbench.applied
+    - workbench.applied.detail
+    - workbench.applied.detail.action
+    ... and 1466 more
+
+Extra keys in ru.json:
+  - actions.changeLocation.title
+  - nav.memory_constellation.empty_subtitle
+  - nav.memory_constellation.empty_title
+  - system.start_writing_reply
