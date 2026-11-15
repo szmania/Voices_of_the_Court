@@ -361,6 +361,9 @@
     "roaming_data": "ローミングデータフォルダ",
     "roaming_data_desc": "このフォルダには、個人設定、スクリプト、要約が含まれています。",
     "open_roaming_data": "ローミングデータフォルダを開く",
+    "chronicle": "宮廷年代記",
+    "show_chronicle_button": "年代記ウィンドウを表示",
+    "show_chronicle_tooltip": "宮廷年代記ウィンドウを開く",
     "roleplay_instruction": "[System instruction: あなたは {characterName} です。{playerName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
     "roleplay_instruction_ai_to_ai": "[System instruction: あなたは {sourceCharacterName} です。{targetCharacterName} に返信を書いてください。あなたのキャラクターの返信のみを書いてください。他のキャラクターの返信は書かないでください。アクションにはマークダウンを使用してください、*このように*。]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1197,6 +1200,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1243,7 +1248,7 @@
     "section_court": "あなたの宮廷",
     "section_circle": "内輪",
     "search_placeholder": "ささやきを検索...",
-    "tooltip_search": "セクション、キャラクター、またはコンテンツによってささやきを検索します。"
+    "tooltip_search": "セクション、キャラクター、またはコンテンツによってささやきを検索します。",
     "delete_success": "ささやきを削除しました"
   },
   "incomingLetters": {

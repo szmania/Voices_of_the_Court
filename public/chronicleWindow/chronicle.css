@@ -279,6 +279,24 @@ button:focus-visible {
     text-align: right;
 }
 
+.next-generation {
+    display: grid;
+    justify-items: start;
+    gap: 3px;
+    margin-top: 10px;
+}
+
+.next-generation .section-kicker {
+    display: block;
+}
+
+.next-generation-value {
+    color: var(--gold);
+    font-family: Paradox, Georgia, serif;
+    font-size: 20px;
+    line-height: 1;
+}
+
 .rail-heading {
     padding: 14px 18px 10px;
     border-bottom: 1px solid rgba(199, 168, 94, 0.25);

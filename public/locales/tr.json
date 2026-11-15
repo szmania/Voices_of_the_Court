@@ -372,6 +372,9 @@
     "roaming_data": "Dolaşım Veri Klasörü",
     "roaming_data_desc": "Bu klasör kişisel yapılandırmanızı, betiklerinizi ve özetlerinizi içerir.",
     "open_roaming_data": "Dolaşım Veri Klasörünü Aç",
+    "chronicle": "Saray Vakayinamesi",
+    "show_chronicle_button": "Vakayiname Penceresini Göster",
+    "show_chronicle_tooltip": "Saray Vakayinamesi penceresini aç",
     "roleplay_instruction": "[Sistem talimatı: Sen {characterName} karakterisin. {playerName} kullanıcısına bir cevap yaz. Sadece kendi karakterin için cevap yaz. Başka bir karakter olarak yazma. Eylemler için *bu şekilde* markdown kullan.]",
     "roleplay_instruction_ai_to_ai": "[Sistem talimatı: Sen {sourceCharacterName} karakterisin. {targetCharacterName} karakterine bir cevap yaz. Sadece kendi karakterin için cevap yaz. Başka bir karakter olarak yazma. Eylemler için *bu şekilde* markdown kullan.]",
     "roleplay_instruction_ai_to_ai_initiate": "[Sistem talimatı: Sen {sourceCharacterName} karakterisin. Şimdi {targetCharacterName} karakterine bir mesaj yaz. Sadece kendi karakterin için mesaj yaz. Başka bir karakter olarak yazma. Eylemler için *bu şekilde* markdown kullan.]",
@@ -1179,6 +1182,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1225,7 +1230,7 @@
     "section_court": "Sarayınız",
     "section_circle": "İç Çevre",
     "search_placeholder": "Fısıltıları ara...",
-    "tooltip_search": "Fısıltıları bölüm, karakter veya içerik olarak arayın."
+    "tooltip_search": "Fısıltıları bölüm, karakter veya içerik olarak arayın.",
     "delete_success": "Fısıltı silindi"
   },
   "incomingLetters": {

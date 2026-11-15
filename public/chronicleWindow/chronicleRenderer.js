@@ -26,6 +26,7 @@ const CHRONICLE_SANITIZE_CONFIG = {
 // DOM elements
 const playerIdInput = document.getElementById('playerId');
 const checkpointValue = document.getElementById('checkpointValue');
+const nextGenerationValue = document.getElementById('nextGenerationValue');
 const periodList = document.getElementById('periodList');
 const entryMeta = document.getElementById('entryMeta');
 const entryContent = document.getElementById('entryContent');
@@ -76,6 +77,14 @@ async function init() {
             ? t('chronicle.epoch', { epoch: context.checkpointEpoch })
             : '—';
 
+        // Fetch next generation date
+        const nextGenResult = await ipcRenderer.invoke('get-chronicle-next-generation');
+        if (nextGenResult?.nextGenDate) {
+            nextGenerationValue.textContent = formatGameDate(nextGenResult.nextGenDate);
+        } else {
+            nextGenerationValue.textContent = t('chronicle.nextGeneration_disabled');
+        }
+
         await loadEntries();
         showStatus(t('chronicle.loadSuccess'), 'success');
     } catch (error) {
@@ -83,6 +92,10 @@ async function init() {
     }
 }
 
+function formatGameDate(date) {
+    if (!date) return '—';
+    return `${date.year}.${date.month.toString().padStart(2, '0')}.${date.day.toString().padStart(2, '0')}`;
+}
 async function loadEntries() {
     try {
         const entries = await ipcRenderer.invoke('get-chronicle-entries');

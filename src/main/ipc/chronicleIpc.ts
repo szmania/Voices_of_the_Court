@@ -63,6 +63,39 @@ export function registerChronicleHandlers(deps: {
         });
     }
 
+    ipcMain.handle('get-chronicle-next-generation', async () => {
+        if (!chronicleWindowContext || !chronicleWindowPayload) return { nextGenDate: null };
+
+        try {
+            const identity = resolveChronicleIdentity(chronicleWindowPayload);
+            const timeline = resolveChronicleTimeline(chronicleWindowPayload, identity);
+
+            const signal: ChronicleSignal = {
+                kind: 'manual',
+                gameDate: gameDateFromChroniclePayload(chronicleWindowPayload),
+                playerId: chronicleWindowPayload.playerId,
+                playerName: chronicleWindowPayload.playerName || '',
+                playerTitle: chronicleWindowPayload.playerPrimaryTitle || undefined,
+                identity,
+                timeline
+            };
+
+            const nextGenDate = chronicleCoordinator.calculateNextGenerationDate(signal, buildChronicleCoordinatorConfig(deps.getConfig()));
+            return { nextGenDate };
+        } catch (error) {
+            console.warn('[Chronicle] Could not calculate next generation date:', error);
+            return { nextGenDate: null };
+        }
+    });
+
+    ipcMain.handle('show-chronicle-window', async () => {
+        if (!chronicleWindow || chronicleWindow.isDestroyed()) {
+            chronicleWindow = new ChronicleWindow();
+        }
+        chronicleWindow.show();
+        return { success: true };
+    });
+
     function resolveChronicleTimeline(payload: ChronicleClipboardPayload, identity: CampaignPlayerIdentity) {
         const context = buildTimelineContextFromParts(
             payload.playerId,
@@ -97,7 +130,6 @@ export function registerChronicleHandlers(deps: {
             checkpointEpoch: payload.checkpointEpoch
         };
     }
-
     async function flushChronicleMemoryBlock(
         payload: ChronicleClipboardPayload,
         identity: CampaignPlayerIdentity,
@@ -305,7 +337,6 @@ export function registerChronicleHandlers(deps: {
             return { playerId: null };
         }
         const windowContext = chronicleWindowContext;
-        const windowPayload = chronicleWindowPayload;
         try {
             const { context } = await resolveTimelineWindowRequest(
                 windowContext,
@@ -313,7 +344,7 @@ export function registerChronicleHandlers(deps: {
                 windowContext.checkpointEpoch
             );
             return {
-                ...windowPayload,
+                ...chronicleWindowPayload,
                 ...windowContext,
                 ...context,
                 uiTheme: deps.getTheme()
@@ -335,22 +366,20 @@ export function registerChronicleHandlers(deps: {
             const store = new ChronicleStore(app.getPath('userData'), identity);
             const { registry, currentNodeId, checkpointEpoch } = resolveChronicleTimelineFromContext(chronicleWindowContext, identity);
 
-            const entries = store.queryVisibleEntries({
+            return store.queryVisibleEntries({
                 registry,
                 currentNodeId,
                 checkpointEpoch,
                 currentGameDate: gameDateFromChroniclePayload(chronicleWindowPayload),
                 includeEmpty: true
             });
-
-            return entries;
         } catch (error) {
             console.error('Error getting chronicle entries:', error);
             return [];
         }
     });
 
-    ipcMain.handle('read-chronicle-entry', async (event, entryId: string) => {
+    ipcMain.handle('read-chronicle-entry', async (_event, entryId: string) => {
         console.log(`IPC: Received read-chronicle-entry event for: ${entryId}`);
         try {
             if (!chronicleWindowContext || !chronicleWindowPayload) return undefined;
@@ -423,7 +452,7 @@ export function registerChronicleHandlers(deps: {
         }
     });
 
-    ipcMain.handle('retry-chronicle-attempt', async (event, requestKey: string) => {
+    ipcMain.handle('retry-chronicle-attempt', async (_event, requestKey: string) => {
         console.log(`IPC: Received retry-chronicle-attempt event for: ${requestKey}`);
         try {
             if (!chronicleWindowContext || !chronicleWindowPayload) {
@@ -444,7 +473,7 @@ export function registerChronicleHandlers(deps: {
         }
     });
 
-    ipcMain.handle('regenerate-chronicle-entry', async (event, entryId: string) => {
+    ipcMain.handle('regenerate-chronicle-entry', async (_event, entryId: string) => {
         console.log(`IPC: Received regenerate-chronicle-entry event for: ${entryId}`);
         try {
             if (!chronicleWindowContext || !chronicleWindowPayload) {

@@ -578,6 +578,9 @@
     "roaming_data": "漫游数据文件夹",
     "roaming_data_desc": "此文件夹包含您的个人配置、脚本和摘要。",
     "open_roaming_data": "打开漫游数据文件夹",
+    "chronicle": "宫廷编年史",
+    "show_chronicle_button": "显示编年史窗口",
+    "show_chronicle_tooltip": "打开宫廷编年史窗口",
     "roleplay_instruction": "[系统指令：你是 {characterName}。请向 {playerName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]",
     "roleplay_instruction_ai_to_ai": "[系统指令：你是 {sourceCharacterName}。请向 {targetCharacterName} 回复。只为你的角色撰写回复。不要以任何其他角色的身份写作。使用 markdown 格式来描述动作，例如 *这样*。]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1520,6 +1523,8 @@
     "refresh": "刷新",
     "player": "玩家",
     "currentTimeline": "当前时间线",
+    "nextGeneration": "下次生成",
+    "nextGeneration_disabled": "已禁用",
     "epoch": "检查点 {{epoch}}",
     "noContext": "暂无编年史上下文",
     "entryNotFound": "未找到条目",
@@ -1586,7 +1591,8 @@
     "section_court": "你的宫廷",
     "section_circle": "核心圈子",
     "search_placeholder": "搜索密语...",
-    "tooltip_search": "按章节、角色或内容搜索密语。"
+    "tooltip_search": "按章节、角色或内容搜索密语。",
+    "delete_success": "密语已删除"
   },
   "incomingLetters": {
     "types": {
