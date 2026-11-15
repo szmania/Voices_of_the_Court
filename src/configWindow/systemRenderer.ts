@@ -31,7 +31,7 @@ openRoamingDataButton.addEventListener('click', () => {
 });
 
 showChronicleButton.addEventListener('click', () => {
-    ipcRenderer.send('show-chronicle-window');
+    ipcRenderer.invoke('show-chronicle-window');
 });
 
 // 主题选择功能
