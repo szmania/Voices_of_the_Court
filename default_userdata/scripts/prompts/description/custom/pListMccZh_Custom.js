@@ -164,7 +164,10 @@ module.exports = (gameData) =>{
         }
         else if(char.isKnight){
             return `${char.liege}的将领`
-        }        
+        }
+        else {
+            return char.liege ? `${char.liege}的廷臣` : `廷臣`;
+        }
     }
 
     function courtAndCouncilPositions(char){

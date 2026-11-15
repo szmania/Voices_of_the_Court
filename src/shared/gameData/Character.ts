@@ -72,7 +72,10 @@ export class Character {
         this.id = Number(data[0]),
             this.shortName = data[1],
             this.fullName = data[2],
-            this.primaryTitle = data[3] === "None of" ? data[25] : data[3],
+            // "None of" = no landed title; do NOT fall back to data[25] (court/council
+            // positions string) — that pollutes primaryTitle with e.g. "Steward" and
+            // leaks into claim/war title keys. Empty string is handled by all consumers.
+            this.primaryTitle = data[3] === "None of" ? "" : data[3],
             this.sheHe = data[4],
             this.age = Number(data[5]),
             this.gold = Math.floor(Number(data[6])),
@@ -399,4 +402,3 @@ export class Character {
         return instance;
     }
 }
-

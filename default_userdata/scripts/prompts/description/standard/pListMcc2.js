@@ -153,7 +153,10 @@ module.exports = (gameData) =>{
         }
         else if(char.isKnight){
             return T('main_position_knight', {liege: char.liege});
-        }        
+        }
+        else {
+            return char.liege ? T('main_position_courtier', {liege: char.liege}) : T('main_position_courtier_no_liege');
+        }
     }
 
     function courtAndCouncilPositions(char){

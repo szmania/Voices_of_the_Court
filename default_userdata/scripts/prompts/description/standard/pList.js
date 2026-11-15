@@ -84,7 +84,10 @@ module.exports = (gameData) =>{
         }
         else if(char.isKnight){
             return `Knight of ${char.liege}`
-        }        
+        }
+        else {
+            return char.liege ? `A courtier of ${char.liege}` : `A courtier`;
+        }
     }
 
     function courtAndCouncilPositions(char){
