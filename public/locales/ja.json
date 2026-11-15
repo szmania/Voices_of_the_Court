@@ -34,7 +34,9 @@
     "system_tooltip": "システム設定、更新、データを管理します",
     "whispers": "ささやき",
     "whispers_tooltip": "生成されたささやき帳のセクションを表示・管理",
-    "quick_model": "クイックモデル"
+    "quick_model": "クイックモデル",
+    "memory_constellation_empty_title": "No Memories Found",
+    "memory_constellation_empty_subtitle": "Memories will appear here as your character experiences events in the game."
   },
   "diaries": {
     "header": "日記",
@@ -66,7 +68,35 @@
     "search_prev_tooltip": "前の一致",
     "search_next_tooltip": "次の一致",
     "search_hint": "記憶を検索（ここにホバー）",
-    "embedding_chatgpt_unsupported": "OpenAI（ChatGPT サブスクリプション）は埋め込みをサポートしていません。別の埋め込みプロバイダーを選択してください。"
+    "embedding_chatgpt_unsupported": "OpenAI（ChatGPT サブスクリプション）は埋め込みをサポートしていません。別の埋め込みプロバイダーを選択してください。",
+    "reindex_complete": "Re-index complete: {embedded}/{total} memories embedded.",
+    "import_fail": "Import failed: {error}",
+    "import_legacy": "Import Legacy Memories",
+    "embedding_api_desc": "Configure the embedding model used to vectorize memories for the vector database.",
+    "tooltip_character": "Filter memories by a specific character or view all.",
+    "embedding_api_header": "Embedding Model",
+    "import_success": "Successfully imported {count} legacy memories.",
+    "embedding_test_success_matches": "Connection successful. Model: {model}, Dimensions: {dimensions} (matches overwrite).",
+    "import_legacy_tooltip": "Import existing legacy memories from the compacted memory store into the Memory Constellation.",
+    "existing_memories_warning": "Existing memories were found. Your embedding model must produce {dimensions}-dimensional vectors to retain them.",
+    "embedding_test_failed": "Connection failed.",
+    "embedding_dimension_tooltip": "The number of dimensions the embedding model produces. Must match the model's output.",
+    "tooltip_player_id": "Select the player profile whose memories to display.",
+    "import_error": "Import error: {error}",
+    "header": "Memory Constellation",
+    "reindex_tooltip": "Re-embed all stored memories at the currently configured embedding dimension and rebuild the vector index. Use this after changing the embedding model or dimension override so existing memories are preserved.",
+    "reindex_fail": "Re-index failed: {error}",
+    "reindex_start": "Re-indexing vector database. Please wait...",
+    "embedding_required": "An embedding model must be configured above to generate and display memories.",
+    "embedding_required_tooltip": "An embedding model must be configured above to generate and display memories.",
+    "importing_legacy": "Importing legacy memories. Please wait...",
+    "reindex_button": "Re-index Vector DB",
+    "embedding_api_header_tooltip": "Configure the embedding model used to vectorize memories for the Memory Constellation.",
+    "embedding_test_success": "Connection successful. Model: {model}, Dimensions: {dimensions}.",
+    "embedding_test_mismatch": "Overwrite dimension mismatch: requested {requested} but model returned {returned}. Disable \"Overwrite embedding dimension\" or correct the value.",
+    "embedding_dimension": "Overwrite embedding dimension",
+    "header_tooltip": "Visualize memories as a 3D constellation. Each point represents a memory.",
+    "embedding_api_usage": "This embedding model is used to vectorize memories for the Memory Constellation below. It must produce the configured number of dimensions."
   },
   "connection": {
     "ck3_path": "CK3 ユーザーフォルダのパス",
@@ -89,7 +119,11 @@
     "player2_connection_failed": "Player2の接続に失敗しました。https://player2.gameからPlayer2アプリをダウンロードし、バックグラウンドで実行されていることを確認してから、もう一度お試しください。アカウントは必要ありません。",
     "novelai_password": "パスワード",
     "novelai_model": "モデル",
-    "novelai_password_tooltip": "NovelAI アカウントのパスワード (API キーではありません)"
+    "novelai_password_tooltip": "NovelAI アカウントのパスワード (API キーではありません)",
+    "ck3UserFolderPath": "CK3 user folder path",
+    "ck3UserFolderTooltip": "Select the CK3 folder where your user data is stored, not the game installation folder. By default it is in Documents/Paradox Interactive/Crusader Kings III.",
+    "email": "Email",
+    "password": "Password"
   },
   "api": {
     "openrouter": "OpenRouter",
@@ -102,7 +136,29 @@
     "grok": "Grok (xAI)",
     "player2": "Player2",
     "novelai": "NovelAI",
-    "custom": "カスタム (OpenAI 互換)"
+    "custom": "カスタム (OpenAI 互換)",
+    "connectionValid": "Connection valid!",
+    "serverUrl": "Server URL",
+    "noResponse": "No response, something went wrong...",
+    "frequencyPenalty": "Frequency Penalty",
+    "connectionValidWithContextWarning": "Connection valid! Warning: context size could not be detected, so the overwrite context size will be used even if overwrite is disabled.",
+    "reset": "Reset",
+    "parameters": "Parameters",
+    "overwriteContext": "Overwrite context size",
+    "provider": "API",
+    "presencePenalty": "Presence Penalty",
+    "testing": "...",
+    "model": "Model",
+    "invalidGlmResponse": "Invalid response from GLM",
+    "recommended": "Recommended",
+    "thinkingMode": "Thinking mode",
+    "invalidGeminiResponse": "Invalid response from Gemini",
+    "temperature": "Temperature",
+    "customEndpoint": "Custom (OpenAI-compatible) endpoint",
+    "topP": "Top P",
+    "apiKey": "API Key",
+    "free": "Free",
+    "forceInstruct": "Force Instruct mode"
   },
   "actions": {
     "enable_actions": "アクションを有効にする",
@@ -115,16 +171,31 @@
     "open_folder": "フォルダを開く",
     "description": "説明：",
     "made_by": "作成者：",
-    "open_file": "ファイルを開く"
+    "open_file": "ファイルを開く",
+    "nonDestructive": "Non-destructive action",
+    "destructive": "Destructive action",
+    "approvalModeNone": "Require approval for all actions",
+    "approvalHelp": "Choose which actions must be approved before their effects are written to the game.",
+    "approvalModeAll": "Auto-approve all actions",
+    "selectActions": "Select which actions you want the mod to detect:",
+    "enableActions": "Enable actions",
+    "approvalMode": "Approval mode",
+    "pauseOnActionApproval": "Pause the conversation while approval is pending",
+    "changeLocation_title": "Change Scene Location",
+    "useConnectionApi": "Use the same API as in the connection tab",
+    "approvalModeNonDestructive": "Auto-approve non-destructive actions",
+    "approvalSettings": "Action approval",
+    "madeBy": "Made by:",
+    "enableNarrative": "Enable AI narrative after actions"
   },
   "summarization": {
     "use_same_api": "接続タブと同じ API を使用する",
-    "parameters": "パラメーター"
+    "parameters": "パラメーター",
+    "useConnectionApi": "Use the same API as in the connection tab"
   },
   "prompts": {
     "chroniclePrompt": "年代記の指示文",
     "chroniclePrompt_tooltip": "宮廷史官の文体を設定します。史料は自動で挿入されます。空欄にすると、画面の言語に対応した標準の指示文を使います。",
-
     "header": "プロンプト",
     "main_prompt": "メインプロンプト",
     "self_talk_prompt": "独り言プロンプト",
@@ -211,7 +282,43 @@
     "categorized_letter_reset_success": "Categorized prompt reset to default.",
     "categorized_letter_reason_label": "理由テンプレート",
     "categorized_letter_reason_tooltip": "この手紙タイプの理由文。実行時のゲームデータが埋め込まれます。空欄にすると言語の既定値を使用します。deathbed_letter の故人バリアントは言語ファイルのままです。",
-    "categorized_letter_placeholders_label": "有効なプレースホルダー："
+    "categorized_letter_placeholders_label": "有効なプレースホルダー：",
+    "suffixPrompt_tooltip": "When enabled, this prompt is placed in the stable policy prefix. Only a short current-turn response cue remains at the end, balancing cache reuse and output quality.",
+    "selfTalkSummarizePrompt": "Self-Talk Summarize prompt",
+    "letter_prompt": "Letter Prompt",
+    "restoreDefaultTooltip": "Restore all prompts to their default values.",
+    "letter_summary_tooltip": "Prompt for summarizing a letter exchange.",
+    "scripts": "Scripts",
+    "summarizePrompt": "Summarize prompt",
+    "action_triggered_prompt": "Action Triggered Prompt",
+    "restoreConfirm": "Restore all prompts to their default values? This cannot be undone.",
+    "battleReportPrompt_tooltip": "This prompt controls the writing instructions for AI-generated battle reports. Dynamic battle data (commanders, casualties, tags) is injected automatically.",
+    "letter_summary_prompt": "Letter Summary Prompt",
+    "suffixPrompt": "Additional policy prompt",
+    "restoreSuccess": "All prompts were restored to default values.",
+    "filter_by_player": "Filter by Player:",
+    "action_triggered_tooltip": "This prompt is used to format the message displayed in the chat when an action is triggered.",
+    "all_characters": "All Characters",
+    "selfTalkPrompt": "Self-Talk Prompt",
+    "narrativePrompt": "Narrative prompt",
+    "battleReportPrompt": "Battle Report prompt",
+    "action_prompt": "Action Prompt",
+    "preset_updated_with_defaults": "Preset \"{{presetName}}\" was updated with new default prompt fields.",
+    "sceneDescriptionPrompt_tooltip": "This prompt is used to generate the initial scene description at the start of a conversation.",
+    "exampleMessagesScript": "Example messages script",
+    "action_prompt_tooltip": "This prompt instructs the AI on how to detect and format game actions based on the conversation.",
+    "title": "Prompts",
+    "incomingLetterPrompt": "Incoming Letter prompt",
+    "incomingLetterPrompt_tooltip": "This prompt controls NPC-initiated letters written to the player. Character data and game facts are injected automatically. Use {{senderName}}, {{playerName}}, and {{letterLanguage}}.",
+    "narrativePrompt_tooltip": "This prompt is used to generate AI narrative descriptions after actions are triggered.",
+    "restoreError": "Error restoring default prompts: {{error}}",
+    "letterPrompt_tooltip": "This prompt controls the writing instructions for AI-generated letter replies. Use {{letterLanguage}} to reference the required reply language. Character data and letter content are injected automatically.",
+    "memoriesPrompt": "Memories prompt",
+    "sceneDescriptionPrompt": "Scene Description prompt",
+    "letter_tooltip": "Prompt for generating letter replies.",
+    "letterPrompt": "Letter Reply prompt",
+    "characterDescriptionScript": "Character Description script",
+    "mainPrompt": "Main prompt"
   },
   "settings": {
     "chronicleTitle": "Court Historian",
@@ -224,7 +331,6 @@
     "chronicleRawSourceCharLimit_tooltip": "Maximum total characters of raw source material sent to the model. Sources exceeding this limit are summarized.",
     "chronicleOutputMaxTokens": "Chronicle output max tokens",
     "chronicleOutputMaxTokens_tooltip": "Maximum tokens for the generated chronicle entry.",
-
     "header": "設定",
     "max_tokens": "最大新規トークン数",
     "max_tokens_tooltip": "AIが1回の応答で生成できるトークン（単語/文字）の最大数。値が大きいほど、より長い返信が可能になります。",
@@ -336,7 +442,121 @@
     "enable_quick_model_targeting": "クイックモデル指定を有効化",
     "enable_quick_model_targeting_tooltip": "有効にすると、クイックモデルがどのキャラクターに話しかけているかを自動判定します。クイックモデル接続の設定が必要です。",
     "cleartargetaftersend": "送信後に指定を解除",
-    "cleartargetaftersend_tooltip": "メッセージ送信後、対象キャラクターの選択を自動的にリセットします"
+    "cleartargetaftersend_tooltip": "メッセージ送信後、対象キャラクターの選択を自動的にリセットします",
+    "saveFactsDiagnostics": {
+      "entityCount": "Entities",
+      "injectedFacts": "Injected facts",
+      "warnings": "Warnings",
+      "parseDuration": "Parse duration (ms)",
+      "code": "Error code",
+      "categoryCounts": "Facts per category",
+      "status": "Status",
+      "injectedTokens": "Injected tokens",
+      "parserVersion": "Parser version",
+      "ck3Version": "CK3 version",
+      "factCount": "Facts",
+      "asOf": "Facts as of",
+      "waitDuration": "Wait duration (ms)",
+      "sourceFormat": "Source format"
+    },
+    "saveFactsAgencyVerifyEnabled": "Agency save verification",
+    "workbenchQuotaMB": "Storage quota per scope (MB)",
+    "workbenchQuotaMB_tooltip": "Maximum total size of captured samples per campaign/player scope, in megabytes.",
+    "saveFactsWarEnabled": "War facts",
+    "generateSceneDescription_tooltip": "Generate a scene description at the start of a conversation to provide context and background for the characters.",
+    "workbenchCaptureEnabled": "Capture conversation samples",
+    "agencyPromptMaxTokens_tooltip": "Maximum prompt tokens allowed for a single Agency extraction call. Recommended 400-1500.",
+    "agencyEnabled": "Enable Agency ledger",
+    "saveFactsDirectRealmEnabled": "Direct realm relation facts",
+    "shuffleCharacterOrder": "Shuffle character order",
+    "validateCharacterIdentity_tooltip": "When streaming is disabled and there are more than two characters, validate that the generated message matches the speaker. If validation fails, regenerate up to three times.",
+    "memoriesInsertDepth": "Memories insert depth",
+    "autoGenerateSuggestions": "Auto-generate suggestions",
+    "workbenchStorageNote": "Captured samples contain game data snapshots and full prompt content. They are stored on this machine only and are never uploaded.",
+    "workbenchTitle": "Prompt Workbench",
+    "cleanMessages": "Clean messages",
+    "saveFactsPromptEnabled": "Use filtered save facts in prompts",
+    "total_memories": "Player Character Total Memories: {count}",
+    "saveFactsViewDiagnostics": "View diagnostics",
+    "showSuggestionsButton_tooltip": "Show or hide the suggestions button in the chat window.",
+    "memory_compaction_header_tooltip": "Memory compaction automatically compresses long conversation histories.",
+    "workbenchSaveError": "Failed to save Prompt Workbench settings: {{error}}",
+    "saveFactsPromptEnabled_tooltip": "Send facts filtered for relevance and visibility together with the normal prompt.",
+    "workbenchOpenWindow": "Open Prompt Workbench",
+    "maxSummaryTokens_tooltip": "Limit prior conversation summaries. The newest summaries are retained and sent in chronological order.",
+    "instructTitle": "Instruct settings",
+    "repetitionDetectionEnabled_tooltip": "Detect when AI responses are too similar to recent responses and log a warning.",
+    "workbenchPrivacyNote": "These files may contain sensitive in-game information (secrets, schemes, memories) and may include projected save-game facts. Share them only with recipients you trust.",
+    "autoSendSuggestion_tooltip": "When enabled, selecting a suggestion sends it automatically without an extra send action.",
+    "saveFactsCourtEnabled": "Council/court facts",
+    "workbenchOpenWindow_tooltip": "Open the Prompt Workbench window to browse captured samples and preview their baseline prompts.",
+    "workbenchInvalidRetainCount": "Samples kept must be an integer between 1 and 200.",
+    "saveFactsDiagnosticsEmpty": "No save-fact diagnostics available. Enable diagnostics and start a conversation with save facts enabled first.",
+    "workbenchInvalidQuota": "Storage quota must be a positive number of MB.",
+    "dumpPrompts": "Dump prompts to disk",
+    "manual_letter_approval": "manual letter action approval",
+    "workbenchStorageDir": "Capture directory",
+    "saveFactsRealmEnabled": "Realm facts",
+    "saveFactsLocationEnabled": "Location facts",
+    "saveFactsPromptDependsOnParsing": "Requires snapshot parsing to be enabled.",
+    "workbenchLoadError": "Failed to load Prompt Workbench settings: {{error}}",
+    "saveFactsDeltaEnabled": "Save-fact change tracking",
+    "agencyDriveCharacterSelection": "Drive character selection",
+    "agencyPromptMaxTokens": "Agency prompt max tokens",
+    "saveFactsDynamicTokenBudget": "Dynamic fact token budget",
+    "cleanMessages_tooltip": "The mod will try to remove parts of messages that the LLM should not have generated, such as emojis.",
+    "manual_letter_approval_tooltip": "If enabled, actions triggered by AI letters must be manually approved or denied by the user in the letters tab before they are executed.",
+    "aiStartConversationChance": "AI start conversation chance (%)",
+    "saveFactsBaselineTokenBudget": "Baseline fact token budget",
+    "streamMessages": "Stream messages",
+    "descInsertDepth": "Character description insert depth",
+    "validateCharacterIdentity": "Validate character identity",
+    "maxTokens": "Max new tokens",
+    "saveFactsPrivacyNote": "Filtered relevant facts are sent with the normal prompt to your configured model service. The full save game is never uploaded.",
+    "memory_compaction_desc_tooltip": "Automatically compresses conversation history to save context space while preserving key narrative details.",
+    "saveFactsParsingEnabled_tooltip": "In CK3 debug mode, automatically wait for and parse the conversation save snapshot. Normal mode skips parsing.",
+    "saveFactsBaselineTokenBudget_tooltip": "Token budget for the stable baseline fact block (default 400).",
+    "shuffleCharacterOrder_tooltip": "Randomize the order in which characters generate messages in multi-character conversations. This may confuse character identity in LLM output.",
+    "showSuggestionsButton": "Show suggestions button",
+    "saveFactsParsingEnabled": "Parse automatic snapshots in CK3 debug mode",
+    "agencyDriveCharacterSelection_tooltip": "When enabled, the Agency projection feeds into the dynamic character-selection hints (only used when Agency is also enabled).",
+    "saveFactsTitle": "Save-game facts (experimental)",
+    "workbenchCaptureEnabled_tooltip": "Capture the exact prompts sent to the API together with a game data snapshot, so they can be replayed and compared in the Prompt Workbench.",
+    "dynamicCharacterSelection_tooltip": "Use the LLM to analyze the conversation and select the next character to speak from characters who have not spoken in the current round.",
+    "saveFactsCategories": {
+      "tooltip": "Which fact categories may be collected and used."
+    },
+    "saveFactsFamilyEnabled": "Family facts",
+    "agencyIncludeInIncomingLetters": "Inject into incoming letters",
+    "workbenchFixtureImportEnabled": "Allow fixture bundle imports",
+    "textGenerationParameters": "Text-generation parameters",
+    "inputSequence": "Input sequence",
+    "summariesInsertDepth": "Summaries insert depth",
+    "repetitionDetectionEnabled": "Repetition detection",
+    "generateSceneDescription": "Generate scene description",
+    "saveFactsDiagnosticsEnabled_tooltip": "Allow viewing sanitized diagnostics about the last save-fact preparation.",
+    "maxSummaryTokens": "Max summary tokens",
+    "workbenchFixtureImportEnabled_tooltip": "Allow importing fixture bundle files in the Prompt Workbench. Only import bundles from people you trust because they can contain game data and prompt text.",
+    "maxMemoryTokens": "Max memory tokens",
+    "agencyTitle": "Agency ledger",
+    "workbenchRetainCount": "Samples kept per scope",
+    "saveFactsDiagnosticsEnabled": "Save-fact diagnostics",
+    "outputSequence": "Output sequence",
+    "dynamicCharacterSelection": "Dynamic character selection",
+    "saveFactsDynamicTokenBudget_tooltip": "Token budget for the per-turn dynamic fact block (default 800).",
+    "autoSendSuggestion": "Auto-send suggestion",
+    "saveFactsActivityEnabled": "Activity facts",
+    "workbenchFirstEnableNotice": "Enable prompt capture?\n\nCaptured conversation samples (game data snapshots and full prompt content) will be stored locally in:\n{{dir}}\n\nThese files may contain sensitive in-game information and are never uploaded. Up to {{retainCount}} samples are kept per campaign/player scope, within a {{quotaMB}} MB quota per scope.\n\nEnable capture now?",
+    "saveFactsDebugOnlyNote": "Automatic save parsing runs only when CK3 is launched in debug mode. In normal mode CK3 still keeps votc_context.ck3, but VOTC skips parsing and starts the conversation with live GameData only.",
+    "autoGenerateSuggestions_tooltip": "When enabled, suggestions are generated automatically at the start of a conversation and after each dialogue round.",
+    "use_clipboard_triggers_tooltip": "When enabled, the app also listens to the clipboard for VOTC commands (legacy behavior). Disable to rely solely on debug.log keyword triggers.",
+    "agencyIncludeInIncomingLetters_tooltip": "When enabled, the sender's Agency projection is injected into the incoming-letter generator prompt (only used when Agency is also enabled).",
+    "dumpPrompts_tooltip": "Save each API request and response as a JSON file under votc_data/prompt_dumps/ for debugging.",
+    "agencyEnabled_tooltip": "Default OFF. When enabled, lifecycle events (conversation close, outgoing letter, incoming letter, battle report) trigger an LLM extraction that updates the per-character Agency ledger (intents, tasks, known facts). Open the Agency Manager from the system tray menu to inspect and edit the ledger.",
+    "workbenchRetainCount_tooltip": "How many of the newest captured samples are kept per campaign/player scope. Older samples are removed once this count is exceeded.",
+    "aiStartConversationChance_tooltip": "Chance that AI characters will start a conversation on their own when the chat window opens.",
+    "title": "Settings",
+    "use_clipboard_triggers": "use clipboard triggers"
   },
   "system": {
     "update": "アップデート",
@@ -408,7 +628,14 @@
       "ミス",
       "マダム",
       "ダーム"
-    ]
+    ],
+    "currentVersion": "Current app version: {{version}}",
+    "clearSummariesHelp": "This will delete the summaries of previous conversations for all characters.",
+    "checkForUpdatesOnStartup": "Check for updates on startup",
+    "logFilesHelp": "If you experience errors or crashes, send the logs to our Discord server.",
+    "logFiles": "Log files",
+    "clearSummaries": "Clear conversation summaries",
+    "currentVersionLoading": "Current app version: "
   },
   "compaction": {
     "cooldown_label": "クールダウン",
@@ -424,7 +651,8 @@
     "phase2_threshold": "フェーズ2のしきい値 (要約)",
     "phase2_threshold_tooltip": "この数のフェーズ1の要約が存在する場合、フェーズ2の圧縮がそれらを長期的な知識グラフに統合します。",
     "status_idle": "アイドル",
-    "status_running": "圧縮中..."
+    "status_running": "圧縮中...",
+    "phase1_threshold_tooltip": "When token usage exceeds this percentage of context limit, Phase 1 compaction will run to summarize old messages."
   },
   "chat": {
     "target_label": "ターゲットキャラクター：",
@@ -473,7 +701,37 @@
     "generation_cancelled": "ユーザーによって生成がキャンセルされました。",
     "config_tooltip": "設定パネルを開く",
     "restore_config_tooltip": "設定パネルを復元",
-    "loading_placeholder": "会話に接続中..."
+    "loading_placeholder": "会話に接続中...",
+    "suggestionsHeader": "Suggested replies",
+    "placeholder": "Write a message...",
+    "editGenerationInProgress": "A reply is being generated; please wait",
+    "actionApproved": "Approved",
+    "turnControls": "Current turn controls",
+    "pendingActionApproval": "Approval required",
+    "editPendingAction": "Approve or decline the pending action first",
+    "actionFailed": "Action failed",
+    "sceneDescription": "Scene description",
+    "closeSuggestions": "Close suggestions",
+    "retractMessage": "Retract",
+    "declineAction": "Decline",
+    "saveFacts": {
+      "loading": "Reading current save-game facts…",
+      "errorCodeLabel": "Error code: {{code}}",
+      "available": "Loaded {{count}} relevant save-game facts",
+      "disabled": "Save-game facts are disabled",
+      "fallback": "Save-game facts could not be read this time; using live game data",
+      "unsupported": "The current save format is not supported for save-game facts"
+    },
+    "editCommittedAction": "This turn has already written an action to the game and cannot be safely changed",
+    "regenerateResponse": "Regenerate",
+    "regenerateResponseTitle": "Keep your message and generate this turn's reply again",
+    "retractMessageTitle": "Retract this turn and return your message to the input",
+    "showSuggestions": "Show suggestions",
+    "editNoPlayerMessage": "There is no player message to change yet",
+    "editConversationClosed": "The conversation has ended and can no longer be changed",
+    "noSuggestions": "No suggested replies",
+    "approveAction": "Approve",
+    "endConversation": "END CONVERSATION"
   },
   "narrative": {
     "fallback_prompt": "次の会話に基づいて、シーンの雰囲気やキャラクターの心情を描写する短いナラティブを生成してください。ナラティブは簡潔で鮮やか、50〜100語の長さにしてください。",
@@ -797,7 +1055,27 @@
       "gplv3_notice_p1": "このプログラムはフリーソフトウェアです。フリーソフトウェア財団が発行したGNU一般公衆利用許諾契約書の条件に従って、これを再配布および/または変更することができます。ライセンスのバージョン3、または（あなたの選択で）それ以降の任意のバージョンです。",
       "gplv3_notice_p2": "このプログラムは有用であることを期待して配布されていますが、いかなる保証もありません。商品性または特定目的への適合性の暗黙の保証さえありません。詳細については、GNU一般公衆利用許諾契約書を参照してください。",
       "gplv3_notice_p3": "あなたはこのプログラムと共にGNU一般公衆利用許諾契約書のコピーを受け取っているはずです。そうでない場合は、<https://www.gnu.org/licenses/>を参照してください。"
-    }
+    },
+    "windowTitle": "Welcome to Voices of the Court - Guide",
+    "dontShowAgain": "Don't show again",
+    "versionLabel": "Version",
+    "tab": {
+      "quickstart": "Quick Start",
+      "config": "Configuration",
+      "about": "About",
+      "troubleshooting": "Troubleshooting",
+      "features": "Features"
+    },
+    "heading": {
+      "quickstart": "Quick Start",
+      "config": "Configuration",
+      "troubleshooting": "Troubleshooting",
+      "features": "Features",
+      "about": "About"
+    },
+    "startUsing": "Get started",
+    "title": "Welcome to Voices of the Court",
+    "htmlTitle": "Welcome to Voices of the Court"
   },
   "dialog": {
     "update_title": "アップデートが利用可能",
@@ -836,7 +1114,23 @@
     "megamod_detected_title": "メガMODが検出されました",
     "megamod_detected_message": "メガMOD「{modName}」が有効になっています。対応するプロンプトプリセットを有効にしますか？",
     "megamod_detected_detail": "これにより、プロンプトがメガMODのテーマとスタイルに一致するように設定されます。",
-    "dont_ask_again": "このメガMODについては今後表示しない"
+    "dont_ask_again": "このメガMODについては今後表示しない",
+    "clearSummariesMessage": "Are you sure you want to clear conversation summaries?",
+    "timelineParentMissingDetail": "Missing parent node: {{parentId}}\n\nThe current event was still saved, but it is not linked to the timeline branch graph. To recover, either:\n1. Restore the timeline registry from a backup (for example from the pre_migration_backup folder or your own backup), or\n2. Delete the registry file in the timeline_registry folder. A fresh timeline will be created and the old branch history will be lost.\n\nIf this keeps happening, please report it with your timeline_registry folder.",
+    "timelineProtocolUnsupportedDetail": "Protocol schema: {{schema}}\n\nYour mod and app versions are out of sync. Update both Voices of the Court (this app) and the VOTC mod to their latest matching versions, then restart the game and the app.\n\nTimeline writing stays blocked for this data, but conversations, letters and battle reports continue to work without timeline branching.",
+    "confirm": "Yes",
+    "timelineProtocolUnsupportedTitle": "Timeline protocol not supported",
+    "clearSummariesTitle": "Clear summaries",
+    "timelineParentMissingMessage": "The timeline branch history is inconsistent: a recorded parent checkpoint no longer exists. Timeline writing for this branch was skipped to protect your save.",
+    "updatesTitle": "Updates",
+    "timelineRegistryCorruptTitle": "Timeline data corrupted",
+    "updatesDisabled": "Updates are disabled in development mode.",
+    "cancel": "No",
+    "timelineRegistryCorruptDetail": "Corrupt file: {{filePath}}\n\nA quarantine copy was saved to: {{quarantinePath}}\n\nTimeline writing stays blocked until you resolve this. To recover, either:\n1. Restore a backup: replace the corrupt file with a valid copy (for example from the pre_migration_backup folder next to it, or from your own backup), or\n2. Start over: delete the corrupt file. A fresh timeline will be created on the next event and the old branch history will be lost.\n\nRestart the app after fixing the file.",
+    "timelineProtocolUnsupportedMessage": "The mod sent timeline data using protocol schema {{schema}}, which this version of Voices of the Court does not understand. Timeline writing was blocked to protect your save.",
+    "timelineRegistryCorruptNoQuarantine": "(quarantine copy could not be created)",
+    "timelineRegistryCorruptMessage": "The timeline branch history is damaged. Voices of the Court has stopped writing timeline data to protect your save.",
+    "timelineParentMissingTitle": "Timeline branch broken"
   },
   "diary_manager": {
     "header": "日記マネージャー",
@@ -878,13 +1172,17 @@
     "update_success": "日記エントリが更新されました",
     "select_first": "最初に更新する日記エントリを選択してください",
     "added_new": "新しい日記エントリが追加されました",
-    "regenerating_summaries": "編集されたエントリの要約を再生成しています..."
+    "regenerating_summaries": "編集されたエントリの要約を再生成しています...",
+    "close_btn": "Close"
   },
   "tray": {
     "open_config": "設定ウィンドウを開く",
     "check_updates": "アップデートを確認..",
     "exit": "終了",
-    "tooltip": "Voices of the Court 2.0 - Community Edition CK3 モッド"
+    "tooltip": "Voices of the Court 2.0 - Community Edition CK3 モッド",
+    "checkUpdates": "Check for updates..",
+    "openConfig": "Open config window",
+    "openAgencyManager": "Open Agency Manager"
   },
   "parameters": {
     "temperature": "温度",
@@ -986,7 +1284,14 @@
     "action_signature": "アクション",
     "action_trigger": "トリガー",
     "no_actions_triggered": "トリガーされたアクションはありません。",
-    "player_mismatch_warning": "警告: 選択したプレイヤーは現在プレイ中のキャラクターではありません。承認したアクションは、そのプレイヤーがプレイされるまでキューに入れられます。"
+    "player_mismatch_warning": "警告: 選択したプレイヤーは現在プレイ中のキャラクターではありません。承認したアクションは、そのプレイヤーがプレイされるまでキューに入れられます。",
+    "action_approve_tooltip": "Approve this action and apply its effects in-game.",
+    "action_approved": "Action approved: {signature}",
+    "action_denied": "Action denied: {signature}",
+    "deny_action": "Deny",
+    "refreshing_in": "Refreshing in {seconds}s...",
+    "action_deny_tooltip": "Deny this action. It will not be executed.",
+    "approve_action": "Approve"
   },
   "history": {
     "header": "会話履歴ビューアー",
@@ -1004,7 +1309,41 @@
     "loading_content": "会話内容を読み込み中...",
     "content_success": "会話内容が正常に読み込まれました",
     "content_fail": "会話内容の読み込みに失敗しました：",
-    "no_player_id": "ゲームログからプレイヤー ID を解析できません"
+    "no_player_id": "ゲームログからプレイヤー ID を解析できません",
+    "section_kicker": "CHRONICLE",
+    "battle_content_title": "Battle report",
+    "listTitle": "Conversation history list",
+    "letterContentTitle": "Letter correspondence",
+    "windowTitle": "Conversation History - Voices of the Court",
+    "no_letters": "No letter correspondence",
+    "tab_letters": "Letters",
+    "title": "Conversation History",
+    "checkpoint_label": "CHECKPOINT",
+    "tab_battles": "Battle reports",
+    "battleContentTitle": "Battle report",
+    "initFailed": "Initialization failed: {{error}}",
+    "contentLoadFailed": "Failed to load conversation content: {{error}}",
+    "selectArchivePrompt": "Select an archive entry from the list to view its contents",
+    "contentLoadSuccess": "Conversation content loaded",
+    "archiveTitle": "Archive",
+    "narratorPrefix": "Narration",
+    "contentTitle": "Conversation content",
+    "no_battle_reports": "No battle reports",
+    "noFiles": "No conversation history files",
+    "loadingData": "Loading conversation history data...",
+    "letter_content_title": "Letter correspondence",
+    "datePrefix": "Date",
+    "tabConversations": "Conversations",
+    "tabBattles": "Battle reports",
+    "tab_conversations": "Conversations",
+    "noPlayerId": "Could not parse player ID from the game log",
+    "noLetters": "No letter correspondence",
+    "selectPrompt": "Select a conversation file from the list to view its contents",
+    "noBattleReports": "No battle reports",
+    "loadFailed": "Failed to load conversation history: {{error}}",
+    "tabLetters": "Letters",
+    "loadSuccess": "Conversation history loaded",
+    "loadingContent": "Loading conversation content..."
   },
   "prompt_builder": {
     "summary_header": "過去の会話の日付と要約は次のとおりです："
@@ -1128,7 +1467,8 @@
     "instruction": "以下の情報に基づいて、簡潔で雰囲気のある第三者のシーン説明（50〜100語）を生成してください。キャラクターの考えや対話は含めないでください。設定と雰囲気のみを説明してください：",
     "description_label": "現在の会話情報：",
     "system_prompt": "あなたは、ロールプレイングゲームの鮮やかなシーンの雰囲気の説明を作成する責任があるシーン説明生成アシスタントです。",
-    "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。"
+    "fallback_description": "{{date}}に、{{playerName}}と{{aiName}}は{{location}}で会話を始めました。",
+    "priority_elements_tooltip": "These elements get higher relevance scores during summarization"
   },
   "chatgpt": {
     "continue": "ChatGPT で続行",
@@ -1221,6 +1561,26 @@
     "status": {
       "ready": "Ready",
       "empty": "Empty"
+    },
+    "export": {
+      "tooltip": "Export every history visible on the current timeline (conversations, letters, battle reports, chronicle). The archive contains character secrets, relations, memories and schemes - review before sharing.",
+      "button": "Export current timeline",
+      "error": {
+        "export_context_changed": "History kept changing during the export. Stop generating new content and try again.",
+        "export_invalid_target": "The export can only be started from the chronicle window, or the target file name is invalid.",
+        "generic": "The export could not be completed. Check the application log for details.",
+        "export_context_unavailable": "Campaign, player, timeline node or game date is incomplete. Reopen the chronicle window and make sure the mod matches this app version.",
+        "export_target_replace_failed": "The destination file could not be replaced. Close programs using it or choose a different file name.",
+        "export_source_corrupt": "Some history files are damaged, so no incomplete archive was written. Check the application log or restore a backup.",
+        "export_archive_invalid": "The generated archive failed verification. Nothing was published; please retry.",
+        "export_write_failed": "Writing the archive failed. Check free disk space and permissions, then retry.",
+        "export_unsupported_schema": "A history file was written by a newer app version. Update the app and retry.",
+        "export_too_large": "The history exceeds the export size limit of this version. Nothing was written."
+      },
+      "success": "Export finished: {{path}}",
+      "saveDialogTitle": "Export current timeline archive",
+      "working": "Collecting and exporting...",
+      "successWithWarnings": "Export finished with {{count}} entries and {{warnings}} compatibility notes."
     }
   },
   "whispers": {
@@ -1248,8 +1608,7 @@
     "section_court": "あなたの宮廷",
     "section_circle": "内輪",
     "search_placeholder": "ささやきを検索...",
-    "tooltip_search": "セクション、キャラクター、またはコンテンツによってささやきを検索します。",
-    "delete_success": "ささやきを削除しました"
+    "tooltip_search": "セクション、キャラクター、またはコンテンツによってささやきを検索します。"
   },
   "incomingLetters": {
     "types": {
@@ -1281,5 +1640,2026 @@
     },
     "default_prompt": "Write a short letter body from {{senderName}} to {{playerName}} in {{letterLanguage}}, based on character personality, background, relationship, memories, and current game context. Output only plain text, no line breaks, no quotes, no Markdown, max 200 characters.",
     "stable_policy": "You are a letter-writing assistant. Subsequent messages will provide sender and recipient descriptions, relevant summaries and memories, confirmed game facts, and specific writing requirements. Strictly follow this information to write the letter body in the sender's voice."
+  },
+  "button": {
+    "browseModels": "Browse models..",
+    "reloadFiles": "Reload files",
+    "clearSummaries": "Clear Summaries",
+    "openLogFolder": "Open log files folder",
+    "openFolder": "Open folder",
+    "openSummariesFolder": "Open conversation summaries folder",
+    "selectFolder": "Select Folder",
+    "restoreDefaultPrompts": "Restore default prompts",
+    "checkUpdates": "Check for updates..",
+    "testConnection": "Test Connection"
+  },
+  "workbench": {
+    "outcome": {
+      "pending": "Pending",
+      "succeeded": "Succeeded",
+      "failed": "Failed"
+    },
+    "simple": {
+      "cta": {
+        "checkReadiness": "Check data and continue",
+        "discardTask_description": "Remove the simple-mode task record. Past paid work stays in the audit log.",
+        "startHoldout": "Run formal holdout",
+        "submitChoice_description": "Freeze the picked finalist and drive validation + holdout preparation.",
+        "checkReadiness_description": "Run a read-only readiness check. Nothing is sent to the model yet.",
+        "applyPromotion_description": "Promote the picked candidate to production. Requires approval and the apply gate to be on.",
+        "viewComparison": "View before/after comparison",
+        "createPromotionPlan_description": "Pin the candidate + holdout evidence to a plan record. Does not change production config.",
+        "prepareTask": "Prepare task",
+        "editCost_description": "Pick a different preset (quick / standard / thorough) and re-prepare.",
+        "recheckReadiness": "Re-check readiness",
+        "editCost": "Edit cost plan",
+        "cancelTask_description": "Discard the prepared task. Does not affect any past paid work.",
+        "cancelTask": "Cancel task",
+        "prepareTask_description": "Create the optimization session and lock the plan + cost estimate.",
+        "applyPromotion": "Apply to production",
+        "editGoal": "Edit goal",
+        "openCaptureSettings": "Open capture settings",
+        "submitChoice": "Submit choice",
+        "stopQueued_description": "Cancel pending requests. Already-in-flight requests still complete and are billed.",
+        "back": "Back",
+        "confirmAndRun": "Confirm cost and run search",
+        "viewComparison_description": "Open the full evidence card (run status, token usage, failure breakdown).",
+        "skipHoldout_description": "Skip the holdout. You will not be able to create a promotion plan without it.",
+        "startHoldout_description": "Pay for the holdout run. One session gets exactly one formal holdout.",
+        "openCaptureSettings_description": "Capture is off. Open settings to enable it.",
+        "recheckReadiness_description": "Re-run the readiness check after you fix a blocker.",
+        "skipHoldout": "Skip holdout",
+        "createPromotionPlan": "Create promotion plan",
+        "editGoal_description": "Go back to the goal step and adjust the goal text or protected rules.",
+        "stopQueued": "Stop queued requests",
+        "discardTask": "Discard task",
+        "confirmAndRun_description": "Approve the cost estimate. Starts the paid search + validation run.",
+        "paidCallBlocked": "This action needs the cost confirmation to be re-collected (e.g. after a readiness hash change)."
+      },
+      "readiness": {
+        "blocker": {
+          "noCompatibleFixtures": "No usable fixtures are available ({{available}} captured, {{scope}} match the scope). Capture more samples or pick a different scope.",
+          "activePaidJob": "Another paid workbench job is already running ({{jobId}} / {{kind}}). Wait for it to finish or cancel it before starting a simple-mode task.",
+          "independentGroupCountLow": "Only {{groups}} independent groups are available; full search needs at least {{threshold}}. The simple mode will fall back to a quick run.",
+          "proposerConnectionMissing": "No API connection is configured for the proposal model. Open model settings and pick one before running an auto search.",
+          "targetConnectionMissing": "No API connection is configured for the target (text-generation) model. Open model settings and pick one before continuing.",
+          "judgeConnectionMissing": "No API connection is configured for the judge. Open model settings and pick a dedicated judge model before running a full search.",
+          "noCurrentCalibration": "No current judge calibration exists for the default rubric. Start a calibration before requesting a full search.",
+          "captureOff": "Prompt capture is turned off. Enable it in settings so the workbench can collect conversation samples.",
+          "baselineUnmappable": "The current production prompt variant cannot be packaged as a baseline candidate. The simple task will start from a captured baseline instead.",
+          "incompatibleFixtures": "{{count}} fixture(s) are stored but cannot be benchmarked in the current builder version. They will be excluded from the plan.",
+          "calibrationStale": "The latest judge calibration ({{calibrationId}}) does not match the current rubric hash. Re-run calibration before a full search."
+        },
+        "mode": {
+          "capture-required": "Capture is required first",
+          "quick": "Quick mode",
+          "calibration-required": "Calibration or multi-model review required",
+          "full": "Full mode"
+        },
+        "blockers": {
+          "title": "Blockers"
+        },
+        "judgeEnsemble": {
+          "multiModel": "{{count}} scoring profiles configured (multi-model majority vote; calibration skipped)",
+          "single": "{{count}} scoring profile configured (single judge; calibration required)"
+        },
+        "empty": "Run a readiness check to see what the wizard can use.",
+        "summary": "Found {{groups}} independent groups across {{fixtures}} compatible fixtures."
+      },
+      "promotion": {
+        "planReady": "Plan ready: {{planId}}",
+        "holdoutRequired": "A completed formal holdout is required before a promotion plan can be created.",
+        "applyHint": "Apply writes to the production config. The apply gate in Settings must be on, and the production config hash must match the plan.",
+        "noTask": "No task is ready for promotion.",
+        "intro": "The plan pins the candidate + holdout evidence so you can review the diff before applying to production."
+      },
+      "holdout": {
+        "confirmCost": "I understand the holdout is a paid run that will only execute once.",
+        "noTask": "No task is ready for holdout.",
+        "completed": "Holdout completed ({{perCaseCount}} per-case comparisons recorded)."
+      },
+      "stage": {
+        "running-holdout": "Holdout in progress",
+        "done": "Done",
+        "ready": "Ready",
+        "preparing": "Preparing",
+        "validating": "Validation in progress",
+        "generating-and-searching": "Search in progress",
+        "ready-to-apply": "Ready to apply",
+        "waiting-for-choice": "Awaiting your choice",
+        "needs-attention": "Needs attention",
+        "stopped": "Stopped"
+      },
+      "disabled": {
+        "title": "The simple-mode wizard is disabled",
+        "openSettings": "Open settings",
+        "banner": "Simple mode is disabled",
+        "body": "The wizard has been turned off in the workbench config. Open Settings to re-enable it, or use the Advanced tools menu to drive the optimization manually."
+      },
+      "step": {
+        "confirm": {
+          "title": "Review the cost and run"
+        },
+        "goal": {
+          "title": "Tell us what to improve"
+        },
+        "running": {
+          "title": "Search and validation"
+        },
+        "readiness": {
+          "title": "Readiness check"
+        },
+        "holdout": {
+          "title": "Formal holdout"
+        },
+        "result": {
+          "title": "Pick a finalist"
+        },
+        "promotion": {
+          "title": "Promotion plan"
+        }
+      },
+      "result": {
+        "candidates": {
+          "changed": "Changed vs baseline",
+          "evidence": "Run evidence",
+          "title": "Candidate details",
+          "prompt": "Show prompt"
+        },
+        "noTask": "No task is ready to compare.",
+        "recommendation": {
+          "insufficient-evidence": "Recommendation: evidence is inconclusive",
+          "promote-picked": "Recommendation: promote the picked finalist",
+          "keep-baseline": "Recommendation: keep the current baseline"
+        },
+        "picker": {
+          "ariaLabel": "Finalist options"
+        },
+        "noSummary": "The auto-search has not produced finalists yet.",
+        "intro": "Pick a finalist. The comparison card below explains what the search found."
+      },
+      "error": {
+        "judgeCountChanged": "The number of judge connections changed after this task was prepared. Re-run the readiness check and prepare the task again.",
+        "internal": "The simple-mode request failed unexpectedly: {{message}}",
+        "judgeConfigChanged": "The judge connections changed after this task was prepared. Re-run the readiness check and prepare the task again.",
+        "validationNotRun": "The simple-mode task '{{taskId}}' has not driven a validation plan to a terminal state yet. Run the wizard's 'choose a finalist' step first.",
+        "createPromotionPlanFailed": "The promotion plan could not be created: {{message}}",
+        "notReadyForPromotion": "The simple-mode task is in stage '{{stage}}'; the promotion plan can only be created after the holdout finishes.",
+        "sessionNotSeeded": "The optimization session for task '{{taskId}}' is missing. Re-open the wizard and click 'prepare' again so the session is reseeded before confirming the cost estimate.",
+        "searchFailed": "The auto-search run failed: {{message}}",
+        "feedbackSaveFailed": "Could not persist the optimization goal as session feedback: {{warning}}",
+        "sidecarWriteFailed": "Could not write the simple-mode task sidecar: {{warning}}",
+        "invalidTaskId": "The task id is missing or does not match the safe id pattern.",
+        "campaignIdRequired": "Pick a campaign or use the 'all campaigns' scope.",
+        "sessionCreateFailed": "Could not create the underlying optimization session: {{warning}}",
+        "proceedToValidationFailed": "Could not start the validation plan: {{message}}",
+        "invalidSchemaVersion": "The renderer is using a different schema version than the main process. Restart the workbench window.",
+        "goalInvalid": "The goal text failed validation. {{message}}",
+        "confirmAlreadyStarted": "This simple-mode task is already running with a different request id. Wait for the current search to finish (or open the task's 'view active job' card) before trying again.",
+        "costConfirmedFlagMissing": "The renderer must set costConfirmed=true (or false) when asking the holdout job to start.",
+        "noFinalistSelected": "The simple-mode task '{{taskId}}' has no picked finalist. Submit a choice before asking for the comparison.",
+        "presetInvalid": "Pick one of the three presets (quick, standard, thorough).",
+        "taskDeleteFailed": "Could not remove the simple-mode task record: {{warning}}",
+        "confirmAndRunPending": "Confirming and running the simple-mode optimization lands in the next milestone. The form is ready; the paid call is not wired up yet.",
+        "sidecarUpdateFailed": "Could not update the simple-mode task sidecar: {{warning}}",
+        "searchStartFailed": "The optimization session could not be driven into the search stage: {{message}}",
+        "promptModeInvalid": "Unknown prompt mode '{{mode}}'. Pick a mode from the conversation, self-talk, or AI-to-AI list.",
+        "holdoutFailed": "The formal holdout did not complete: {{message}}",
+        "runHoldoutPending": "Running the holdout job lands in a later milestone. The form is ready; the wired call is not.",
+        "notAwaitingChoice": "The simple-mode task is in stage '{{stage}}'; submit a finalist only after the auto-search has produced its finalists.",
+        "freezeFinalistsFailed": "Could not freeze the picked finalist: {{message}}",
+        "costPlanFailed": "The cost planner could not produce an estimate: {{message}}",
+        "baselineCreateFailed": "Could not persist the baseline candidate: {{warning}}",
+        "completeValidationPlanFailed": "Could not complete the validation plan: {{message}}",
+        "noConnection": "No API connection is configured. Open the model settings and configure the text-generation connection before preparing a simple-mode task.",
+        "invalidName": "The task name must be 1-120 characters.",
+        "readinessHashInvalid": "The readiness hash is missing or malformed. Re-open the wizard and re-run the readiness check.",
+        "noCompatibleFixtures": "No captured fixtures are eligible for optimization in the selected scope. Capture some conversations first.",
+        "invalidCandidateId": "The candidate id is missing or out of range.",
+        "invalidPlanHash": "The plan hash is missing or malformed. Re-run the prepare step.",
+        "promptModesRequired": "Pick at least one prompt mode (conversation, self-talk, AI-to-AI, or a combination).",
+        "readinessStale": "The workbench state changed since the readiness check. Re-open the wizard and click the readiness check again.",
+        "userCancelled": "The simple-mode task was cancelled at your request.",
+        "notAwaitingHoldout": "The simple-mode task is in stage '{{stage}}'; the holdout can only run after the picked finalist has been frozen by submitChoice.",
+        "activePaidJob": "Another paid workbench job is already running. Wait for it to finish or cancel it before starting a simple-mode task.",
+        "candidateNotInFinalists": "The candidate '{{candidateId}}' is not in the auto-search finalists for this task. Re-open the wizard and pick a finalist from the list.",
+        "invalidClientRequestId": "The client request id is missing or too long.",
+        "notCancellable": "The simple-mode task '{{taskId}}' is in stage '{{stage}}' and can no longer be cancelled.",
+        "promotionPlanPending": "Creating the promotion plan lands in a later milestone. The form is ready; the wired call is not.",
+        "legacyPlayerIdRequired": "Pick a legacy player or use the 'all campaigns' scope.",
+        "scopeInvalid": "The scope must be 'all', { campaignId: '...' }, or { legacyPlayerId: '...' }.",
+        "taskNotFound": "The simple-mode task '{{taskId}}' no longer exists. It may have been removed or never created.",
+        "simpleModeDisabled": "The simple-mode wizard is disabled in the workbench config. Re-enable it in Settings to start a new simple-mode task.",
+        "comparisonPlanMissing": "The validation plan '{{planId}}' is missing on disk. Re-run the validation step to regenerate the comparison evidence.",
+        "planHashMismatch": "The cost estimate changed since you confirmed it. Re-open the prepare step and confirm the new estimate.",
+        "candidateMismatch": "The picked candidate no longer matches the task's frozen selection. Re-open the task and re-pick the finalist before creating the promotion plan.",
+        "invalidPayload": "The renderer payload is malformed. Re-open the wizard and try again.",
+        "validationPlanFailed": "The validation plan did not reach a terminal state: {{message}}",
+        "costNotConfirmed": "Confirm the cost estimate on the prepare step before the holdout job can run."
+      },
+      "goal": {
+        "preset": {
+          "moreProactive": "More proactive",
+          "targetCharacterOnly": "Hit the target character only",
+          "reduceRepetition": "Reduce repetition",
+          "languageFormat": "Language / format",
+          "custom": "Custom",
+          "factAccuracy": "Fact accuracy",
+          "characterConsistency": "Character consistency",
+          "shorterOutput": "Shorter output"
+        },
+        "protectedText": {
+          "add": "+ Add rule",
+          "remove": "Remove",
+          "help": "Add one rule per line. The optimization will refuse any candidate that drops a protected line.",
+          "label": "Rules the candidate must never break"
+        },
+        "intro": "Describe what the prompt should do better, pick a goal preset, and list the rules the candidate must never break.",
+        "presets": {
+          "ariaLabel": "Goal preset chips",
+          "label": "Goal presets"
+        },
+        "text": {
+          "label": "What should improve?"
+        }
+      },
+      "handoff": {
+        "calibration": "Jumped to the calibration flow. Use the Judge & Review panel to record pairwise ratings, then create a fresh calibration.",
+        "activeJob": "Jumped to the workbench tasks. Another job is currently running: {{kind}} / {{jobId}}. Wait for it to finish or cancel it from the Optimization panel.",
+        "activeJobNone": "Jumped to the workbench tasks. No paid job is currently running.",
+        "incompatibleFixtures": "Filtered the sample library to fixtures incompatible with the current builder version. These samples are dropped from the simple-mode plan."
+      },
+      "blocker": {
+        "judge-connection-missing": {
+          "action": "Pick a judge model"
+        },
+        "capture-off": {
+          "action": "Open capture settings"
+        },
+        "no-current-calibration": {
+          "action": "Start calibration"
+        },
+        "independent-group-count-low": {
+          "action": "Run in quick mode"
+        },
+        "active-paid-job": {
+          "action": "View the active job"
+        },
+        "baseline-unmappable": {
+          "action": "Use a captured baseline"
+        },
+        "proposer-connection-missing": {
+          "action": "Pick a proposal model"
+        },
+        "no-compatible-fixtures": {
+          "action": "Capture samples or widen the scope"
+        },
+        "target-connection-missing": {
+          "action": "Open model settings"
+        },
+        "calibration-stale": {
+          "action": "Re-run calibration"
+        },
+        "rubric-missing": {
+          "action": "Pick a default rubric"
+        },
+        "incompatible-fixtures": {
+          "action": "Review incompatible fixtures"
+        }
+      },
+      "confirm": {
+        "requests": "Requests",
+        "assumptions": {
+          "title": "Assumptions"
+        },
+        "planHash": "Plan hash",
+        "limits": "Hard limits",
+        "outputTokens": "Output tokens",
+        "costRange": "Cost range",
+        "inputTokens": "Input tokens",
+        "noTask": "No task is prepared yet.",
+        "awaitingPlan": "Waiting for the cost plan to be prepared."
+      },
+      "taskList": {
+        "empty": "No previous simple-mode tasks yet."
+      },
+      "context": {
+        "promptModes": "Prompt modes",
+        "presetCount": "Goal presets",
+        "title": "What the wizard will use",
+        "preset": "Preset",
+        "scope": "Scope",
+        "protectedCount": "Protected rules"
+      },
+      "comparison": {
+        "evidence": "Evidence quality:",
+        "picked": "Picked candidate",
+        "avgInputTokens": "Avg input tokens",
+        "avgOutputTokens": "Avg output tokens",
+        "failures": "Failures",
+        "baseline": "Baseline",
+        "runs": "Runs",
+        "computedAt": "Computed at:",
+        "hardFailures": "Hard failures",
+        "successes": "Successes"
+      },
+      "status": {
+        "title": "Status"
+      },
+      "running": {
+        "polling": "The wizard polls the run progress every 2.5 seconds. Closing the window keeps the run alive.",
+        "noTask": "No task is running."
+      },
+      "stageBadge": {
+        "empty": "No task yet. Pick a goal to start."
+      }
+    },
+    "rating": {
+      "hardFailures": "Hard failures",
+      "repetitionReverseHint": "reverse-scored: higher = more repetition",
+      "repetition": "Repetition / cliché",
+      "error": {
+        "saveFailed": "Failed to save the ratings.",
+        "scoresRequired": "Please choose a 1-5 score for every dimension."
+      },
+      "note": "Note",
+      "characterConsistency": "Character consistency",
+      "latestTurnRelevance": "Relevance to the latest turn",
+      "reviewerPlaceholder": "Optional reviewer label…",
+      "notePlaceholder": "Optional note…",
+      "edit": "Edit ratings",
+      "factAccuracy": "GameData fact accuracy",
+      "savedTitle": "Ratings saved at {{ratedAt}}",
+      "reviewer": "Reviewer",
+      "submit": "Submit ratings",
+      "targetCharacterOnly": "Speaks only for the target character",
+      "styleCompliance": "Style/format compliance",
+      "formTitle": "Rate this output (1-5)",
+      "dramaticAgency": "Agency and dramatic effect"
+    },
+    "form": {
+      "error": {
+        "templateRequired": "A template is required when the mode is Replace.",
+        "budgetRange": "Token budgets must be integers between {{min}} and {{max}}, or empty to inherit.",
+        "nameRequired": "Name is required."
+      },
+      "description": "Description",
+      "mode": {
+        "remove": "Remove",
+        "replace": "Replace",
+        "inherit": "Inherit"
+      },
+      "save": "Save variant",
+      "variablesHint": "Available variables: {{variables}}",
+      "budgetPlaceholder": "inherit",
+      "cancel": "Cancel",
+      "suffixPolicy": "Suffix policy",
+      "contextOrder": "Context sections (in order)",
+      "maxMemoryTokens": "Max memory tokens",
+      "name": "Name",
+      "variablesHintEmpty": "Select a sample to see its frozen template variables.",
+      "cue": {
+        "exclude": "Exclude",
+        "include": "Include",
+        "inherit": "Inherit"
+      },
+      "includeShortTurnCue": "Short turn cue",
+      "maxSummaryTokens": "Max summary tokens",
+      "policy": "Policy"
+    },
+    "optimization": {
+      "gate": {
+        "candidates": "At least one session candidate",
+        "state": "Session in search_running",
+        "budget_missing": "no budget limits set",
+        "budget": "Budget set (requests/tokens/rounds)",
+        "capability": "Auto search backend ready",
+        "connections_missing": "the judge connection is missing or the session target changed",
+        "lease": "No other paid job running",
+        "connections": "Locked target and judge connections valid",
+        "calibration_missing": "no current calibration",
+        "calibration": "Judge calibration current",
+        "candidates_missing": "no session candidates yet",
+        "lease_busy": "another paid job holds the lease",
+        "groups": "Suite groups in the active split ≥ 30"
+      },
+      "preflight": {
+        "note": "The following requirements must pass before paid auto search can run.",
+        "title": "Auto-search prerequisites"
+      },
+      "edit": {
+        "saved": "Saved edited candidate {{candidateId}} as a new revision.",
+        "riskTags": "Risk tags (comma-separated)",
+        "save": "Save revision",
+        "hypothesis": "Mutation hypothesis",
+        "targetedFailures": "Targeted failures (comma-separated)",
+        "button": "Edit candidate notes"
+      },
+      "auto": {
+        "done": "Auto search finished: {{rounds}} round(s) {{earlyStopped}}.",
+        "run": "Run auto search",
+        "maxRounds": "Max rounds",
+        "k": "K (batch)",
+        "finalists": "Finalists",
+        "beam": "Beam",
+        "earlyStopped": "(early stopped)"
+      },
+      "readiness": {
+        "blocker": {
+          "awaiting-validation-plan-completion": "run the validation plan",
+          "none": "nothing pending",
+          "awaiting-cost-confirmation": "confirm the re-run cost",
+          "awaiting-holdout-plan-completion": "run the holdout",
+          "awaiting-human-review-confirmation": "confirm the human review",
+          "awaiting-candidate-generation": "generate candidates",
+          "awaiting-search-plan-completion": "wait for the search plan",
+          "awaiting-promotion-decision": "decide on promotion",
+          "awaiting-baseline": "prepare the baseline",
+          "awaiting-human-selection": "select finalists",
+          "rejected-by-gate": "rejected by the gate",
+          "awaiting-target-connection": "configure a target connection"
+        },
+        "line": "Step: {{step}} · Next: {{blocker}}",
+        "step": {
+          "search": "Search",
+          "promote": "Promote",
+          "validate": "Validate",
+          "archived": "Archived"
+        }
+      },
+      "recovery": {
+        "voidedNote": "This result has been voided (audit reference only; never issuance evidence).",
+        "aggregate": "Aggregate: {{candidates}}",
+        "hash": "Result hash: {{hash}}",
+        "committed": "Holdout recovery committed: {{hash}}.",
+        "title": "Holdout result recovery",
+        "partialNote": "This result is partial: it is kept as evidence but cannot be committed as issuance evidence. Void it to re-run once, or cancel the session.",
+        "operatorRequired": "Enter the operator name before committing or voiding the result.",
+        "cases": "Cases: {{completed}}/{{expected}} completed · failure rate {{failureRate}}%",
+        "interruptedAt": "Interrupted between saving the result and recording the session reference (write steps 3 → 4); committing runs steps 4–7 only and never re-runs paid requests.",
+        "completed": "Completed: {{completed}}",
+        "operator": "Operator",
+        "noResult": "No persisted holdout result was found for this session.",
+        "voided": "Holdout result voided; the session returned to finalists_frozen (one re-run allowed with a fresh cost confirmation)."
+      },
+      "budget": {
+        "empty": "No budget entries yet.",
+        "state": "{{reserved}} reserved · {{unknown}} unknown · {{wallClockMs}} ms",
+        "exhausted": "Budget exhausted: no further requests are allowed.",
+        "title": "Budget",
+        "requests": "Requests: {{total}} total (target {{target}} · judge {{judge}} · proposer {{proposer}})",
+        "tokens": "Input est/actual: {{inEst}}/{{inAct}} · output est/actual: {{outEst}}/{{outAct}}",
+        "limits": "Limits: max requests {{maxRequests}} · max tokens {{maxTokens}} · max ms {{maxWallClockMs}}"
+      },
+      "action": {
+        "pause": "Pause",
+        "finishHoldout": "Finish holdout",
+        "runHoldout": "Run holdout",
+        "resume": "Resume",
+        "error": {
+          "noChallenger": "Select a challenger candidate before freezing or running holdout."
+        },
+        "confirmCommit": "Confirm recovery commit",
+        "complete": "Complete",
+        "freezeFinalist": "Freeze finalist",
+        "terminalNote": "This session is terminal or interrupted; no stage actions are available.",
+        "voidResult": "Void result (one re-run)",
+        "challenger": "Challenger",
+        "resumeTo": "Resume to",
+        "beginBaseline": "Prepare baseline",
+        "clone": "Clone for further optimization",
+        "runValidation": "Run validation plan",
+        "proceedToValidation": "Enter validation stage",
+        "baselineReady": "Confirm baseline and continue",
+        "validationDone": "Confirm validation and continue",
+        "cancel": "Cancel"
+      },
+      "candidates": {
+        "empty": "No candidates yet. Generate candidates while proposing.",
+        "baseline": "baseline",
+        "title": "Candidates"
+      },
+      "validation": {
+        "planStatus": "Validation plan {{planId}}: {{state}} ({{completed}}/{{total}} runs)",
+        "done": "Validation plan {{planId}} finished; the session advanced to human review."
+      },
+      "create": {
+        "split": "Active split",
+        "budget": {
+          "maxTokens": "Max tokens",
+          "maxRounds": "Max rounds",
+          "maxRequests": "Max requests"
+        },
+        "baseline": "Baseline candidate",
+        "title": "New optimization session",
+        "submit": "Create session",
+        "error": {
+          "baselineNotSelected": "The baseline candidate must be among the selected candidates.",
+          "noConnection": "No API connection is configured.",
+          "incomplete": "Select a suite, rubric, baseline and at least one candidate."
+        },
+        "suite": "Suite",
+        "candidates": "Candidates",
+        "noCandidates": "Create at least one candidate first (Candidates tab).",
+        "rubric": "Rubric"
+      },
+      "accept": {
+        "button": "Accept",
+        "done": "Accepted {{candidateId}}."
+      },
+      "feedback": {
+        "generateHint": "Generating candidates automatically saves feedback entered on this page and uses it for this proposal round.",
+        "saved": "Feedback saved as {{id}}.",
+        "save": "Save feedback",
+        "liked": "Liked examples (one per line)",
+        "error": {
+          "empty": "Enter a goal or at least one example/change before saving."
+        },
+        "title": "Human feedback",
+        "goal": "Goal",
+        "history": "Previous feedback",
+        "requested": "Requested changes (one per line)",
+        "disliked": "Disliked examples (one per line)",
+        "protected": "Protected text (one per line)"
+      },
+      "checkpoint": {
+        "recovery_resumeNo": "no",
+        "line": "Stage {{stage}} · round {{round}} · beam {{beam}} · finalists {{finalists}} · created {{created}}",
+        "empty": "No checkpoint written yet.",
+        "recovery": "Recovery: resume={{resume}} · {{interrupted}} interrupted run(s) · {{reserved}} unsettled reservation(s)",
+        "recovery_resumeYes": "yes",
+        "recover": "Recover",
+        "title": "Checkpoint"
+      },
+      "generate": {
+        "run": "AI generate candidates (calls a model)",
+        "batchSize": "Batch size (2-5)",
+        "saved": "Generated {{count}} candidate(s)."
+      },
+      "stage": {
+        "partial": "Partial",
+        "search_review": "Search review",
+        "holdout_running": "Holdout running",
+        "proposing": "Proposing",
+        "paused": "Paused",
+        "draft": "Draft",
+        "search_running": "Search running",
+        "completed": "Completed",
+        "human_review": "Human review",
+        "finalists_frozen": "Finalists frozen",
+        "baselining": "Baseline preparation",
+        "validation_running": "Validation running",
+        "cancelled": "Cancelled",
+        "ready_for_promotion": "Ready for promotion",
+        "recovery_pending": "Recovery pending"
+      },
+      "progress": {
+        "line": "Progress: stage {{stage}} · round {{round}} · {{survivors}} survivor(s)"
+      },
+      "holdout": {
+        "done": "Holdout finished; {{cases}} per-case observation(s).",
+        "rerunAborted": "Re-run cancelled: no requests were sent.",
+        "rerunCostConfirm": "This session already ran a formal holdout whose result was voided. Re-running it will spend fresh API budget (requests/tokens). Confirm the cost and re-run the holdout once?"
+      },
+      "sessions": {
+        "loading": "Loading sessions…",
+        "title": "Optimization sessions",
+        "empty": "No optimization sessions yet. Create one to lock a suite, rubric, connection and budget snapshot.",
+        "cardMeta": "{{candidates}} candidates · created {{created}} · updated {{updated}}",
+        "refresh": "Refresh",
+        "new": "New session",
+        "noSelection": "Select an optimization session to see its stage, candidates and budget.",
+        "loadingDetail": "Loading the selected session…"
+      },
+      "busy": "A paid optimization job is running…",
+      "clone": {
+        "done": "Cloned as {{cloneId}} (fresh search split, no old holdout data)."
+      },
+      "toggle": "Optimization",
+      "detail": {
+        "header": "{{state}} · suite {{suite}} · rubric {{rubric}} · baseline {{baseline}} · created {{created}}"
+      }
+    },
+    "profile": {
+      "format": {
+        "plainSections": "Plain sections",
+        "compactBrackets": "Compact brackets",
+        "taggedLines": "Tagged lines"
+      },
+      "form": {
+        "cancel": "Cancel",
+        "characterSet": "Character set",
+        "section": {
+          "detail": "Detail",
+          "enabled": "On",
+          "name": "Section",
+          "order": "Order",
+          "maxTokens": "Max tokens",
+          "maxItems": "Max items"
+        },
+        "error": {
+          "maxTokensRange": "Max tokens must be an integer between 1 and {{max}}.",
+          "nameRequired": "Name is required.",
+          "noSections": "Enable at least one section.",
+          "maxItemsRange": "Max items must be an integer between 1 and {{max}}.",
+          "orderRange": "Section order must be a non-negative integer.",
+          "tokenRange": "Max total tokens must be an integer between {{min}} and {{max}}."
+        },
+        "saved": "Saved as revision {{revision}}.",
+        "language": "Language",
+        "name": "Name",
+        "language_zh": "简体中文",
+        "save": "Save new revision",
+        "format": "Format",
+        "language_en": "English",
+        "includeCharacterIds": "Include character IDs",
+        "maxTotalTokens": "Max total tokens"
+      },
+      "card": {
+        "meta": "{{language}} · {{revisions}} revision(s) · latest r{{latest}}"
+      },
+      "section": {
+        "traits": "Traits",
+        "prowess": "Prowess",
+        "age": "Age",
+        "titlesAndPositions": "Title & positions",
+        "sceneAndLocation": "Scene & location",
+        "economy": "Wealth",
+        "opinion": "Opinion",
+        "militaryBrief": "Military situation",
+        "identity": "Identity",
+        "faithAndCulture": "Faith & culture",
+        "personality": "Personality",
+        "relations": "Relations",
+        "familyAndHouse": "Family & house"
+      },
+      "characterSet_speakerAndPlayer": "Speaker + player",
+      "detail": {
+        "detailed": "Detailed",
+        "standard": "Standard",
+        "compact": "Compact"
+      },
+      "preview": {
+        "totalTokens": "Total tokens",
+        "button": "Preview profile",
+        "profileHash": "Profile hash",
+        "failed": "Preview failed: {{message}}",
+        "noProfile": "Select or create a profile to preview.",
+        "title": "Profile preview",
+        "diff": {
+          "mixed": "Rendered vs. captured (mixed provenance):",
+          "deterministic": "Rendered description matches the captured one (deterministic)."
+        },
+        "busy": "Rendering…",
+        "noPreview": "The rendered description will appear here.",
+        "captured": "Captured description",
+        "noFixture": "Select a sample in the library to preview against."
+      },
+      "characterSet_allParticipants": "All participants",
+      "new": "New profile",
+      "characterSet_speakerTargetAndPlayer": "Speaker + target + player",
+      "protected": "protected",
+      "characterSet": "Character set",
+      "title": "Description profiles",
+      "edit": "Edit",
+      "noProfiles": "No profiles yet. Create one to start editing a declarative participant description."
+    },
+    "benchmark": {
+      "candidates": {
+        "empty": "No candidates yet. Wrap a variant below.",
+        "wrap": {
+          "targetedFailures": "Targeted failures (comma-separated)",
+          "error": {
+            "idRequired": "The candidate id must use safe characters (letters, digits, '_' or '-').",
+            "variantMissing": "The selected variant no longer exists. Refresh and try again.",
+            "noVariant": "Select a variant."
+          },
+          "id": "Candidate id",
+          "variant": "Global variant",
+          "create": "Create candidate",
+          "created": "Candidate '{{id}}' created.",
+          "hypothesis": "Mutation hypothesis",
+          "riskTags": "Risk tags (comma-separated)"
+        },
+        "cardMeta": "r{{revision}} · {{createdBy}} · created {{created}}",
+        "mode": {
+          "inheritCaptured": "inherit-captured",
+          "trustedScript": "trusted-script",
+          "profile": "profile"
+        },
+        "delete": "Delete",
+        "deleteRefused": "The candidate could not be deleted (a revision is protected).",
+        "profile": {
+          "create": "Create profile candidate",
+          "profile": "Description profile",
+          "error": {
+            "profileMissing": "The selected profile no longer exists. Refresh and try again.",
+            "noProfile": "Select a description profile."
+          },
+          "created": "Profile candidate '{{id}}' created."
+        },
+        "title": "Candidates",
+        "deleteConfirm": "Delete candidate '{{id}}'? This cannot be undone.",
+        "noProfiles": "No saved description profiles yet. Create one in the profiles column first.",
+        "protected": "protected",
+        "noVariants": "No saved variants yet. Create one in the variant editor first.",
+        "wrapTitle": "Wrap variant as candidate",
+        "profileTitle": "Create profile candidate"
+      },
+      "rubric": {
+        "form": {
+          "error": {
+            "descriptionTooLong": "Dimension '{{key}}' description must be at most 1000 characters.",
+            "invalidWeight": "Dimension '{{key}}' weight must be a number between 0 and 1.",
+            "noDimensions": "Add at least one dimension.",
+            "missingAnchors": "Dimension '{{key}}' needs anchors for every level 1-5.",
+            "thresholdField": {
+              "maxCriticalHardFailures": "max critical hard failures",
+              "minFinalistScore": "min finalist score",
+              "minHoldoutGroups": "min holdout groups",
+              "minPairwiseAgreement": "min pairwise agreement",
+              "minValidationImprovement": "min validation improvement"
+            },
+            "invalidHardFailure": "Hard failures must come from the whitelist.",
+            "idRequired": "The rubric id must use safe characters (letters, digits, '_' or '-').",
+            "descriptionRequired": "Dimension '{{key}}' needs a description.",
+            "duplicateDimension": "Duplicate dimension '{{key}}'.",
+            "anchorTooLong": "Dimension '{{key}}' anchors must be at most 1000 characters each.",
+            "invalidThreshold": "'{{field}}' is out of range.",
+            "nameRequired": "Name is required."
+          },
+          "dimensions": "Dimensions",
+          "thresholds": "Promotion thresholds",
+          "dimension": {
+            "anchorLabel": "Level {{level}}",
+            "moveDown": "Move down",
+            "core": "Core",
+            "weight": "Weight",
+            "description": "Description",
+            "moveUp": "Move up",
+            "anchors": "Anchors (1-5)"
+          },
+          "name": "Name",
+          "versionNote": "Saving writes a NEW version (v{{version}}) under '{{id}}'; benchmarks already run keep their locked rubric snapshot and hash.",
+          "threshold": {
+            "minFinalistScore_hint": "Range 1-5; minimum mean score before holdout is recommended.",
+            "minPairwiseAgreement": "Min pairwise agreement",
+            "minFinalistScore": "Min finalist score",
+            "minValidationImprovement_hint": "Non-negative; absolute mean improvement over baseline required on validation.",
+            "minPairwiseAgreement_hint": "Range 0-1; minimum judge pairwise agreement for automatic selection.",
+            "maxCriticalHardFailures": "Max critical hard failures",
+            "minHoldoutGroups": "Min holdout groups",
+            "minValidationImprovement": "Min validation improvement",
+            "minHoldoutGroups_hint": "Positive integer; minimum valid holdout fixture groups for a production recommendation.",
+            "maxCriticalHardFailures_hint": "Non-negative integer; tolerated on holdout."
+          },
+          "saveConfirm": "Save as a NEW version? Existing benchmark runs keep their locked rubric snapshot and hash.",
+          "title": "Rubric editor",
+          "hardFailures": {
+            "candidate": "Candidate hard failures",
+            "critical": "Critical hard failures"
+          },
+          "saved": "Rubric '{{id}}' saved as version {{version}}.",
+          "currentHash": "Current version hash: {{hash}}",
+          "save": "Save new version",
+          "noChanges": "No changes since the current version; nothing to save.",
+          "cancel": "Cancel",
+          "id": "Rubric id"
+        }
+      },
+      "coverage": {
+        "missingFixtures": "Missing fixtures: {{fixtures}}",
+        "split": {
+          "validation": "Validation",
+          "holdout": "Holdout",
+          "search": "Search"
+        },
+        "noWarnings": "No coverage warnings.",
+        "items": "Items",
+        "groups": "Groups",
+        "title": "Suite coverage",
+        "fixtures": "Fixtures"
+      },
+      "detail": {
+        "export": "Export",
+        "run": "Run",
+        "plan_maxRequests": "Max requests",
+        "plan_suite": "Suite",
+        "runs": "Runs",
+        "plan_repetitions": "Repetitions",
+        "plan_connectionFingerprint": "Connection fingerprint",
+        "plan_orderingSeed": "Ordering seed",
+        "plan_rubric": "Rubric",
+        "plan_maxTokens": "Max tokens",
+        "refresh": "Refresh",
+        "plan": "Plan",
+        "cancelNothing": "No queued runs to cancel; an in-flight request still finishes.",
+        "candidates": "Candidates",
+        "plan_connection": "Connection",
+        "statusCounts": "Status counts",
+        "plan_builder": "Builder version",
+        "cancel": "Cancel queued",
+        "plan_renderer": "Renderer version",
+        "cancelResult": "Cancelled {{count}} queued run(s). An in-flight request still finishes and its result is kept.",
+        "header": "{{state}} · {{provider}} / {{model}} · {{runs}} runs · created {{created}}",
+        "plan_split": "Split",
+        "error": "Error"
+      },
+      "suite": {
+        "form": {
+          "rubric": "Rubric",
+          "error": {
+            "groupRequired": "Every fixture needs a group key.",
+            "idRequired": "The suite id must use safe characters (letters, digits, '_' or '-').",
+            "nameRequired": "Name is required.",
+            "noItems": "Add at least one fixture.",
+            "noRubric": "Select a rubric.",
+            "noModes": "Select at least one prompt mode.",
+            "noFixture": "Every row needs a fixture selected.",
+            "weightRange": "Every fixture weight must be a positive number."
+          },
+          "description": "Description",
+          "autoFillConfirm": "Replace the current suite items with all captured samples?",
+          "name": "Name",
+          "addItem": "Add fixture",
+          "applicableModes": "Applicable prompt modes",
+          "item": {
+            "weight": "Weight",
+            "scenarioTags": "Scenario tags (comma-separated)",
+            "fixture": "Fixture",
+            "groupKey": "Group",
+            "split": "Split"
+          },
+          "cancel": "Cancel",
+          "autoFill": "Auto-fill captured samples",
+          "orderingSeed": "Ordering seed",
+          "id": "Suite id",
+          "autoFillEmpty": "There are no captured samples to add.",
+          "builderVersion": "Target builder version: {{version}} (frozen-input rebuilds must match).",
+          "autoFillDone": "Added {{count}} captured samples across {{groups}} independent groups.",
+          "items": "Fixtures",
+          "saved": "Saved as revision {{revision}}.",
+          "save": "Save suite",
+          "removeItem": "Remove"
+        }
+      },
+      "create": {
+        "error": {
+          "connectionMismatch": "The configured connection changed to {{provider}} / {{model}} since this plan was made. Review the connection and create the benchmark again.",
+          "noSuite": "Select a suite.",
+          "suiteLoading": "Could not load the selected suite. Refresh and try again.",
+          "noCandidates": "Select at least one candidate.",
+          "noConnection": "No API connection is configured."
+        },
+        "noCandidates": "No candidates yet. Create candidates before planning a benchmark.",
+        "split": "Split",
+        "confirm": {
+          "orderingSeed": "Ordering seed",
+          "parameters": "Locked parameters",
+          "maxOutputTokens": "Max output tokens",
+          "providerModel": "Provider / model",
+          "repetitions": "Repetitions per fixture",
+          "runs": "Total runs (estimate)"
+        },
+        "confirmButton": "Create benchmark",
+        "next": "Next",
+        "connection": "Target connection: {{provider}} / {{model}}",
+        "candidates": "Candidates",
+        "costWarning": "Running this benchmark will make real API requests and incur real costs.",
+        "suite": "Suite",
+        "rubric": "Rubric",
+        "back": "Back",
+        "orderingSeed": "Ordering seed",
+        "repetitions": "Repetitions",
+        "title": "New benchmark"
+      },
+      "suites": {
+        "cardMeta": "r{{revision}} · {{items}} items · created {{created}}",
+        "title": "Benchmark suites",
+        "new": "New suite",
+        "cardRubric": "rubric {{rubricId}}",
+        "empty": "No suites yet. Create one to assemble a multi-fixture comparison.",
+        "edit": "Edit",
+        "plan": "Plan / coverage"
+      },
+      "benchmarks": {
+        "state": {
+          "partial": "partial",
+          "draft": "draft",
+          "cancelled": "cancelled",
+          "running": "running",
+          "completed": "completed"
+        },
+        "title": "Benchmarks",
+        "empty": "No benchmarks yet. Create one from a saved suite and candidates.",
+        "cardMeta": "{{runs}} runs · {{completed}} completed · created {{created}}",
+        "noSelection": "Select a benchmark to inspect its plan and runs.",
+        "new": "New benchmark",
+        "loading": "Loading benchmark…"
+      },
+      "view": {
+        "candidates": "Candidates",
+        "benchmarks": "Benchmarks",
+        "suites": "Suites",
+        "rubrics": "Rubrics"
+      },
+      "rubrics": {
+        "cardId": "id {{id}}",
+        "edit": "Edit",
+        "title": "Rubrics",
+        "new": "New rubric",
+        "cardMeta": "v{{version}} · {{dimensions}} dimensions · hash {{hash}} · saved {{saved}}",
+        "empty": "No rubrics yet. Create one to define scoring dimensions, hard failures and promotion thresholds.",
+        "copy": "Copy as new id"
+      },
+      "run": {
+        "repetition": "rep {{n}}",
+        "output": "Cleaned output"
+      },
+      "tabToggle": "Benchmark"
+    },
+    "judge": {
+      "winner": {
+        "B": "B",
+        "uncertain": "uncertain",
+        "tie": "tie",
+        "A": "A"
+      },
+      "status": {
+        "privacyError": "privacy not confirmed",
+        "judgeFailure": "judge failure",
+        "ok": "ok",
+        "label": "Judge status",
+        "providerError": "provider error"
+      },
+      "stage": {
+        "benchmark": "Benchmark",
+        "title": "Run a judge stage",
+        "candidateB": "Candidate B",
+        "forbiddenBehaviors": "Forbidden behaviors (one per line)",
+        "absCandidateB": "Candidate B (optional)",
+        "error": {
+          "rubricMissing": "The selected rubric no longer exists. Refresh and try again.",
+          "noResponse": "No succeeded run response is available for the selected candidate(s).",
+          "noRubric": "Select a rubric.",
+          "noBenchmark": "Select a benchmark with succeeded runs first.",
+          "distinctCandidates": "Pick two different candidates.",
+          "noConnection": "No judge connection is configured."
+        },
+        "candidateHint": "Responses are taken from the first succeeded run of each candidate. Candidates without a succeeded run are skipped.",
+        "maxRationaleChars": "Max rationale chars",
+        "candidateLabel": "Candidate",
+        "absResults": "Absolute judgment",
+        "order": "Presentation order: Candidate {{first}} then {{second}}.",
+        "mode_absolute": "Absolute",
+        "absCandidateA": "Candidate A (optional)",
+        "requiredConstraints": "Required constraints (one per line)",
+        "mode_pairwise": "Pairwise",
+        "expectedLanguage": "Expected language",
+        "absCandidateC": "Candidate C (optional)",
+        "rubric": "Rubric",
+        "verifiedFacts": "Verified facts (one per line)",
+        "pairResults": "Pairwise judgments",
+        "candidateA": "Candidate A",
+        "mode": "Mode",
+        "run": "Run judge"
+      },
+      "calibration": {
+        "connection": "Judge connection",
+        "create": "Create calibration from human ratings",
+        "checkStale": "stale now",
+        "title": "Calibration",
+        "stat": {
+          "agreement": "agreement",
+          "orderConsistency": "order consistency",
+          "criticalPrecision": "critical failure precision",
+          "kappa": "kappa",
+          "criticalRecall": "critical failure recall"
+        },
+        "meta": "{{pairs}} pairs · created {{created}}",
+        "checkCurrent": "current now",
+        "cardMeta": "{{pairs}} pairs · agreement {{agreement}} · created {{created}}",
+        "error": {
+          "noRubric": "Select a rubric.",
+          "noPairs": "No calibration pairs could be built. Submit human ratings for pairs that also have successful pairwise judge judgments.",
+          "noConnection": "Select a judge connection.",
+          "noPrompt": "The judge prompt is required."
+        },
+        "rubric": "Rubric",
+        "judgePrompt": "Judge prompt",
+        "current": "current",
+        "stale": "stale",
+        "dimensions": "Per-dimension",
+        "empty": "No calibrations stored yet.",
+        "check": "Check current",
+        "listTitle": "Existing calibrations",
+        "created": "Calibration '{{id}}' created."
+      },
+      "rationale": "Rationale",
+      "cached": "cached",
+      "privacy": {
+        "confirm": "Confirm sending to the judge provider",
+        "sameConnection": "The judge reuses the target connection, so no data leaves this machine. Approved.",
+        "noConnection": "No judge connection configured.",
+        "connection": "Judge connection: {{provider}} / {{model}}",
+        "loading": "Loading judge privacy status…",
+        "needsConfirmation": "The judge runs on {{judge}} while the target ran on {{target}}. Judging will send captured data to a SECOND service. Confirm to allow it for this session.",
+        "approved": "Data may leave to the judge provider {{judge}} for this session.",
+        "title": "Judge connection & privacy",
+        "notConfigured": "No API connection is configured. Configure the text-generation connection before running a judge stage."
+      },
+      "judgments": {
+        "empty": "No judge judgments stored for this benchmark yet.",
+        "title": "Judgments",
+        "loading": "Loading judgments…",
+        "load": "Load judgments"
+      },
+      "hardFailures": "Hard failures",
+      "dimensions": "Dimensions",
+      "hardFailures_winner": "winner",
+      "toggle": "Judge & Review",
+      "hardFailures_loser": "loser"
+    },
+    "promotion": {
+      "plan": {
+        "outOfScope": "Not part of issuance scope (provider / model / connection)",
+        "challenger": "Candidate for issuance",
+        "risks": "Risks",
+        "existing": "Existing issuance plans for this session",
+        "configHash": "Current config hash: {{hash}}",
+        "mapped": "Mapped fields (will be written)",
+        "loadFailed": "Could not load issuance plan {{planId}}.",
+        "notPromotable": "Cannot be auto-promoted",
+        "loaded": "Loaded issuance plan {{planId}}.",
+        "close": "Close this plan view",
+        "unmapped": "Unmapped fields (cannot be auto-mapped)",
+        "create": "Create issuance plan (with holdout)",
+        "load": "Load plan",
+        "candidate": "Candidate: {{candidateId}}",
+        "error": {
+          "noChallenger": "Select a challenger candidate before creating the issuance plan."
+        },
+        "holdoutHash": "Holdout hash: {{hash}}",
+        "diagnosticCreated": "Diagnostic plan created: {{planId}} (not applicable).",
+        "loadedDiagnostic": "Loaded diagnostic plan {{planId}} (not applicable).",
+        "refresh": "Re-read plan & current config",
+        "diagnosticNote": "Diagnostic preview only: it carries no holdout evidence and cannot be applied. Re-run with holdout evidence for the formal issuance flow.",
+        "created": "Issuance plan created: {{planId}}.",
+        "files": "Expected files",
+        "diagnostic": "Diagnostic preview (no holdout)",
+        "meta": "Plan {{planId}} · created {{created}} · session {{sessionId}}",
+        "title": "Issuance plan"
+      },
+      "history": {
+        "action": {
+          "rollback": "rollback",
+          "apply": "apply"
+        },
+        "rollback": "Roll back",
+        "title": "Issuance history & rollback",
+        "empty": "No apply or rollback records yet.",
+        "rollbackOf": "Rollback of: {{promotionId}}",
+        "legacy": "legacy",
+        "line": "{{time}} · {{action}} · {{approvedBy}} · {{before}}→{{after}} · {{files}} · plan {{planId}}",
+        "approver": "Rollback approver",
+        "approverRequired": "Enter the approver identity before rolling back.",
+        "rollbackDone": "Rolled back {{promotionId}}; config hash {{hash}}."
+      },
+      "gate": {
+        "approver": "Approver identity entered",
+        "impact": "Impact on future conversations acknowledged",
+        "capability": "Apply backend ready",
+        "critical": "No critical risk blocks the apply",
+        "diagnostic": "Not a diagnostic-only preview",
+        "fresh": "Plan and current config state are fresh",
+        "confirmations": "All required confirmations checked",
+        "fresh_missing": "plan/config changed since loaded; press Re-read",
+        "holdout": "Plan carries holdout evidence"
+      },
+      "apply": {
+        "approver": "Approver",
+        "impact": "I understand applying will affect subsequent conversations.",
+        "gateBlocked": "The apply checklist is not satisfied; check the gate rows above.",
+        "done": "Applied {{promotionId}}; new config hash {{hash}}.",
+        "approverRequired": "Enter the approver identity before applying.",
+        "stale": "The production config changed since this plan was made; re-read the plan and current config before applying.",
+        "button": "Apply to production",
+        "title": "Apply confirmation"
+      },
+      "budget": {
+        "title": "Memory/summary budget",
+        "memory": "maxMemoryTokens: {{before}} → {{after}}",
+        "summary": "maxSummaryTokens: {{before}} → {{after}}"
+      },
+      "profile": {
+        "title": "Description profile",
+        "line": "{{profileId}} · revision {{revision}} · hash {{hash}} · renderer v{{rendererVersion}} · file {{file}}"
+      },
+      "diff": {
+        "mainPrompt": "mainPrompt",
+        "empty": "No line diff available for the mapped prompt fields.",
+        "suffixPrompt": "suffixPrompt",
+        "title": "Production diff (current → candidate)"
+      }
+    },
+    "nav": {
+      "advancedMenu": "Advanced tools menu",
+      "ariaLabel": "Prompt workbench modes"
+    },
+    "bundle": {
+      "error": {
+        "targetGone": "The sample no longer exists. Refresh and try again."
+      },
+      "import": {
+        "allowSensitive": "I understand the risks; import anyway.",
+        "confirm": "Import",
+        "reason": {
+          "unsupported-fixture-schema": "Unknown fixture schema version (newer than this app supports).",
+          "hash-mismatch": "Fixture hash does not match its content.",
+          "fixture-too-large": "Fixture exceeds the per-entry size limit.",
+          "invalid-fixture-schema": "Fixture failed JSON schema validation.",
+          "invalid-hash-field": "Entry hash field is not a sha256 hex string.",
+          "invalid-fixture-field": "Entry carries no fixture object.",
+          "invalid-entry": "Malformed bundle entry."
+        },
+        "conflict": "conflicts with an existing sample",
+        "policy": {
+          "newId": "import with a new id (default)",
+          "skip": "skip conflicting samples"
+        },
+        "error": {
+          "fileTooLarge": "The selected file is too large (the bundle size limit is 50 MB).",
+          "inspect": "The bundle was rejected: {{message}}",
+          "fileRead": "Could not read the selected file.",
+          "import": "Import was refused: {{message}}"
+        },
+        "hint": "Pick a fixture bundle JSON file. Nothing is written until you review the preview and confirm.",
+        "resultEvicted": "Permanently evicted local samples (rolling retention): {{ids}}",
+        "gateOff": "Fixture bundle import is disabled in the workbench settings (export is always available).",
+        "evictionScope": "{{count}} sample(s): {{ids}}",
+        "button": "Import samples",
+        "risks": "Sensitive content detected - import is refused by default:",
+        "result": "Imported {{imported}} · skipped {{skipped}} · failed {{failed}}.",
+        "eviction": "Importing will permanently evict local samples through the rolling retention (this cannot be undone):",
+        "refusedSensitive": "Sensitive content was detected. Import stays disabled unless you confirm the override below.",
+        "done": "Import finished",
+        "entryCount": "The bundle contains {{count}} sample(s).",
+        "resultFailed": "Failed/skipped ids: {{ids}}",
+        "conflictPolicy": "Conflicting sample ids:",
+        "title": "Import fixture bundle"
+      },
+      "export": {
+        "button": "Export samples",
+        "none": "Nothing to export: the current selection is empty.",
+        "error": "Export failed: {{message}}",
+        "cancelled": "Export cancelled.",
+        "error_tooMany": "Select at most {{max}} samples to export (reduce the filter or the batch selection).",
+        "done": "Exported {{count}} sample(s) to {{path}}."
+      },
+      "risk": {
+        "dotdot-segment": "'..' path segment",
+        "file-url": "file:// URL",
+        "unc-path": "UNC path",
+        "sk-token": "API key-like token (sk-…)",
+        "windows-absolute-path": "Windows absolute path",
+        "api-key-field": "API key / authorization field",
+        "private-key-block": "Private key block",
+        "bearer-token": "Bearer token",
+        "unix-absolute-path": "Unix absolute path"
+      },
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "cost": {
+      "budget": {
+        "tokens": "Budget tokens (in est/act · out est/act)",
+        "requests": "Budget requests (used / max)"
+      },
+      "role": {
+        "proposer": "Proposer connection",
+        "target": "Target connection",
+        "judge": "Judge connection"
+      },
+      "budgetExhausted": "Budget exhausted: no further requests are allowed.",
+      "plan": {
+        "repetitions": "Repetitions",
+        "tokens": "Estimated input tokens",
+        "requests": "Requests"
+      },
+      "cloneButton": "Clone as a new plan",
+      "busy": "A global paid job is running: {{kind}} ({{jobId}}).",
+      "title": "Cost & prerequisites",
+      "stopSemantics": "Stop cancels only requests that have not started yet; requests already sent will finish and keep their results.",
+      "noConnection": "No API connection configured.",
+      "cloneNote": "The connection changed since this session was created; the session keeps its locked connection. Cloning starts a fresh search cycle on the same locked connection; creating a new session uses the current connection."
+    },
+    "mode": {
+      "description": "Description profiles",
+      "simple": "Start optimization",
+      "quick": "Quick experiments",
+      "conversation": "Conversation",
+      "benchmark": "Benchmark",
+      "optimization": "Optimization & issuance",
+      "advanced": "Advanced tools",
+      "aiToAiReply": "AI-to-AI reply",
+      "applied": "Applied versions",
+      "history": "Task history",
+      "aiToAiInitiate": "AI-to-AI initiate",
+      "selfTalk": "Self-talk"
+    },
+    "run": {
+      "status": {
+        "cancelled": "cancelled",
+        "succeeded": "succeeded",
+        "failed": "failed",
+        "running": "running",
+        "interrupted": "interrupted",
+        "queued": "queued"
+      },
+      "repetition": "rep {{n}}",
+      "seedSent": "A seed was sent with this run; repetitions with the same seed are comparable.",
+      "errorCategory": "Error ({{category}})",
+      "ratedBadge": "rated",
+      "cleanedOutput": "Cleaned output",
+      "determinismUnavailable": "This provider does not support seeds; repetitions are randomness samples, not deterministic replays.",
+      "rawOutput": "Raw response",
+      "seedNotSent": "The provider supports seeds but none was sent.",
+      "cacheNote": "This run executed at position #{{position}}. Cache-hit tokens depend on execution order (a shared prefix may have been warmed by earlier runs); do not read them as proof of prompt quality."
+    },
+    "captureSettings": {
+      "captureEnabled": "Capture conversation samples",
+      "quotaMBHelp": "Maximum total size of captured samples per campaign/player scope, in megabytes.",
+      "invalidQuota": "Storage quota must be a positive integer of MB.",
+      "invalidRetainCount": "Samples kept must be an integer between 1 and 200.",
+      "retainCount": "Samples kept per scope",
+      "title": "Capture settings",
+      "privacyNote": "Captured samples may contain sensitive in-game information (secrets, schemes, memories). They are stored on this machine only and are never uploaded.",
+      "quotaMB": "Storage quota per scope (MB)",
+      "save": "Save",
+      "intro": "Toggle the conversation-sample capture switch here. Captured samples stay on this machine and are never uploaded.",
+      "captureHelp": "Capture the exact prompts sent to the API together with a game data snapshot, so they can be replayed and compared in the workbench.",
+      "retainCountHelp": "How many of the newest captured samples are kept per campaign/player scope (1-200).",
+      "cancel": "Cancel"
+    },
+    "review": {
+      "table": {
+        "pair": "Pair",
+        "dims": "Dims",
+        "failures": "Hard failures",
+        "time": "Submitted",
+        "winner": "Winner",
+        "note": "Note"
+      },
+      "dimension": {
+        "none": "—"
+      },
+      "ratingsTitle": "Submitted ratings",
+      "dimensions": "Dimension scores",
+      "pairId": "Pair id",
+      "winner": "Winner",
+      "error": {
+        "pairIdRequired": "A pair id is required."
+      },
+      "anonymousHint": "Reviewers judge the anonymous pair as 'Candidate A' vs 'Candidate B' against the reference facts; candidate names and rationale stay hidden until you reveal them.",
+      "submit": "Submit rating",
+      "hardFailures": "Hard failures (comma-separated)",
+      "submitted": "Rating '{{id}}' submitted.",
+      "ratingsEmpty": "No human ratings submitted in this session yet.",
+      "title": "Human review queue",
+      "reveal": {
+        "mapping": "Candidate A = {{a}}, Candidate B = {{b}} (plan order).",
+        "hide": "Hide candidates",
+        "show": "Reveal candidates"
+      },
+      "note": "Review note"
+    },
+    "restore": "Restore",
+    "manifest": {
+      "dependencyMatches": "matches",
+      "noProvenance": "Custom JS captured-only",
+      "untrustedIncomplete": "Untrusted / incomplete",
+      "mismatch": "Mismatch",
+      "dependencyMismatch": "mismatch",
+      "trusted": "Trusted",
+      "missing": "Script missing on disk",
+      "title": "Description source",
+      "entry": "Entry: {{fileName}}"
+    },
+    "wizard": {
+      "step3": {
+        "body1": "Close this window, play CK3 with the VOTC mod and finish a real conversation (a few turns). Come back here - the captured conversation will be in the Sample library.",
+        "title": "Play one real conversation"
+      },
+      "step4": {
+        "title": "Your first sample",
+        "ready": "Samples are here. Open one in the Sample library, then press “New variant” in the variant editor to copy the Production prompt into an editable variant (frozen input) — the captured literal baseline stays untouched for comparison.",
+        "waiting": "No samples yet. After a real in-game conversation with capture enabled, the captured sample appears here automatically."
+      },
+      "step2": {
+        "bodyOff": "Capture is currently OFF. It is opt-in: open the app config window (system tray → Open config window → Prompt workbench) and enable it there. The wizard never turns capture on for you.",
+        "title": "Capture setting",
+        "settingsHint": "Retention count and quota are also configured in the app config window.",
+        "bodyOn": "Capture is ON. New in-game conversations will appear as samples in the library below."
+      },
+      "stepLabel": "Step {{current}} of {{total}}",
+      "title": "First-time wizard",
+      "next": "Next",
+      "step9": {
+        "body1": "Rate the outputs blindly (variant names stay hidden until every run is rated), read the conclusion and export the report as Markdown. You are done - the workbench is yours.",
+        "title": "Score and export"
+      },
+      "step6": {
+        "body1": "Open the Diff tab: it compares your variant against the captured literal baseline line by line. The preview also shows the estimated input tokens, so you can see the cost impact of your edit.",
+        "title": "Check the diff and the tokens"
+      },
+      "step1": {
+        "title": "Welcome to the Prompt Workbench",
+        "body1": "VOTC can capture real in-game conversations (campaign and legacy-player scopes) so you can replay them here, edit prompt variants and compare outputs.",
+        "body3": "Captured content is sensitive: it contains in-game secrets and private conversations. Retention is rolling (default 30 per scope, up to 200) and a per-scope quota (default 100 MB) bounds disk usage.",
+        "body2": "Captured samples are stored inside the app data folder (votc_data/prompt_workbench)."
+      },
+      "step5": {
+        "title": "Edit one low-risk field",
+        "body1": "In the variant editor, change ONE low-risk field first (for example a suffix sentence). Keep everything else inherited - a small first change makes the comparison readable."
+      },
+      "badge": {
+        "captureOff": "Capture: off",
+        "fixturesWaiting": "Waiting for samples",
+        "busy": "A paid job is running",
+        "fixturesReady": "Samples available",
+        "connectionMissing": "No connection configured",
+        "captureOn": "Capture: on",
+        "connectionReady": "Connection configured"
+      },
+      "completed": "First-time wizard completed - the full workflow is now yours.",
+      "later": "Later (don't show again)",
+      "step7": {
+        "title": "Connection and cost",
+        "acknowledge": "I understand this will send real API requests and incur real costs.",
+        "body1": "Below are the connection identities, request count and token estimates for the planned experiment. Review them, then acknowledge the cost to continue."
+      },
+      "step8": {
+        "title": "Run one two-variant experiment",
+        "body1": "Create an experiment with the literal baseline plus your edited variant and run it. Stop only cancels queued requests - an in-flight request finishes and keeps its result."
+      },
+      "settingsError": "Failed to read the workbench settings: {{error}}",
+      "saveErrorNotWritten": "the settings were not written to disk.",
+      "back": "Back",
+      "dismissed": "First-time wizard dismissed; reopen it from the cost panel anytime.",
+      "saveError": "Failed to save the wizard state: {{error}}",
+      "reopen": "First-time wizard",
+      "finish": "Finish"
+    },
+    "modelSettings": {
+      "apiKeyMissing": "No API key is configured",
+      "open": "Model settings",
+      "addProfile": "Add scoring model",
+      "primaryProfile": "Primary scoring model",
+      "judgeHelp": "Scores candidate outputs and produces judge results. Configuring 2+ scoring profiles enables multi-model review (majority vote) so no separate calibration is needed. A different service still requires an in-session privacy confirmation before captured samples are sent to it.",
+      "noModel": "No model selected",
+      "useTextGeneration": "Use primary text-generation connection",
+      "judgeTitle": "Scoring model",
+      "proposerTitle": "Proposal model",
+      "apiKeyNotConfigured": "No API key is saved",
+      "apiKeyKept": "A key is saved; leave blank to keep it",
+      "intro": "The scoring and proposal models use the primary text-generation connection by default. Switch either role to a dedicated model here; saved provider, endpoint, model, and key status are prefilled.",
+      "removeProfile": "Remove",
+      "proposerHelp": "Proposes prompt improvements during optimization and never changes the production conversation model.",
+      "proposerProfile": "Proposal model",
+      "extraProfile": "Extra scoring model #{{index}}",
+      "multiJudgeHint": "{{count}}/{{max}} scoring profiles configured. Add a second profile to enable multi-model review (majority vote) and skip calibration.",
+      "currentlyUsing": "Currently using:",
+      "apiKeyConfigured": "An API key is saved (not shown for security)",
+      "saveRole": "Save this model",
+      "customContext": "Custom context length",
+      "copyMain": "Read primary connection settings",
+      "title": "Prompt Workbench models"
+    },
+    "library": "Sample library",
+    "applied": {
+      "empty": "No applied versions yet.",
+      "detail": {
+        "rollbackOf": "This is a rollback compensation record for {{id}}.",
+        "approvedBy": "Approved by",
+        "title": "Plan detail",
+        "action": "Action",
+        "candidate": "Candidate",
+        "plan": "Plan",
+        "appliedAt": "Applied at",
+        "mappedFields": "Config fields written",
+        "files": "Files"
+      },
+      "title": "Applied versions"
+    },
+    "create": {
+      "selectVariants": "Select the variants to compare on the current sample:",
+      "confirmButton": "Create experiment",
+      "confirm": {
+        "maxOutputTokens": "Max output tokens",
+        "repetitions": "Repetitions per variant",
+        "parameters": "Locked parameters",
+        "providerModel": "Provider / model",
+        "requests": "Total requests",
+        "estimatedTokens": "Total estimated input tokens"
+      },
+      "error": {
+        "baselineSaveFailed": "Failed to save the built-in literal baseline variant.",
+        "noVariants": "Select at least one variant (or the literal baseline).",
+        "connectionMismatch": "The configured connection changed to {{provider}} / {{model}} since this plan was made. Review the connection and create the experiment again."
+      },
+      "noVariants": "No saved variants yet. Create one in the variant editor first.",
+      "next": "Next",
+      "costWarning": "Running this experiment will make real API requests and incur real costs.",
+      "back": "Back",
+      "title": "New experiment"
+    },
+    "compat": {
+      "frozenRebuild_tooltip": "Frozen rebuild: this app's builder can rebuild this sample's captured builder version.",
+      "benchmarkEligible_tooltip": "Benchmark eligibility: candidates can be run against this sample.",
+      "literalReplay_tooltip": "Literal replay: the captured baseline prompt is always replayable.",
+      "descriptionReplay_tooltip": "Description replay: the participant description can be re-derived locally.",
+      "descriptionReplay": "desc",
+      "frozenRebuild": "rebuild",
+      "benchmarkEligible": "bench",
+      "literalReplay": "replay"
+    },
+    "export": {
+      "confirm": "Export",
+      "exportsUnavailable": "The exports list is unavailable.",
+      "success": "Exported {{count}} file(s):",
+      "openFolder": "Open exports folder",
+      "includeGameData": "Include the full GameData snapshot in the JSON export",
+      "noExports": "No exports yet.",
+      "includeGameDataHint": "Sensitive: the GameData snapshot can contain in-game secrets and other private data. It is excluded by default.",
+      "title": "Export report",
+      "recentExports": "Previous exports (newest first)",
+      "error": {
+        "noFormat": "Select at least one export format.",
+        "openFolder": "Failed to open the exports folder."
+      },
+      "formats": "Formats (select at least one)"
+    },
+    "showTrash": "Trash",
+    "capability": {
+      "reason": {
+        "featureGateOff": "This feature is disabled by a configuration gate.",
+        "captureOff": "Prompt capture is turned off in settings.",
+        "serviceInitFailed": "A required service failed to initialize; this feature is unavailable for this session.",
+        "targetConnectionMissing": "No API connection is configured for the target (text-generation) model required to run prompt evaluations.",
+        "judgeConnectionMissing": "No API connection is configured for the judge.",
+        "proposerConnectionMissing": "No API connection is configured for the proposal model required by auto search."
+      }
+    },
+    "hardFailure": {
+      "wrongLanguage": "Wrong language",
+      "spokeForOtherCharacter": "Spoke for another character",
+      "emptyResponse": "Empty response",
+      "fabricatedKeyFact": "Fabricated a key fact",
+      "systemPromptLeak": "Leaked the system prompt",
+      "unparseableFormat": "Unparseable format"
+    },
+    "tags": {
+      "title": "Tags of {{id}}",
+      "remove": "Remove this tag",
+      "hint": "At most 20 tags, each up to 64 characters.",
+      "error": {
+        "count": "A sample can carry at most {{max}} tags.",
+        "whitelist": "Tag characters are restricted to letters, digits, _ - space . + # (max 64).",
+        "save": "Could not save the tags.",
+        "duplicate": "This tag already exists."
+      },
+      "addPlaceholder": "new tag (letters, digits, _ - space . + #)",
+      "save": "Save tags",
+      "saved": "Tags of {{id}} saved.",
+      "edit": "Edit tags",
+      "edit_tooltip": "Edit the tags of this sample (limit 20, whitelisted characters)",
+      "add": "Add"
+    },
+    "bar": {
+      "lockedParameters": "Locked: {{parameters}}",
+      "thinkingOn": "thinking on",
+      "stop": "Stop",
+      "stopResult": "Cancelled {{count}} queued run(s). An in-flight request still finishes and its result is kept.",
+      "newExperiment": "New experiment",
+      "planSummary": "Plan: {{requests}} requests · ~{{tokens}} input tokens",
+      "export_tooltip": "Export a report for the selected experiment.",
+      "stopNothing": "No queued runs to cancel; an in-flight request still finishes.",
+      "run": "Run",
+      "thinkingOff": "thinking off",
+      "repetitions": "Repetitions",
+      "noConnection": "No API connection configured",
+      "export": "Export"
+    },
+    "filter": {
+      "promoted_yes": "promoted",
+      "regressionOnly_tooltip": "Show only samples tagged as regression",
+      "outcome": "Source outcome",
+      "mode": "Prompt mode",
+      "outcomeAny": "any outcome",
+      "builder": "Filter by captured builder version",
+      "modeAny": "any mode",
+      "any": "any",
+      "promoted": "Promotion marker",
+      "promoted_no": "not promoted",
+      "resolver": "Filter by captured resolver version",
+      "promotedAny": "any",
+      "regressionOnly": "Regression"
+    },
+    "batch": {
+      "summary": "{{pinned}} pinned · {{regression}} regression",
+      "done": "Batch operation applied to {{count}} sample(s).",
+      "unpin": "Unpin",
+      "pin_tooltip": "Pin the selected samples (protect from automatic eviction)",
+      "pin": "Pin",
+      "addRegression_tooltip": "Tag the selected samples as part of the fixed regression set",
+      "addRegression": "Add to regression",
+      "clear": "Clear selection",
+      "selected": "{{count}} selected",
+      "toggle": "Toggle batch selection",
+      "unpin_tooltip": "Unpin the selected samples",
+      "partial": "Batch operation failed for {{failed}} of {{total}} sample(s).",
+      "removeRegression_tooltip": "Remove the regression tag from the selected samples",
+      "removeRegression": "Remove from regression"
+    },
+    "context": {
+      "summaries": "Summaries",
+      "intelligence": "Private intelligence",
+      "gameFacts": "Save-game facts",
+      "description": "Participant description",
+      "currentSummary": "Current summary",
+      "memories": "Memories"
+    },
+    "diff": {
+      "status": {
+        "added": "added",
+        "unchanged": "unchanged",
+        "removed": "removed",
+        "modified": "modified"
+      },
+      "kindMismatch": "The two requests have different shapes (chat vs. instruct); a per-message diff is unavailable.",
+      "truncated": "Diff truncated for a very long message.",
+      "title": "Current preview vs. the captured literal baseline",
+      "identical": "No differences from the literal baseline."
+    },
+    "trash": {
+      "deletePermanentConfirm": "Delete this sample permanently? It will be removed from disk and cannot be restored.",
+      "deletePermanent_tooltip": "Permanently delete this sample - this cannot be undone",
+      "permanentHint": "Trash deletion is permanent and cannot be undone.",
+      "deleteFailed": "Could not delete the sample.",
+      "deleted": "Sample {{id}} permanently deleted.",
+      "empty": "Empty trash",
+      "deletePermanent": "Delete permanently",
+      "emptyConfirm": "Empty the trash? Every trashed sample will be removed from disk permanently.",
+      "irreversible": "This action is irreversible.",
+      "emptied": "Trash emptied: {{count}} sample(s) removed."
+    },
+    "card": {
+      "capturedAt": "Captured",
+      "messages": "Messages",
+      "tokens": "Est. input tokens"
+    },
+    "conclusion": {
+      "savedToast": "Conclusion saved; it will appear in section 7 of the Markdown report.",
+      "placeholder": "Summarize which variant should ship and why…",
+      "error": {
+        "saveFailed": "Failed to save the conclusion."
+      },
+      "runningLocked": "Conclusion editing is locked while the experiment is running.",
+      "savedState": "Recorded - the conclusion and sign-off appear in section 7 of the Markdown report.",
+      "save": "Save conclusion",
+      "title": "Conclusion & production sign-off",
+      "recommend": "Recommend for production"
+    },
+    "tab": {
+      "raw": "Raw JSON",
+      "messages": "Messages",
+      "sections": "Sections",
+      "diff": "Diff"
+    },
+    "emptyTrash": "Trash is empty.",
+    "truncated": "truncated",
+    "variant": {
+      "delete": "Delete",
+      "deleteConfirm": "Delete variant '{{name}}'?",
+      "baseFrozen": "frozen input",
+      "baseLiteral": "literal baseline",
+      "literalBaseline": "Literal baseline",
+      "literalBaselineHint": "Replays the captured request unchanged. Built in; not editable.",
+      "edit": "Edit",
+      "new": "New variant"
+    },
+    "variantEditor": "Variant editor",
+    "experiment": {
+      "state": {
+        "cancelled": "cancelled",
+        "running": "running",
+        "partial": "partial",
+        "draft": "draft",
+        "completed": "completed"
+      },
+      "empty": "No experiments yet. Create one from the bottom bar.",
+      "noSelection": "Select an experiment, or create one from the bottom bar.",
+      "header": "{{state}} · {{provider}} / {{model}} · {{runs}} runs · {{repetitions}} repetition(s) · created {{created}}",
+      "listToggle": "Experiments",
+      "cardMeta": "Fixture {{fixture}} · {{runs}} runs · created {{created}}"
+    },
+    "tag": {
+      "regression": "regression",
+      "regression_tooltip": "Toggle the 'regression' tag: mark this sample as part of the fixed regression set."
+    },
+    "metric": {
+      "cacheReadTokens": "Cache read",
+      "unknown": "unknown",
+      "retryCount": "Retries",
+      "outputTokens": "Output tokens",
+      "inputTokens": "Input tokens",
+      "cacheMissTokens": "Cache miss",
+      "cacheWriteTokens": "Cache write",
+      "duration": "Duration"
+    },
+    "layout": {
+      "divider": "Resize columns (Left/Right arrows to adjust)"
+    },
+    "blind": {
+      "revealed": "All succeeded runs are rated - variant names revealed.",
+      "maskedHint": "Blind review: variant names stay hidden until every succeeded run has been rated."
+    },
+    "tier": {
+      "literalBaseline": "Captured literal baseline",
+      "warnings": "Notes",
+      "frozenRebuild": "Frozen input / builder v{{version}}"
+    },
+    "preview_notFound": "The selected sample or variant no longer exists. Refresh and try again.",
+    "scope": {
+      "legacyPlayer": "Legacy player",
+      "all": "All scopes",
+      "campaign": "Campaign",
+      "legacyPlayerHint": "Legacy samples cannot be told apart across campaigns of the same player."
+    },
+    "outputCompare": "Output compare",
+    "actionError": "Action failed: {{error}}",
+    "history": {
+      "detail": {
+        "title": "Detail"
+      },
+      "empty": "No simple-mode tasks yet.",
+      "title": "Task history"
+    },
+    "sourceModel": "{{provider}} / {{model}}",
+    "moveToTrash": "Move to trash",
+    "preview_invalidVariant": "The variant is invalid: {{error}}",
+    "searchPlaceholder": "Search names, tags, dates…",
+    "proposer": {
+      "privacy": {
+        "approved": "Data may leave to the proposal provider {{proposer}} for this session.",
+        "needsConfirmation": "The proposal model runs on {{proposer}} while the target ran on {{target}}. Proposing will send captured data to a SECOND service. Confirm to allow it for this session.",
+        "notConfigured": "No API connection is configured. Configure the text-generation connection before generating candidates.",
+        "confirm": "Confirm sending to the proposal provider",
+        "loading": "Loading proposal-model privacy status…"
+      }
+    },
+    "comingSoon": "Coming in a later phase.",
+    "refresh": "Refresh",
+    "narrative": "Narrative",
+    "preview": "Prompt preview",
+    "preview_unsupportedBuilder": "This sample was captured with builder v{{version}}, which this app cannot rebuild. Frozen-input rebuild is disabled; showing the captured literal baseline (read-only).",
+    "completionText": "Instruct text",
+    "section": {
+      "tokens": "tokens",
+      "items": "{{included}}/{{source}} items"
+    },
+    "hideTrash": "Back to library",
+    "trashPreviewNote": "Restore a sample before previewing it.",
+    "preview_buildFailed": "Variant rebuild failed: {{error}}",
+    "unpin": "Unpin",
+    "title": "Prompt Workbench",
+    "showMore": "Show more ({{remaining}} left)",
+    "emptyLibrary": "No captured samples yet. Enable capture in Settings and start a conversation.",
+    "windowTitle": "Prompt Workbench",
+    "noFilterMatches": "No samples match the current filter.",
+    "sample": {
+      "title": "Sample management"
+    },
+    "noSelection": "Select a sample on the left to preview its captured baseline prompt.",
+    "fixtureLoadError": "Failed to load sample: {{error}}",
+    "pin": "Pin (protect from automatic eviction)",
+    "loadError": "Failed to load samples: {{error}}"
+  },
+  "agencyManager": {
+    "attempt": {
+      "columnSourceKind": "Source",
+      "columnStarted": "Started",
+      "buttonRetry": "Retry (gen+1)",
+      "columnRetryable": "Retry",
+      "columnError": "Error",
+      "columnCommitted": "Committed events",
+      "columnStatus": "Status",
+      "empty": "No extraction attempts recorded."
+    },
+    "task": {
+      "formProgress": "Progress note",
+      "columnStatus": "Status",
+      "columnPriority": "Priority",
+      "formTaskTitle": "Title",
+      "formTitle": "New task",
+      "columnAssignee": "Assignee",
+      "buttonRetract": "Retract",
+      "formDescription": "Description",
+      "emptyPlayer": "This character has no relevant tasks at the moment.",
+      "columnDue": "Due",
+      "formAssignee": "Assignee",
+      "columnTitle": "Title",
+      "formVerification": "Verification kind",
+      "buttonProgress": "Add progress note",
+      "buttonCreate": "New task",
+      "buttonEdit": "Edit",
+      "formBeneficiary": "Beneficiaries (comma-separated)"
+    },
+    "status": {
+      "loading": "Loading...",
+      "omniscientExited": "Omniscient mode OFF",
+      "staleContext": "Context is stale (events.json was modified since this window opened). Please close and reopen the window.",
+      "saveSuccess": "Saved",
+      "revisionConflict": "Revision conflict (current: {{current}}, expected: {{expected}}). Refresh the window.",
+      "saveError": "Save failed: {{message}}",
+      "loadError": "Failed to load: {{message}}",
+      "omniscientEntered": "Omniscient mode ON"
+    },
+    "intent": {
+      "columnObjective": "Objective",
+      "buttonRetract": "Retract",
+      "buttonEdit": "Edit",
+      "formOwner": "Owner (default: player)",
+      "columnStatus": "Status",
+      "buttonCreate": "New intent",
+      "columnOwner": "Owner",
+      "columnPriority": "Priority",
+      "columnOrigin": "Origin",
+      "formObjective": "Objective",
+      "formTitle": "New intent",
+      "formPriority": "Priority",
+      "emptyPlayer": "This character has no relevant intents at the moment."
+    },
+    "tabKnowledge": "Knowledge",
+    "badgeAssignee": "[Assignee]",
+    "confirmRetry": "Retry this failed attempt? It will re-run the LLM extraction (with generation+1).",
+    "badgeMine": "[Mine]",
+    "knowledge": {
+      "buttonCreate": "New knowledge",
+      "formTitle": "New knowledge item",
+      "columnAttitude": "Attitude",
+      "columnDisclosure": "Disclosure",
+      "formSubject": "Subject",
+      "columnStatement": "Statement",
+      "formStatement": "Statement",
+      "columnSubject": "Subject",
+      "formTruthStatus": "Truth status",
+      "emptyPlayer": "This character has no relevant knowledge at the moment.",
+      "columnEpistemic": "Epistemic",
+      "buttonEditEdge": "Edit edge"
+    },
+    "identity": {
+      "omniscientOn": "Omniscient (spoiler) — click to exit",
+      "omniscientOff": "Player view",
+      "currentNode": "Current timeline node",
+      "player": "Player character",
+      "revision": "events.json revision"
+    },
+    "tabIntent": "Intent",
+    "confirmRetract": "Retract this item? This is a manual correction and will be recorded as a history event.",
+    "openUnavailableTitle": "Agency Manager unavailable",
+    "windowTitle": "Agency Manager - Voices of the Court",
+    "tabTask": "Task",
+    "omniscientBanner": "OMNISCIENT MODE — you are seeing every character's private state. This is a spoiler view.",
+    "badgeBeneficiary": "[Beneficiary]",
+    "tabExtraction": "Extraction",
+    "openUnavailableMessage": "No active conversation. Open a conversation first to manage Agency state.",
+    "title": "Agency Manager (Character Ledger)",
+    "badgeBehindVeil": "[Behind veil]",
+    "badgeIssuer": "[Issuer]",
+    "confirmEnterOmniscient": "Enter omniscient mode? You will see every character's private state. This is a spoiler view."
+  },
+  "summary": {
+    "windowTitle": "Summary Manager - Voices of the Court",
+    "defaultCharacter": "Default character",
+    "overrideRequiresV2": "Manual summary edits require a matching VOTC v2 mod. Update the mod and reopen this window.",
+    "deleted": "Summary deleted",
+    "overrideScope": "Manual changes are stored as cross-save personal overrides. You can restore the automatic original at any time.",
+    "newContent": "New summary content",
+    "new": "New summary",
+    "filePath": "Summary file path:",
+    "noPlayerId": "Could not parse player ID from the game log",
+    "saveSuccess": "Summaries saved",
+    "noData": "No summary data",
+    "initFailed": "Initialization failed: {{error}}",
+    "update": "Update summary",
+    "updated": "Summary updated",
+    "currentTimeline": "Current timeline",
+    "newDate": "New date",
+    "loadFailed": "Failed to load summary data: {{error}}",
+    "delete": "Delete summary",
+    "confirmDelete": "Delete this summary?",
+    "restorePending": "Automatic content will be restored when you save",
+    "restoreAutomatic": "Restore automatic content",
+    "datePlaceholder": "Example: March 21, 1179",
+    "contentPlaceholder": "Enter summary content...",
+    "listTitle": "Summary list",
+    "loadSuccess": "Summary data loaded",
+    "selectUpdateFirst": "Select a summary to update first",
+    "selectDeleteFirst": "Select a summary to delete first",
+    "loadingData": "Loading summary data...",
+    "selectCharacter": "Select character:",
+    "saving": "Saving summaries...",
+    "selectRestoreFirst": "Select a summary to restore first",
+    "addNew": "Add new summary",
+    "editorTitle": "Edit summary",
+    "manualSource": "Manual override",
+    "added": "New summary added",
+    "automaticSource": "Automatic record",
+    "title": "Summary Manager",
+    "saveFailed": "Failed to save summaries: {{error}}"
+  },
+  "action": {
+    "emotion": {
+      "love": "loving",
+      "speaking": "speaking",
+      "happy": "happy",
+      "sad": "sad",
+      "idle": "idle",
+      "pain": "in pain",
+      "worry": "worried"
+    },
+    "councilPosition": {
+      "大将军": "Grand General",
+      "司户": "Minister of Revenue",
+      "大监察官": "Chief Inspector",
+      "间谍首脑": "Spymaster",
+      "司马": "Minister of War",
+      "财政总管": "Steward",
+      "察事": "Grand Censor",
+      "军事统帅": "Marshal",
+      "宰相": "Chancellor",
+      "掌玺大臣": "Chancellor",
+      "大司库": "Grand Treasurer",
+      "长史": "Grand Chancellor"
+    },
+    "message": {
+      "changeLocation": "Scene changed to {{location}}.",
+      "undressAi": "{{targetName}} removed their clothes.",
+      "appointCommander": "Commander appointment submitted (slot {{arg0}} -> {{arg1}}). Awaiting game validation.",
+      "playerImprisonsAI": {
+        "default": "{{targetName}} was imprisoned.",
+        "house_arrest": "{{targetName}} was placed under house arrest.",
+        "dungeon": "{{targetName}} was thrown into the dungeon."
+      },
+      "playerVassalizingAI": {
+        "accepted": "{{targetName}} agreed to become {{playerName}}'s vassal.",
+        "negotiating": "Vassalization acceptance score: {{arg1}}."
+      },
+      "playerKillsAI": "{{targetName}} was killed.",
+      "aiGetsWounded": "{{targetName}} was wounded!",
+      "improveOpinionOfPlayer": "{{targetName}}'s opinion of you increased by {{arg0}}.",
+      "addTreasury": "{{playerName}}'s treasury gained {{arg0}} gold.",
+      "aiPaysGoldToPlayer": {
+        "paid": "{{targetName}} paid you {{arg0}} gold.",
+        "insufficientFunds": "{{targetName}} does not have enough gold to pay you."
+      },
+      "becomeRivals": "{{targetName}} became your rival.",
+      "setEmotion": "{{targetName}}'s expression changed to {{emotion}}.",
+      "allianceDiplomatic": "{{targetName}} and {{playerName}} formed an alliance.",
+      "assignAiToCouncilPosition": "You appointed {{targetName}} as {{position}} on your council.",
+      "aiInjured": {
+        "disfigured": "You disfigured {{targetName}}.",
+        "blind": "You blinded {{targetName}}.",
+        "cut_balls": "You castrated {{targetName}}.",
+        "remove_eye": "You removed one of {{targetName}}'s eyes.",
+        "cut_leg": "You cut off {{targetName}}'s leg.",
+        "injured": "You injured {{targetName}}."
+      },
+      "aiEmployedByPlayer": "{{targetName}} joined your court.",
+      "becomeSoulmates": "{{targetName}} became your soulmate.",
+      "becomeLovers": "{{targetName}} became your lover.",
+      "assignAiToCourtPosition": "You appointed {{targetName}} as {{position}}.",
+      "playerPaysGoldToAi": "You paid {{targetName}} {{arg0}} gold.",
+      "fireAiFromCouncil": "You dismissed {{targetName}} from your council.",
+      "intercourseA": "You and {{targetName}} became intimate.",
+      "intercourse": "You and {{targetName}} became intimate.",
+      "lowerOpinionOfPlayer": "{{targetName}}'s opinion of you decreased by {{arg0}}.",
+      "intercourseB": "{{character1Name}} and {{character2Name}} became intimate.",
+      "aiConvertsToPlayerReligion": "{{targetName}} converted to your faith.",
+      "newAllianceDiplomatic": "{{targetName}} and {{playerName}} became allies.",
+      "aiAgreedToTruce": "{{targetName}} and {{playerName}} agreed to a {{arg0}}-year truce.",
+      "becomeCloseFriends": "{{targetName}} became your friend."
+    },
+    "location": {
+      "landlesscamp": "the camp",
+      "shaolinsi": "Shaolin Temple",
+      "alley": "an alley",
+      "wulingyuan": "Wulingyuan",
+      "throneroom": "the throne room",
+      "bedchamber_east1": "the eastern bedchamber",
+      "feast": "the feast hall",
+      "kaifenghuangcheng": "Kaifeng Imperial City",
+      "armycamp": "the army camp",
+      "family_meeting_east": "the eastern family hall",
+      "cabinet_meeting": "the council chamber",
+      "tengwangge": "Tengwang Pavilion",
+      "throneroom_east_fuya1": "the magistrate's throne room",
+      "taishan": "Mount Tai",
+      "throneroom_east_empire": "the imperial throne room",
+      "hunt": "the hunt",
+      "family_meeting": "the family hall",
+      "market": "the market",
+      "cabinet_meeting_chinese": "the Chinese council chamber",
+      "tavern": "the tavern",
+      "throneroom_japan": "the Japanese throne room",
+      "throneroom_east_empire1": "the imperial throne room",
+      "cabinet_meeting_chinese_empire": "the imperial council chamber",
+      "yueyanglou": "Yueyang Tower",
+      "tavern_east": "the eastern tavern",
+      "market_east": "the eastern market",
+      "garden": "the garden",
+      "bedchamber": "the bedchamber",
+      "yungangshiku": "Yungang Grottoes",
+      "dungeon": "the dungeon",
+      "huanghelou": "Yellow Crane Tower",
+      "wudangshandaoguan": "Wudang Mountain Taoist Temple",
+      "leshandafou": "the Leshan Giant Buddha",
+      "lingyinsi": "Lingyin Temple",
+      "iron_throne": "the Iron Throne",
+      "throneroom_east_fuya": "the magistrate's throne room",
+      "garden_east1": "the eastern garden"
+    },
+    "courtPosition": {
+      "总管": "Seneschal",
+      "旅行领队": "Travel Leader",
+      "天鹅官": "Keeper of Swans",
+      "音乐家": "Musician",
+      "大施赈官": "High Almoner",
+      "狩猎主管": "Master of the Hunt",
+      "古物收藏家": "Antiquarian",
+      "宫廷小丑": "Court Jester",
+      "宫廷诗人": "Court Poet",
+      "建筑师": "Court Architect",
+      "执杯官": "Cupbearer",
+      "侍女": "Lady-in-waiting",
+      "乳母": "Wet Nurse",
+      "导师": "Tutor",
+      "试食官": "Food Taster",
+      "大法官": "Chief Justice",
+      "马厩总管": "Master of the Horse",
+      "御医": "Court Physician",
+      "侍从官": "Attendant",
+      "宫廷园丁": "Court Gardener",
+      "首席太监": "Chief Eunuch",
+      "宫廷冠军": "Court Champion",
+      "侍卫": "Bodyguard"
+    }
+  },
+  "common": {
+    "close": "Close",
+    "unknown": "Unknown",
+    "loading": "Loading...",
+    "playerId": "Player ID:",
+    "allCharacters": "All characters",
+    "anotherPerson": "Another person",
+    "role": "Character",
+    "player": "Player",
+    "refresh": "Refresh",
+    "someone": "Someone",
+    "openFolder": "Open folder",
+    "character": "Character",
+    "save": "Save",
+    "content": "Content:",
+    "date": "Date:",
+    "currentFile": "Current file:"
+  },
+  "language": {
+    "zh": "Simplified Chinese",
+    "en": "English",
+    "description": "Choose your interface language:",
+    "title": "Language"
+  },
+  "error": {
+    "parseFailed": "Failed to parse data: {{error}}",
+    "noLogFile": "Log file not found: {{path}}",
+    "votcInParseFailed": "Failed to parse game data from log file. Could not find VOTC:IN data in {{path}}. Make sure the user folder path is set correctly and the log file exists and is not empty. This is most likely a mod conflict.",
+    "campaignIdentityInvalid": "The campaign identity in the current snapshot is invalid: {{reason}}. Update the mod and restart; timeline records cannot be created.",
+    "campaignIdentityLegacyMod": "The VOTC mod is out of date: the current snapshot does not carry a campaign id. Update the mod to a version matching this app; timeline records cannot be created in the legacy player-only namespace.",
+    "noSpeech": "{{name}} did not speak.",
+    "loadFailed": "Failed to load: {{error}}",
+    "campaignIdentityUnsupported": "The VOTC mod uses an unsupported timeline protocol schema ({{schema}}). Update both the app and the mod to matching versions; timeline records cannot be created.",
+    "debugLogNotUpdating": "CK3 debug.log has not been updated for {{seconds}} seconds. It may have reached CK3's debug-log output limit; restart CK3 and try again."
+  },
+  "theme": {
+    "title": "Theme Selection",
+    "description": "Choose your preferred UI theme:",
+    "chinese": "Chinese UI",
+    "original": "Original UI",
+    "west": "West UI"
+  },
+  "info": {
+    "legacySaveAdoptedTitle": "Voices of the Court: save upgraded",
+    "legacySaveAdopted": "This save was played with an older VOTC version, so a campaign identity ({{campaignId}}) was created for it just now. Everything already written — conversations, summaries, diaries, letters and battle reports — is kept and stays visible. Records from before the upgrade are shown in every campaign of this save until they are imported."
   }
 }
