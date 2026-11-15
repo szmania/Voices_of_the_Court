@@ -1,5 +1,9 @@
-import enData from './en.json';
-import zhData from './zh.json';
+// Loaded from public/locales at runtime — the same files LocalizationManager uses.
+// A static import is not possible here because tsconfig sets rootDir: "./src".
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const enData = require('../../../public/locales/en.json');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const zhData = require('../../../public/locales/zh.json');
 
 function flattenJson(obj: any, prefix = ''): Record<string, string> {
     let result: Record<string, string> = {};
