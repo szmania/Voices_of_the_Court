@@ -353,6 +353,9 @@
     "roaming_data": "Dossier de données d'itinérance",
     "roaming_data_desc": "Ce dossier contient votre configuration personnelle, vos scripts et vos résumés.",
     "open_roaming_data": "Ouvrir le dossier de données d'itinérance",
+    "chronicle": "Chronique de la cour",
+    "show_chronicle_button": "Afficher la fenêtre de chronique",
+    "show_chronicle_tooltip": "Ouvrir la fenêtre de la chronique de la cour",
     "roleplay_instruction": "[System instruction: Vous êtes {characterName}. Écrivez une réponse à {playerName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.]",
     "roleplay_instruction_ai_to_ai": "[System instruction: Vous êtes {sourceCharacterName}. Écrivez une réponse à {targetCharacterName}. Écrivez une réponse uniquement pour votre personnage. N'écrivez pas de réponses pour d'autres personnages. Utilisez markdown pour les actions, comme *ceci*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1172,6 +1175,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1218,7 +1223,7 @@
     "section_court": "Votre cour",
     "section_circle": "Cercle intérieur",
     "search_placeholder": "Rechercher des murmures...",
-    "tooltip_search": "Rechercher des murmures par section, personnages ou contenu."
+    "tooltip_search": "Rechercher des murmures par section, personnages ou contenu.",
     "delete_success": "Murmure supprimé"
   },
   "incomingLetters": {

@@ -64,12 +64,31 @@ jobs:
             }
           }
 
+      # Rebuild native modules for Electron
       - name: Rebuild native modules for Electron
         run: npx electron-rebuild
 
+      # Apple signing/notarization credentials (macOS only; OPTIONAL).
+      # When MACOS_CERTIFICATE secret is absent (no paid Apple Developer ID),
+      # this step is skipped and forge.config.js falls back to ad-hoc signing.
+      # Users must approve the app via System Settings > Privacy & Security > Open Anyway
+      # (or `xattr -cr /Applications/<App>.app`) on first launch.
+      - name: Import code-signing certificates (macOS, optional)
+        if: matrix.os != 'windows-2022' && secrets.MACOS_CERTIFICATE != ''
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+
+      # Build/package application
       - name: Build/package application
         run: npm run make
-
+        env:
+          # Empty when secrets are absent -> forge.config.js falls back to ad-hoc signing
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       # Move Windows artifacts from C:\tmp\make to out/make so artifact upload matches macOS
       - name: Normalize Windows Artifact Path
         if: matrix.os == 'windows-2022'

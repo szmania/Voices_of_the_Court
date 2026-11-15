@@ -347,6 +347,9 @@
     "roaming_data": "Pasta de dados roaming",
     "roaming_data_desc": "Esta pasta contém suas configurações pessoais, scripts e resumos.",
     "open_roaming_data": "Abrir pasta de dados roaming",
+    "chronicle": "Crônica da corte",
+    "show_chronicle_button": "Mostrar janela de crônica",
+    "show_chronicle_tooltip": "Abrir a janela da crônica da corte",
     "roleplay_instruction": "[Instrução do sistema: Você é {characterName}. Escreva uma resposta para {playerName}. Escreva uma resposta apenas para o seu personagem. Não escreva respostas para nenhum outro personagem. Use markdown para ações, como *isto*.]",
     "roleplay_instruction_ai_to_ai": "[Instrução do sistema: Você é {sourceCharacterName}. Escreva uma resposta para {targetCharacterName}. Escreva uma resposta apenas para o seu personagem. Não escreva respostas para nenhum outro personagem. Use markdown para ações, como *isto*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[Instrução do sistema: Você é {sourceCharacterName}. Agora, escreva uma mensagem para {targetCharacterName}. Escreva uma mensagem apenas para o seu personagem. Não escreva como nenhum outro personagem. Use markdown para ações, como *isto*.]",
@@ -1170,6 +1173,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1216,7 +1221,7 @@
     "section_court": "Sua Corte",
     "section_circle": "Círculo Íntimo",
     "search_placeholder": "Pesquisar sussurros...",
-    "tooltip_search": "Pesquisar sussurros por seção, personagens ou conteúdo."
+    "tooltip_search": "Pesquisar sussurros por seção, personagens ou conteúdo.",
     "delete_success": "Sussurro excluído"
   },
   "incomingLetters": {

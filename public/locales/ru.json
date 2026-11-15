@@ -365,6 +365,9 @@
     "roaming_data": "Папка перемещаемых данных",
     "roaming_data_desc": "Эта папка содержит вашу личную конфигурацию, скрипты и сводки.",
     "open_roaming_data": "Открыть папку перемещаемых данных",
+    "chronicle": "Придворная хроника",
+    "show_chronicle_button": "Показать окно хроники",
+    "show_chronicle_tooltip": "Открыть окно придворной хроники",
     "roleplay_instruction": "[System instruction: Вы {characterName}. Напишите ответ {playerName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.]",
     "roleplay_instruction_ai_to_ai": "[System instruction: Вы {sourceCharacterName}. Напишите ответ {targetCharacterName}. Напишите ответ только для своего персонажа. Не пишите ответы за других персонажей. Используйте markdown для действий, например *так*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1179,6 +1182,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1225,7 +1230,7 @@
     "section_court": "Ваш двор",
     "section_circle": "Внутренний круг",
     "search_placeholder": "Поиск шёпота...",
-    "tooltip_search": "Поиск шёпота по разделу, персонажам или содержимому."
+    "tooltip_search": "Поиск шёпота по разделу, персонажам или содержимому.",
     "delete_success": "Шёпот удалён"
   },
   "incomingLetters": {

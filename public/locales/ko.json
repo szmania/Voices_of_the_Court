@@ -349,6 +349,9 @@
     "roaming_data": "로밍 데이터 폴더",
     "roaming_data_desc": "이 폴더에는 개인 설정, 스크립트 및 요약이 포함되어 있습니다.",
     "open_roaming_data": "로밍 데이터 폴더 열기",
+    "chronicle": "궁정 연대기",
+    "show_chronicle_button": "연대기 창 표시",
+    "show_chronicle_tooltip": "궁정 연대기 창 열기",
     "roleplay_instruction": "[System instruction: 당신은 {characterName}입니다. {playerName}에게 답장을 작성하십시오. 당신의 캐릭터에 대한 답장만 작성하십시오. 다른 캐릭터에 대한 답장은 쓰지 마십시오. 행동은 마크다운을 사용하세요, *이렇게*.]",
     "roleplay_instruction_ai_to_ai": "[System instruction: 당신은 {sourceCharacterName} 입니다. {targetCharacterName} 에게 답장을 작성하십시오. 당신의 캐릭터의 답장만 작성하십시오. 다른 캐릭터의 답장은 작성하지 마십시오. 동작은 마크다운을 사용하세요, *이렇게*.]",
     "roleplay_instruction_ai_to_ai_initiate": "[System instruction: You are {sourceCharacterName}. Now, write a message to {targetCharacterName}. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]",
@@ -1168,6 +1171,8 @@
     "refresh": "Refresh",
     "player": "Player",
     "currentTimeline": "Current timeline",
+    "nextGeneration": "Next Generation",
+    "nextGeneration_disabled": "Disabled",
     "epoch": "Epoch {{epoch}}",
     "noContext": "No chronicle context available",
     "entryNotFound": "Entry not found",
@@ -1214,7 +1219,7 @@
     "section_court": "당신의 궁정",
     "section_circle": "내원",
     "search_placeholder": "속삭기 검색...",
-    "tooltip_search": "섹션, 캐릭터, 또는 콘텐츠에 따라 속삭기를 검색합니다."
+    "tooltip_search": "섹션, 캐릭터, 또는 콘텐츠에 따라 속삭임을 검색합니다.",
     "delete_success": "속삭임이 삭제되었습니다"
   },
   "incomingLetters": {

@@ -99,6 +99,39 @@ export class ChronicleCoordinator {
         private readonly encoder: Tiktoken | null = null
     ) {}
 
+    public calculateNextGenerationDate(signal: ChronicleSignal, config: ChronicleCoordinatorConfig): Ck3GameDate | null {
+        if (config.frequency === 'disabled') return null;
+
+        const periodLimit = config.frequency === 'yearly' ? YEARLY_PERIOD_DAYS : QUARTERLY_PERIOD_DAYS;
+        
+        // We need the last entry to determine the next generation date
+        const store = new ChronicleStore(this.userDataDir, signal.identity);
+        const visible = store.queryVisibleEntries({
+            registry: signal.timeline.registry,
+            currentNodeId: signal.timeline.currentNodeId,
+            checkpointEpoch: signal.timeline.checkpointEpoch,
+            currentGameDate: signal.gameDate,
+            includeEmpty: true
+        });
+
+        if (visible.length === 0) {
+            // If no entries, next generation is based on the first backfill period
+            // This logic mirrors selectPeriod()
+            return {
+                ...signal.gameDate,
+                totalDays: signal.gameDate.totalDays + periodLimit
+            };
+        }
+
+        const sorted = [...visible].sort((a, b) => a.periodEnd.totalDays - b.periodEnd.totalDays);
+        const lastEntry = sorted[sorted.length - 1];
+        
+        return {
+            ...lastEntry.periodEnd,
+            totalDays: lastEntry.periodEnd.totalDays + periodLimit
+        };
+    }
+
     async handleSignal(signal: ChronicleSignal): Promise<ChronicleCoordinatorResult> {
         const config = this.configProvider();
         const identity = signal.identity;
