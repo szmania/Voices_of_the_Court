@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    environment: Production
     strategy:
       matrix:
         os: [macos-latest, windows-2022]
