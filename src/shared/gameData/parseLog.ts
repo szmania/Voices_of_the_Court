@@ -312,7 +312,7 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 }
                 case "k_secret": {
                     if (!gameData) continue;
-                    if (!gameData.characters.has(rootID)) break;
+                    getOrCreateCharacter(rootID); // ensure the character exists even if its 'character' line comes later
                     pendingKnownSecrets.set(rootID, {
                         name: data[1], desc: data[2], category: data[3], type: data[4],
                         otherKnowers: []
@@ -398,42 +398,52 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                 }
                 case "character":
                     if (!gameData) continue;
-                    let char = new Character(data);
-                    gameData!.addCharacter(char.id, char);
+                    const incoming = new Character(data);
+                    const existing = gameData.characters.get(incoming.id);
+                    if (existing) {
+                        // Out-of-order data lines may have created a placeholder via
+                        // getOrCreateCharacter; fill in the real fields but keep the
+                        // data accumulated on the placeholder.
+                        const keep = {
+                            secrets: existing.secrets, memories: existing.memories, traits: existing.traits,
+                            opinions: existing.opinions, relationsToPlayer: existing.relationsToPlayer,
+                            opinionBreakdownToPlayer: existing.opinionBreakdownToPlayer,
+                            relatives: existing.relatives, knownSecrets: existing.knownSecrets
+                        };
+                        Object.assign(existing, incoming);
+                        Object.assign(existing, keep);
+                    } else {
+                        gameData.addCharacter(incoming.id, incoming);
+                    }
                 break;
                 case "memory":
                     if (!gameData) continue;
                     let memory = parseMemory(data)
-                    gameData!.characters.get(rootID)!.memories.push(memory);
+                    getOrCreateCharacter(rootID).memories.push(memory);
                 break;
                 case "secret":
                     if (!gameData) continue;
                     let secret = parseSecret(data)
-                    gameData!.characters.get(rootID)!.secrets.push(secret);
+                    getOrCreateCharacter(rootID).secrets.push(secret);
                 break;
                 case "trait":
                     if (!gameData) continue;
-                    const characterWithTrait = gameData.characters.get(rootID);
-                    if (!characterWithTrait) {
-                        console.warn(`Character with ID ${rootID} not found when trying to add trait. Skipping.`);
-                        continue;
-                    }
                     let trait = parseTrait(data);
-                    characterWithTrait.traits.push(trait);
+                    getOrCreateCharacter(rootID).traits.push(trait);
                 break;
                 case "opinions":
                     if (!gameData) continue;
-                    gameData!.characters.get(rootID)!.opinions.push({id: Number(data[1]), opinion: Number(data[2])});
+                    getOrCreateCharacter(rootID).opinions.push({id: Number(data[1]), opinion: Number(data[2])});
                 break;
                 case "relations":
                     if (!gameData) continue;
                     if(line.split('#')[1] !== ''){
                         const relation = removeTooltip(line.split('#')[1]);
-                        gameData!.characters.get(rootID)!.relationsToPlayer = [relation];
+                        getOrCreateCharacter(rootID).relationsToPlayer = [relation];
                     }
 
                     if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.relationsToPlayer
+                        multiLineTempStorage = getOrCreateCharacter(rootID).relationsToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "relations";
                     }
@@ -465,11 +475,11 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     // would win and misattribute the opinion.
                     if (Number(data[1]) !== gameData.playerID) break;
                     if(line.split('#')[1] !== ''){
-                        gameData!.characters.get(rootID)!.opinionBreakdownToPlayer = [parseOpinionModifier(line.split('#')[1])]
+                        getOrCreateCharacter(rootID).opinionBreakdownToPlayer = [parseOpinionModifier(line.split('#')[1])]
                     }
 
                     if(!line.includes("#ENDMULTILINE")){
-                        multiLineTempStorage = gameData!.characters.get(rootID)!.opinionBreakdownToPlayer
+                        multiLineTempStorage = getOrCreateCharacter(rootID).opinionBreakdownToPlayer
                         isWaitingForMultiLine = true;
                         multiLineType = "opinionBreakdown";
                     }
@@ -634,14 +644,31 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
     console.debug("Finished parsing log file. Game data loaded from last block.");
 
-    function findRelative(rootID: number, relativeID: number): Relative | undefined {
-        return gameData?.characters.get(rootID)?.relatives.find(r => r.id === relativeID);
+function getOrCreateCharacter(rootID: number): Character {
+    if (!gameData) {
+        // This should not happen in normal flow, but return a minimal character to avoid crashes
+        return new Character(new Array(27).fill(''));
     }
+    let char = gameData.characters.get(rootID);
+    if (!char) {
+        // Create a minimal placeholder character with just the ID
+        // The full character data will be populated when the 'character' log line is processed
+        char = new Character(new Array(27).fill(''));
+        char.id = rootID;
+        gameData.characters.set(rootID, char);
+    }
+    return char;
+}
+
+
+
+function findRelative(rootID: number, relativeID: number): Relative | undefined {
+    return gameData?.characters.get(rootID)?.relatives.find(r => r.id === relativeID);
+}
 
     function upsertRelative(rootID: number, id: number, name: string, relationship: string, extras?: Partial<Relative>): void {
         if (!gameData) return;
-        const char = gameData.characters.get(rootID);
-        if (!char) return;
+        const char = getOrCreateCharacter(rootID);
         let rel = char.relatives.find(r => r.id === id);
         if (!rel) {
             rel = { id, name, relationship, isDeceased: false, traits: [], partners: [] };
