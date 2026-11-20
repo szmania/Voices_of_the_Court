@@ -1,4 +1,15 @@
 import { Character } from '../../../src/shared/gameData/Character';
+import type { Relative } from '../../../src/shared/gameData/GameData';
+
+function makeRelative(overrides: Partial<Relative> & Pick<Relative, 'id' | 'name' | 'relationship'>): Relative {
+    return {
+        sheHe: undefined,
+        isDeceased: false,
+        traits: [],
+        partners: [],
+        ...overrides,
+    };
+}
 
 function makeAi(): Character {
     const c = new Character(new Array(27).fill(''));
@@ -78,5 +89,62 @@ describe('getExtendedFactsDescription', () => {
         text = c.getExtendedFactsDescription();
         expect(text).toContain('+5 more');
         expect(text).not.toContain('Mod 20');
+    });
+});
+
+describe('getRelativesDescription', () => {
+    function makeCharacter(overrides: Partial<Character> = {}): Character {
+        const c = new Character(new Array(27).fill(''));
+        c.id = 1; c.fullName = 'Player'; c.sheHe = 'he';
+        Object.assign(c, overrides);
+        return c;
+    }
+
+    it('maps child pronouns to son/daughter (English, Chinese, case-insensitive)', () => {
+        const c = makeCharacter();
+        c.relatives = [
+            makeRelative({ id: 10, name: 'Boy', relationship: 'Child', sheHe: 'he' }),
+            makeRelative({ id: 11, name: 'Girl', relationship: 'Child', sheHe: 'she' }),
+            makeRelative({ id: 12, name: 'CnBoy', relationship: 'Child', sheHe: '他' }),
+            makeRelative({ id: 13, name: 'CnGirl', relationship: 'Child', sheHe: '她' }),
+            makeRelative({ id: 14, name: 'Upper', relationship: 'Child', sheHe: 'SHE' }),
+        ];
+        const text = c.getRelativesDescription(365 * 40);
+        expect(text).toContain('son Boy');
+        expect(text).toContain('daughter Girl');
+        expect(text).toContain('son CnBoy');
+        expect(text).toContain('daughter CnGirl');
+        expect(text).toContain('daughter Upper');
+    });
+
+    it('never renders NaN ages when the current day is missing or invalid', () => {
+        const c = makeCharacter({ birthTotalDays: 365 * 30 });
+        c.relatives = [makeRelative({ id: 10, name: 'Kid', relationship: 'Child', sheHe: 'he', birthTotalDays: 365 * 20 })];
+        expect(c.getRelativesDescription(undefined as unknown as number)).not.toContain('NaN');
+        expect(c.getRelativesDescription(NaN)).not.toContain('NaN');
+        expect(c.getRelativesDescription(365 * 45)).toContain('age 24');
+    });
+
+    it('orders children oldest first and keeps unknown birth days last', () => {
+        const c = makeCharacter();
+        c.relatives = [
+            makeRelative({ id: 1, name: 'Young', relationship: 'Child', sheHe: 'he', birthTotalDays: 365 * 20 }),
+            makeRelative({ id: 2, name: 'NoBirth', relationship: 'Child', sheHe: 'he' }),
+            makeRelative({ id: 3, name: 'Old', relationship: 'Child', sheHe: 'he', birthTotalDays: 365 * 5 }),
+        ];
+        const text = c.getRelativesDescription(365 * 40);
+        expect(text.indexOf('Old')).toBeLessThan(text.indexOf('Young'));
+        expect(text.indexOf('Young')).toBeLessThan(text.indexOf('NoBirth'));
+    });
+
+    it('labels siblings older/younger relative to the character', () => {
+        const c = makeCharacter({ birthTotalDays: 365 * 30 });
+        c.relatives = [
+            makeRelative({ id: 1, name: 'Sis', relationship: 'Sibling', sheHe: 'she', birthTotalDays: 365 * 28 }),
+            makeRelative({ id: 2, name: 'Bro', relationship: 'Sibling', sheHe: 'he', birthTotalDays: 365 * 35 }),
+        ];
+        const text = c.getRelativesDescription(365 * 45);
+        expect(text).toContain('older sister Sis');
+        expect(text).toContain('younger brother Bro');
     });
 });

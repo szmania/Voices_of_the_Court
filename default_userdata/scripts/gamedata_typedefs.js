@@ -354,14 +354,65 @@ export class Character {
             byRelationship.get(rel.relationship)!.push(rel);
         }
 
-        const calcAge = (birthTotalDays: number): number =>
-            Math.floor((gameTotalDays - birthTotalDays) / 365.25);
-
-        const genderWord = (sheHe: string | undefined, word: string): string => {
-            if (sheHe === 'she') return word === 'sibling' ? 'sister' : word;
-            if (sheHe === 'he')  return word === 'sibling' ? 'brother' : word;
-            return word;
+        const genderOf = (sheHe: string | undefined): 'male' | 'female' | 'unknown' => {
+            if (!sheHe) return 'unknown';
+            const value = sheHe.trim().toLowerCase();
+            if (!value) return 'unknown';
+            if (value === 'she' || value === 'her' || value === 'hers' || value === 'female' || value === 'f' || value.includes('她')) {
+                return 'female';
+            }
+            if (value === 'he' || value === 'him' || value === 'his' || value === 'male' || value === 'm' || value.includes('他')) {
+                return 'male';
+            }
+            return 'unknown';
         };
+
+        /**
+         * Map a generic relationship noun to its gendered form. Falls back to the
+         * generic word when the pronoun is missing or unrecognized.
+         */
+        const genderWord = (sheHe: string | undefined, word: 'sibling' | 'child' | 'parent'): string => {
+            const gender = genderOf(sheHe);
+            if (word === 'sibling') {
+                if (gender === 'female') return 'sister';
+                if (gender === 'male') return 'brother';
+                return 'sibling';
+            }
+            if (word === 'child') {
+                if (gender === 'female') return 'daughter';
+                if (gender === 'male') return 'son';
+                return 'child';
+            }
+            if (gender === 'female') return 'mother';
+            if (gender === 'male') return 'father';
+            return 'parent';
+        };
+
+        /**
+         * Ages are only meaningful when both the current day and the birth day are
+         * finite numbers. Returns undefined otherwise so callers omit the field
+         * instead of emitting "age NaN".
+         */
+        const calcAge = (birthTotalDays: number | undefined): number | undefined => {
+            if (!Number.isFinite(gameTotalDays) || birthTotalDays === undefined || !Number.isFinite(birthTotalDays)) {
+                return undefined;
+            }
+            const age = Math.floor((gameTotalDays - birthTotalDays) / 365.25);
+            return Number.isFinite(age) ? Math.max(0, age) : undefined;
+        };
+
+        // Oldest first; relatives without a known birth day keep their original
+        // order at the end of their section.
+        const sortByAge = (members: Relative[]): Relative[] =>
+            members
+                .map((rel, index) => ({ rel, index }))
+                .sort((a, b) => {
+                    const aBirth = Number.isFinite(a.rel.birthTotalDays) ? a.rel.birthTotalDays! : Number.POSITIVE_INFINITY;
+                    const bBirth = Number.isFinite(b.rel.birthTotalDays) ? b.rel.birthTotalDays! : Number.POSITIVE_INFINITY;
+                    if (aBirth !== bBirth) return aBirth - bBirth;
+                    return a.index - b.index;
+                })
+                .map(entry => entry.rel);
 
         const sectionOrder = ['Parent', 'Child', 'Sibling'];
         const sections: string[] = [];
@@ -371,20 +422,34 @@ export class Character {
             if (!members || members.length === 0) continue;
 
             const label = relType === 'Child' ? 'Children' : relType === 'Parent' ? 'Parents' : 'Siblings';
-            const memberStrs = members.map(rel => {
+            const memberStrs = sortByAge(members).map(rel => {
                 const parts: string[] = [];
 
-                // Build the name prefix (e.g. "older brother Heardræd")
-                if (relType === 'Sibling' && rel.birthTotalDays !== undefined && this.birthTotalDays !== undefined) {
-                    const qualifier = rel.birthTotalDays < this.birthTotalDays ? 'older' : 'younger';
-                    parts.push(`${qualifier} ${genderWord(rel.sheHe, 'sibling')} ${rel.name}`);
+                // Build the name prefix (e.g. "older brother Heardræd",
+                // "daughter Æthelflæd").
+                if (relType === 'Sibling') {
+                    const siblingWord = genderWord(rel.sheHe, 'sibling');
+                    const gender = genderOf(rel.sheHe);
+                    if (rel.birthTotalDays !== undefined && this.birthTotalDays !== undefined) {
+                        const qualifier = rel.birthTotalDays < this.birthTotalDays ? 'older' : 'younger';
+                        parts.push(`${qualifier} ${siblingWord} ${rel.name}`);
+                    } else if (gender !== 'unknown') {
+                        parts.push(`${siblingWord} ${rel.name}`);
+                    } else {
+                        parts.push(rel.name);
+                    }
+                } else if (relType === 'Child' || relType === 'Parent') {
+                    const gender = genderOf(rel.sheHe);
+                    const genderNoun = genderWord(rel.sheHe, relType === 'Child' ? 'child' : 'parent');
+                    parts.push(gender === 'unknown' ? rel.name : `${genderNoun} ${rel.name}`);
                 } else {
                     parts.push(rel.name);
                 }
 
                 // Age (living relatives only)
-                if (!rel.isDeceased && rel.birthTotalDays !== undefined) {
-                    parts.push(`age ${calcAge(rel.birthTotalDays)}`);
+                const age = rel.isDeceased ? undefined : calcAge(rel.birthTotalDays);
+                if (age !== undefined) {
+                    parts.push(`age ${age}`);
                 }
 
                 // Death / marital status
