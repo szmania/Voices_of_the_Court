@@ -396,33 +396,31 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
                     }
                     break;
                 }
-                case "character":
-                    if (!gameData) continue;
-                    const incoming = new Character(data);
-                    const existing = gameData.characters.get(incoming.id);
-                    if (existing) {
-                        // Out-of-order data lines may have created a placeholder via
-                        // getOrCreateCharacter; fill in the real fields but keep the
-                        // data accumulated on the placeholder.
-                        const keep = {
-                            secrets: existing.secrets, memories: existing.memories, traits: existing.traits,
-                            opinions: existing.opinions, relationsToPlayer: existing.relationsToPlayer,
-                            opinionBreakdownToPlayer: existing.opinionBreakdownToPlayer,
-                            relatives: existing.relatives, knownSecrets: existing.knownSecrets
-                        };
-                        Object.assign(existing, incoming);
-                        Object.assign(existing, keep);
-                    } else {
-                        gameData.addCharacter(incoming.id, incoming);
-                    }
-                break;
-                case "memory":
-                    if (!gameData) continue;
-                    let memory = parseMemory(data)
-                    getOrCreateCharacter(rootID).memories.push(memory);
-                break;
-                case "secret":
-                    if (!gameData) continue;
+case "character":
+    if (!gameData) continue;
+    const incoming = new Character(data);
+    // Validate the character ID - reject NaN or non-positive IDs
+    if (!Number.isFinite(incoming.id) || incoming.id <= 0) {
+        console.warn(`[parseLog] Skipping malformed character line with invalid ID: ${incoming.id}`);
+        break;
+    }
+    const existing = gameData.characters.get(incoming.id);
+    if (existing) {
+        // Out-of-order data lines may have created a placeholder via
+        // getOrCreateCharacter; fill in the real fields but keep the
+        // data accumulated on the placeholder.
+        const keep = {
+            secrets: existing.secrets, memories: existing.memories, traits: existing.traits,
+            opinions: existing.opinions, relationsToPlayer: existing.relationsToPlayer,
+            opinionBreakdownToPlayer: existing.opinionBreakdownToPlayer,
+            relatives: existing.relatives, knownSecrets: existing.knownSecrets
+        };
+        Object.assign(existing, incoming);
+        Object.assign(existing, keep);
+    } else {
+        gameData.addCharacter(incoming.id, incoming);
+    }
+    break;
                     let secret = parseSecret(data)
                     getOrCreateCharacter(rootID).secrets.push(secret);
                 break;
@@ -646,20 +644,21 @@ async function readLastRelevantBlock(filePath: string): Promise<string | undefin
 
 function getOrCreateCharacter(rootID: number): Character {
     if (!gameData) {
-        // This should not happen in normal flow, but return a minimal character to avoid crashes
+        return new Character(new Array(27).fill(''));
+    }
+    // Guard against invalid IDs
+    if (!Number.isFinite(rootID) || rootID <= 0) {
+        console.warn(`Attempted to get/create character with invalid ID: ${rootID}`);
         return new Character(new Array(27).fill(''));
     }
     let char = gameData.characters.get(rootID);
     if (!char) {
-        // Create a minimal placeholder character with just the ID
-        // The full character data will be populated when the 'character' log line is processed
         char = new Character(new Array(27).fill(''));
         char.id = rootID;
         gameData.characters.set(rootID, char);
     }
     return char;
 }
-
 
 
 function findRelative(rootID: number, relativeID: number): Relative | undefined {

@@ -186,7 +186,11 @@ export class Conversation{
         if (gameData.characters.size > 2) {
             console.log(`Creating initial messages for ${gameData.characters.size - 1} non-player characters.`);
             gameData.characters.forEach((character) => {
-                if (character.id !== gameData.playerID) {
+                // VOTC-214: skip ghost characters (invalid ID or empty name) so they
+                // never get a placeholder "Has not spoken yet" message.
+                if (character.id !== gameData.playerID &&
+                    Number.isFinite(character.id) && character.id > 0 &&
+                    character.shortName && character.shortName.trim() !== '') {
                     const emptyMessage: Message = {
                         role: "assistant",
                         name: character.shortName,
@@ -1118,8 +1122,14 @@ export class Conversation{
     fillNpcQueue(): void {
         // Silenced characters are excluded so they never respond when spoken to
         // or get picked as random responders (covers the AI-starts-conversation path).
+        // Also exclude characters with invalid IDs or empty names to prevent ghosts.
         this.npcQueue = Array.from(this.gameData.characters.values()).filter(
-            (character) => character.id !== this.gameData.playerID &&
+            (character) => 
+                character.id !== this.gameData.playerID &&
+                Number.isFinite(character.id) &&
+                character.id > 0 &&
+                character.shortName &&
+                character.shortName.trim() !== '' &&
                 !this.gameData.silencedCharacterIds?.has(character.id)
         );
         console.log(`NPC queue filled with ${this.npcQueue.length} characters.`);

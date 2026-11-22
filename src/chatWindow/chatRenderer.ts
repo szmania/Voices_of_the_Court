@@ -919,7 +919,13 @@ function setupCharacterTargeting(gameData: GameData) {
 
     if (!wrapper || !valueDiv || !optionsDiv || !hiddenInput) return;
 
-    const aiCharacters = Array.from(gameData.characters.values()).filter(c => c.id !== gameData.playerID);
+    const aiCharacters = Array.from(gameData.characters.values()).filter(c => 
+        c.id !== gameData.playerID && 
+        Number.isFinite(c.id) && 
+        c.id > 0 && 
+        c.shortName && 
+        c.shortName.trim() !== ''
+    );
 
     if (aiCharacters.length > 1) {
         optionsDiv.innerHTML = '';
