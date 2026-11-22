@@ -157,6 +157,10 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
 
     let messages = messagesOverride ? messagesOverride.slice(0) : conv.messages.slice(0); //pass by value
 
+    // Filter out placeholder "Has not spoken yet" messages to prevent them from appearing in AI prompts
+    // This fixes the AI-speaks-first bug where the model pattern-completes with placeholder text
+    messages = messages.filter(m => !(m.role === 'assistant' && m.content === conv.notSpokenYetText));
+
     let replyToName: string;
     let isAiToAi = false;
 

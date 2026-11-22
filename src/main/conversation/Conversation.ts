@@ -982,7 +982,8 @@ export class Conversation{
             // This ensures detection even if AI generation produces no messages, and avoids the old
             // problem of skipping the AI response entirely when actions were found.
             let playerActionsAlreadyChecked = false;
-            if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID) {
+            const isAiFirstTurn = !this.messages.some(m => m.role === 'user');
+            if (this.config.actionsEnableAll && this.gameData.playerID !== this.gameData.aiID && !isAiFirstTurn) {
                 const lastMessage = this.messages.length > 0 ? this.messages[this.messages.length - 1] : null;
                 if (lastMessage && lastMessage.role === 'user' &&
                     (/\[(.*?)\]/.test(lastMessage.content) || /\*(.*?)\*/.test(lastMessage.content))) {
@@ -3334,7 +3335,7 @@ ${timelineLines}
         console.log(`AI-initiated conversation: forcing ${initiator.shortName} (ID: ${initiatorId}) to speak first.`);
         this.chatWindow.window.webContents.send('ai-first-conversation-loading', true);
         try {
-            await this.processCharacterList([initiator], false, false, true);
+            await this.processCharacterList([initiator], false, false, false);
         } finally {
             this.chatWindow.window.webContents.send('ai-first-conversation-loading', false);
         }
