@@ -1548,7 +1548,10 @@ export class Conversation{
                                             this.pushMessage(narrativeMessage);
                                         }
                                     }
-                                    this.chatWindow.window.webContents.send('actions-receive', collectedActions, narrativeMessage, false);
+                                    // Per-action feedback channel: the renderer must NOT treat this as
+                                    // end-of-turn (no status clear / loading-dot removal) — the turn is
+                                    // still in progress while other actions may be pending.
+                                    this.chatWindow.window.webContents.send('approved-action-feedback', collectedActions, narrativeMessage);
                                 }
                             }).catch(err => {
                                 console.error(`Error during background action check for message ${message.id}:`, err);
@@ -2115,7 +2118,10 @@ Statement by ${character.fullName}:`
                 existingActions.push(actionResponse);
                 this.executedActions.set(messageId, existingActions);
 
-                this.chatWindow.window.webContents.send('actions-receive', [actionResponse], "");
+                // Approval feedback only — NOT end-of-turn. Using 'actions-receive' here made the
+                // renderer clear the "Checking actions..." status label while the turn was still
+                // processing, so send the dedicated feedback channel instead.
+                this.chatWindow.window.webContents.send('approved-action-feedback', [actionResponse], "");
             }
 
             console.log(`Action "${action.signature}" successfully executed after approval.`);

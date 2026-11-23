@@ -2170,6 +2170,15 @@ ipcRenderer.on('actions-receive', async (e, actionsResponse: ActionResponse[], n
     }
 })
 
+// Per-action approval feedback (from executeApprovedAction / background action checks).
+// Unlike 'actions-receive' (end-of-turn), this must ONLY render the feedback: no
+// removeLoadingDots, no updateStatusText('') — the status label ("Checking actions...")
+// must stay visible while the turn is still in progress and other approvals may be pending.
+ipcRenderer.on('approved-action-feedback', async (e, actionsResponse: ActionResponse[], narrativeMessage: Message | null) =>{
+    displayActions(actionsResponse);
+    displayNarrative(narrativeMessage);
+})
+
 ipcRenderer.on('update-base-tokens', (e, count: number) => {
     console.log(`Received updated base token count: ${count}`);
     basePromptTokens = count;
