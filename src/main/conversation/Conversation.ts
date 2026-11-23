@@ -1008,7 +1008,7 @@ export class Conversation{
 
             // Step 1: Get and process targeted characters
             if (targetedCharacters.length > 0) {
-                const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked);
+                const { messages, actions } = await this.processCharacterList(targetedCharacters, false, playerActionsAlreadyChecked, !isAiFirstTurn);
                 allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                 allTurnActions.push(...actions);
                 messages.forEach(msg => {
@@ -1021,7 +1021,7 @@ export class Conversation{
                 console.log('No specific targets. Processing one random character from the queue.');
                 const shuffledQueue = [...this.npcQueue].sort(() => Math.random() - 0.5);
                 if (shuffledQueue.length > 0) {
-                    const { messages, actions } = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked);
+                    const { messages, actions } = await this.processCharacterList([shuffledQueue[0]], false, playerActionsAlreadyChecked, !isAiFirstTurn);
                     allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                     allTurnActions.push(...actions);
                     messages.forEach(msg => {
@@ -1058,7 +1058,7 @@ export class Conversation{
             }
 
             if (respondingCharacters.length > 0) {
-                const { messages, actions } = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked);
+                const { messages, actions } = await this.processCharacterList(respondingCharacters, true, playerActionsAlreadyChecked, !isAiFirstTurn);
                 allGeneratedMessages.push(...messages.filter(m => m !== null) as Message[]);
                 allTurnActions.push(...actions);
             }
