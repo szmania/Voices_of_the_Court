@@ -534,13 +534,13 @@ export async function buildChatPrompt(conv: Conversation, character: Character, 
         roleplayInstruction = roleplayInstructionTemplate
             .replace(/{characterName}/g, character.fullName)
             .replace(/{playerName}/g, replyToName);
-    } else if (!isAiToAi && !isNonTargetedResponse && conv.gameData.aiInitiatorId === character.id && !conv.messages.some(m => m.role === 'user')) {
-        // Case 2.5: AI-initiated conversation (mod ai_speaks_first marker) - the
-        // initiating character opens the conversation itself with a self-invented
-        // reason/topic instead of replying to a previous player message. True only
-        // for the initiating character's first generation: the renderer releases
-        // the input gate when this message arrives, so the player cannot have
-        // typed before it.
+    } else if (!isAiToAi && !isNonTargetedResponse && !conv.messages.some(m => m.role === 'user')) {
+        // Case 2.5: AI-initiated conversation - the speaking character opens the
+        // conversation itself with a self-invented reason/topic instead of
+        // replying to a previous player message. Covers BOTH AI-first paths:
+        // the mod ai_speaks_first marker (aiInitiatorId) and the random
+        // aiStartConversationChance turn. True only while no user message
+        // exists yet; once the player has typed, the normal reply template applies.
         const aiInitiatedTemplate = (translations.system && translations.system.roleplay_instruction_ai_initiated) || "[System instruction: You are {characterName}. You approached {playerName} and are opening this conversation yourself. Come up with a reason or topic to talk about (a request, news, a concern, a rumor, or a personal matter fitting your character, traits, and current situation) and open with it. Do not wait for a reply. Write a message for your character only. Do not write as any other character. Use markdown for actions, like *this*.]";
         roleplayInstruction = aiInitiatedTemplate
             .replace(/{characterName}/g, character.fullName)
